@@ -13,12 +13,9 @@ Orchestrates prompt authoring/adaptation via `discover -> extract+intake -> blue
 
 <workflow_phases>
 
-Orchestrator must trust the system and skills; coordinate only sequence, artifacts, state, and approvals.
-Load only references needed for the current phase.
-
-Agent state tracker file `coding-agents-prompting-flow-state.md` is stored in FEATURE TEMP folder.
-
-Execute phases sequentially, do not skip!
+1. Orchestrator must trust the system and skills; coordinate only sequence, artifacts, state, and approvals.
+2. Load only references needed for the current phase.
+3. Execute phases sequentially, do not skip!
 
 <prerequisites>
 
@@ -29,6 +26,7 @@ Execute phases sequentially, do not skip!
 5. Orchestrator and subagents MUST USE SKILL `coding-agents-prompt-authoring`.
 6. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping.
 7. This workflow MUST be used with Fable, Opus, GPT-5.5+ class models => IF NOT - DEMAND USER TO SWITCH MODEL.
+8. Workflow state MUST be saved to `agents/TEMP/<FEATURE>/coding-agents-prompting-flow-state` file.
 
 </prerequisites>
 
@@ -91,7 +89,7 @@ Execute phases sequentially, do not skip!
 
 1. Validate final artifacts against intent, contracts, failure modes, and traceability.
 2. Input: `Prompt Brief` + `Blueprint` + `Candidate Prompt Set` + `Simulation Notes`. Output: `Final Prompt Set` + `Validation Pack` (`Checklist Results`, `Tests`, `Failure Modes`, `Traceability`; persistent report optional in FEATURE PLAN folder as validation-report.md).
-3. Update coding-agents-prompting-flow-state.md and mark complete.
+3. Update `coding-agents-prompting-flow-state.md` and mark complete.
 4. HITL final approval required before persistence; small tasks may stay in-memory and be returned in message.
 
 </validate>

@@ -69,6 +69,7 @@ Grammar — directive commands the system ACTS ON; protect verbatim + their args
 - Repeated literals → define once as a short alias (e.g. `OUT/ = <long/path>`), reuse everywhere.
 - Cut the fluff.
 - Restated the same thing in different ways.
+- Everything obvious or already known by AI (keep only terms/nudges!).
 
 ## COMPRESS
 - HARD CAP: every rule / bullet line < 10 words.
@@ -79,7 +80,7 @@ Grammar — directive commands the system ACTS ON; protect verbatim + their args
 - Verbose prose / step-narration the agent already infers → terse cue.
   e.g. "ONE PHASE AT A TIME: read file, execute, update state, advance" → "ONE PHASE AT A TIME. READ JIT."
 - Favor unicode connectives for density: → · ⇒ ≠ ± …  (English words only otherwise).
-- DENSE, TERMS, ACRONYMS, TERSE-phrases (not sentences!)
+- DENSE, USE TERMS, ACRONYMS, TERSE-phrases (not sentences!)
 - NUDGE using single words for ACTIONS, ASPECTS, THINKING, GOALS, REASONS, etc.
 
 ## NEVER

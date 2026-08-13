@@ -115,6 +115,7 @@ class ParseCommand(BaseCommand):
             print(f"Found {len(documents)} document(s) (force mode - parsing all)\n")
             
             for document in documents:
+                status = self._count_parse_status(status_counts, document)
                 doc_id = getattr(document, 'id', None)
                 if doc_id:
                     docs_to_parse.append({
@@ -122,7 +123,7 @@ class ParseCommand(BaseCommand):
                         "name": getattr(document, 'name', 'Untitled'),
                         "dataset_id": dataset.id,
                         "folder": ".",
-                        "status": getattr(document, 'run', 'UNSTART')
+                        "status": status
                     })
         else:
             # Default mode: filter by status (need parsing)
@@ -131,10 +132,17 @@ class ParseCommand(BaseCommand):
                 statuses=["FAIL", "UNSTART", "CANCEL"],
                 limit=self.config.page_size
             )
+
+            # Tally skipped documents from the full list so the summary reflects
+            # what this run will not re-trigger.
+            all_documents = dataset.list_documents(page_size=self.config.page_size)
+            for document in all_documents:
+                self._count_parse_status(status_counts, document)
             
             print(f"Found {len(documents_needing_parse)} document(s) needing parsing\n")
             
             for document in documents_needing_parse:
+                status = self._count_parse_status(status_counts, document)
                 doc_id = getattr(document, 'id', None)
                 if doc_id:
                     docs_to_parse.append({
@@ -142,10 +150,19 @@ class ParseCommand(BaseCommand):
                         "name": getattr(document, 'name', 'Untitled'),
                         "dataset_id": dataset.id,
                         "folder": ".",
-                        "status": getattr(document, 'run', 'UNSTART')
+                        "status": status
                     })
         
         return docs_to_parse, status_counts
+
+    def _count_parse_status(self, status_counts: dict[str, int], document: object) -> str:
+        """Tally a document's parse status and return it."""
+        status = getattr(document, 'run', 'UNSTART')
+        if status == 'DONE':
+            status_counts['done'] += 1
+        elif status == 'RUNNING':
+            status_counts['running'] += 1
+        return status
     
     def _print_parse_status(self, docs_to_parse: list[JsonDict], status_counts: dict[str, int], args: CommandArgs) -> None:
         """Print parsing status."""

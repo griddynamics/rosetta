@@ -33,7 +33,7 @@ Rosetta files: terse, SRP/DRY/MECE. Markdown headers = Auto-TOC (grep + line-ran
 - `docs/REQUIREMENTS/*`, `docs/PATTERNS/*` — requirements / patterns; each: `INDEX.md` index, `CHANGES.md` log
 - `agents/IMPLEMENTATION.md` — implementation state; the only changelog
 - `agents/MEMORY.md` — root causes, what worked and failed
-- `plans/<FEATURE>/` — `<FEATURE>-PLAN.md` execution plan, `<FEATURE>-SPECS.md` tech specs, `plan.json` EXECUTION_CONTROLLER tracking, supporting files
+- `plans/<FEATURE>/` — contains `<FEATURE>-PLAN.md` execution plan, `<FEATURE>-SPECS.md` tech specs, `plan.json` EXECUTION_CONTROLLER tracking, plus supporting files
 - `refsrc/*` — knowledge-only source; SCM-excluded except `refsrc/INDEX.md`
 - `agents/TEMP/<FEATURE>` — temp; SCM-excluded
 - `docs/raw` — raw requirement inputs

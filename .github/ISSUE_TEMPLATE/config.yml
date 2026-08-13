@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Not sure where your idea fits?
+    url: https://github.com/griddynamics/rosetta/blob/main/CONTRIBUTING.md
+    about: Read CONTRIBUTING.md for guidance, or open a blank issue.

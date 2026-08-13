@@ -10,15 +10,16 @@ baseSchema: docs/schemas/workflow.md
 ## Context
 
 - Purpose: Onboard AI to external codebase for usage understanding
-- Tool: Repomix MCP to package codebase (compressed XML)
-- Target: Two documents in RefSrc folder and in Rosetta
+- Tool: Repomix (MCP or CLI) to package codebase (compressed XML)
+- Target: Two documents in refsrc folder and in Rosetta
   1. File: `{project-name}.xml` (compressed codebase, unmodified Repomix output)
   2. File: `{project-name}-onboarding.md` (brief Learning Flow with reference)
 - Files involved: Project path, README, package files for auto-detection
 - MUST generate brief Learning Flow (3-5 words per step, max 20 lines)
 - MUST use compressed XML (Tree-sitter) for small output
 - Onboarding document MUST specify KB title and search instructions
-- Update ARCHITECTURE.md based on template `MUST use RefSrc/{project-name}.xml and RefSrc/{project-name}-onboarding.md. MUST use grep or search with those, because those are big files.`. Combine this rule for multiple external dependencies.
+- Update ARCHITECTURE.md based on template `MUST use refsrc/{project-name}.xml and refsrc/{project-name}-onboarding.md. MUST use grep or search with those, because those are big files.`. Combine this rule for multiple external dependencies.
+- Workflow state MUST be saved to `agents/TEMP/<FEATURE>/external-lib-flow-state.md` file.
 
 ## Onboarding Flow
 
@@ -104,7 +105,7 @@ Use Repomix to package codebase with compression enabled (Tree-sitter). Generate
 
 ### Key Points
 
-- MUST use `mcp_repomix_pack_codebase` with `compress: true`
+- MUST use `mcp_repomix_pack_codebase` or repomix cli with `compress: true`
 - XML output is for AI consumption, not humans
 - Extract signatures + structure, NOT implementation details
 - Generate Learning Flow: phases with 3-5 word steps
@@ -113,7 +114,7 @@ Use Repomix to package codebase with compression enabled (Tree-sitter). Generate
 
 ### Steps
 
-1. Use `mcp_repomix_pack_codebase`:
+1. Use `mcp_repomix_pack_codebase` (or repomix cli):
    - directory: detected project path
    - compress: true (ALWAYS enabled)
    - style: "xml"

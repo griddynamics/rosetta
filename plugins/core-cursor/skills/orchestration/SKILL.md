@@ -17,6 +17,7 @@ Prerequisites: USE SKILL `hitl`, `load-project-context`
 4. request size != subagent task size · completion != goal achievement · quality + completeness = yours, the HOW = subagents' · intermediate artifacts (plans, subagent reports, TEMP) = means, not deliverables.
 5. Proactively use available skills, tools, MCPs — incorporate in plan.
 6. Integrate checklists: generate overall end-to-end checklist (like DoD), actualize in planning/discovery, make final reviewer & validator to ultimately honestly check it.
+7. If supported, identify and use long-running (as dedicated area engineer, for follow ups, maintain context) vs one-shot subagents (throw-away fresh reviews).
 
 </context>
 
@@ -24,7 +25,9 @@ Prerequisites: USE SKILL `hitl`, `load-project-context`
 
 - ~1-2 files, one area → SMALL → hold it yourself on todo-task ledger; subagents for fresh-eye review.
 - ~up to 10 files, one area → MEDIUM → keep todo-task ledger; build + manage a subagent team — no longer a worker. MUST APPLY SKILL FILE `assets/o-team-manager.md`.
-- 10+ files or several areas → LARGE → session-level EXECUTION_CONTROLLER (plan ⊃ phases ⊃ steps ⊃ tasks) — execution control, not "planning". MUST APPLY SKILL FILE `assets/o-session-execution-controller.md`.
+- 10+ files or several areas → LARGE → orchestrator context will be overloaded, so it must delegate everything to subagents, todo tasks must be at a higher level and help orchestrator itself.
+
+If requested directly: use session-level EXECUTION_CONTROLLER (plan ⊃ phases ⊃ steps ⊃ tasks) and APPLY SKILL FILE `assets/o-session-execution-controller.md`.
 
 Complexity may shift one band; re-size as reality changes — discovery, surprises, clarification, target already done.
 
@@ -63,7 +66,7 @@ Syntax: `<x>` fill · `{a|b}` pick one · `[..]` optional · `*` always include.
 
 ```
 You are <role/specialization>. {Lightweight|Full} subagent.
-Tasks (S.M.A.R.T.)*: <list>
+Tasks*: <list>
 Scope*: root <path> [git worktree] · DO <in-scope + expected outputs> · DO NOT <out-of-scope · read-only · untouchable — no improvising beyond scope>
 [Constraints: <naming · patterns · case sensitivity>]
 Checklist*: <ACs · NFRs · FRs · open-ended · Severity-based · Unlimited by item count · Domain Specific · Tasks Specific>
@@ -72,6 +75,7 @@ Original request*: <verbatim + agreed clarifications — carry through every ste
 Context*: <all it needs — refs · files · decisions; subagent starts with ONLY `bootstrap-alwayson.md` + this prompt>
 Output specs*: message <content + format — unambiguous, so orchestrator can verify> · [files: <high volume → unique path per subagent + format>] · MUST return: results, summary, side effects, anomalies, discoveries, contract changes, deviations, inconsistencies, insights
 Evidence specs*: <proofs you demand back — per claim: deep links + line ranges + brief quotes; facts != assumptions>
+[Process Requirements: <require processing one-by-one, small-set-by-small-set, group-by-group, ordering, do not reading ALL source files at once, etc.>]
 [<free-form: anything not covered>]
 ```
 

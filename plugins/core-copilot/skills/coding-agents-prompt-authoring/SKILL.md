@@ -132,6 +132,8 @@ Example logical flow: discover → extract+intake → blueprint → for_each_pro
 - Simplicity first
 - Surgical changes
 - Strong success criteria
+- Write the instruction, do NOT write about the instruction
+- No obvious, standards, tautology - just name term or action - you write for the same AI as you
 
 </core_principles>
 

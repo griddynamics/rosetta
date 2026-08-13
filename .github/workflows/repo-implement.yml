@@ -1,17 +1,16 @@
 name: Rosetta Story Implementer
 
-# DISABLED: triggers are workflow_dispatch-only until a manual test run is
-# reviewed and the schedule is deliberately re-enabled.
-#
 # Reads open work items from the "Rosetta Automation Board" (GitHub Projects
 # v2, org griddynamics, project number 57 — https://github.com/orgs/griddynamics/projects/57).
 # Board membership is the scoping mechanism (replaces the old Jira epic parent):
 # only issues added to that project are eligible for AI implementation.
 #
-# Status field flow on the board:
-#   Ready -> (implement-agent claims, moves to "In progress", implements, opens
-#             a PR referencing the issue) -> "In review" (moved automatically —
-#             this just reflects where the PR is, not a human decision)
+# Status field flow on the board (see docs/AUTOMATION-ARCHITECTURE.md):
+#   Scheduled -> In progress -> In review
+#   Loads "Scheduled" (no priority filter — the user moving a card there is the
+#   decision to build it). The workflow claims the card into "In progress" before
+#   invoking the agent; the agent implements, opens a PR referencing the issue, and
+#   moves the card to "In review" for the user to review.
 #
 # Required GitHub Secrets:
 #   - BIFROST_HOST_NAME: Bifrost gateway hostname (no protocol/port/path), routes Anthropic API calls through Bifrost
@@ -22,9 +21,14 @@ name: Rosetta Story Implementer
 #     gh/git operations in this workflow.
 
 on:
-  # schedule:
-  #   - cron: '0 */4 * * *'
-  #   - cron: '0 2 * * *'
+  schedule:
+    - cron: '30 */3 * * *'
+    - cron: '0 3 * * *'
+  # Every issue activity type, unfiltered. The payload is ignored: the event is only a
+  # doorbell and the job loads the whole board, so this also picks up a card the user
+  # moved to Scheduled — board Status changes raise only the organization-scoped
+  # projects_v2_item, which a repository workflow cannot subscribe to.
+  issues:
   workflow_dispatch:
 
 jobs:
@@ -43,8 +47,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # Issue events plus a 3-hourly schedule means runs can overlap, and the claim is
+      # not atomic — two runs could read the same card as Scheduled before either claims
+      # it and both would open a branch. Bail out instead: safe, because the in-flight run
+      # or the next event picks the work up. Preferred over a `concurrency:` group, which
+      # would either queue runs or cancel one mid-flight, stranding its card In progress.
+      - name: Skip if another run is already in progress
+        id: inflight
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          others=$(gh run list --workflow repo-implement.yml --status in_progress \
+                     --limit 100 --json databaseId \
+                     -q "[.[] | select(.databaseId != ${RUN_ID})] | length")
+          if [ "${others:-0}" -gt 0 ]; then
+            echo "busy=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$others other implementer run(s) in progress — skipping this one."
+          fi
+
       - name: Load board items
         id: load
+        if: steps.inflight.outputs.busy != 'true'
         env:
           GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
         run: python .github/scripts/load_stories.py
@@ -52,7 +77,11 @@ jobs:
       - name: Summary
         run: |
           echo "## Implementer — Board Load" >> $GITHUB_STEP_SUMMARY
-          echo "- Issues to implement: ${{ steps.load.outputs.impl_count }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.inflight.outputs.busy }}" = "true" ]; then
+            echo "- Skipped: another implementer run is in progress" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Issues to implement: ${{ steps.load.outputs.impl_count }}" >> $GITHUB_STEP_SUMMARY
+          fi
 
   # ── Implementation subagents (parallel, one per issue) ────────────────────────
   implement-story:
@@ -68,6 +97,7 @@ jobs:
       ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
       ENABLE_TOOL_SEARCH: "true"
       CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
+      CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
 
     strategy:
       matrix: ${{ fromJSON(needs.load-stories.outputs.matrix) }}
@@ -78,6 +108,10 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          # The push credential is set explicitly in "Configure git" below; without
+          # this, checkout also leaves a GITHUB_TOKEN in .git/config and which of the
+          # two authenticates a push is undefined.
+          persist-credentials: false
 
       - name: Install Bun
         id: bun
@@ -92,8 +126,51 @@ jobs:
           git config user.name "github-actions[bot]"
           git remote set-url origin https://x-access-token:${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}@github.com/${{ github.repository }}
 
+      # An issue event fires while the issue is still being edited, so wait until it has
+      # been quiet for 5 minutes before claiming it — otherwise the agent implements a
+      # plan still being revised. Only issue events need this: a schedule fires on its
+      # own clock, and manual dispatch means the user picked the moment.
+      # (This is the runner's own shell; the agent-side sleep restrictions do not apply.)
+      - name: Debounce — wait for the issue to settle
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          ISSUE: ${{ matrix.issue_number }}
+        run: |
+          previous=""
+          for attempt in $(seq 1 6); do
+            current=$(gh issue view "$ISSUE" --json updatedAt -q .updatedAt)
+            if [ "$current" = "$previous" ]; then
+              echo "Issue #$ISSUE unchanged for 5 minutes (last update $current) — proceeding."
+              exit 0
+            fi
+            echo "Issue #$ISSUE updated at $current — waiting 5 minutes (attempt $attempt/6)."
+            previous="$current"
+            sleep 300
+          done
+          echo "::warning::Issue #$ISSUE still changing after 30 minutes — proceeding anyway."
+
+      # Claiming needs no judgement, so it is done here rather than costing an agent
+      # turn. jq -e fails the step if the board has no "In progress" option, instead
+      # of letting the agent run against a lane that does not exist.
+      - name: Claim — move card to In progress
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          ITEM_ID: ${{ matrix.item_id }}
+          ISSUE: ${{ matrix.issue_number }}
+          PROJECT_ID: ${{ needs.load-stories.outputs.project_id }}
+          FIELD_ID: ${{ needs.load-stories.outputs.status_field_id }}
+          OPTION_IDS: ${{ needs.load-stories.outputs.status_option_ids }}
+        run: |
+          option_id=$(printf '%s' "$OPTION_IDS" | jq -er '."In progress"')
+          gh project item-edit --id "$ITEM_ID" --project-id "$PROJECT_ID" \
+            --field-id "$FIELD_ID" --single-select-option-id "$option_id"
+          gh issue comment "$ISSUE" --body "🤖 Implementation started by AI agent."
+
       - name: Implement — issue #${{ matrix.issue_number }}
         uses: anthropics/claude-code-action@v1
+        env:
+          CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
         with:
           anthropic_api_key: ${{ secrets.BIFROST_API_KEY }}
           github_token: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
@@ -112,8 +189,21 @@ jobs:
             MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-implement-code.md
           show_full_output: false
           claude_args: |
-            --allowedTools Read,Write,Edit,MultiEdit,Glob,Grep,Bash(*)
+            --allowedTools
+            "Read,Write,Edit,MultiEdit,Glob,Grep,Agent,Skill,Bash(*)"
+            --disallowedTools "ScheduleWakeup,Bash(* --show-token),Bash(* --show-token*)"
             --model sonnet
+            --effort medium
+
+      # The trace is a full tool transcript published as a downloadable artifact,
+      # outside Actions log masking. Redact credentials before it leaves the runner.
+      - name: Scrub credentials from execution trace
+        if: always()
+        env:
+          SCRUB_VALUES: |
+            ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+            ${{ secrets.BIFROST_API_KEY }}
+        run: python3 .github/scripts/scrub_trace.py /home/runner/work/_temp/claude-execution-output.json
 
       - name: Upload Claude execution trace
         if: always()
@@ -122,3 +212,23 @@ jobs:
           name: claude-execution-trace-${{ matrix.issue_number }}
           path: /home/runner/work/_temp/claude-execution-output.json
           retention-days: 3
+
+      # claude-code-action decides success from `subtype`/`is_error` alone, so a run
+      # that abandons its subagents and changes nothing is indistinguishable from a
+      # clean one. This inspects the trace and fails the job instead.
+      - name: Verify the run did real work
+        if: always()
+        run: python3 .github/scripts/check_trace.py /home/runner/work/_temp/claude-execution-output.json
+
+      # The card stays in the In progress lane, which no pipeline loads, so a failed
+      # run waits for a human instead of being retried. Say so on the issue.
+      - name: Report failure on the issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          ISSUE: ${{ matrix.issue_number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$ISSUE" --body "⚠️ Implementation run failed — see [the run log]($RUN_URL).
+
+          The card is left at \`In progress\`, which no pipeline picks up, so it will not be retried automatically. Move it back to \`Scheduled\` to retry, or to \`Backlog\` to re-plan first."

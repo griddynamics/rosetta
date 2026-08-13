@@ -1,6 +1,6 @@
 ---
 name: risk-assessment
-description: "CRITICAL. MUST activate before execution when environment has access to databases, cloud services, S3, or similar external systems, and when assessing environment risk level."
+description: "CRITICAL. MUST activate before execution when environment has access to databases, cloud services, S3, or similar external systems, any access to servers of higher environments, and when assessing environment risk level."
 license: Apache-2.0
 user-invocable: false
 baseSchema: docs/schemas/skill.md
@@ -10,12 +10,12 @@ baseSchema: docs/schemas/skill.md
 
 <process>
 
-1. Assess access to dangerous MCPs (database, cloud, S3, similar).
+1. Assess access to dangerous MCPs (database, cloud, S3, similar) or servers (SQL, API, similar).
 2. Assign risk level: low, medium, high, critical.
 3. Read-only or local = low.
 4. Shared dev/stage/qa = medium.
 5. +1 level for write access.
-6. +1 level for access to higher environments including production.
+6. +1 level for access to higher environments including stage, pre-production, production.
 7. Output `AI Risk Assessment: {LEVEL}`.
 
 Escalation:

@@ -416,6 +416,10 @@ This is the last validator gate. If the report does not match the real dependenc
 - Ignoring required doc updates after changing business or architecture truth.
 - Treating tests as part of implementation even though this workflow gates them after implementation approval.
 
+## Related Docs
+
+- [Modernization Guide](/rosetta/docs/modernization/): principles, red flags, process, and start prompt templates for migration work
+
 ## Source Files
 
 - [coding-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/coding-flow.md)

@@ -27,7 +27,8 @@ Match to cognitive demand. Match to current tool.
 
 <orchestration severity="CRITICAL">
 
-MUST USE SKILL `orchestration` with team management, which is the core mechanism of this workflow.
+1. MUST USE SKILL `orchestration` with team management, which is the core mechanism of this workflow.
+2. Workflow state MUST be saved to `agents/TEMP/<FEATURE>/adhoc-flow-state.md` file.
 
 </orchestration>
 

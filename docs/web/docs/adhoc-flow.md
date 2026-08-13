@@ -33,7 +33,7 @@ The final gate is a review against the original intent, not only against the lat
 - Do not use it for straightforward implementation work when the main job is coding. Use [Coding Flow](/rosetta/docs/coding-flow/).
 - Do not use it when the main job is authoring or refining requirements. Use [Requirements Authoring Flow](/rosetta/docs/requirements-authoring-flow/).
 - Do not use it when the main job is reverse-engineering an existing codebase into architecture documentation. Use [Code Analysis Flow](/rosetta/docs/code-analysis-flow/).
-- Do not use it when you only need guidance on Rosetta capabilities. Use [Usage Guide](/rosetta/docs/usage-guide/) or Self Help.
+- Do not use it when you only need guidance on Rosetta capabilities. Use [Usage Guide](/rosetta/docs/usage-guide/) or [Help](/rosetta/docs/help-flow/).
 
 ## Before You Start
 

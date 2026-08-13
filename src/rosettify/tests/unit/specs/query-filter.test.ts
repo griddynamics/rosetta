@@ -293,6 +293,152 @@ describe("applyFilter — every FILTER_KEYS field is matchable (priority/impleme
   });
 });
 
+// ---------------------------------------------------------------------------
+// FR-SPECS-0012 — the requirement-unit fields added with the criterion model.
+// ---------------------------------------------------------------------------
+
+describe("applyFilter — level, subsystem and component", () => {
+  it("matches level exactly", () => {
+    const specs = [
+      makeSpec({ id: "FR-CHK-0001", level: "Component" }),
+      makeSpec({ id: "FR-CHK-0002", level: "System" }),
+    ];
+    expect(applyFilter(specs, parseQuery("level:Component") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0001"]);
+  });
+
+  it("matches level case-insensitively when the value is unquoted", () => {
+    const specs = [makeSpec({ id: "FR-CHK-0001", level: "Subsystem" })];
+    expect(applyFilter(specs, parseQuery("level:subsystem") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0001"]);
+  });
+
+  it("requires an exact case match for a quoted level value", () => {
+    const specs = [makeSpec({ id: "FR-CHK-0001", level: "Subsystem" })];
+    expect(applyFilter(specs, parseQuery('level:"subsystem"') as Filter)).toEqual([]);
+  });
+
+  it("matches subsystem exactly", () => {
+    const specs = [
+      makeSpec({ id: "FR-CHK-0001", subsystem: "checkout" }),
+      makeSpec({ id: "FR-CHK-0002", subsystem: "billing" }),
+    ];
+    expect(applyFilter(specs, parseQuery("subsystem:checkout") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0001"]);
+  });
+
+  it("matches component exactly", () => {
+    const specs = [
+      makeSpec({ id: "FR-CHK-0001", component: "cart" }),
+      makeSpec({ id: "FR-CHK-0002", component: "ledger" }),
+    ];
+    expect(applyFilter(specs, parseQuery("component:cart") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0001"]);
+  });
+
+  it("does not match a spec whose subsystem is empty against a named one", () => {
+    const specs = [makeSpec({ id: "FR-CHK-0001", subsystem: "" })];
+    expect(applyFilter(specs, parseQuery("subsystem:checkout") as Filter)).toEqual([]);
+  });
+
+  it.each(["subsystem", "component"] as const)("treats a %s that is literally undefined as empty", (field) => {
+    const spec = makeSpec({ id: "FR-CHK-0001" });
+    delete (spec as Record<string, unknown>)[field];
+    expect(applyFilter([spec], parseQuery(`${field}:checkout`) as Filter)).toEqual([]);
+  });
+
+  it("negates a level term", () => {
+    const specs = [
+      makeSpec({ id: "FR-CHK-0001", level: "Component" }),
+      makeSpec({ id: "FR-CHK-0002", level: "System" }),
+    ];
+    expect(applyFilter(specs, parseQuery("-level:Component") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0002"]);
+  });
+});
+
+// FR-SPECS-0012 — `ears` lives on the criterion, so a filter over units can only ask whether a
+// unit has ANY criterion declaring that pattern.
+describe("applyFilter — ears", () => {
+  const withEars = (id: string, ...patterns: string[]) =>
+    makeSpec({
+      id,
+      acceptance: patterns.map((ears, i) => ({
+        id: `${id}.AC${i + 1}`,
+        ears: ears as never,
+        system: "the system",
+        shall: "act",
+      })),
+    });
+
+  it("matches a unit whose only criterion declares that pattern", () => {
+    const specs = [withEars("FR-CHK-0001", "event"), withEars("FR-CHK-0002", "ubiquitous")];
+    expect(applyFilter(specs, parseQuery("ears:event") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0001"]);
+  });
+
+  it("matches a unit where any one of several criteria declares that pattern", () => {
+    const specs = [withEars("FR-CHK-0001", "ubiquitous", "unwanted"), withEars("FR-CHK-0002", "ubiquitous")];
+    expect(applyFilter(specs, parseQuery("ears:unwanted") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0001"]);
+  });
+
+  it("does not match a unit with no criteria at all", () => {
+    const specs = [makeSpec({ id: "FR-CHK-0001", acceptance: [] })];
+    expect(applyFilter(specs, parseQuery("ears:event") as Filter)).toEqual([]);
+  });
+
+  it("treats acceptance that is literally undefined as no criteria", () => {
+    const spec = makeSpec({ id: "FR-CHK-0001" });
+    delete (spec as Record<string, unknown>)["acceptance"];
+    expect(applyFilter([spec], parseQuery("ears:event") as Filter)).toEqual([]);
+  });
+
+  it("matches a pattern case-insensitively when unquoted", () => {
+    expect(applyFilter([withEars("FR-CHK-0001", "event")], parseQuery("ears:EVENT") as Filter)).toHaveLength(1);
+  });
+
+  it("accepts an OR list of patterns", () => {
+    const specs = [
+      withEars("FR-CHK-0001", "event"),
+      withEars("FR-CHK-0002", "state"),
+      withEars("FR-CHK-0003", "ubiquitous"),
+    ];
+    expect(applyFilter(specs, parseQuery("ears:event,state") as Filter).map((s) => s.id)).toEqual([
+      "FR-CHK-0001",
+      "FR-CHK-0002",
+    ]);
+  });
+});
+
+// FR-SPECS-0012 — `evidence` takes a closed two-value vocabulary, so a value outside it is a
+// malformed value on a KNOWN key: invalid_query, never invalid_filter.
+describe("applyFilter / parseQuery — evidence", () => {
+  const cited = makeSpec({ id: "FR-CHK-0001", evidence: ["src/cart.ts:10-24"] });
+  const bare = makeSpec({ id: "FR-CHK-0002", evidence: [] });
+
+  it("selects the units that cite a location with evidence:present", () => {
+    expect(applyFilter([cited, bare], parseQuery("evidence:present") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0001"]);
+  });
+
+  it("selects the units that cite none with evidence:absent", () => {
+    expect(applyFilter([cited, bare], parseQuery("evidence:absent") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0002"]);
+  });
+
+  it("accepts the vocabulary case-insensitively", () => {
+    expect(applyFilter([cited, bare], parseQuery("evidence:PRESENT") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0001"]);
+  });
+
+  it("treats evidence that is literally undefined as absent", () => {
+    const spec = makeSpec({ id: "FR-CHK-0003" });
+    delete (spec as Record<string, unknown>)["evidence"];
+    expect(applyFilter([spec], parseQuery("evidence:absent") as Filter)).toHaveLength(1);
+  });
+
+  it("returns invalid_query for a value outside the two-value vocabulary", () => {
+    const result = parseQuery("evidence:maybe");
+    expect(isError(result)).toBe(true);
+    expect((result as { error: string }).error).toBe("invalid_query");
+  });
+
+  it("keeps negation legal on evidence", () => {
+    expect(applyFilter([cited, bare], parseQuery("-evidence:present") as Filter).map((s) => s.id)).toEqual(["FR-CHK-0002"]);
+  });
+});
+
 describe("parseQuery — additional grammar edge cases", () => {
   it("tolerates trailing whitespace after the last term", () => {
     const f = parseQuery("type:FR   ") as Filter;

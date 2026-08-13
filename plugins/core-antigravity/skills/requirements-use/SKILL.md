@@ -181,27 +181,36 @@ HITL gates (use when):
 
 <requirement_unit_template>
 
+Every single-value field is an attribute; only prose and structured children are nodes.
+Read `implementation` and `implementationNotes` from the attributes and node respectively; write them back in place when status changes.
+
 ```xml
-<req id="FR-AREA-0001" type="FR" level="System" ticketId="JIRA-0000" classification="business|technical">
-  <title>...</title>
-  <statement>...</statement>
-  <rationale>...</rationale>
-  <source>User|Inferred|Sources|Documentation</source>
-  <priority>Must|Should|Could|Wont</priority>
-  <status>Draft|Approved|Deprecated|Removed</status>
-  <approved_by>[user login approved]</approved_by>
-  <changed>[YYYY-MM-DD]</changed>
-  <verification>Test|Analysis|Inspection|Demo</verification>
+<req id="FR-[AREA]-####" type="FR|NFR|INT|DATA" level="System|Subsystem|Component"
+     subsystem="[name; required when level is Subsystem or Component; otherwise fill when known]"
+     component="[name; required when level is Component; otherwise fill when known]"
+     ticketId="[tracker key]" classification="business|technical"
+     source="User|Inferred|Sources|Documentation"
+     priority="Must|Should|Could|Wont" verification="Test|Analysis|Inspection|Demo"
+     status="Draft|Approved|Deprecated|Removed" approved_by="[login or user name of the approver]" changed="[YYYY-MM-DD]"
+     depends="[comma-separated IDs]"
+     implementation="NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved">
+  <title>[the single outcome this unit governs; noun phrase, unique within the area]</title>
+  <statement>[the governing rule: what shall hold, over which cases, with its limits and explicit exclusions. NOT an EARS sentence, NOT a restatement of the criteria]</statement>
+  <rationale>[why this shape and not another: basis for each threshold, actor and boundary; alternatives rejected and why rejected]</rationale>
+  <evidence>[reverse-engineering only: path:line-range per source location]</evidence>
   <acceptance>
-    <criteria>Given: A When: B Then: C.</criteria>
-    <criteria>Given: X When: Y Then: Z.</criteria>
+    <criteria id="[req-id].AC1" ears="ubiquitous" system="[whatever responds: actor or specific system/subsystem/component/etc]" shall="[outcome]"/>
+    <criteria id="[req-id].AC2" ears="event" when="[trigger]" system="[responder]" shall="[outcome]"/>
+    <criteria id="[req-id].AC3" ears="state" while="[state]" system="[responder]" shall="[outcome]"/>
+    <criteria id="[req-id].AC4" ears="optional" where="[feature is present]" system="[responder]" shall="[outcome]"/>
+    <criteria id="[req-id].AC5" ears="unwanted" if="[fault]" system="[responder]" shall="[mitigation]"/>
   </acceptance>
-  <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
-  <implementation>NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved</implementation>
   <implementationNotes>[CONCISE: Implemented: aggregated files affected, NotStarted/Planned/ToBeRemoved: nothing, ToBeModified: what was originally documented but now dropped]</implementationNotes>
-  <notes>...</notes>
+  <notes>[anything else; the rejection reason when status is Removed]</notes>
 </req>
 ```
+
+Coverage queries this shape enables: `implementation="NotStarted"` for unbuilt scope, `implementation="ToBeModified"` for spec-vs-code drift, `status="Draft"` for anything not yet approved to build against.
 
 </requirement_unit_template>
 

@@ -1,6 +1,6 @@
 # results-history
 
-Durable, git-tracked snapshots of Curiocity e2e runs, kept so run behaviour and scores
+Durable, git-tracked snapshots of Curiocity e2e runs, kept so run behavior and scores
 can be **compared over time** (vanilla vs vanilla-full vs rosetta; "better or cheaper").
 
 ## What's in here

@@ -7,8 +7,23 @@
 > clear and actionable for the human reviewer.
 >
 > **Bash constraint**: only `gh issue *`, `gh pr list`, and `gh project *` commands
-> are allowed. Do not attempt any `git` command — the wiki checkout is published by
-> a separate workflow step, not by you.
+> are allowed. Do not attempt any `git` command.
+>
+> **Subagent constraint**: one-shot headless session. Ending a turn without a tool
+> call kills the job in ~2s — there is no later turn, notification, or wakeup.
+>
+> Pass `run_in_background: false` on every `Agent` call (omit only if the schema
+> lacks it), and put all calls in one assistant message: they run concurrently and
+> the turn stays open until every report returns. That is the only wait available.
+> Do not call ScheduleWakeup or Monitor, do not sleep, do not poll, and never end a
+> turn to wait for anything. If a report is missing, review that area yourself with
+> Read/Grep and continue.
+>
+> Subagents: model sonnet, effort medium; per finding return title, file path,
+> 2-sentence rationale.
+>
+> The run is a failure unless Phase 3 executes and the Phase 4 summary prints in
+> this same session.
 
 You are an automated agent. Review this repository for improvements and file them as
 GitHub issues added to the "Rosetta Automation Board" (GitHub Projects v2, org
@@ -34,12 +49,25 @@ You always must "simulate" how the entire AI coding agent flow works if instruct
 ## Constraints
 
 - ONLY add new issues to project 57 ("Rosetta Automation Board"). Touch no other project.
-- The wiki checkout at `wiki/` is read/write via the `Write`/`Edit` tools on `wiki/Automation-Log.md`
-  only — you do not have `git` access; a workflow step commits and pushes it after you finish.
-- `wiki/Automation-KB.md` is **read-only** — read it via the `Read` tool, never write to it.
 - Do NOT commit code, create PRs, or modify any repository files.
 - No nitpicking, if nothing is found - then it is great - nothing to add!
 - Always think - is it ACTUALLY needed to be resolved? How does it affect current repository and user experience?
+
+### Non-public security findings — NEVER disclose in an issue you create
+
+You can read CodeQL / code-scanning, Dependabot, and CI check data. This repository is **public**, but those alerts are **not**: viewing them requires write access. Every issue you create and every issue body you edit is world-readable, so anything you quote from an alert is published to everyone, including whoever would exploit it. An unfixed vulnerability disclosed this way is a real incident, not a documentation slip.
+
+MUST NOT appear in any issue title, body, or comment unless that issue is labelled `security`:
+
+- alert titles, descriptions, messages, rule help text, or CWE narratives
+- file paths, line numbers, code snippets, or data-flow / taint traces taken from an alert
+- alert numbers, alert URLs, or any identifier that resolves to one
+- package + vulnerable-version pairs, CVE / GHSA identifiers, or advisory text from Dependabot
+- counts sliced finely enough to pinpoint a single finding
+
+MAY appear publicly: that automated security checks were consulted, and an aggregate count with severity distribution, e.g. `3 open code-scanning alerts: 1 high, 2 low`.
+
+To raise a real finding, create a `security`-labelled issue that references the alert **by URL only** and carries no detail beyond severity. Repository configuration weaknesses you identified yourself by reading committed files (missing `permissions:` blocks, unpinned actions, and the like) are NOT covered by this rule — that content is already public in the repository, and filing it as an ordinary issue is correct.
 
 ## Phase 1 — Load Existing Work
 
@@ -48,8 +76,6 @@ List issues already on the board:
 gh project item-list 57 --owner griddynamics --format json --limit 200
 ```
 Note their titles to avoid duplicates.
-
-Also read `wiki/Automation-KB.md` (via the `Read` tool) for background context, if it has content.
 
 Also load recently closed PRs created by this automation:
 ```bash
@@ -82,10 +108,10 @@ If a candidate from Phase 2 touches `instructions/r*/**`, or concerns Rosetta in
 skills, workflows, agents, prompts, bootstrap behavior, or prompt quality generally:
 
 1. MUST treat it as instruction-quality review, not an ordinary documentation/code improvement.
-2. MUST USE SKILL `orchestrator-contract` before any subagent dispatch.
+2. MUST USE SKILL `rosetta:orchestration` before any subagent dispatch.
 3. MUST spawn at least one subagent with:
    - role: Rosetta prompt quality reviewer
-   - MUST USE SKILL `coding-agents-prompt-authoring`
+   - MUST USE SKILL `rosetta:coding-agents-prompt-authoring`
    - MUST load/use at minimum:
      - `pa-rosetta-intro-for-AI.md`
      - `pa-rosetta.md`
@@ -149,7 +175,7 @@ For each approved improvement:
 2. **Create** if new:
    ```bash
    gh issue create --title "[ROSETTA] <concise title, max 80 chars>" \
-     --body "<2-3 sentences: what, why, where>" --label AI
+     --body "<2-3 sentences: what, why, where>"
    ```
    Then add it to the board and set Status to "Backlog":
    ```bash
@@ -157,24 +183,7 @@ For each approved improvement:
    gh project item-edit --id <item-id> --project-id <project-id> \
      --field-id <status-field-id> --single-select-option-id <backlog-option-id>
    ```
-3. **Update** if an existing issue is stale or missing the `AI` label — use `gh issue edit <N> --add-label AI`.
-
-## Phase 4 — Update the Automation Log
-
-Using the `Write`/`Edit` tool on `wiki/Automation-Log.md`, append a new run section (do NOT remove existing content):
-
-```markdown
-## Run <UTC date/time>
-
-- Issues found on board: <N>
-- Improvements identified: <N>
-- Created: <issue number list>
-- Updated: <issue number list>
-- Skipped (duplicate): <N>
-- Rejected by validator: <N>
-```
-
-Do not run any `git` command yourself — the workflow publishes this file after you finish.
+3. **Update** if an existing issue is stale — use `gh issue edit <N>` to correct the title or body.
 
 ## Output
 
@@ -188,5 +197,4 @@ Created: <issue number list>
 Updated: <issue number list>
 Skipped (duplicate): <N>
 Rejected by validator: <N>
-Log updated: yes/no
 ```

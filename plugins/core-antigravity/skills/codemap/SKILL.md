@@ -40,7 +40,7 @@ IF gitnexus is already **REQUESTED** in current context:
 - code graph queries, exploring code, debugging errors, analyzing impact, or refactoring: MUST APPLY SKILL FILE `assets/gitnexus-use.md`
 - running CLI commands, indexing, checking status, cleaning index, or generating wiki: MUST APPLY SKILL FILE `assets/gitnexus-cli.md`
 - Worked examples: READ SKILL FILE `assets/gitnexus-examples.md`
-- After modifying code, run `npx -y gitnexus@latest analyze --force` in the workspace root
+- After modifying code, run `npx gitnexus analyze --force` in the workspace root
 
 </gitnexus>
 

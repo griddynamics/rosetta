@@ -10,12 +10,12 @@ import {
   SPECS_MAX_SPECS,
   SPECS_MAX_DEPENDENCIES_PER_SPEC,
   SPECS_MAX_ACCEPTANCE_PER_SPEC,
+  SPECS_MAX_EVIDENCE_PER_SPEC,
   SPECS_MAX_STRING_LENGTH,
   SPECS_MAX_NAME_LENGTH,
 } from "../../shared/constants.js";
 import {
   ERR_INVALID_ID_FORMAT,
-  ERR_UNKNOWN_AREA,
   ERR_INVALID_TYPE,
   ERR_INVALID_SOURCE,
   ERR_INVALID_PRIORITY,
@@ -25,7 +25,10 @@ import {
   ERR_DUPLICATE_ID,
   ERR_UNKNOWN_DEPENDENCY,
   ERR_SIZE_LIMIT_EXCEEDED,
-  ERR_IMMUTABLE_ID,
+  ERR_INVALID_LEVEL,
+  ERR_INVALID_EARS,
+  ERR_DUPLICATE_CRITERION_ID,
+  ERR_ID_TYPE_MISMATCH,
 } from "./errors.js";
 
 // ---------------------------------------------------------------------------
@@ -51,25 +54,62 @@ export type SourceEnum = (typeof SOURCES)[number];
 export const VERIFS = ["Test", "Analysis", "Inspection", "Demo"] as const;
 export type VerifEnum = (typeof VERIFS)[number];
 
+export const EARS_PATTERNS = ["ubiquitous", "event", "state", "optional", "unwanted"] as const; // FR-SPECS-0001, 0006
+export type EarsEnum = (typeof EARS_PATTERNS)[number];
+
+export const LEVELS = ["System", "Subsystem", "Component"] as const; // FR-SPECS-0001
+export type LevelEnum = (typeof LEVELS)[number];
+
+/** FR-SPECS-0006 — the four condition words an acceptance criterion may carry. */
+export type ConditionWord = "when" | "while" | "where" | "if";
+
+/**
+ * FR-SPECS-0006 — the one condition word each EARS pattern names; null for `ubiquitous`, which
+ * carries none. Single source for the write check, the validate check, and the markup round trip.
+ */
+export const EARS_CONDITION_WORD: Readonly<Record<EarsEnum, ConditionWord | null>> = {
+  ubiquitous: null,
+  event: "when",
+  state: "while",
+  optional: "where",
+  unwanted: "if",
+};
+
 // ---------------------------------------------------------------------------
 // Data types (FR-SPECS-0001, 0002)
 // ---------------------------------------------------------------------------
 
+/**
+ * FR-SPECS-0001 — one EARS acceptance criterion. Exactly one condition word is carried, selected
+ * by `ears` (EARS_CONDITION_WORD); `ubiquitous` carries none. `if` and `while` are legal TypeScript
+ * property names (reserved only as statement keywords) and the JSON field names are fixed by the
+ * schema, so they are deliberately not renamed.
+ */
 export interface AcceptanceCriterion {
-  given: string;
-  when: string;
-  then: string;
+  id: string;
+  ears: EarsEnum;
+  when?: string;
+  while?: string;
+  where?: string;
+  if?: string;
+  system: string;
+  shall: string;
 }
 
 export interface Spec {
   id: string;
   type: SpecType;
-  level: string;
+  level: LevelEnum; // FR-SPECS-0001 — default "System"
+  // FR-SPECS-0001/0006 — where the requirement sits. Empty means the author did not know it,
+  // never that it does not apply.
+  subsystem: string;
+  component: string;
   ticket_id?: string;
   classification?: string;
   title: string;
   statement: string;
   rationale: string;
+  evidence: string[]; // FR-SPECS-0001 — one "path:line-range" per source location; default []
   source: SourceEnum;
   priority: MoscowEnum;
   // Guarded (FR-SPECS-0040) — settable only via lifecycle ops, never by add/update directly.
@@ -91,12 +131,33 @@ export interface AreaEntry {
   name: string;
 }
 
+/**
+ * FR-SPECS-0004 — the nine quality-characteristic codes pre-registered in every document. They are
+ * recommended, never mandatory: any registered area is legal on any type, and an NFR whose area
+ * falls outside these nine is accepted on write and reported by validate as a recommendation.
+ */
+export const RESERVED_NFR_AREAS: readonly AreaEntry[] = [
+  { code: "PERF", name: "performance efficiency" },
+  { code: "SEC", name: "security" },
+  { code: "REL", name: "reliability" },
+  { code: "USE", name: "usability" },
+  { code: "MAIN", name: "maintainability" },
+  { code: "PORT", name: "portability" },
+  { code: "COMP", name: "compatibility" },
+  { code: "FUNC", name: "functional suitability" },
+  { code: "SAFE", name: "safety" },
+];
+
 export interface SpecsDocument {
-  component: string;
+  system: string; // FR-SPECS-0002 — the system whose requirements this document holds
   description: string;
   created_at: string; // ISO8601 UTC (FR-SPECS-0042)
   updated_at: string; // ISO8601 UTC (FR-SPECS-0042)
   previous_version: string | null; // backup path at write time (FR-SPECS-0070)
+  // FR-SPECS-0002/0009/0016 — ids of purged specs, retained so an id is never reused. Purge erases
+  // a spec's content, deliberately not its identity. Document-level bookkeeping: not a spec field,
+  // never rendered, and deliberately uncapped.
+  purged_ids: string[];
   areas: AreaEntry[];
   specs: Spec[];
 }
@@ -125,15 +186,18 @@ export function stripGuarded(item: Record<string, unknown>): Record<string, unkn
 // Known/required fields (FR-SPECS-0001)
 // ---------------------------------------------------------------------------
 
-const KNOWN_SPEC_FIELDS: ReadonlySet<string> = new Set([
+export const KNOWN_SPEC_FIELDS: ReadonlySet<string> = new Set([
   "id",
   "type",
   "level",
+  "subsystem",
+  "component",
   "ticket_id",
   "classification",
   "title",
   "statement",
   "rationale",
+  "evidence",
   "source",
   "priority",
   "status",
@@ -187,24 +251,44 @@ export function validateIdFormat(id: string): string | null {
 }
 
 /**
- * FR-SPECS-0004 — AREA must be registered in doc.areas. Callers that auto-register new areas
- * (add, migrate) MUST call autoRegisterAreas() over the batch's ids before this check, so a
- * new AREA introduced by the same call is not rejected. An id that fails ID_RE is not this
- * function's concern (validateIdFormat covers it) — an unparseable id is treated as passing
- * here so the two errors don't collide on the same item.
+ * FR-SPECS-0004/0021 — true when spec's AREA is not registered in doc.areas. validate-only: on
+ * every write path (add, migrate) autoRegisterAreas() registers a brand-new AREA before this
+ * would ever run, so a write is never refused for introducing one (registration on first use).
+ * What remains reachable is a hand-edited or externally-assembled document naming an area the
+ * registry does not hold, which validate (FR-SPECS-0021) reports as an `area_registration`
+ * finding at error severity. An id that fails ID_RE is not this function's concern
+ * (validateIdFormat covers it) — an unparseable id is treated as registered so the two checks
+ * don't collide on the same item.
  */
-export function validateAreaRegistration(spec: Spec, doc: SpecsDocument): string | null {
+export function validateAreaRegistration(spec: Spec, doc: SpecsDocument): boolean {
   const parsed = parseId(spec.id);
-  if (!parsed) return null;
+  if (!parsed) return false;
+  // FR-SPECS-0004 AC4 — the nine reserved codes count as registered even when a legacy document's
+  // registry has not yet materialised them, so a read-only pass over such a document stays clean.
+  if (RESERVED_NFR_AREAS.some((a) => a.code === parsed.area)) return false;
   const registered = (doc.areas ?? []).some((a) => a.code === parsed.area);
-  return registered ? null : ERR_UNKNOWN_AREA;
+  return !registered;
 }
 
 /**
- * FR-SPECS-0004 — for each id whose AREA is not yet in doc.areas, registers it with the
- * default name (name = code). add/migrate call this BEFORE validateAreaRegistration so a
- * batch introducing a brand-new area succeeds instead of being rejected unknown_area.
- * update never calls this — it introduces no new ids.
+ * FR-SPECS-0004 AC4/AC7 — appends any of the nine quality-characteristic codes missing from
+ * doc.areas, preserving every existing entry and its name (a document that renamed a code keeps
+ * its own name). Idempotent. Called from newDocument() and from the add/migrate write paths only:
+ * a read path must never mutate the document (FR-SPECS-0021 AC9).
+ */
+export function ensureReservedAreas(doc: SpecsDocument): void {
+  doc.areas = doc.areas ?? [];
+  for (const reserved of RESERVED_NFR_AREAS) {
+    if (!doc.areas.some((a) => a.code === reserved.code)) {
+      doc.areas.push({ code: reserved.code, name: reserved.name });
+    }
+  }
+}
+
+/**
+ * FR-SPECS-0004 — for each id whose AREA is not yet in doc.areas, registers it with the default
+ * name (name = code), so a write introducing a brand-new area is never refused (registration on
+ * first use). update never calls this — it introduces no new ids.
  */
 export function autoRegisterAreas(doc: SpecsDocument, ids: string[]): void {
   doc.areas = doc.areas ?? [];
@@ -217,15 +301,74 @@ export function autoRegisterAreas(doc: SpecsDocument, ids: string[]): void {
   }
 }
 
-/** FR-SPECS-0004 — update/patch MUST NOT change a spec's id. Reuses the plan pattern. */
-export function validateImmutableId(patchId: string | undefined, targetId: string): string | null {
-  if (patchId !== undefined && patchId !== targetId) return ERR_IMMUTABLE_ID;
-  return null;
-}
-
 /** FR-SPECS-0003 — `type` must be one of SPEC_TYPES. */
 export function validateType(t: unknown): string | null {
   return typeof t === "string" && (SPEC_TYPES as readonly string[]).includes(t) ? null : ERR_INVALID_TYPE;
+}
+
+/** FR-SPECS-0001 — `level` must be one of LEVELS. Mirrors validateType. */
+export function validateLevel(v: unknown): string | null {
+  return typeof v === "string" && (LEVELS as readonly string[]).includes(v) ? null : ERR_INVALID_LEVEL;
+}
+
+/** FR-SPECS-0001 — a criterion's `ears` must be one of EARS_PATTERNS. Mirrors validateType. */
+export function validateEars(v: unknown): string | null {
+  return typeof v === "string" && (EARS_PATTERNS as readonly string[]).includes(v) ? null : ERR_INVALID_EARS;
+}
+
+/**
+ * FR-SPECS-0009 — a spec's `type` must agree with the prefix of its own id, on add and update
+ * alike, because the id can never change and a disagreeing pair could only be deleted and
+ * re-authored. An id that fails ID_RE, or a `type` outside SPEC_TYPES, is not this function's
+ * concern (validateIdFormat / validateType cover those) — both pass here so the errors don't
+ * collide on the same item.
+ */
+export function validateIdTypeConsistency(id: string, type: unknown): string | null {
+  const parsed = parseId(id);
+  if (!parsed) return null;
+  if (typeof type !== "string" || !(SPEC_TYPES as readonly string[]).includes(type)) return null;
+  return parsed.prefix === type ? null : ERR_ID_TYPE_MISMATCH;
+}
+
+/**
+ * FR-SPECS-0001 AC3 — fills every omitted criterion id with the next free `<specId>.AC<n>`.
+ * Supplied ids are claimed first and never renumbered; omitted ones are then filled in array
+ * order, each taking the lowest n >= 1 not already claimed. Pure — returns a new array.
+ */
+export function assignCriterionIds(specId: string, criteria: AcceptanceCriterion[]): AcceptanceCriterion[] {
+  const claimed = new Set<string>();
+  for (const c of criteria ?? []) {
+    if (typeof c?.id === "string" && c.id.trim() !== "") claimed.add(c.id);
+  }
+  let next = 1;
+  return (criteria ?? []).map((c) => {
+    if (typeof c?.id === "string" && c.id.trim() !== "") return c;
+    while (claimed.has(`${specId}.AC${next}`)) next += 1;
+    const id = `${specId}.AC${next}`;
+    claimed.add(id);
+    return { ...c, id };
+  });
+}
+
+/**
+ * FR-SPECS-0001 AC4/AC5/AC6 — field-level criterion checks that reject a write: an out-of-enum
+ * `ears`, a missing `system` or `shall`, and two criteria within one unit sharing an id. Whether a
+ * criterion's condition word agrees with its `ears`, and whether it carries more than one, are
+ * cross-field rules reported by validate (FR-SPECS-0006), not rejected here.
+ */
+export function validateCriteria(spec: Spec): string | null {
+  const seen = new Set<string>();
+  for (const c of spec.acceptance ?? []) {
+    const earsError = validateEars(c?.ears);
+    if (earsError) return earsError;
+    if (typeof c?.system !== "string" || c.system.trim() === "") return ERR_MISSING_REQUIRED_FIELD;
+    if (typeof c?.shall !== "string" || c.shall.trim() === "") return ERR_MISSING_REQUIRED_FIELD;
+    if (typeof c?.id === "string" && c.id.trim() !== "") {
+      if (seen.has(c.id)) return ERR_DUPLICATE_CRITERION_ID;
+      seen.add(c.id);
+    }
+  }
+  return null;
 }
 
 /** FR-SPECS-0001 — `source` must be one of SOURCES. Mirrors validateType. */
@@ -265,9 +408,15 @@ export function validateRequired(spec: Partial<Spec>): string | null {
   return null;
 }
 
-/** FR-SPECS-0005 — every spec id in the document must be unique. */
+/**
+ * FR-SPECS-0005, 0009, 0016 — every spec id must be unique across both the document's live specs
+ * and its `purged_ids` registry. The seen-set is seeded from the registry before walking the
+ * specs, so a live id colliding with either a live id or a purged one is rejected with the same
+ * `duplicate_id`. This is the single enforcement point for never-reuse: every write subcommand
+ * reaches it through the shared post-batch gate, so add, update and migrate are covered at once.
+ */
 export function validateUniqueIds(doc: SpecsDocument): string | null {
-  const seen = new Set<string>();
+  const seen = new Set<string>(doc.purged_ids ?? []);
   for (const spec of doc.specs ?? []) {
     if (!spec.id) continue;
     if (seen.has(spec.id)) return ERR_DUPLICATE_ID;
@@ -305,10 +454,16 @@ export function validateDependsAcyclic(doc: SpecsDocument): string | null {
   return detectCycle(graph); // shared/graph.ts — generic DFS, "dependency_cycle" | null
 }
 
-/** Recursively enforces string length limits: `id`/`title`/`name`/`code` at SPECS_MAX_NAME_LENGTH, all other strings at SPECS_MAX_STRING_LENGTH. */
+/**
+ * Recursively enforces string length limits: `id`/`title`/`name`/`code`/`system` at
+ * SPECS_MAX_NAME_LENGTH, all other strings at SPECS_MAX_STRING_LENGTH.
+ * FR-SPECS-0007 AC3 — `system` is name-like, which the keyHint recursion applies to both a
+ * criterion's `system` and the document's own `system` field. Both are intended.
+ */
 function checkStringLimits(value: unknown, keyHint?: string): string | null {
   if (typeof value === "string") {
-    const isNameLike = keyHint === "id" || keyHint === "title" || keyHint === "name" || keyHint === "code";
+    const isNameLike =
+      keyHint === "id" || keyHint === "title" || keyHint === "name" || keyHint === "code" || keyHint === "system";
     const limit = isNameLike ? SPECS_MAX_NAME_LENGTH : SPECS_MAX_STRING_LENGTH;
     return value.length > limit ? ERR_SIZE_LIMIT_EXCEEDED : null;
   }
@@ -331,9 +486,11 @@ function checkStringLimits(value: unknown, keyHint?: string): string | null {
 /**
  * FR-SPECS-0007 — enforces: max SPECS_MAX_SPECS specs per document; max
  * SPECS_MAX_DEPENDENCIES_PER_SPEC entries in each of depends_on/related; max
- * SPECS_MAX_ACCEPTANCE_PER_SPEC acceptance criteria per spec; max SPECS_MAX_STRING_LENGTH
- * characters per string field; max SPECS_MAX_NAME_LENGTH characters per id/title/name/code.
+ * SPECS_MAX_ACCEPTANCE_PER_SPEC acceptance criteria per spec; max SPECS_MAX_EVIDENCE_PER_SPEC
+ * evidence locations per spec; max SPECS_MAX_STRING_LENGTH characters per string field; max
+ * SPECS_MAX_NAME_LENGTH characters per id/title/name/code/system.
  * (SPECS_MAX_BATCH_SIZE is enforced by index.ts before processing, not here.)
+ * `purged_ids` is deliberately uncapped — growth is bounded by deliberate human action.
  */
 export function validateSizeLimits(doc: SpecsDocument): string | null {
   if ((doc.specs ?? []).length > SPECS_MAX_SPECS) return ERR_SIZE_LIMIT_EXCEEDED;
@@ -341,6 +498,7 @@ export function validateSizeLimits(doc: SpecsDocument): string | null {
     if ((spec.depends_on ?? []).length > SPECS_MAX_DEPENDENCIES_PER_SPEC) return ERR_SIZE_LIMIT_EXCEEDED;
     if ((spec.related ?? []).length > SPECS_MAX_DEPENDENCIES_PER_SPEC) return ERR_SIZE_LIMIT_EXCEEDED;
     if ((spec.acceptance ?? []).length > SPECS_MAX_ACCEPTANCE_PER_SPEC) return ERR_SIZE_LIMIT_EXCEEDED;
+    if ((spec.evidence ?? []).length > SPECS_MAX_EVIDENCE_PER_SPEC) return ERR_SIZE_LIMIT_EXCEEDED;
   }
   return checkStringLimits(doc);
 }
@@ -356,6 +514,11 @@ export function loadSpecs(file: string): SpecsDocument | null {
   if (!("previous_version" in raw)) {
     (raw as Record<string, unknown>)["previous_version"] = null;
   }
+  // FR-SPECS-0002 — legacy documents predate the purged-id registry; normalise the shape once at
+  // the read boundary so no downstream site has to guard for its absence.
+  if (!("purged_ids" in raw)) {
+    (raw as Record<string, unknown>)["purged_ids"] = [];
+  }
   return raw;
 }
 
@@ -366,16 +529,24 @@ export function saveSpecs(file: string, doc: SpecsDocument): void {
   fs.writeFileSync(file, JSON.stringify(doc, null, 2));
 }
 
-/** FR-SPECS-0002 — a fresh, empty specs document. previous_version stays null until the first backup exists. */
-export function newDocument(component?: string): SpecsDocument {
+/**
+ * FR-SPECS-0002 — a fresh, empty specs document. previous_version stays null until the first
+ * backup exists; the purged-id registry starts empty; the nine reserved quality-characteristic
+ * codes are pre-registered (FR-SPECS-0004 AC7). A document that already exists is never
+ * re-created, so the write paths call ensureReservedAreas too.
+ */
+export function newDocument(system?: string): SpecsDocument {
   const ts = nowUtcZ();
-  return {
-    component: component ?? "",
+  const doc: SpecsDocument = {
+    system: system ?? "",
     description: "",
     created_at: ts,
     updated_at: ts,
     previous_version: null,
+    purged_ids: [],
     areas: [],
     specs: [],
   };
+  ensureReservedAreas(doc);
+  return doc;
 }

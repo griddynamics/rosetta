@@ -1,6 +1,6 @@
 ---
 name: dangerous-actions
-description: "CRITICAL. MUST activate when action OR its consequence is potentially dangerous/irreversible/destructive, or HIGH RISK — even if it seems safe. Even a remote chance activate."
+description: "CRITICAL. MUST activate when action OR its consequence is potentially dangerous/irreversible/destructive, or HIGH RISK — even if it seems safe. If stage, pre-prod, prod envs. Activate even on a remote chance."
 license: Apache-2.0
 user-invocable: false
 baseSchema: docs/schemas/skill.md
@@ -11,9 +11,10 @@ baseSchema: docs/schemas/skill.md
 <process>
 
 1. Assess BLAST RADIUS before execution.
-2. "THINK THE OPPOSITE" — what if this goes wrong?
-3. Consider safer alternatives.
-4. MUST REQUIRE EXPLICIT user approval.
+2. NEVER ALLOWED TO use/touch any higher environments!
+3. "THINK THE OPPOSITE" — what if this goes wrong?
+4. Consider safer alternatives.
+5. MUST REQUIRE EXPLICIT user approval.
 
 Examples (not limited):
 
@@ -26,9 +27,9 @@ Examples (not limited):
 
 Exceptions (only after blast radius):
 
-5. Application code itself.
-6. Just-created data you CAN fully recover.
-7. Temporary data without side-effects.
+6. Application code itself.
+7. Just-created data you CAN fully recover.
+8. Temporary data without side-effects.
 
 </process>
 

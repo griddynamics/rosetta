@@ -7,6 +7,7 @@ Requirements are organized by Rosetta component. Each component has its own fold
 ### rosettify/INDEX.md — `rosettify` npm package: unified CLI/MCP tool runner for Rosetta.
 ### rosettify/ARCH.md — Internal architecture: tool registry, command dispatch, output envelope, frontend abstraction.
 ### rosettify/PLAN.md — Plan command: two-level hierarchy, CRUD subcommands, templates, atomic write, help, output shapes.
+### rosettify/SPECS.md — Specs command: requirement units as JSON, area-scoped ids, EARS criteria, lifecycle and guarded fields, validate, graph, render, migrate, per-field help guidance.
 ### rosettify/HELP.md — Help command: top-level and per-command help, schema enumeration, --help flag handling.
 ### rosettify/CLI.md — CLI frontend: argument parsing, positional conventions, error formatting, exit codes.
 ### rosettify/MCP.md — MCP frontend: stdio transport, tool registration, input validation, error formatting.

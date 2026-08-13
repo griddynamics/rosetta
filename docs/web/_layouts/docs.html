@@ -49,13 +49,13 @@
 
     <p class="docs-sidebar-cat">Guides</p>
     <a href="{{ '/docs/usage-guide/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/usage-guide/' %} active{% endif %}">Usage Guide</a>
+    <a href="{{ '/docs/modernization/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/modernization/' %} active{% endif %}">Modernization Guide</a>
     <a href="{{ '/docs/deployment/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/deployment/' %} active{% endif %}">Deployment</a>
     <a href="{{ '/docs/troubleshooting/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/troubleshooting/' %} active{% endif %}">Troubleshooting</a>
 
     <p class="docs-sidebar-cat">Workflows</p>
     <a href="{{ '/docs/init-workspace-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/init-workspace-flow/' %} active{% endif %}">Init Workspace</a>
-    <a href="{{ '/docs/arrangement-workspace-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/arrangement-workspace-flow/' %} active{% endif %}">Arrangement Workspace</a>
-    <a href="{{ '/docs/self-help-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/self-help-flow/' %} active{% endif %}">Self Help</a>
+    <a href="{{ '/docs/help-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/help-flow/' %} active{% endif %}">Help</a>
     <a href="{{ '/docs/coding-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/coding-flow/' %} active{% endif %}">Coding</a>
     <a href="{{ '/docs/requirements-authoring-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/requirements-authoring-flow/' %} active{% endif %}">Requirements Authoring</a>
     <a href="{{ '/docs/security-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/security-flow/' %} active{% endif %}">Security Review</a>
@@ -361,7 +361,9 @@
     if (!index) { pending = query; return; }
     var hits;
     try {
-      var terms = query.split(/\s+/).filter(Boolean).map(function(t) { return t + '*'; }).join(' ');
+      // Index terms are stemmed; wildcard queries are not. Search both the plain
+      // (stemmed) form and the prefix form so "security" matches the stem "secur".
+      var terms = query.split(/\s+/).filter(Boolean).map(function(t) { return t + ' ' + t + '*'; }).join(' ');
       hits = index.search(terms);
     } catch(e) { hits = []; }
     if (!hits.length) {

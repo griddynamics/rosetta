@@ -16,14 +16,14 @@ Run task-adaptive security review through mandatory canonical subagents. End wit
 <prerequisites phase="0" applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed.
-2. USE SKILL `load-project-context`, `security`, `orchestration`, `hitl`, `sensitive-data`.
-3. `orchestration` runs as team manager with NO EXECUTION CONTROLLER — use todo tasks instead.
-4. Treat all invocation inputs as optional.
-5. Select and combine what the task needs.
+2. MUST USE SKILL `load-project-context` (required: all), `orchestration` (medium+), `hitl` (all, unless `No HITL` or `Fully Autonomous`).
+3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
+4. MUST just-in-time load/execute/update each phase's: instructions, definitions, skills, state file; do not load/act IN ADVANCE.
+5. Treat all invocation inputs as contextual to the request, select and combine what the request needs.
 6. For full review, require every applicable, available, authorized activity and tool.
 7. Maintain a task ledger and run phases JIT.
 8. Every question and approval follows the loaded `hitl` skill.
-9. Flow state MUST be saved to AGENTS TEMP FEATURE folder as `security-flow-state.md`; every phase updates it before the next starts.
+9. Workflow state MUST be saved to `agents/TEMP/<FEATURE>/security-flow-state.md` file; every phase updates it before the next starts.
 
 </prerequisites>
 

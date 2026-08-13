@@ -38,6 +38,7 @@ Phase 3 test coverage is optional and runs only when you explicitly approve it.
 - Decide whether Phase 3 baseline test coverage should run. This phase is optional and requires explicit approval.
 - For small in-place upgrades, confirm whether the reduced path is acceptable. The workflow allows Phase 2 plus Phase 6 only when the scope is truly small and later discovery does not expand it.
 - Use [Usage Guide](/rosetta/docs/usage-guide/) for shared Rosetta setup and general customization. This page covers only modernization-specific preparation.
+- For migration principles, red flags, process, and start prompt templates, see [Modernization Guide](/rosetta/docs/modernization/).
 
 ## How To Start
 
@@ -306,6 +307,11 @@ Check that implementation only starts after explicit approval, that the agent is
 - Treating the optional test-coverage phase as automatic. It is opt-in.
 - Using the reduced small-upgrade path on a migration that actually has hidden cross-project or platform dependencies.
 - Ignoring unresolved unknowns during final review and hoping Coding Flow will sort them out later.
+
+## Related Docs
+
+- [Modernization Guide](/rosetta/docs/modernization/): principles, red flags, process, and start prompt templates
+- [Configuration](/rosetta/docs/configuration/#4-modernization-additional-setup): modernization additional workspace setup
 
 ## Source Files
 

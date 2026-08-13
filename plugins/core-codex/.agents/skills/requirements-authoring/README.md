@@ -12,7 +12,7 @@ SKILL.md flow: `role` → `when_to_use_skill` → `dependencies` → `core_conce
 
 assets/ files, each answering one authoring-flow question:
 - `ra-intent-capture.md` — pre-draft template: goal/audience/ticketId, intent_summary, non_goals, scope, must_know/assumptions/open_questions, actors, MoSCoW constraints, requirements_areas, traceability_plan, validation_plan, `hitl_gates` (decision/why/default_if_unknown), success_criteria_smart.
-- `ra-requirement-unit.xml` — canonical `<req>` template (note the `.xml` extension, unlike the other three `.md` assets).
+- `ra-requirement-unit.md` — canonical `<req>` template (note the `.xml` extension, unlike the other three `.md` assets).
 - `ra-validation-rubric.md` — true/false scorecard across structure, quality, language, verification, traceability, conflicts, gaps, governance; mirrors SKILL.md's checklist/conflict/gap sections.
 - `ra-change-log.md` — ephemeral change-log entry (`kept`/`removed`/`added`/`clarified`/`assumptions`/`risks_hitl`); guideline: "Only show this to user, do not save in documents" — distinct from the persisted `REQUIREMENTS/CHANGES.md`.
 
@@ -24,7 +24,7 @@ ID grammar: `FR-[AREA]-####` (functional), `NFR-####` (no area segment), `INT-[A
 - "If a sentence would not survive in a spec that was never revised, delete it." — the meta-leak test, phrased as a thought experiment rather than a rule to check off.
 - "Check if grouping of multiple requirements is a requirement itself" — a grouping heading can silently smuggle in an unreviewed requirement disguised as file organization; repeated in `validation_rules` and `pitfalls`.
 - "User is not always right" / "Challenge new requirements reasonably" — the skill must push back, not transcribe.
-- "Defer by keeping Draft status" — the default escape hatch: never invent an answer, leave the unit `Draft`.
+- "Defer an approval decision by keeping Draft status" — the default escape hatch for an unresolved *approval*, not for an unfinished unit: never invent an answer, leave the unit `Draft`. A `Draft` is still complete and ready for review.
 - "Refactor above 300 lines" — a hard split trigger for requirement files, far stricter than this SKILL.md's own ~490 lines.
 - `requirements_graph` tells the model to "Proactively ask to generate and show a graph of requirements" via Graphviz, unprompted.
 
@@ -32,9 +32,9 @@ ID grammar: `FR-[AREA]-####` (functional), `NFR-####` (no area segment), `INT-[A
 - Frontmatter `name: requirements-authoring` equals the folder name; registered (bare listing, no description) in `docs/definitions/skills.md`.
 - `description` is one sentence within the schema's ~25-token budget (`docs/schemas/skill.md`) — this skill respects the budget, unlike e.g. `hitl`, which deliberately exceeds it.
 - Root wrapper `<requirements-authoring>` matches the skill name per the shared skill-schema convention.
-- `<req>` field set/order in the inline `requirement_unit_template` (id, type, level, ticketId, classification; title, statement, rationale, source, priority, status, approved_by, changed, verification, acceptance, depends, implementation, implementationNotes, notes) is what downstream workflows key off. UNCERTAINTY: `assets/ra-requirement-unit.xml` disagrees — it omits `approved_by`/`changed`/`implementationNotes` and folds status+notes into one `<implementation>[status][notes]</implementation>` field; `docs/requirements/rosetta-cli/functional-requirements.md` uses a third, older shape (plain `FR-0017` IDs, no AREA segment, no `approved_by`/`changed`/`implementation`). Treat the inline SKILL.md template as authoritative; reconcile the asset before relying on it verbatim (intent not documented).
+- `<req>` field set/order in the inline `requirement_unit_template` (id, type, level, ticketId, classification; title, statement, rationale, source, priority, status, approved_by, changed, verification, acceptance, depends, implementation, implementationNotes, notes) is what downstream workflows key off. UNCERTAINTY: `assets/ra-requirement-unit.md` disagrees — it omits `approved_by`/`changed`/`implementationNotes` and folds status+notes into one `<implementation>[status][notes]</implementation>` field; `docs/requirements/rosetta-cli/functional-requirements.md` uses a third, older shape (plain `FR-0017` IDs, no AREA segment, no `approved_by`/`changed`/`implementation`). Treat the inline SKILL.md template as authoritative; reconcile the asset before relying on it verbatim (intent not documented).
 - ID grammar `FR-[AREA]-####` / `NFR-####` / `INT-[AREA]-####` / `DATA-[AREA]-####` is load-bearing for `requirements-authoring-flow.md` phase 4 ("Map files and IDs") and for `docs/requirements/*`.
-- Asset filename `ra-requirement-unit.xml` is `.xml`, not `.md` like its three siblings — a real, referenced inconsistency (SKILL.md's `resources` section names it by this exact filename), not a typo to silently "fix".
+- Asset filename `ra-requirement-unit.md` is `.xml`, not `.md` like its three siblings — a real, referenced inconsistency (SKILL.md's `resources` section names it by this exact filename), not a typo to silently "fix".
 - `resources` uses the repo-wide typed-alias grammar `READ FLOW` / `READ RULE` / `READ SKILL FILE` — changing these forms breaks the shared loader convention other skills rely on.
 - `skills/requirements-authoring-flow/SKILL.md` routes to this skill's assets by description, never by filename (e.g. "the `requirements-authoring` skill's requirement-unit asset", "...validation rubric", "...change-log asset"). This skill must keep exposing exactly one requirement-unit template, one validation rubric, one change-log template so that indirection keeps resolving.
 - Filesystem contract: write only under `REQUIREMENTS/`, never edit outside it; `INDEX.md` (one header per file: `# file path: short description`) and `CHANGES.md` (terse, sole change log) are fixed filenames other tooling greps for.

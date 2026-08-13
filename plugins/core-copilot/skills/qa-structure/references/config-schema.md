@@ -15,7 +15,7 @@ The project-config-loading phase completes only when every required key below ho
 | `Wiki / Document Storage` -- `wiki_base_url` | data-collection phase (scope detection + access) | Base URL or `N/A -- wiki_provider: <none/local>` |
 | `API Specification` -- `swagger_url` (or path) | api-spec-analysis phase | URL/path, or `N/A -- no Swagger spec available; code-based analysis will run` |
 | `API Specification` -- `spec_format` | api-spec-analysis phase | One of: `OpenAPI 3.x` / `Swagger 2.0` / `N/A` |
-| `Backend Source Code` -- `backend_source_path` | data-collection phase, api-spec-analysis phase | Path (e.g. `RefSrc/my-backend/` or `src/`) or `N/A -- work from Swagger/docs only` |
+| `Backend Source Code` -- `backend_source_path` | data-collection phase, api-spec-analysis phase | Path (e.g. `refsrc/my-backend/` or `src/`) or `N/A -- work from Swagger/docs only` |
 | `Test Case Management` -- `tms_provider` | data-collection phase (branch selector) | Provider name (e.g. `testrail` / `jira` / `confluence`) or `manual` / `other` |
 | `Test Case Management` -- `tms_base_url` | data-collection phase (provider access) | Base URL or `N/A -- tms_provider: manual` |
 | `Test Case Management` -- `project_id` / `suite_id` | data-collection phase (provider-specific run identifiers; TestRail project/suite is the canonical example) | IDs, or `N/A -- tms_provider: <value without project/suite IDs>` |

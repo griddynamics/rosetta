@@ -4,6 +4,9 @@
 // in the same batch. A missing id is reported in `missing`, never errors the batch. Routes
 // through applyBatchWrite's write path but returns affected:[] — a purged spec no longer exists
 // to stamp changed/changed_by on.
+// Purge erases the CONTENT of a requirement completely and its IDENTITY deliberately not at all:
+// every purged id is recorded in the document and stays taken forever, so it can never be handed
+// to a different requirement later and a reader of an old reference is never silently misled.
 
 import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
@@ -48,6 +51,12 @@ export async function cmdPurge(
       if (rejects.length > 0) {
         return { ok: false, error: aggregate(ERR_REFERENCED_BY_OTHERS, rejects) };
       }
+
+      // FR-SPECS-0016/FR-SPECS-0009 — record identity before erasing content. Placed after the
+      // referenced_by_others gate above so a rejected batch leaves the registry untouched, and
+      // before the removal below so the ids are still known to be genuinely purgeable. The union
+      // keeps the field idempotent under any repeated call path.
+      doc.purged_ids = [...new Set([...(doc.purged_ids ?? []), ...purgeable])];
 
       doc.specs = (doc.specs ?? []).filter((s) => !purgeable.includes(s.id));
       // affected:[] — the purged specs no longer exist in doc.specs to stamp changed/changed_by.

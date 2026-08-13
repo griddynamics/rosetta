@@ -34,10 +34,11 @@ baseSchema: docs/schemas/workflow.md
 
 <prerequisites phase="0" applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed
-2. USE SKILL `load-project-context`, `orchestration`, `hitl`
+1. All Rosetta prep steps MUST be FULLY completed.
+2. MUST USE SKILL `load-project-context` (required: all), `orchestration` (all except trivial), `hitl` (all, unless `No HITL` or `Fully Autonomous`).
 3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
 4. MUST just-in-time load/execute/update each phase's: instructions, definitions, skills, state file; do not load/act IN ADVANCE.
+5. Workflow state MUST be saved to `agents/TEMP/<FEATURE>/[the_workflow_name]-flow-state.md` file.
 
 </prerequisites>
 

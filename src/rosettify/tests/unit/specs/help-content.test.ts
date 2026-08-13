@@ -27,11 +27,19 @@ const VALID_SUBCOMMANDS = [
   "migrate",
 ] as const;
 
-// FR-SPECS-0061 — the 12 caller-facing behaviors, by distinguishing substring (stable even if
-// exact wording is later polished, since this test's job is coverage, not verbatim wording).
+// FR-SPECS-0061 — the caller-facing behaviors, by distinguishing substring (stable even if exact
+// wording is later polished, since this test's job is coverage, not verbatim wording). One topic
+// per note, in note order: the "every note is covered" test below pins that correspondence, so a
+// note added without a topic here fails rather than slipping through untested.
 const FR_SPECS_0061_NOTE_TOPICS = [
   "inline JSON string",
   "ids are caller-provided",
+  "nine recommended quality-characteristic codes",
+  "the statement carries the rule",
+  "each criterion names exactly one pattern",
+  "criterion sub-ids read <spec-id>.AC<n>",
+  "evidence lists one path and line range",
+  "render returns markup as well as markdown",
   "Draft/NotStarted",
   "guarded fields",
   "Modified",
@@ -40,7 +48,7 @@ const FR_SPECS_0061_NOTE_TOPICS = [
   "all-or-nothing",
   "query grammar",
   "UTC and shown in local time",
-  "one-time import",
+  "migrate imports requirement units",
   "single human-readable string",
 ];
 
@@ -106,13 +114,25 @@ describe("specsHelpContent.subcommands — all 16 registered, each fully specifi
   });
 });
 
-describe("specsHelpContent.notes — all 12 FR-SPECS-0061 items present", () => {
-  it("has exactly 12 notes", () => {
-    expect(specsNotes).toHaveLength(12);
-    expect(specsHelpContent.notes).toHaveLength(12);
+describe("specsHelpContent.notes — every FR-SPECS-0061 item present", () => {
+  it("has exactly one note per documented topic", () => {
+    expect(specsNotes).toHaveLength(FR_SPECS_0061_NOTE_TOPICS.length);
+    expect(specsHelpContent.notes).toHaveLength(FR_SPECS_0061_NOTE_TOPICS.length);
   });
 
   it.each(FR_SPECS_0061_NOTE_TOPICS)("covers the note topic: '%s'", (topic) => {
     expect(specsNotes.some((n) => n.includes(topic))).toBe(true);
+  });
+
+  // The converse of the coverage check above: a note added without a matching topic would
+  // otherwise slip through untested, since every topic could still find its own note.
+  it("leaves no note unclaimed by a topic", () => {
+    const unclaimed = specsNotes.filter((n) => !FR_SPECS_0061_NOTE_TOPICS.some((t) => n.includes(t)));
+    expect(unclaimed).toEqual([]);
+  });
+
+  it("matches each topic to a distinct note", () => {
+    const matched = FR_SPECS_0061_NOTE_TOPICS.map((t) => specsNotes.findIndex((n) => n.includes(t)));
+    expect(new Set(matched).size).toBe(FR_SPECS_0061_NOTE_TOPICS.length);
   });
 });

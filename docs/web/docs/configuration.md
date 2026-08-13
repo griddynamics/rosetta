@@ -198,7 +198,7 @@ Setup actions:
 - Initialize Rosetta (see [Quick Start](/rosetta/docs/quickstart/)).
 
 <details markdown="1">
-<summary><b>Detailed examples what should be in RefSrc folder</b></summary>
+<summary><b>Detailed examples what should be in refsrc folder</b></summary>
 
 1. Example what integration or e2e testing repository needs:
 
@@ -408,3 +408,5 @@ The old code in `refsrc/` keeps its own `docs/CONTEXT.md` and `docs/ARCHITECTURE
 
 - Use `/requirements-authoring-flow` or `Allium` to generate specs from the existing old code.
 - Use `/coding-flow` for unit tests and `/ui-aqa-flow` for e2e tests to cover the old code before you change it.
+
+For migration principles, red flags, process, and start prompt templates, see [Modernization Guide](/rosetta/docs/modernization/). For the Rosetta phase workflow, see [Modernization Flow](/rosetta/docs/modernization-flow/).

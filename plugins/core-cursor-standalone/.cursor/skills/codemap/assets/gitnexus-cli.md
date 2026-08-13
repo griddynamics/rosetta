@@ -12,7 +12,7 @@ Use when a GitNexus CLI command should be run directly, need to know which flags
 
 **analyze — Build or refresh the index**
 ```bash
-npx -y gitnexus@latest analyze
+npx gitnexus analyze
 ```
 
 Run from the project root. This parses all source files, builds the knowledge graph, writes it to `.gitnexus/`.
@@ -26,14 +26,14 @@ Run from the project root. This parses all source files, builds the knowledge gr
 
 **status — Check index freshness**
 ```bash
-npx -y gitnexus@latest status
+npx gitnexus status
 ```
 
 Shows whether the current repo has a GitNexus index, when it was last updated, and symbol/relationship counts. Use this to check if re-indexing is needed.
 
 **clean — Delete the index**
 ```bash
-npx -y gitnexus@latest clean
+npx gitnexus clean
 ```
 
 Deletes the `.gitnexus/` directory and unregisters the repo from the global registry. Use before re-indexing if the index is corrupt or after removing GitNexus from a project.
@@ -45,7 +45,7 @@ Deletes the `.gitnexus/` directory and unregisters the repo from the global regi
 
 **wiki — Generate documentation from the graph**
 ```bash
-npx -y gitnexus@latest wiki
+npx gitnexus wiki
 ```
 
 Generates repository documentation from the knowledge graph using an LLM. Requires an API key (saved to `~/.gitnexus/config.json` on first use).
@@ -61,7 +61,7 @@ Generates repository documentation from the knowledge graph using an LLM. Requir
 
 **list — Show all indexed repos**
 ```bash
-npx -y gitnexus@latest list
+npx gitnexus list
 ```
 
 Lists all repositories registered in `~/.gitnexus/registry.json`. The MCP `list_repos` tool provides the same information.

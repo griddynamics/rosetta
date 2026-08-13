@@ -116,9 +116,13 @@ Initialize this repository using the respective Rosetta workflow, dead code is i
 
 STDIO transport is available for environments with limited internet access. [All IDEs and detailed setup](/rosetta/docs/installation/). Read more in the [Quick Start](/rosetta/docs/quickstart/).
 
-## Tech Demo
+## Tech Demo: Init and Coding
 
 <video src="https://github.com/user-attachments/assets/fc0ef06a-2f9c-49fa-bc05-68001dadd286" controls width="100%"></video>
+
+## Tech Demo: Frontend Migration
+
+<video src="https://github.com/user-attachments/assets/8a48ce2e-a8f6-4d80-a208-4e808ab502df" controls width="100%"></video>
 
 ## Supported IDEs and Agents
 

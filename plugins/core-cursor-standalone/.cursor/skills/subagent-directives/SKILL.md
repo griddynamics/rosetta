@@ -19,6 +19,7 @@ baseSchema: docs/schemas/skill.md
 7. Return EXACTLY per Output specs — nothing missing, nothing extra.
 8. Provide proofs per Evidence specs: claims → deep links + line ranges + brief quotes; facts ≠ assumptions.
 9. Subagents ask orchestrator; orchestrator asks user.
+10. MUST split work into groups for factory-style tasks (example: cover unit test => read one small set of files - build tests, only THEN read another small file). 
 
 </process>
 

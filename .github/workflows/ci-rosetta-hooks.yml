@@ -9,6 +9,10 @@ on:
       - 'src/hooks/**'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-test:
     runs-on: ubuntu-latest
@@ -32,10 +36,6 @@ jobs:
     - name: Run type validation
       working-directory: ./src/hooks
       run: npm run check
-
-    - name: Build package
-      working-directory: ./src/hooks
-      run: npm run build
 
     - name: Run tests
       working-directory: ./src/hooks

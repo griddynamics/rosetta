@@ -18,7 +18,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 <prerequisites phase="0" applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed
-2. USE SKILL `load-project-context`, `orchestration`, `hitl`
+2. MUST USE SKILL `load-project-context` (required: all), `orchestration` (all except trivial), `hitl` (all, unless `No HITL` or `Fully Autonomous`)
 3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
 4. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping, if in doubt - select the safest / longest path, no deviation from the workflow is allowed
 5. When debugging is needed, INVOKE SUBAGENT `engineer` with `debugging` skill to save LLM context
@@ -28,7 +28,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 9. If `/goal` is set repeat phases 7-12 postponing user_review_impl and final_validation until goal is met.
 10. If migrate/modernize: implementation phase MUST use tiny batches ONLY (1-3 files), never bulk-read (other phases may); specs/plan enforce; FS-copy RECOMMENDED; no behavior change/new code; mirror source; subagents same; REQUIRED TO log <file> started/completed; Use impl subagents like MAP-REDUCE;
 11. Run architect subagent with required model in the background and consult with it if already supported or prefer advisor if already available
-12. Coding workflow state MUST be saved to AGENTS TEMP FEATURE folder as `coding-flow-state.md` file.
+12. Coding workflow state MUST be saved to `agents/TEMP/<FEATURE>/coding-flow-state.md` file.
 
 </prerequisites>
 
@@ -60,16 +60,16 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 <user_review_design phase="3" applies="ALL" type="HITL">
 
 1. Present main solution first and then alternatives, do not assume user is in context, give him full information with TLDR.
-1. Present specs, plan, and review findings. User MUST approve: "Yes, I reviewed the design" or "Approve, the design was reviewed".
-1. Strict approval; anything else = review feedback, iterate.
-1. SMALL: combine with Phase 6 into single checkpoint.
+2. Present specs, plan, and review findings. User MUST approve: "Yes, I reviewed the design" or "Approve, the design was reviewed".
+3. Strict approval; anything else = review feedback, iterate.
+4. SMALL: combine with Phase 6 into single checkpoint.
 
 </user_review_design>
 
 <tech_plan phase="4" applies="ALL" subagent="architect" role="Senior architect defining specs and plan" subagent_required_model="inherit">
 
 1. MUST USE SKILL `tech-specs` and `planning` together. Split: specs own WHAT, plan owns HOW. Target: 100% clarity.
-2. Input: discovery notes, user request, `ARCHITECTURE.md`. Output: `<FEATURE>-SPECS.md` + `<FEATURE>-PLAN.md` in FEATURE PLAN folder.
+2. Input: discovery notes, user request, `ARCHITECTURE.md`. Output: `plans/<FEATURE>/<FEATURE>-SPECS.md` + `plans/<FEATURE>/<FEATURE>-PLAN.md`.
 3. SMALL: output as message, no files. MEDIUM: concise. LARGE: full.
 4. Required skills: `tech-specs`, `planning`
 5. If medium/large `reasoning` skill is required
@@ -133,7 +133,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 1. Present implementation, review findings, and validation findings. User MUST approve: "Yes, I approve the implementation".
 2. Strict approval required before proceeding to tests.
-3. SMALL: combined with Phase 12 checkpoint.
+3. SMALL: combined with Phase 13 final validation.
 
 </user_review_impl>
 

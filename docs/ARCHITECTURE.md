@@ -6,6 +6,8 @@
 
 For terminology (workflow, skill, rule, subagent, bootstrap, etc.), see [OVERVIEW.md — Key Concepts](../OVERVIEW.md#key-concepts).
 
+For this repository's own GitHub automation (the board-driven analysis/plan/implement/triage pipelines), see [AUTOMATION-ARCHITECTURE.md](AUTOMATION-ARCHITECTURE.md).
+
 ---
 
 ## Two Repositories
@@ -16,7 +18,7 @@ Rosetta operates across two distinct repository types:
 
 **Target repository** (any project). Where Rosetta is applied. The coding agent runs here, receives instructions via a plugin or Rosetta MCP, and maintains workspace files (`docs/CONTEXT.md`, `agents/IMPLEMENTATION.md`, etc.). Maintained by developers using AI coding agents.
 
-The instructions repo defines *how agents should behave*. The target repo is *where agents do the work*.
+The instructions repo defines **how agents should behave**. The target repo is **where agents do the work**.
 
 ---
 
@@ -81,21 +83,21 @@ Instructions never call MCP tools directly. Rosetta defines command aliases that
 - **Decoupling.** Instruction content is independent of MCP API changes.
 - **Authoring.** Workflows, skills, and rules reference each other through aliases, not tool calls.
 
-| Alias | Semantics |
-|---|---|
-| `USE SKILL <name>` / `READ SKILL <name>` | Activate skill (loads `SKILL.md`, acts on it) / load content only |
-| `READ SKILL FILE <subpath>` / `APPLY SKILL FILE <subpath>` | Load / load+execute a file of the CURRENT skill; never names a skill (isolation is grammar-enforced) |
-| `USE FLOW <name>.md` / `READ FLOW <name>.md` | Invoke a whole workflow / load without executing |
-| `APPLY PHASE <file>.md` / `APPLY PHASE <file>.md STEP <names/ids>` | Load + fully execute the next phase body of a running workflow / execute only the named step blocks |
-| `USE FLOW <flow>.md TO APPLY PHASE <phase>.md` | Activate the flow's prerequisites and policy, then execute only that phase |
-| `INVOKE SUBAGENT <name> to APPLY PHASE <file>.md` | Spawn the subagent and have it execute the phase under its assigned identity |
-| `INVOKE SUBAGENT <name>` / `READ SUBAGENT <name>` | Spawn subagent / load its definition only |
-| `READ RULE <file>.md` / `APPLY RULE <file>.md` | Load / load+execute a rule |
-| `READ TEMPLATE <file>.md` | Load a template |
-| `READ CONFIGURE <tool>.md` | Load an IDE/agent configure spec |
-| `LIST <path>` | Enumerate immediate children of a KB folder |
-| `ACQUIRE <path> FROM KB` | MCP-only, generated shells: `query_instructions(tags="<path>")` |
-| `/rosetta` | Engage only the Rosetta flow |
+| Alias                                                              | Semantics                                                                                            |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `USE SKILL <name>` / `READ SKILL <name>`                           | Activate skill (loads `SKILL.md`, acts on it) / load content only                                    |
+| `READ SKILL FILE <subpath>` / `APPLY SKILL FILE <subpath>`         | Load / load+execute a file of the CURRENT skill; never names a skill (isolation is grammar-enforced) |
+| `USE FLOW <name>.md` / `READ FLOW <name>.md`                       | Invoke a whole workflow / load without executing                                                     |
+| `APPLY PHASE <file>.md` / `APPLY PHASE <file>.md STEP <names/ids>` | Load + fully execute the next phase body of a running workflow / execute only the named step blocks  |
+| `USE FLOW <flow>.md TO APPLY PHASE <phase>.md`                     | Activate the flow's prerequisites and policy, then execute only that phase                           |
+| `INVOKE SUBAGENT <name> to APPLY PHASE <file>.md`                  | Spawn the subagent and have it execute the phase under its assigned identity                         |
+| `INVOKE SUBAGENT <name>` / `READ SUBAGENT <name>`                  | Spawn subagent / load its definition only                                                            |
+| `READ RULE <file>.md` / `APPLY RULE <file>.md`                     | Load / load+execute a rule                                                                           |
+| `READ TEMPLATE <file>.md`                                          | Load a template                                                                                      |
+| `READ CONFIGURE <tool>.md`                                         | Load an IDE/agent configure spec                                                                     |
+| `LIST <path>`                                                      | Enumerate immediate children of a KB folder                                                          |
+| `ACQUIRE <path> FROM KB`                                           | MCP-only, generated shells: `query_instructions(tags="<path>")`                                      |
+| `/rosetta`                                                         | Engage only the Rosetta flow                                                                         |
 
 Verbs: `READ` = load into context; `APPLY` = load + fully execute; `USE`/`INVOKE` = activate. In plugin mode the typed aliases need NO mapping — they operate natively on the plugin files; the MCP mode file (`mcp-files-mode.md`: `query_instructions`/`list_instructions` by path-based tags) and local mode file (`local-files-mode.md`: reads from `instructions/r3`) map each alias to their mechanisms. In MCP, typed loads resolve via VFS resource paths (filename, parent/filename, or grandparent/parent/filename); LIST preferred when the folder is known.
 
@@ -128,6 +130,14 @@ Requests are classified only when the user invokes `/rosetta`; a plain request l
 
 ---
 
+## Versioning
+
+Each individual solution component follows its own version (except major).
+
+All plugins follow the same version.
+
+---
+
 ## Rosettify
 
 Local CLI/MCP utility for AI coding agents and users. Purpose: deterministic local AI coding workflow execution and single entry point for Rosetta tooling in any project. All data and IP stays local — zero network calls during operation.
@@ -137,6 +147,7 @@ Published on npm as `rosettify`. Invoked via `npx -y rosettify@latest <command> 
 **Requirements-first:** spec-before-code from `docs/requirements/rosettify/` (authoritative; code follows).
 
 **Key points:**
+
 - **Dual frontend.** One CLI and one MCP server backed by the same run delegates. Identical behavior in both modes.
 - **Plan management** (current feature). `npx -y rosettify@latest plan <subcommand> <plan_file>` — create, track, and advance execution plans as local JSON files. Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`.
 - **Specs management** (current feature). `npx -y rosettify@latest specs <subcommand> <specs_file>` — author, query, validate, and approve a component's requirements as spec units stored in one JSON document per component. Subcommands: `add`, `get`, `query`, `update`, `delete`, `purge`, `implemented`, `approve`, `deprecate`, `restore`, `reopen`, `validate`, `graph`, `render`, `info`, `migrate`.
@@ -205,6 +216,7 @@ Instructions live in `/instructions/r3/` in the instructions repository, using a
 Rosetta initializes and maintains a standard file structure in **target repositories**. These files are how the agent tracks project context, implementation state, and execution plans. All are SRP, DRY, MECE, concise, with grep-friendly topical headers.
 
 **Project documentation (`docs/`):**
+
 - `CONTEXT.md` — business context, target state (no technical details, no changelog)
 - `ARCHITECTURE.md` — architecture, technical requirements, modules, workspace structure
 - `TODO.md` — improvements, feature requests, large TODOs
@@ -216,15 +228,18 @@ Rosetta initializes and maintains a standard file structure in **target reposito
 - `PATTERNS/*` — coding and architectural patterns with `INDEX.md`
 
 **Agent state (`agents/`):**
+
 - `IMPLEMENTATION.md` — current implementation state (the only changelog)
 - `MEMORY.md` — root causes of errors, actions tried, lessons learned
 
 **Execution (`plans/`):**
+
 - `<FEATURE>/<FEATURE>-PLAN.md` — execution plan
 - `<FEATURE>/<FEATURE>-SPECS.md` — tech specs
 - `<FEATURE>/*` — supporting implementation files
 
 **Other:**
+
 - `gain.json` — general SDLC setup and Rosetta file locations (wins in conflicts)
 - `refsrc/*` — reference source code for knowledge only (excluded from SCM except `refsrc/INDEX.md`)
 - `agents/TEMP/<FEATURE>` — temporary files during implementation (excluded from SCM)
@@ -258,6 +273,11 @@ MCP has its own, separate delivery flow (publish → index → serve) — see [M
 
 MCP server development, publishing instructions, and RAGFlow/MCP validation are covered in [MCP-ARCHITECTURE.md — Development](MCP-ARCHITECTURE.md#development).
 
+Once everything fully completed and before complete:
+
+- Must regenerate plugins using `npx -y rosettify-plugins@latest` in workspace root if any `instructions/r3/*` was modified.
+- Must run full pre-commit check using `venv/bin/python scripts/pre_commit.py` in workspace root if any `src/*` was modified.
+
 ### Plugins
 
 Instructions to `plugins` folder content must be regenerated with `venv/bin/python scripts/pre_commit.py` (which calls `npx -y rosettify-plugins@latest` internally).
@@ -271,21 +291,21 @@ Plugins are the primary delivery mechanism for Rosetta. They deliver instruction
 
 Each plugin contains core instructions: 38 skills, 10 agents, 13 workflow types, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
 
-| Plugin | IDE | Mode |
-|---|---|---|
-| `core-claude` | Claude Code | Plugin marketplace |
-| `core-cursor` | Cursor | Plugin marketplace |
-| `core-copilot` | VS Code Copilot, JetBrains Copilot | Plugin marketplace |
-| `core-codex` | Codex | Plugin marketplace |
-| `core-antigravity` | Antigravity 2.0, Antigravity CLI, Antigravity IDE | Direct extraction into plugin folder (`.agents/plugins/rosetta/`) |
-| `core-cursor-standalone` | Cursor | Direct extraction into repo (`.cursor/`) |
-| `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot | Direct extraction into repo (`.github/`) |
+| Plugin                    | IDE                                               | Mode                                                              |
+| ------------------------- | ------------------------------------------------- | ----------------------------------------------------------------- |
+| `core-claude`             | Claude Code                                       | Plugin marketplace                                                |
+| `core-cursor`             | Cursor                                            | Plugin marketplace                                                |
+| `core-copilot`            | VS Code Copilot, JetBrains Copilot                | Plugin marketplace                                                |
+| `core-codex`              | Codex                                             | Plugin marketplace                                                |
+| `core-antigravity`        | Antigravity 2.0, Antigravity CLI, Antigravity IDE | Direct extraction into plugin folder (`.agents/plugins/rosetta/`) |
+| `core-cursor-standalone`  | Cursor                                            | Direct extraction into repo (`.cursor/`)                          |
+| `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot                | Direct extraction into repo (`.github/`)                          |
 
 All plugins are generated from the **release-selected** source tree (`instructions/<release>/core/`) by the plugin generator (`rosettify-plugins`, `npx -y rosettify-plugins@latest`). **Requirements-first:** spec-before-code from `docs/requirements/plugin-generator/` (authoritative FRs/NFRs; code follows). The release is chosen by `--release` (default **r3**, matching rosetta-mcp's `DEFAULT_VERSION`); each release descriptor carries its hook posture (r2: SessionStart bootstrap only; r3: deterministic advisory hooks by default), overridable per run with `--deterministic-hooks true|false` (e.g. `--release r3 --deterministic-hooks false` builds r3 without advisory hooks); when omitted, the release's default applies. The generator builds main plugins then derives standalone variants. `.tmpl` files are Handlebars templates rendered by the generator.
 
 **Run it standalone:** `npx -y rosettify-plugins@latest [--release r2|r3] [--output DIR] [--source DIR]` — `--release` selects the instructions source (default `r3`), `--output` redirects generated plugins (default `<source>/plugins`), `--source` sets the repo root (default: current directory). `pre_commit.py` invokes it with `--release r3 --deterministic-hooks false`, so the shipped plugins are r3 content with SessionStart bootstrap only. The generator copies core instructions and adapts them for the target coding agent:
 
-- **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor normalizes to short IDs (e.g. `claude-sonnet-5`, `gpt-5.4`); Copilot to display names (e.g. `Claude Sonnet 5`, `GPT-5.4`); Claude Code to full model IDs (`claude-sonnet-5`, `claude-opus-4-8`, `claude-haiku-4-5`).
+- **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor normalizes to short IDs (e.g. `claude-sonnet-5`, `gpt-5.4`); Copilot to display names (e.g. `Claude Sonnet 5`, `GPT-5.4`); Claude Code to full model IDs (`claude-sonnet-5`, `claude-opus-4-8`, `claude-haiku-4-5`). Also model mapping is used to map old-to-new plus new-to-itself.
 - **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
 - **Directory layout** — restructures output to match IDE conventions (`.agents/` and `.codex/` for Codex, runtime configs at root for Copilot). Each target exposes workflows by one of three distinct mechanisms, and reference rewriting differs accordingly:
   - **Manifest pointer (Claude)** — the folder stays `workflows/` on disk; `.claude-plugin/plugin.json` declares `"commands": "./workflows/"`, so Claude Code reads slash commands straight out of it. Nothing is renamed, so no rewrite pair is produced or needed.
@@ -293,6 +313,7 @@ All plugins are generated from the **release-selected** source tree (`instructio
   - **Restructuring into skills (Codex, Antigravity)** — main doc → `<base>/skills/<name>/SKILL.md` (`.agents/skills` for Codex, `skills` for Antigravity), phase files → `<base>/skills/<name>/phases/<phase>.md` with frontmatter stripped; no `workflows/` folder or index exists for either. Because a document lands deeper than one segment, a bare folder token carries no document identity: **only exact document references are rewritten** (`workflows/coding-flow.md` → `skills/coding-flow/SKILL.md`) and bare `workflows/` is left alone (FR-ARCH-0049). Rewriting it would yield a nonexistent path and corrupt prose and glob mentions such as `` WORKFLOW/COMMAND `workflows/*.md` ``.
 
   All rewriting uses complete boundary-delimited path tokens to avoid accidental partial-word matches.
+
 - **Index generation** — produces `rules/INDEX.md` and `workflows/INDEX.md` (or `commands/INDEX.md` for Cursor, `prompts/INDEX.md` for Copilot) listings for Claude, Cursor, and Copilot. Only files with `tags: ["workflow"]` appear in the workflow index; phase files are excluded; the heading is `# Rosetta Workflows Index`. Codex has no workflow index; Antigravity's analog is `skills/INDEX.md`, populated from workflow-derived skills.
 - **Template processing** — `.tmpl` files render to a sibling file (same path, `.tmpl` suffix removed) with platform placeholders substituted. Cursor and Copilot each ship **two** templates: a plugin-marketplace form (paths resolve under plugin install dir) and a standalone form (paths resolve from a user's project root). Both forms render into the main plugin tree; the standalone generator picks the right one for extraction.
 - **Copilot session locking** — Copilot has no native hook deduplication, so the generated hooks include a file-based lock ensuring each bootstrap entry fires exactly once per session. Other platforms use IDE-native mechanisms (Claude Code: `"once": true`; Codex and Cursor: built-in deduplication).
@@ -301,13 +322,13 @@ Each standard plugin has a preserved config folder (`.claude-plugin/`, `.cursor-
 
 **Standalone plugins** (`core-cursor-standalone`, `core-copilot-standalone`) are a second-pass derivative built from the already-synced main plugins (including their hook bundles) and placed entirely under the IDE's expected subfolder (`.cursor/` or `.github/`). Wiped and recreated per sync. Each IDE expects hooks at a different relative path, so the templates and cleanup differ:
 
-| | Cursor standalone | Copilot standalone |
-|---|---|---|
-| Standalone hooks.json path | `.cursor/hooks.json` (top) | `.github/hooks/hooks.json` (nested) |
-| Standalone-form template lives at | `<plugin>/hooks.json.tmpl` (root) | `<plugin>/hooks/hooks.json.tmpl` |
-| Bundles after extraction | `.cursor/hooks/*.js` | `.github/hooks/*.js` |
-| Path style in hooks.json | `node .cursor/hooks/<file>.js` | `node ".github/hooks/<file>.js"` |
-| Bootstrap delivery | Native Cursor rules (`rules/*.mdc`) | Auto-loaded `instructions/*.instructions.md` |
+|                                   | Cursor standalone                   | Copilot standalone                           |
+| --------------------------------- | ----------------------------------- | -------------------------------------------- |
+| Standalone hooks.json path        | `.cursor/hooks.json` (top)          | `.github/hooks/hooks.json` (nested)          |
+| Standalone-form template lives at | `<plugin>/hooks.json.tmpl` (root)   | `<plugin>/hooks/hooks.json.tmpl`             |
+| Bundles after extraction          | `.cursor/hooks/*.js`                | `.github/hooks/*.js`                         |
+| Path style in hooks.json          | `node .cursor/hooks/<file>.js`      | `node ".github/hooks/<file>.js"`             |
+| Bootstrap delivery                | Native Cursor rules (`rules/*.mdc`) | Auto-loaded `instructions/*.instructions.md` |
 
 When the source plugin contains a directory whose name matches the standalone's `subfolder` (e.g. cursor's bulk-copy would otherwise produce `.cursor/.cursor/`), the generator merges its contents directly into the subfolder to avoid nesting. Each standalone also runs IDE-specific transforms: Cursor injects `commands/INDEX.md` into `rules/plugin-files-mode.mdc`; Copilot moves `rules/bootstrap-*.md` and `rules/plugin-files-mode.md` to `instructions/*.instructions.md` (auto-loaded via `applyTo: "**"`), renames `commands/` → `prompts/` and `*.md` → `*.prompt.md`, rewrites cross-references by exact-string pass, and strips the plugin-marketplace `hooks.json`/`.mcp.json`/`templates/`. `plugin.json` for each standalone is regenerated with the source plugin's version.
 
@@ -319,35 +340,35 @@ Hooks are lightweight scripts that run in response to IDE tool calls (PostToolUs
 
 Source lives in `src/hooks/` and is compiled per-IDE before sync:
 
-| Folder | Contents |
-|---|---|
-| `src/hooks/src/` | TypeScript source — adapter, lock, debug-log, hook implementations |
-| `src/hooks/tests/` | Vitest unit tests + fixtures, and a log-driven E2E suite (`tests/e2e/`) that replays REAL captured wire payloads (`docs/hooks/<ide>-logs.txt`) through the full pipeline (no adapter mocks) to catch canonical-mapping regressions |
-| `src/hooks/scripts/` | esbuild bundler (`build-bundles.mjs`) |
-| `src/hooks/dist/bundles/` | Compiled per-IDE bundles (generated, not committed) |
+| Folder                    | Contents                                                                                                                                                                                                                           |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/hooks/src/`          | TypeScript source — adapter, lock, debug-log, hook implementations                                                                                                                                                                 |
+| `src/hooks/tests/`        | Vitest unit tests + fixtures, and a log-driven E2E suite (`tests/e2e/`) that replays REAL captured wire payloads (`docs/hooks/<ide>-logs.txt`) through the full pipeline (no adapter mocks) to catch canonical-mapping regressions |
+| `src/hooks/scripts/`      | esbuild bundler (`build-bundles.mjs`)                                                                                                                                                                                              |
+| `src/hooks/dist/bundles/` | Compiled per-IDE bundles (generated, not committed)                                                                                                                                                                                |
 
 Each hook is bundled separately per IDE via esbuild so each bundle contains only its adapter code. To add a new hook: create the `.ts` source in `src/hooks/src/hooks/`, then add its filename to the `HOOK_SOURCES` array in `src/hooks/scripts/build-bundles.mjs`.
 
 **Available hooks (synced into every plugin and standalone when deterministic hooks are enabled; the shipped plugins are currently generated with `--deterministic-hooks false`, so they carry SessionStart bootstrap only):**
 
-| Hook | Event | Purpose |
-|---|---|---|
-| `dangerous-actions.js` | PreToolUse | Two-tier deny on dangerous shell/edit/MCP patterns; `# Rosetta-AI-reviewed` marker allows retry on `reconsider` policy; `hard-deny` patterns (e.g. `curl \| sh`) require human review |
-| `loose-files.js` | PostToolUse (Write) | Nudges agent when `.py`/`.js` files are created without a module marker (`__init__.py` / `package.json`) |
-| `md-file-advisory.js` | PostToolUse (Write\|Edit) | Advises on markdown formatting/placement after `.md` edits |
-| `lint-format-advisory.js` | PostToolUse (Write\|Edit) | Suggests a syntax/type/lint/format check step after code edits |
-| `codemap-refresh.js` | PostToolUse (Write\|Edit) | Refreshes the active code-map backend when source files change. Detects GitNexus (`.gitnexus/` marker, runs `npx -y gitnexus@latest analyze --force`) and Graphify (`graphify-out/graph.json` marker, runs `graphify update .`); no-op when neither is installed. When both are present, each backend gets an independent debounced refresh. Manager must review the GitNexus license before use; Graphify is the MIT-licensed alternative. |
+| Hook                      | Event                     | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dangerous-actions.js`    | PreToolUse                | Two-tier deny on dangerous shell/edit/MCP patterns; `# Rosetta-AI-reviewed` marker allows retry on `reconsider` policy; `hard-deny` patterns (e.g. `curl \| sh`) require human review                                                                                                                                                                                                                                                       |
+| `loose-files.js`          | PostToolUse (Write)       | Nudges agent when `.py`/`.js` files are created without a module marker (`__init__.py` / `package.json`)                                                                                                                                                                                                                                                                                                                                    |
+| `md-file-advisory.js`     | PostToolUse (Write\|Edit) | Advises on markdown formatting/placement after `.md` edits                                                                                                                                                                                                                                                                                                                                                                                  |
+| `lint-format-advisory.js` | PostToolUse (Write\|Edit) | Suggests a syntax/type/lint/format check step after code edits                                                                                                                                                                                                                                                                                                                                                                              |
+| `codemap-refresh.js`      | PostToolUse (Write\|Edit) | Refreshes the active code-map backend when source files change. Detects GitNexus (`.gitnexus/` marker, runs `npx -y gitnexus@latest analyze --force`) and Graphify (`graphify-out/graph.json` marker, runs `graphify update .`); no-op when neither is installed. When both are present, each backend gets an independent debounced refresh. Manager must review the GitNexus license before use; Graphify is the MIT-licensed alternative. |
 
 **`hooks.json` locations and forms per plugin variant** (each form references the bundles using paths appropriate to its runtime):
 
-| Plugin/standalone | hooks.json read by IDE at | Form | Path style |
-|---|---|---|---|
-| `core-claude` (marketplace) | `<plugin>/hooks/hooks.json` (referenced from `plugin.json`) | plugin-form | `node hooks/<file>.js` |
-| `core-cursor` (marketplace) | `<plugin>/hooks/hooks.json` (referenced from `plugin.json`) | plugin-form | `node hooks/<file>.js` |
-| `core-copilot` (marketplace) | `<plugin>/hooks.json` (root, copied from `.github/plugin/hooks.json` at sync time) | plugin-form | env-var lookup to plugin install root |
-| `core-codex` (marketplace) | `<plugin>/.codex-plugin/hooks.json` (also mirrored to `<plugin>/.codex/hooks.json` at sync time) | plugin-form | `node <abs-path>/hooks/<file>.js` via shell lookup |
-| `core-cursor-standalone` | `.cursor/hooks.json` (top of extracted subfolder) | standalone-form | `node .cursor/hooks/<file>.js` |
-| `core-copilot-standalone` | `.github/hooks/hooks.json` (nested inside extracted subfolder) | standalone-form | `node ".github/hooks/<file>.js"` |
+| Plugin/standalone            | hooks.json read by IDE at                                                                        | Form            | Path style                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ | --------------- | -------------------------------------------------- |
+| `core-claude` (marketplace)  | `<plugin>/hooks/hooks.json` (referenced from `plugin.json`)                                      | plugin-form     | `node hooks/<file>.js`                             |
+| `core-cursor` (marketplace)  | `<plugin>/hooks/hooks.json` (referenced from `plugin.json`)                                      | plugin-form     | `node hooks/<file>.js`                             |
+| `core-copilot` (marketplace) | `<plugin>/hooks.json` (root, copied from `.github/plugin/hooks.json` at sync time)               | plugin-form     | env-var lookup to plugin install root              |
+| `core-codex` (marketplace)   | `<plugin>/.codex-plugin/hooks.json` (also mirrored to `<plugin>/.codex/hooks.json` at sync time) | plugin-form     | `node <abs-path>/hooks/<file>.js` via shell lookup |
+| `core-cursor-standalone`     | `.cursor/hooks.json` (top of extracted subfolder)                                                | standalone-form | `node .cursor/hooks/<file>.js`                     |
+| `core-copilot-standalone`    | `.github/hooks/hooks.json` (nested inside extracted subfolder)                                   | standalone-form | `node ".github/hooks/<file>.js"`                   |
 
 Cursor and Copilot are the only plugins that need two distinct templates because they have distinct standalone distributions. Templates: cursor — `hooks/hooks.json.tmpl` (plugin) + `hooks.json.tmpl` at root (standalone); copilot — `.github/plugin/hooks.json.tmpl` (plugin) + `hooks/hooks.json.tmpl` (standalone). Both are rendered during sync; the standalone generator's bulk-copy lands each at the right path inside the standalone subfolder.
 
@@ -361,9 +382,9 @@ Cursor and Copilot are the only plugins that need two distinct templates because
 ## Pipelines
 
 We use `.github/workflows` pipelines to build and release: MCP PyPi package, Docker Image, Publish Instructions, Publish website.
-Triggers on push to `main` or manual dispatch.
+Triggers on push to `main` or manual dispatch. Use actionlint.
 
-Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
+Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages. Original web content is not generated, but adapted and synchronized. Jekyll uses that content to build the website. The one exception is `docs/web/user-guide/`, which is synchronized from `user-guide/` by `scripts/sync_user_guide_web.py` (rewrites relative links to permalinks, `instructions/**` refs to GitHub blob URLs, and wraps mermaid blocks in `{% raw %}` so Liquid does not consume `{{"..."}}` hexagon nodes).
 
 **Plugin distribution.** The publish-instructions pipeline zips each plugin folder and attaches the archives to a GitHub Release alongside `instructions.zip`. See [Plugins](#plugins) for how plugin files are generated.
 

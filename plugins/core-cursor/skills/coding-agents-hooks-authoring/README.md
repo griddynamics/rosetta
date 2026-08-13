@@ -14,7 +14,7 @@ Single flat `SKILL.md`; no `assets/` or `references/` subfolders — everything 
 - "There is **no `{ recursive: true }`**. Subdirectories are invisible to the bundler." — a helper file dropped one level too shallow silently compiles into a dead top-level bundle for all 5 IDEs.
 - "`SemanticKind = keyof typeof TOOL_KINDS` so TypeScript enforces coverage." — adding a kind without updating every IDE column is a compile error, not a runtime surprise.
 - "Matcher passes the event in; `toolKinds` must include the mapped kind or the call is dropped silently." — widening `hooks.json.tmpl`'s matcher alone does nothing; the drop has no log line.
-- "Direct edits to generated `hooks.json` files are overwritten on the next `npx -y rosettify-plugins@latest` run." — the template (`.tmpl`) is the only editable source; the generated file is a build artifact.
+- "Direct edits to generated `hooks.json` files are overwritten on the next `npx rosettify-plugins` run." — the template (`.tmpl`) is the only editable source; the generated file is a build artifact.
 - "`PreToolUse` is absent on Copilot" — per-IDE event support gaps are real; a platform-exclusive event must be added to `CLAUDE_CODE_ONLY_HOOKS` or the registration test mis-flags it.
 - "Before adding a second scoped hook, refactor the Set to `Map<string, Set<IdeName>>`." — a forced refactor threshold triggered by count, not by a stylistic preference.
 - "Regex `[rf]{2,}` false positives — matches `rm -rr` and `rm -ff`." — a named regex anti-pattern with the exact fixed lookahead pattern to use instead.

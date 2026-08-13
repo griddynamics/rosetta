@@ -71,6 +71,7 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 - Easier to customize: skills, workflows, and rules are local files via plugins, so teams can write their own with the `coding-agents-prompt-authoring` flow, something the MCP-only model never allowed
 - Public OSS MCP and RAGFlow deployment plus GitHub authentication
 - IaC and automated QA / test generation workflows delivered; foundations laid for discovery and mobile
+- Authorized security review workflow with a secret-first safety gate, bounded pre-production testing, and independent evidence review
 
 ### Detailed Changes
 
@@ -102,19 +103,123 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 #### Release Model and Upcoming Work
 
 - **Rolling releases going forward.** R3 is the last large, version-branch style release. From here Rosetta moves to a rolling model — changes ship continuously in small, incremental releases rather than long-lived branches and major cutovers like v3.
-- **Incremental workflow delivery.** The v3 Workflows track has delivered an IaC workflow, SpecFlow integration, and automated QA / test generation (ui-aqa-flow, api-aqa-flow, testgen-flow, with an `aqa-flow` router kept for backward compatibility). The remaining workflows — discovery, mobile apps, and test harness engineering — will arrive through these smaller releases rather than a single shift.
+- **Incremental workflow delivery.** The v3 Workflows track has delivered an IaC workflow, SpecFlow integration, automated QA / test generation (ui-aqa-flow, api-aqa-flow, testgen-flow, with an `aqa-flow` router kept for backward compatibility), and an authorized security review workflow (security-flow). The remaining workflows — discovery, mobile apps, and test harness engineering — will arrive through these smaller releases rather than a single shift.
 
 #### Platform and Deployment
 
 - **Public OSS deployment.** A public Rosetta MCP and RAGFlow deployment supports OSS and demo environments.
 - **GitHub authentication.** OAuth through GitHub is supported for MCP access.
 - **Analytics fix.** PostHog now reports the correct user identity.
+- **Supply-chain and code scanning.** CodeQL analysis runs on every push and PR to main plus a weekly scheduled scan, and each package has its own pre-merge CI pipeline.
 
 ---
 
 ## Weekly Change Log
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
+
+### Week Mon 03.08 – Sun 09.08
+
+The AI now writes requirements that say something different at every level. It used to state the rule as an EARS sentence, then restate it as Given/When/Then acceptance criteria, paying for the same fact three times on every turn. It now states the rule once, with the cases it covers and what it excludes, and spends the criteria on concrete, separately addressable cases. You get far more specification out of the same context, and your tests can claim coverage of exactly one criterion.
+
+You can also take work from idea to merged pull request without opening an editor. You move a card to approve a plan, you answer comments, you review the pull request. The AI does everything in between. A full end-to-end implementation now runs from a phone.
+
+**Highlights**
+
+- The AI states a requirement rule once and spends acceptance criteria on distinct cases (#204)
+- Your tests claim one criterion at a time, so a coverage gap shows up as a missing row
+- The AI sweeps all nine ISO 25010 quality buckets and writes down why it leaves any of them out of scope
+- The AI asks which feature flags exist before it designs, and writes code that holds in every flag state
+- Your Rosetta docs survive a format pass now: workspace init keeps them out of Prettier's way
+- The AI spends less on every session by not re-fetching its CLI helpers from the registry on each call
+- You drive development from the board: approve a plan, answer comments, review the pull request
+- The AI filed 18 issues across two runs on 05.08, and six reached merge the same day
+- The AI finds your reference sources on case-sensitive filesystems, where a capitalized folder used to come back empty (#190)
+- Anyone filing an issue gets a template that asks for what a maintainer needs (#202, from #201 by omaiesh)
+- You can read how the automation is wired in the new `docs/AUTOMATION-ARCHITECTURE.md`
+- Plugins 3.1.8 carries all of the above
+
+#### The AI writes requirements that say more (#204)
+
+- **Change.** `[R3]` The AI no longer writes a requirement statement as an EARS sentence. It states the governing rule, the cases it reaches, and what it explicitly excludes. It then writes each acceptance criterion as a distinct, separately identified case carrying its own EARS pattern, so a test can claim exactly one of them. For non-functional work it sweeps all nine ISO 25010 quality buckets every time and records a decision when it leaves one out of scope. It tracks coverage per criterion rather than per requirement. (Igor Solomatov)
+- **Why it helps.** EARS carries one trigger and one response, so a statement written in it had nowhere to put scope or exclusions, and the criteria could only echo it back. You now get strictly more specification out of the same context. You can also ask questions of a whole requirements set: which criteria cover error paths, which requirements the AI inferred rather than you stating them, where the spec has drifted from the code.
+
+#### You drive development from the board
+
+- **Change.** `[CI]` `[Docs]` You now approve a plan by moving a card, and you review the result as a pull request. The AI files the issue, writes the plan into it, claims it, implements it, and opens the pull request, and it cannot promote its own work past either of your two decisions. When a run cannot finish, it leaves the card where nothing will pick it up again and tells you on the issue. It also holds back security-alert detail from public issues, referencing an alert by URL and severity only. You can read the whole design in `docs/AUTOMATION-ARCHITECTURE.md`. (Igor Solomatov)
+- **Why it helps.** You no longer need a checkout, an editor, or a laptop to get work merged. Two card moves and a few comment replies are the entire human interface, so an end-to-end implementation runs from a phone. The AI now also fails a run that produced nothing, so you learn about it the same day rather than after a week of green checkmarks.
+
+#### The AI shipped six of its own fixes
+
+- **Change.** `[CI]` `[Server]` `[R3]` Six issues the AI filed on 05.08 went through planning, your approval, and merge the same day. It made CI cancel stale runs, taught the MCP pipelines to notice a dependency change, brought the last workflow onto the current Node action, covered the instruction cache with tests, fixed reference-source lookups on case-sensitive filesystems, and dropped a stale invariant pointing at a file nobody ships (#183, #184, #186, #188, #189, #190). (Igor Solomatov)
+- **Why it helps.** These are the fixes a repository accumulates and nobody schedules. Getting them merged with you approving each plan and each pull request is what makes the loop trustworthy for real work.
+
+#### The AI works cleaner inside your workspace
+
+- **Change.** `[R3]` `[Tooling]` The AI asks which feature flags exist before it designs, and writes code that holds whether a flag is on or off. It keeps your Rosetta docs out of Prettier's way, so the headers it navigates by survive a format pass. It stops re-fetching its CLI helpers from the registry on every call. It finds your reference sources on case-sensitive filesystems. And when it authors instructions for other agents, it states the rule instead of describing it. All of this reaches you in plugins 3.1.8. (Igor Solomatov)
+- **Why it helps.** A flag your spec never named is a branch the implementation never covered, and you meet it in production instead of review. The registry lookup ran several times per step, so dropping it saves real time and money on every session.
+
+#### Docs
+
+- **Change.** `[Docs]` Anyone landing on the repository gets one Quick Start instead of two competing ones, plus a second demo showing a frontend migration end to end. Copilot users on JetBrains can install from the Marketplace, with the standalone package presented as the fallback it is. Anyone filing an issue gets a template that asks for what a maintainer needs (#201 by omaiesh, #202). GitNexus licensing is stated plainly as paid. (Igor Solomatov)
+- **Why it helps.** The README answered "how do I install this?" twice, and the duplicate went stale first. JetBrains users were being sent down the harder path for no reason.
+
+### Week Mon 27.07 – Sun 02.08
+
+An external open-source review of Rosetta was published on 25.07. This week closed most of what it flagged: CodeQL analysis, PR CI for `src/hooks` (the one item the review called genuinely missing), per-package pipelines for `rosetta-cli` and `rosetta-mcp`, and 7 Dependabot alerts patched. The larger delivery is `security-flow`, a full security review workflow with eight mandatory-subagent phases, a filename-only secret gate that runs before any target content reaches a model, and active testing bounded to pre-production. Repo automation dropped Atlassian entirely for GitHub Projects v2. Every CI workflow now routes its model calls through the Bifrost gateway instead of a raw Anthropic key.
+
+**Highlights**
+
+- New `security-flow` workflow and `security` skill (#163): 8 phase files, 18 activity assets, 7 output templates; the secret gate runs before source ingestion, production active testing is prohibited
+- Rosetta now covers 13 SDLC workflows, up from 12. README, FAQ, USAGE_GUIDE, and the website updated
+- CodeQL Advanced analysis on every push and PR to main plus a weekly scan (actions, JavaScript/TypeScript, Python)
+- New CI pipelines for `src/hooks`, `rosetta-cli`, and `rosetta-mcp`
+- All 7 Claude Code CI workflows route through the Bifrost gateway (#161); blanket `Bash(*)` grants replaced with explicit read-only subcommand allowlists
+- Codex plugin emits workflows as invokable skills (#162, #164); the Antigravity-only transform became the shared `fileWorkflowToSkill`
+- Repo automation (analysis, plan, implement, triage) moved off Jira and Confluence onto GitHub Projects v2 and the repo Wiki; the nightly analysis schedule is paused pending a reviewed manual run
+- Guardrails tightened for higher environments: `dangerous-actions` states higher environments are never allowed, `risk-assessment` names stage and pre-production explicitly and covers direct SQL/API server access
+- `load-project-context` reads `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in full, and recognizes area-scoped `docs/<area>-CONTEXT.md` / `docs/<area>-ARCHITECTURE.md`
+- LARGE orchestration reframed: delegate everything to subagents rather than always standing up the session EXECUTION_CONTROLLER
+- Every workflow now declares an explicit state-file path, `agents/TEMP/<FEATURE>/<flow>-state.md`
+- Versions: plugins 3.1.0 → 3.1.6, marketplace 3.0.0 → 3.1.6, rosettify and rosettify-plugins 3.1.0 → 3.2.0
+- 7 Dependabot alerts patched in rosettify; roughly 53 MB of stale binaries dropped from `test-library/`
+- New `docs/prompts/modernization-prompts-raw.md`, nine raw prompts for frontend replatforming
+- Product-owner dispositions published for all 98 rows of the external review
+
+#### Security review capability (#163)
+
+- **Change.** `[R3]` Added `security-flow`: eight phases, each a mandatory subagent dispatch. Readiness, authorize, deterministic gates, model and select, inspect and test, normalize and triage, independent review, report and package. Every phase lives in its own file that only the assigned subagent may read. The orchestrator owns approvals, dispatch, and aggregation, and never loads a phase file. Behind it sits the new `security` skill with 18 activity assets (code, API, architecture, cloud, containers, Kubernetes, IaC, packages, secrets, a secret-scan script, web DAST, network pentest, DNS recon, gateways, host compliance, exfiltration, LLM/AI, GUI-bot recommendation) and 7 output templates (run record, finding, evidence envelope, threat model, report, remediation task, task index). The secret gate runs before any agent or model ingests source and returns filenames only, never matches or values. Hits in DEV/QA need explicit approval after recommended exclusions. Hits above QA, or from an ambiguous environment, stop the run and cannot be overridden. Active testing is allowed only against explicitly approved pre-production targets. The capability never starts remediation; it emits concise inputs for a later user-invoked coding flow. `[Docs]` New website page and sidebar entry, a Security Review section in `USAGE_GUIDE.md`, and `docs/SecurityOnePager.md` covering the plugin-mode security posture. Workflow count moved from 12 to 13 across README, FAQ, and the website. (Igor Solomatov)
+- **Why it helps.** A security agent that reads source before checking for secrets has already leaked them into a model context nobody can recall. Ordering the gate first is the whole point, and making the above-QA stop non-overridable means no amount of prompting talks the agent past it. Keeping remediation out of scope is deliberate too: a reviewer that also fixes things stops being an independent reviewer.
+
+#### Codex workflows become invokable skills (#162, #164)
+
+- **Change.** `[Tooling]` Codex used to receive workflows as flat documents under `.agents/workflows/` plus a workflows index, so they never surfaced as anything a user could invoke. Codex now emits `.agents/skills/<workflow>/SKILL.md` with owned phase files under `phases/` and frontmatter stripped, matching what Antigravity already did. The Antigravity-only `fileAntigravityWorkflowToSkill` processor became the shared `fileWorkflowToSkill`, used by both targets. A new `pluginReplaceLiterals` processor corrects the one glob string that folder rename-pairs structurally cannot reach, keyed on the long literal so an identical bare token elsewhere stays untouched. The `BOOTSTRAP_PREFIX` constant and the `isLead` manifest flag were deleted: every bootstrap entry now gets the same leading-newline strip. New e2e coverage for session-start bootstrap and Codex output, plus 89 lines of recorded requirement changes. (Igor Solomatov)
+- **Why it helps.** Codex users could not invoke a Rosetta workflow at all, only read one. Two targets needing the same transform is the signal the transform was never target-specific, and one shared processor is one place to fix a bug rather than two that drift.
+
+#### CI: CodeQL, per-package pipelines, and least-privilege tooling
+
+- **Change.** `[CI]` Added CodeQL Advanced analysis over actions, JavaScript/TypeScript, and Python, running on every push and PR to main plus a weekly scheduled scan. Added three pre-merge CI pipelines: `ci-rosetta-hooks.yml` (type-check, build, test on any `src/hooks` change), `ci-rosetta-cli.yml`, and `ci-rosetta-mcp.yml`. Routed all 7 Claude Code CI workflows through the Bifrost gateway (#161), swapping `ANTHROPIC_API_KEY` for `BIFROST_API_KEY` and setting `ANTHROPIC_BASE_URL`, `ENABLE_TOOL_SEARCH=true`, and `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`. Replaced blanket `Bash(*)` grants in the triage and prompt-validation workflows with explicit read-only `git` and `gh` subcommand allowlists. (Igor Solomatov)
+- **Why it helps.** The external review named PR CI for `src/hooks` as the one genuinely missing piece; it now exists, alongside the two Python packages that also had no gate of their own. A gateway credential can be rotated and rate-limited centrally, which a per-repo provider key cannot. And an automation agent holding `Bash(*)` on a `pull_request_target` trigger is a much larger grant than any of these prompts actually use.
+
+#### Repo automation leaves Atlassian for GitHub
+
+- **Change.** `[CI]` The `repo-analysis`, `repo-plan`, `repo-implement`, and `repo-triage` workflows no longer touch Jira or Confluence. Work items live on the Rosetta Automation Board (GitHub Projects v2), queried through `gh project item-list` / `field-list` / `view` instead of JQL; `load_stories.py` was rewritten accordingly. Plan and implement agents claim work by moving Status to In progress, and are never allowed to promote Backlog to Ready, so the human gate survives. Background knowledge and the run log moved to the repo Wiki, which the agent may write into its local checkout but never push; a dedicated workflow step does the commit and push. Triage's `gh` permissions were restored after an earlier git-only narrowing had silently broken every triage run, since that prompt uses `gh` and never `git`. Three automation prompts gained explicit `src/` versus `instructions/` guidance so instruction files are not mistaken for ordinary documentation. The nightly analysis schedule is commented out until a manual run has been reviewed. Remaining `instructions/r2` path references bumped to r3. (Igor Solomatov)
+- **Why it helps.** One issue tracker instead of two, in the same place as the code and the PRs, with no Atlassian credentials in CI. Splitting the wiki push out of the agent's tool grants means a misbehaving prompt cannot rewrite project history. The triage fix is the useful lesson: narrowing tool grants without checking what the prompt actually calls produces a workflow that fails silently rather than loudly.
+
+#### Guardrails: higher environments named explicitly
+
+- **Change.** `[R3]` `dangerous-actions` gained a rule directly under blast-radius assessment: never allowed to use or touch any higher environment. Its description now lists stage, pre-prod, and prod as activation triggers. `risk-assessment` extended its trigger to any access to servers of higher environments, its first step to cover direct SQL and API servers rather than only MCPs, and its escalation step to spell out stage and pre-production alongside production. `bootstrap-alwayson` hardened "avoid re-reading files by yourself" into "MUST NOT RE-READ files/websites/etc, unless content is lost". Changes propagated to all 7 plugin targets. (Igor Solomatov)
+- **Why it helps.** "Higher environments" was already in the text, but as a scoring input rather than a prohibition, and a model reading it that way will happily assess the risk of a stage database and then proceed. Naming stage and pre-production as separate words matters because agents treat "production" narrowly and treat everything else as fair game.
+
+#### Orchestration, subagents, and workflow state
+
+- **Change.** `[R3]` The LARGE orchestration band no longer mandates the session EXECUTION_CONTROLLER. It now says the orchestrator's context will overload, so it must delegate everything to subagents and keep its own todo tasks at a higher level; the execution controller is available on direct request. Subagent prompts gained an optional Process Requirements field for batching and ordering constraints, and `S.M.A.R.T.` was dropped from the task line. `subagent-directives` added a rule requiring factory-style work to be split into groups: read one small set of files, produce, then read the next. `load-project-context` now reads `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` entirely, greps headers across the remaining five docs, and recognizes area-scoped `docs/<area>-CONTEXT.md` and `docs/<area>-ARCHITECTURE.md`. `hitl` retuned approval wording and resized the HITL bands to be cumulative (SMALL, then MEDIUM adds phase gates, then LARGE adds major decisions). Every workflow now declares its state file by full path, `agents/TEMP/<FEATURE>/<flow>-state.md`, and the workflow schema and `coding-agents-prompt-authoring` reference were updated to require the prerequisite block verbatim. `tech-specs` added a line requiring best practices across security, performance, reliability, maintainability, scalability, testability, observability, compliance, backward compatibility, and TCO. (Igor Solomatov)
+- **Why it helps.** Forcing a full execution controller on every 10-file task was overhead for the cases that only needed good delegation, and the real failure at that size is orchestrator context exhaustion, not missing plan structure. Batch-processing is the same problem one level down: a subagent told to write tests for 30 files reads all 30 first and then hallucinates. Ambiguous state-file references ("stored in FEATURE TEMP folder") produced a different path in every session.
+
+#### Tooling, dependencies, and docs
+
+- **Change.** `[Tooling]` `bump_versions.sh` now treats the five plugin manifests and three marketplace files as one group, computes the target from the highest version observed across them, and bumps all eight together. Plugins and marketplace landed on 3.1.6, rosettify and rosettify-plugins on 3.2.0. rosettify writes logs under the user config directory instead of the working directory (#160). Patched 7 Dependabot alerts in rosettify: `fast-uri` 3.1.2 to 3.1.4 (2 high), `hono` 4.12.25 to 4.12.32 (3 moderate), `@hono/node-server` 1.19.13 to 2.0.12, `body-parser` 2.2.2 to 2.3.0, with the MCP SDK moved to 1.30.0 so the override lands inside its declared range. `[Docs]` README and the website gained Top Workflows, Top Guardrails, and Top Skills sections (#158, Yevheniia Lementova). Removed roughly 53 MB of stale binaries from `test-library/` archives. Renamed `ELEVATOR_SPEECH.md` to `ELEVATOR_PITCH.md`. Added `docs/prompts/modernization-prompts-raw.md`, nine raw prompts for frontend replatforming covering the mandate and identity rule, archetype mapping, test strategy, screenshots policy, and subagent batching. Published `docs/reviews/REVIEW-RESPONSE-2026-07.md`, product-owner dispositions for all 98 rows of the external review, alongside the source magazine document. Refreshed the GitHub stats snapshot. (Igor Solomatov, Yevheniia Lementova)
+- **Why it helps.** Eight version files bumped by hand drift; computing from the highest observed value makes a partially-bumped tree self-correcting. Logs written into whatever directory the user happened to be in is the kind of thing nobody reports and everybody works around. And a 46 MB zip in a test fixture folder is paid for by every single clone.
 
 ### Week Mon 20.07 – Sun 26.07
 

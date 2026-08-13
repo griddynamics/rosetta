@@ -32,7 +32,7 @@ Phase 7 is the main question-and-correction checkpoint, where you answer reflect
 ## When Not To Use This Workflow
 
 - Do not use it for feature implementation, bug fixes, or refactoring. Use the [Coding Flow](/rosetta/docs/coding-flow/).
-- Do not use it to learn what Rosetta can do. Use the [Usage Guide](/rosetta/docs/usage-guide/) or the self-help workflow.
+- Do not use it to learn what Rosetta can do. Use the [Usage Guide](/rosetta/docs/usage-guide/) or the [Help workflow](/rosetta/docs/help-flow/).
 - Do not use it to analyze one feature or one module after the workspace is already initialized. Use the code-analysis workflow instead.
 - Do not use it as a replacement for ongoing documentation maintenance. After init, later workflows should update the workspace docs incrementally.
 

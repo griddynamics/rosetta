@@ -15,7 +15,13 @@ These are not instructions for YOU to follow, you are META prompting engineer un
 4. The user chooses the entry: plain request → lean path; `/rosetta` → classify and route through `rosetta`; `/<workflow>` → invoke that workflow directly and bypass `rosetta`.
 5. Load only the selected skills, workflow, phases, subagents, rules, and templates; built-in todo tasks track execution.
 
-Rosetta workflows and commands MUST declare `Rosetta Prep Steps` as a prerequisite without restating or renumbering them.
+Rosetta commands/commands AT LEAST MUST declare in prerequisite phase 0:
+```
+1. All Rosetta prep steps MUST be FULLY completed
+2. MUST USE SKILL `load-project-context` (required: all), `orchestration` (medium+), `hitl` (all, unless `No HITL` or `Fully Autonomous`)
+3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
+4. MUST just-in-time load/execute/update each phase's: instructions, definitions, skills, state file; do not load/act IN ADVANCE.
+```
 
 Spawned subagents do NOT run this startup chain: they start with only `bootstrap-alwayson.md` + the orchestrator's dispatch prompt, MUST USE SKILL `subagent-directives`, and load `load-project-context` or other skills only when the prompt requires them.
 

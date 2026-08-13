@@ -10,6 +10,7 @@ on:
       - 'src/rosetta-mcp-server/pyproject.toml'
       - '.github/workflows/rosetta-mcp-dockerhub.yaml'
       - 'src/rosetta-mcp-server/Dockerfile'
+      - 'requirements.txt'
 
 permissions:
   contents: read
@@ -50,7 +51,7 @@ jobs:
           echo "$GITHUB_WORKSPACE/venv/bin" >> $GITHUB_PATH
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
 

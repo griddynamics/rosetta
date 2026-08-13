@@ -65,18 +65,82 @@ ask_yn() {
     [[ "$answer" =~ ^[Yy]$ ]]
 }
 
+# Comparable key: major.minor.patch.pre — release (no pre) sorts above any pre of same base.
+version_key() {
+    local v="$1"
+    if [[ "$v" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)-?b([0-9]+)$ ]]; then
+        printf "%d.%d.%d.%d" \
+            "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "$((10#${BASH_REMATCH[4]}))"
+    elif [[ "$v" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+        printf "%d.%d.%d.%d" \
+            "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" 999999999
+    else
+        printf "0.0.0.0"
+    fi
+}
+
+# highest_version <v1> [v2...] — picks the highest among args (Q2=B).
+highest_version() {
+    local best="" best_key="" v key
+    for v in "$@"; do
+        key="$(version_key "$v")"
+        if [[ -z "$best" ]] \
+            || [[ "$(printf '%s\n%s\n' "$best_key" "$key" | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1)" == "$key" ]]; then
+            best="$v"
+            best_key="$key"
+        fi
+    done
+    printf "%s" "$best"
+}
+
+compute_new_version() {
+    local current="$1" sep="${2:-}"
+    if [[ "$bump_choice" == "4" ]]; then
+        printf "%s" "$CUSTOM_VERSION"
+    elif [[ "$bump_type" == "pre" ]]; then
+        bump_pre "$current" "$sep"
+    else
+        bump_semver "$current" "$bump_type"
+    fi
+}
+
+PLUGIN_MARKETPLACE_FILES=(
+    "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/core-copilot/.github/plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/core-codex/.codex-plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/core-antigravity/plugin.json"
+    "$ROOT/.claude-plugin/marketplace.json"
+    "$ROOT/.cursor-plugin/marketplace.json"
+    "$ROOT/.github/plugin/marketplace.json"
+)
+
+bump_plugin_marketplace_group() {
+    local f current currents=() highest target
+    for f in "${PLUGIN_MARKETPLACE_FILES[@]}"; do
+        currents+=("$(get_json_version "$f")")
+    done
+    highest="$(highest_version "${currents[@]}")"
+    target="$(compute_new_version "$highest" "-")"
+
+    echo "--- plugin.json + marketplace.json (identical version) ---"
+    if ask_yn "Bump all ${#PLUGIN_MARKETPLACE_FILES[@]} files to $target  (from highest: $highest)?" "y"; then
+        for f in "${PLUGIN_MARKETPLACE_FILES[@]}"; do
+            current="$(get_json_version "$f")"
+            sedi "s/\"version\": \"${current}\"/\"version\": \"${target}\"/g" "$f"
+            echo -e "  ${GREEN}Updated${RESET} ${f#$ROOT/}  ($current → $target)"
+        done
+    else
+        echo "  Skipped"
+    fi
+}
+
 bump_file_toml() {
     local f="$1" default="$2"
     local current new_version rel
     current="$(get_toml_version "$f")"
     rel="${f#$ROOT/}"
-    if [[ "$bump_choice" == "4" ]]; then
-        new_version="$CUSTOM_VERSION"
-    elif [[ "$bump_type" == "pre" ]]; then
-        new_version="$(bump_pre "$current")"
-    else
-        new_version="$(bump_semver "$current" "$bump_type")"
-    fi
+    new_version="$(compute_new_version "$current")"
     if ask_yn "Bump $rel  ($current → $new_version)?" "$default"; then
         sedi "s/^version = \"${current}\"/version = \"${new_version}\"/" "$f"
         echo -e "  ${GREEN}Updated${RESET}"
@@ -90,14 +154,7 @@ bump_file_json() {
     local current new_version rel
     current="$(get_json_version "$f")"
     rel="${f#$ROOT/}"
-    if [[ "$bump_choice" == "4" ]]; then
-        new_version="$CUSTOM_VERSION"
-    elif [[ "$bump_type" == "pre" ]]; then
-        # npm/semver pre-release uses a dash separator: 3.0.0-b01
-        new_version="$(bump_pre "$current" "-")"
-    else
-        new_version="$(bump_semver "$current" "$bump_type")"
-    fi
+    new_version="$(compute_new_version "$current" "-")"
     if ask_yn "Bump $rel  ($current → $new_version)?" "$default"; then
         sedi "s/\"version\": \"${current}\"/\"version\": \"${new_version}\"/g" "$f"
         echo -e "  ${GREEN}Updated${RESET}"
@@ -110,29 +167,23 @@ echo ""
 echo -e "${CYAN}=== Rosetta Version Bumper ===${RESET}"
 echo ""
 echo "Current versions:"
+for f in "${PLUGIN_MARKETPLACE_FILES[@]}"; do
+    if [[ "$f" == *marketplace.json ]]; then
+        printf "  %-55s %s\n" "[marketplace] ${f#$ROOT/}" "$(get_json_version "$f")"
+    else
+        printf "  %-55s %s\n" "[plugin.json] ${f#$ROOT/}" "$(get_json_version "$f")"
+    fi
+done
 for f in \
     "$ROOT/src/rosetta-cli/pyproject.toml" \
-    "$ROOT/src/ims-mcp-server/pyproject.toml" \
-    "$ROOT/src/rosetta-mcp-server/pyproject.toml"; do
+    "$ROOT/src/rosetta-mcp-server/pyproject.toml" \
+    "$ROOT/src/ims-mcp-server/pyproject.toml"; do
     printf "  %-55s %s\n" "[toml]        ${f#$ROOT/}" "$(get_toml_version "$f")"
 done
 printf "  %-55s %s\n" "[package.json] src/rosettify/package.json" "$(get_json_version "$ROOT/src/rosettify/package.json")"
 printf "  %-55s %s\n" "[package.json] src/rosettify-plugins/package.json" "$(get_json_version "$ROOT/src/rosettify-plugins/package.json")"
 printf "  %-55s %s\n" "[package.json] src/rosettify-prompts/package.json" "$(get_json_version "$ROOT/src/rosettify-prompts/package.json")"
 printf "  %-55s %s\n" "[package.json] src/curiocity/package.json" "$(get_json_version "$ROOT/src/curiocity/package.json")"
-for f in \
-    "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/plugin.json" \
-    "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json" \
-    "$ROOT/src/rosettify-plugins/plugins/core-copilot/.github/plugin/plugin.json" \
-    "$ROOT/src/rosettify-plugins/plugins/core-codex/.codex-plugin/plugin.json"; do
-    printf "  %-55s %s\n" "[plugin.json] ${f#$ROOT/}" "$(get_json_version "$f")"
-done
-for f in \
-    "$ROOT/.claude-plugin/marketplace.json" \
-    "$ROOT/.cursor-plugin/marketplace.json" \
-    "$ROOT/.github/plugin/marketplace.json"; do
-    printf "  %-55s %s\n" "[marketplace] ${f#$ROOT/}" "$(get_json_version "$f")"
-done
 
 echo ""
 echo "Bump type:"
@@ -162,23 +213,20 @@ esac
 
 echo ""
 
+bump_plugin_marketplace_group
+
+echo ""
 echo "--- pyproject.toml files ---"
 bump_file_toml "$ROOT/src/rosetta-cli/pyproject.toml"        "n"
-bump_file_toml "$ROOT/src/rosetta-mcp-server/pyproject.toml" "y"
+bump_file_toml "$ROOT/src/rosetta-mcp-server/pyproject.toml" "n"
 
 # ims-mcp-server: bump version + sync rosetta-mcp dependency to match rosetta-mcp-server
 ROSETTA_VERSION="$(get_toml_version "$ROOT/src/rosetta-mcp-server/pyproject.toml")"
 f="$ROOT/src/ims-mcp-server/pyproject.toml"
 current="$(get_toml_version "$f")"
 rel="${f#$ROOT/}"
-if [[ "$bump_choice" == "4" ]]; then
-    new_version="$CUSTOM_VERSION"
-elif [[ "$bump_type" == "pre" ]]; then
-    new_version="$(bump_pre "$current")"
-else
-    new_version="$(bump_semver "$current" "$bump_type")"
-fi
-if ask_yn "Bump $rel  ($current → $new_version, rosetta-mcp → $ROSETTA_VERSION)?" "y"; then
+new_version="$(compute_new_version "$current")"
+if ask_yn "Bump $rel  ($current → $new_version, rosetta-mcp → $ROSETTA_VERSION)?" "n"; then
     sedi "s/^version = \"${current}\"/version = \"${new_version}\"/" "$f"
     old_rosetta="$(grep 'rosetta-mcp==' "$f" | sed 's/.*rosetta-mcp==\([^"]*\)".*/\1/')"
     sedi "s/\"rosetta-mcp==${old_rosetta}\"/\"rosetta-mcp==${ROSETTA_VERSION}\"/" "$f"
@@ -189,33 +237,19 @@ fi
 
 echo ""
 echo "--- src/rosettify/package.json ---"
-bump_file_json "$ROOT/src/rosettify/package.json" "y"
+bump_file_json "$ROOT/src/rosettify/package.json" "n"
 
 echo ""
 echo "--- src/rosettify-plugins/package.json ---"
-bump_file_json "$ROOT/src/rosettify-plugins/package.json" "y"
+bump_file_json "$ROOT/src/rosettify-plugins/package.json" "n"
 
 echo ""
 echo "--- src/rosettify-prompts/package.json ---"
-bump_file_json "$ROOT/src/rosettify-prompts/package.json" "y"
+bump_file_json "$ROOT/src/rosettify-prompts/package.json" "n"
 
 echo ""
 echo "--- src/curiocity/package.json ---"
-bump_file_json "$ROOT/src/curiocity/package.json" "y"
-
-echo ""
-echo "--- plugin.json files (rosettify-plugins preserved source; plugins/ is generated) ---"
-bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/plugin.json"  "y"
-bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json"  "y"
-bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-copilot/.github/plugin/plugin.json" "y"
-bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-codex/.codex-plugin/plugin.json"    "y"
-bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-antigravity/plugin.json"            "y"
-
-echo ""
-echo "--- marketplace.json files (default: N) ---"
-bump_file_json "$ROOT/.claude-plugin/marketplace.json" "n"
-bump_file_json "$ROOT/.cursor-plugin/marketplace.json" "n"
-bump_file_json "$ROOT/.github/plugin/marketplace.json" "n"
+bump_file_json "$ROOT/src/curiocity/package.json" "n"
 
 echo ""
 echo -e "${GREEN}Done!${RESET}"

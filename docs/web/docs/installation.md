@@ -94,11 +94,11 @@ For detailed setup instructions, see the Cursor documentation:
 
 ### GitHub Copilot
 
-GitHub Copilot runs in VS Code and JetBrains. Use **Marketplace** install in VS Code, or **Standalone** in either IDE.
+GitHub Copilot runs in VS Code and JetBrains. Use **Marketplace** install when available; **Standalone** is a fallback for either IDE.
 
-#### Marketplace (VS Code)
+#### Marketplace (VS Code and JetBrains)
 
-1. In VS Code settings, add `https://github.com/griddynamics/rosetta` to `chat.plugins.marketplaces`.
+1. In VS Code settings, add `https://github.com/griddynamics/rosetta` to `chat.plugins.marketplaces`. In JetBrains, add the same URL under the GitHub Copilot plugin's marketplace setting (menu path may vary by IDE version).
 2. Open the Copilot chat panel, click the settings gear icon to open agent customizations.
 3. Click **Browse Marketplaces**, then **install** for `rosetta`.
 
@@ -108,9 +108,9 @@ GitHub Copilot runs in VS Code and JetBrains. Use **Marketplace** install in VS 
 
 <img src="/rosetta/assets/images/vscode-install-plugins.png" alt="Install plugins" width="710"/>
 
-#### Standalone (VS Code and JetBrains)
+#### Standalone (VS Code and JetBrains) — fallback
 
-For JetBrains IDEs, use the standalone installation package.
+Use when your Marketplace/plugin catalog isn't available, or to avoid a live registry dependency.
 
 > [!NOTE]
 > The standalone installation is also detected by VS Code, so installing Rosetta through the standalone and marketplace methods will result in duplicate tools, commands, and context.

@@ -26,10 +26,17 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
+      # Read-only, for reporting on CodeQL / Dependabot / CI findings. Alert
+      # bodies are NOT public on a public repo, so the prompt forbids quoting
+      # their details into a comment -- see repo-triage.md.
+      security-events: read
+      checks: read
+      actions: read
     env:
       ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
       ENABLE_TOOL_SEARCH: "true"
       CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
+      CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
     if: |
       !(github.event_name == 'pull_request_target' && (github.event.pull_request.draft == true || contains(github.event.pull_request.title, 'WIP') || contains(github.event.pull_request.title, '[WIP]'))) &&
       !(github.event_name == 'issue_comment' && !contains(github.event.comment.body, '/rosetta')) &&
@@ -41,6 +48,12 @@ jobs:
         with:
           ref: main
 
+      # Fork content lands in pr/ as data the agent READS -- nothing here builds,
+      # installs or executes from that tree, and the allowlist below grants only
+      # Read plus read-only git subcommands over it. That is why opting out of the
+      # checkout guardrail is safe; persist-credentials must stay off so the base
+      # repo's GITHUB_TOKEN is never written into pr/.git/config where the agent,
+      # if a fork's content ever prompt-injects it, could read it back out.
       - name: Checkout PR content
         if: github.event_name == 'pull_request_target'
         uses: actions/checkout@v5
@@ -48,6 +61,8 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.sha }}
           path: pr
+          allow-unsafe-pr-checkout: true
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -63,6 +78,8 @@ jobs:
 
       - name: Triage
         uses: anthropics/claude-code-action@v1
+        env:
+          CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
         with:
           anthropic_api_key: ${{ secrets.BIFROST_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -86,8 +103,28 @@ jobs:
             MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-triage.md
           show_full_output: false
           claude_args: |
-            --allowedTools Read,Glob,Grep,Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git branch:*),Bash(git ls-files:*),Bash(git rev-parse:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr edit:*),Bash(gh pr comment:*),Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh issue create:*),Bash(gh api:*)
+            --allowedTools
+            "Read,Glob,Grep,Agent,Skill,Bash(gh * list*),Bash(gh * status*),Bash(gh --version),Bash(git status*),Bash(git diff*),Bash(git log*),Bash(git show*),Bash(git branch*),Bash(git ls-files*),Bash(git rev-parse*),Bash(gh pr view*),Bash(gh pr diff*),Bash(gh pr edit*),Bash(gh pr comment*),Bash(gh issue view*),Bash(gh issue edit*),Bash(gh issue comment*),Bash(gh issue create*),Bash(gh api repos/*/issues/*),Bash(gh api repos/*/pulls/*),Bash(gh api repos/*/contents/*),Bash(gh api repos/*/git/*),Bash(gh api repos/*/tags*),Bash(gh api repos/*/code-scanning/alerts*),Bash(gh api repos/*/code-scanning/analyses*),Bash(gh api repos/*/dependabot/alerts*),Bash(gh api repos/*/commits/*),Bash(gh api repos/*/actions/runs*),Bash(gh api repos/*/labels*),Bash(gh pr checks*),Bash(git -C * status*),Bash(git -C * diff*),Bash(git -C * log*),Bash(git -C * show*),Bash(git -C * branch*),Bash(git -C * ls-files*),Bash(git -C * rev-parse*)"
+            --disallowedTools
+            "ScheduleWakeup,Bash(* --show-token),Bash(* --show-token*),Bash(gh api * -X*),Bash(gh api * --method*),Bash(gh api * -f*),Bash(gh api * -F*),Bash(gh api * --field*),Bash(gh api * --raw-field*),Bash(gh api * --input*)"
             --model sonnet
+            --effort high
+
+      # The trace is a full tool transcript published as a downloadable artifact,
+      # outside Actions log masking. Redact credentials before it leaves the runner.
+      - name: Scrub credentials from execution trace
+        if: always()
+        env:
+          SCRUB_VALUES: |
+            ${{ secrets.GITHUB_TOKEN }}
+            ${{ secrets.BIFROST_API_KEY }}
+        run: python3 .github/scripts/scrub_trace.py /home/runner/work/_temp/claude-execution-output.json
+
+      # Triage is event-driven, so a run that finds nothing to say is legitimate:
+      # --allow-no-op keeps the abandoned-subagent check and drops the did-it-mutate one.
+      - name: Verify the run did real work
+        if: always()
+        run: python3 .github/scripts/check_trace.py /home/runner/work/_temp/claude-execution-output.json --allow-no-op
 
       - name: Upload Claude execution trace
         if: always()
