@@ -4,7 +4,7 @@ description: "Phase 4 Technical context of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
-tags: ["arrangement", "workspace", "architecture", "phase"]
+tags: ["arrange", "workspace", "architecture", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 

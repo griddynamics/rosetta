@@ -4,7 +4,7 @@ description: "Phase 5 Modernization of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
-tags: ["arrangement", "workspace", "modernization", "phase"]
+tags: ["arrange", "workspace", "modernization", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 

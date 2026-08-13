@@ -4,7 +4,7 @@ description: "Phase 3 Business context of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
-tags: ["arrangement", "workspace", "context", "phase"]
+tags: ["arrange", "workspace", "context", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 

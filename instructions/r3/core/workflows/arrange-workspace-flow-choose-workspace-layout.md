@@ -4,7 +4,7 @@ description: "Phase 1 Choose Workspace Layout of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
-tags: ["arrangement", "workspace", "layout", "phase"]
+tags: ["arrange", "workspace", "layout", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 

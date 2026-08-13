@@ -4,7 +4,7 @@ description: "Phase 2 Reference Source Code of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
-tags: ["arrangement", "workspace", "refsrc", "phase"]
+tags: ["arrange", "workspace", "refsrc", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 

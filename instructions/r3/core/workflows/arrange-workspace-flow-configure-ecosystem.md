@@ -4,7 +4,7 @@ description: "Phase 6 Configure Ecosystem of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
-tags: ["arrangement", "workspace", "ecosystem", "phase"]
+tags: ["arrange", "workspace", "ecosystem", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 
