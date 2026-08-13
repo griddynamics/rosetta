@@ -85,26 +85,26 @@ For composite workspaces, init each repository separately, then init at workspac
 </details>
 
 <details>
-<summary><b>Arrangement Workspace</b></summary>
+<summary><b>Arrange Workspace</b></summary>
 
-Arranges an already-initialized workspace: picks a layout for multi-repo work, onboards read-only reference code, closes business and technical context gaps, confirms modernization goals, and points to ecosystem tooling. Distinct from Init Workspace, which handles shells, discovery, and patterns — this flow assumes Rosetta setup is already done.
+Arranges an already-initialized workspace: picks a layout for multi-repo work, onboards read-only reference code, interviews you about missing business and technical context, captures modernization goals if applicable, and shows ecosystem tooling recommendations. Distinct from Init Workspace, which handles shells, discovery, and patterns — this flow assumes Rosetta setup is already done.
 
-**Use when:** deciding between a single-repo or composite workspace layout, bringing in reference codebases the agent cannot otherwise see, closing gaps in `docs/CONTEXT.md`/`docs/ARCHITECTURE.md`, confirming a modernization goal, or getting guidance on recommended MCPs/CLIs/plugins.
+**Use when:** deciding between a single-repo or composite workspace layout, bringing in reference codebases the agent cannot otherwise see, documenting missing business or technical context, setting up a modernization project, or getting guidance on recommended MCPs/CLIs/plugins.
 
 **Phases:**
 1. Choose workspace layout — present Single Repo, Composite with Submodules, or Composite with gitignore options and guide the chosen layout's setup actions
 2. Reference source code — for Single Repo Workspace only, onboard read-only external codebases into `refsrc/` and keep `refsrc/INDEX.md` current
-3. Business context — gap-only interview to close `docs/CONTEXT.md` against required business topics
-4. Technical context — gap-only interview to close `docs/ARCHITECTURE.md` against required technical topics
-5. Modernization — only when the goal is modernization; capture goals, target pattern, and old-to-new mapping in `docs/PATTERNS/`
+3. Business context — interview you about what's missing in `docs/CONTEXT.md` using starter topics; confirmed answers go to CONTEXT.md, inferences to ASSUMPTIONS.md
+4. Technical context — interview you about what's missing in `docs/ARCHITECTURE.md` using starter topics; confirmed answers go to ARCHITECTURE.md, inferences to ASSUMPTIONS.md
+5. Modernization — only when the goal is modernization; capture goals and process in `docs/CONTEXT.md`, target pattern in `docs/ARCHITECTURE.md`, and old-to-new mapping in `docs/PATTERNS/`; recommend cloning old code into `refsrc/`
 6. Configure ecosystem — show MCP/CLI/plugin recommendations verbatim; guide installation only if you decide to
 
-**Expect:** executor, requirements-engineer, and architect subagents, one per phase, dispatched by the orchestrator. Every decision is tracked in `arrangement-state.md`. Your responsibility is to pick a layout, answer gap-only context questions, confirm or decline a modernization goal, and decide whether to install any recommended tooling.
+**Expect:** a single-agent sequential flow. The agent loads one phase at a time (JIT), executes it with you, updates `arrange-state.md`, then proceeds. Your responsibility is to pick a layout, answer interview questions about missing context, confirm or decline a modernization goal, and decide whether to guide of how to install any recommended tooling. After completion, the flow demands you start a new chat session and review slash-command examples for your next steps (coding, requirements, modernization).
 
 ```
-/arrangement-workspace-flow Arrange this workspace, I have reference code in another repo
-/arrangement-workspace-flow Close the gaps in CONTEXT.md and ARCHITECTURE.md
-/arrangement-workspace-flow This is a modernization project, help me set it up
+/arrange-workspace-flow Arrange this workspace, I have reference code in another repo
+/arrange-workspace-flow Help me document missing business and technical context
+/arrange-workspace-flow This is a modernization project, help me set it up
 ```
 
 </details>
