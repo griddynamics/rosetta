@@ -34,6 +34,12 @@ describe('parseDirectives', () => {
     expect(result.conditions.has('overwrite')).toBe(true);
   });
 
+  it('accepts a trailing directive fence', () => {
+    expect(parseDirectives('file~overwrite~.md').conditions).toEqual(
+      new Set(['overwrite']),
+    );
+  });
+
   it('returns empty conditions when filename has no tilde', () => {
     const result = parseDirectives('rules-index.md');
     expect(result.conditions.size).toBe(0);
@@ -44,6 +50,12 @@ describe('parseDirectives', () => {
     const result = parseDirectives('policy~overwrite~r2-only.md');
     expect(result.cleanName).toBe('policy.md');
     expect(result.conditions.size).toBe(2);
+  });
+
+  it('rejects unknown directive tokens with filename context', () => {
+    expect(() => parseDirectives('policy~overwrit.md')).toThrow(
+      'Unknown filename directive "overwrit" in "policy~overwrit.md"',
+    );
   });
 });
 

@@ -14,6 +14,11 @@ export interface ParsedFilename {
 
 const KNOWN_DIRECTIVES = new Set(['overwrite', 'target-only']);
 
+function isKnownDirective(directive: DirectiveToken): boolean {
+  return KNOWN_DIRECTIVES.has(directive)
+    || (KNOWN_DIRECTIVES.has('target-only') && directive.endsWith('-only') && directive !== '-only');
+}
+
 export function parseDirectives(filename: string): ParsedFilename {
   const dotIdx = filename.lastIndexOf('.');
   const ext = dotIdx >= 0 ? filename.slice(dotIdx) : '';
@@ -22,6 +27,13 @@ export function parseDirectives(filename: string): ParsedFilename {
   const parts = stem.split('~');
   const baseStem = parts[0];
   const rawDirectives = parts.slice(1);
+  if (rawDirectives[rawDirectives.length - 1] === '') rawDirectives.pop();
+
+  for (const directive of rawDirectives) {
+    if (!isKnownDirective(directive)) {
+      throw new Error(`Unknown filename directive "${directive}" in "${filename}"`);
+    }
+  }
 
   const conditions = new Set<DirectiveToken>(rawDirectives);
 
