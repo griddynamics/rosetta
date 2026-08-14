@@ -3,7 +3,7 @@ name: help-flow
 description: "Help about Rosetta: explains capabilities and usage."
 ---
 
-<self_help_flow>
+<help_flow>
 
 <description_and_purpose>
 
@@ -125,10 +125,10 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
 1. Triggered when user shifts from help to action (e.g., "run that workflow", "let's do coding").
 2. `READ FLOW <selected workflow>.md` if not already loaded.
 3. Adopt acquired workflow as active flow; start from its phase 1.
-4. Self-help-flow yields control — does not wrap the adopted workflow.
+4. Help-flow yields control — does not wrap the adopted workflow.
 
 </handoff>
 
 </workflow_phases>
 
-</self_help_flow>
+</help_flow>

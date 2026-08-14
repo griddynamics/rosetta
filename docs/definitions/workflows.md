@@ -10,7 +10,7 @@
 - modernization-flow
 - adhoc-flow
 - coding-agents-prompting-flow
-- self-help-flow
+- help-flow
 - coding-flow
 - security-flow
 - requirements-authoring-flow
