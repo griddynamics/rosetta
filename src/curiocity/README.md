@@ -68,6 +68,7 @@ curiocity validate --source <dir>             # discovery dry-run + P10 prefligh
 | `--repeats <n>` | override case repeats |
 | `--concurrency <n>` | pool size (1 = serial debugging) |
 | `--timeout <sec>` | per-trial wall-clock cap |
+| `--max-turns <n>` | per-trial interaction turn cap |
 | `--evaluate` / `--no-evaluate` | toggle evaluation (D9 default per mode) |
 | `--collect-cost` / `--no-collect-cost` | toggle cost collection |
 | `--only-evaluator <id>` / `--skip-evaluator <id>` | narrow the eval pipeline |
@@ -118,6 +119,7 @@ Example (from [`demo/cases/healthcheck/config.json`](./demo/cases/healthcheck/co
 {
   "agents": ["claude-code", "codex"],
   "timeoutSec": 600,
+  "maxTurns": 100,
   "repeats": 1,
   "evaluators": [
     { "use": "file-exists", "must": ["HEALTHCHECK.md", "**/HealthController.java"], "gate": true },

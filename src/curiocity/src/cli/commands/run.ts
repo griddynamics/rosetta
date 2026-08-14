@@ -33,6 +33,7 @@ export interface RunOptions {
   repeats?: number;
   concurrency?: number;
   timeout?: number;
+  maxTurns?: number;
   config?: string;
   out?: string;
   evaluate?: boolean;
@@ -139,6 +140,7 @@ function printMatrix(matrix: MatrixEntry[]): void {
     out.write(
       `  - ${cell.case} × ${cell.agent} × repeat ${cell.repeat}` +
         `  [timeout=${cell.timeoutSec}s, combiner=${cell.combiner}, evaluate=${cell.evaluate}` +
+        (cell.maxTurns !== undefined ? `, maxTurns=${cell.maxTurns}` : '') +
         (models ? `, models: ${models}` : '') +
         ']\n',
     );
@@ -154,6 +156,7 @@ export async function runRun(opts: RunOptions): Promise<number> {
     ...(opts.agent && opts.agent.length > 0 ? { agents: opts.agent } : {}),
     ...(opts.repeats !== undefined ? { repeats: opts.repeats } : {}),
     ...(opts.timeout !== undefined ? { timeoutSec: opts.timeout } : {}),
+    ...(opts.maxTurns !== undefined ? { maxTurns: opts.maxTurns } : {}),
     ...(opts.concurrency !== undefined ? { concurrency: opts.concurrency } : {}),
     ...(opts.out !== undefined ? { out: opts.out } : {}),
     ...(opts.evaluate !== undefined ? { evaluate: opts.evaluate } : {}),

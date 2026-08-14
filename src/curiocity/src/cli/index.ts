@@ -70,6 +70,7 @@ export function buildProgram(): Command {
     .option('--repeats <n>', 'override repeats per case', parsePositiveInt)
     .option('--concurrency <n>', 'bounded pool size', parsePositiveInt)
     .option('--timeout <sec>', 'per-trial wall-clock cap', parsePositiveInt)
+    .option('--max-turns <n>', 'per-trial interaction turn cap', parsePositiveInt)
     .option('--config <file>', 'top-level config path')
     .option('--out <dir>', 'results output dir')
     .option('--evaluate', 'enable evaluation')
