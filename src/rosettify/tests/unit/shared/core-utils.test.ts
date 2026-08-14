@@ -502,6 +502,12 @@ describe("validateSizeLimits", () => {
     expect(validateSizeLimits(fullPlan())).toBeNull();
   });
 
+  it.each(["", "   "])("rejects an empty plan name %#", (name) => {
+    const plan = fullPlan();
+    plan.name = name;
+    expect(validateSizeLimits(plan)).toBe("size_limit_exceeded");
+  });
+
   it("returns size_limit_exceeded for plan name > 256", () => {
     const plan = fullPlan();
     plan.name = "x".repeat(257);

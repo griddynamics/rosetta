@@ -124,6 +124,14 @@ describe("cmdUpsert — entire_plan on existing file (merge)", () => {
     expect(plan.name).toBe("Test Plan"); // unchanged
   });
 
+  it.each(["", "   "])("rejects an empty plan name %#", async (name) => {
+    const file = writePlan();
+    const result = await cmdUpsert(file, "entire_plan", { name });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("size_limit_exceeded");
+    expect(loadPlan(file)!.name).toBe("Test Plan");
+  });
+
   it("merges phases by id", async () => {
     const file = writePlan();
     const result = await cmdUpsert(file, "entire_plan", {
