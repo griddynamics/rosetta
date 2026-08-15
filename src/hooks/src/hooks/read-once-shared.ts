@@ -64,11 +64,16 @@ export interface ReadOnceConfig {
   disabled: boolean;
 }
 
-export const getReadOnceConfig = (): ReadOnceConfig => ({
-  mode: process.env.READ_ONCE_MODE === 'deny' ? 'deny' : 'warn',
-  ttlMs: Math.max(1, parseInt(process.env.READ_ONCE_TTL ?? '', 10) || DEFAULT_TTL_MS / 1000) * 1000,
-  disabled: process.env.READ_ONCE_DISABLED === '1',
-});
+export const getReadOnceConfig = (): ReadOnceConfig => {
+  const ttlSecs = Number.isNaN(parseInt(process.env.READ_ONCE_TTL ?? '', 10))
+    ? DEFAULT_TTL_MS / 1000
+    : parseInt(process.env.READ_ONCE_TTL ?? '', 10);
+  return {
+    mode: process.env.READ_ONCE_MODE === 'deny' ? 'deny' : 'warn',
+    ttlMs: Math.max(1, ttlSecs) * 1000,
+    disabled: process.env.READ_ONCE_DISABLED === '1',
+  };
+};
 
 export const isFullRead = (ctx: HookContext): boolean =>
   !('offset' in ctx.toolInput) && !('limit' in ctx.toolInput);
