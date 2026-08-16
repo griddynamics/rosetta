@@ -12,6 +12,11 @@ on:
 
   workflow_dispatch:
 
+
+concurrency:
+  group: publish-mcp-helm-chart-main
+  cancel-in-progress: false
+
 jobs:
   validate:
     permissions:
@@ -67,3 +72,4 @@ jobs:
             -u "${{ secrets.DOCKERHUB_LOGIN }}" \
             --password-stdin
           helm push "./${PKG}" "oci://${REPOSITORY}"
+

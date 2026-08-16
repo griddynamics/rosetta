@@ -46,6 +46,11 @@ concurrency:
   group: publish-instructions-main
   cancel-in-progress: false
 
+
+concurrency:
+  group: publish-instructions-main
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -220,3 +225,4 @@ jobs:
           else
             echo "**Status:** Publishing failed" >> $GITHUB_STEP_SUMMARY
           fi
+
