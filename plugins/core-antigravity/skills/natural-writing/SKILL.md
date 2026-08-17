@@ -25,7 +25,7 @@ Producing or revising text that must sound authentically human (emails, blog pos
 - Maintain a natural tone — write like people actually talk. Starting with "and" or "but" is fine.
 - Skip marketing language — no hype, no exaggeration.
 - Keep it honest — don't fake friendliness or overpromise.
-- Simplify grammar — casual grammar is acceptable if it feels more human.
+- Simplify grammar — casual grammar is acceptable if it feels more human. No "It not X, it's Y".
 - Cut the fluff — remove extra adjectives and filler words.
 - Focus on clarity — make it easy to understand.
 
@@ -75,12 +75,6 @@ Producing or revising text that must sound authentically human (emails, blog pos
 - Applying writing constraints to input formatting sections (colons are allowed there).
 
 </pitfalls>
-
-<resources>
-
-- [Schema] `docs/schemas/skill.md` — Skill file format reference
-
-</resources>
 
 <templates>
 

@@ -1,6 +1,6 @@
 ---
 name: demo
-model: grok-4.5[effort=medium,fast=false]
+model: claude-opus-5[thinking=true,context=300k,effort=high,fast=false]
 description: Do not use!
 ---
 

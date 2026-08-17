@@ -1,38 +1,39 @@
 # planning
-Builds execution-ready plans — EARS-form requirements, a sequenced WBS with owners and gates, and a risk/unknowns register — scaled to request size.
+Produces a graph of session plan files for incremental modernization. Each file is later executed by a coding agent. Human WBS is a separate high-priority branch, not the default.
 
 ## Why it exists
-Without it, a plan collapses into an unsequenced bullet list: no EARS-form requirements to trace behavior against, no per-step owner/AC/NFR/predecessor fields, no explicit HITL gate, no recorded assumptions or unknowns. The named failure modes (`<pitfalls>`) are: "Planning before intent is clear," "Mixing specs and plan responsibilities," "Skipping dependencies and predecessors," "Ambiguous acceptance criteria," "Overly large steps with unclear owners."
+Without it, a plan restates docs, narrates process the executor already knows, or dumps code instead of WHAT + CHECKLIST. The skill forces terse session files, project-specific traps only, dependency-ordered decomposition, and a handoff index that stays factual.
 
 ## When to engage
-Triggers: tech specs approved and execution steps needed, or a complex request needing decomposition/sequencing/risk control. Prerequisite: `USE SKILL reasoning` first (core flow step 1). Actors: frontmatter `agent: planner, architect`, but `<resources>` names only `planner` — observed inconsistency, not resolved by this skill. Size-band applicability: SMALL/MEDIUM get inline AC / flat task lists and todo-only persistence (MEDIUM escalates to `plans/` above 5 tasks); LARGE requires formal EARS FRs, full WBS, `plans/` + `wbs.md` always, per-decision HITL gates, and is the only band that loads the `<templates applies="LARGE">` asset files.
+- Default: a multi-session (or mergeable one-session) modernization plan for an AI executor that already has the same env, docs, subagents, and skills.
+- Human work breakdown: `APPLY SKILL FILE` `assets/pl-human.md` and `assets/pl-wbs.md` as high priority.
+- Skip: small or trivial request → do nothing.
+- One session: merge into `plans/<FEATURE>/<FEATURE>-PLAN.md` and `plans/<FEATURE>/HANDOFF.md`.
+- No `<when_to_use_skill>` block. Frontmatter has no `agent`. Callers still `USE SKILL planning` from `agents/architect.md`, `agents/planner.md`, `workflows/coding-flow.md`, `workflows/adhoc-flow.md`.
 
 ## How it works
-Core flow: `USE SKILL reasoning` → derive EARS FRs → `APPLY SKILL FILE assets/pl-wbs.md` and draft the WBS → enrich each step (prerequisites, consequences, watch-fors) → close gaps → fold mistake-proofing into AC → finalize sequencing and approval gates. Assets:
-- `pl-functional-requirements.md` — EARS FR template (`WHEN|IF|WHILE|WHERE ... THEN SHALL`), with actor, rationale, AC, dependencies, risks per requirement.
-- `pl-wbs.md` — the WBS document template itself: Original Intent, FRs, Assumptions/Unknowns, per-step fields (Priority, Predecessors, Agent, Where, Description, AC, NFR, EARS FR, Prerequisites, Consequences, Watch For, HITL), plus Testing and Documentation/Git sections.
-- `pl-risk-and-unknowns.md` — `planning_risk_register` template: assumptions, unknowns (with `blocked_steps`), questions (with `default_if_unanswered`), `decisions_needed` (`hitl="required"`).
+`role` → `target` (session-file graph for a later coding agent) → `core_concepts` (human/skip/one-session gates; six hard rules for session files; decomposition; plan-index must-contain; handoff; finish checks) → `output` (four path patterns).
 
-## Mental hooks & unexpected rules
-- `"Keep each step about 20 minutes of work"` — forces micro-decomposition of every WBS step regardless of band, yet `"Do not add time or duration fields"` bars a literal duration field — the sizing heuristic and the no-duration rule coexist without a field to check it against.
-- `"Planning is a reusable skill and can run standalone"` / `"Do not force dedicated planning workflow"` — explicitly not gated behind a workflow; it can be pulled in ad hoc by any agent.
-- `"Ask 5-10 targeted high-impact questions"` — a concrete numeric floor/ceiling on clarification, unusual specificity compared to most skills.
-- Persistence flips hard by band: SMALL/MEDIUM stay in todo tasks (MEDIUM moves to `plans/` only past 5 tasks); LARGE always writes `plans/` + `wbs.md`. A maintainer assuming "planning always produces a file" is wrong below LARGE.
-- HITL cadence also flips by band: `"one before execution"` (SMALL/MEDIUM) vs `"per major decision"` (LARGE) — same skill, different approval friction depending on size classification.
-- `"Save critical assumptions and unknowns in `wbs.md`"` vs `"Track open questions using todo tasks"` — two different persistence targets for what reads like one category of information.
+Loaded assets (human branch only): `pl-human.md`, `pl-wbs.md`. Present on disk but not referenced by SKILL.md: `pl-functional-requirements.md`, `pl-risk-and-unknowns.md`.
+
+## Mental hooks
+- `"State only WHAT to do and final CHECKLIST"` — no process, methodology, workflow steps, or code (contracts allowed). Discovery/design/review/verify stay with the executor.
+- `"Assume high competence"` / `"Do not restate the docs. Reference them by path."`
+- `"Encode only project-specific traps"` — five named kinds (asymmetries, deprecated ports, must-stay-empty artifacts, hidden ordering, known env quirks).
+- Line budget: 20–30 WHAT, 40–50 CHECKLIST.
+- Session skeleton: `# NN — Title`, optional `Depends on:`, `## Do`, `## Subagents`, optional `## Rules`/`## Notes`, `## Done when`, `## Checklist`.
+- `"If request is small or trivial -> SKIP, DO NOTHING."`
+- Shared foundations first; leaf-first; global behaviors last and alone; file ownership to keep parallel sessions from colliding.
+- Handoff is status/evidence/blockers/decisions — not a second plan.
 
 ## Invariants — do not change
-- Frontmatter `name: planning` matches the folder name and the registry entry in `docs/definitions/skills.md` (plain list, `- planning`).
-- `description`: "To build execution-ready plans from approved intent/specs with EARS, sequenced WBS, and HITL checkpoints." — generic form per `docs/schemas/skill.md`, dense/keyword-first, within the ~25-token shared budget; it is the auto-invocation trigger text — do not pad it.
-- `argument-hint: "request, tech-spec?, constraints?, scope?"` — per schema, `argument-hint` must be removed if `user-invocable` is ever set to `false`.
-- Alias grammar in the body follows `docs/schemas/skill.md`'s canonical set: `USE SKILL `reasoning`` (skill, named) vs `APPLY SKILL FILE`/`READ SKILL FILE` `assets/pl-*.md` (asset paths, nameless) — `<resources>` states this explicitly: "Use `INVOKE SUBAGENT` for agents, `USE SKILL` for skills." Do not rewrite asset references as `USE SKILL`.
-- Asset filenames `assets/pl-functional-requirements.md`, `assets/pl-wbs.md`, `assets/pl-risk-and-unknowns.md` are referenced by exact path from `<templates applies="LARGE">`; renaming any breaks that block.
-- `applies="LARGE"` on `<templates>` follows the size-band-gated-content convention used elsewhere in the repo (e.g. `workflows/code-analysis-flow.md`'s `applies="SMALL"`/`"LARGE"` phase attributes).
-- `wbs.md` is a cross-file filename contract: SKILL.md's Persistence row, `<enforce>` ("Save critical assumptions and unknowns in `wbs.md`"), and `<validation_checklist>` ("Unknowns are persisted in `wbs.md`") all name it, mirrored verbatim in `agents/planner.md` ("Save critical assumptions and unknowns in `wbs.md`."); `assets/pl-wbs.md` is the template that produces this file. Renaming it breaks `planner.md`'s mirrored line.
-- Planning's own Persistence row (`plans/` if >5 tasks at MEDIUM, always at LARGE) is distinct from, and can be overridden by, `rosetta/SKILL.md`'s planning-mode rule: `"In planning mode: `planning` + `tech-specs` outputs → store per system prompt, never `plans/` (read-only)"`. That override is not stated anywhere in planning's own files — check `rosetta/SKILL.md` before editing the Persistence row.
-- Companion split with `tech-specs`: `tech-specs/SKILL.md` states the WHAT/HOW boundary ("Paired with `planning` skill: specs own WHAT, plan owns HOW... When one changes, verify the other") — the authoritative statement of this contract lives on the `tech-specs` side, not here.
-
-Inbound couplings (`grep -rn "planning" instructions/r3/core --include="*.md"`, skill-reference subset): `workflows/coding-flow.md` ("MUST USE SKILL `tech-specs` and `planning` together," listed in Required skills); `workflows/adhoc-flow.md` ("USE SKILL `planning` to build sequenced WBS; persist via EXECUTION_CONTROLLER upsert"); `agents/architect.md` and `agents/planner.md` (primary invokers, "USE SKILL `planning`..."); `skills/tech-specs/SKILL.md` (companion pairing + resource pointer); `skills/coding/SKILL.md` ("skill `planning` — for implementation planning"); `skills/hitl/README.md` (lists `skills/planning/assets/pl-risk-and-unknowns.md` among files that treat `hitl` as the sole HITL source rather than restating it); `skills/questioning/SKILL.md` (carries `planning` only as a frontmatter tag, not an invocation); `docs/definitions/skills.md` (registry entry).
+- Frontmatter `name: planning` equals the folder name and `docs/definitions/skills.md` (`- planning`).
+- `description` is still the auto-invocation string and still names EARS, sequenced WBS, and HITL checkpoints. The body does not use those terms. Do not pad the description; changing it changes auto-activation.
+- Output paths: `plans/<FEATURE>/<FEATURE>-PLAN.md`, `<NN>-plan-<slug>.md`, `HANDOFF.md`, `<NN>-handoff.md`. Two `output` lines are missing a closing backtick in SKILL.md.
+- Index contract: read-first list, one-line governing rules with authority pointers, where findings land, file-ownership, per-phase table `# | Session | Depends on | Parallel with`, unlisted = sequential, parallelism only when sessions share no files, alone-sessions flagged.
+- Alias grammar: `APPLY SKILL FILE` for `assets/pl-human.md` and `assets/pl-wbs.md`. Do not rewrite as `USE SKILL`.
+- Callers still speak WBS / size-scaled plans (`agents/planner.md`, `workflows/adhoc-flow.md` "plan-wbs"). Edit those with this skill, not instead of it.
+- `tech-specs` still pairs WHAT/HOW with `planning`; this SKILL.md does not restate that pair.
 
 ## Editing guide
-Safe to change: prose in `<role>`, `<best_practices>`, `<pitfalls>`, and the `<enforce>` bullet wording, as long as field names and the WBS contract survive. Handle with care: the `request_size_scaling` table (bands drive persistence and HITL cadence that other workflows assume), the WBS contract's mandatory field list (`title, description, agent, AC, NFR, EARS FR, priority, predecessors`), and `wbs.md`/asset filenames — change these together with `pl-wbs.md` and `agents/planner.md`. New reasoning/process guidance belongs in SKILL.md; new schema/template detail belongs in `assets/pl-*.md`. Referenced by: `workflows/coding-flow.md`, `workflows/adhoc-flow.md` (required skill); `agents/architect.md`, `agents/planner.md` (invokers); `skills/tech-specs/SKILL.md` (WHAT/HOW companion); `skills/coding/SKILL.md` (resource pointer); `skills/hitl/README.md` (HITL-delegation consumer via `pl-risk-and-unknowns.md`); `rosetta/SKILL.md` (planning-mode storage override); `docs/definitions/skills.md` (registry).
+Safe: `role`/`target` wording, trap examples, checklist example items. Care: skip/human/one-session gates, session skeleton headings, line budgets, `plans/<FEATURE>/` path contract, index table columns, human-branch asset names. New session-graph rules go in SKILL.md. Human WBS schema stays in `pl-human.md` / `pl-wbs.md` (those files still describe the old EARS/WBS flow). Unreferenced assets: delete or re-wire; do not assume SKILL.md loads them. `plugins/**` is generated. Referenced by: `agents/architect.md`, `agents/planner.md`, `workflows/coding-flow.md`, `workflows/adhoc-flow.md`, `skills/tech-specs/SKILL.md`, `skills/coding/SKILL.md`, `docs/definitions/skills.md`.

@@ -118,6 +118,51 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 10.08 – Sun 16.08
+
+The AI's specs command now writes requirements the way `requirements-authoring` already teaches it to: acceptance criteria as typed EARS objects, evidence and subsystem/component per requirement, one shared markup grammar for both writing and reading a unit. You also get two new guides this week — a day-to-day User Guide and a Modernization Guide — both published through a web build that now matches what you see locally.
+
+The AI asks tighter questions now: 5-15 words, one topic, escalating at MEDIUM severity instead of waiting for CRITICAL or HIGH. Six CI papercuts got fixed too, including an `actions/checkout` guardrail change that had been failing every fork pull request outright.
+
+**Highlights**
+
+- The AI stores acceptance criteria as typed EARS objects instead of given/when/then triples (#250)
+- You can author a complete requirement unit from the specs command's own `--help`, no external template needed
+- The AI never reuses a purged requirement id, and `migrate` skips anything outside the canonical shape rather than guessing at it
+- You get a new day-to-day User Guide: pick your scenario, follow one page start to finish (#251)
+- The web site now builds with Rosetta's own Jekyll engine, so a local-only bug can't reach production silently
+- You get Rosetta's first Modernization Guide: principles, red flags, process, and start prompts
+- The AI's clarifying questions are now 5-15 words, one topic each, and it escalates at MEDIUM severity, not just CRITICAL/HIGH
+- Fork pull requests build again after `actions/checkout`'s new guardrail, without exposing the base repo's token
+- Publish runs can't overlap, and the hooks CI job stopped building the package twice
+- `rosetta-cli parse` reports real skipped counts, and the MCP server's RAGFlow client honors its configured timeout
+- Plugins 3.1.9 / rosettify 3.2.1 carry all of the above
+
+#### Specs command realigned to the canonical requirement unit (#250)
+
+- **Change.** `[R3]` `[Tooling]` The AI now stores acceptance criteria as typed EARS objects — id, pattern, condition, responder, outcome — instead of a given/when/then triple, and can author a complete requirement unit from its own `--help` without an external template. It scopes each requirements document to a system rather than a component, tracks evidence/subsystem/component per requirement, and never reuses a purged id. When you ask it to author or migrate a unit, it renders and reads one shared markup grammar, so it never reconstructs a unit's shape by inference — anything outside that shape it skips and tells you why. (Igor Solomatov, with Claude Opus 5)
+- **Why it helps.** Given/when/then paid for the same fact three times across a requirement; you now get strictly more specification for the same context, and each criterion is separately testable so a coverage gap shows as one missing row instead of a whole requirement. You can also ask it precise questions — which criteria touch a given subsystem, which lack evidence — instead of grepping raw markup.
+
+#### A day-to-day User Guide, published to the web (#251)
+
+- **Change.** `[Docs]` You get a new day-to-day User Guide: what Rosetta is, how to install and initialize, then one page per real task — coding, modernization, requirements, security review, and more — each telling you what to do before it explains how it works. README, the Usage Guide, PLUGINS, and OVERVIEW all send you there first now. The AI also fixed the site's build pipeline: it now compiles with the project's own Jekyll 4.4 instead of GitHub's older bundled gem, so a page that worked locally can no longer silently fail only in CI. (abatyukgd, isolomatov-gd)
+- **Why it helps.** You previously had to reconstruct intent from reference docs written for a different audience; now you pick your scenario and follow it end to end. And the site you read now matches what ships locally, because both build with the same engine.
+
+#### First migration methodology guide
+
+- **Change.** `[Docs]` You get Rosetta's first migration methodology guide: principles, red flags, the process, and start-prompt templates, replacing a raw prompts file nobody was meant to read directly. The coding flow, the configuration doc, and the modernization workflow page all link to it now. (isolomatov-gd)
+- **Why it helps.** Migration work fails in specific, repeatable ways that a generic coding flow doesn't call out; you and the AI now start from the same playbook instead of relearning the same mistakes per project.
+
+#### HITL asks sharper questions
+
+- **Change.** `[R3]` The AI now asks you shorter, sharper questions: 5-15 words, one topic each, never two folded into one — and if it can't phrase a question that simply, it has to think harder before asking. It opens another questioning round on any MEDIUM-severity gap, not just CRITICAL or HIGH. Its answer options now include a safest pick, a by-the-book pick, the simplest option, and a genuinely different angle, on top of its usual recommendation. Rosetta's own repository also gained `AGENTS.md` and `CLAUDE.md`, so a contributor's coding agent picks up this project's context automatically instead of starting cold. (isolomatov-gd)
+- **Why it helps.** A wide open-ended question gets skipped; a narrow one gets answered, so you spend less time re-explaining what you meant. Catching ambiguity at MEDIUM severity means you resolve it before it becomes rework instead of after.
+
+#### CI and docs cleanup
+
+- **Change.** `[CI]` Six papercuts got fixed this week. Fork pull requests stopped failing outright after `actions/checkout`'s new guardrail landed on every major tag; both affected workflows now opt in explicitly and stop writing the base repo's token into the checked-out fork tree (#242). Publish runs can no longer overlap (#248), and the hooks CI job stopped building the package twice (#249). Workflow actions are aligned to their current versions (#214). `rosetta-cli parse` now reports real skipped counts instead of always zero (#213), and the MCP server's RAGFlow client honors its configured timeout instead of a hard-coded 30 seconds (#215). A copy-pasted `check_state`/`check_mode` tag mismatch in the codegraph workflow doc is fixed (#236, #237). (Sebastian Legarraga, fauad123, breezeFur, 21cjyp-star, Igor Solomatov with Claude Opus 5)
+- **Why it helps.** Each of these either blocked a contribution outright, doubled a CI job's runtime, misreported status silently, or would trip a future lint pass; clearing them now means the next contributor doesn't inherit them.
+
 ### Week Mon 03.08 – Sun 09.08
 
 The AI now writes requirements that say something different at every level. It used to state the rule as an EARS sentence, then restate it as Given/When/Then acceptance criteria, paying for the same fact three times on every turn. It now states the rule once, with the cases it covers and what it excludes, and spends the criteria on concrete, separately addressable cases. You get far more specification out of the same context, and your tests can claim coverage of exactly one criterion.

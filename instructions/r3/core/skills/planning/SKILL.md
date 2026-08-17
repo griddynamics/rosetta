@@ -1,150 +1,90 @@
 ---
 name: planning
-description: "To build execution-ready plans from approved intent/specs with EARS, sequenced WBS, and HITL checkpoints."
+description: "To build execution-ready AI sessions graph with intent/ACs/checklists."
 license: Apache-2.0
-argument-hint: request, tech-spec?, constraints?, scope?
-model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol
-context: default
-agent: planner, architect
-metadata:
-  version: "1.1"
-  category: "planning"
-tags:
-  - planning
-  - planning-wbs
 baseSchema: docs/schemas/skill.md
 ---
 
 <planning>
 
-<role>
+<role>You are a senior lead and architect planning AI focused sessions ensuring reliable execution plans writing them compressed, terse, using unicode chars, terms, no hieroglyphs.</role>
 
-You are a senior planning engineer focused on reliable execution plans writing them compressed, terse, using unicode chars, terms, no hieroglyphs
-
-</role>
-
-<when_to_use_skill>
-Triggers: tech specs approved and execution steps needed; or complex request needing decomposition, sequencing, risk controls, HITL gates.
-Output: EARS requirements, sequenced WBS, prerequisites, unknowns, stop points for unresolved blockers.
-</when_to_use_skill>
+<target>You are producing a graph of session plan files for an incremental modernization project. Each file will later be executed by a coding agent (a highly capable LLM having the same environment, documents, set of subagents and skills as you).</target>
 
 <core_concepts>
 
-<request_size_scaling>
+If request is to plan for human work breakdown -> MUST APPLY SKILL FILE `assets/pl-human.md` and `assets/pl-wbs.md` AS HIGH PRIORITY.
+If request is small or trivial -> SKIP, DO NOTHING.
+If one session only -> merge into `plans/<FEATURE>/<FEATURE>-PLAN.md` and `plans/<FEATURE>/HANDOFF.md`.
+If used together with tech-specs skill -> do not duplicate content, use references. 
 
-| | SMALL | MEDIUM | LARGE |
-|---|---|---|---|
-| Reasoning | brief | 8D full | 8D full |
-| Requirements | inline AC | inline AC | formal EARS FRs |
-| Plan artifact | todo tasks | flat task list (title, files, AC, risk) | full WBS (all fields) |
-| Persistence | todo tasks only | `plans/` if >5 tasks, else todo | `plans/` always + `wbs.md` |
-| HITL gates | one before execution | one before execution | per major decision |
-| Templates | none | none | template files |
+Hard rules for session files:
 
-</request_size_scaling>
+1. State only WHAT to do and final CHECKLIST. The executing agent runs its own discovery, analysis, design, review, and verification. Do not prescribe process, methodology, workflow steps, or code (only contracts are allowed).
+2. Assume high competence. The reader knows both the domain and technologies well. Never explain framework concepts, general engineering practice, or anything inferable from the docs.
+3. Do not restate the docs. Reference them by path. Repeated content becomes stale content and creates competing authorities.
+4. Encode only project-specific traps — the things a competent agent would get wrong by default:
+   - deliberate inconsistencies and asymmetries that must be preserved
+   - deprecated or awkward implementations to port unchanged
+   - near-empty or dead artifacts that must stay near-empty
+   - ordering constraints that aren't visible from dependencies alone
+   - environment quirks already discovered
+5. Very Terse. Target 20–30 lines for WHAT, 40-50 lines for CHECKLIST.
+6. Structure: # NN — Title, optional Depends on:, ## Do (numbered), ## Subagents (name + responsibility + long-running or short-term), optional ## Rules or ## Notes (only for traps), ## Done when (observable, verifiable outcomes — not "works correctly"), ## Checklist (examples showing aspects: `[ ] Unit tests coverage > 85%`, `[ ] PCI compliance`, `[ ] Integration tests coverage > 85%`, `[ ] Edge cases tested`, `[ ] Work protocol adhered`, `[ ] Documents updated`, `[ ] Code ran locally and manually tested by AI`, `[ ] DevOps implemented`, `[ ] SRE covered`, `[ ] Security checked`, etc).
 
-Core flow:
+Decomposition:
 
-1. USE SKILL `reasoning`
-2. Derive functional requirements in EARS form
-3. APPLY SKILL FILE `assets/pl-wbs.md` and draft technical WBS
-4. Enrich each step with prerequisites, consequences, and watch-fors
-5. Close gaps and consistency issues
-6. Integrate mistake-proofing controls into acceptance criteria
-7. Finalize dependency sequence and approval gates
+- Order by dependency: a unit is portable only when everything it needs already exists in the target.
+- Shared foundations first (types, data layer, data access, shell/layout, unit/integration/e2e tests).
+- Leaf-first: leaves → composites → pages/screens/APIs → wiring → global behaviors.
+- Global/app-wide behaviors last and alone — landing them early breaks earlier sessions' tests.
+- One or a few units per session. Never big-bang. Always cover with all tests.
+- If the project's strategy builds an acceptance gate first, that's a distinct Phase 0 preceding all porting.
+- Assign file ownership explicitly where multiple sessions might touch the same module, so parallel runs cannot collide.
 
-WBS contract:
+Plan index file must contain:
 
-- Preserve original user intent without speculative scope
-- Keep chronology valid across top-level and child steps
-- Define WHAT, WHEN, WHO, WHERE per step
-- Make every step independently executable by one agent
-- Include fields: title, description, agent, AC, NFR, EARS FR, priority, predecessors
-- Do not add time or duration fields
-- Keep each step about 20 minutes of work
-- Include discovery, design, implementation, tests, docs, git, and HITL steps
+- The read-first document list.
+- The governing rules, one line each, with a pointer to their authority.
+- Where outcomes/findings/decisions get recorded.
+- File-ownership assignments that prevent collisions.
+- A table per phase: # | Session | Depends on | Parallel with.
+- Explicit note that unlisted pairs are sequential, and that parallelism is valid only because the sessions share no files.
+- Any session that must run alone, flagged as such.
 
-Boundaries:
+Handoff:
 
-- Planning is a reusable skill and can run standalone
-- Do not force dedicated planning workflow
-- Stop and escalate when critical unknowns block safe planning
-- Keep plans compact, dense, and execution-oriented
+- Keep plan/HANDOFF.md as the concise master index, grouped handoff files by session/area. 
+- It should contain current overall status, links to each split handoff file, active blockers, deferred decisions, the next-session pointer, common issues/solutions spanning across sessions.
+- Save factual status, evidence/history, blockers, decisions, and required references. 
+- Keep every entry factual, terse, and non-duplicative.
+- Handoff is very terse, factual, and discoverable.
 
-</core_concepts>
+Before finishing:
 
-<enforce>
+- Do not duplicate other documents => reference `file:line-range`
+- State which sessions are genuinely parallelizable and why, and name any latent collision you resolved via ownership assignment.
 
-- Follow meta-sequence: What, When, Who, Where, Why, How
-- Apply meta-sequence per WBS step
-- What: scope and deliverable in description
-- When: ordering in predecessors and priority
-- Who: agent role and specialization
-- Where: explicit files, modules, services
-- Why: consequences and success rationale
-- How: AC, NFR, EARS FR, watch-fors
-- Keep enforcement local to this skill
-- Do not add recursive propagation rules
-- Save critical assumptions and unknowns in `wbs.md`
-- Track open questions using todo tasks
-- Ask 5-10 targeted high-impact questions
+Relevant:
 
-</enforce>
+- USE SKILL `reasoning` if task is complex or multiple actors, roles, or system involved
 
-<validation_checklist>
-
-- Intent is restated and scope is explicit
-- EARS FRs exist for in-scope behavior
-- WBS is chronological and dependency-safe
-- Each step defines required fields
-- Critical assumptions are explicit
-- Unknowns have targeted questions
-- Questions are tracked as todo items
-- Unknowns are persisted in `wbs.md`
-- HITL gates exist for major decisions
-- Tests and test data are planned
-- Documentation updates are included
-- Git checkpoints are included
-- No speculative scope was added
-
-</validation_checklist>
-
-<best_practices>
-
-- Keep one step one outcome
-- Prefer extending existing patterns
-- Add early verification checkpoints
-- Ask impact-first clarification questions
-- Surface consequences of wrong sequencing
-- Keep language explicit and concise
-
-</best_practices>
-
-<pitfalls>
+Pitfalls:
 
 - Planning before intent is clear
 - Mixing specs and plan responsibilities
 - Skipping dependencies and predecessors
-- Ambiguous acceptance criteria
-- Overly large steps with unclear owners
+- Ambiguous acceptance criteria or checklists
+- Coding instead of planning
+- Making small sessions
 
-</pitfalls>
+<output>
 
-<resources>
+- `plans/<FEATURE>/<FEATURE>-PLAN.md` — session index & tracker
+- `plans/<FEATURE>/<NN>-plan-<slug>.md — one file per session, numbered in dependency order (if multiple sessions)
+- `plans/<FEATURE>/HANDOFF.md` — handoff index plus common
+- `plans/<FEATURE>/<NN>-handoff.md — very concise terse session completion handoff (if multiple sessions)
 
-Use `INVOKE SUBAGENT` for agents, `USE SKILL` for skills.
-
-- agent `planner`
-- skill `reasoning`
-
-</resources>
-
-<templates applies="LARGE">
-
-- READ SKILL FILE `assets/pl-functional-requirements.md`
-- READ SKILL FILE `assets/pl-wbs.md`
-- READ SKILL FILE `assets/pl-risk-and-unknowns.md`
-
-</templates>
+</output>
 
 </planning>
