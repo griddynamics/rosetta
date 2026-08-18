@@ -85,4 +85,4 @@ async def read_instruction_resource(
             trace_id,
         )
         return f"Error: No documents found for resource path: {normalized_path}"
-    return bundler.bundle(docs, dataset_name)
+    return await bundler.bundle_async(docs, dataset_name)
