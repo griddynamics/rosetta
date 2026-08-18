@@ -40,6 +40,7 @@
 - coding-agents-farm
 - coding-agents-hooks-authoring
 - specflow-use
+- tutorial
 - solr-extending
 - solr-query
 - solr-schema
