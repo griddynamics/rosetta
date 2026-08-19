@@ -64,10 +64,15 @@ Tech stack of all modules in this Rosetta repository.
 
 | Layer | Technology |
 |---|---|
-| core-claude | Auto-generated from instructions; Claude Code format |
-| core-cursor | Auto-generated from instructions; Cursor format |
-| rosetta | Bootstrap rule + MCP definition only |
-| Generator | `npx -y rosettify-plugins@latest` (invoked by `scripts/pre_commit.py`) |
+| core-claude | Claude Code; `.claude-plugin/plugin.json` with `"commands": "./workflows/"` |
+| core-cursor | Cursor, plugin-marketplace form; `.cursor-plugin/plugin.json` |
+| core-cursor-standalone | Cursor, project-root form; everything under `.cursor/` |
+| core-copilot | GitHub Copilot; `.github/plugin/plugin.json`, agents as `.agent.md` |
+| core-copilot-standalone | Copilot, project-root form; everything under `.github/` |
+| core-codex | Codex; `.codex-plugin/plugin.json`, agents as `.codex/agents/*.toml` |
+| core-antigravity | Antigravity; `plugin.json` at root, no model vocabulary |
+| Profile variants | every target also builds `core-*-light` from `profiles/lightweight.json` |
+| Generator | `npx -y rosettify-plugins@latest`, run twice by `scripts/pre_commit.py` (standard, then `--profile lightweight`) |
 
 ## Shared / Repo-Wide
 
