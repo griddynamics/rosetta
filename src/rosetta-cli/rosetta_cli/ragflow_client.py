@@ -116,7 +116,8 @@ class RAGFlowClient:
         embedding_model: str | None = None,
         chunk_method: str = "naive",
         parser_config: JsonDict | None = None,
-        page_size: int = 1000
+        page_size: int = 1000,
+        dataset_default: str = "aia",
     ):
         """
         Initialize RAGFlow client.
@@ -130,6 +131,7 @@ class RAGFlowClient:
             chunk_method: Chunking method (default: naive)
             parser_config: Parser configuration dict for chunk_method settings
             page_size: Default page size for list operations (default: 1000)
+            dataset_default: Default dataset name when no release-specific or explicit dataset name is available
             
         Raises:
             ValueError: If api_key or base_url is empty
@@ -147,6 +149,7 @@ class RAGFlowClient:
         self.chunk_method = chunk_method
         self.parser_config = parser_config or {}
         self.page_size = page_size
+        self.dataset_default = dataset_default
 
         # Initialize RAGFlow SDK client
         self._client = RAGFlow(api_key=api_key, base_url=base_url, version=version)
@@ -466,26 +469,38 @@ class RAGFlowClient:
         # Dataset doesn't exist, create it (gated by dry_run)
         return self.create_dataset(name, description, dry_run=dry_run)
     
-    def _resolve_dataset_name(self, template: str, release: str | None) -> str:
+    def _resolve_dataset_name(
+        self,
+        dataset_template: str,
+        release: str | None,
+        dataset_name: str | None,
+    ) -> str:
         """
-        Resolve dataset name from template.
+        Resolve dataset name using release + dataset_template, explicit dataset_name or default.
         
         Args:
-            template: Name template (e.g., "aia-{release}")
+            dataset_template: Name template (e.g., "aia-{release}")
             release: Release identifier (e.g., "r1")
+            dataset_name: Explicit dataset name, if provided (e.g., "aia-r1")
             
         Returns:
             Resolved dataset name
             
         Examples:
-            >>> _resolve_dataset_name("aia-{release}", "r1")
+            >>> _resolve_dataset_name("aia-{release}", "r1", "aia-r2")
             "aia-r1"
-            >>> _resolve_dataset_name("aia", None)
-            "aia"
+            >>> _resolve_dataset_name("aia-{release}", None, "aia-r2")
+            "aia-r2"
         """
-        if release and "{release}" in template:
-            return template.format(release=release)
-        return template
+        if release and "{release}" in dataset_template:
+            resolved_name = dataset_template.format(release=release)
+        else:
+            resolved_name = dataset_name or self.dataset_default
+
+        if "{release}" in resolved_name:
+            raise ValueError(f"Unresolved release placeholder in dataset name: {resolved_name}")
+
+        return resolved_name
     
     def _build_title_with_tags(self, tags: list[str], filename: str) -> str:
         """
@@ -518,7 +533,7 @@ class RAGFlowClient:
         OPTIMIZED: Now accepts pre-read content to avoid redundant file I/O.
         
         This method:
-        1. Resolves dataset name from template + release
+        1. Resolves the target dataset name
         2. Ensures dataset exists
         3. Builds title with tag prefixes
         4. Checks if document exists (by ims_doc_id)
@@ -526,6 +541,12 @@ class RAGFlowClient:
         6. Deletes existing document if changed
         7. Uploads new document with metadata
         
+        Dataset name resolution precedence:
+        1. If metadata.release is present, and dataset_template contains "{release}",
+           resolve dataset_template with the release.
+        2. Otherwise, use dataset_name when provided.
+        3. Otherwise, fall back to dataset_default.
+
         Args:
             file_path: Path to file (for filename, backward compatibility)
             metadata: Document metadata with pre-calculated hash
@@ -564,10 +585,7 @@ class RAGFlowClient:
         actual_hash = metadata.content_hash
         
         # Resolve dataset name
-        resolved_name = self._resolve_dataset_name(
-            dataset_template if metadata.release and "{release}" in dataset_template else (dataset_name or dataset_template),
-            metadata.release
-        )
+        resolved_name = self._resolve_dataset_name(dataset_template, metadata.release, dataset_name)
         
         # Ensure dataset exists (dry_run gates the underlying create_dataset call)
         dataset = self._ensure_dataset(

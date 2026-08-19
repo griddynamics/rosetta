@@ -376,7 +376,8 @@ Frontmatter Metadata (publish flow):
             embedding_model=config.embedding_model,
             chunk_method=config.chunk_method,
             parser_config=config.parser_config,
-            page_size=config.page_size
+            page_size=config.page_size,
+            dataset_default=config.dataset_default,
         )
         
         return execute_command(args.command, args, client, config)
