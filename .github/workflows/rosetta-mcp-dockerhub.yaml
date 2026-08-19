@@ -12,6 +12,13 @@ on:
       - 'src/rosetta-mcp-server/Dockerfile'
       - 'requirements.txt'
 
+# Static group, not ref-scoped: this publishes to a shared image repo and moves the
+# mutable `latest` tag, so only one run may push at a time regardless of ref
+# (workflow_dispatch can fire from any branch). Never cancel a layer upload mid-push.
+concurrency:
+  group: rosetta-mcp-dockerhub
+  cancel-in-progress: false
+
 permissions:
   contents: read
 

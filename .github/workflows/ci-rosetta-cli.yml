@@ -41,8 +41,8 @@ jobs:
     # mypy.ini lists src/rosetta-cli in files=, but the only other mypy entrypoint
     # (src/validate-types.sh, run from ci-rosetta-mcp.yml) is path-filtered to
     # src/rosetta-mcp-server/**. mypy is invoked directly rather than through that
-    # script because this job creates no venv and no node_modules, so the script
-    # would warn-and-pass rather than gate.
+    # script to keep this gate scoped to this job's own paths: the script checks
+    # the whole files= set, so a rosetta-cli PR would also gate on the MCP server.
     - name: Run type validation
       run: |
         python -m mypy --config-file mypy.ini src/rosetta-cli

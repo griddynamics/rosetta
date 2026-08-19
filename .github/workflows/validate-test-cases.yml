@@ -26,6 +26,10 @@ permissions:
   contents: read
   pull-requests: write  # for PR comments
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate-test-cases:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft != true

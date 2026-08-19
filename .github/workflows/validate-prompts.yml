@@ -24,6 +24,10 @@ on:
       - ".github/prompts/prompt-comparison.md"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     if: github.event_name != 'pull_request_target' || github.event.pull_request.draft != true

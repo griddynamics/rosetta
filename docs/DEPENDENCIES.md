@@ -1,12 +1,12 @@
 Direct dependencies of all modules in this Rosetta repository.
 
-## rosetta-mcp-server (rosetta-mcp v2.0.13)
+## src/rosetta-mcp-server (in repo)
 
 | Package | Version Constraint | Purpose |
 |---|---|---|
 | ragflow-sdk | >=0.25.1,<0.26.0 | Document storage and retrieval (RAGFlow backend) |
 | mcp | >=1.26.0,<2.0.0 | MCP Python SDK |
-| fastmcp | >=3.1.0,<4 | FastMCP framework (Streamable HTTP + OAuth proxy) |
+| fastmcp | >=3.4.0,<4 | FastMCP framework (Streamable HTTP + OAuth proxy) |
 | posthog | >=7.0.0,<8.0.0 | Usage analytics |
 | cryptography | >=43.0.0 | Fernet encryption for Redis token storage |
 | uuid7-standard | >=1.0.0,<2.0.0 | UUID v7 generation for deterministic document IDs |
@@ -27,7 +27,7 @@ Direct dependencies of all modules in this Rosetta repository.
 | pytest | >=7.0.0 | Test runner |
 | pytest-asyncio | >=0.23.0 | Async test support |
 
-## src/rosetta-cli (rosetta-cli v2.0.10)
+## src/rosetta-cli (in repo)
 
 | Package | Version Constraint | Purpose |
 |---|---|---|
@@ -45,11 +45,11 @@ Direct dependencies of all modules in this Rosetta repository.
 | pytest | >=7.0.0 | Test runner |
 | twine | >=4.0.0 | PyPI publisher |
 
-## rosetta-mcp-server (rosetta-mcp v2.0.13)
+## src/ims-mcp-server (in repo)
 
 | Package | Version Constraint | Purpose |
 |---|---|---|
-| rosetta-mcp | ==2.0.13 | Core MCP server (pinned exact version) |
+| rosetta-mcp | == matching release (in repo) | Core MCP server; pin tracks src/rosetta-mcp-server, published first |
 
 ## Shared Dev (requirements.txt)
 
@@ -57,7 +57,8 @@ Direct dependencies of all modules in this Rosetta repository.
 |---|---|---|
 | rosetta-cli[dev] | editable | CLI development install |
 | rosetta-mcp-server[dev,redis] | editable | MCP server development install |
-| mypy | >=1.10.0 | Static type checking |
+| mypy | >=2.1.0,<2.2 | Static type checking |
+| pybars3 | >=0.9.7,<1.0 | Handlebars templating for plugin generation |
 
 ## docs/web (Gemfile)
 
@@ -77,6 +78,6 @@ Direct dependencies of all modules in this Rosetta repository.
 
 | Source | Version | Purpose |
 |---|---|---|
-| refsrc/fastmcp-3.1.1 | 3.1.1 | FastMCP source reference |
+| refsrc/fastmcp-3.3.1 | 3.3.1 | FastMCP source reference |
 | refsrc/python-sdk-1.26.0 | 1.26.0 | MCP Python SDK reference |
-| refsrc/ragflow-0.24.0 | 0.24.0 | RAGFlow SDK reference |
+| refsrc/ragflow-0.25.1 | 0.25.1 | RAGFlow SDK reference |

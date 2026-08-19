@@ -1,6 +1,6 @@
 Tech stack of all modules in this Rosetta repository.
 
-## rosetta-mcp-server — Rosetta MCP Server
+## src/rosetta-mcp-server — Rosetta MCP Server
 
 | Layer | Technology |
 |---|---|
@@ -35,13 +35,13 @@ Tech stack of all modules in this Rosetta repository.
 | Tests | pytest >=7.0.0 |
 | Entry point | `rosetta-cli` → `rosetta_cli.cli:main` |
 
-## rosetta-mcp-server — Thin Re-export Package
+## src/ims-mcp-server — Thin Re-export Package
 
 | Layer | Technology |
 |---|---|
 | Language | Python 3.10+ |
-| Dependency | rosetta-mcp ==2.0.13 (pin) |
-| Entry point | `rosetta-mcp` → `rosetta_mcp.server:main` |
+| Dependency | rosetta-mcp, exact pin on the matching release (in repo) |
+| Entry point | `ims-mcp` → `rosetta_mcp.server:main` (legacy alias command) |
 
 ## docs/web — Public Website
 
@@ -74,7 +74,7 @@ Tech stack of all modules in this Rosetta repository.
 | Layer | Technology |
 |---|---|
 | Runtime environment | Python venv at repo root (`venv/`) |
-| Type checking | mypy >=1.10.0 (strict, via mypy.ini) |
+| Type checking | mypy >=2.1.0,<2.2 (strict, via mypy.ini) |
 | Pre-commit hook | scripts/pre_commit.py + .githooks/ |
 | CI/CD | GitHub Actions (.github/workflows/) |
 | Change detection | MD5 hash per file (CLI incremental publish) |
