@@ -167,9 +167,12 @@ const CURSOR_CLAUDE_MAP: Record<string, string> = {
 };
 
 const CURSOR_GPT_MAP: Record<string, string> = {
-  // GPT-5.6 — effort-qualified forms only. The BARE forms (`gpt-5.6-sol`/`-terra`/`-luna`) are
-  // deliberately absent: they appear ~105 times across the base instruction set, so mapping them
-  // would rewrite the standard plugins too. That wider vocabulary gap is tracked in docs/TODO.md.
+  // GPT-5.6 — bare and effort-qualified forms alike. A source token absent from this map is dropped
+  // from `subagent_required_model` and passed through raw if it lands first in a `model:` list, so
+  // omitting a form the instruction set actually uses loses the model rather than preserving it.
+  'gpt-5.6-sol':          'gpt-5.6-sol',
+  'gpt-5.6-terra':        'gpt-5.6-terra',
+  'gpt-5.6-luna':         'gpt-5.6-luna',
   'gpt-5.6-sol-xhigh':    'gpt-5.6-sol',
   'gpt-5.6-sol-high':     'gpt-5.6-sol',
   'gpt-5.6-sol-medium':   'gpt-5.6-sol',
@@ -220,6 +223,11 @@ const CURSOR_GROK_MAP: Record<string, string> = {
   'grok-4.6-medium': 'grok-4.6',
   'grok-4.6-low': 'grok-4.6',
   'grok-4.6': 'grok-4.6',
+  'grok-4.5': 'grok-4.5',
+};
+
+const CURSOR_COMPOSER_MAP: Record<string, string> = {
+  'composer-2.5': 'composer-2.5',
 };
 
 /**
@@ -273,7 +281,10 @@ const COPILOT_CLAUDE_MAP: Record<string, string> = {
 };
 
 const COPILOT_GPT_MAP: Record<string, string> = {
-  // GPT-5.6 — effort-qualified forms only, for the same reason as the Cursor map above.
+  // GPT-5.6 — bare and effort-qualified forms alike, as in the Cursor map above.
+  'gpt-5.6-sol':          'GPT-5.6 Sol',
+  'gpt-5.6-terra':        'GPT-5.6 Terra',
+  'gpt-5.6-luna':         'GPT-5.6 Luna',
   'gpt-5.6-sol-xhigh':    'GPT-5.6 Sol',
   'gpt-5.6-sol-high':     'GPT-5.6 Sol',
   'gpt-5.6-sol-medium':   'GPT-5.6 Sol',
@@ -390,12 +401,22 @@ export const CLAUDE_VOCABULARY: ModelVocabulary = {
 };
 
 // Cursor/Copilot merge their per-vendor maps into one flat map consulted by exact-token lookup.
-// Keys are disjoint across the source maps (claude-*/gpt-*/gemini-*/grok-* prefixes never collide —
-// verified: Cursor 56 total keys, 56 unique across CURSOR_CLAUDE_MAP ∪ CURSOR_GPT_MAP ∪
-// CURSOR_GEMINI_MAP ∪ CURSOR_GROK_MAP; Copilot 51 total, 51 unique — Copilot carries no Grok or
-// Composer vocabulary), so merge order is immaterial.
+// Keys are disjoint across the source maps (claude-*/gpt-*/gemini-*/grok-*/composer-* prefixes never
+// collide — verified: Cursor 61 total keys, 61 unique; Copilot 54 total, 54 unique), so merge order
+// is immaterial.
+//
+// The Copilot map carries no Grok or Composer entry. That records only that no Copilot-native
+// identifier for those models has been established here — it is NOT a finding that Copilot lacks
+// them. Absence of a key means "this generator cannot name that model for this IDE yet", nothing
+// more, and a token with no key is dropped from subagent_required_model rather than translated.
 export const CURSOR_VOCABULARY: ModelVocabulary = {
-  map: { ...CURSOR_CLAUDE_MAP, ...CURSOR_GPT_MAP, ...CURSOR_GEMINI_MAP, ...CURSOR_GROK_MAP },
+  map: {
+    ...CURSOR_CLAUDE_MAP,
+    ...CURSOR_GPT_MAP,
+    ...CURSOR_GEMINI_MAP,
+    ...CURSOR_GROK_MAP,
+    ...CURSOR_COMPOSER_MAP,
+  },
 };
 
 export const COPILOT_VOCABULARY: ModelVocabulary = {

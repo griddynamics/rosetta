@@ -132,17 +132,21 @@ describe('pluginNormalizeSubagentRequiredModel — Claude mapper, real fixtures'
   });
 });
 
+// The expected values below grew when the Cursor and Copilot vocabularies learned the GPT-5.6 family
+// (bare and effort-qualified), grok and composer: those tokens used to have no key and were dropped
+// from the list, so the earlier expectations recorded models silently going missing. Nothing about
+// the filtering rule changed — only which tokens the maps can now name.
 describe('pluginNormalizeSubagentRequiredModel — Cursor mapper, real fixtures', () => {
   it('A: filters to tokens present in the merged Cursor map, source order preserved', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_A}"`, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="claude-opus-4-8, gpt-5.5"');
+    ).toBe('subagent_required_model="claude-opus-4-8, gpt-5.5, gpt-5.6-sol"');
   });
 
   it('D: same filtering with the gpt- token appearing FIRST in source order (not IDE priority order)', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_D}"`, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="gpt-5.4, gemini-3.1-pro, claude-sonnet-5"');
+    ).toBe('subagent_required_model="gpt-5.4, gemini-3.1-pro, claude-sonnet-5, grok-4.5, gpt-5.6-terra"');
   });
 });
 
@@ -150,7 +154,13 @@ describe('pluginNormalizeSubagentRequiredModel — Copilot mapper, real fixtures
   it('C: filters to tokens present in the merged Copilot map, mapped to IDE-native display names', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_C}"`, COPILOT_VOCABULARY, copilotSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="Claude Sonnet 5, GPT-5.4, Gemini 3.1 Pro (Preview)"');
+    ).toBe('subagent_required_model="Claude Sonnet 5, GPT-5.4, Gemini 3.1 Pro (Preview), GPT-5.6 Terra"');
+  });
+
+  it('C: grok-4.5 is still absent from the Copilot list — no Copilot identifier for it is established here', () => {
+    expect(
+      normalize(`subagent_required_model="${FIXTURE_D}"`, COPILOT_VOCABULARY, copilotSubagentModelTokenMapper),
+    ).not.toContain('grok');
   });
 });
 

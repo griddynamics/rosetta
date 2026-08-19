@@ -73,13 +73,11 @@ Options: a frontmatter-only override kind (apply just the declared keys, inherit
 per-profile model-list map keyed by document path. Guard in the meantime: `diff` each pair and
 expect exactly one changed line.
 
-## TODO: plugin-generator — Cursor/Copilot vocabularies are incomplete for current model families
+## TODO: plugin-generator — no Copilot identifier established for Grok or Composer
 
-`src/rosettify-plugins/src/spec/model-maps.ts` maps only the effort-qualified GPT-5.6 forms
-(`gpt-5.6-sol-high`, ...). The BARE forms (`gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`) are unmapped
-and so are `grok-4.5` and `composer-2.5`, all of which the base instruction set uses heavily
-(~105 bare 5.6 tokens, ~58 grok-4.5, 10 composer-2.5). For Cursor and Copilot an unmapped token is
-dropped from `subagent_required_model` and passes through raw if it lands first in a `model:` list, so
-those models are silently invisible to two of the four vocabularies. Mapping them is a one-line-each
-change but rewrites the standard plugins, which is why it was kept out of the lightweight-profile
-change. Decide per token whether the IDE genuinely offers the model, then add it and regenerate.
+`src/rosettify-plugins/src/spec/model-maps.ts` maps `grok-4.5`, `grok-4.6*` and `composer-2.5` for
+Cursor (identity values; the repo's authoring catalogue names all three as Cursor models) but carries
+no Copilot entry for any of them, so those tokens are dropped from Copilot's `subagent_required_model`
+lists. That records only that no Copilot-native identifier has been established here — it is NOT a
+finding that Copilot lacks the models. Resolve by confirming what Copilot calls them and adding the
+entries, or by recording a sourced decision that Copilot does not offer them.

@@ -139,12 +139,16 @@ describe('normalizeCursor — new vocabulary entries', () => {
     expect(normalizeCursor('claude-5-opus-high', CURSOR_VOCABULARY.map)).toBe('claude-opus-5');
   });
 
-  it('the bare gpt-5.6-sol form is deliberately absent from the map — passthrough, not a mapped value', () => {
-    // Pins the production comment on CURSOR_GPT_MAP: the bare forms are intentionally omitted
-    // (they appear ~105 times across the base instruction set), so a future edit that adds one
-    // must be a conscious choice, not an accident.
-    expect(Object.prototype.hasOwnProperty.call(CURSOR_VOCABULARY.map, 'gpt-5.6-sol')).toBe(false);
+  it('maps the bare gpt-5.6-sol form too, not only the effort-qualified one', () => {
+    // The bare forms carry the bulk of the base instruction set's 5.6 usage. Unmapped, every one of
+    // them was dropped from subagent_required_model for this vocabulary.
+    expect(Object.prototype.hasOwnProperty.call(CURSOR_VOCABULARY.map, 'gpt-5.6-sol')).toBe(true);
     expect(normalizeCursor('gpt-5.6-sol', CURSOR_VOCABULARY.map)).toBe('gpt-5.6-sol');
+  });
+
+  it('maps grok-4.5 and composer-2.5, both Cursor-native models', () => {
+    expect(normalizeCursor('grok-4.5', CURSOR_VOCABULARY.map)).toBe('grok-4.5');
+    expect(normalizeCursor('composer-2.5', CURSOR_VOCABULARY.map)).toBe('composer-2.5');
   });
 });
 
@@ -174,7 +178,7 @@ describe('normalizeCopilot', () => {
   });
 });
 
-// ─── Copilot: new vocabulary entries (GPT-5.6 effort-qualified, Gemini 3.7 Flash, Opus 5, no Grok) ──
+// ─── Copilot: new vocabulary entries (GPT-5.6 bare + effort-qualified, Gemini 3.7 Flash, Opus 5) ──
 
 describe('normalizeCopilot — new vocabulary entries', () => {
   it('maps gpt-5.6-luna-xhigh to GPT-5.6 Luna', () => {
@@ -189,7 +193,7 @@ describe('normalizeCopilot — new vocabulary entries', () => {
     expect(normalizeCopilot('claude-5-opus-high', COPILOT_VOCABULARY.map)).toBe('Claude Opus 5');
   });
 
-  it('grok-4.6-medium is not in the Copilot map — Copilot carries no Grok vocabulary', () => {
+  it('grok-4.6-medium has no Copilot key, so it is unmapped for that vocabulary', () => {
     expect(Object.prototype.hasOwnProperty.call(COPILOT_VOCABULARY.map, 'grok-4.6-medium')).toBe(false);
   });
 });
@@ -388,15 +392,15 @@ describe('merged Cursor/Copilot effective map (claude+gpt+gemini, FR-ARCH-0059)'
 // this count would fall below the expected total.
 
 describe('merged vocabulary key disjointness (FR-ARCH-0059)', () => {
-  it('CURSOR_VOCABULARY.map has exactly 56 keys — the 4 per-vendor source maps never collide', () => {
+  it('CURSOR_VOCABULARY.map has exactly 61 keys — the 4 per-vendor source maps never collide', () => {
     const keys = Object.keys(CURSOR_VOCABULARY.map);
-    expect(keys.length).toBe(56);
+    expect(keys.length).toBe(61);
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it('COPILOT_VOCABULARY.map has exactly 51 keys — the 3 per-vendor source maps never collide', () => {
+  it('COPILOT_VOCABULARY.map has exactly 54 keys — the 3 per-vendor source maps never collide', () => {
     const keys = Object.keys(COPILOT_VOCABULARY.map);
-    expect(keys.length).toBe(51);
+    expect(keys.length).toBe(54);
     expect(new Set(keys).size).toBe(keys.length);
   });
 });
