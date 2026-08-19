@@ -35,8 +35,8 @@ with `.AC#` sub-ids). A "target" is one of the seven `spec.name` values: `core-c
   trap: `claude-opus-4-8` looks correct but Claude does `lower.includes('opus')` and then reads the
   map at key `opus`, so an unchecked inner key silently drops Opus candidates instead of downgrading
   them (V3).</rationale>
-  <evidence>src/rosettify-plugins/src/spec/model-maps.ts:12-16 (CLAUDE_CODE_MAP keyed opus/sonnet/haiku);
-  src/rosettify-plugins/src/spec/model-maps.ts:18-30 (normalizeClaude reads the map at the family key, so a full-id key never matches)</evidence>
+  <evidence>src/rosettify-plugins/src/spec/model-maps.ts CLAUDE_CODE_MAP (family keys opus/sonnet/haiku cover every claude token);
+  src/rosettify-plugins/src/spec/model-maps.ts claudeLookup and normalizeClaude (a profile block replaces the vocabulary in full, so only family keys guarantee that every claude token still resolves; a block keyed by full ids would leave the rest unmapped)</evidence>
   <acceptance>
     <criteria id="FR-PROF-0001.AC1" ears="event" when="`--profile lightweight` is supplied" system="the generator" shall="resolve the profile to `<profileSource>/lightweight.json`"/>
     <criteria id="FR-PROF-0001.AC2" ears="unwanted" if="the resolved profile file does not exist" system="the generator" shall="abort with a non-zero status before writing any output"/>
@@ -69,8 +69,8 @@ with `.AC#` sub-ids). A "target" is one of the seven `spec.name` values: `core-c
   nowhere; profiles make it the live carrier of the effective map. Standalones inherit the parent's
   block because their preserved files derive from the parent target (V4). A dead inner entry is
   ignored silently so a profile stays valid across source drift (V5).</rationale>
-  <evidence>src/rosettify-plugins/src/types.ts:94 (PluginSpec.modelVocabulary populated on every spec, read nowhere);
-  src/rosettify-plugins/src/spec/model-maps.ts:450-487 (per-target vocabulary constants, one per IDE, each carrying a populated map)</evidence>
+  <evidence>src/rosettify-plugins/src/types.ts PluginSpec.modelVocabulary (the per-spec carrier of the effective map);
+  src/rosettify-plugins/src/spec/model-maps.ts CLAUDE_VOCABULARY, CURSOR_VOCABULARY, COPILOT_VOCABULARY, CODEX_VOCABULARY (one populated vocabulary per IDE)</evidence>
   <acceptance>
     <criteria id="FR-PROF-0010.AC1" ears="optional" where="a target declares a model-overrides block" system="the generator" shall="use that block as the target's entire effective map, consulting none of that target's built-in maps"/>
     <criteria id="FR-PROF-0010.AC2" ears="optional" where="a target declares no model-overrides block" system="the generator" shall="use that target's built-in maps unchanged as its effective map"/>
@@ -108,9 +108,9 @@ with `.AC#` sub-ids). A "target" is one of the seven `spec.name` values: `core-c
   the scan must continue rather than pass the raw token through. Today Cursor/Copilot pass unmapped
   tokens through as-is and Claude/Codex return null; this unifies the miss to "skip and
   continue".</rationale>
-  <evidence>src/rosettify-plugins/src/spec/model-maps.ts:18-30 (Claude scans for a claude-compatible token);
-  src/rosettify-plugins/src/spec/model-maps.ts:84-88 (Cursor first token); :139-143 (Copilot first token);
-  src/rosettify-plugins/src/spec/model-maps.ts:155-169 (Codex scans for a gpt- token)</evidence>
+  <evidence>src/rosettify-plugins/src/spec/model-maps.ts normalizeClaude (scans for a claude-compatible token);
+  src/rosettify-plugins/src/spec/model-maps.ts normalizeCursor and normalizeCopilot (first token only);
+  src/rosettify-plugins/src/spec/model-maps.ts normalizeCodex (scans for a gpt- token)</evidence>
   <acceptance>
     <criteria id="FR-PROF-0011.AC1" ears="ubiquitous" system="the generator" shall="retain each IDE's existing selection strategy — Claude scanning for opus/sonnet/haiku, Cursor and Copilot taking the first candidate, Codex scanning for the first `gpt-` candidate"/>
     <criteria id="FR-PROF-0011.AC2" ears="event" when="a selected candidate token is absent from the effective map" system="the generator" shall="ignore it and continue the scan to the next candidate"/>
@@ -139,8 +139,8 @@ with `.AC#` sub-ids). A "target" is one of the seven `spec.name` values: `core-c
   <rationale>The target-only directive token compares against `spec.name`, so suffixing `spec.name`
   would silently stop every `<spec.name>-only` directive from matching under the profile. The stable
   target identity must be left untouched and only the output folder renamed.</rationale>
-  <evidence>src/rosettify-plugins/src/file-processors/file-apply-overrides.ts:20 (target token compared against ctx.spec.name);
-  src/rosettify-plugins/src/spec/targets.ts:158-159 (name and destination are separate literals per target)</evidence>
+  <evidence>src/rosettify-plugins/src/file-processors/file-apply-overrides.ts fileApplyOverrides (compares a target token against ctx.spec.name);
+  src/rosettify-plugins/src/spec/targets.ts buildAllSpecs (each spec carries name and destination as separate fields)</evidence>
   <acceptance>
     <criteria id="FR-PROF-0020.AC1" ears="event" when="a profile sets a destination suffix of `-light`" system="the generator" shall="write each target to a folder named `core-<target>-light` under the output directory"/>
     <criteria id="FR-PROF-0020.AC2" ears="event" when="a destination suffix is applied" system="the generator" shall="leave `spec.name` unchanged (e.g. `core-claude`)"/>
@@ -198,9 +198,9 @@ with `.AC#` sub-ids). A "target" is one of the seven `spec.name` values: `core-c
   targets, so the profile selector must be namespaced. Ordering profile filtering before overwrite
   truncation mirrors the existing target-then-overwrite order and stops an inactive-profile
   `overwrite` file from superseding the base document.</rationale>
-  <evidence>src/rosettify-plugins/src/vfs/directives.ts:38-44 (matchesTarget excludes on any non-matching -only token);
-  src/rosettify-plugins/src/file-processors/file-apply-overrides.ts:24,26-32 (target filter precedes overwrite truncation);
-  src/rosettify-plugins/tests/unit/vfs/directives.test.ts:72-77 (overwrite does not bypass target exclusion)</evidence>
+  <evidence>src/rosettify-plugins/src/vfs/directives.ts matchesTarget (excludes on any non-matching -only token) and matchesProfile;
+  src/rosettify-plugins/src/file-processors/file-apply-overrides.ts fileApplyOverrides (the target and profile filters precede overwrite truncation);
+  src/rosettify-plugins/tests/unit/vfs/directives.test.ts "handles combination of overwrite and target-only - target-only still filters"</evidence>
   <acceptance>
     <criteria id="FR-PROF-0030.AC1" ears="state" while="profile `lightweight` is active" system="the generator" shall="include `coding-flow~profile-lightweight-only~overwrite~.md` at VFS path `workflows/coding-flow.md`"/>
     <criteria id="FR-PROF-0030.AC2" ears="unwanted" if="profile `lightweight` is not active" system="the generator" shall="exclude every file carrying `profile-lightweight-only` from all targets"/>

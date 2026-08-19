@@ -1,5 +1,21 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-08-19 — owner review pass: evidence convention, gemini effort, and two conflicts resolved
+
+**Files:** `FR-ARCH.md`, `FR-COPY.md`, `FR-PROF.md`, `FR-VAR.md`
+
+**Source:** owner reviewed the post-#187 reconciliation unit by unit and directed each change below.
+
+- `FR-ARCH-0057` statement: the upgrade rule generalized to a version-independent invariant — a built-in map retains a key for every authored model token, superseded ones included, and each resolves to the current model of that token's own cost tier. Keys are never removed as a model ages; only values move forward. Added a criterion asserting every GPT 5.3/5.4/5.4-mini/5.5 effort variant is present as a key and resolves to its tier successor.
+- `FR-ARCH-0057` statement: gemini reasoning-effort assignment on authored tokens defined — Pro takes `-high`, a superseded Flash token takes `-low`, every other Gemini token takes `-medium`. The maps resolve all of these to the IDE-native Gemini id, which carries no effort suffix. Cross-referenced from `FR-ARCH-0046` implementationNotes.
+- `FR-COPY-0022` criteria: an unmapped Codex `gpt-` token on the unprofiled path passes through and is effort-split rather than emitting no model fields; no model fields are emitted only when the list holds no `gpt-*` token at all. The sibling skip-and-continue criterion is scoped to the profiled path. Pre-existing defect, independent of #187.
+- `FR-VAR-0010` statement and criterion: both accepted Claude forms are permitted — a family short name and a full model ID — and neither is mandated; which form a value takes is governed by the effective `ModelVocabulary` (`FR-COPY-0021`). Resolves the contradiction with `FR-COPY-0021`.
+- Evidence convention: `<evidence>` cites source code only. Every `discovery-notes.md` citation removed from `FR-ARCH-0059`, `FR-COPY-0083` and `FR-COPY-0084` — a plan artifact is not evidence — and `FR-COPY-0084`'s note now names the two real Codex call sites. `FR-ARCH-0059`'s `<notes>` deleted: its whole content cited a baseline the unit itself removed.
+- Evidence convention: every `<evidence>` line range in `FR-PROF-0001/0010/0011/0020/0030` replaced by the named artifact at that location, since ranges drift on every edit and names do not. Two false parentheticals corrected: `PluginSpec.modelVocabulary` is no longer "read nowhere", and `FR-PROF-0001`'s V3 rationale is re-grounded on total coverage — a block replaces the vocabulary in full, so family keys are what keep every claude token resolvable — rather than on a full-id key "never matching".
+- `status`/`approved_by`/`implementation` unchanged on every unit.
+
+---
+
 ## 2026-08-19 — model tokens realigned to the upgraded built-in maps (GitHub #187)
 
 **Files:** `FR-COPY.md`, `FR-ARCH.md`
@@ -10,7 +26,7 @@
 - `FR-COPY-0021` statement/rationale/criteria/notes: the built-in opus family value and the accepted-full-id list now name `claude-opus-5`; the stale exact-vs-family illustration (family key "would yield claude-opus-4-8") rewritten — the two tiers now agree, and the exact tier's stated value is version-pinning when the family default later moves.
 - `FR-COPY-0022` criteria: Codex outputs corrected — `gpt-5.3-codex-high` → model `gpt-5.6-terra` effort `high`; bare `gpt-5.4` → `gpt-5.6-terra`.
 - `FR-COPY-0083` statement/criteria: whole-emit example and list outputs corrected — `gpt-5.5-high` emits whole as `gpt-5.6-sol-high`; AC2 → `claude-opus-5, claude-sonnet-5`; AC3 → `gpt-5.6-terra`; AC7 → `gpt-5.6-sol-high, gpt-5.6-terra-low`.
-- `FR-ARCH-0057` statement/rationale/criteria/implementationNotes: upgrade rules rewritten to the 5.6-era and `claude-opus-5` targets; the false "gpt-5.4 and gpt-5.5 shall not be upgraded" replaced — each superseded GPT family upgrades to its own successor, so distinct cost tiers stay distinct. "GPT 5.3 and above" scope unchanged.
+- `FR-ARCH-0057` statement/rationale/criteria/implementationNotes: upgrade rules restated to the 5.6-era and `claude-opus-5` targets, and the rule generalized to a version-independent invariant — a built-in map retains a key for every authored model token, superseded ones included, and each resolves to the current model of that token's own cost tier. The earlier wording enumerated `gpt-5.4` and `gpt-5.5` as not-upgraded, which held only while they were the current generation; naming versions pinned the rule to that moment. Keys are never removed as a model ages, only their values move forward. Added a criterion asserting every GPT 5.3/5.4/5.4-mini/5.5 effort variant is present as a key and resolves to its tier successor. "GPT 5.3 and above" scope unchanged.
 - `FR-ARCH-0046` implementationNotes: map-summary arrows corrected to the upgraded targets.
 - `status`/`approved_by`/`implementation` unchanged on every unit.
 

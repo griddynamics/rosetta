@@ -92,11 +92,11 @@ mini, low, luna, ...}`. With every Gemini collapsed to `gemini-3.7-flash`, `flas
 three efforts, so `flash` sitting only in the small tier is misleading. The dead `pro` cue was removed;
 deciding whether tier membership should key off the effort suffix instead is a taxonomy decision.
 
-## TODO: instructions — r2 was not included in the model upgrade
+## DECIDED: r2 is pinned and must not be model-upgraded
 
-`instructions/r2/` still names the pre-#187 models (~91 occurrences). r2 is KTLO and the committed
-plugin trees build from r3, so upgrading it would change a frozen release that nothing here
-regenerates or tests. Decide whether r2 should track current models or stay pinned.
+`instructions/r2/` still names the pre-#187 models (~91 occurrences) and stays that way. r2 is KTLO:
+the committed plugin trees build from r3, and a frozen release nothing here regenerates or tests must
+not drift. Model upgrades apply to R3 only. Owner decision, 2026-08-19 — do not "fix" these tokens.
 
 ## TODO: plugin-generator — no Copilot identifier established for Grok or Composer
 
