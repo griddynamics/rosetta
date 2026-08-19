@@ -10,7 +10,7 @@ baseSchema: docs/schemas/phase.md
 <api_aqa_flow_data_collection>
 
 <description_and_purpose>
-Gather test case details from the configured TMS, search the configured Wiki, and discover existing API test patterns in the codebase to establish baseline for automation.
+Gather TMS test-case details, Wiki docs, and existing API test patterns → automation baseline.
 </description_and_purpose>
 
 <workflow_context>
@@ -18,59 +18,62 @@ Gather test case details from the configured TMS, search the configured Wiki, an
 - Input: project config + initial data from Phase 0
 - Output: `plans/api-aqa-{IDENTIFIER}/raw-data.md` with test cases, documentation, and existing test patterns
 - Prerequisite: Phase 0 complete, `api-aqa-project-config.md` and `initial-data.md` exist
-- Collection skill: `data-collection` (single canonical collector for TMS + Wiki sources) — this phase resolves each in-scope provider and passes its role + provider to the skill; the skill loads the role-named binding. Existing-test-pattern scan: `qa-knowledge` (`code_analysis` mode, via `reverse-engineering`). This phase OWNS the raw-data aggregation contract (`<raw_data_contract>`) — the skills EMIT into the sections this phase asserts.
-- **Provider resolution (merge evidence; providers are NOT hardcoded).** Providers were resolved in Phase 0 and recorded in `api-aqa-project-config.md` (`tms_provider`, `wiki_provider` + base URLs, prefilled from `gain.json` `sdlc.*`). Reconcile with explicit user names/handles (which win for this run), recognizable provider URLs (valid evidence when unambiguous), and available integrations. If evidence conflicts or remains ambiguous, ask only about the unresolved provider/input; never silently choose between conflicting systems.
-- Optional **Wiki collection** when in scope — signals in `<config_binding>`; procedure in `<execute_collection>` step **1.2b**.
+- Collectors: `data-collection` (pass role + resolved provider); pattern scan: `qa-knowledge` (`code_analysis` mode, via `reverse-engineering`). Contract: `<raw_data_contract>`.
+- **Provider resolution** (NOT hardcoded): Phase 0 → `api-aqa-project-config.md` (`tms_provider`, `wiki_provider`, base URLs, `gain.json` `sdlc.*`). Merge evidence:
+  - Explicit user names/handles → win for this run.
+  - Recognizable provider URLs → valid evidence. Available integrations → evidence.
+  - Conflicts/ambiguity → ask only about unresolved; NEVER silently choose.
+- Optional Wiki → scope in `<config_binding>`; procedure in step **1.2b**.
 - Required skills: `data-collection` (TMS + Wiki collector), `qa-knowledge` (`code_analysis` mode — existing-test + backend-source scan), `reverse-engineering`, `qa-structure` (`{IDENTIFIER}` + raw-data path)
 </workflow_context>
 
 <config_binding>
-Wiki scope comes from **`api-aqa-project-config.md`** (Phase 0, prefilled from `gain.json`) plus run evidence per `<workflow_context>`. This phase OWNS the resolution + collection inline (step 1.2b) — there is no separate sub-flow.
-- **In-scope signals ("is a Wiki in scope?"):** `wiki_provider` holds a real provider (not `none`/`N/A`), `wiki_base_url` / Location is set, the user supplied Wiki pages/URLs, or `gain.json` `sdlc.wiki` names one — treat absent values as absent. The collection skill is ALWAYS `data-collection` with role `Wiki` + the resolved provider (Confluence is the canonical example; any Wiki backend maps the same way).
-- **Raw-data heading (fixed):** `## Documentation / Wiki` under `plans/api-aqa-{IDENTIFIER}/raw-data.md`. Do not invent a different heading unless `api-aqa-project-config.md` explicitly instructs a rename (then write under the configured heading and note the mapping once).
+Wiki scope: `api-aqa-project-config.md` + run evidence per `<workflow_context>`. Collection inline (step 1.2b); no sub-flow.
+- **In-scope signals:** `wiki_provider` real (not `none`/`N/A`) · `wiki_base_url`/Location set · user supplied pages/URLs · `gain.json` `sdlc.wiki` named. Treat absent as absent. Skill: ALWAYS `data-collection`, role `Wiki` + resolved provider. Canonical examples (TestRail · Jira · Confluence) adapt to the resolved provider; any backend maps the same way.
+- **Raw-data heading (fixed):** `## Documentation / Wiki` in `plans/api-aqa-{IDENTIFIER}/raw-data.md`. `api-aqa-project-config.md` rename instruction → use configured heading; note mapping once.
 </config_binding>
 
 <raw_data_contract>
-This phase owns the raw-data aggregation artifact `plans/api-aqa-{IDENTIFIER}/raw-data.md` and its sections — `data-collection` and `qa-knowledge` emit into these, they do not define them. Required sections (empty → `N/A — <reason>`, never blank):
+`plans/api-aqa-{IDENTIFIER}/raw-data.md` — assemble here. Required sections (empty → `N/A — <reason>`, never blank):
 - **Test Case Data** — from `data-collection` (role `TMS`, resolved provider); ≥1 test-case source required.
-- **Documentation / Wiki** — from `data-collection` (role `Wiki`, resolved provider) via step 1.2b when scoped; else the `SKIPPED_NO_CONFIG` outcome row (per `<wiki_outcomes>`).
-- **Existing Test Patterns** — from `qa-knowledge` (`code_analysis` mode — test-automation architecture analysis, via `reverse-engineering`); framework, HTTP client, structure/assertion/auth conventions, reusable utilities. Record env-file **path + variable names only**, never literal values.
-- **Backend Source Code Analysis** — backend path from config or discoverable `refsrc/` docs; framework, route patterns, key dirs (or `N/A` when no path).
-- **API Endpoints Identified** — every row has Method + Source populated; partial rows tagged as gaps.
-- **Data Collection Summary** — counts + gap notes; a delegated-skill stop is recorded verbatim as `Gap: <skill> stopped — <message>`, never fabricated over.
+- **Documentation / Wiki** — from `data-collection` (role `Wiki`, resolved provider) via step 1.2b when scoped; else `SKIPPED_NO_CONFIG` outcome row (per `<wiki_outcomes>`).
+- **Existing Test Patterns** — from `qa-knowledge` (`code_analysis` via `reverse-engineering`); framework, HTTP client, structure/assertion/auth conventions, utilities. Env-file: **path + variable names only**, never literal values.
+- **Backend Source Code Analysis** — path from config or `refsrc/`; framework, routes, key dirs (else `N/A`).
+- **API Endpoints Identified** — every row has Method + Source; partial rows tagged as gaps.
+- **Data Collection Summary** — counts + gap notes; delegated-skill stop → `Gap: <skill> stopped — <message>`, never fabricated over.
 
 Redaction of every captured value runs inside `data-collection` via `sensitive-data` before write; `raw-data.md` is PUBLIC by default.
 </raw_data_contract>
 
 <phase_steps>
 1. Confirm data sources from project config
-2. Execute data collection — see `<execute_collection>`: **1.2a** core collection (`data-collection` TMS role + `qa-knowledge` existing-test scan → `<raw_data_contract>`), **1.2b** optional Wiki collection when scoped
+2. Execute data collection per `<execute_collection>`
 3. Validate and update state
 </phase_steps>
 
 <confirm_inputs step="1.1">
-1. Verify project config loaded with data source information
-2. Verify initial data file exists with test case reference
-3. Identify TMS, Wiki, and codebase sources to query
-4. **Failure path:** if (1) or (2) is missing, stop Phase 1, record `Phase 1 blocked: missing prerequisite [config | initial-data]` in `agents/TEMP/<FEATURE>/api-aqa-state.md`, and ask the user to re-run Phase 0. If (3) finds no usable sources, record the gap and ask the user to confirm proceeding with empty data sources before continuing.
+1. Verify project config loaded
+2. Verify initial-data file exists with test case reference
+3. Identify TMS, Wiki, codebase sources
+4. **Failure path:** (1)/(2) missing → record `Phase 1 blocked: missing prerequisite [config | initial-data]` in `agents/TEMP/<FEATURE>/api-aqa-state.md` → ask re-run Phase 0. (3) no usable sources → record gap → ask user to confirm empty-source proceed.
 </confirm_inputs>
 
 <execute_collection step="1.2" subagent="discoverer" role="AQA data collector">
 
 <verify_primary_raw_data step="1.2a">
-1. Resolve the **TMS provider** per `<workflow_context>` (Jira tickets are a valid TMS source when the project stores test cases there). If no TMS source is resolvable, ask the user once; if still missing, stop Phase 1 and record `Phase 1 blocked: no resolvable test-case source` in `agents/TEMP/<FEATURE>/api-aqa-state.md` — do NOT invent an ID.
-2. USE SKILL `data-collection` with role `TMS`, the resolved provider, the test-case input handle, and the **Test Case Data** + **API Endpoints Identified** sections of `<raw_data_contract>`; the skill loads its TMS binding and adapts the canonical TestRail/Jira examples to the target system. A delegated stop is recorded verbatim per `<raw_data_contract>`; if the failed source was the only test-case source, stop the phase.
-3. USE SKILL `reverse-engineering` and USE SKILL `qa-knowledge` (`code_analysis` mode — test-automation architecture analysis) over the existing test project to populate the **Existing Test Patterns** (and **Backend Source Code Analysis** where backend source is discoverable) sections of `<raw_data_contract>` — read-only scan of framework, HTTP client, structure/assertion/auth conventions, reusable utilities; env-file path + var names only.
-4. Assemble `plans/api-aqa-{IDENTIFIER}/raw-data.md` per `<raw_data_contract>` from the emitted sections. Verify it exists. If missing, **re-run steps 2–4 once**; if still missing, stop Phase 1, record the gap in `agents/TEMP/<FEATURE>/api-aqa-state.md`, and notify the user — **do not** run `<wiki_collection_optional>` until the primary raw-data artifact exists.
+1. Resolve **TMS provider** per `<workflow_context>` (Jira tickets valid when project stores cases there). No source → ask once; still missing → record `Phase 1 blocked: no resolvable test-case source` in `agents/TEMP/<FEATURE>/api-aqa-state.md`; do NOT invent an ID.
+2. USE SKILL `data-collection`: role `TMS`, resolved provider, test-case handle → **Test Case Data** + **API Endpoints Identified** per `<raw_data_contract>`. Delegated stop → record verbatim; if it was the only test-case source → stop phase.
+3. USE SKILL `reverse-engineering`; USE SKILL `qa-knowledge` (`code_analysis` mode) → **Existing Test Patterns** + **Backend Source Code Analysis** sections; env-file path + var names only.
+4. Assemble `plans/api-aqa-{IDENTIFIER}/raw-data.md` per `<raw_data_contract>`. Verify exists. Missing → **re-run steps 2–4 once**; still missing → record gap in `agents/TEMP/<FEATURE>/api-aqa-state.md` + notify user; **do not** run `<wiki_collection_optional>` until artifact exists.
 </verify_primary_raw_data>
 
 <wiki_collection_optional step="1.2b">
-This phase runs the Wiki collection **inline** (no sub-flow). Provider resolution + in-scope signals per `<config_binding>`; record **exactly one** outcome line per `<wiki_outcomes>`.
+Provider + scope per `<config_binding>`; record **exactly one** outcome line per `<wiki_outcomes>`.
 
-1.2b.1. **Scope check.** If no in-scope Wiki signal is present (per `<config_binding>`), apply **SKIPPED_NO_CONFIG** and skip the rest of this sub-block.
-1.2b.2. **Resolve the provider.** Take the Wiki provider from `<config_binding>` signals. If signals are active but no provider is named, re-read `api-aqa-project-config.md` + Phase 0 evidence; if still none, apply **SKIPPED_NO_CONFIG** and skip.
-1.2b.3. **Collect.** USE SKILL `data-collection` with role `Wiki`, the resolved provider, the input handle(s), and the fixed `## Documentation / Wiki` heading as the output target; the skill loads its Wiki binding (adapting the canonical Confluence examples) and runs harvest → redact (via `sensitive-data`) → write internally. If the skill cannot be loaded → apply **LOAD_FAILED** (skill = `data-collection`) and skip. No harvestable sources after search + user fallback → apply **EMPTY_HARVEST**; otherwise apply **COMPLETED**.
-1.2b.4. **Verify.** Confirm the `## Documentation / Wiki` heading holds **exactly one** outcome line matching the branch taken (per `<wiki_outcomes>`). On mismatch: zero rows → append the branch row; duplicate rows → keep only the most recent (latest by `agents/TEMP/<FEATURE>/api-aqa-state.md` Phase 1 timestamp); heading missing → create it, then append. After three failed re-verifies, stop and record `Phase 1 blocked: Wiki-collection verification failed after remediation` in `agents/TEMP/<FEATURE>/api-aqa-state.md`; ask the user to inspect `raw-data.md`.
+1.2b.1. **Scope check:** no Wiki signal (per `<config_binding>`) → **SKIPPED_NO_CONFIG**, skip rest.
+1.2b.2. **Resolve provider:** from `<config_binding>` signals. Active but no provider → re-read `api-aqa-project-config.md`; still none → **SKIPPED_NO_CONFIG**, skip.
+1.2b.3. **Collect:** USE SKILL `data-collection`: role `Wiki`, resolved provider, input handle(s) → `## Documentation / Wiki` heading. Cannot load → **LOAD_FAILED** (`data-collection`), skip. No sources after search + user fallback → **EMPTY_HARVEST**; else → **COMPLETED**.
+1.2b.4. **Verify:** `## Documentation / Wiki` holds **exactly one** outcome line per `<wiki_outcomes>`. Mismatch: zero rows → append; duplicate → keep most recent (by `agents/TEMP/<FEATURE>/api-aqa-state.md` Phase 1 timestamp); heading missing → create + append. Three failed re-verifies → record `Phase 1 blocked: Wiki-collection verification failed after remediation` in `agents/TEMP/<FEATURE>/api-aqa-state.md`; ask user to inspect `raw-data.md`.
 </wiki_collection_optional>
 
 <wiki_outcomes>
@@ -97,14 +100,12 @@ Literal examples: `**Outcome:** collected via data-collection (Wiki: confluence)
    - Backend Source: [path or N/A]
    - Phase 1 completion timestamp
 2. Mark Phase 1 complete, Phase 2 current
-3. **Failure path:** if `agents/TEMP/<FEATURE>/api-aqa-state.md` cannot be written (permission denied, disk full, file locked), do not mark Phase 1 complete; record the write error in chat output, ask the user to resolve the filesystem issue, and pause before Phase 2.
+3. **Failure path:** `agents/TEMP/<FEATURE>/api-aqa-state.md` unwritable → do NOT mark Phase 1 complete; record error in chat; ask user to resolve; pause before Phase 2.
 </update_state>
 
 <validation_checklist>
-- Test case data retrieved and documented
-- `plans/api-aqa-{IDENTIFIER}/raw-data.md` exists (verified in step 1.2a) with core collection sections populated per `<raw_data_contract>`
-- Wiki searched (results found OR user confirmed skip)
-- Wiki outcome in `raw-data.md` is exactly one `<wiki_outcomes>` branch matching the path taken in step 1.2b
+- `plans/api-aqa-{IDENTIFIER}/raw-data.md` exists; all `<raw_data_contract>` sections populated, none blank
+- Wiki: exactly one `<wiki_outcomes>` branch outcome line in `raw-data.md`
 - Existing test patterns analyzed
 - Backend source code searched (if path configured in project config)
 - API endpoints identified from test cases
