@@ -277,7 +277,9 @@ class RosettaConfig:
             )
         
         if not self.api_key.startswith("ragflow-"):
-            logger.warning("API key should start with 'ragflow-', got: %s...", self.api_key[:10])
+            # Never log any part of the key: the "ragflow-" prefix is 8 chars, so a
+            # 10-char excerpt leaks secret material, and the caller knows their own key.
+            logger.warning("API key should start with 'ragflow-'")
         
         return True
     
@@ -330,7 +332,9 @@ class RosettaConfig:
     
     def __str__(self) -> str:
         """String representation (masks API key)"""
-        masked_key = f"{self.api_key[:10]}..." if len(self.api_key) > 10 else "***"
+        # Show only the 8-char "ragflow-" prefix. A 10-char excerpt would expose two
+        # characters of secret material, which the docstring's "masks API key" rules out.
+        masked_key = f"{self.api_key[:8]}..." if len(self.api_key) > 8 else "***"
         return (
             f"RosettaConfig(\n"
             f"  base_url={self.base_url}\n"
