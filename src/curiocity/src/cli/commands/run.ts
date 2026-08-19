@@ -11,6 +11,7 @@ import { preflightAgentHomes } from '../../orchestrator/preflight';
 import { resolveBaseUrls, resolveKeys } from '../../llm/keys';
 import { evaluatorRegistry } from '../../evaluators';
 import { evaluatorEntrySchema } from '../../config/schema';
+import { DEFAULT_MAX_TURNS } from '../../interaction/engine';
 import type { ResolvedCaseConfig } from '../../config/merge';
 import type { PartialModelRoles } from '../../shared/models';
 import { ConfigError } from '../../shared/errors';
@@ -140,7 +141,7 @@ function printMatrix(matrix: MatrixEntry[]): void {
     out.write(
       `  - ${cell.case} × ${cell.agent} × repeat ${cell.repeat}` +
         `  [timeout=${cell.timeoutSec}s, combiner=${cell.combiner}, evaluate=${cell.evaluate}` +
-        (cell.maxTurns !== undefined ? `, maxTurns=${cell.maxTurns}` : '') +
+        `, maxTurns=${cell.maxTurns ?? DEFAULT_MAX_TURNS}` +
         (models ? `, models: ${models}` : '') +
         ']\n',
     );
