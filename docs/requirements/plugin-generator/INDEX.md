@@ -15,10 +15,12 @@ Grep a header below for a one-line description and the file it lives in.
 ### FR-GEN.md — Folder index generation and template rendering (`FR-GEN-*`).
 ### FR-HOOK.md — Per-target bootstrap-context payload assembly and hook-bundle synchronization (`FR-HOOK-*`).
 ### FR-VAR.md — Per-target structure, reasoning, and bootstrap-delivery strategy (hooks vs native rules vs auto-loaded instructions), incl. two-hook-set rationale; per-variant output properties (`FR-VAR-*`).
+### FR-PROF.md — Profile capability: descriptor resolution and validation, effective model vocabulary, exhaustive per-target candidate skipping, `destination` and manifest suffixing, and the profile filename-directive token (`FR-PROF-*`).
 ### NFR.md — Non-functional requirements: parity, determinism, idempotency, portability, limits (`NFR-*`).
 ### REFERENCES.md — Authoritative per-IDE configuration guides to consult under `instructions/r3/core/configure/` for plugin/subagent/skill/command/rule/hook structure and links (`INT-IDE-*`).
 ### STRUCTURES.md — Generalized example folder structure per target (preserved vs generated, with provenance), grounded in a v3 build (`FR-STRUCT-*`).
 ### ASSUMPTIONS.md — Assumptions, flagged implementation accidents/quirks, open questions.
+### TRACE.md — Goal-to-requirement-to-criteria traceability matrix.
 
 ### CHANGES.md — Requirement change log with reconciliation history (date, IDs affected, before/after, baseline evidence).
 

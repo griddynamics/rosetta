@@ -9,27 +9,34 @@ import {
   rewriteCodexModelFields,
 } from './file-normalize-models.js';
 import { updateFileFrame } from '../frames.js';
+import { MODEL_DROP } from '../types.js';
 import type { FileProcessingFrame, TargetContext } from '../types.js';
 
 /**
  * fileNormalizeCodexModels: rewrite frontmatter model: for codex markdown files.
- * If no gpt-* token found: strip the model: line entirely.
+ * If no gpt-* token found (null): strip the model: line entirely — today's no-survivor idiom
+ * (FR-PROF-0040 regression guard).
+ * If a profiled exhaustive scan exhausts with no survivor (MODEL_DROP): also strip the model
+ * fields — same removeModelLine effect, since Codex's existing no-survivor behavior already IS
+ * line removal (FR-PROF-0011).
  * If gpt-* token found: replace "model: <old>" with "model: <gpt>\nmodel_reasoning_effort: <effort>".
  * frontmatter.model is NOT updated (field removed or becomes two fields).
  * Binary or null contents → unchanged. No model field → unchanged.
+ * FR-ARCH-0059: map/exhaustive sourced from ctx.spec.modelVocabulary — the sole live carrier.
  * FR-ARCH-0046, FR-ARCH-0005
  */
 export function fileNormalizeCodexModels(
   frame: FileProcessingFrame,
-  _ctx: TargetContext,
+  ctx: TargetContext,
 ): FileProcessingFrame {
   if (frame.isBinary || frame.target_contents === null) return frame;
   const content = frame.target_contents as string;
   const modelField = extractFrontmatterModelField(content);
   if (!modelField) return frame;
-  const codexModel = normalizeCodex(modelField);
-  if (!codexModel) {
-    // No gpt token found → strip the model: line from frontmatter
+  const { map, exhaustive } = ctx.spec.modelVocabulary;
+  const codexModel = normalizeCodex(modelField, map, exhaustive);
+  if (codexModel === null || codexModel === MODEL_DROP) {
+    // No gpt token found, or profiled exhaustive scan found no survivor → strip the model: line
     const newContent = removeModelLine(content);
     if (newContent === content) return frame;
     return updateFileFrame(frame, (draft) => {

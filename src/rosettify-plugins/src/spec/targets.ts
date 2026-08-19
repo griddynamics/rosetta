@@ -12,6 +12,8 @@ import {
   CODEX_VOCABULARY,
   ANTIGRAVITY_VOCABULARY,
 } from './model-maps.js';
+import type { ProfileDescriptor } from './profiles.js';
+import { resolveEffectiveVocabulary } from './profiles.js';
 import { BOOTSTRAP_MANIFEST_ORDER } from './bootstrap-manifest.js';
 import { fileRead } from '../file-processors/file-read.js';
 import { fileApplyOverrides } from '../file-processors/file-apply-overrides.js';
@@ -25,6 +27,7 @@ import { fileCodexAgentFormat } from '../file-processors/file-codex-agent.js';
 import { fileWorkflowToSkill } from '../file-processors/file-workflow-to-skill.js';
 import { pluginCleanup } from '../plugin-processors/plugin-cleanup.js';
 import { pluginCopy } from '../plugin-processors/plugin-copy.js';
+import type { ManifestSuffix } from '../plugin-processors/plugin-copy.js';
 import { pluginProcessSpecEntries } from '../plugin-processors/plugin-process-spec-entries.js';
 import { pluginRewriteReferences } from '../plugin-processors/plugin-rewrite-references.js';
 import { pluginGenerateIndexes } from '../plugin-processors/plugin-generate-indexes.js';
@@ -35,6 +38,13 @@ import { pluginAssembleCopilotBootstrap } from '../plugin-processors/plugin-asse
 import { pluginAssembleCodexBootstrap } from '../plugin-processors/plugin-assemble-codex-bootstrap.js';
 import { pluginAssembleAntigravityBootstrap } from '../plugin-processors/plugin-assemble-antigravity-bootstrap.js';
 import { pluginAntigravitySubagentModel } from '../plugin-processors/plugin-antigravity-subagent-model.js';
+import {
+  pluginNormalizeSubagentRequiredModel,
+  claudeSubagentModelTokenMapper,
+  cursorSubagentModelTokenMapper,
+  copilotSubagentModelTokenMapper,
+  codexSubagentModelTokenMapper,
+} from '../plugin-processors/plugin-normalize-subagent-model.js';
 import { pluginReplaceLiterals } from '../plugin-processors/plugin-replace-literals.js';
 import { pluginAntigravityReduceFrontmatter } from '../plugin-processors/plugin-antigravity-reduce-frontmatter.js';
 import { pluginRenderTemplates } from '../plugin-processors/plugin-render-templates.js';
@@ -80,6 +90,21 @@ export interface SpecBuildContext {
   dryRun?: boolean;
   /** FR-ARCH-0045/FR-CLI-0050: dry-run output sink; defaults to process.stdout */
   out?: Writable;
+  /**
+   * FR-PROF-0001/0010/0020/0021: the loaded profile descriptor for this run, or null when no
+   * `--profile` was supplied. Sole entry point for profile data into spec construction — read here
+   * to resolve each spec's effective model vocabulary (FR-PROF-0010), destination suffix
+   * (FR-PROF-0020), and manifest name/description suffix (FR-PROF-0021). Optional with a `null`
+   * default so pre-existing direct callers of buildAllSpecs() (e.g. unit tests exercising a single
+   * spec in isolation) keep compiling and behaving exactly as the no-profile path (FR-PROF-0040).
+   */
+  profile?: ProfileDescriptor | null;
+  /**
+   * FR-PROF-0030: the active `--profile` name (or null), threaded unchanged into
+   * TargetContext via pluginProcessSpecEntries for `profile-<name>-only` directive evaluation.
+   * Optional with a `null` default for the same reason as `profile` above.
+   */
+  activeProfile?: string | null;
 }
 
 // ─── Standard SpecEntries builders ──────────────────────────────────────────
@@ -150,16 +175,36 @@ function makeTemplatesEntry(targetFolder = 'templates', normalizeModels?: FilePr
 // ─── Factory function for all seven PluginSpecs ────────────────────────────
 
 export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
-  const { pluginsSource, hooksSource, outputDir, release, dryRun = false, out = process.stdout } = ctx;
+  const {
+    pluginsSource,
+    hooksSource,
+    outputDir,
+    release,
+    dryRun = false,
+    out = process.stdout,
+    profile = null,
+    activeProfile = null,
+  } = ctx;
   const pluginsRoot = pluginsSource; // alias for readability in spec constructors
+
+  // FR-PROF-0020: global destination suffix, applied identically to all seven `spec.destination`
+  // values; `spec.name` is NEVER suffixed (it is the directive-match identity, see
+  // matchesTarget/fileApplyOverrides — suffixing it would silently stop every `<name>-only`
+  // directive from matching its target).
+  const destinationSuffix = profile?.destinationSuffix ?? '';
+  // FR-PROF-0021: global manifest name/description suffix pair, or null when no profile is active
+  // (pluginCopy keeps every manifest write byte-identical to today when null, FR-PROF-0040).
+  const manifestSuffix: ManifestSuffix | null = profile
+    ? { name: profile.pluginNameSuffix, description: profile.pluginDescriptionSuffix }
+    : null;
 
   // ── core-claude ───────────────────────────────────────────────────────────
   const coreClaude: PluginSpec = {
     name: 'core-claude',
-    destination: 'core-claude',
+    destination: 'core-claude' + destinationSuffix,
     baseSubfolder: '',
     preservedSource: path.join(pluginsRoot, 'core-claude'),
-    modelVocabulary: CLAUDE_VOCABULARY,
+    modelVocabulary: resolveEffectiveVocabulary('core-claude', CLAUDE_VOCABULARY, profile),
     bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
     includeIndexEntries: true,
     pluginRootPath: '${CLAUDE_PLUGIN_ROOT}',
@@ -178,17 +223,29 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
       makeConfigureEntry(),
       makeTemplatesEntry('templates', fileNormalizeClaudeModels),
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleClaudeBootstrap, out),
+    pluginProcessors: buildPipeline(
+      hooksSource,
+      outputDir,
+      release,
+      dryRun,
+      pluginAssembleClaudeBootstrap,
+      out,
+      // FR-COPY-0083: always-on subagent_required_model list normalization, same late slot as
+      // the Antigravity sibling (after index generation).
+      [pluginNormalizeSubagentRequiredModel(claudeSubagentModelTokenMapper)],
+      manifestSuffix,
+      activeProfile,
+    ),
   };
 
   // ── core-cursor ────────────────────────────────────────────────────────────
   // workflows→commands, rules/*.md→*.mdc
   const coreCursor: PluginSpec = {
     name: 'core-cursor',
-    destination: 'core-cursor',
+    destination: 'core-cursor' + destinationSuffix,
     baseSubfolder: '',
     preservedSource: path.join(pluginsRoot, 'core-cursor'),
-    modelVocabulary: CURSOR_VOCABULARY,
+    modelVocabulary: resolveEffectiveVocabulary('core-cursor', CURSOR_VOCABULARY, profile),
     bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
     includeIndexEntries: true,
     pluginRootPath: '',
@@ -216,7 +273,17 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
       makeConfigureEntry(),
       makeTemplatesEntry('templates', fileNormalizeCursorModels),
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCursorBootstrap, out),
+    pluginProcessors: buildPipeline(
+      hooksSource,
+      outputDir,
+      release,
+      dryRun,
+      pluginAssembleCursorBootstrap,
+      out,
+      [pluginNormalizeSubagentRequiredModel(cursorSubagentModelTokenMapper)],
+      manifestSuffix,
+      activeProfile,
+    ),
   };
 
   // ── core-copilot ───────────────────────────────────────────────────────────
@@ -224,10 +291,10 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
   // 3× hooks.json: (a) .github/plugin/hooks.json (rendered), (b) root hooks.json (copy of a), (c) hooks/hooks.json (standalone-form)
   const coreCopilot: PluginSpec = {
     name: 'core-copilot',
-    destination: 'core-copilot',
+    destination: 'core-copilot' + destinationSuffix,
     baseSubfolder: '',
     preservedSource: path.join(pluginsRoot, 'core-copilot'),
-    modelVocabulary: COPILOT_VOCABULARY,
+    modelVocabulary: resolveEffectiveVocabulary('core-copilot', COPILOT_VOCABULARY, profile),
     bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
     includeIndexEntries: true,
     pluginRootPath: '',
@@ -260,17 +327,27 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
     mirrors: [
       { from: '.github/plugin/hooks.json', to: 'hooks.json' },
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCopilotBootstrap, out),
+    pluginProcessors: buildPipeline(
+      hooksSource,
+      outputDir,
+      release,
+      dryRun,
+      pluginAssembleCopilotBootstrap,
+      out,
+      [pluginNormalizeSubagentRequiredModel(copilotSubagentModelTokenMapper)],
+      manifestSuffix,
+      activeProfile,
+    ),
   };
 
   // ── core-codex ─────────────────────────────────────────────────────────────
   // Instructions go under .agents/; agents → .codex/agents/*.toml; hooks → .codex/
   const coreCodex: PluginSpec = {
     name: 'core-codex',
-    destination: 'core-codex',
+    destination: 'core-codex' + destinationSuffix,
     baseSubfolder: '.agents',
     preservedSource: path.join(pluginsRoot, 'core-codex'),
-    modelVocabulary: CODEX_VOCABULARY,
+    modelVocabulary: resolveEffectiveVocabulary('core-codex', CODEX_VOCABULARY, profile),
     bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
     includeIndexEntries: true,
     pluginRootPath: '',
@@ -342,7 +419,14 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
       // FR-ARCH-0058: workflows->skills restructures document paths, so FR-ARCH-0049 emits no
       // folder-level pair for it; this corrects the plugin-files-mode.md glob-doc string. Runs
       // before the bootstrap assembler, so the hooks payload inherits the correction.
-      [pluginReplaceLiterals([WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR])],
+      // FR-COPY-0083: always-on subagent_required_model list normalization, same late slot as
+      // the Antigravity sibling (after index generation).
+      [
+        pluginReplaceLiterals([WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR]),
+        pluginNormalizeSubagentRequiredModel(codexSubagentModelTokenMapper),
+      ],
+      manifestSuffix,
+      activeProfile,
     ),
   };
 
@@ -356,10 +440,10 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
 
   const coreCursorStandalone: PluginSpec = {
     name: 'core-cursor-standalone',
-    destination: 'core-cursor-standalone',
+    destination: 'core-cursor-standalone' + destinationSuffix,
     baseSubfolder: '.cursor',
     preservedSource: path.join(pluginsRoot, 'core-cursor'),
-    modelVocabulary: CURSOR_VOCABULARY,
+    modelVocabulary: resolveEffectiveVocabulary('core-cursor-standalone', CURSOR_VOCABULARY, profile),
     bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
     includeIndexEntries: false,
     pluginRootPath: '.cursor',
@@ -426,7 +510,17 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         verbatim: true, // TODO-2: configure files must not have references rewritten
       },
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCursorBootstrap, out),
+    pluginProcessors: buildPipeline(
+      hooksSource,
+      outputDir,
+      release,
+      dryRun,
+      pluginAssembleCursorBootstrap,
+      out,
+      [pluginNormalizeSubagentRequiredModel(cursorSubagentModelTokenMapper)],
+      manifestSuffix,
+      activeProfile,
+    ),
   };
 
   // ── core-copilot-standalone ───────────────────────────────────────────────
@@ -442,10 +536,10 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
 
   const coreCopilotStandalone: PluginSpec = {
     name: 'core-copilot-standalone',
-    destination: 'core-copilot-standalone',
+    destination: 'core-copilot-standalone' + destinationSuffix,
     baseSubfolder: '.github',
     preservedSource: path.join(pluginsRoot, 'core-copilot'),
-    modelVocabulary: COPILOT_VOCABULARY,
+    modelVocabulary: resolveEffectiveVocabulary('core-copilot-standalone', COPILOT_VOCABULARY, profile),
     bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
     includeIndexEntries: false,
     pluginRootPath: '.github',
@@ -555,7 +649,17 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         verbatim: true, // TODO-2: configure files must not have references rewritten
       },
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCopilotBootstrap, out),
+    pluginProcessors: buildPipeline(
+      hooksSource,
+      outputDir,
+      release,
+      dryRun,
+      pluginAssembleCopilotBootstrap,
+      out,
+      [pluginNormalizeSubagentRequiredModel(copilotSubagentModelTokenMapper)],
+      manifestSuffix,
+      activeProfile,
+    ),
   };
 
   // ── core-antigravity ──────────────────────────────────────────────────────
@@ -570,10 +674,13 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
   // session-start hook; hooks.json.tmpl omits the bootstrap placeholder (mirrors Cursor, FR-VAR-0070).
   const coreAntigravity: PluginSpec = {
     name: 'core-antigravity',
-    destination: 'core-antigravity',
+    destination: 'core-antigravity' + destinationSuffix,
     baseSubfolder: '',
     preservedSource: path.join(pluginsRoot, 'core-antigravity'),
-    modelVocabulary: ANTIGRAVITY_VOCABULARY, // AG-2: no model vocabulary
+    // AG-2: no model vocabulary — V2 forbids a profile core-antigravity block, so this always
+    // resolves to the empty built-in map unchanged; routed through the same resolver as every
+    // other target purely for uniformity (FR-PROF-0010), not because a block can ever apply here.
+    modelVocabulary: resolveEffectiveVocabulary('core-antigravity', ANTIGRAVITY_VOCABULARY, profile),
     bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
     includeIndexEntries: true,
     pluginRootPath: '',
@@ -638,7 +745,11 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         // FR-ARCH-0058: same glob-doc correction as Codex — this target also restructures
         // workflows into skills, so FR-ARCH-0049 emits no folder-level pair for that mapping.
         pluginReplaceLiterals([WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR]),
+        // FR-COPY-0083.AC6: Antigravity keeps its own unconditional pluginAntigravitySubagentModel
+        // above and is deliberately NOT composed with pluginNormalizeSubagentRequiredModel.
       ],
+      manifestSuffix,
+      activeProfile,
     ),
   };
 
@@ -660,10 +771,15 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
  * pluginMirrorFiles reads mirror pairs from spec.mirrors (data-driven, FR-ARCH-0035, DATA-CFG-0002).
  * extraAfterIndexes: optional target-specific whole-plugin passes inserted right after
  * pluginGenerateIndexes (composition point; empty for every target except where a caller supplies
- * some — e.g. FR-COPY-0081/0082's Antigravity-only frontmatter-reduction/subagent-model passes).
+ * some — e.g. FR-COPY-0081/0082's Antigravity-only frontmatter-reduction/subagent-model passes,
+ * and FR-COPY-0083's always-on subagent-list normalization for the six non-Antigravity targets).
  * Inserted after indexing so index membership (e.g. a `tags: ["workflow"]` field) is still intact
  * when indexes are built. This is data supplied by the caller, not a branch on target/IDE identity
  * inside this function.
+ * manifestSuffix: FR-PROF-0021 global {name, description} append pair (or null, no profile active),
+ * forwarded to pluginCopy unchanged for every target.
+ * activeProfile: FR-PROF-0030 active --profile name (or null), forwarded to
+ * pluginProcessSpecEntries unchanged for every target, mirroring how `release` is threaded.
  * FR-ARCH-0032
  */
 function buildPipeline(
@@ -674,11 +790,13 @@ function buildPipeline(
   bootstrapAssembler: PluginProcessor,
   out: Writable = process.stdout,
   extraAfterIndexes: PluginProcessor[] = [],
+  manifestSuffix: ManifestSuffix | null = null,
+  activeProfile: string | null = null,
 ) {
   const pipeline = [
-    pluginCleanup(outputDir, dryRun),         // FR-CLI-0050: no-op in dry-run
-    pluginCopy(outputDir, dryRun),            // FR-CLI-0050: skip disk copy; keep tmpl frames
-    pluginProcessSpecEntries(release),
+    pluginCleanup(outputDir, dryRun),               // FR-CLI-0050: no-op in dry-run
+    pluginCopy(outputDir, dryRun, manifestSuffix, out),  // FR-CLI-0050: skip disk copy; keep tmpl frames; dry-run preview goes to the same sink as pluginWrite
+    pluginProcessSpecEntries(release, activeProfile),
     pluginRewriteReferences,
     pluginGenerateIndexes,
     ...extraAfterIndexes,

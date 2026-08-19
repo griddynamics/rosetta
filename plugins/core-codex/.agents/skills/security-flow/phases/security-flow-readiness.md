@@ -15,7 +15,7 @@ Phase 1. Mandatory `executor`; bounded metadata and commands only.
 4. Return gate decision
 </phase_steps>
 
-<execute_readiness step="1.1" subagent="executor" role="Bounded readiness and secret-gate operator" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
+<execute_readiness step="1.1" subagent="executor" role="Bounded readiness and secret-gate operator" subagent_required_model="gpt-5.4, gpt-5.6-luna">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security`.

@@ -14,6 +14,11 @@
       "name": "rosetta",
       "source": "core-copilot",
       "description": "Rosetta for Copilot - Software Engineering Accelerator instruction set, workflows, and guardrails. Includes Rosetta MCP for knowledge base access."
+    },
+    {
+      "name": "rosetta-light",
+      "source": "core-copilot-light",
+      "description": "Rosetta for Copilot - Software Engineering Accelerator instruction set, workflows, and guardrails. Includes Rosetta MCP for knowledge base access. (lightweight profile: simpler workflows, smaller models)"
     }
   ]
 }

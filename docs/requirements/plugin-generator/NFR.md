@@ -4,58 +4,59 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
 
 <req id="NFR-0001" type="NFR" level="System" ticketId="" classification="technical">
   <title>Per-target structural parity</title>
-  <statement>For every target, the generator shall produce an output file-path set whose structure matches the layout derived from the instruction source tree and that target's mapping contract: the set of generated output file paths shall equal the set obtained by applying that target's documented mapping rules — folder placement, folder and file renames, source exclusions, generated folder indexes, rendered templates, preserved-file seeding, and alternate-name hook copies — to the current instruction source. Parity is defined over output file PATHS and folder layout only; it does not compare file content. Under `deterministicHooks:false` the output shall contain no `*.js` hook bundle, and no target output shall contain a `*.tmpl` file.</statement>
-  <rationale>Structure is the durable, content-agnostic acceptance surface: each target must lay out the correct files for whatever the current source contains. Deriving the expected path set from the actual source tree (not a frozen snapshot) makes the check self-updating, so the owner can add or remove skills, workflows, rules, or subagents and the gate stays valid without edits — a newly added source file appears in both the derived-expected and the generated-actual sets. Content correctness is verified separately (per-target unit and E2E tests); this requirement isolates the layout contract.</rationale>
+  <statement>For every profile-and-target combination — each target built with no profile, or with an active profile — the generator shall produce an output file-path set whose structure matches the layout derived from the instruction source tree and that target's mapping contract: the set of generated output file paths shall equal the set obtained by applying that target's documented mapping rules — folder placement, folder and file renames, source exclusions, generated folder indexes, rendered templates, preserved-file seeding, alternate-name hook copies, and, under an active profile, that profile's `destination` suffixing and profile-directive (`ProfileOnlyToken`) resolution — to the current instruction source. The oracle applies per profile-and-target combination, not only to the seven base (unprofiled) targets. Parity is defined over output file PATHS and folder layout only; it does not compare file content. Under `deterministicHooks:false` the output shall contain no `*.js` hook bundle, and no target output shall contain a `*.tmpl` file.</statement>
+  <rationale>Structure is the durable, content-agnostic acceptance surface: each target must lay out the correct files for whatever the current source contains. Deriving the expected path set from the actual source tree (not a frozen snapshot) makes the check self-updating, so the owner can add or remove skills, workflows, rules, or subagents and the gate stays valid without edits — a newly added source file appears in both the derived-expected and the generated-actual sets. A profile changes the output folder (`destination` suffix) and which profile-scoped files apply, but not the layout contract, so the same structural oracle applies per profile-and-target combination. Content correctness is verified separately (per-target unit and E2E tests); this requirement isolates the layout contract.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-07-23</changed>
+  <changed>2026-08-19</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: release r3, domain core generated for any target When: its generated output file-path set is compared to the set derived from the instruction source and that target's mapping contract Then: the two sets are equal — no path is only-in-expected and none only-in-actual.</criteria>
     <criteria>Given: a skill, workflow, rule, or agent added to or removed from the instruction source When: the target is regenerated Then: the derived-expected and generated-actual path sets change identically and remain equal, with no change to the parity test.</criteria>
+    <criteria>Given: a target generated under an active profile When: its generated output file-path set is compared to the set derived from the instruction source, that target's mapping contract, and the profile's `destination` suffixing and profile-directive resolution Then: the two sets are equal.</criteria>
     <criteria>Given: any generated target output tree When: inspected Then: it contains no `*.tmpl` file, and under `deterministicHooks:false` it contains no `*.js` hook bundle.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: verified by src/rosettify-plugins/tests/e2e/parity.e2e.test.ts + tests/e2e/parity-derive-structure.ts — per-target derived-vs-generated path-set equality over all seven targets (r3/core, deterministicHooks:false), plus a robustness probe proving add/remove safety. The derivation is an independent restatement of STRUCTURES.md / FR-VAR-* / FR-COPY-* / FR-SEED-*, read from the live source, not from generator code.</implementationNotes>
+  <implementationNotes>Implemented: src/rosettify-plugins/tests/e2e/parity-derive-structure.ts (deriveExpectedPaths is now directive- and profile-aware: strips the directive segment, excludes non-matching target-only and profile-only files, applies destinationSuffix; imports no generator code), verified by tests/e2e/parity.e2e.test.ts and tests/e2e/profile.e2e.test.ts. The no-profile path set is unchanged (2229 paths / vfsSize 320, matching the pre-feature baseline).</implementationNotes>
   <notes>Redefined from the former byte-for-byte parity stance: the previous generator (the byte-identity reference) was removed in r2, its snapshot baselines were gitignored and are no longer produced, so a content-diff oracle can no longer run. Parity is now structural (path/layout) per target; content is covered by the sample and Antigravity E2E suites and the unit tests.</notes>
 </req>
 
 <req id="NFR-0002" type="NFR" level="System" ticketId="" classification="technical">
   <title>Deterministic, reproducible output</title>
-  <statement>Given identical inputs, the generator shall produce identical output across runs, processing files in a stable sorted order.</statement>
-  <rationale>Reliability: reproducible builds; clean diffs in version control.</rationale>
+  <statement>Given identical inputs — the active profile (or its absence) counted as one of those inputs — the generator shall produce identical output across runs, processing files in a stable sorted order. The profile is an additional input dimension: two runs whose inputs and profile are identical produce identical output.</statement>
+  <rationale>Reliability: reproducible builds; clean diffs in version control. The profile is an input like release, domain, and source, so it belongs in the set of inputs that must be held identical for output to be identical.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-08-19</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: two runs with identical inputs When: outputs compared Then: they are identical.</criteria>
+    <criteria>Given: two runs with identical inputs and the same active profile (or both with no profile) When: outputs compared Then: they are identical.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: the active profile (or its absence) is counted as an input dimension and the stable sorted processing order is preserved, so identical inputs plus profile produce identical output. Verified by tests/e2e/profile.e2e.test.ts and the no-profile parity run (2229 paths / vfsSize 320, identical to the baseline).</implementationNotes>
 </req>
 
 <req id="NFR-0003" type="NFR" level="System" ticketId="" classification="technical">
   <title>Idempotent re-generation</title>
-  <statement>The generator shall be safely re-runnable, wiping and rebuilding generated content while preserving each target's config folder and preserved files, and shall produce a complete output into a clean or empty output directory by first seeding the preserved files from their committed source.</statement>
-  <rationale>Reliability: re-running must not accumulate stale artifacts, and a first run into a clean directory must not depend on preserved files already committed in the output tree.</rationale>
+  <statement>The generator shall be safely re-runnable, wiping and rebuilding generated content while preserving each target's config folder and preserved files, and shall produce a complete output into a clean or empty output directory by first seeding the preserved files from the effective preserved-file source (the default committed root or a `--pluginsSource` override).</statement>
+  <rationale>Reliability: re-running must not accumulate stale artifacts, and a first run into a clean directory must not depend on preserved files already committed in the output tree. Preserved-file sourcing now reads the effective preserved-file source, so idempotency is defined against that root, whether default or overridden.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-08-19</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: two consecutive runs When: the second completes Then: output equals a single-run output with no leftover files.</criteria>
     <criteria>Given: an empty output directory When: a single run completes Then: each target output is complete, equal to a run into a pre-populated output directory.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
-  <depends>FR-COPY-0001, FR-SEED-0001</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: the idempotency contract holds with a profile as an input — a profiled run reuses the same preserved-file source and rebuilds generated content into a clean or empty output dir. Covered by tests/e2e/profile.e2e.test.ts alongside the existing idempotency coverage.</implementationNotes>
+  <depends>FR-COPY-0001, FR-SEED-0001, FR-CLI-0060</depends>
 </req>
 
 <req id="NFR-0004" type="NFR" level="System" ticketId="" classification="technical">

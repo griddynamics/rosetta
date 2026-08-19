@@ -1,14 +1,15 @@
 // FR-ARCH-0046, FR-COPY-0021 — fileNormalizeClaudeModels: per-vocabulary processor for claude
 import { describe, it, expect } from 'vitest';
 import { fileNormalizeClaudeModels } from '../../../src/file-processors/file-normalize-claude-models.js';
+import { CLAUDE_VOCABULARY } from '../../../src/spec/model-maps.js';
 import type { FileProcessingFrame, TargetContext, PluginSpec, Vfs } from '../../../src/types.js';
 
 function makeCtx(): TargetContext {
   return {
-    spec: { name: 'core-claude' } as unknown as PluginSpec,
+    spec: { name: 'core-claude', modelVocabulary: CLAUDE_VOCABULARY } as unknown as PluginSpec,
     vfs: [] as unknown as Vfs,
     release: { name: 'r2', deterministicHooks: false, displayName: 'R2' },
-    repoRoot: '',
+    activeProfile: null,
   };
 }
 

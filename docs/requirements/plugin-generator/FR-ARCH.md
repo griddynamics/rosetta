@@ -205,17 +205,20 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0020" type="FR" level="System" ticketId="" classification="technical">
   <title>Directive-bearing filenames</title>
-  <statement>The generator shall recognize a `FilenameDirective` (a tilde-fenced `~…~` segment with comma-separated tokens) in a source filename of the form `name.~tokens~.ext`, and shall map the `SourceFile` to the VFS path `name.ext` (the `FilenameDirective` removed).</statement>
+  <statement>The generator shall recognize a `FilenameDirective` in a source filename of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence yields an empty token, which is inert — and shall map the `SourceFile` to the VFS path `name.ext` (the `FilenameDirective` removed).</statement>
   <rationale>Per-file behavior is declared in the filename; the output name is the clean base name.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-08-18</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `bootstrap-core-policy.~1a,claude-only,overwrite~.md` When: mapped Then: VFS path is `rules/bootstrap-core-policy.md` with order `1a` and conditions `{claude-only, overwrite}`.</criteria>
+    <criteria>Given: `bootstrap-core-policy~1a~core-claude-only~overwrite~.md` When: mapped Then: VFS path is `rules/bootstrap-core-policy.md` with order `1a` and conditions `{core-claude-only, overwrite}`.</criteria>
     <criteria>Given: a filename with no tilde-fenced directive segment When: mapped Then: it maps to its plain name with default order and no conditions.</criteria>
+    <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: mapped Then: the clean name is `bootstrap-guardrails.md` and conditions are `{overwrite}`; the empty trailing token produced by the closing tilde fence is inert.</criteria>
+    <criteria>Given: `bootstrap-core-policy~core-claude-only~overwrite~.md` When: mapped Then: conditions are `{core-claude-only, overwrite}`; a target-only token compares against the target `name`, whose values are `core-claude`, `core-cursor`, `core-copilot`, `core-codex`, `core-cursor-standalone`, `core-copilot-standalone`, `core-antigravity` (so the correct form is `core-claude-only`, not `claude-only`).</criteria>
+    <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: mapped Then: the clean name is `coding-flow.md` and conditions are `{profile-lightweight-only, overwrite}`; the profile token's selection semantics are governed by FR-PROF-0030.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
@@ -223,18 +226,21 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0021" type="FR" level="System" ticketId="" classification="technical">
   <title>Directive grammar and validation</title>
-  <statement>The generator shall parse a `FilenameDirective` as comma-separated `DirectiveToken`s where an optional `OrderToken`, if present, appears first and the remaining `DirectiveToken`s appear in any order; it shall reject the `SourceFile` with an error if any `DirectiveToken` is unknown or if any appears more than once.</statement>
+  <statement>The generator shall parse a `FilenameDirective` of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence yields an empty token, which is inert — as an ordered token list where an optional `OrderToken`, if present, appears first and the remaining `DirectiveToken`s appear in any order; it shall reject the `SourceFile` with an error if any `DirectiveToken` is unknown or if any appears more than once.</statement>
   <rationale>Strict validation prevents silent misconfiguration.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-08-18</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `~1a,overwrite,claude-only~` When: parsed Then: it is accepted.</criteria>
+    <criteria>Given: `policy~1a~overwrite~core-claude-only~.md` When: parsed Then: it is accepted.</criteria>
     <criteria>Given: a duplicate token or an unknown token When: parsed Then: it errors naming the file and token.</criteria>
     <criteria>Given: an order token not in first position When: parsed Then: it errors.</criteria>
+    <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: parsed Then: the token set is `{overwrite}` and the empty trailing token produced by the closing tilde fence is inert.</criteria>
+    <criteria>Given: `bootstrap-core-policy~core-claude-only~overwrite~.md` When: parsed Then: the token set is `{core-claude-only, overwrite}`; the target-only token compares against the target `name` (e.g. `core-claude`), so `core-claude-only` is correct and `claude-only` matches no target.</criteria>
+    <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: parsed Then: the token set is `{profile-lightweight-only, overwrite}`; the profile token's selection semantics are governed by FR-PROF-0030.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
@@ -254,7 +260,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: files with order `1a`, `2a`, `10a` When: ordered Then: ordering follows lexicographic name sort (`10a` before `2a`), matching the filesystem.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementationNotes>NotStarted: `SourceFile.order` is populated in src/rosettify-plugins/src/vfs/build-vfs.ts as the layer array index (`order: ${i}`), not from a filename token, and no code reads it. No filename order token is parsed, consumed, or tested — no `OrderToken` reference exists in src or tests. Current ordering comes from the layer order plus the stable lexicographic filename sort in src/rosettify-plugins/src/vfs/source-resolver.ts, which is exactly this requirement's own documented fallback ("plain filename order when absent"); present output is therefore correct for every current input, since no source file uses an order token.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0023" type="FR" level="System" ticketId="" classification="technical">
@@ -788,23 +794,45 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0057" type="FR" level="System" ticketId="" classification="technical">
   <title>Model vocabulary scope, upgrade rules, and Codex effort-omission rule</title>
-  <statement>The Cursor and Copilot model vocabulary maps (CURSOR_GPT_MAP, COPILOT_GPT_MAP) shall cover only GPT 5.3 and above; no entry whose key starts with `gpt-4`, `o3`, or `o4` shall be present. The following upgrade rules shall be applied during normalization: `claude-opus-4-6`, `claude-opus-4-7`, and any `claude-4.7-opus*` token shall map to `claude-opus-4-8`; `gpt-5.3` and `gpt-5.3-codex` (all effort variants) shall map to `gpt-5.4`; `gemini-3-flash` shall map to `gemini-3.5-flash`. `gpt-5.4` and `gpt-5.5` shall not be upgraded to a higher version. When a Codex normalization encounters a GPT token with no trailing effort suffix, the generator shall write only `model: <id>` and shall not write a `model_reasoning_effort` field; no default effort value is substituted.</statement>
-  <rationale>Stale or over-broad maps produce silent model downgrades or wrong IDE-specific IDs. Restricting Cursor/Copilot GPT maps to 5.3+ and encoding explicit upgrade rules prevents unintentional degradation. `gpt-5.4` and `gpt-5.5` belong to different cost tiers and must not be conflated by automatic upgrade. Requiring an explicit effort suffix in source is a content authoring contract; the generator must not silently substitute a default.</rationale>
+  <statement>The built-in Cursor and Copilot model vocabulary maps (CURSOR_GPT_MAP, COPILOT_GPT_MAP) shall cover only GPT 5.3 and above; no entry whose key starts with `gpt-4`, `o3`, or `o4` shall be present in a built-in map. This restriction is scoped to the built-in maps only: a profile's per-target model-override block may name model ids the built-in maps exclude, because a profile exists to serve a client whose available models differ. The following upgrade rules shall be applied during normalization: `claude-opus-4-6`, `claude-opus-4-7`, and any `claude-4.7-opus*` token shall map to `claude-opus-4-8`; `gpt-5.3` and `gpt-5.3-codex` (all effort variants) shall map to `gpt-5.4`; `gemini-3-flash` shall map to `gemini-3.5-flash`. `gpt-5.4` and `gpt-5.5` shall not be upgraded to a higher version. When a Codex normalization encounters a GPT token with no trailing effort suffix, the generator shall write only `model: <id>` and shall not write a `model_reasoning_effort` field; no default effort value is substituted.</statement>
+  <rationale>Stale or over-broad maps produce silent model downgrades or wrong IDE-specific IDs. Restricting Cursor/Copilot GPT maps to 5.3+ and encoding explicit upgrade rules prevents unintentional degradation. `gpt-5.4` and `gpt-5.5` belong to different cost tiers and must not be conflated by automatic upgrade. Requiring an explicit effort suffix in source is a content authoring contract; the generator must not silently substitute a default. The built-in-map restriction is scoped to the built-in maps and does not extend to profile override blocks, which exist precisely to name models a standard client would not use.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-16</changed>
+  <changed>2026-08-19</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a Cursor or Copilot SpecEntry normalizes a file whose frontmatter first token is `claude-opus-4-7` When: normalized Then: the output model field is `claude-opus-4-8`.</criteria>
     <criteria>Given: a Cursor or Copilot SpecEntry normalizes a file whose frontmatter first token is `gpt-5.3-high` When: normalized Then: the output model field is `gpt-5.4`.</criteria>
     <criteria>Given: a Codex SpecEntry normalizes a file whose frontmatter first token is `gpt-5.4` (no effort suffix) When: normalized Then: the output contains `model: gpt-5.4` and does not contain `model_reasoning_effort`.</criteria>
-    <criteria>Given: CURSOR_GPT_MAP or COPILOT_GPT_MAP is inspected When: inspected Then: no entry key starts with `gpt-4`, `o3`, or `o4`.</criteria>
+    <criteria>Given: the built-in CURSOR_GPT_MAP or COPILOT_GPT_MAP is inspected When: inspected Then: no entry key starts with `gpt-4`, `o3`, or `o4`.</criteria>
+    <criteria>Given: a profile `core-cursor` override block naming `gpt-4o` When: the profile is applied Then: the id is accepted and used, and the built-in-map restriction is not treated as violated.</criteria>
   </acceptance>
   <depends>FR-ARCH-0046, FR-COPY-0022</depends>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/spec/model-maps.ts: CURSOR_GPT_MAP and COPILOT_GPT_MAP cover GPT 5.3+ only; CURSOR_CLAUDE_MAP and COPILOT_CLAUDE_MAP map opus-4-6 and opus-4-7 variants to claude-opus-4-8; normalizeCodex() returns effort: undefined when no suffix present and the Codex emitter writes only the model field in that case.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/spec/model-maps.ts: CURSOR_GPT_MAP and COPILOT_GPT_MAP cover GPT 5.3+ only; CURSOR_CLAUDE_MAP and COPILOT_CLAUDE_MAP map opus-4-6 and opus-4-7 variants to claude-opus-4-8; normalizeCodex() returns effort: undefined when no suffix present and the Codex emitter writes only the model field in that case. The profile-override carve-out is realized by exhaustive block replacement in src/rosettify-plugins/src/spec/profiles.ts (resolveEffectiveVocabulary): a per-target block becomes the whole effective vocabulary, so the GPT-5.3-and-above restriction constrains only the built-in maps and a profile may name ids they exclude.</implementationNotes>
+</req>
+
+<req id="FR-ARCH-0059" type="FR" level="System"
+     ticketId="" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="User" changed="2026-08-19"
+     depends="FR-ARCH-0005, FR-ARCH-0046"
+     implementation="Implemented">
+  <title>Effective model map threaded as a processor parameter</title>
+  <statement>The generator shall supply each model-normalization function with its target's effective model map as an explicit parameter passed by the caller, and shall refactor the existing normalization functions in place to accept that parameter rather than reading a hardcoded map. Every caller shall be updated to pass the effective map; no parallel or duplicated normalization code path shall be introduced for the profile case. `PluginSpec.modelVocabulary` shall be the sole live carrier of the effective map — the built-in vocabulary by default, or the active profile's per-target override block when present — and no new field shall be added beside it. The effective map shall be plain data read from the passed-in parameter; no normalization function shall branch on target or IDE identity to choose the map (FR-ARCH-0005).</statement>
+  <rationale>`PluginSpec.modelVocabulary` is populated on all seven specs today but read nowhere — `{map:{}}` for Claude and Codex — while the four normalization processors call hardcoded maps directly and ignore their context argument (discovery-notes.md:54-58, 110-112). Making the field the live carrier and threading it as a parameter is the minimal change that lets a profile substitute the map without duplicating logic; the alternative of a second, profile-specific code path was rejected because it would drift from the built-in path and double the maintenance surface. The map must be data passed in rather than a switch on identity, because FR-ARCH-0005 forbids branching on target/IDE identity or an identity-discriminant flag.</rationale>
+  <acceptance>
+    <criteria id="FR-ARCH-0059.AC1" ears="ubiquitous" system="each model-normalization function" shall="accept the effective model map as an explicit parameter supplied by its caller and normalize using only that passed-in map"/>
+    <criteria id="FR-ARCH-0059.AC2" ears="event" when="a caller invokes a model-normalization function" system="the generator" shall="pass the target's `PluginSpec.modelVocabulary` as the effective map for that invocation"/>
+    <criteria id="FR-ARCH-0059.AC3" ears="state" while="a profile supplies a per-target override block for a target" system="the generator" shall="place that block on the target's `PluginSpec.modelVocabulary` as the effective map, introducing no field beside `modelVocabulary`"/>
+    <criteria id="FR-ARCH-0059.AC4" ears="optional" where="no profile override block exists for a target" system="the generator" shall="place the target's built-in vocabulary on `PluginSpec.modelVocabulary` so normalization output is identical to today"/>
+    <criteria id="FR-ARCH-0059.AC5" ears="unwanted" if="a normalization path would select the map by branching on target or IDE identity, or a second parallel normalization implementation is introduced for the profile case" system="the generator" shall="fail the build at type-check time, since the normalization functions accept the map only as a parameter and expose no target-identity argument to branch on (FR-ARCH-0005)"/>
+  </acceptance>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/model-maps.ts (the four normalize functions refactored in place to take the effective map as a parameter; no parallel path); src/rosettify-plugins/src/types.ts (PluginSpec.modelVocabulary is the sole live carrier; ModelVocabulary.exhaustive added; no new field); src/rosettify-plugins/src/spec/targets.ts (every caller passes spec.modelVocabulary); src/rosettify-plugins/src/file-processors/file-normalize-{claude,cursor,copilot,codex}-models.ts and file-codex-agent.ts (all callers updated). Tests: tests/unit/spec/model-maps.test.ts.</implementationNotes>
+  <notes>Evidence: discovery-notes.md:54-58 (modelVocabulary dead plumbing; the four processors ignore their `_ctx` argument), discovery-notes.md:110-112 (CLAUDE_VOCABULARY/CODEX_VOCABULARY `{map:{}}`, assigned on all seven specs, read nowhere).</notes>
 </req>
 
 <req id="FR-ARCH-0048" type="FR" level="System" ticketId="" classification="technical">

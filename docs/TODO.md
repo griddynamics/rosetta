@@ -34,3 +34,32 @@ This file contains grep compatible list of very concise improvements, suggestion
 - **Adapter as public consumable module** — https://github.com/griddynamics/rosetta/issues/96
 - **OpenCode + JetBrains/Junie validation** — https://github.com/griddynamics/rosetta/issues/97
 - **VS Code hook support** — https://github.com/griddynamics/rosetta/issues/98
+
+## TODO: Requirements — split oversized plugin-generator requirement files
+
+`docs/requirements/plugin-generator/` files over the 300-line refactor threshold, deferred from the
+profiles change so that change stayed reviewable:
+- `FR-ARCH.md` — 898 lines. Split by concern (VFS/directives · processor tiers · pipeline · parity).
+- `FR-COPY.md` — 418 lines. Candidate split: extract model handling (FR-COPY-0020/0021/0022/0080/0081/
+  0082/0083/0084) into `FR-MODEL.md`, preserving ids.
+- `FR-CLI.md` — 338 lines.
+IDs must stay stable across any split; update INDEX.md and cross-references.
+
+## TODO: Requirements — `FR-ARCH-*` id prefix is ambiguous across components
+
+`FR-ARCH-0016` is defined only in `docs/requirements/rosettify/ARCH.md`, while
+`docs/requirements/plugin-generator/FR-ARCH.md` defines its own `FR-ARCH-0001..0059`. One prefix,
+two components, so a bare `FR-ARCH-00NN` reference is ambiguous repo-wide. Consider component-scoped
+prefixes (e.g. `FR-PGARCH-*` vs `FR-RSARCH-*`) or a documented qualification convention.
+No current cross-component citation is broken.
+
+## TODO: plugin-generator — requirement ids embedded in emitted log messages
+
+`src/rosettify-plugins/src/generate.ts` and `plugin-processors/plugin-process-spec-entries.ts` pass
+requirement ids inside logger message strings (e.g. `'FR-ARCH-0050: plugin-processor start'`,
+`'FR-ARCH-0049: excluded file ghost frame ...'`). These are emitted output, visible under `--verbose`,
+and conflict with the standing rule that requirement ids belong in code comments only, never in
+user-facing strings. Pre-existing (present at HEAD before the build-profiles change); the two
+equivalent defects in `--help` text were fixed with that change. Move the ids into adjacent comments
+and leave the log messages plain.
+

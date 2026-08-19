@@ -3,14 +3,15 @@
 // frontmatter.model NOT updated in either branch.
 import { describe, it, expect } from 'vitest';
 import { fileNormalizeCodexModels } from '../../../src/file-processors/file-normalize-codex-models.js';
+import { CODEX_VOCABULARY } from '../../../src/spec/model-maps.js';
 import type { FileProcessingFrame, TargetContext, PluginSpec, Vfs } from '../../../src/types.js';
 
 function makeCtx(): TargetContext {
   return {
-    spec: { name: 'core-codex' } as unknown as PluginSpec,
+    spec: { name: 'core-codex', modelVocabulary: CODEX_VOCABULARY } as unknown as PluginSpec,
     vfs: [] as unknown as Vfs,
     release: { name: 'r2', deterministicHooks: false, displayName: 'R2' },
-    repoRoot: '',
+    activeProfile: null,
   };
 }
 

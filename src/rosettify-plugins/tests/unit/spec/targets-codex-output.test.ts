@@ -215,13 +215,19 @@ describe('core-codex — generated output shape (FR-VAR-0041, FR-VAR-0042, FR-ST
     expect(mirrored).toContain('SessionStart');
   });
 
-  it('converts the agent to TOML under .codex/agents/ without Antigravity-only subagent_required_model rewrite', () => {
+  it('converts the agent to TOML under .codex/agents/ with the always-on Codex subagent_required_model rewrite (FR-COPY-0083)', () => {
     const agentToml = path.join(targetRoot, '.codex', 'agents', 'myagent.toml');
     expect(fs.existsSync(agentToml)).toBe(true);
     const content = fs.readFileSync(agentToml, 'utf-8');
-    // pluginAntigravitySubagentModel is wired only into core-antigravity's pipeline; Codex must
-    // retain the original spawn string verbatim (no rewrite to "inherit").
-    expect(content).toContain('subagent_required_model="claude-opus-4-8, gpt-5.5-high"');
+    // FR-COPY-0083 overturns the old "Codex retains the spawn string verbatim" invariant: the
+    // subagent-list normalizer is always-on for all six non-Antigravity targets, Codex included
+    // (pluginAntigravitySubagentModel remains core-antigravity-only and unconditionally rewrites
+    // to "inherit" — a DIFFERENT processor, not exercised here). For Codex the source list
+    // "claude-opus-4-8, gpt-5.5-high" is filtered to gpt- tokens only (claude-opus-4-8 dropped),
+    // the survivor is mapped through the built-in (identity) effective map and effort-stripped to
+    // its base id: "gpt-5.5-high" -> "gpt-5.5".
+    expect(content).toContain('subagent_required_model="gpt-5.5"');
+    expect(content).not.toContain('subagent_required_model="claude-opus-4-8, gpt-5.5-high"');
     expect(content).not.toContain('subagent_required_model="inherit"');
   });
 

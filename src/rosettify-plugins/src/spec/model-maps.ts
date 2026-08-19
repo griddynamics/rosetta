@@ -1,12 +1,75 @@
 // DATA-CFG-0004, FR-COPY-0020–0022, MODEL.md — model normalization for 4 IDE vocabularies
 // Decoded from baseline agents/TEMP/old-gen-r2/<target>/agents/*
+//
+// FR-ARCH-0059: PluginSpec.modelVocabulary is the SOLE live carrier of the effective map. The 4
+// normalize*() functions below take (field, map, exhaustive?) — no module-level map lookups inside
+// them. `exhaustive` is a genuine behavior flag (FR-ARCH-0005), not an identity discriminant: every
+// function runs the identical single-loop scan regardless of target; `exhaustive` only selects which
+// outcome terminates that scan when no candidate token maps. Omitted/false ⇒ byte-identical to the
+// pre-refactor built-in behavior (each vocabulary's own no-survivor idiom, preserved below).
+// FR-PROF-0011: exhaustive ⇒ a selected candidate absent from `map` is SKIPPED, scan continues to the
+// next candidate; scan exhausted with no survivor ⇒ MODEL_DROP (imported from ../types.js — the
+// sentinel meaning "remove the model: line"; NOT redeclared here).
 
 import type { ModelVocabulary } from '../types.js';
+import { MODEL_DROP } from '../types.js';
+
+function hasKey(map: Record<string, string>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(map, key);
+}
+
+// ─── Low-level per-token selection+lookup helpers ─────────────────────────────
+// Extracted so S7 (plugin-normalize-subagent-model.ts, FR-COPY-0083) reuses the SAME
+// compatibility-test / key-derivation / effort-split logic rather than reimplementing it
+// (FR-COPY-0083, FR-COPY-0084). Each normalize*() function below is built on these.
+
+/**
+ * Claude-compatible test (FR-COPY-0020): starts with "claude-" OR contains opus/sonnet/haiku
+ * (case-insensitive substring, not anchored — CONTRADICTION-1).
+ */
+export function isClaudeCompatibleToken(token: string): boolean {
+  const lower = token.toLowerCase();
+  return (
+    lower.startsWith('claude-') ||
+    lower.includes('opus') ||
+    lower.includes('sonnet') ||
+    lower.includes('haiku')
+  );
+}
+
+/**
+ * Derive the Claude family key (opus/sonnet/haiku) from a claude-compatible token via substring
+ * containment. Returns null when the token is claude-prefixed but carries no tier substring.
+ */
+export function claudeFamilyKey(token: string): 'opus' | 'sonnet' | 'haiku' | null {
+  const lower = token.toLowerCase();
+  if (lower.includes('opus')) return 'opus';
+  if (lower.includes('sonnet')) return 'sonnet';
+  if (lower.includes('haiku')) return 'haiku';
+  return null;
+}
+
+/** Codex-compatible test (FR-COPY-0022): starts with "gpt-" (case-insensitive). */
+export function isCodexToken(token: string): boolean {
+  return token.toLowerCase().startsWith('gpt-');
+}
+
+/**
+ * Split a trailing "-<effort>" (high|medium|low) suffix off a model id.
+ * `effort` is undefined when the id carries no such suffix. FR-COPY-0022.
+ */
+export function splitCodexEffort(token: string): CodexModelResult {
+  const effortMatch = token.match(/^(.+)-(?:(high|medium|low))$/);
+  if (effortMatch) {
+    return { model: effortMatch[1], effort: effortMatch[2] };
+  }
+  return { model: token, effort: undefined };
+}
 
 // ─── Claude vocabulary (FR-COPY-0020, PARITY-9) ──────────────────────────────
 // Scan all comma-split tokens for first claude-compatible one.
-// NOT first-overall (CONTRADICTION-1). claude-compatible: starts with "claude-" OR contains opus/sonnet/haiku.
-// Map: contains "opus" → CLAUDE_CODE_MAP.opus, "sonnet" → CLAUDE_CODE_MAP.sonnet, "haiku" → CLAUDE_CODE_MAP.haiku, else → "inherit".
+// NOT first-overall (CONTRADICTION-1). Family key derived via claudeFamilyKey(); map[key] is the
+// lookup — built-in map is keyed by family (opus/sonnet/haiku); a profile block is keyed the same.
 
 // FR-COPY-0021 — Claude Code full model IDs; update here when models change
 const CLAUDE_CODE_MAP: Record<string, string> = {
@@ -15,25 +78,46 @@ const CLAUDE_CODE_MAP: Record<string, string> = {
   haiku: 'claude-haiku-4-5',
 };
 
-export function normalizeClaude(modelField: string): string | null {
+/**
+ * normalizeClaude — FR-ARCH-0059: map/exhaustive are the sole model-vocabulary input, sourced from
+ * `ctx.spec.modelVocabulary`. Selection strategy UNCHANGED: scans all comma tokens for the first
+ * claude-compatible one (not first-overall). Non-exhaustive (exhaustive omitted/false) is
+ * byte-identical to pre-refactor behavior: unknown family/no-tier-substring ⇒ 'inherit'; no
+ * claude-compatible token at all ⇒ null. Exhaustive (FR-PROF-0011): a claude-compatible candidate
+ * whose family key is absent from `map` is SKIPPED, scan continues to the next candidate; scan
+ * exhausted with no survivor ⇒ MODEL_DROP.
+ */
+export function normalizeClaude(
+  modelField: string,
+  map: Record<string, string>,
+  exhaustive?: boolean,
+): string | null | typeof MODEL_DROP {
   const tokens = modelField.split(',').map((t) => t.trim());
+  let foundClaudeToken = false;
   for (const token of tokens) {
-    const lower = token.toLowerCase();
-    if (lower.startsWith('claude-') || lower.includes('opus') || lower.includes('sonnet') || lower.includes('haiku')) {
-      if (lower.includes('opus')) return CLAUDE_CODE_MAP.opus;
-      if (lower.includes('sonnet')) return CLAUDE_CODE_MAP.sonnet;
-      if (lower.includes('haiku')) return CLAUDE_CODE_MAP.haiku;
+    if (!isClaudeCompatibleToken(token)) continue;
+    foundClaudeToken = true;
+    const key = claudeFamilyKey(token);
+    if (key !== null && hasKey(map, key)) {
+      return map[key];
+    }
+    // Key absent (or no tier substring at all): non-exhaustive ⇒ this claude-compatible token is
+    // 'inherit'-eligible (a claude token with a tier key absent from a NON-exhaustive built-in map
+    // cannot occur — the built-in map is complete). Exhaustive ⇒ skip, continue the scan.
+    if (!exhaustive) {
       return 'inherit';
     }
   }
-  return null; // no claude-compatible token found
+  return exhaustive ? MODEL_DROP : (foundClaudeToken ? 'inherit' : null);
 }
 
 // ─── Cursor vocabulary (FR-COPY-0021) ─────────────────────────────────────────
-// Uses FIRST comma-split token (not scanned) — intentional multi-vendor ordering design (FR-ARCH-0046):
-// authors order tokens so the desired Cursor/Copilot model appears first; single-vendor runtimes
-// (Claude, Codex) scan past it to their own compatible token.
-// Claude tokens mapped via CURSOR_CLAUDE_MAP; gpt tokens stripped of -effort suffix inline.
+// Selection strategy UNCHANGED: takes the FIRST comma-split token — intentional multi-vendor
+// ordering design (FR-ARCH-0046): authors order tokens so the desired Cursor/Copilot model appears
+// first; single-vendor runtimes (Claude, Codex) scan past it to their own compatible token.
+// Non-exhaustive resolves on the first token every time (map[first] ?? first), so this reproduces
+// today's strict-first behavior byte-for-byte. Exhaustive: an unmapped first token is skipped and
+// the scan continues to subsequent tokens (FR-PROF-0011).
 
 const CURSOR_CLAUDE_MAP: Record<string, string> = {
   'claude-4.8-opus-high': 'claude-opus-4-8',
@@ -81,15 +165,36 @@ const CURSOR_GEMINI_MAP: Record<string, string> = {
   'gemini-3.1-pro': 'gemini-3.1-pro',
 };
 
-export function normalizeCursor(modelField: string): string | null {
-  const first = modelField.split(',')[0].trim();
-  if (!first) return null;
-  return CURSOR_CLAUDE_MAP[first] ?? CURSOR_GPT_MAP[first] ?? CURSOR_GEMINI_MAP[first] ?? first;
+/**
+ * normalizeCursor — FR-ARCH-0059: map/exhaustive sourced from `ctx.spec.modelVocabulary`. Selection
+ * strategy UNCHANGED (first token). Non-exhaustive: `map[first] ?? first` (byte-identical passthrough
+ * for an unmapped token). Exhaustive (FR-PROF-0011): unmapped candidate skipped, scan continues;
+ * exhausted with no survivor ⇒ MODEL_DROP.
+ */
+export function normalizeCursor(
+  modelField: string,
+  map: Record<string, string>,
+  exhaustive?: boolean,
+): string | null | typeof MODEL_DROP {
+  const tokens = modelField.split(',').map((t) => t.trim());
+  for (const token of tokens) {
+    // Empty leading token (e.g. "" or ", gpt-5.4"): non-exhaustive keeps today's byte-identical
+    // "no first token" result (null), never falling through to a later token — the strict-first
+    // contract holds even when the first slot is blank. Exhaustive treats a blank token like any
+    // other non-survivor: skip it and keep scanning (FR-PROF-0011), so ", gpt-5.4" still resolves.
+    if (!token) {
+      if (exhaustive) continue;
+      return null;
+    }
+    if (hasKey(map, token)) return map[token];
+    if (!exhaustive) return token; // passthrough — always resolves on the first token here
+  }
+  return exhaustive ? MODEL_DROP : null;
 }
 
 // ─── Copilot vocabulary (FR-COPY-0021) ────────────────────────────────────────
-// Uses FIRST comma-split token — same intentional multi-vendor ordering design as Cursor (FR-ARCH-0046).
-// Map via COPILOT_CLAUDE_MAP / COPILOT_GPT_MAP. Decoded from baseline core-copilot/agents/*.agent.md.
+// Same selection strategy and exhaustive semantics as Cursor (FR-ARCH-0046). Decoded from baseline
+// core-copilot/agents/*.agent.md.
 
 const COPILOT_CLAUDE_MAP: Record<string, string> = {
   'claude-4.8-opus-high': 'Claude Opus 4.8',
@@ -136,54 +241,91 @@ const COPILOT_GEMINI_MAP: Record<string, string> = {
   'gemini-3-flash': 'Gemini 3.5 Flash',
 };
 
-export function normalizeCopilot(modelField: string): string | null {
-  const first = modelField.split(',')[0].trim();
-  if (!first) return null;
-  return COPILOT_CLAUDE_MAP[first] ?? COPILOT_GPT_MAP[first] ?? COPILOT_GEMINI_MAP[first] ?? first;
+/**
+ * normalizeCopilot — FR-ARCH-0059: map/exhaustive sourced from `ctx.spec.modelVocabulary`. Same
+ * selection strategy and exhaustive semantics as normalizeCursor (see above).
+ */
+export function normalizeCopilot(
+  modelField: string,
+  map: Record<string, string>,
+  exhaustive?: boolean,
+): string | null | typeof MODEL_DROP {
+  const tokens = modelField.split(',').map((t) => t.trim());
+  for (const token of tokens) {
+    // See normalizeCursor above: non-exhaustive preserves the byte-identical "blank first token ⇒
+    // null" result; exhaustive skips a blank token and keeps scanning (FR-PROF-0011).
+    if (!token) {
+      if (exhaustive) continue;
+      return null;
+    }
+    if (hasKey(map, token)) return map[token];
+    if (!exhaustive) return token; // passthrough — always resolves on the first token here
+  }
+  return exhaustive ? MODEL_DROP : null;
 }
 
 // ─── Codex vocabulary (FR-COPY-0022) ──────────────────────────────────────────
-// Scan all tokens for first gpt-* token.
-// Split trailing -<effort> → model + model_reasoning_effort.
-// If none found → no model fields in TOML.
+// Selection strategy UNCHANGED: scan all tokens for first gpt-* token. Built-in map is `{}`
+// (identity/pass-through) so non-exhaustive resolution is always "token as-is" — byte-identical to
+// the pre-refactor pure effort-split. A profile block may map a gpt- token to any string (including
+// one carrying its own effort suffix, e.g. "gpt-5.4-medium"); the chosen value (mapped or as-is) is
+// THEN effort-split into {model, effort}. No gpt- token found ⇒ null (non-exhaustive, today) ; all
+// gpt- candidates absent under exhaustive ⇒ MODEL_DROP.
 
 export interface CodexModelResult {
   model: string;
   effort: string | undefined;
 }
 
-export function normalizeCodex(modelField: string): CodexModelResult | null {
+/**
+ * normalizeCodex — FR-ARCH-0059: map/exhaustive sourced from `ctx.spec.modelVocabulary`. See header
+ * comment above for full selection/lookup/effort-split contract. FR-COPY-0084: called identically
+ * from both Codex call sites (file-normalize-codex-models.ts markdown path and file-codex-agent.ts
+ * TOML path) so a given token resolves the same at both surfaces.
+ */
+export function normalizeCodex(
+  modelField: string,
+  map: Record<string, string>,
+  exhaustive?: boolean,
+): CodexModelResult | null | typeof MODEL_DROP {
   const tokens = modelField.split(',').map((t) => t.trim());
   for (const token of tokens) {
-    const lower = token.toLowerCase();
-    if (lower.startsWith('gpt-')) {
-      // Split effort suffix
-      const effortMatch = token.match(/^(.+)-(?:(high|medium|low))$/);
-      if (effortMatch) {
-        return { model: effortMatch[1], effort: effortMatch[2] };
-      }
-      return { model: token, effort: undefined }; // no effort suffix
+    if (!isCodexToken(token)) continue;
+    if (hasKey(map, token)) {
+      return splitCodexEffort(map[token]);
     }
+    if (!exhaustive) {
+      return splitCodexEffort(token); // built-in map {} ⇒ always as-is (today)
+    }
+    // exhaustive and candidate absent from map: skip, continue scan
   }
-  return null; // no gpt token
+  return exhaustive ? MODEL_DROP : null;
 }
 
 // ─── Vocabulary objects ────────────────────────────────────────────────────────
+// FR-ARCH-0059: `modelVocabulary.map` is now the real, live effective map consulted by the
+// corresponding normalize*() function for every target — not a placeholder. `exhaustive` omitted
+// (=false) on every built-in: profiled runs set `{map: <profile block>, exhaustive: true}` via
+// resolveEffectiveVocabulary() (spec/profiles.ts, S2), never mutate these constants.
 
 export const CLAUDE_VOCABULARY: ModelVocabulary = {
-  map: {}, // not used directly; normalizeClaude() is the function
+  map: CLAUDE_CODE_MAP,
 };
 
+// Cursor/Copilot merge their three per-vendor maps (claude+gpt+gemini) into one flat map consulted
+// by exact-token lookup. Keys are disjoint across the three source maps (claude-*/gpt-*/gemini-*
+// prefixes never collide — verified: 33 total keys, 33 unique across CURSOR_CLAUDE_MAP ∪
+// CURSOR_GPT_MAP ∪ CURSOR_GEMINI_MAP, same key-set shape for Copilot), so merge order is immaterial.
 export const CURSOR_VOCABULARY: ModelVocabulary = {
-  map: CURSOR_CLAUDE_MAP,
+  map: { ...CURSOR_CLAUDE_MAP, ...CURSOR_GPT_MAP, ...CURSOR_GEMINI_MAP },
 };
 
 export const COPILOT_VOCABULARY: ModelVocabulary = {
-  map: COPILOT_CLAUDE_MAP,
+  map: { ...COPILOT_CLAUDE_MAP, ...COPILOT_GPT_MAP, ...COPILOT_GEMINI_MAP },
 };
 
 export const CODEX_VOCABULARY: ModelVocabulary = {
-  map: {}, // not a simple map; normalizeCodex() handles the logic
+  map: {}, // identity/pass-through — normalizeCodex() effort-splits the token as-is when unmapped
 };
 
 // AG-2, DATA-CFG-0004: Antigravity carries no model vocabulary. Agent/skill frontmatter model
