@@ -195,7 +195,7 @@ git -C "$(git rev-parse --show-toplevel)" checkout -- package.json
 
 **Action:** write `<ROOT>/scripts/helper-windsurf.js` with content `// helper`.
 
-**Expected:** silent — `scripts/` is in the hook's `notContainsAny` exclusion list.
+**Expected:** silent — `scripts/` is in the hook's `notStartsWithAny` exclusion list.
 
 **Verify & Report:** expect silent.
 
