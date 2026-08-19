@@ -120,4 +120,3 @@ jobs:
         echo ""
         echo "Install with: pip install rosetta-mcp==${{ steps.check_version.outputs.version }}"
         echo "Or with uvx: uvx rosetta-mcp"
-

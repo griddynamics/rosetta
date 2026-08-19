@@ -124,4 +124,3 @@ jobs:
         echo ""
         echo "Install with: pip install ims-mcp==${{ steps.check_version.outputs.version }}"
         echo "Or with uvx: uvx ims-mcp"
-

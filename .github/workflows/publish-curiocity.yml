@@ -92,4 +92,3 @@ jobs:
         echo ""
         echo "Install with: npm install -g curiocity@${{ steps.check_version.outputs.version }}"
         echo "Or with npx: npx -y curiocity@latest"
-
