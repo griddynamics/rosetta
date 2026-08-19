@@ -135,7 +135,7 @@ describe('buildVfs', () => {
       const base = path.join(tmpDir, 'r1', 'core', 'rules');
       fs.mkdirSync(base, { recursive: true });
       fs.writeFileSync(path.join(base, 'policy~overwrite.md'), '# Overwrite');
-      fs.writeFileSync(path.join(base, 'policy~core-only.md'), '# Core only');
+      fs.writeFileSync(path.join(base, 'policy~core-claude-only.md'), '# Core Claude only');
 
       const vfs = buildVfs(tmpDir, 'r1', 'core');
       const policyFile = vfs.find((v) => v.path === 'rules/policy.md');

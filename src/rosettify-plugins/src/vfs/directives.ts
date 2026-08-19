@@ -1,10 +1,13 @@
 // FR-ARCH-0020–0024 — FilenameDirective parse and validate
 
+import { TARGET_NAMES } from '../spec/target-names.js';
+
 export type DirectiveToken = string;
 
 /**
  * Parse tilde-separated directives from a filename stem.
- * e.g. "file~overwrite~r2-only" → { stem: "file", directives: ["overwrite", "r2-only"] }
+ * e.g. "file~overwrite~core-claude-only" →
+ * { stem: "file", directives: ["overwrite", "core-claude-only"] }
  * FR-ARCH-0020: tilde grammar
  */
 export interface ParsedFilename {
@@ -12,11 +15,13 @@ export interface ParsedFilename {
   conditions: Set<DirectiveToken>;
 }
 
-const KNOWN_DIRECTIVES = new Set(['overwrite', 'target-only']);
+const KNOWN_DIRECTIVES = new Set([
+  'overwrite',
+  ...Object.values(TARGET_NAMES).map((target) => `${target}-only`),
+]);
 
 function isKnownDirective(directive: DirectiveToken): boolean {
-  return KNOWN_DIRECTIVES.has(directive)
-    || (KNOWN_DIRECTIVES.has('target-only') && directive.endsWith('-only') && directive !== '-only');
+  return KNOWN_DIRECTIVES.has(directive);
 }
 
 export function parseDirectives(filename: string): ParsedFilename {
@@ -31,7 +36,10 @@ export function parseDirectives(filename: string): ParsedFilename {
 
   for (const directive of rawDirectives) {
     if (!isKnownDirective(directive)) {
-      throw new Error(`Unknown filename directive "${directive}" in "${filename}"`);
+      const allowed = [...KNOWN_DIRECTIVES].join(', ');
+      throw new Error(
+        `Unknown filename directive "${directive}" in "${filename}". Allowed directives: ${allowed}`,
+      );
     }
   }
 

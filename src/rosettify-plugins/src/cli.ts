@@ -47,7 +47,7 @@ Source structure:
 
 Directives (in filenames, tilde-separated):
   file~overwrite.md   — overwrite earlier layers
-  file~core-only.md   — include only for core domain
+  file~core-claude-only.md — include only for the core-claude target
 
 Processor catalog:
   fileRead, fileApplyOverrides, fileBundle,

@@ -47,14 +47,14 @@ describe('parseDirectives', () => {
   });
 
   it('clean name does not include directive tokens', () => {
-    const result = parseDirectives('policy~overwrite~r2-only.md');
+    const result = parseDirectives('policy~overwrite~core-claude-only.md');
     expect(result.cleanName).toBe('policy.md');
     expect(result.conditions.size).toBe(2);
   });
 
-  it('rejects unknown directive tokens with filename context', () => {
-    expect(() => parseDirectives('policy~overwrit.md')).toThrow(
-      'Unknown filename directive "overwrit" in "policy~overwrit.md"',
+  it('rejects unknown target-only tokens with filename context and allowed directives', () => {
+    expect(() => parseDirectives('policy~clade-only.md')).toThrow(
+      'Unknown filename directive "clade-only" in "policy~clade-only.md". Allowed directives: overwrite, core-claude-only',
     );
   });
 });
@@ -78,7 +78,7 @@ describe('matchesTarget', () => {
   });
 
   it('returns false when only condition is target-only for different target', () => {
-    expect(matchesTarget(new Set(['acme-only']), 'core')).toBe(false);
+    expect(matchesTarget(new Set(['core-cursor-only']), 'core-claude')).toBe(false);
   });
 
   it('handles combination of overwrite and target-only — target-only still filters', () => {
