@@ -124,7 +124,7 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     expect(tree.plan.name).toBe("Unnamed Plan");
   });
 
-  it.each(["", "   "])("rejects an empty plan name %#", async (name) => {
+  it.each(["", "   ", 123, {}])("rejects an invalid plan name %#", async (name) => {
     const file = planFile();
     const result = await cmdCreate(file, { name });
     expect(result.ok).toBe(false);

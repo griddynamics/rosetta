@@ -124,7 +124,7 @@ describe("cmdUpsert — entire_plan on existing file (merge)", () => {
     expect(plan.name).toBe("Test Plan"); // unchanged
   });
 
-  it.each(["", "   "])("rejects an empty plan name %#", async (name) => {
+  it.each(["", "   ", 123, {}])("rejects an invalid plan name %#", async (name) => {
     const file = writePlan();
     const result = await cmdUpsert(file, "entire_plan", { name });
     expect(result.ok).toBe(false);

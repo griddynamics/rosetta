@@ -305,8 +305,8 @@ export function depsSatisfied(
 // Validation Functions
 // ---------------------------------------------------------------------------
 
-export function validatePlanName(name: string): string | null {
-  if (!name || !name.trim()) return "size_limit_exceeded";
+export function validatePlanName(name: unknown): string | null {
+  if (typeof name !== "string" || !name.trim()) return "size_limit_exceeded";
   if (name.length > PLAN_MAX_NAME_LENGTH) return "size_limit_exceeded";
   return null;
 }

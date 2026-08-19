@@ -240,6 +240,10 @@ describe("validatePlanName", () => {
     expect(validatePlanName("   ")).toBe("size_limit_exceeded");
   });
 
+  it.each([123, {}])("returns error for non-string name %#", (name) => {
+    expect(validatePlanName(name)).toBe("size_limit_exceeded");
+  });
+
   it("returns error for name exceeding 256 chars", () => {
     expect(validatePlanName("x".repeat(257))).toBe("size_limit_exceeded");
   });
