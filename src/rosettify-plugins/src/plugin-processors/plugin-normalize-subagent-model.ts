@@ -6,13 +6,13 @@
 // processor (FR-ARCH-0005). Antigravity keeps its own unconditional rewrite to `inherit`
 // (pluginAntigravitySubagentModel) and is never composed with this factory.
 //
-// Reuses the low-level selection/lookup/effort-split helpers from spec/model-maps.ts
-// (claudeFamilyKey, isCodexToken, splitCodexEffort) rather than reimplementing them, per
-// FR-COPY-0083's explicit "not a reimplementation" requirement and FR-COPY-0084 (a Codex token
-// must resolve identically to the frontmatter call sites).
+// Reuses the low-level selection/lookup helpers from spec/model-maps.ts (claudeFamilyKey,
+// isCodexToken) rather than reimplementing them, per FR-COPY-0083's explicit "not a
+// reimplementation" requirement and FR-COPY-0084 (a Codex token must resolve identically to the
+// frontmatter call sites).
 
 import { updatePluginFrame } from '../frames.js';
-import { claudeFamilyKey, isCodexToken, splitCodexEffort } from '../spec/model-maps.js';
+import { claudeFamilyKey, isCodexToken } from '../spec/model-maps.js';
 import type { FileProcessingFrame, PluginProcessingFrame, PluginProcessor } from '../types.js';
 
 /** Boundary-safe: anchored on the literal attribute name and its surrounding quotes; `[^"]*`
@@ -64,22 +64,25 @@ export const copilotSubagentModelTokenMapper: SubagentModelTokenMapper = cursorS
 /**
  * Codex: keeps every `gpt-`-prefixed token (FR-COPY-0083) regardless of map presence — mapped
  * through the effective map when present, else passed through as-is (mirrors normalizeCodex's
- * non-exhaustive fallback). The survivor is then effort-split and only the BASE model id is
- * emitted: the single-slot list attribute has no second slot for a separate reasoning-effort
- * value, unlike the frontmatter `model:` + `model_reasoning_effort` pair (FR-COPY-0083, GAP-1).
+ * non-exhaustive fallback). Unlike the frontmatter `model:` field, this attribute is free-form
+ * instruction prose read by an AI agent, not a machine-parsed config contract — there is no
+ * second slot for a separate reasoning-effort value the way frontmatter splits into `model:` +
+ * `model_reasoning_effort:`. A trailing `-high`/`-medium`/`-low` qualifier here is meaningful
+ * content the instruction author deliberately wrote to tell the agent which reasoning effort to
+ * use, so the survivor is emitted WHOLE, effort suffix intact — never split or stripped.
  */
 export const codexSubagentModelTokenMapper: SubagentModelTokenMapper = (token, map, exhaustive) => {
   if (!isCodexToken(token)) return null;
   // FR-PROF-0011: under an exhaustive per-target block the block IS the whole allowed vocabulary,
   // so a token absent from it does not exist and must be dropped — otherwise a model the profile
   // never permitted would still be named in this attribute. Without a block (the built-in Codex
-  // vocabulary is an empty identity map) an unmapped gpt- token passes through, which is
+  // vocabulary is an empty identity map) an unmapped gpt- token passes through as written, which is
   // normalizeCodex's non-exhaustive behavior and what FR-COPY-0083 means by "Codex keeps gpt-* tokens".
   if (!hasKey(map, token)) {
     if (exhaustive) return null;
-    return splitCodexEffort(token).model;
+    return token;
   }
-  return splitCodexEffort(map[token]).model;
+  return map[token];
 };
 
 /**

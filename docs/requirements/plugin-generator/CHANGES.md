@@ -1,5 +1,19 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-08-19 — `FR-COPY-0083` corrected: `subagent_required_model` tokens are emitted WHOLE
+
+**Files:** `FR-COPY.md`
+
+**Source:** Owner correction. `subagent_required_model` is instruction/guidance prose, not a keyword, format, or machine-parsed contract — so a Codex reasoning-effort qualifier is authored content, not a separable field.
+
+- `FR-COPY-0083` statement: the earlier rule emitting a surviving Codex token as its BASE model id with the reasoning-effort suffix removed is REVERSED. A surviving token is emitted whole (`gpt-5.5-high` emits as `gpt-5.5-high`). The original rule rested on the false premise that only a bare model id is valid on this surface; that is true of a parsed config field, not of guidance text, and stripping destroyed guidance the instruction author deliberately wrote.
+- The frontmatter `model:` path is UNCHANGED and remains correct: Codex genuinely splits a token into `model` + `model_reasoning_effort` there, because that field IS a parsed configuration contract. Two surfaces, two rules.
+- Added `FR-COPY-0083.AC7` covering whole-token emission (`gpt-5.5-high, gpt-5.4-low` normalizes to itself under the built-in map).
+- Consequence for de-duplication: two Codex tokens differing only by effort are now DISTINCT and no longer collapse, so de-dup coverage was rebuilt around two override keys mapping to the same value.
+- `implementationNotes` on `FR-COPY-0083` updated; no status or implementation value changed.
+
+---
+
 ## 2026-08-19 — plugin-generator profiles: user approval of the requirement set (26 units → `Approved`); published-vs-local caveat reverted; `FR-ARCH-0022` notes
 
 **Files:** `FR-PROF.md`, `MODEL.md`, `FR-CLI.md`, `FR-COPY.md`, `FR-ARCH.md`, `NFR.md`
@@ -20,7 +34,7 @@
 **Source:** implementation of the profiles capability via the coding workflow (autonomous mode) followed by an orchestrator audit. Records the factual code-state flips and two amendments settled during implementation; requirement `status` is untouched throughout and stays `Draft` pending user approval.
 
 - `implementation` set to `Implemented`, with concise file-level `implementationNotes`, for the 24 units now backed by verified code: `FR-PROF-0001`/`0010`/`0011`/`0020`/`0021`/`0030`/`0040`, `DATA-CFG-0003`/`0004`/`0006`, `FR-CLI-0001`/`0020`/`0032`/`0033`/`0060`, `FR-COPY-0020`/`0021`/`0022`/`0083`/`0084`, `FR-ARCH-0059`, `NFR-0001`/`0002`/`0003`. `status` and `approved_by` are UNCHANGED on every unit — `implementation` (code state) and `status` (user approval) are independent fields; these units remain `Draft`. `FR-ARCH-0020`/`FR-ARCH-0021` keep `status="Approved"` and their `implementation` unchanged (no behavior change).
-- `FR-COPY-0083` amended during implementation on two points the original text left underspecified: (1) per orchestrator ruling R1, a surviving Codex token is emitted in the single-slot `subagent_required_model` attribute as its BASE model id with any reasoning-effort suffix stripped (`gpt-5.5-high` → `gpt-5.5`), since the attribute has no effort slot and only the base id is a valid Codex model; (2) per ruling R4, where a per-target override block is in force that block is the whole allowed vocabulary, so a token absent from it is DROPPED from the list — Codex `gpt-` tokens included — closing a G5 leak (a disallowed model appearing anywhere in a shipped plugin). Without a block, the target's built-in behavior applies. Both were spec-gap closures, not behavior reversals.
+- `FR-COPY-0083` amended during implementation on two points the original text left underspecified: (1) per ruling R1 as CORRECTED by the owner on 2026-08-19, a surviving token is emitted WHOLE with its reasoning-effort qualifier retained (`gpt-5.5-high` → `gpt-5.5-high`) — the attribute is instruction guidance read by the executing agent, not a machine-parsed configuration field, so the qualifier is authored content and stripping it would destroy guidance; the frontmatter `model:` split into model + reasoning-effort is unaffected because that field IS a parsed contract; (2) per ruling R4, where a per-target override block is in force that block is the whole allowed vocabulary, so a token absent from it is DROPPED from the list — Codex `gpt-` tokens included — closing a G5 leak (a disallowed model appearing anywhere in a shipped plugin). Without a block, the target's built-in behavior applies. R4 was a spec-gap closure; R1's strip rule was a wrong premise, now reversed — see the 2026-08-19 entry.
 - Verification: `tsc` clean; 655 tests green; a no-profile dry run produces 2229 paths / vfsSize 320, identical to the pre-feature baseline; all seven `core-*-light` outputs produced under `--profile lightweight`. The always-on `subagent_required_model` normalization changed 114 committed plugin files / 510 lines, with `core-antigravity` unaffected.
 - Maintainer docs updated alongside these flips (outside this change log): `docs/ARCHITECTURE.md` (profile CLI options, the profile concept, filename-directive grammar incl. `profile-<name>-only`, always-on subagent-model normalization, and a published-vs-local `@latest` regeneration caveat), `agents/IMPLEMENTATION.md` (Plugin Generator workstream entry), `agents/MEMORY.md` (preventive rules).
 

@@ -128,33 +128,33 @@ describe('pluginNormalizeSubagentRequiredModel — Copilot mapper, real fixtures
   });
 });
 
-describe('pluginNormalizeSubagentRequiredModel — Codex mapper, real fixtures (effort stripped)', () => {
-  it('A: gpt- tokens survive; reasoning-effort suffix stripped to base id (gpt-5.5-high -> gpt-5.5), GAP-1/R1', () => {
+describe('pluginNormalizeSubagentRequiredModel — Codex mapper, real fixtures (effort retained, whole token)', () => {
+  it('A: gpt- tokens survive whole; reasoning-effort suffix is authored guidance and is retained as-is (gpt-5.5-high stays gpt-5.5-high)', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_A}"`, CODEX_VOCABULARY, codexSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="gpt-5.5, gpt-5.6-sol"');
+    ).toBe('subagent_required_model="gpt-5.5-high, gpt-5.6-sol"');
   });
 
-  it('B: same effort-strip behavior, source order preserved', () => {
+  it('B: same whole-token behavior, source order preserved', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_B}"`, CODEX_VOCABULARY, codexSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="gpt-5.4, gpt-5.6-terra"');
+    ).toBe('subagent_required_model="gpt-5.4-medium, gpt-5.6-terra"');
   });
 });
 
 describe('codexSubagentModelTokenMapper — exhaustive vs non-exhaustive (R4 ruling)', () => {
-  it('non-exhaustive (built-in Codex map is {}): an unmapped gpt- token passes through, effort stripped', () => {
-    expect(codexSubagentModelTokenMapper('gpt-5.6-experimental', {}, false)).toBe('gpt-5.6-experimental');
-    expect(codexSubagentModelTokenMapper('gpt-5.6-experimental', {}, undefined)).toBe('gpt-5.6-experimental');
+  it('non-exhaustive (built-in Codex map is {}): an unmapped gpt- token passes through whole, effort suffix intact', () => {
+    expect(codexSubagentModelTokenMapper('gpt-5.6-high', {}, false)).toBe('gpt-5.6-high');
+    expect(codexSubagentModelTokenMapper('gpt-5.6-high', {}, undefined)).toBe('gpt-5.6-high');
   });
 
   it('exhaustive: the SAME unmapped gpt- token is DROPPED — the block is the whole allowed vocabulary', () => {
-    expect(codexSubagentModelTokenMapper('gpt-5.6-experimental', {}, true)).toBeNull();
+    expect(codexSubagentModelTokenMapper('gpt-5.6-high', {}, true)).toBeNull();
   });
 
-  it('exhaustive: a token present in the block still resolves, then is effort-split', () => {
+  it('exhaustive: a token present in the block still resolves, emitted whole (no effort split)', () => {
     const map = { 'gpt-5.5-high': 'gpt-5.4-medium' };
-    expect(codexSubagentModelTokenMapper('gpt-5.5-high', map, true)).toBe('gpt-5.4');
+    expect(codexSubagentModelTokenMapper('gpt-5.5-high', map, true)).toBe('gpt-5.4-medium');
   });
 });
 
@@ -178,19 +178,25 @@ describe('pluginNormalizeSubagentRequiredModel — exhaustive profile block (FR-
         vocabulary,
         codexSubagentModelTokenMapper,
       ),
-    ).toBe('subagent_required_model="gpt-5.4"');
+    ).toBe('subagent_required_model="gpt-5.4-medium"');
   });
 });
 
 describe('pluginNormalizeSubagentRequiredModel — de-duplication (SYNTHETIC fixture, FR-COPY-0083.AC3)', () => {
   // No real measured subagent_required_model value exercises de-duplication (verified against all
   // 5 real fixtures through every built-in map — decisions.md R3). This case is deliberately
-  // synthetic: two Codex tokens differing only by reasoning effort collapse to the same base id
-  // once effort is stripped, which is exactly what makes de-duplication meaningful for Codex.
-  it('collapses gpt-5.4-high and gpt-5.4-medium to one gpt-5.4, keeping the first occurrence, non-gpt token dropped', () => {
-    const content = 'subagent_required_model="gpt-5.4-high, claude-opus-4-8, gpt-5.4-medium"';
-    expect(normalize(content, CODEX_VOCABULARY, codexSubagentModelTokenMapper)).toBe(
-      'subagent_required_model="gpt-5.4"',
+  // synthetic: with effort suffixes now retained, two effort variants of the same base id (e.g.
+  // gpt-5.4-high / gpt-5.4-medium) are DISTINCT values and no longer collapse on their own. The
+  // fixture that still demonstrates dedup is an exhaustive override block that sends two DIFFERENT
+  // source tokens to the SAME mapped value.
+  it('collapses two different tokens the exhaustive block maps to the same value, keeping the first occurrence, non-gpt token dropped', () => {
+    const vocabulary: ModelVocabulary = {
+      map: { 'gpt-5.4-high': 'gpt-5.4-medium', 'gpt-5.3': 'gpt-5.4-medium' },
+      exhaustive: true,
+    };
+    const content = 'subagent_required_model="gpt-5.4-high, claude-opus-4-8, gpt-5.3"';
+    expect(normalize(content, vocabulary, codexSubagentModelTokenMapper)).toBe(
+      'subagent_required_model="gpt-5.4-medium"',
     );
   });
 });
