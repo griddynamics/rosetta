@@ -15,20 +15,15 @@
   </p>
 </div>
 
-**Your team's engineering discipline, loaded into every agent session — not another agent, and not another set of IDE rules.**
+AI coding agents are impressive on their own — but on a real team they don't know your architecture, your conventions, or your rules. So they read a couple of open files and confidently do the wrong thing.
 
-Rosetta is open-source governance and context for the coding agents you already use: Claude Code, Cursor, Copilot, Codex, Antigravity, and anything else that speaks MCP. It loads your architecture, conventions and constraints before the agent starts, gates the risky steps behind your approval, and keeps all of it versioned in Git inside your perimeter.
+Rosetta fixes that. It loads your team's shared engineering knowledge into every agent session, so the agent works the way an experienced teammate would: understand the codebase first, propose a plan, get your sign-off, do the work, then check it actually works.
 
-**Teach agents how to think, not what to do.** The model already knows Python and React. What it lacks is how your team decides things. Rosetta ships with 40 preloaded skills (guardrails, questioning, reasoning, security, debugging, and more) and 14 multi-phase workflows that cover everything from coding to requirements authoring to security reviews — tested patterns from real projects, ready to use.
+It's not a new AI agent and it doesn't replace the tools you already have. It plugs into Claude Code, Cursor, GitHub Copilot, Codex, Antigravity, and other MCP-compatible agents, and makes them behave better.
 
-> [!NOTE]
-> If you are already writing your own skills and managing agents with processes that work, you probably don't need Rosetta. It earns its place when several people have to get consistent results from the same codebase.
+## Installation (30-second setup)
 
-https://github.com/user-attachments/assets/6df6e217-3e5c-4691-84ed-7440701a87de
-
-## Install (10 minutes to your first workflow)
-
-**1. Install the plugin.** Files install locally — no server, no live connection at request time. Install for **one** agent only: two installations leave you with duplicate tools, commands and context, which is worse than not installing at all.
+Get the plugin into your agent — files install locally, no server, no live connection at request time. Install for **one** agent only: two installations leave you with duplicate tools, commands and context.
 
 <details>
 <summary><b>Claude Code</b> — marketplace</summary>
@@ -84,125 +79,119 @@ For every workspace instead of one, extract into `~/.gemini/config/plugins/roset
 
 </details>
 
-**2. Initialize the repository.** Once per repo, then commit the result. Ask your agent:
+<details>
+<summary><b>MCP</b> — evaluation, or an agent with no plugin</summary>
+
+A public demo endpoint — do not point production or sensitive repositories at it. **[MCPs](MCPs.md)** for the hosted setup, **[docs/mcp/DEPLOYMENT_GUIDE](docs/mcp/DEPLOYMENT_GUIDE.md)** if your team needs a self-hosted, centrally-managed deployment instead.
+
+</details>
+
+> [!TIP]
+> Pick the model deliberately — Sonnet 5 medium, GPT-5.4-medium, gemini-3.1-pro or newer, and avoid Auto selection; it changes both quality and cost substantially. And if you already run JUXT, Superpowers, GSD or AI-DevKit, they conflict with Rosetta; stay with the one you know.
+
+## Set up your repository
+
+Before Rosetta can help with real tasks, it needs to understand your project. You do this once per repository with the init workspace workflow. The agent studies your code, writes a handful of context documents, and asks you a few questions to fill gaps.
+
+To run it just ask the agent in plain language, which runs `/init-workspace-flow`.
+
+### Existing project (brownfield)
+
+Most common case — you already have code:
 
 ```
 Initialize this repository using the respective Rosetta workflow
 ```
 
-It reads your stack and writes `TECHSTACK.md`, `CODEMAP.md`, `DEPENDENCIES.md`, `ARCHITECTURE.md` and `CONTEXT.md`, asking you questions as it goes. Add context to that same message to save a round trip — target stack for a new repo, where dead code lives, whether the workspace holds several repositories.
+### New project (greenfield)
 
-**3. Restart your session** so the agent picks up the new files, then start a workflow. A few examples:
+Starting from an empty or near-empty repo? Tell it what you're building:
 
 ```
-/coding-flow Add password reset to the auth service
-/requirements-authoring-flow Extract detailed requirements from the ticket
-/security-flow Run a security review of the auth module
+Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ...
 ```
 
-See the **[Workflows](#workflows)** section below for the full reference.
+### Multiple repositories in one workspace (composite)
 
-**You know it worked when** the agent opens by stating what it understood about your architecture and asks for approval before making changes — instead of editing files immediately.
+Initialize each repository on its own first, then run this at the workspace level:
 
-> [!TIP]
-> **Before you begin:** Pick the model deliberately — Sonnet 5 medium, GPT-5.4-medium, gemini-3.1-pro or newer, and avoid Auto selection; it changes both quality and cost substantially. And if you already run JUXT, Superpowers, GSD or AI-DevKit, they conflict with Rosetta; stay with the one you know.
+```
+Initialize this repository using the respective Rosetta workflow, this is a composite workspace
+```
 
 ## Workflows
 
-Workflows split on one axis — **what you are trying to do**. Start any of them by typing the command to your agent.
+Each one covers an entire area of work end to end. If a full workflow is not needed you can ask directly, or use a skill on its own.
 
-**Build and change**
-
-| I want to… | Command |
-| --- | --- |
-| Write a feature, fix a bug, add tests | `/coding-flow` |
-| Define what to build before building it | `/requirements-authoring-flow` |
-| Handle a small or unusual task | `/adhoc-flow` |
-
-**Test and QA**
-
-| I want to… | Command |
-| --- | --- |
-| Design test cases from a ticket | `/testgen-flow` |
-| Automate a UI test | `/ui-aqa-flow` |
-| Automate an API test | `/api-aqa-flow` |
-
-**Understand**
-
-| I want to… | Command |
-| --- | --- |
-| Understand an existing codebase | `/code-analysis-flow` |
-| Investigate options or compare technologies | `/research-flow` |
-
-**Transform**
-
-| I want to… | Command |
-| --- | --- |
-| Migrate or upgrade a system in phases | `/modernization-flow` |
-| Teach the agent an external or private library | `/external-lib-flow` |
-
-**Govern quality**
-
-| I want to… | Command |
-| --- | --- |
-| Run a security review | `/security-flow` |
-| Author or adapt agent prompts | `/coding-agents-prompting-flow` |
-
-**When you are stuck**
-
-| I want to… | Entry point |
-| --- | --- |
-| Find the right workflow | `/help-flow` |
-| Diagnose a run that went wrong | the `post-mortem` skill |
-
-Full descriptions, what each produces, and what you will be asked to approve: **[USAGE_GUIDE.md](USAGE_GUIDE.md#workflows)**.
+- **[Get help](user-guide/scenarios/get-help.md)**: A conversational way to discover what Rosetta can do and pick the right workflow, then hand off straight into it.
+- **[Write or change code](user-guide/scenarios/coding.md)**: Discovery, a design you approve, a plan you approve, implementation, and a separate review-and-validation pass — for features, bug fixes, refactors, and unit tests.
+- **[Ad-hoc task](user-guide/scenarios/adhoc-task.md)**: Composes discovery, requirements capture, planning and other building blocks into a bespoke plan for work that doesn't fit any other scenario.
+- **[Author requirements](user-guide/scenarios/requirements.md)**: Drafts, reviews and validates requirements as small, atomic, testable units, each one approved by you.
+- **[Analyze a codebase](user-guide/scenarios/analyze-a-codebase.md)**: Reverse-engineers an existing codebase into grounded architecture documentation — every claim traced to real code.
+- **[Automate API tests](user-guide/scenarios/automate-api-tests.md)**: Turns API contracts and test cases into working, corrected, passing automated tests, HITL-gated.
+- **[Automate UI tests](user-guide/scenarios/automate-ui-tests.md)**: Turns a test case into a working automated UI/browser test that follows your repo's existing page objects and conventions.
+- **[Generate test cases](user-guide/scenarios/generate-test-cases.md)**: Turns a ticket into a structured requirements document and manual test cases, then exports them to your test management system.
+- **[Review security](user-guide/scenarios/security-review.md)**: Runs an authorized, evidence-preserving security review that ends with sanitized findings and remediation-task inputs — it reviews and reports, not fixes.
+- **[Modernize / migrate](user-guide/scenarios/modernize.md)**: Migrates or upgrades a system through strictly sequential, spec-first phases — document, prove behavior with evidence, map the target, get approval, then implement one piece at a time.
+- **[Onboard a library](user-guide/scenarios/onboard-a-library.md)**: Packages an external or private library into compact reference material plus a short learning guide, so the agent can use its API without source access.
+- **[Author agent prompts](user-guide/scenarios/author-agent-prompts.md)**: Authors or adapts prompts for AI coding agents — skills, subagents, workflows, rules — through discover → brief → blueprint → draft/harden → simulate → validate.
+- **[Research a question](user-guide/scenarios/research.md)**: Writes the research prompt for your approval, then runs it and produces a documented, grounded answer.
 
 ## Skills
 
-Workflows are what you type. Skills are what Rosetta brings in on its own, and the split matters: a skill declares the conditions under which it must activate, so it engages when the situation matches rather than when someone remembers it exists. That is why the guardrails hold on a Friday evening.
+Workflows are what you type; skills are the 40 reusable disciplines underneath. They don't split cleanly into "you call it" and "it calls itself" — most are stitched into a specific workflow phase and are never invoked on their own. Four honest groups, by how each is actually engaged:
 
-Six you will actually notice, because they interrupt you:
+**Always active** — engage on every task, or every task for a given role, regardless of what you asked for:
 
-| Skill | Activates when |
-| --- | --- |
-| **[hitl](instructions/r3/core/skills/hitl/SKILL.md)** | Always. It owns the approval gates and the questioning rounds — the reason the agent asks before acting |
-| **[sensitive-data](instructions/r3/core/skills/sensitive-data/SKILL.md)** | Anything that might be a secret, credential or PII is about to be read, written or echoed |
-| **[dangerous-actions](instructions/r3/core/skills/dangerous-actions/SKILL.md)** | An action, or its consequence, could be destructive or irreversible |
-| **[risk-assessment](instructions/r3/core/skills/risk-assessment/SKILL.md)** | The environment can reach databases, cloud services, or anything above local |
-| **[deviation](instructions/r3/core/skills/deviation/SKILL.md)** | Intent is unclear, something came as a surprise, or you asked to undo |
-| **[self-learning](instructions/r3/core/skills/self-learning/SKILL.md)** | A run failed, or produced something other than what you asked for |
+- **[hitl](instructions/r3/core/skills/hitl/SKILL.md)**: Owns the approval gates and the questioning rounds — the reason the agent asks before acting.
+- **[sensitive-data](instructions/r3/core/skills/sensitive-data/SKILL.md)**: Activates when anything that might be a secret, credential or PII is about to be read, written or echoed.
+- **[dangerous-actions](instructions/r3/core/skills/dangerous-actions/SKILL.md)**: Activates when an action, or its consequence, could be destructive or irreversible.
+- **[risk-assessment](instructions/r3/core/skills/risk-assessment/SKILL.md)**: Activates when the environment can reach databases, cloud services, or anything above local.
+- **[deviation](instructions/r3/core/skills/deviation/SKILL.md)**: Activates when intent is unclear, something came as a surprise, or you asked to undo.
+- **[self-learning](instructions/r3/core/skills/self-learning/SKILL.md)**: Activates when a run failed, or produced something other than what you asked for.
+- **[self-organization](instructions/r3/core/skills/self-organization/SKILL.md)**: Activates past 65% context usage or a large multi-file scope, before the session sprawls into stale, unreviewable state.
+- **[orchestration](instructions/r3/core/skills/orchestration/SKILL.md)**: Owns how the agent delegates to subagents — spawning one without it is treated as a defect, not a choice.
+- **[questioning](instructions/r3/core/skills/questioning/SKILL.md)**: Asks targeted clarifying questions, but only when an unknown is high-impact enough to block safe execution.
+- **[load-project-context](instructions/r3/core/skills/load-project-context/SKILL.md)**: Loads `CONTEXT.md` and `ARCHITECTURE.md` at the start of every session, so the agent starts from your project, not a blank slate.
+- **[subagent-directives](instructions/r3/core/skills/subagent-directives/SKILL.md)**: The duties every spawned subagent inherits automatically, regardless of task.
 
-A few are meant to be invoked deliberately: **[post-mortem](instructions/r3/core/skills/post-mortem/SKILL.md)** root-causes a run that disappointed you and can file a sanitized issue with your approval, **[reasoning](instructions/r3/core/skills/reasoning/SKILL.md)** forces structured thinking on a hard problem and runs on explicit request only, **[codemap](instructions/r3/core/skills/codemap/SKILL.md)** builds and uses a code map, **[coding-agents-farm](instructions/r3/core/skills/coding-agents-farm/SKILL.md)** runs parallel coding agents on isolated git worktrees, and the `solr-*` set covers Solr schema, query, extension and semantic-search work.
+**Built into the workflows above** — not invoked directly; each is a phase inside one or more of the 14 workflows:
 
-All 40 live in [instructions/r3/core/skills/](instructions/r3/core/skills) — one folder each, and every `SKILL.md` states its own activation rule in the first lines.
+- **[coding](instructions/r3/core/skills/coding/SKILL.md)**: The implementation discipline behind the coding workflow — KISS/SOLID/DRY, multi-environment awareness, systematic validation.
+- **[testing](instructions/r3/core/skills/testing/SKILL.md)**: Thorough, isolated, idempotent tests — 80%+ coverage, external-only mocking, scenario-driven.
+- **[debugging](instructions/r3/core/skills/debugging/SKILL.md)**: Root-causes errors and test failures before attempting a fix, instead of patching the symptom.
+- **[tech-specs](instructions/r3/core/skills/tech-specs/SKILL.md)**: Turns approved requirements into testable technical specs — target architecture, contracts, interfaces.
+- **[planning](instructions/r3/core/skills/planning/SKILL.md)**: Builds an execution-ready plan from approved specs: sequenced work breakdown, checklists, HITL checkpoints.
+- **[reverse-engineering](instructions/r3/core/skills/reverse-engineering/SKILL.md)**: Extracts behavior and domain logic from existing code into a spec — the what and why, not the how.
+- **[qa-knowledge](instructions/r3/core/skills/qa-knowledge/SKILL.md)**: The QA engineering core: requirements/gap analysis, scenario and spec design, test implementation, failure triage.
+- **[qa-structure](instructions/r3/core/skills/qa-structure/SKILL.md)**: Resolves QA session paths, identifiers, and state-file shape, so QA workflows share one consistent layout.
+- **[data-collection](instructions/r3/core/skills/data-collection/SKILL.md)**: Gathers QA source artifacts from the issue tracker, wiki, or test management system before a workflow starts.
+- **[security](instructions/r3/core/skills/security/SKILL.md)**: Runs the authorized, evidence-preserving review behind the security workflow and prepares remediation inputs — never fixes anything itself.
+- **[natural-writing](instructions/r3/core/skills/natural-writing/SKILL.md)**: Rewrites agent output into clear, honest human tone — no AI slop, no hype.
+- **[codemap](instructions/r3/core/skills/codemap/SKILL.md)**: Generates, maintains, and queries a structural map of the codebase.
+- **[large-workspace-handling](instructions/r3/core/skills/large-workspace-handling/SKILL.md)**: Splits a 100+ file workspace into scoped subagent tasks when one context window can't hold it all.
+- **[requirements-authoring](instructions/r3/core/skills/requirements-authoring/SKILL.md)**: Drafts, updates, and validates requirements as atomic, user-approved units.
+- **[requirements-use](instructions/r3/core/skills/requirements-use/SKILL.md)**: Consumes already-approved requirements for planning, implementation, and validation, with traceability back to them.
+- **[coding-agents-prompt-authoring](instructions/r3/core/skills/coding-agents-prompt-authoring/SKILL.md)**: The authoring discipline behind writing or adapting a skill, agent, workflow, or rule — brief, contract, validation pack.
 
-## Why this exists
+**Standalone** — no workflow calls these; invoke by name, or the agent reaches for one on its own judgment when the description matches:
 
-| The problem | What Rosetta does about it |
-| --- | --- |
-| **Everyone prompts differently.** Each developer builds their own prompts. The good ones live in someone's scratch file, the rest are reinvented weekly, and nothing survives a person leaving | Instructions live in the repository, versioned in Git, loaded every session. Improving how the agent works becomes a pull request everyone gets, not a tip in a channel |
-| **The agent doesn't know your architecture.** Handed a task, it sees a handful of open files — not the module nobody may import, nor the convention your team settled on after getting it wrong. So it infers a plausible design and implements it confidently | Initialization writes your architecture, code map, dependencies and domain context into the repo, and Rosetta loads them before work starts. `/code-analysis-flow` builds that understanding for an existing codebase |
-| **It does the risky thing without asking.** The failures that cost real time are a migration that ran, a dependency swapped, a refactor across forty files — decided silently, discovered at review | Every workflow runs **Prepare → Research → Plan → Act → Validate** with approval gates where a decision becomes expensive to reverse. You see the plan before the work, not the diff after it |
-| **Your setup is locked to one tool.** Rules in one IDE's format do not move. Change tools and the accumulated knowledge stays behind | One instruction set, delivered to every supported agent. The instructions are plain files in your repository — readable, reviewable, portable. Nothing requires a live connection to us |
+- **[design](instructions/r3/core/skills/design/SKILL.md)**: Decides architecture — lays out alternatives and tradeoffs, commits to one with a stated rationale and boundaries.
+- **[discovery](instructions/r3/core/skills/discovery/SKILL.md)**: Establishes what already exists — affected areas, current behavior, prior attempts, dependencies — before any plan is drafted.
+- **[research](instructions/r3/core/skills/research/SKILL.md)**: Deep, grounded investigation — the agent drafts the research prompt for your approval, then runs it and documents the answer.
+- **[post-mortem](instructions/r3/core/skills/post-mortem/SKILL.md)**: Root-causes a run that disappointed you, and can file a sanitized issue with your approval.
+- **[reasoning](instructions/r3/core/skills/reasoning/SKILL.md)**: Structured meta-cognitive reasoning for a hard problem — the one skill here that only runs when explicitly asked.
+- **[rosetta](instructions/r3/core/skills/rosetta/SKILL.md)**: Reads a plain request and routes it to the workflow that best matches — the engine behind `/rosetta`.
+- **[coding-agents-farm](instructions/r3/core/skills/coding-agents-farm/SKILL.md)**: Runs parallel coding agents on isolated git worktrees.
+- **[coding-agents-hooks-authoring](instructions/r3/core/skills/coding-agents-hooks-authoring/SKILL.md)**: Authors, registers, and tests Rosetta's own hooks — for extending Rosetta itself, not for using it.
+- **[specflow-use](instructions/r3/core/skills/specflow-use/SKILL.md)**: Connects Rosetta to Grid Dynamics SpecFlow MCP — relevant only if SpecFlow is already installed.
 
-In short: shared instructions instead of private prompts, your architecture loaded instead of inferred, approval gates where reversal gets expensive, and none of it tied to one vendor.
+**Solr specialism** — domain-specific, not part of the general Rosetta flow:
 
-The mental model and design principles are in **[OVERVIEW.md](OVERVIEW.md)**; the business case and who it serves in **[docs/CONTEXT.md](docs/CONTEXT.md)**.
-
----
-
-## Working on Rosetta itself
-
-This repository is the **instructions repository**: it defines how agents behave, and nothing in it runs against your product code. Agents do the work in a *target repository* — that is where `docs/CONTEXT.md`, `agents/IMPLEMENTATION.md` and the rest get written.
-
-| Read this | For |
-| --- | --- |
-| **[CONTRIBUTING.md](CONTRIBUTING.md)** | What contributions are welcome, the PR checklist, DCO sign-off |
-| **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** | Repository layout, local development, validation commands, where to change what |
-| **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | Components, the plugin generation pipeline, bootstrap flow |
-| **[REVIEW.md](REVIEW.md)** | The standards a change is evaluated against |
-
-One thing to know before your first change: [plugins/](plugins) is generated output that happens to be committed. Edit [instructions/r3/core/](instructions/r3/core) and regenerate — never edit `plugins/` by hand.
+- **[solr-schema](instructions/r3/core/skills/solr-schema/SKILL.md)**: Designs and audits Solr schemas — field types, analyzers, docValues, solrconfig.
+- **[solr-query](instructions/r3/core/skills/solr-query/SKILL.md)**: Builds and debugs Solr queries — eDisMax, block join, JSON facets, kNN, explain.
+- **[solr-extending](instructions/r3/core/skills/solr-extending/SKILL.md)**: Builds Solr plugins — SearchComponent, QParser, URP, DocTransformer.
+- **[solr-semantic-search](instructions/r3/core/skills/solr-semantic-search/SKILL.md)**: Builds Solr phrase-tagging semantic search — concept tagging, taxonomy, graph paths.
 
 ## Documentation
 
@@ -211,24 +200,17 @@ One thing to know before your first change: [plugins/](plugins) is generated out
 
 | Read this | When |
 | --- | --- |
-| **[user-guide/](user-guide/README.md)** | You are learning to use Rosetta, task by task |
-| **[QUICKSTART.md](QUICKSTART.md)** | You are installing it now |
-| **[PLUGINS.md](PLUGINS.md)** · **[MCPs.md](MCPs.md)** | You are picking a delivery mode, or installing one |
-| **[INSTALLATION.md](INSTALLATION.md)** | You need every install mode and transport, and every file initialization creates |
-| **[CONFIGURATION.md](CONFIGURATION.md)** | You are wiring it to your tools and MCPs |
-| **[USAGE_GUIDE.md](USAGE_GUIDE.md)** | You need the full reference: every workflow phase by phase |
-| **[OVERVIEW.md](OVERVIEW.md)** | You want the mental model and the design principles |
-| **[docs/CONTEXT.md](docs/CONTEXT.md)** | You want why it exists and who it serves, with no technical detail |
-| **[ELEVATOR_PITCH.md](ELEVATOR_PITCH.md)** | You are explaining Rosetta to someone else |
-| **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** · **[FAQ.md](FAQ.md)** | Something is not working |
-| **[CHANGELOG.md](CHANGELOG.md)** | You want to know what changed between releases |
-| **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** · **[docs/MCP-ARCHITECTURE.md](docs/MCP-ARCHITECTURE.md)** | You want to know how it is built |
-| **[docs/AUTOMATION-ARCHITECTURE.md](docs/AUTOMATION-ARCHITECTURE.md)** | You are touching this repo's own GitHub automation |
-| **[docs/TESTING-PLUGINS.md](docs/TESTING-PLUGINS.md)** | You are testing a generated plugin |
-| **[docs/mcp/DEPLOYMENT_GUIDE.md](docs/mcp/DEPLOYMENT_GUIDE.md)** | You are self-hosting MCP and RAGFlow |
-| **[CONTRIBUTING.md](CONTRIBUTING.md)** · **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** | You are contributing |
-| **[REVIEW.md](REVIEW.md)** | You want the standards a change is evaluated against |
-| **[SECURITY.md](SECURITY.md)** | You are reporting a vulnerability, or reviewing our posture |
+| **[PLUGINS](PLUGINS.md)** · **[MCPs](MCPs.md)** | You are picking a delivery mode, or installing one |
+| **[CONFIGURATION](CONFIGURATION.md)** | Engineers setting up a workspace (in the VS Code sense) for the first time, so AI coding agents work well in it |
+| **[OVERVIEW](OVERVIEW.md)** | Engineers, leads, and architects who want to understand how Rosetta works before contributing or evaluating it |
+| **[CONTEXT](docs/CONTEXT.md)** | Contributors, architects, and stakeholders who need to understand the business purpose, domain, and requirements behind Rosetta |
+| **[TROUBLESHOOTING](TROUBLESHOOTING.md)** · **[FAQ](FAQ.md)** | Anyone blocked while using or developing Rosetta |
+| **[CHANGELOG](CHANGELOG.md)** | Weekly change log |
+| **[ARCHITECTURE](docs/ARCHITECTURE.md)** · **[MCP-ARCHITECTURE](docs/MCP-ARCHITECTURE.md)** | Contributors who need to understand how Rosetta works before changing it |
+| **[USER GUIDE](user-guide/README.md)** | Guide helps you use Rosetta |
+| **[CONTRIBUTING](CONTRIBUTING.md)** · **[DEVELOPER_GUIDE](DEVELOPER_GUIDE.md)** | First-time and active contributors |
+| **[REVIEW](REVIEW.md)** | Reviewers and PR authors |
+| **[SECURITY](SECURITY.md)** | Discover a security vulnerability in Rosetta |
 
 </details>
 
@@ -242,6 +224,15 @@ One thing to know before your first change: [plugins/](plugins) is generated out
 ## For AI agents
 
 Machine-readable instruction bundle: [`llms-full.txt`](llms-full.txt).
+
+## Demo
+
+<details>
+<summary><b>Watch the demo</b></summary>
+
+https://github.com/user-attachments/assets/6df6e217-3e5c-4691-84ed-7440701a87de
+
+</details>
 
 ## Tech Demo
 
