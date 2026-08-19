@@ -49,17 +49,37 @@ export function claudeFamilyKey(token: string): 'opus' | 'sonnet' | 'haiku' | nu
   return null;
 }
 
+/**
+ * Resolve one claude-compatible token against a Claude-vocabulary map: EXACT source token first,
+ * then the derived family key. Returns null when neither is present.
+ *
+ * The exact-token tier exists because family keying alone cannot express a model VERSION: every
+ * opus token collapses to the single `opus` key, so a map keyed only by family can name exactly one
+ * opus. An exact key lets a specific source token (`claude-5-opus-high`) resolve to a specific model
+ * id while every other opus token keeps resolving through `opus`. Exact-first, never family-first —
+ * the specific statement must win over the general one.
+ *
+ * Shared by normalizeClaude and claudeSubagentModelTokenMapper (FR-COPY-0083 requires the two
+ * surfaces use the same selection/lookup logic rather than parallel implementations).
+ */
+export function claudeLookup(token: string, map: Record<string, string>): string | null {
+  if (hasKey(map, token)) return map[token];
+  const key = claudeFamilyKey(token);
+  if (key !== null && hasKey(map, key)) return map[key];
+  return null;
+}
+
 /** Codex-compatible test (FR-COPY-0022): starts with "gpt-" (case-insensitive). */
 export function isCodexToken(token: string): boolean {
   return token.toLowerCase().startsWith('gpt-');
 }
 
 /**
- * Split a trailing "-<effort>" (high|medium|low) suffix off a model id.
+ * Split a trailing "-<effort>" (xhigh|high|medium|low) suffix off a model id.
  * `effort` is undefined when the id carries no such suffix. FR-COPY-0022.
  */
 export function splitCodexEffort(token: string): CodexModelResult {
-  const effortMatch = token.match(/^(.+)-(?:(high|medium|low))$/);
+  const effortMatch = token.match(/^(.+)-(?:(xhigh|high|medium|low))$/);
   if (effortMatch) {
     return { model: effortMatch[1], effort: effortMatch[2] };
   }
@@ -73,9 +93,17 @@ export function splitCodexEffort(token: string): CodexModelResult {
 
 // FR-COPY-0021 — Claude Code full model IDs; update here when models change
 const CLAUDE_CODE_MAP: Record<string, string> = {
+  // Family keys — the default for any opus/sonnet/haiku token that names no exact entry below.
   opus: 'claude-opus-4-8',
   sonnet: 'claude-sonnet-5',
   haiku: 'claude-haiku-4-5',
+  // Exact source tokens, consulted BEFORE the family keys (claudeLookup). Needed wherever a source
+  // token names a model version the family key does not resolve to: `opus` maps to Opus 4.8, so an
+  // author asking for Opus 5 has no other way to say it. Adding an exact key changes nothing for any
+  // other token — only a byte-equal source token hits it.
+  'claude-5-opus-high': 'claude-opus-5',
+  'claude-5-opus': 'claude-opus-5',
+  'claude-opus-5': 'claude-opus-5',
 };
 
 /**
@@ -97,9 +125,9 @@ export function normalizeClaude(
   for (const token of tokens) {
     if (!isClaudeCompatibleToken(token)) continue;
     foundClaudeToken = true;
-    const key = claudeFamilyKey(token);
-    if (key !== null && hasKey(map, key)) {
-      return map[key];
+    const resolved = claudeLookup(token, map);
+    if (resolved !== null) {
+      return resolved;
     }
     // Key absent (or no tier substring at all): non-exhaustive ⇒ this claude-compatible token is
     // 'inherit'-eligible (a claude token with a tier key absent from a NON-exhaustive built-in map
@@ -133,9 +161,27 @@ const CURSOR_CLAUDE_MAP: Record<string, string> = {
   'claude-sonnet-4-6': 'claude-sonnet-5',
   'claude-sonnet-5': 'claude-sonnet-5',
   'claude-haiku-4-5': 'claude-haiku-4-5',
+  'claude-5-opus-high': 'claude-opus-5',
+  'claude-5-opus': 'claude-opus-5',
+  'claude-opus-5': 'claude-opus-5',
 };
 
 const CURSOR_GPT_MAP: Record<string, string> = {
+  // GPT-5.6 — effort-qualified forms only. The BARE forms (`gpt-5.6-sol`/`-terra`/`-luna`) are
+  // deliberately absent: they appear ~105 times across the base instruction set, so mapping them
+  // would rewrite the standard plugins too. That wider vocabulary gap is tracked in docs/TODO.md.
+  'gpt-5.6-sol-xhigh':    'gpt-5.6-sol',
+  'gpt-5.6-sol-high':     'gpt-5.6-sol',
+  'gpt-5.6-sol-medium':   'gpt-5.6-sol',
+  'gpt-5.6-sol-low':      'gpt-5.6-sol',
+  'gpt-5.6-terra-xhigh':  'gpt-5.6-terra',
+  'gpt-5.6-terra-high':   'gpt-5.6-terra',
+  'gpt-5.6-terra-medium': 'gpt-5.6-terra',
+  'gpt-5.6-terra-low':    'gpt-5.6-terra',
+  'gpt-5.6-luna-xhigh':   'gpt-5.6-luna',
+  'gpt-5.6-luna-high':    'gpt-5.6-luna',
+  'gpt-5.6-luna-medium':  'gpt-5.6-luna',
+  'gpt-5.6-luna-low':     'gpt-5.6-luna',
   // GPT-5.5
   'gpt-5.5-high':         'gpt-5.5',
   'gpt-5.5-medium':       'gpt-5.5',
@@ -159,10 +205,21 @@ const CURSOR_GPT_MAP: Record<string, string> = {
 };
 
 const CURSOR_GEMINI_MAP: Record<string, string> = {
+  'gemini-3.7-flash-high': 'gemini-3.7-flash',
+  'gemini-3.7-flash-medium': 'gemini-3.7-flash',
+  'gemini-3.7-flash-low': 'gemini-3.7-flash',
+  'gemini-3.7-flash': 'gemini-3.7-flash',
   'gemini-3.5-flash': 'gemini-3.5-flash',
   'gemini-3-flash': 'gemini-3.5-flash',
   'gemini-3.1-pro-preview': 'gemini-3.1-pro',
   'gemini-3.1-pro': 'gemini-3.1-pro',
+};
+
+const CURSOR_GROK_MAP: Record<string, string> = {
+  'grok-4.6-high': 'grok-4.6',
+  'grok-4.6-medium': 'grok-4.6',
+  'grok-4.6-low': 'grok-4.6',
+  'grok-4.6': 'grok-4.6',
 };
 
 /**
@@ -210,9 +267,25 @@ const COPILOT_CLAUDE_MAP: Record<string, string> = {
   'claude-sonnet-4-6': 'Claude Sonnet 5',
   'claude-sonnet-5': 'Claude Sonnet 5',
   'claude-haiku-4-5': 'Claude Haiku 4.5',
+  'claude-5-opus-high': 'Claude Opus 5',
+  'claude-5-opus': 'Claude Opus 5',
+  'claude-opus-5': 'Claude Opus 5',
 };
 
 const COPILOT_GPT_MAP: Record<string, string> = {
+  // GPT-5.6 — effort-qualified forms only, for the same reason as the Cursor map above.
+  'gpt-5.6-sol-xhigh':    'GPT-5.6 Sol',
+  'gpt-5.6-sol-high':     'GPT-5.6 Sol',
+  'gpt-5.6-sol-medium':   'GPT-5.6 Sol',
+  'gpt-5.6-sol-low':      'GPT-5.6 Sol',
+  'gpt-5.6-terra-xhigh':  'GPT-5.6 Terra',
+  'gpt-5.6-terra-high':   'GPT-5.6 Terra',
+  'gpt-5.6-terra-medium': 'GPT-5.6 Terra',
+  'gpt-5.6-terra-low':    'GPT-5.6 Terra',
+  'gpt-5.6-luna-xhigh':   'GPT-5.6 Luna',
+  'gpt-5.6-luna-high':    'GPT-5.6 Luna',
+  'gpt-5.6-luna-medium':  'GPT-5.6 Luna',
+  'gpt-5.6-luna-low':     'GPT-5.6 Luna',
   // GPT-5.5
   'gpt-5.5-high':         'GPT-5.5',
   'gpt-5.5-medium':       'GPT-5.5',
@@ -236,6 +309,10 @@ const COPILOT_GPT_MAP: Record<string, string> = {
 };
 
 const COPILOT_GEMINI_MAP: Record<string, string> = {
+  'gemini-3.7-flash-high': 'Gemini 3.7 Flash',
+  'gemini-3.7-flash-medium': 'Gemini 3.7 Flash',
+  'gemini-3.7-flash-low': 'Gemini 3.7 Flash',
+  'gemini-3.7-flash': 'Gemini 3.7 Flash',
   'gemini-3.1-pro-preview': 'Gemini 3.1 Pro (Preview)',
   'gemini-3.1-pro': 'Gemini 3.1 Pro (Preview)',
   'gemini-3-flash': 'Gemini 3.5 Flash',
@@ -312,12 +389,13 @@ export const CLAUDE_VOCABULARY: ModelVocabulary = {
   map: CLAUDE_CODE_MAP,
 };
 
-// Cursor/Copilot merge their three per-vendor maps (claude+gpt+gemini) into one flat map consulted
-// by exact-token lookup. Keys are disjoint across the three source maps (claude-*/gpt-*/gemini-*
-// prefixes never collide — verified: 33 total keys, 33 unique across CURSOR_CLAUDE_MAP ∪
-// CURSOR_GPT_MAP ∪ CURSOR_GEMINI_MAP, same key-set shape for Copilot), so merge order is immaterial.
+// Cursor/Copilot merge their per-vendor maps into one flat map consulted by exact-token lookup.
+// Keys are disjoint across the source maps (claude-*/gpt-*/gemini-*/grok-* prefixes never collide —
+// verified: Cursor 56 total keys, 56 unique across CURSOR_CLAUDE_MAP ∪ CURSOR_GPT_MAP ∪
+// CURSOR_GEMINI_MAP ∪ CURSOR_GROK_MAP; Copilot 51 total, 51 unique — Copilot carries no Grok or
+// Composer vocabulary), so merge order is immaterial.
 export const CURSOR_VOCABULARY: ModelVocabulary = {
-  map: { ...CURSOR_CLAUDE_MAP, ...CURSOR_GPT_MAP, ...CURSOR_GEMINI_MAP },
+  map: { ...CURSOR_CLAUDE_MAP, ...CURSOR_GPT_MAP, ...CURSOR_GEMINI_MAP, ...CURSOR_GROK_MAP },
 };
 
 export const COPILOT_VOCABULARY: ModelVocabulary = {

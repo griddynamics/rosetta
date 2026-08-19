@@ -2,7 +2,7 @@
 name: validator
 description: "Validate that implementation matches intent via execution and evidence. Full subagent."
 mode: subagent
-model: gpt-5.4
+model: gemini-3.7-flash
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

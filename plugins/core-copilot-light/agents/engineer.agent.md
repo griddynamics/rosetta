@@ -2,7 +2,7 @@
 name: engineer
 description: "Implement and test to high quality under the orchestrator-assigned identity. Full subagent."
 mode: subagent
-model: Claude Sonnet 5
+model: GPT-5.6 Luna
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

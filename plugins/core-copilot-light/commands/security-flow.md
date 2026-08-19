@@ -69,7 +69,7 @@ Run task-adaptive security review through mandatory canonical subagents. End wit
 - Control: HIGH+ → report-and-package only; CLEAN → model-and-select; ERROR → stop.
 </deterministic_gates>
 
-<model_and_select phase="4" applies="ALL" subagent="architect" role="Security architect mapping threats to complete contextual coverage" subagent_required_model="Claude Sonnet 5, GPT-5.4" must-be-subagent>
+<model_and_select phase="4" applies="ALL" subagent="architect" role="Security architect mapping threats to complete contextual coverage" subagent_required_model="Claude Opus 4.8, GPT-5.5" must-be-subagent>
 - Purpose: Builds a threat model and maps applicable authorized areas, activities, tools, and exclusions. Produces the complete coverage plan for inspection dispatch.
 - Input: approved contract; permitted context; available tools.
 - Output: threat model and authorized coverage plan.
@@ -97,7 +97,7 @@ Run task-adaptive security review through mandatory canonical subagents. End wit
 - Control: no evidence loss; material high+ gets second signal or remains unverified.
 </normalize_and_triage>
 
-<independent_review phase="7" applies="ALL" subagent="reviewer" role="Independent security evidence and coverage reviewer" subagent_required_model="GPT-5.4, Gemini 3.5 Flash, Claude Sonnet 5" must-be-subagent>
+<independent_review phase="7" applies="ALL" subagent="reviewer" role="Independent security evidence and coverage reviewer" subagent_required_model="GPT-5.4, Gemini 3.1 Pro (Preview), Claude Sonnet 5" must-be-subagent>
 - Purpose: Independently challenges coverage, evidence, safety, certainty, and prioritization. Determines whether reporting may proceed or producing work requires correction and rereview.
 - Input: approved plan; threat model; evidence; findings.
 - Output: independent acceptance or correction decision.

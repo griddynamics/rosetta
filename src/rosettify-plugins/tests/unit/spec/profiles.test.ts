@@ -1,6 +1,6 @@
-// FR-PROF-0001.AC2-AC7, DATA-CFG-0006.AC5-AC9 — profile descriptor loading, fail-fast validation
-// (V-exist, V-parse, V1, V2, V3, V7), and effective-vocabulary resolution (V4 standalone
-// inheritance, V5 silent dead-entry acceptance).
+// FR-PROF-0001.AC2-AC7, DATA-CFG-0006.AC5-AC11 — profile descriptor loading, fail-fast validation
+// (V-exist, V-parse, V1, V2, V3, V7), optional-field defaulting (AC10/AC11), and
+// effective-vocabulary resolution (V4 standalone inheritance, V5 silent dead-entry acceptance).
 import { describe, it, expect, vi } from 'vitest';
 import fs from 'fs';
 import os from 'os';
@@ -60,11 +60,13 @@ describe('loadProfile — valid descriptor', () => {
     const descriptor = loadProfile(REPO_PROFILES_DIR, 'lightweight');
     expect(descriptor.destinationSuffix).toBe('-light');
     expect(descriptor.pluginNameSuffix).toBe('-light');
-    expect(descriptor.modelOverrides['core-claude']).toEqual({
-      opus: 'claude-sonnet-5',
-      sonnet: 'claude-sonnet-5',
-      haiku: 'claude-haiku-4-5',
-    });
+    expect(descriptor.pluginDescriptionSuffix).toContain('lightweight profile');
+    // The reference profile declares suffixes only: it selects lighter models by shipping
+    // profile-scoped instruction sources (agent `model:` lists resolved through each target's
+    // built-in vocabulary), not by overriding the vocabularies themselves. An absent
+    // `modelOverrides` field therefore normalizes to an empty map, and every target keeps its
+    // built-in vocabulary with `exhaustive` false (see resolveEffectiveVocabulary below).
+    expect(descriptor.modelOverrides).toEqual({});
   });
 
   it('loads a fixture profile from an isolated temp dir, idempotently (same result every call)', () => {
@@ -248,6 +250,54 @@ describe('loadProfile — suffix fields must be strings', () => {
       });
     },
   );
+});
+
+describe('loadProfile — every descriptor field is optional (DATA-CFG-0006.AC10/AC11)', () => {
+  it('accepts a suffix-only descriptor: modelOverrides normalizes to an empty map', () => {
+    withTempProfileDir((dir) => {
+      writeProfile(dir, 'suffix-only', {
+        destinationSuffix: '-light',
+        pluginNameSuffix: '-light',
+        pluginDescriptionSuffix: ' (light)',
+      });
+      const descriptor = loadProfile(dir, 'suffix-only');
+      expect(descriptor.modelOverrides).toEqual({});
+      expect(descriptor.destinationSuffix).toBe('-light');
+    });
+  });
+
+  it('defaults every absent suffix to the empty string', () => {
+    withTempProfileDir((dir) => {
+      writeProfile(dir, 'no-suffixes', { modelOverrides: {} });
+      const descriptor = loadProfile(dir, 'no-suffixes');
+      expect(descriptor.destinationSuffix).toBe('');
+      expect(descriptor.pluginNameSuffix).toBe('');
+      expect(descriptor.pluginDescriptionSuffix).toBe('');
+    });
+  });
+
+  it('accepts a wholly empty descriptor', () => {
+    withTempProfileDir((dir) => {
+      writeProfile(dir, 'empty', {});
+      expect(loadProfile(dir, 'empty')).toEqual({
+        destinationSuffix: '',
+        pluginNameSuffix: '',
+        pluginDescriptionSuffix: '',
+        modelOverrides: {},
+      });
+    });
+  });
+
+  it('a suffix-only descriptor leaves every target its built-in vocabulary, non-exhaustively', () => {
+    withTempProfileDir((dir) => {
+      writeProfile(dir, 'suffix-only', { destinationSuffix: '-light' });
+      const descriptor = loadProfile(dir, 'suffix-only');
+      const builtin: ModelVocabulary = { map: { opus: 'claude-opus-4-8' } };
+      const resolved = resolveEffectiveVocabulary('core-claude', builtin, descriptor);
+      expect(resolved.map).toBe(builtin.map);
+      expect(resolved.exhaustive).toBe(false);
+    });
+  });
 });
 
 describe('loadProfile — V7: unrecognized top-level descriptor field', () => {

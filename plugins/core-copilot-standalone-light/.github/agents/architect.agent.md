@@ -2,7 +2,7 @@
 name: architect
 description: "Architect solution, transform intent into reliable tech specs, etc. Full subagent."
 mode: subagent
-model: Claude Sonnet 5
+model: GPT-5.6 Sol
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

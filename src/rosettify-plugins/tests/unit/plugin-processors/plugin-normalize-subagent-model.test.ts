@@ -73,6 +73,32 @@ const FIXTURE_C = 'claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gp
 const FIXTURE_D = 'gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5, grok-4.5, gpt-5.6-terra';
 const FIXTURE_E = 'claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna';
 
+describe('claudeSubagentModelTokenMapper — exact-token tier (claudeLookup, FR-COPY-0083)', () => {
+  it('resolves an exact-token entry: claude-5-opus-high -> claude-opus-5', () => {
+    expect(claudeSubagentModelTokenMapper('claude-5-opus-high', CLAUDE_VOCABULARY.map)).toBe('claude-opus-5');
+  });
+
+  it('still drops a non-Claude token: gpt-5.6-sol-high -> null', () => {
+    expect(claudeSubagentModelTokenMapper('gpt-5.6-sol-high', CLAUDE_VOCABULARY.map)).toBeNull();
+  });
+});
+
+describe('pluginNormalizeSubagentRequiredModel — end-to-end with the new vocabulary entries', () => {
+  const content = 'subagent_required_model="gpt-5.6-sol-high, claude-5-opus-high, grok-4.6-high, gemini-3.7-flash-high"';
+
+  it('Claude vocabulary: only the Claude token survives, resolved through the exact-token tier', () => {
+    expect(normalize(content, CLAUDE_VOCABULARY, claudeSubagentModelTokenMapper)).toBe(
+      'subagent_required_model="claude-opus-5"',
+    );
+  });
+
+  it('Cursor vocabulary: every token the merged map contains survives, in source order, de-duplicated', () => {
+    expect(normalize(content, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper)).toBe(
+      'subagent_required_model="gpt-5.6-sol, claude-opus-5, grok-4.6, gemini-3.7-flash"',
+    );
+  });
+});
+
 describe('pluginNormalizeSubagentRequiredModel — Claude mapper, real fixtures', () => {
   it('A: filters to the opus family and maps through the built-in Claude vocabulary', () => {
     expect(

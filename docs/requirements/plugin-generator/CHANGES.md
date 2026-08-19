@@ -1,5 +1,41 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-08-19 — `FR-COPY-0021` amended: the Claude vocabulary resolves in two tiers
+
+**Files:** `FR-COPY.md`, `MODEL.md`
+
+**Source:** user request — a build profile must be able to select Opus 5 while the standard build keeps Opus 4.8.
+
+- `FR-COPY-0021` statement: a claude-compatible token is now resolved against the effective vocabulary in two tiers, exact source token before `opus`/`sonnet`/`haiku` family key. A map keyed by family alone can name exactly one model per family and so cannot express a model version. Selection strategy, `inherit` fallback and skip-and-continue behavior are unchanged; no pre-existing token resolves differently, since none matches an exact key.
+- The exact tier belongs to the built-in vocabulary only. `DATA-CFG-0006.AC3` restates why a profile's `core-claude` block stays family-keyed: a block replaces the vocabulary in full, and family keys are what guarantee every claude token remains covered.
+- Added criteria for the exact tier to `FR-COPY-0021` and `DATA-CFG-0004`; amended `DATA-CFG-0004`'s statement, which described built-in vocabularies as keyed by logical model key only.
+- `FR-COPY-0083` statement: the `subagent_required_model` surface names the same two-tier lookup rather than the family key alone, so a token resolves identically on both model surfaces. `status`/`approved_by`/`implementation` unchanged throughout.
+- Reordered `DATA-CFG-0006`'s criteria so `AC9` precedes `AC10`/`AC11`.
+
+---
+
+## 2026-08-19 — `DATA-CFG-0006` amended: every profile descriptor field is optional
+
+**Files:** `MODEL.md`
+
+**Source:** the shipped `lightweight` reference profile declares suffix fields only — a `modelOverrides` block is exhaustive per target and would downgrade every agent, skill and workflow uniformly, so a lighter build cannot use one.
+
+- `DATA-CFG-0006` statement: the four field names remain the complete set a descriptor may carry, but each is now stated optional — an absent suffix defaults to the empty string, an absent `modelOverrides` means no overrides and every target keeps its built-in vocabulary.
+- Added `DATA-CFG-0006.AC10` (suffix-only descriptor accepted, built-in vocabularies retained non-exhaustively) and `AC11` (absent suffix reads as empty string). `status`/`approved_by`/`implementation` unchanged.
+
+---
+
+## 2026-08-19 — `FR-COPY-0022` amended: `-xhigh` recognized as a Codex reasoning-effort suffix
+
+**Files:** `FR-COPY.md`
+
+**Source:** user request — a profile's `engineer` subagent needs `gpt-5.6-luna-xhigh` to split correctly.
+
+- `FR-COPY-0022` statement: the reasoning-effort suffix list gains `-xhigh` alongside `-high`/`-medium`/`-low`. Additive only; `-high`/`-medium`/`-low`/no-suffix behavior is unchanged.
+- Added a criteria proving the split (`gpt-5.6-luna-xhigh` → model `gpt-5.6-luna`, effort `xhigh`). `status`/`approved_by`/`implementation` unchanged.
+
+---
+
 ## 2026-08-19 — `FR-COPY-0083` corrected: `subagent_required_model` tokens are emitted WHOLE
 
 **Files:** `FR-COPY.md`

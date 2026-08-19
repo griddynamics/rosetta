@@ -6,10 +6,12 @@
  * this file proves the profiled build does the right THING with real repo inputs:
  *   - a profiled run writes every target to its `core-*-light` destination and never touches a
  *     pre-existing unsuffixed `core-*` destination (FR-PROF-0020)
- *   - the profile-scoped fixture (`coding-flow~profile-lightweight-only~overwrite~.md`) supersedes
- *     the base `coding-flow` body ONLY in the light plugins (FR-PROF-0030.AC1)
- *   - a no-profile run excludes that same fixture entirely — the base body lands untouched, and no
- *     `-light` destination is written at all (FR-PROF-0040)
+ *   - the profile-scoped documents (`coding-flow~profile-lightweight-only~overwrite~.md` and the ten
+ *     `<agent>~profile-lightweight-only~overwrite~.md` agent documents) supersede their base
+ *     counterparts ONLY in the light plugins, and their lighter `model:` candidate lists resolve
+ *     through each target's built-in vocabulary (FR-PROF-0030.AC1)
+ *   - a no-profile run excludes those same documents entirely — the base bodies and base models
+ *     land untouched, and no `-light` destination is written at all (FR-PROF-0040)
  *   - the manifest name carries the profile's suffix in the light build and is unchanged in the
  *     base build (FR-PROF-0021)
  *   - an invalid profile name aborts with a non-zero exit and writes nothing (FR-PROF-0001, G-D)
@@ -44,10 +46,17 @@ const TARGETS = [
   'core-antigravity',
 ] as const;
 
-// Marker text unique to the profile fixture's body (instructions/r3/core/workflows/
+// Marker text unique to the profile-scoped body (instructions/r3/core/workflows/
 // coding-flow~profile-lightweight-only~overwrite~.md) — distinguishes it from the base
 // coding-flow.md body without depending on any other part of that document's content.
-const LIGHT_MARKER = 'PROFILE TEST CONTENT — lightweight profile.';
+const LIGHT_MARKER = 'Lightweight variant: a single architect pass produces discovery, design, specs, and plan';
+
+// A phase heading present in the base coding-flow and deliberately absent from the light one: the
+// light workflow merges discovery/design/tech_plan into a single `solution_design` phase and drops
+// the user_review_plan / user_review_impl / impl_validation phases. Asserting on a REMOVED phase
+// as well as an ADDED marker proves the override replaced the base body rather than merging with it.
+const BASE_ONLY_PHASE = '<impl_validation phase=';
+const LIGHT_ONLY_PHASE = '<solution_design phase=';
 
 function buildSources(outputDir: string): ResolvedSources {
   return {
@@ -135,11 +144,52 @@ describe('Profile E2E — profiled build (--profile lightweight)', () => {
     expect(entries).toEqual(['SENTINEL.txt']);
   });
 
-  it('light coding-flow body wins: the profile-scoped fixture supersedes the base document (FR-PROF-0030.AC1)', () => {
+  it('light coding-flow body wins: the profile-scoped document supersedes the base one (FR-PROF-0030.AC1)', () => {
     const p = path.join(outputDir, 'core-claude-light', 'workflows', 'coding-flow.md');
     expect(fs.existsSync(p), 'core-claude-light/workflows/coding-flow.md must exist').toBe(true);
     const content = fs.readFileSync(p, 'utf-8');
     expect(content).toContain(LIGHT_MARKER);
+    expect(content).toContain(LIGHT_ONLY_PHASE);
+    // Full replacement, not a merge: the base-only phase is gone.
+    expect(content).not.toContain(BASE_ONLY_PHASE);
+  });
+
+  // The lightweight profile selects its models by shipping profile-scoped agent documents whose
+  // `model:` candidate list differs, resolved through each target's UNCHANGED built-in vocabulary —
+  // it declares no modelOverrides at all. These assertions cover every resolution strategy: Claude's
+  // exact-token tier and its family-substring fallback, Cursor's and Copilot's first-token exact
+  // match, and Codex's first-gpt-token match plus reasoning-effort split.
+  it('light agents resolve to the profile-scoped models on all four vocabularies', () => {
+    // Claude, exact-token tier: architect's light list carries claude-5-opus-high, which the Claude
+    // map resolves by EXACT token to claude-opus-5. The family key alone could not express this —
+    // `opus` maps to claude-opus-4-8, which is what the base architect resolves to.
+    const claudeArchitect = fs.readFileSync(
+      path.join(outputDir, 'core-claude-light', 'agents', 'architect.md'), 'utf-8');
+    expect(claudeArchitect).toMatch(/^model: claude-opus-5$/m);
+
+    // Claude, family fallback: discoverer's light list carries claude-4.5-haiku, no exact entry, so
+    // the haiku family key resolves it (the base list leads with claude-5-sonnet -> claude-sonnet-5).
+    const claudeDiscoverer = fs.readFileSync(
+      path.join(outputDir, 'core-claude-light', 'agents', 'discoverer.md'), 'utf-8');
+    expect(claudeDiscoverer).toMatch(/^model: claude-haiku-4-5$/m);
+
+    // Cursor: reviewer's light list leads with gemini-3.7-flash-medium, mapped to the IDE-native
+    // gemini-3.7-flash (the base list leads with gpt-5.4-medium -> gpt-5.4).
+    const cursorReviewer = fs.readFileSync(
+      path.join(outputDir, 'core-cursor-light', 'agents', 'reviewer.md'), 'utf-8');
+    expect(cursorReviewer).toMatch(/^model: gemini-3\.7-flash$/m);
+
+    // Copilot: architect's light list leads with gpt-5.6-sol-high, mapped to Copilot's display name.
+    const copilotArchitect = fs.readFileSync(
+      path.join(outputDir, 'core-copilot-light', 'agents', 'architect.agent.md'), 'utf-8');
+    expect(copilotArchitect).toMatch(/^model: GPT-5\.6 Sol$/m);
+
+    // Codex: engineer's light list's first gpt- token is gpt-5.6-luna-xhigh, split into model +
+    // reasoning effort (the base list's first gpt- token is gpt-5.4-medium).
+    const codexEngineer = fs.readFileSync(
+      path.join(outputDir, 'core-codex-light', '.codex', 'agents', 'engineer.toml'), 'utf-8');
+    expect(codexEngineer).toContain('model = "gpt-5.6-luna"');
+    expect(codexEngineer).toContain('model_reasoning_effort = "xhigh"');
   });
 
   it('light manifest name carries the -light suffix (FR-PROF-0021.AC1)', () => {
@@ -179,11 +229,34 @@ describe('Profile E2E — no-profile run (regression guard, FR-PROF-0040)', () =
     expect(exitCode).toBe(0);
   });
 
-  it('excludes the profile-scoped fixture entirely: base coding-flow body lands, not the light override (FR-PROF-0040.AC3)', () => {
+  it('excludes the profile-scoped documents entirely: base coding-flow body lands, not the light override (FR-PROF-0040.AC3)', () => {
     const p = path.join(outputDir, 'core-claude', 'workflows', 'coding-flow.md');
     expect(fs.existsSync(p)).toBe(true);
     const content = fs.readFileSync(p, 'utf-8');
     expect(content).not.toContain(LIGHT_MARKER);
+    expect(content).not.toContain(LIGHT_ONLY_PHASE);
+    expect(content).toContain(BASE_ONLY_PHASE);
+  });
+
+  it('base agents keep their base models: the profile-scoped agent documents are excluded (FR-PROF-0040.AC3)', () => {
+    const claudeDiscoverer = fs.readFileSync(
+      path.join(outputDir, 'core-claude', 'agents', 'discoverer.md'), 'utf-8');
+    expect(claudeDiscoverer).toMatch(/^model: claude-sonnet-5$/m);
+
+    // The Claude map's exact-token tier must not disturb any base token: the base architect carries
+    // claude-4.8-opus-high, which matches no exact entry and still resolves via the `opus` family key.
+    const claudeArchitect = fs.readFileSync(
+      path.join(outputDir, 'core-claude', 'agents', 'architect.md'), 'utf-8');
+    expect(claudeArchitect).toMatch(/^model: claude-opus-4-8$/m);
+
+    const cursorReviewer = fs.readFileSync(
+      path.join(outputDir, 'core-cursor', 'agents', 'reviewer.md'), 'utf-8');
+    expect(cursorReviewer).toMatch(/^model: gpt-5\.4$/m);
+
+    const codexEngineer = fs.readFileSync(
+      path.join(outputDir, 'core-codex', '.codex', 'agents', 'engineer.toml'), 'utf-8');
+    expect(codexEngineer).toContain('model = "gpt-5.4"');
+    expect(codexEngineer).toContain('model_reasoning_effort = "medium"');
   });
 
   it('base manifest name carries no suffix (FR-PROF-0040.AC2)', () => {

@@ -63,3 +63,23 @@ user-facing strings. Pre-existing (present at HEAD before the build-profiles cha
 equivalent defects in `--help` text were fixed with that change. Move the ids into adjacent comments
 and leave the log messages plain.
 
+## TODO: instructions — lightweight agent documents duplicate their base counterparts
+
+`instructions/r3/core/agents/<agent>~profile-lightweight-only~overwrite~.md` (ten files) are full
+copies of the ten base agent documents differing in exactly one line: the `model:` candidate list.
+A FilenameDirective override replaces a whole document, so there is no partial-override mechanism
+today; a base agent edit must be mirrored by hand into its light twin or the two silently diverge.
+Options: a frontmatter-only override kind (apply just the declared keys, inherit the body), or a
+per-profile model-list map keyed by document path. Guard in the meantime: `diff` each pair and
+expect exactly one changed line.
+
+## TODO: plugin-generator — Cursor/Copilot vocabularies are incomplete for current model families
+
+`src/rosettify-plugins/src/spec/model-maps.ts` maps only the effort-qualified GPT-5.6 forms
+(`gpt-5.6-sol-high`, ...). The BARE forms (`gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`) are unmapped
+and so are `grok-4.5` and `composer-2.5`, all of which the base instruction set uses heavily
+(~105 bare 5.6 tokens, ~58 grok-4.5, 10 composer-2.5). For Cursor and Copilot an unmapped token is
+dropped from `subagent_required_model` and passes through raw if it lands first in a `model:` list, so
+those models are silently invisible to two of the four vocabularies. Mapping them is a one-line-each
+change but rewrites the standard plugins, which is why it was kept out of the lightweight-profile
+change. Decide per token whether the IDE genuinely offers the model, then add it and regenerate.

@@ -72,7 +72,7 @@ Validation: State file tracks every phase with file inventory; verification conf
 DISABLED
 </rules>
 
-<patterns phase="5" subagent="engineer" role="Pattern extractor" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash">
+<patterns phase="5" subagent="engineer" role="Pattern extractor" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.1-pro">
 
 1. Extract coding and architectural patterns into reusable templates.
 2. Output: PATTERNS folder (one .md per pattern, INDEX.md, CHANGES.md).
@@ -81,7 +81,7 @@ DISABLED
 
 </patterns>
 
-<code-graph phase="6" subagent="engineer" type="HITL" role="Code-graph setup gate" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash">
+<code-graph phase="6" subagent="engineer" type="HITL" role="Code-graph setup gate" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.1-pro">
 
 1. Suggest user to install LSPs xor code graphs if relevant
 2. Output: user selection, updates to CONTEXT.md
@@ -90,7 +90,7 @@ DISABLED
 
 </code-graph>
 
-<documentation phase="7" subagent="architect" role="Architect and documentation analyst" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash">
+<documentation phase="7" subagent="architect" role="Architect and documentation analyst" subagent_required_model="claude-opus-4-8, gpt-5.4, gpt-5.5, gemini-3.1-pro">
 
 1. Create project documentation from workspace analysis.
 2. Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md.

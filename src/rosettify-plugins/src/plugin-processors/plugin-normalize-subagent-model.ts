@@ -6,13 +6,13 @@
 // processor (FR-ARCH-0005). Antigravity keeps its own unconditional rewrite to `inherit`
 // (pluginAntigravitySubagentModel) and is never composed with this factory.
 //
-// Reuses the low-level selection/lookup helpers from spec/model-maps.ts (claudeFamilyKey,
+// Reuses the low-level selection/lookup helpers from spec/model-maps.ts (claudeLookup,
 // isCodexToken) rather than reimplementing them, per FR-COPY-0083's explicit "not a
 // reimplementation" requirement and FR-COPY-0084 (a Codex token must resolve identically to the
 // frontmatter call sites).
 
 import { updatePluginFrame } from '../frames.js';
-import { claudeFamilyKey, isCodexToken } from '../spec/model-maps.js';
+import { claudeLookup, isCodexToken } from '../spec/model-maps.js';
 import type { FileProcessingFrame, PluginProcessingFrame, PluginProcessor } from '../types.js';
 
 /** Boundary-safe: anchored on the literal attribute name and its surrounding quotes; `[^"]*`
@@ -37,16 +37,15 @@ export type SubagentModelTokenMapper = (
 ) => string | null;
 
 /**
- * Claude: keeps only tokens of the opus/sonnet/haiku family (FR-COPY-0083), reusing the same
- * family-key derivation as normalizeClaude. A family match whose key is absent from the effective
- * map (only possible under a partial profile override block) is dropped — mirrors normalizeClaude's
- * exhaustive skip-and-continue, since there is nothing valid to map the survivor to.
+ * Claude: keeps only tokens the Claude vocabulary can resolve (FR-COPY-0083), through the very same
+ * `claudeLookup` the frontmatter path uses — exact source token first, then the opus/sonnet/haiku
+ * family key. A token neither tier resolves is dropped: that covers a non-Claude token, and also a
+ * family match whose key is absent from the effective map (only possible under a partial profile
+ * override block), mirroring normalizeClaude's exhaustive skip since there is nothing valid to map
+ * the survivor to.
  */
-export const claudeSubagentModelTokenMapper: SubagentModelTokenMapper = (token, map) => {
-  const key = claudeFamilyKey(token);
-  if (key === null || !hasKey(map, key)) return null;
-  return map[key];
-};
+export const claudeSubagentModelTokenMapper: SubagentModelTokenMapper = (token, map) =>
+  claudeLookup(token, map);
 
 /**
  * Cursor/Copilot: keeps only tokens present in the effective map (FR-COPY-0083) — the selection

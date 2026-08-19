@@ -42,7 +42,7 @@ Prerequisite: Rosetta Prep Steps.
   - **Phase 5 test-case-count guidance** → `testgen-flow-test-case-generation.md` `<validation_checklist>`.
 - **Model tiers** (phase `subagent_required_model`): `tier: complex` = heavy reasoning / multi-source synthesis / requirements engineering (Opus-class / GPT high-tier); `tier: workhorse` = structured execution / extraction / generation + export (Sonnet-class / GPT mid-tier).
 
-<project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash">
+<project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.1-pro">
 
 - APPLY PHASE `testgen-flow-project-config-loading.md`
 - Input: user request with an Issue Tracker ticket key/URL. Output: `plans/testgen-{TICKET-KEY}/initial-data.md`, project config file.
@@ -52,7 +52,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </project_config_loading>
 
-<data_collection phase="1" subagent="discoverer" role="Requirements data collector" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash">
+<data_collection phase="1" subagent="discoverer" role="Requirements data collector" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.1-pro">
 
 - APPLY PHASE `testgen-flow-data-collection.md`
 - Input: initial user request, initial-data.md. Output: `plans/testgen-{TICKET-KEY}/raw-data.md` with Issue Tracker + Wiki data.
@@ -61,7 +61,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </data_collection>
 
-<gap_and_contradiction_analysis phase="2" subagent="architect" role="Requirements gap analyst" subagent_required_model="claude-sonnet-5, gpt-5.4">
+<gap_and_contradiction_analysis phase="2" subagent="architect" role="Requirements gap analyst" subagent_required_model="claude-opus-4-8, gpt-5.5">
 
 - APPLY PHASE `testgen-flow-gap-and-contradiction-analysis.md`
 - Input: raw-data.md. Output: `plans/testgen-{TICKET-KEY}/analysis.md` with contradictions, gaps, ambiguities.
@@ -70,7 +70,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </gap_and_contradiction_analysis>
 
-<question_generation phase="3" subagent="architect" role="Requirements clarification analyst" subagent_required_model="claude-sonnet-5, gpt-5.4" type="HITL">
+<question_generation phase="3" subagent="architect" role="Requirements clarification analyst" subagent_required_model="claude-opus-4-8, gpt-5.5" type="HITL">
 
 - APPLY PHASE `testgen-flow-question-generation.md`
 - Input: analysis.md. Output: `plans/testgen-{TICKET-KEY}/questions.md`, `plans/testgen-{TICKET-KEY}/answers.md`.
@@ -80,7 +80,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </question_generation>
 
-<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_required_model="claude-sonnet-5, gpt-5.4">
+<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_required_model="claude-opus-4-8, gpt-5.5">
 
 - APPLY PHASE `testgen-flow-requirements-document-generation.md`
 - Input: raw-data.md + analysis.md + answers.md. Output: `plans/testgen-{TICKET-KEY}/requirements.md`.

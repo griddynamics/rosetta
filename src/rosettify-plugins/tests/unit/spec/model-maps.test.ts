@@ -8,12 +8,36 @@ import {
   normalizeCursor,
   normalizeCopilot,
   normalizeCodex,
+  splitCodexEffort,
+  claudeLookup,
   CLAUDE_VOCABULARY,
   CURSOR_VOCABULARY,
   COPILOT_VOCABULARY,
   CODEX_VOCABULARY,
 } from '../../../src/spec/model-maps.js';
 import { MODEL_DROP } from '../../../src/types.js';
+
+// ─── claudeLookup: exact-token tier before the family-key tier (FR-COPY-0083, exact-token fix) ──
+
+describe('claudeLookup', () => {
+  it('exact token wins over the family key when a map carries both', () => {
+    const map = { opus: 'claude-opus-4-8', 'claude-5-opus-high': 'claude-opus-5' };
+    expect(claudeLookup('claude-5-opus-high', map)).toBe('claude-opus-5');
+  });
+
+  it('a different opus token with no exact entry of its own still resolves via the family key', () => {
+    const map = { opus: 'claude-opus-4-8', 'claude-5-opus-high': 'claude-opus-5' };
+    expect(claudeLookup('claude-4.8-opus-high', map)).toBe('claude-opus-4-8');
+  });
+
+  it('returns null when neither the exact token nor the family key is present', () => {
+    expect(claudeLookup('claude-4.8-opus-high', {})).toBeNull();
+  });
+
+  it('a bare family word ("opus") still resolves via the family key', () => {
+    expect(claudeLookup('opus', { opus: 'claude-opus-4-8' })).toBe('claude-opus-4-8');
+  });
+});
 
 describe('normalizeClaude', () => {
   it('scans for first claude-compatible token (not first overall)', () => {
@@ -55,6 +79,20 @@ describe('normalizeClaude', () => {
   });
 });
 
+// ─── Regression: the exact-token tier must not disturb any pre-existing family-keyed token ──────
+
+describe('normalizeClaude — exact-token tier does not disturb pre-existing built-in tokens', () => {
+  it('claude-4.8-opus-high, gpt-5.5-high still resolves to claude-opus-4-8 through the built-in vocabulary', () => {
+    expect(normalizeClaude('claude-4.8-opus-high, gpt-5.5-high', CLAUDE_VOCABULARY.map)).toBe('claude-opus-4-8');
+  });
+
+  it('skips a leading non-claude token, then resolves the claude-5-opus-high exact-token entry to claude-opus-5', () => {
+    expect(normalizeClaude('gpt-5.6-sol-high, claude-5-opus-high, grok-4.6-high', CLAUDE_VOCABULARY.map)).toBe(
+      'claude-opus-5',
+    );
+  });
+});
+
 describe('normalizeCursor', () => {
   it('takes first model overall', () => {
     // First is claude → maps to canonical
@@ -79,6 +117,34 @@ describe('normalizeCursor', () => {
 
   it('passthrough unknown token (non-exhaustive no-survivor idiom, FR-PROF-0040)', () => {
     expect(normalizeCursor('some-unknown-model', CURSOR_VOCABULARY.map)).toBe('some-unknown-model');
+  });
+});
+
+// ─── Cursor: new vocabulary entries (GPT-5.6 effort-qualified, Gemini 3.7 Flash, Grok 4.6, Opus 5) ──
+
+describe('normalizeCursor — new vocabulary entries', () => {
+  it('maps gpt-5.6-sol-high to gpt-5.6-sol', () => {
+    expect(normalizeCursor('gpt-5.6-sol-high', CURSOR_VOCABULARY.map)).toBe('gpt-5.6-sol');
+  });
+
+  it('maps gemini-3.7-flash-medium to gemini-3.7-flash', () => {
+    expect(normalizeCursor('gemini-3.7-flash-medium', CURSOR_VOCABULARY.map)).toBe('gemini-3.7-flash');
+  });
+
+  it('maps grok-4.6-medium to grok-4.6', () => {
+    expect(normalizeCursor('grok-4.6-medium', CURSOR_VOCABULARY.map)).toBe('grok-4.6');
+  });
+
+  it('maps claude-5-opus-high to claude-opus-5', () => {
+    expect(normalizeCursor('claude-5-opus-high', CURSOR_VOCABULARY.map)).toBe('claude-opus-5');
+  });
+
+  it('the bare gpt-5.6-sol form is deliberately absent from the map — passthrough, not a mapped value', () => {
+    // Pins the production comment on CURSOR_GPT_MAP: the bare forms are intentionally omitted
+    // (they appear ~105 times across the base instruction set), so a future edit that adds one
+    // must be a conscious choice, not an accident.
+    expect(Object.prototype.hasOwnProperty.call(CURSOR_VOCABULARY.map, 'gpt-5.6-sol')).toBe(false);
+    expect(normalizeCursor('gpt-5.6-sol', CURSOR_VOCABULARY.map)).toBe('gpt-5.6-sol');
   });
 });
 
@@ -108,6 +174,26 @@ describe('normalizeCopilot', () => {
   });
 });
 
+// ─── Copilot: new vocabulary entries (GPT-5.6 effort-qualified, Gemini 3.7 Flash, Opus 5, no Grok) ──
+
+describe('normalizeCopilot — new vocabulary entries', () => {
+  it('maps gpt-5.6-luna-xhigh to GPT-5.6 Luna', () => {
+    expect(normalizeCopilot('gpt-5.6-luna-xhigh', COPILOT_VOCABULARY.map)).toBe('GPT-5.6 Luna');
+  });
+
+  it('maps gemini-3.7-flash-low to Gemini 3.7 Flash', () => {
+    expect(normalizeCopilot('gemini-3.7-flash-low', COPILOT_VOCABULARY.map)).toBe('Gemini 3.7 Flash');
+  });
+
+  it('maps claude-5-opus-high to Claude Opus 5', () => {
+    expect(normalizeCopilot('claude-5-opus-high', COPILOT_VOCABULARY.map)).toBe('Claude Opus 5');
+  });
+
+  it('grok-4.6-medium is not in the Copilot map — Copilot carries no Grok vocabulary', () => {
+    expect(Object.prototype.hasOwnProperty.call(COPILOT_VOCABULARY.map, 'grok-4.6-medium')).toBe(false);
+  });
+});
+
 describe('normalizeCodex', () => {
   it('finds first gpt-* token and splits effort', () => {
     expect(normalizeCodex('claude-4.8-opus-high, gpt-5.5-high', CODEX_VOCABULARY.map)).toEqual({
@@ -134,6 +220,36 @@ describe('normalizeCodex', () => {
 
   it('returns null for empty string', () => {
     expect(normalizeCodex('', CODEX_VOCABULARY.map)).toBeNull();
+  });
+
+  it('splits -xhigh effort via the built-in pass-through map', () => {
+    expect(normalizeCodex('gpt-5.6-luna-xhigh', CODEX_VOCABULARY.map)).toEqual({
+      model: 'gpt-5.6-luna',
+      effort: 'xhigh',
+    });
+  });
+});
+
+describe('splitCodexEffort', () => {
+  it('splits a trailing -xhigh suffix', () => {
+    expect(splitCodexEffort('gpt-5.6-luna-xhigh')).toEqual({ model: 'gpt-5.6-luna', effort: 'xhigh' });
+  });
+});
+
+// ─── Regression: "xhigh" appearing mid-name must not be mangled (FR-COPY-0022) ─────────────────
+
+describe('regression: "-xhigh"-like text mid-name is not mistaken for the effort suffix', () => {
+  it('a token whose non-effort trailing segment merely contains "xhigh" is left whole, effort undefined', () => {
+    // "gpt-5.6-xhigh-preview" ends in "-preview", not "-xhigh" — the effort regex is anchored to
+    // the end of the string, so the mid-name "xhigh" substring must not be split off.
+    expect(normalizeCodex('gpt-5.6-xhigh-preview', CODEX_VOCABULARY.map)).toEqual({
+      model: 'gpt-5.6-xhigh-preview',
+      effort: undefined,
+    });
+  });
+
+  it('gpt-5.4 (no suffix) still yields effort: undefined', () => {
+    expect(normalizeCodex('gpt-5.4', CODEX_VOCABULARY.map)).toEqual({ model: 'gpt-5.4', effort: undefined });
   });
 });
 
@@ -262,5 +378,25 @@ describe('merged Cursor/Copilot effective map (claude+gpt+gemini, FR-ARCH-0059)'
     expect(normalizeCopilot('gemini-3.1-pro-preview, claude-sonnet-5', COPILOT_VOCABULARY.map)).toBe(
       'Gemini 3.1 Pro (Preview)',
     );
+  });
+});
+
+// ─── Key-disjointness guard: merge order cannot matter (FR-ARCH-0059) ───────────────────────────
+// Cursor merges 4 per-vendor maps (claude/gpt/gemini/grok = 16+28+8+4 = 56 keys); Copilot merges 3
+// (claude/gpt/gemini = 16+28+7 = 51 keys, no grok/composer). If the per-vendor prefixes ever
+// collided, the spread merge in CURSOR_VOCABULARY/COPILOT_VOCABULARY would silently drop a key and
+// this count would fall below the expected total.
+
+describe('merged vocabulary key disjointness (FR-ARCH-0059)', () => {
+  it('CURSOR_VOCABULARY.map has exactly 56 keys — the 4 per-vendor source maps never collide', () => {
+    const keys = Object.keys(CURSOR_VOCABULARY.map);
+    expect(keys.length).toBe(56);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('COPILOT_VOCABULARY.map has exactly 51 keys — the 3 per-vendor source maps never collide', () => {
+    const keys = Object.keys(COPILOT_VOCABULARY.map);
+    expect(keys.length).toBe(51);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });

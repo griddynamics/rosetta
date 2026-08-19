@@ -15,6 +15,6 @@ Execute small actions with verbose tools and summarize results to prevent full s
 
 </executor>
 """
-model = "gpt-5.4"
-model_reasoning_effort = "low"
+model = "gpt-5.6-luna"
+model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"

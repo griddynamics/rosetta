@@ -81,7 +81,7 @@ Compose any of these (not limited) into plan phases/steps to build any execution
 
 </build_plan>
 
-<review_plan phase="3" if="MEDIUM, LARGE" subagent="reviewer" role="Plan reviewer of AI automated tasks" subagent_required_model="GPT-5.4, Gemini 3.5 Flash, Claude Sonnet 5" must-be-subagent>
+<review_plan phase="3" if="MEDIUM, LARGE" subagent="reviewer" role="Plan reviewer of AI automated tasks" subagent_required_model="GPT-5.4, Gemini 3.1 Pro (Preview), Claude Sonnet 5" must-be-subagent>
 
 1. Review: completeness, sequencing, dependency correctness, prompt clarity, etc.
 2. Subagent to query by full path to plan.json. Orchestrator to upsert fixes.

@@ -25,7 +25,7 @@ Phase 7. Fresh `reviewer`; must not have produced reviewed artifacts.
 4. Return required corrections
 </phase_steps>
 
-<review step="7.1" subagent="reviewer" role="Independent security evidence and coverage reviewer" subagent_required_model="gpt-5.4, gemini-3.5-flash, claude-sonnet-5">
+<review step="7.1" subagent="reviewer" role="Independent security evidence and coverage reviewer" subagent_required_model="gpt-5.4, gemini-3.1-pro, claude-sonnet-5">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security`.

@@ -80,7 +80,7 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 - Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 2 is not complete until its output spot-check passes.
 </api_spec_analysis>
 
-<gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="Test requirements analyst" subagent_required_model="claude-sonnet-5" type="HITL">
+<gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="Test requirements analyst" subagent_required_model="claude-opus-4-8" type="HITL">
 - APPLY PHASE `api-aqa-flow-gap-and-requirements-clarification.md`
 - Input: raw data + API analysis. Output: `plans/api-aqa-{IDENTIFIER}/analysis.md` (gaps, contradictions, ambiguities resolved).
 - HITL gate: **WAIT FOR USER ANSWERS** before Phase 4.
@@ -89,7 +89,7 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 - Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 3 is not complete until its output spot-check passes.
 </gap_and_requirements_clarification>
 
-<test_case_specification phase="4" applies="ALL" subagent="architect" role="Test specification author" subagent_required_model="claude-sonnet-5" type="HITL">
+<test_case_specification phase="4" applies="ALL" subagent="architect" role="Test specification author" subagent_required_model="claude-opus-4-8" type="HITL">
 - APPLY PHASE `api-aqa-flow-test-case-specification.md`
 - Input: all phase 1-3 outputs. Output: `plans/api-aqa-{IDENTIFIER}/test-specs.md` (Given-When-Then scenarios).
 - HITL gate: **WAIT FOR EXPLICIT USER APPROVAL** before Phase 5; comments, questions, suggestions, and review feedback are not approval.

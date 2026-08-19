@@ -2,7 +2,7 @@
 name: discoverer
 description: "Discover project context, patterns, affected areas, dependencies, etc. Lightweight subagent."
 mode: subagent
-model: Claude Sonnet 5
+model: GPT-5.6 Luna
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

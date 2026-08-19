@@ -3,8 +3,8 @@ name: coding-agents-prompt-authoring
 description: "To author, adapt, review, and validate prompts (skills, agents, workflows, rules, etc.) with brief, contracts, and a validation pack."
 license: Apache-2.0
 argument-hint: request, existing-prompt?, constraints?, audience?
-model: gpt-5.4
-model_reasoning_effort: medium
+model: gpt-5.5
+model_reasoning_effort: high
 context: default
 agent: prompt-engineer, reviewer, validator
 metadata:

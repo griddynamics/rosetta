@@ -2,7 +2,7 @@
 name: prompt-engineer
 description: "Author and adapt prompts — discover, draft, deliver — under HITL approvals. Full subagent."
 mode: subagent
-model: Claude Sonnet 5
+model: GPT-5.6 Sol
 readonly: false
 tags: ["subagent", "agent"]
 baseSchema: docs/schemas/agent.md

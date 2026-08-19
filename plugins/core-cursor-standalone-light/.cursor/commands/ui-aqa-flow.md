@@ -41,14 +41,14 @@ Prerequisite: Rosetta Prep Steps.
 - Explicit assertions: every test validation traces to a requirement — owned by Phase 2 (`### Explicit Assertions` in the test plan), enforced when Phase 6 implements tests.
 - **Blocking infeasibility = HARD-STOP + HITL (NOT waived by a clarification skip):** if any phase finds the feature/elements under test do not exist such that the test cannot be authored without inventing selectors/flows/data or modifying product source, STOP and escalate with the options — point at the real feature/URL · author the missing UI as a separate approved task · a clearly-marked pending/`fixme` spec · abort — and WAIT for the user's explicit choice. "Skip clarification" waives clarification *questions* only; it never authorizes this feasibility/scope call.
 
-<data_collection phase="1" applies="ALL" subagent="discoverer" role="UI-AQA data collector" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash">
+<data_collection phase="1" applies="ALL" subagent="discoverer" role="UI-AQA data collector" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.1-pro">
 - APPLY PHASE `ui-aqa-flow-data-collection.md`
 - Input: user request + repository-root `gain.json` + project context at its configured paths (canonical: `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md`). Output: test plan at `plans/ui-aqa-<test-name>/test-plan.md`
 - Required skills: `data-collection`, `sensitive-data`, `qa-structure`, `qa-knowledge`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 1 is not complete until its output spot-check passes.
 </data_collection>
 
-<requirements_clarification phase="2" applies="ALL" subagent="architect" role="Test requirements analyst" subagent_required_model="claude-sonnet-5, gpt-5.4" type="HITL">
+<requirements_clarification phase="2" applies="ALL" subagent="architect" role="Test requirements analyst" subagent_required_model="claude-opus-4-8, gpt-5.5" type="HITL">
 - APPLY PHASE `ui-aqa-flow-requirements-clarification.md`
 - Input: user request + collected data from Phase 1. Output: clarified requirements + typed assertion list in the test plan
 - **WAIT FOR USER ANSWERS** to the clarifying questions before Phase 3.
@@ -57,7 +57,7 @@ Prerequisite: Rosetta Prep Steps.
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 2 is not complete until its output spot-check passes.
 </requirements_clarification>
 
-<code_analysis phase="3" applies="ALL" subagent="discoverer" role="Test architecture analyst" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash">
+<code_analysis phase="3" applies="ALL" subagent="discoverer" role="Test architecture analyst" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.1-pro">
 - APPLY PHASE `ui-aqa-flow-code-analysis.md`
 - Input: repo docs + test plan. Output: code analysis report at `plans/ui-aqa-<test-name>/code-analysis.md` (architecture patterns, existing page objects, test patterns)
 - Required skills: `qa-knowledge` (`code_analysis` mode), `reverse-engineering`, `sensitive-data`, `qa-structure`

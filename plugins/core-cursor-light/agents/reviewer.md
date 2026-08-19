@@ -2,7 +2,7 @@
 name: reviewer
 description: "Review artifacts against intent and contracts, recommend, etc. Full subagent."
 mode: subagent
-model: gpt-5.4
+model: gemini-3.7-flash
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

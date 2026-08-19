@@ -2,7 +2,7 @@
 name: requirements-engineer
 description: "Author, refine, and finalize requirements and specifications with traceability. Full subagent."
 mode: subagent
-model: Claude Sonnet 5
+model: GPT-5.6 Sol
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

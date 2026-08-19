@@ -3,8 +3,8 @@ name: coding-agents-farm
 description: "To orchestrate parallel coding-agent farms (Claude, Codex, Copilot, Gemini, etc.) on isolated git worktrees."
 license: Apache-2.0
 argument-hint: tasks-or-plan, cli-selection?, model-preferences?
-model: gpt-5.4
-model_reasoning_effort: medium
+model: gpt-5.5
+model_reasoning_effort: high
 context: default
 metadata:
   version: "1.0"
