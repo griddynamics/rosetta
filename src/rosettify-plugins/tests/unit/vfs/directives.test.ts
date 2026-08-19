@@ -36,6 +36,12 @@ describe('parseDirectives', () => {
     expect(result.conditions.has('overwrite')).toBe(true);
   });
 
+  it('accepts a trailing directive fence', () => {
+    expect(parseDirectives('file~overwrite~.md').conditions).toEqual(
+      new Set(['overwrite']),
+    );
+  });
+
   it('returns empty conditions when filename has no tilde', () => {
     const result = parseDirectives('rules-index.md');
     expect(result.conditions.size).toBe(0);
@@ -43,9 +49,15 @@ describe('parseDirectives', () => {
   });
 
   it('clean name does not include directive tokens', () => {
-    const result = parseDirectives('policy~overwrite~r2-only.md');
+    const result = parseDirectives('policy~overwrite~core-claude-only.md');
     expect(result.cleanName).toBe('policy.md');
     expect(result.conditions.size).toBe(2);
+  });
+
+  it('rejects unknown target-only tokens with filename context and allowed directives', () => {
+    expect(() => parseDirectives('policy~clade-only.md')).toThrow(
+      'Unknown filename directive "clade-only" in "policy~clade-only.md". Allowed directives: overwrite, core-claude-only',
+    );
   });
 });
 
@@ -68,7 +80,7 @@ describe('matchesTarget', () => {
   });
 
   it('returns false when only condition is target-only for different target', () => {
-    expect(matchesTarget(new Set(['acme-only']), 'core')).toBe(false);
+    expect(matchesTarget(new Set(['core-cursor-only']), 'core-claude')).toBe(false);
   });
 
   it('handles combination of overwrite and target-only — target-only still filters', () => {
@@ -116,15 +128,23 @@ describe('matchesProfile', () => {
   });
 });
 
-// FR-PROF-0030.AC5: the empty trailing token produced by the closing tilde fence (nothing follows
-// it) must be inert — it must not be misread as a directive by either matcher.
-describe('empty trailing token from the closing tilde fence is inert', () => {
-  it('a fenced multi-directive stem yields an empty condition that neither matcher acts on', () => {
+// FR-PROF-0030.AC5: the closing tilde fence must not contribute a directive. parseDirectives drops
+// the trailing empty segment outright, so it yields no condition at all rather than an inert one —
+// which is also what lets the closed allow-list run without an empty string tripping it.
+describe('the closing tilde fence contributes no directive', () => {
+  it('a fenced multi-directive stem yields only the real tokens, and both matchers act correctly', () => {
     const { conditions } = parseDirectives('coding-flow~profile-lightweight-only~overwrite~.md');
-    // The closing "~" before the extension produces a trailing empty segment.
-    expect(conditions.has('')).toBe(true);
+    expect(conditions.has('')).toBe(false);
+    expect([...conditions].sort()).toEqual(['overwrite', 'profile-lightweight-only']);
     expect(matchesTarget(conditions, 'core-claude')).toBe(true);
     expect(matchesProfile(conditions, 'lightweight')).toBe(true);
     expect(matchesProfile(conditions, null)).toBe(false);
+  });
+
+  it('an unfenced stem parses identically, so the fence is optional in the grammar', () => {
+    const fenced = parseDirectives('coding-flow~profile-lightweight-only~overwrite~.md');
+    const unfenced = parseDirectives('coding-flow~profile-lightweight-only~overwrite.md');
+    expect([...unfenced.conditions].sort()).toEqual([...fenced.conditions].sort());
+    expect(unfenced.cleanName).toBe(fenced.cleanName);
   });
 });

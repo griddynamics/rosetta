@@ -542,13 +542,6 @@ async def _build_call_context(tool_name: str, params: dict[str, Any], ctx: Conte
     )
 
 
-def _validate_topic(topic: str | None) -> str | None:
-    # >10 is intentional: AI will always add more words, gives extra word buffer
-    if topic and len(topic.split()) > 10:
-        return "Error: topic must be 10 words or less"
-    return None
-
-
 # This is required, as sometimes models hallucinate tags as single string, but we don't want tool contract to be different (as it causes more hallucinations)
 def _normalize_tags(tags: list[str] | str | None) -> tuple[list[str] | None, str | None]:
     """Normalize single-string or list tag input for tool wrappers."""

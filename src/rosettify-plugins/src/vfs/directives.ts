@@ -1,10 +1,13 @@
 // FR-ARCH-0020–0024 — FilenameDirective parse and validate
 
+import { TARGET_NAME_LIST } from '../spec/target-names.js';
+
 export type DirectiveToken = string;
 
 /**
  * Parse tilde-separated directives from a filename stem.
- * e.g. "file~overwrite~r2-only" → { stem: "file", directives: ["overwrite", "r2-only"] }
+ * e.g. "file~overwrite~core-claude-only" →
+ * { stem: "file", directives: ["overwrite", "core-claude-only"] }
  * FR-ARCH-0020: tilde grammar
  */
 export interface ParsedFilename {
@@ -12,7 +15,27 @@ export interface ParsedFilename {
   conditions: Set<DirectiveToken>;
 }
 
-const KNOWN_DIRECTIVES = new Set(['overwrite', 'target-only']);
+const KNOWN_DIRECTIVES = new Set([
+  'overwrite',
+  ...TARGET_NAME_LIST.map((target) => `${target}-only`),
+]);
+
+/**
+ * A profile-scoped token is `profile-<name>-only` (FR-PROF-0030). Unlike `overwrite` and the
+ * target-only tokens, its `<name>` is an arbitrary profile name, so the kind is recognized by SHAPE
+ * rather than enumerated in KNOWN_DIRECTIVES. `profile-only` (no name) does not match and is
+ * therefore still rejected as a typo.
+ *
+ * The name is deliberately NOT validated against the profiles that exist: a file scoped to a
+ * profile that is not active is simply excluded (matchesProfile), and an unknown `--profile` value
+ * is rejected at CLI pre-flight before any source file is read. Resolving profiles here would make
+ * VFS parsing depend on the profile directory, which it does not otherwise know about.
+ */
+const PROFILE_ONLY_PATTERN = /^profile-[a-z0-9]+(?:-[a-z0-9]+)*-only$/;
+
+function isKnownDirective(directive: DirectiveToken): boolean {
+  return KNOWN_DIRECTIVES.has(directive) || PROFILE_ONLY_PATTERN.test(directive);
+}
 
 export function parseDirectives(filename: string): ParsedFilename {
   const dotIdx = filename.lastIndexOf('.');
@@ -22,6 +45,16 @@ export function parseDirectives(filename: string): ParsedFilename {
   const parts = stem.split('~');
   const baseStem = parts[0];
   const rawDirectives = parts.slice(1);
+  if (rawDirectives[rawDirectives.length - 1] === '') rawDirectives.pop();
+
+  for (const directive of rawDirectives) {
+    if (!isKnownDirective(directive)) {
+      const allowed = [...KNOWN_DIRECTIVES, 'profile-<name>-only'].join(', ');
+      throw new Error(
+        `Unknown filename directive "${directive}" in "${filename}". Allowed directives: ${allowed}`,
+      );
+    }
+  }
 
   const conditions = new Set<DirectiveToken>(rawDirectives);
 

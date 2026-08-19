@@ -127,7 +127,7 @@ describe('buildVfs', () => {
   });
 
   it('directive rename collision: two differently-named files map to same cleanRelPath', () => {
-    // Two files: 'policy~overwrite.md' and 'policy~append.md' both map to 'policy.md'.
+    // Two valid directive filenames both map to 'policy.md'.
     // This exercises the "existing" merge branch in buildVfs (line 37).
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vfs-collision-'));
     try {
@@ -135,7 +135,7 @@ describe('buildVfs', () => {
       const base = path.join(tmpDir, 'r1', 'core', 'rules');
       fs.mkdirSync(base, { recursive: true });
       fs.writeFileSync(path.join(base, 'policy~overwrite.md'), '# Overwrite');
-      fs.writeFileSync(path.join(base, 'policy~append.md'), '# Append');
+      fs.writeFileSync(path.join(base, 'policy~core-claude-only.md'), '# Core Claude only');
 
       const vfs = buildVfs(tmpDir, 'r1', 'core');
       const policyFile = vfs.find((v) => v.path === 'rules/policy.md');

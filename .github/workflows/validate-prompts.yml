@@ -5,12 +5,12 @@ name: Validate Prompts
 #
 # Required GitHub Secrets:
 #   - BIFROST_HOST_NAME: Bifrost gateway hostname (no protocol/port/path), routes Anthropic API calls through Bifrost
-#   - BIFROST_API_KEY: Bifrost-issued API key for Claude Code CLI
+#   - BIFROST_API_KEY: Bifrost-issued API key for Claude Code
 #
 # The workflow:
 # - Detects changed files in instructions/ folder
 # - Compares base (target branch) vs new (PR branch) versions
-# - Uses Claude Code CLI to run the Prompt Quality Auditor agent
+# - Uses anthropics/claude-code-action to run the Prompt Quality Auditor agent
 # - Outputs issues sorted by severity (critical first)
 # - Blocks PR if HIGH+ issues found (severity >= 3: high, very high, critical)
 # - Creates a PR comment with all issues by severity
@@ -38,7 +38,6 @@ jobs:
       PR_COMMENT_FILE: .tmp/pr-comment.md
       FULL_REPORT_FILE: .tmp/full-report.md
       DIFF_FILE: .tmp/instructions.diff
-      MODEL: opus
       TARGET_PR_NUMBER: ${{ github.event.pull_request.number }}
       TARGET_BASE_REF: ${{ github.event.pull_request.base.ref }}
 
@@ -67,14 +66,12 @@ jobs:
           allow-unsafe-pr-checkout: true
           persist-credentials: false
 
-      - name: Install Claude Code CLI
-        run: |
-          echo "Installing Claude Code CLI..."
-          npm install -g @anthropic-ai/claude-code
-          claude --version
-          echo "Installing Rosetta plugin..."
-          claude plugin marketplace add griddynamics/rosetta
-          claude plugin install rosetta@rosetta
+      - name: Install Bun
+        id: bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.6
+          token: ${{ github.token }}
 
       - name: Get changed files in instructions folder
         id: changed-files
@@ -112,34 +109,60 @@ jobs:
         env:
           BASE_REF: ${{ steps.changed-files.outputs.base_ref }}
         run: |
-          mkdir -p $TMP_DIR
+          mkdir -p $TMP_DIR/agents
           git -C pr diff "$BASE_REF"...HEAD -- 'instructions/r*/**' > $DIFF_FILE 2>/dev/null || true
           echo "::notice::Diff generated: $(wc -l < $DIFF_FILE) lines"
 
+      # allowed_non_write_users bypasses claude-code-action's own actor-permission
+      # gate (see repo-triage.yml for the full rationale) -- without it, fork PR
+      # authors would be newly blocked from triggering prompt validation, a
+      # regression from today's raw-CLI invocation which has no such gate.
+      #
+      # Read/Write/Edit are scoped to absolute paths under github.workspace rather
+      # than left bare, and Glob/Grep are not granted at all (unchanged from
+      # before). The explicit /proc and /etc denies are a redundant second layer
+      # for the same reason as repo-triage.yml: deny wins regardless of
+      # specificity, so this holds even if the allow scope is ever loosened.
       - name: Validate prompts
-        id: validate
+        id: run-validation
         if: steps.changed-files.outputs.count > 0
+        uses: anthropics/claude-code-action@v1
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.BIFROST_API_KEY }}
           ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
           ENABLE_TOOL_SEARCH: "true"
           CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
-          BASE_REF: ${{ steps.changed-files.outputs.base_ref }}
+          CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
+        with:
+          allowed_non_write_users: "*"
+          anthropic_api_key: ${{ secrets.BIFROST_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          path_to_bun_executable: ${{ steps.bun.outputs.bun-path }}
+          plugin_marketplaces: |
+            https://github.com/griddynamics/rosetta.git
+          plugins: |
+            rosetta@rosetta
+          prompt: |
+            Changed files: ${{ steps.changed-files.outputs.files }}
+            Git base ref: ${{ steps.changed-files.outputs.base_ref }}
+            Changed count: ${{ steps.changed-files.outputs.count }}
+            Output file: ${{ env.ALL_RESULTS_FILE }}
+            Diff file: ${{ env.DIFF_FILE }}
+            PR content path: pr
+          show_full_output: false
+          claude_args: |
+            --model
+            opus
+            --allowedTools
+            "Write(/${{ github.workspace }}/.tmp/**),Edit(/${{ github.workspace }}/.tmp/**),Read(/${{ github.workspace }}/.tmp/**),Read(/${{ github.workspace }}/instructions/**),Read(/${{ github.workspace }}/docs/**),Read(/${{ github.workspace }}/agents/**),Read(/${{ github.workspace }}/pr/**),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git branch:*),Bash(git ls-files:*),Bash(git rev-parse:*),Task"
+            --disallowedTools
+            "Read(//proc/**),Read(//etc/**)"
+            --system-prompt-file
+            ./.github/prompts/prompt-comparison.md
+
+      - name: Check validation result
+        id: validate
+        if: steps.changed-files.outputs.count > 0
         run: |
-          echo "Validating prompts..."
-
-          CHANGED_FILES="${{ steps.changed-files.outputs.files }}"
-          COUNT="${{ steps.changed-files.outputs.count }}"
-          mkdir -p $TMP_DIR/agents
-
-          PROMPT="Changed files: $CHANGED_FILES ; Git base ref=$BASE_REF ; Changed count=$COUNT ; Output file=$ALL_RESULTS_FILE ; Diff file=$DIFF_FILE ; PR content path=pr"
-          echo "Prompt: $PROMPT"
-
-          claude --model $MODEL \
-            --allowedTools "Write(.tmp/**), Edit(.tmp/**), Read(.tmp/**), Read(instructions/**), Read(docs/**), Read(agents/**), Read(pr/**), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git branch:*), Bash(git ls-files:*), Bash(git rev-parse:*), Task" \
-            --system-prompt-file ./.github/prompts/prompt-comparison.md \
-            -p "$PROMPT"
-
           if [ ! -f "$ALL_RESULTS_FILE" ]; then
             echo "::warning::Output file not produced, creating empty result"
             echo '[]' > $ALL_RESULTS_FILE

@@ -32,6 +32,7 @@ export type HookResult =
 export type FilePathPredicate = {
   extOneOf?:           readonly string[];
   extOneOfCi?:         readonly string[];
+  /** Raw substring exclusion retained for compatibility; prefer notStartsWithAny for directory roots. */
   notContainsAny?:     readonly string[];
   notTokenSegmentAny?: readonly string[];
   notStartsWithAny?:   readonly string[];

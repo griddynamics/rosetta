@@ -94,6 +94,16 @@ const GIT_FORCE_FLAG_LA = String.raw`(?=(?:\s+\S+)*\s+(?:-f\b|--force(?!-with-le
 // argument, not a refspec) is left alone and handled separately.
 const GIT_FORCE_REFSPEC_LA = String.raw`(?=(?:\s+-\S+)*\s+(?!-)(?!['"]?\+)\S+(?:\s+\S+)*\s+['"]?\+\S)`;
 
+// `git branch` force-delete detection. `-D` is shorthand for `--delete --force`.
+// Git also accepts delete + force as separate short/long flags, in either order,
+// and as combined short flags (`-df` / `-fd`). Keep the delete and force checks
+// independent so ordinary `-d` / `--delete` remains outside this guardrail.
+// Lookaheads stop at common shell command separators so a later command cannot
+// accidentally supply the missing force/delete flag for an earlier branch command.
+const GIT_BRANCH = String.raw`\bgit\s+branch\b`;
+const GIT_BRANCH_DELETE_LA = String.raw`(?=[^;&|\r\n]*(?:\s--delete\b|\s-[a-zA-Z]*[dD][a-zA-Z]*\b))`;
+const GIT_BRANCH_FORCE_LA = String.raw`(?=[^;&|\r\n]*(?:\s--force\b|\s-[a-zA-Z]*[fD][a-zA-Z]*\b))`;
+
 export const DANGEROUS_BASH: readonly DangerPattern[] = [
   { id: 'rm-rf-root',          re: new RegExp(String.raw`\brm\b` + RM_RF_GUARD + RM_ROOT_TARGET),              label: 'rm -rf /',              reason: REASON.FILE_DELETION,         policy: 'reconsider' },
   { id: 'rm-rf-home',          re: new RegExp(String.raw`\brm\b` + RM_RF_GUARD + RM_HOME_TARGET),              label: 'rm -rf $HOME',          reason: REASON.FILE_DELETION,         policy: 'reconsider' },
@@ -107,7 +117,7 @@ export const DANGEROUS_BASH: readonly DangerPattern[] = [
   { id: 'git-force-push',      re: new RegExp(GIT_PUSH + `(?:${GIT_FORCE_FLAG_LA}|${GIT_FORCE_REFSPEC_LA})`),  label: 'git push --force',      reason: REASON.GIT_HISTORY_REWRITE,   policy: 'reconsider' },
   { id: 'git-reset-hard',      re: /\bgit\s+reset\s+--hard\b/,                                                 label: 'git reset --hard',      reason: REASON.GIT_HISTORY_REWRITE,   policy: 'reconsider' },
   { id: 'git-clean-force',     re: /\bgit\s+clean\s+-[a-z]*[fd]/,                                              label: 'git clean -fd',         reason: REASON.FILE_DELETION,         policy: 'reconsider' },
-  { id: 'git-branch-delete',   re: /\bgit\s+branch\s+-D\b/,                                                    label: 'git branch -D',         reason: REASON.GIT_HISTORY_REWRITE,   policy: 'reconsider' },
+  { id: 'git-branch-delete',   re: new RegExp(GIT_BRANCH + GIT_BRANCH_DELETE_LA + GIT_BRANCH_FORCE_LA),         label: 'git branch -D',         reason: REASON.GIT_HISTORY_REWRITE,   policy: 'reconsider' },
   { id: 'aws-s3-rm-recursive', re: /\baws\s+s3\s+rm\b.*--recursive\b/,                                         label: 'aws s3 rm --recursive', reason: REASON.FILE_DELETION,         policy: 'reconsider' },
   { id: 'kubectl-delete-prod', re: /\bkubectl\s+delete\b.*--all\b/,                                            label: 'kubectl mass delete',   reason: REASON.INFRA_OPERATION,       policy: 'reconsider' },
   { id: 'dropdb',              re: /\b(?:dropdb\b|psql\b[^"']*\bdrop\s+(?:table|database|schema)\b)/i,         label: 'DB drop CLI',           reason: REASON.SCHEMA_MODIFICATION,   policy: 'reconsider' },

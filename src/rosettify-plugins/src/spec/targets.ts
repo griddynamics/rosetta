@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import type { Writable } from 'stream';
 import type { PluginSpec, SpecEntry, FileProcessor, PluginProcessor, ReleaseDescriptor } from '../types.js';
+import { TARGET_NAMES } from './target-names.js';
 import {
   CLAUDE_VOCABULARY,
   CURSOR_VOCABULARY,
@@ -200,7 +201,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
 
   // ── core-claude ───────────────────────────────────────────────────────────
   const coreClaude: PluginSpec = {
-    name: 'core-claude',
+    name: TARGET_NAMES.CLAUDE,
     destination: 'core-claude' + destinationSuffix,
     baseSubfolder: '',
     preservedSource: path.join(pluginsRoot, 'core-claude'),
@@ -241,7 +242,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
   // ── core-cursor ────────────────────────────────────────────────────────────
   // workflows→commands, rules/*.md→*.mdc
   const coreCursor: PluginSpec = {
-    name: 'core-cursor',
+    name: TARGET_NAMES.CURSOR,
     destination: 'core-cursor' + destinationSuffix,
     baseSubfolder: '',
     preservedSource: path.join(pluginsRoot, 'core-cursor'),
@@ -290,7 +291,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
   // workflows→commands, agents/*.md→*.agent.md
   // 3× hooks.json: (a) .github/plugin/hooks.json (rendered), (b) root hooks.json (copy of a), (c) hooks/hooks.json (standalone-form)
   const coreCopilot: PluginSpec = {
-    name: 'core-copilot',
+    name: TARGET_NAMES.COPILOT,
     destination: 'core-copilot' + destinationSuffix,
     baseSubfolder: '',
     preservedSource: path.join(pluginsRoot, 'core-copilot'),
@@ -343,7 +344,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
   // ── core-codex ─────────────────────────────────────────────────────────────
   // Instructions go under .agents/; agents → .codex/agents/*.toml; hooks → .codex/
   const coreCodex: PluginSpec = {
-    name: 'core-codex',
+    name: TARGET_NAMES.CODEX,
     destination: 'core-codex' + destinationSuffix,
     baseSubfolder: '.agents',
     preservedSource: path.join(pluginsRoot, 'core-codex'),
@@ -439,7 +440,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
     `\nRosetta plugin root: ".cursor". You MUST FOLLOW ALL bootstrap* and plugin* instructions and execute every prep step in order. After prep steps, you MUST select a workflow and execute it. All workflows (commands) are stored in ".cursor/commands/<workflowtag>.md". Example ".cursor/commands/coding-flow.md".\n\n`;
 
   const coreCursorStandalone: PluginSpec = {
-    name: 'core-cursor-standalone',
+    name: TARGET_NAMES.CURSOR_STANDALONE,
     destination: 'core-cursor-standalone' + destinationSuffix,
     baseSubfolder: '.cursor',
     preservedSource: path.join(pluginsRoot, 'core-cursor'),
@@ -535,7 +536,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
     `\nRosetta plugin root: ".github". You MUST FOLLOW ALL bootstrap* and plugin* instructions and execute every prep step in order. After prep steps, you MUST select a workflow and execute it. All workflows (commands) are stored in ".github/prompts/<workflowtag>.prompt.md". Example ".github/prompts/coding-flow.prompt.md".\n\n`;
 
   const coreCopilotStandalone: PluginSpec = {
-    name: 'core-copilot-standalone',
+    name: TARGET_NAMES.COPILOT_STANDALONE,
     destination: 'core-copilot-standalone' + destinationSuffix,
     baseSubfolder: '.github',
     preservedSource: path.join(pluginsRoot, 'core-copilot'),
@@ -673,7 +674,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
   // FR-VAR-0082/0083: bootstrap rides the source's authored always-on rule, not a
   // session-start hook; hooks.json.tmpl omits the bootstrap placeholder (mirrors Cursor, FR-VAR-0070).
   const coreAntigravity: PluginSpec = {
-    name: 'core-antigravity',
+    name: TARGET_NAMES.ANTIGRAVITY,
     destination: 'core-antigravity' + destinationSuffix,
     baseSubfolder: '',
     preservedSource: path.join(pluginsRoot, 'core-antigravity'),

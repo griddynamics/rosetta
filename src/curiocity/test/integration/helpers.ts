@@ -71,6 +71,7 @@ export interface MockSpecArgs {
   scene: string;
   runDir?: string;
   timeoutSec?: number;
+  maxTurns?: number;
   evaluate?: boolean;
   keepWorkspace?: boolean;
   mirror?: boolean;
@@ -88,6 +89,7 @@ export function mockSpec(args: MockSpecArgs): TrialSpec {
     caseName: args.caseName ?? 'mock-case',
     repeat: args.repeat ?? 1,
     timeoutSec: args.timeoutSec ?? 20,
+    ...(args.maxTurns !== undefined ? { maxTurns: args.maxTurns } : {}),
     prompt: 'Create out.txt containing hello world.',
     qna: args.qna ?? 'Answer helpfully and concisely. If unsure, abort.',
     models: {},

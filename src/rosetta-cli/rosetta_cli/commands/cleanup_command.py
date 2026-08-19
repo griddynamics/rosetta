@@ -94,13 +94,13 @@ class CleanupCommand(BaseCommand):
             # Filter by tags (metadata condition)
             tags_list = self._parse_tags(args.tags)
             filtered_documents = document_service.filter_documents_by_tags(
-                dataset, tags_list
+                dataset, tags_list, limit=self.config.page_size
             )
             print(f"\nFiltered {len(filtered_documents)} document(s) with tags: {', '.join(tags_list)}\n")
         elif args.prefix:
             # Filter by prefix
             filtered_documents = document_service.filter_documents_by_prefix(
-                dataset, args.prefix
+                dataset, args.prefix, limit=self.config.page_size
             )
             print(f"\nFiltered {len(filtered_documents)} document(s) matching prefix '{args.prefix}'\n")
         else:

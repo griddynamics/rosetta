@@ -210,18 +210,3 @@ export interface GenerateOptions {
 // `spec/targets.ts` (which builds one PluginSpec per name) and `spec/profiles.ts` (which validates a
 // profile's modelOverrides outer keys against it) MUST import from here rather than restate it.
 // `types.ts` is the right home because it imports nothing from `spec/`, so neither direction cycles.
-export const TARGET_NAMES = [
-  'core-claude',
-  'core-cursor',
-  'core-copilot',
-  'core-codex',
-  'core-antigravity',
-  'core-cursor-standalone',
-  'core-copilot-standalone',
-] as const;
-
-export type TargetName = (typeof TARGET_NAMES)[number];
-
-export function isTargetName(value: string): value is TargetName {
-  return (TARGET_NAMES as readonly string[]).includes(value);
-}

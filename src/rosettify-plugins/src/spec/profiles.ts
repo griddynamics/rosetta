@@ -5,16 +5,18 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { TARGET_NAMES, isTargetName } from '../types.js';
-export type { TargetName } from '../types.js';
-import type { ModelVocabulary, TargetName } from '../types.js';
+import { TARGET_NAME_LIST, isTargetName } from './target-names.js';
+export type { TargetName } from './target-names.js';
+import type { ModelVocabulary } from '../types.js';
+import type { TargetName } from './target-names.js';
 
 /**
- * The seven target identities (DATA-CFG-0003 / `spec.name` values) come from `types.ts`, which is
- * the single source of truth shared with `spec/targets.ts`. They are deliberately NOT imported from
- * `spec/targets.ts`: that module imports `loadProfile()`/`resolveEffectiveVocabulary()` from here to
- * resolve each spec's effective vocabulary and destination suffix, so importing it back would cycle
- * (`profiles.ts` -> `targets.ts` -> `profiles.ts`). `types.ts` imports nothing from `spec/`, so
+ * The seven target identities (DATA-CFG-0003 / `spec.name` values) come from `spec/target-names.ts`,
+ * the single source of truth shared with `spec/targets.ts` and with the FilenameDirective allow-list
+ * in `vfs/directives.ts`. They are deliberately NOT imported from `spec/targets.ts`: that module
+ * imports `loadProfile()`/`resolveEffectiveVocabulary()` from here to resolve each spec's effective
+ * vocabulary and destination suffix, so importing it back would cycle
+ * (`profiles.ts` -> `targets.ts` -> `profiles.ts`). `target-names.ts` imports nothing at all, so
  * neither direction cycles.
  */
 
@@ -52,9 +54,9 @@ export interface ProfileDescriptor {
    * target's own vocabulary keying (closed {opus,sonnet,haiku} set for core-claude, exact source
    * model tokens for core-cursor/core-copilot/core-codex and their standalones). Partial, not
    * Record<TargetName, ...>: a real profile declares blocks only for the targets it overrides
-   * (the reference profile in decisions.md declares four of seven) — a total Record would force
-   * every descriptor literal, including that reference profile and any test fixture, to name all
-   * seven keys, which does not match how profiles are actually authored.
+   * — a total Record would force every descriptor literal, including every test fixture, to name
+   * all seven keys, which does not match how profiles are actually authored. The shipped
+   * `lightweight` profile declares no block at all.
    */
   modelOverrides: Partial<Record<TargetName, Record<string, string>>>;
 }
@@ -137,7 +139,7 @@ export function loadProfile(profileSource: string, name: string): ProfileDescrip
     if (!isTargetName(outerKey)) {
       fail(
         `Unknown profile target "${outerKey}" in modelOverrides. Accepted target names are: ` +
-          `${TARGET_NAMES.join(', ')}.`,
+          `${TARGET_NAME_LIST.join(', ')}.`,
       );
     }
     if (outerKey === 'core-antigravity') {

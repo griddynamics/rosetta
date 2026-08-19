@@ -8,6 +8,11 @@ on:
       - 'src/rosettify-plugins/**'
   workflow_dispatch:
 
+
+concurrency:
+  group: publish-rosettify-plugins-main
+  cancel-in-progress: false
+
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest

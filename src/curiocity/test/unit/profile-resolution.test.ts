@@ -173,6 +173,31 @@ describe('buildTrialSpecs (D13 defaults reachable end-to-end)', () => {
       openai: 'https://bifrost.example/openai',
     });
   });
+
+  it('propagates the optional case maxTurns into the final TrialSpec', () => {
+    const topLevel = topLevelConfigSchema.parse({});
+    const cases = [makeCase('pong', ['claude-code'])];
+    cases[0]!.config = caseConfigSchema.parse({ agents: ['claude-code'], maxTurns: 7 });
+    const resolvedCases = cases.map((c) =>
+      resolveCaseConfig({ caseName: c.name, topLevel, caseConfig: c.config, evaluateDefault: false }),
+    );
+    const matrix = buildMatrix({ topLevel, cases: resolvedCases });
+
+    const { specs, skipped } = buildTrialSpecs({
+      topLevel,
+      cases,
+      resolvedCases,
+      matrix,
+      runDir: '/tmp/does-not-matter',
+      configDir: process.cwd(),
+      keepWorkspace: false,
+      mirror: false,
+      keys: {},
+    });
+
+    expect(skipped).toHaveLength(0);
+    expect(specs[0]!.maxTurns).toBe(7);
+  });
 });
 
 describe('buildTrialSpecs — registry-default `models` reach the final TrialSpec (m5-review R1)', () => {
