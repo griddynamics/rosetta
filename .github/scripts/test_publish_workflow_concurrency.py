@@ -16,9 +16,11 @@ def test_helm_chart_validation_and_publish_use_separate_concurrency_groups() -> 
     workflow = load_workflow("publish-mcp-helm-chart.yml")
 
     assert "concurrency" not in workflow
+    # Cancellation is PR-only: a cancelled validate on main skips publish (needs: validate),
+    # which would drop that push's chart version from the registry.
     assert workflow["jobs"]["validate"]["concurrency"] == {
         "group": "${{ github.workflow }}-${{ github.ref }}",
-        "cancel-in-progress": True,
+        "cancel-in-progress": "${{ github.event_name == 'pull_request' }}",
     }
     assert workflow["jobs"]["publish"]["concurrency"] == {
         "group": "publish-mcp-helm-chart-main",

@@ -18,8 +18,12 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     concurrency:
+      # Cancel superseded PR validations only. On a push to main, cancelling this job
+      # skips `publish` (needs: validate), so a chart version bumped by that push would
+      # never reach the registry — two chart pushes in quick succession would drop the
+      # first version from the series entirely.
       group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
