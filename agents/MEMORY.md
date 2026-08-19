@@ -7,6 +7,12 @@ Content: brief, grep-friendly, MECE across sections. Style: one-liner per entry,
 
 ## Preventive Rules
 
+### Absence From This Repo Is Not Proof A Referenced Thing Does Not Exist [ACTIVE]
+Before calling a reference dangling, establish what it is FOR. `/goal` and `/advisor` are Claude Code features the user sets; `graphify` is a third-party skill installed via `graphify install`. None is defined in this repo by design. Web-search and read `docs/definitions/workflows.md` first. Six issues in one batch rested on this error, and acting on them deleted working features.
+
+### Prescriptive Schemas Outrank Observed Patterns [ACTIVE]
+When an instruction file looks wrong, check `docs/schemas/*.md`, `instructions/r*/core/templates/shell-schemas/*.md`, and the sibling `README.md` "Invariants" section before changing it. A line repeated verbatim across many files is a convention, not a defect — `All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed` is mandated by all three schemas and `skills/coding/README.md` forbids rewording it locally.
+
 ### HITL Applies At Workflow Gates, Not Every Internal Mechanic [ACTIVE]
 Proceed through read-only discovery, analysis, delegation, retries, and draft refinement; ask only at the workflow's defined approval or material-risk gates.
 

@@ -33,6 +33,7 @@ baseSchema: docs/schemas/rule.md
 - Intrinsics: coded != done, tests passing != actually works, confidence != evidence, trust but verify, existence != implementation != integration, current paths != deployed paths, accepted result != fast result
 - review = static inspection · validation = run it & manual QA by subagent — gates acceptance · done = ultimately works: usable, correct, real value
 - Use + keep current as work lands (concise, next-session consistency): `docs/CONTEXT.md` — business + behavior + target state · `docs/ARCHITECTURE.md` — architecture + technical requirements · `agents/MEMORY.md` — root causes, what worked/failed
+- MUST follow ASD-STE100 Simplified Technical English
 
 Tasks = execution ledger, survives dropped steps & compaction. MUST run everything (incl. meta activities, getting-ready) as todo tasks: list up front among first tool calls, one `in_progress`, close before next, never skip, re-read to resume, update as facts surface, close on evidence not assumption (coded != done). MUST ALWAYS USE AND KEEP CURRENT TODO TASKS, ASAP. SOLVES YOUR LATER DEVIATIONS.
 

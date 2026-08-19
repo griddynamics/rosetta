@@ -23,6 +23,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 
 - Refactored into a modular package structure with dedicated `config`, `context`, `services`, `tools`, `auth`, and `analytics` modules.
 - PostHog analytics parity restored in `rosetta_mcp/analytics/tracker.py`: added `$referring_domain`, `$screen_name`, `$title`, `error_type`/`error_message` on soft errors, `$pageview` and `$web_vitals` events, `error_status_code` on HTTP exceptions, `$browser`/`$browser_version` in exception context, `on_error` logging on Posthog constructor, inner try/except isolating analytics failures from tool results; all exception sites use `logger.warning`. Fixed `feedback.py` `distinct_id` to `call_ctx.username` (was composite `username@repository`). 18 new test cases added covering all acceptance criteria including boundary conditions.
+- All RAGFlow HTTP calls honour `ROSETTA_RAGFLOW_HTTP_TIMEOUT`, including the v1 document-download fallback and the legacy-compatibility bootstrap.
 - Core MCP tools are implemented, including:
   - `get_context_instructions`
   - `query_instructions`
@@ -88,6 +89,8 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Publishing reuses in-process dataset lookups during a CLI run and clears that cache after dataset create/delete operations.
 - Auth checks were tightened so API-backed commands fail earlier and more predictably.
 - A dedicated `version` command was added so package version inspection does not require config loading or auth.
+- `--parse-timeout` resolves as explicit flag > `RAGFLOW_PARSE_TIMEOUT` > 1200, and reaches both `wait_for_parsing` call sites (single-file and folder-batch).
+- `RAGFLOW_TIMEOUT` configures the RAGFlow client HTTP timeout (default 30), used by the health check.
 - Package metadata and publish flows were repaired to keep CI/CD and PyPI publishing functional.
 
 ### Workspace Initialization
@@ -137,6 +140,8 @@ For detailed change history, use git history and PRs instead of expanding this f
 
 ### Instructions and Skills
 
+- Skill frontmatter carries no `context`/`agent`/`model`/`metadata` keys. `context` exists solely to fork a skill into a subagent, so `context: default` is a no-op and is not used; `docs/schemas/skill.md` documents only `fork`.
+
 - Added `plan-manager` skill under `instructions/r2/core/skills/plan-manager/` — primary plan manager for coding agents via local JSON files.
 - Skill assets: `plan_manager.js` (CLI, no npm deps), `pm-schema.md` (data structure reference), `plan_manager.test.js` (60 unit tests).
 - Key behaviors: resume-safe `next` command returns `in_progress` steps with `resume: true` before `open` steps; plans stored at `plans/<name>/plan.json`; self-describing `help` command.
@@ -168,6 +173,8 @@ For detailed change history, use git history and PRs instead of expanding this f
 ### Workflows and Automation
 
 - GitHub Actions were updated to remove most deprecated Node 20-era dependencies and align with newer action runtimes where upstream allowed it.
+- CI workflows carry `timeout-minutes` and npm/pip dependency caching via `setup-node`/`setup-python`; mypy strict gates `src/rosetta-cli` in PR CI, scoped to that path.
+- Concurrency: CI and validation workflows use `${{ github.workflow }}-${{ github.ref }}` with cancellation; registry-publish workflows use static uncancellable groups, because the registry is global state and an in-flight upload must not be aborted.
 - `repo-triage` and `validate-prompts` use `pull_request_target` for PR automation so workflow definitions come from the base branch (`main`). Both explicitly check out candidate PR content under `pr/` when PR files must be inspected.
 - `repo-triage` has an explicit instruction-quality path for `instructions/r*/**` and instruction-related issues/comments: use `orchestration`, dispatch a `coding-agents-prompt-authoring` subagent, and load Rosetta intro/patterns/hardening/schemas references.
 - Init-workspace instructions now treat `rosetta@rosetta` as the MCP connector path rather than plugin mode, while any other plugin type is handled as plugin mode.
