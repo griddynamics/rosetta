@@ -214,44 +214,47 @@ class Bundler:
     def bundle(self, documents: list[DocumentLike], dataset_name: str, *, strip_frontmatter: bool = False) -> str:
         chunks: list[str] = []
         for doc in sorted(documents, key=self._sort_key):
-            tags_attr = self._tags_attr(doc)
-            path = self._resource_path(doc)
             body = self._documents.download_content(doc)
-            if strip_frontmatter:
-                body = self._strip_frontmatter(body)
-            chunks.append(
-                XML_FILE_OPEN.format(
-                    id=self._xml_attr(doc.id),
-                    dataset=self._xml_attr(dataset_name),
-                    path=self._xml_attr(path),
-                    name=self._xml_attr(doc.name or ""),
-                    tags=self._xml_attr(tags_attr),
-                )
+            xml_document = self._bundle_document_chunks(
+                doc,
+                dataset_name,
+                body,
+                strip_frontmatter=strip_frontmatter,
             )
-            chunks.append(body)
-            chunks.append(XML_FILE_CLOSE)
+            chunks.extend(xml_document)
         return "\n".join(chunks)
 
     async def bundle_async(self, documents: list[DocumentLike], dataset_name: str, *, strip_frontmatter: bool = False) -> str:
         chunks: list[str] = []
         for doc in sorted(documents, key=self._sort_key):
-            tags_attr = self._tags_attr(doc)
-            path = self._resource_path(doc)
             body = await offload(self._documents.download_content, doc)
-            if strip_frontmatter:
-                body = self._strip_frontmatter(body)
-            chunks.append(
-                XML_FILE_OPEN.format(
-                    id=self._xml_attr(doc.id),
-                    dataset=self._xml_attr(dataset_name),
-                    path=self._xml_attr(path),
-                    name=self._xml_attr(doc.name or ""),
-                    tags=self._xml_attr(tags_attr),
-                )
+            xml_document = self._bundle_document_chunks(
+                doc,
+                dataset_name,
+                body,
+                strip_frontmatter=strip_frontmatter,
             )
-            chunks.append(body)
-            chunks.append(XML_FILE_CLOSE)
+            chunks.extend(xml_document)
         return "\n".join(chunks)
+
+    @classmethod
+    def _bundle_document_chunks(cls, doc: DocumentLike, dataset_name: str, body: str, strip_frontmatter: bool = False) -> list[str]:
+        tags_attr = cls._tags_attr(doc)
+        path = cls._resource_path(doc)
+
+        if strip_frontmatter:
+            body = cls._strip_frontmatter(body)
+        return [
+            XML_FILE_OPEN.format(
+                id=cls._xml_attr(doc.id),
+                dataset=cls._xml_attr(dataset_name),
+                path=cls._xml_attr(path),
+                name=cls._xml_attr(doc.name or ""),
+                tags=cls._xml_attr(tags_attr),
+            ),
+            body,
+            XML_FILE_CLOSE,
+        ]
 
     def format_as_listing(self, documents: list[DocumentLike], dataset_name: str) -> str:
         """Format documents as a flat listing without content (file entries only)."""
