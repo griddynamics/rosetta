@@ -23,8 +23,7 @@ Validation: Specifications are testable, architecture is explicit, and every req
 
 <prerequisites>
 
-- `bootstrap-alwayson.md` + dispatch context loaded; MUST USE SKILL `subagent-directives`
-- Load `load-project-context` only when required by the assigned task
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Discovery phase complete with context and affected areas identified
 - Requirements and constraints provided by orchestrator
 

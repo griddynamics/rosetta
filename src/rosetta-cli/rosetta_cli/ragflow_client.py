@@ -350,7 +350,7 @@ class RAGFlowClient:
             orderby: Field to sort by
             desc: Sort in descending order
             id: Filter by dataset ID (exact match)
-            name: Filter by dataset name (RAGFlow matches by substring)
+            name: Filter by dataset name (exact match lookup - will fail if not found)
             
         Returns:
             List of DataSet objects
@@ -407,10 +407,11 @@ class RAGFlowClient:
                     return cached
 
                 # Filter by name (RAGFlow does substring, we verify exact match).
-                # Use the configured page size so an exact match is not hidden
-                # behind other substring hits.
+                # page_size=10 is intentional and sufficient: dataset names are
+                # unique, so this lookup can return at most one exact match.
+                # Do not "fix" this to a larger page size or a pagination loop.
                 with _timed(f"list_datasets(name={name})"):
-                    datasets = self._client.list_datasets(name=name, page_size=self.page_size)
+                    datasets = self._client.list_datasets(name=name, page_size=10)
                 # Filter for exact match
                 datasets = [ds for ds in datasets if ds.name == name]
             else:

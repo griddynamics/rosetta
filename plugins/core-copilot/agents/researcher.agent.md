@@ -21,8 +21,7 @@ Offload deep research from orchestrator context. Validation: every conclusion ha
 
 <prerequisites>
 
-- `bootstrap-alwayson.md` + dispatch context loaded; MUST USE SKILL `subagent-directives`
-- Load `load-project-context` only when required by the assigned task
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md read
 - Research scope and feature name provided by orchestrator
 

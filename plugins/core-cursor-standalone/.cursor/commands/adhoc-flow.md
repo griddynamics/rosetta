@@ -67,8 +67,9 @@ Compose any of these (not limited) into plan phases/steps to build any execution
 1. All Rosetta prep steps MUST be FULLY completed
 2. MUST USE SKILL `load-project-context`, `orchestration` (with team manager, execution controller is size dependent), `hitl`
 3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
-3. MUST use available MCPs, tools, skills and agents.
-4. You will FOR SURE run out of LLM context, leading to loss of information, delegate to subagents!
+4. MUST use available MCPs, tools, skills and agents.
+5. You will FOR SURE run out of LLM context, leading to loss of information, delegate to subagents!
+6. If `/goal` is set repeat phases 4-5 until goal is met.
 
 </prerequisites>
 

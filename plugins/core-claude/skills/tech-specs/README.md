@@ -6,7 +6,7 @@ Without it, a model asked for "specs" would likely produce prose that explains s
 
 ## When to engage
 - Trigger: requirements need translation into specs, architecture needs documentation, or API contracts/data models need definition.
-- Actor: `architect` and `planner` agents (frontmatter `agent: planner, architect`); invoked via USE SKILL from `agents/architect.md`, required by `workflows/coding-flow.md` (paired with `planning`) and `workflows/adhoc-flow.md`, pointed to from `skills/coding/SKILL.md` resources.
+- Actor: `architect` and `planner` agents; invoked via USE SKILL from `agents/architect.md`, required by `workflows/coding-flow.md` (paired with `planning`) and `workflows/adhoc-flow.md`, pointed to from `skills/coding/SKILL.md` resources.
 - Prerequisite (`core_concepts`): "All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed"; "Discovery MUST be completed before writing specs".
 - REQUIREMENTS duty: core_concepts carries "Validate request against REQUIREMENTS for gaps and conflicts; USE SKILL `requirements-use` if present" — near-identical to `agents/architect.md` process #2 ("Validate request and specs against REQUIREMENTS for gaps and conflicts..."). `docs/stories/bootstrap-removed.md` records this as an intentional dual placement from the `bootstrap-execution-policy` dissolution ("MOVED-to-agents/architect.md + MOVED-to-tech-specs — deliberate dup per ruling"), not drift; edit both together.
 
@@ -23,7 +23,7 @@ SKILL.md is one flat XML pass: `role` → `when_to_use_skill` → `core_concepts
 ## Invariants — do not change
 - Frontmatter `name: tech-specs` equals the folder name; registered in `docs/definitions/skills.md` (line 9) — renaming either side breaks the registry link.
 - `description` sits at the schema's "~25 tokens, keyword-dense" budget (`docs/schemas/skill.md`); current text is already at that budget — do not pad it with explanation.
-- `agent: planner, architect` — `architect.md` is the actual USE SKILL invoker; `planner.md` only consumes the resulting spec ("approved intent/specs"), it does not itself invoke this skill. Don't assume symmetry between the two names.
+- Actors `planner` and `architect` are not symmetric — `architect.md` is the actual USE SKILL invoker; `planner.md` only consumes the resulting spec ("approved intent/specs"), it does not itself invoke this skill. Don't assume symmetry between the two names.
 - The WHAT/HOW split with `planning` is authoritative on this side: `skills/planning/README.md` states "the authoritative statement of this contract lives on the `tech-specs` side, not here" — do not move that wording into `planning`.
 - Planning-mode persistence is NOT declared here; it lives in `rosetta/SKILL.md`: "In planning mode: `planning` + `tech-specs` outputs → store per system prompt, never `plans/` (read-only)". Don't add a conflicting local storage rule.
 - The 11-item spec section list and the SMALL/MEDIUM/LARGE scaling table are load-bearing for `workflows/coding-flow.md` and `workflows/adhoc-flow.md` size-based routing — check those workflows before renaming sections or changing table bands.

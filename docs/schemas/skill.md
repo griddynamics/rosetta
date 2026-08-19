@@ -30,9 +30,9 @@ alwaysApply: false
 # [Families: large/smart/slow {opus, high, pro, sol} · medium/workhorse {sonnet, medium, glm-5, kimi-k2.5, minimax-m2.5, terra, grok-4.5} · small/fast {haiku, glm-4.7, flash, mini, low, luna, composer-2.5}]
 
 # Execution Context (Optional — uncomment a line to enable)
-# context — 'fork' runs the skill in a forked subagent context; 'default' runs it inline, an explicit no-op identical to omitting the line (Rosetta core skills that set this key all use 'default') [string] [Claude Code]
+# context — set to 'fork' to run in a forked subagent context [string] [Claude Code]
 # context: "fork"
-# agent — with context 'fork': the single subagent type to fork into. With context 'default' or no context: inert affinity metadata, a comma-separated list of the subagents this skill serves [string] [Claude Code]
+# agent — subagent type to use when context is 'fork' [string] [Claude Code]
 # agent: "code-reviewer"
 
 # Other (Optional — uncomment a line to enable)

@@ -3,12 +3,6 @@ name: requirements-use
 description: "To consume approved requirements for planning, implementation, and validation, with traceability and HITL."
 license: Apache-2.0
 argument-hint: request, requirements-set?, target-scope?, constraints?, delivery-goal?
-context: default
-agent: requirements-engineer, reviewer
-metadata:
-  version: "1.0"
-  category: "requirements-engineering"
-  tags: "requirements usage traceability implementation validation hitl"
 tags:
   - requirements-use
   - requirements-traceability

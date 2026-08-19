@@ -25,9 +25,10 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 6. INVOKE SUBAGENT `executor` for building, running tests, installing packages, and similar mechanical actions.
 7. MUST just-in-time load each phase's skills
 8. If workflow is for REQUIREMENTS, MUST USE SKILL `requirements-use` and LOAD all affected requirements. Use refs to requirements for subagents.
-9. If migrate/modernize: implementation phase MUST use tiny batches ONLY (1-3 files), never bulk-read (other phases may); specs/plan enforce; FS-copy RECOMMENDED; no behavior change/new code; mirror source; subagents same; REQUIRED TO log <file> started/completed; Use impl subagents like MAP-REDUCE;
-10. Run architect subagent with required model in the background and consult with it if already supported
-11. Coding workflow state MUST be saved to `agents/TEMP/<FEATURE>/coding-flow-state.md` file.
+9. If `/goal` is set repeat phases 7-12 postponing user_review_impl and final_validation until goal is met.
+10. If migrate/modernize: implementation phase MUST use tiny batches ONLY (1-3 files), never bulk-read (other phases may); specs/plan enforce; FS-copy RECOMMENDED; no behavior change/new code; mirror source; subagents same; REQUIRED TO log <file> started/completed; Use impl subagents like MAP-REDUCE;
+11. Run architect subagent with required model in the background and consult with it if already supported or prefer advisor if already available
+12. Coding workflow state MUST be saved to `agents/TEMP/<FEATURE>/coding-flow-state.md` file.
 
 </prerequisites>
 

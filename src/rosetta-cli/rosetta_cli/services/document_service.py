@@ -10,6 +10,7 @@ from typing import cast
 
 from tqdm import tqdm
 from ..ragflow_client import RAGFlowClient
+from ..rosetta_config import DEFAULT_PARSE_TIMEOUT
 from ..typing_utils import DatasetLike, DocumentLike, JsonDict
 
 
@@ -227,7 +228,7 @@ class DocumentService:
     def wait_for_parsing(
         self,
         documents: list[JsonDict],
-        timeout: int = 300,
+        timeout: int = DEFAULT_PARSE_TIMEOUT,
         poll_interval: float = 0.5
     ) -> tuple[int, int]:
         """
@@ -235,7 +236,7 @@ class DocumentService:
         
         Args:
             documents: List of {"id": doc_id, "name": name, "dataset_id": dataset_id, "folder": folder}
-            timeout: Max seconds to wait (default: 300 = 5 minutes)
+            timeout: Max seconds to wait (default: DEFAULT_PARSE_TIMEOUT = 1200 = 20 minutes)
             poll_interval: Seconds between status checks (default: 0.5 for smooth progress)
         
         Returns:

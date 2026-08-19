@@ -20,6 +20,7 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
 4. Orchestrator trusts the system and skills; coordinates sequence, artifacts, state, and approvals only.
 5. Workflow state MUST be saved to `agents/TEMP/<FEATURE>/research-flow-state.md` file.
+6. If `/goal` is set repeat phases 3-4 until goal is met.
 
 </prerequisites>
 

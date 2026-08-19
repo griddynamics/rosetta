@@ -31,7 +31,6 @@ Single-file skill: SKILL.md only, no `assets/` or `references/`. Body order: `<r
 - Provider/CLI table (`claude`/`codex`/`copilot`/`gemini`/`opencode`/`goose` with their headless commands and model flags) and the auto-approve flags table are the load-bearing external contract; the skill's own stance is to distrust internal knowledge and trust only this table, so edits here must be verified against each CLI's current docs, not memory.
 - Worktree/branch naming pattern `worktrees/<cli>-<task-slug>` and `farm/<cli>-<task-slug>` — setup and cleanup steps both key off this exact pattern.
 - `<resources>` links are the canonical external doc URLs the skill points to; keep in sync with the provider table above them.
-- Frontmatter `model:` multi-vendor CSV is intended — the plugin generator selects the appropriate id per target agent. The differing ID shapes are also intended — model ids DIFFER per target tool and the plugin generator maps frontmatter ids as needed; the body's "Model selection guidance" ids serve the farm CLIs directly and need not match.
 
 ## Editing guide
 
