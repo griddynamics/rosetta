@@ -71,29 +71,29 @@ describe('fileNormalizeCursorModels — guard cases (same instance)', () => {
 // ─── Claude token normalization via CURSOR_CLAUDE_MAP ────────────────────────
 
 describe('fileNormalizeCursorModels — claude token mapping', () => {
-  it('claude-opus-4-6 → CURSOR_CLAUDE_MAP upgrade → claude-opus-4-8', () => {
-    // CURSOR_CLAUDE_MAP: 'claude-opus-4-6' → 'claude-opus-4-8'
+  it('claude-opus-4-6 → CURSOR_CLAUDE_MAP upgrade → claude-opus-5', () => {
+    // CURSOR_CLAUDE_MAP: 'claude-opus-4-6' → 'claude-opus-5'
     const content = '---\nmodel: claude-opus-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-opus-4-6');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-opus-4-8');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-4-8');
+    expect(result.target_contents as string).toContain('model: claude-opus-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5');
   });
 
-  it('claude-4.8-opus-high → CURSOR_CLAUDE_MAP → claude-opus-4-8', () => {
+  it('claude-4.8-opus-high → CURSOR_CLAUDE_MAP → claude-opus-5', () => {
     const content = '---\nmodel: claude-4.8-opus-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-4.8-opus-high');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-opus-4-8');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-4-8');
+    expect(result.target_contents as string).toContain('model: claude-opus-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5');
   });
 
-  it('claude-opus-4-7 → CURSOR_CLAUDE_MAP upgrade → claude-opus-4-8', () => {
+  it('claude-opus-4-7 → CURSOR_CLAUDE_MAP upgrade → claude-opus-5', () => {
     const content = '---\nmodel: claude-opus-4-7\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-opus-4-7');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-opus-4-8');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-4-8');
+    expect(result.target_contents as string).toContain('model: claude-opus-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5');
   });
 
   it('claude-4.6-sonnet → CURSOR_CLAUDE_MAP → claude-sonnet-5', () => {
@@ -107,43 +107,43 @@ describe('fileNormalizeCursorModels — claude token mapping', () => {
 // ─── GPT token: map lookup (exhaustive table) ────────────────────────────────
 
 describe('fileNormalizeCursorModels — gpt token map lookup', () => {
-  it('gpt-5.5-high → CURSOR_GPT_MAP → gpt-5.5', () => {
+  it('gpt-5.5-high → CURSOR_GPT_MAP → gpt-5.6-sol', () => {
     const content = '---\nmodel: gpt-5.5-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.5-high');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gpt-5.5');
+    expect(result.target_contents as string).toContain('model: gpt-5.6-sol');
   });
 
-  it('gpt-5.5-medium → CURSOR_GPT_MAP → gpt-5.5', () => {
+  it('gpt-5.5-medium → CURSOR_GPT_MAP → gpt-5.6-sol', () => {
     const content = '---\nmodel: gpt-5.5-medium\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.5-medium');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gpt-5.5');
-    expect((result.source[0]?.frontmatter as any).model).toBe('gpt-5.5');
+    expect(result.target_contents as string).toContain('model: gpt-5.6-sol');
+    expect((result.source[0]?.frontmatter as any).model).toBe('gpt-5.6-sol');
   });
 
-  it('gpt-5.4-high → CURSOR_GPT_MAP → gpt-5.4', () => {
+  it('gpt-5.4-high → CURSOR_GPT_MAP → gpt-5.6-terra', () => {
     const content = '---\nmodel: gpt-5.4-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.4-high');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gpt-5.4');
-    expect((result.source[0]?.frontmatter as any).model).toBe('gpt-5.4');
+    expect(result.target_contents as string).toContain('model: gpt-5.6-terra');
+    expect((result.source[0]?.frontmatter as any).model).toBe('gpt-5.6-terra');
   });
 
-  it('gpt-5.3-high → CURSOR_GPT_MAP upgrade → gpt-5.4', () => {
+  it('gpt-5.3-high → CURSOR_GPT_MAP upgrade → gpt-5.6-terra', () => {
     const content = '---\nmodel: gpt-5.3-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.3-high');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gpt-5.4');
-    expect((result.source[0]?.frontmatter as any).model).toBe('gpt-5.4');
+    expect(result.target_contents as string).toContain('model: gpt-5.6-terra');
+    expect((result.source[0]?.frontmatter as any).model).toBe('gpt-5.6-terra');
   });
 
-  it('gpt-5.3-codex-high → CURSOR_GPT_MAP upgrade → gpt-5.4', () => {
+  it('gpt-5.3-codex-high → CURSOR_GPT_MAP upgrade → gpt-5.6-terra', () => {
     const content = '---\nmodel: gpt-5.3-codex-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.3-codex-high');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gpt-5.4');
-    expect((result.source[0]?.frontmatter as any).model).toBe('gpt-5.4');
+    expect(result.target_contents as string).toContain('model: gpt-5.6-terra');
+    expect((result.source[0]?.frontmatter as any).model).toBe('gpt-5.6-terra');
   });
 
 });
@@ -151,17 +151,20 @@ describe('fileNormalizeCursorModels — gpt token map lookup', () => {
 // ─── Gemini token: map via CURSOR_GEMINI_MAP ──────────────────────────────────
 
 describe('fileNormalizeCursorModels — gemini token mapping', () => {
-  it('gemini-3-flash → CURSOR_GEMINI_MAP → gemini-3.5-flash', () => {
+  it('gemini-3-flash → CURSOR_GEMINI_MAP → gemini-3.7-flash', () => {
     const content = '---\nmodel: gemini-3-flash\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gemini-3-flash');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gemini-3.5-flash');
-    expect((result.source[0]?.frontmatter as any).model).toBe('gemini-3.5-flash');
+    expect(result.target_contents as string).toContain('model: gemini-3.7-flash');
+    expect((result.source[0]?.frontmatter as any).model).toBe('gemini-3.7-flash');
   });
 
-  it('gemini-3.5-flash → CURSOR_GEMINI_MAP passthrough → gemini-3.5-flash', () => {
-    const content = '---\nmodel: gemini-3.5-flash\ntags: []\n---\n# Body\n';
-    const frame = makeFrame(content, 'gemini-3.5-flash');
+  it('gemini-3.7-flash → CURSOR_GEMINI_MAP passthrough → gemini-3.7-flash', () => {
+    // gemini-3.5-flash used to be an identity entry (no upgrade); every Gemini variant now upgrades
+    // to gemini-3.7-flash, so the "already at the terminal value" passthrough case is exercised by
+    // the bare gemini-3.7-flash token itself instead.
+    const content = '---\nmodel: gemini-3.7-flash\ntags: []\n---\n# Body\n';
+    const frame = makeFrame(content, 'gemini-3.7-flash');
     const result = fileNormalizeCursorModels(frame, makeCtx());
     // Same value → same content → same frame instance
     expect(result).toBe(frame);
@@ -185,7 +188,7 @@ describe('fileNormalizeCursorModels — unknown token passthrough', () => {
     const content = '---\nmodel: gpt-5.5-high, claude-opus-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.5-high, claude-opus-4-6');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    // First token is gpt-5.5-high → maps to gpt-5.5 (not claude)
-    expect(result.target_contents as string).toContain('model: gpt-5.5');
+    // First token is gpt-5.5-high → maps to gpt-5.6-sol (not claude)
+    expect(result.target_contents as string).toContain('model: gpt-5.6-sol');
   });
 });

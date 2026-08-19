@@ -148,7 +148,7 @@ filesets are disjoint (see ownership map). Only S13 must run ALONE.
 | S15b `tests/unit/spec/profiles.test.ts` (NEW) | FR-PROF-0001.AC2–7, DATA-CFG-0006.AC5–9 | V-exist/V-parse/V1/V2/V3/V7 aborts; V4 standalone inherit; V5 dead-entry silent; resolveEffectiveVocabulary |
 | S15c `tests/unit/vfs/directives.test.ts` (extend) | FR-PROF-0030.AC1–5 | matchesProfile active/inactive; matchesTarget ignores `profile-`; empty trailing token inert; existing 72-77 stay green |
 | S15c' `tests/unit/file-processors/file-apply-overrides.test.ts` | FR-PROF-0030.AC4 | overwrite+inactive-profile excluded before truncation |
-| S15d `tests/unit/plugin-processors/plugin-normalize-subagent-model.test.ts` (NEW) | FR-COPY-0083.AC1–6 | real A–E fixtures per SPECS §10; SYNTHETIC dedup `gpt-5.4, claude-opus-4-8, gpt-5.4`→`gpt-5.4`; no-survivor→`inherit`; profile-block path; effort-strip |
+| S15d `tests/unit/plugin-processors/plugin-normalize-subagent-model.test.ts` (NEW) | FR-COPY-0083.AC1–6 | real A–E fixtures per SPECS §10; SYNTHETIC dedup `gpt-5.6-terra, claude-opus-5, gpt-5.6-terra`→`gpt-5.6-terra`; no-survivor→`inherit`; profile-block path; effort-strip |
 | S15e `tests/unit/plugin-processors/plugin-copy.test.ts` | FR-PROF-0021.AC1–3 | main+standalone suffix; null=unchanged |
 | S15f `tests/unit/cli` | FR-CLI-0032.AC3, FR-CLI-0033.AC1–3 | path-like reject; profileSource default/override |
 | S15g `tests/e2e/parity.e2e.test.ts` (+ S8 oracle) | NFR-0001 | 7 base targets green WITH trap fixture; profile-combo path set for `--profile lightweight` |

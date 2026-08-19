@@ -148,7 +148,7 @@ describe('core-codex — generated output shape (FR-VAR-0041, FR-VAR-0042, FR-ST
   it('normalizes the main skill model field for Codex (gpt token, two-field split) BEFORE the workflow->skill transform (FR-VAR-0042)', () => {
     const skillDoc = path.join(targetRoot, '.agents', 'skills', 'demo-flow', 'SKILL.md');
     const skillContent = fs.readFileSync(skillDoc, 'utf-8');
-    expect(skillContent).toContain('model: gpt-5.5');
+    expect(skillContent).toContain('model: gpt-5.6-sol');
     expect(skillContent).toContain('model_reasoning_effort: high');
     expect(skillContent).not.toContain('claude-4.8-opus-high');
   });
@@ -224,11 +224,11 @@ describe('core-codex — generated output shape (FR-VAR-0041, FR-VAR-0042, FR-ST
     // (pluginAntigravitySubagentModel remains core-antigravity-only and unconditionally rewrites
     // to "inherit" — a DIFFERENT processor, not exercised here). For Codex the source list
     // "claude-opus-4-8, gpt-5.5-high" is filtered to gpt- tokens only (claude-opus-4-8 dropped);
-    // the survivor is mapped through the built-in (identity) effective map and emitted WHOLE —
-    // this attribute is instruction prose, not a machine-parsed config field, so the reasoning-
-    // effort qualifier is authored content and is never split off or stripped: "gpt-5.5-high"
-    // stays "gpt-5.5-high".
-    expect(content).toContain('subagent_required_model="gpt-5.5-high"');
+    // the survivor is mapped through the effective map, which upgrades the superseded gpt-5.5-high
+    // to gpt-5.6-sol-high, and emitted WHOLE — this attribute is instruction prose, not a
+    // machine-parsed config field, so the reasoning-effort qualifier is authored content and is
+    // never split off or stripped.
+    expect(content).toContain('subagent_required_model="gpt-5.6-sol-high"');
     expect(content).not.toContain('subagent_required_model="claude-opus-4-8, gpt-5.5-high"');
     expect(content).not.toContain('subagent_required_model="inherit"');
   });

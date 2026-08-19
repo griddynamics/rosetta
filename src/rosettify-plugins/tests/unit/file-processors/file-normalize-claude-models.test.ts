@@ -87,24 +87,24 @@ describe('fileNormalizeClaudeModels — multi-token scanning', () => {
     expect((result.source[0]?.frontmatter as any).model).toBe('claude-sonnet-5');
   });
 
-  it('gpt-5.5-high first, claude-4.8-opus-high second: picks opus → claude-opus-4-8', () => {
+  it('gpt-5.5-high first, claude-4.8-opus-high second: picks opus → claude-opus-5', () => {
     const content = '---\nmodel: gpt-5.5-high, claude-4.8-opus-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.5-high, claude-4.8-opus-high');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-opus-4-8');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-4-8');
+    expect(result.target_contents as string).toContain('model: claude-opus-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5');
   });
 });
 
 // ─── Normalization: claude token cases ───────────────────────────────────────
 
 describe('fileNormalizeClaudeModels — claude token normalization', () => {
-  it('claude-opus-4-6 contains opus → maps to claude-opus-4-8', () => {
+  it('claude-opus-4-6 contains opus → maps to claude-opus-5', () => {
     const content = '---\nmodel: claude-opus-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-opus-4-6');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-opus-4-8');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-4-8');
+    expect(result.target_contents as string).toContain('model: claude-opus-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5');
   });
 
   it('claude-sonnet-4-6 contains sonnet → maps to claude-sonnet-5', () => {
@@ -138,7 +138,7 @@ describe('fileNormalizeClaudeModels — claude token normalization', () => {
     const result = fileNormalizeClaudeModels(frame, makeCtx());
     // The old value should be replaced
     const newContents = result.target_contents as string;
-    // claude-opus-4-6 is different from claude-opus-4-8
-    expect(newContents).toContain('claude-opus-4-8');
+    // claude-opus-4-6 is different from claude-opus-5
+    expect(newContents).toContain('claude-opus-5');
   });
 });

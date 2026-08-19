@@ -57,7 +57,7 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 - **Overall workflow done when:** every phase required for this run is marked complete in `agents/TEMP/<FEATURE>/api-aqa-state.md`, expected artifacts for those phases exist under `plans/api-aqa-{IDENTIFIER}/` (and related paths named in phase docs), and the user accepts the last test outcome or explicitly stops the run.
 </execution_policy>
 
-<project_config_loading phase="0" applies="ALL" subagent="discoverer" role="AQA project config loader" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.6, gpt-5.6-terra" type="HITL-CONDITIONAL">
+<project_config_loading phase="0" applies="ALL" subagent="discoverer" role="AQA project config loader" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-high, grok-4.6" type="HITL-CONDITIONAL">
 - APPLY PHASE `api-aqa-flow-project-config-loading.md`
 - Input: user request. Output: project config file, initial data file, session directory at `plans/api-aqa-{IDENTIFIER}/`.
 - HITL gate: **ASK USER FOR PROJECT INFO** if config does not already exist.
@@ -66,21 +66,21 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 - Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 0 is not complete until its output spot-check passes.
 </project_config_loading>
 
-<data_collection phase="1" applies="ALL" subagent="discoverer" role="AQA data collector" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.6, gpt-5.6-terra">
+<data_collection phase="1" applies="ALL" subagent="discoverer" role="AQA data collector" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-high, grok-4.6">
 - APPLY PHASE `api-aqa-flow-data-collection.md`
 - Input: project config + initial data. Output: `plans/api-aqa-{IDENTIFIER}/raw-data.md` (test cases, documentation, existing test patterns).
 - Required skills: `data-collection` (TMS + Wiki collector), `qa-knowledge` (`code_analysis` mode — existing-test + backend-source scan), `reverse-engineering`, `qa-structure`
 - Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 1 is not complete until its output spot-check passes.
 </data_collection>
 
-<api_spec_analysis phase="2" applies="ALL" subagent="discoverer" role="API spec analyst" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.6, gpt-5.6-terra">
+<api_spec_analysis phase="2" applies="ALL" subagent="discoverer" role="API spec analyst" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-high, grok-4.6">
 - APPLY PHASE `api-aqa-flow-api-spec-analysis.md`
 - Input: raw data + project config. Output: `plans/api-aqa-{IDENTIFIER}/api-analysis.md` (endpoint contracts, auth, data dependencies).
 - Required skills: `qa-knowledge` (`code_analysis` mode — API-contract extraction), `reverse-engineering`, `sensitive-data`, `qa-structure`
 - Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 2 is not complete until its output spot-check passes.
 </api_spec_analysis>
 
-<gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="Test requirements analyst" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol" type="HITL">
+<gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="Test requirements analyst" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high" type="HITL">
 - APPLY PHASE `api-aqa-flow-gap-and-requirements-clarification.md`
 - Input: raw data + API analysis. Output: `plans/api-aqa-{IDENTIFIER}/analysis.md` (gaps, contradictions, ambiguities resolved).
 - HITL gate: **WAIT FOR USER ANSWERS** before Phase 4.
@@ -89,7 +89,7 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 - Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 3 is not complete until its output spot-check passes.
 </gap_and_requirements_clarification>
 
-<test_case_specification phase="4" applies="ALL" subagent="architect" role="Test specification author" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol" type="HITL">
+<test_case_specification phase="4" applies="ALL" subagent="architect" role="Test specification author" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high" type="HITL">
 - APPLY PHASE `api-aqa-flow-test-case-specification.md`
 - Input: all phase 1-3 outputs. Output: `plans/api-aqa-{IDENTIFIER}/test-specs.md` (Given-When-Then scenarios).
 - HITL gate: **WAIT FOR EXPLICIT USER APPROVAL** before Phase 5; comments, questions, suggestions, and review feedback are not approval.
@@ -98,7 +98,7 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 - Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 4 is not complete until its output spot-check passes.
 </test_case_specification>
 
-<test_implementation phase="5" applies="ALL" subagent="engineer" role="Test automation engineer" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.6, gpt-5.6-terra" type="HITL">
+<test_implementation phase="5" applies="ALL" subagent="engineer" role="Test automation engineer" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6" type="HITL">
 - APPLY PHASE `api-aqa-flow-test-implementation.md`
 - Input: approved test specs + existing patterns + API analysis. Output: implemented test files.
 - HITL gate: **STOP AND WAIT** — user must provide actual execution results (output, report path, or pass/fail); confirmation alone does not satisfy this gate.
@@ -107,7 +107,7 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 - Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 5 is not complete until its output spot-check passes.
 </test_implementation>
 
-<execution_and_report_analysis phase="6" applies="ALL" subagent="engineer" role="Test failure analyst" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.6, gpt-5.6-terra" type="HITL">
+<execution_and_report_analysis phase="6" applies="ALL" subagent="engineer" role="Test failure analyst" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6" type="HITL">
 - APPLY PHASE `api-aqa-flow-execution-and-report-analysis.md`
 - Input: test execution report (user-provided or from `agents/user-instructions/`). Output: `plans/api-aqa-{IDENTIFIER}/execution-report.md` (failure analysis).
 - HITL gate: **WAIT FOR USER TO PROVIDE TEST EXECUTION RESULTS**.
@@ -115,7 +115,7 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 - Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 6 is not complete until its output spot-check passes.
 </execution_and_report_analysis>
 
-<test_corrections phase="7" applies="ALL" subagent="engineer" role="Test correction engineer" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.6, gpt-5.6-terra" type="HITL">
+<test_corrections phase="7" applies="ALL" subagent="engineer" role="Test correction engineer" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6" type="HITL">
 - APPLY PHASE `api-aqa-flow-test-correction.md`
 - Input: execution report + test files + test specs. Output: corrected test files.
 - HITL gate: **WAIT FOR EXPLICIT USER APPROVAL** before applying changes; comments, questions, suggestions, and review feedback are not approval.

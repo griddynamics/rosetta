@@ -73,6 +73,31 @@ Options: a frontmatter-only override kind (apply just the declared keys, inherit
 per-profile model-list map keyed by document path. Guard in the meantime: `diff` each pair and
 expect exactly one changed line.
 
+## TODO: instructions — configure/*.md IDE model catalogues still name superseded models
+
+`instructions/r3/core/configure/{claude-code,codex,cursor,github-copilot,opencode,windsurf}.md` document
+what each IDE itself accepts (e.g. `configure/cursor.md`: "The `model` field accepts the following model
+id values", listing `gpt-5.1-codex-max`, `grok-code-fast-1`, `composer-2-fast`). They were deliberately
+left out of the issue #187 model upgrade because rewriting them asserts IDE capabilities we cannot
+source, so they still name `claude-opus-4-8`, `gpt-5.4-medium`, `gemini-3.1-pro` and friends — and they
+DO ship into every plugin. Refresh each list against that IDE's own published model list, then
+regenerate. Same reasoning left `docs/hooks/**` alone: those are captured payloads and transcripts,
+i.e. recorded evidence, not choices.
+
+## TODO: instructions — model tier cues overlap now that one Gemini spans all three tiers
+
+The schema tier taxonomy (`docs/schemas/*.md`, `templates/shell-schemas/*.md`) keys tiers off token
+substrings: large `{opus, high, sol}`, medium `{sonnet, medium, ..., terra}`, small `{haiku, flash,
+mini, low, luna, ...}`. With every Gemini collapsed to `gemini-3.7-flash`, `flash` now appears at all
+three efforts, so `flash` sitting only in the small tier is misleading. The dead `pro` cue was removed;
+deciding whether tier membership should key off the effort suffix instead is a taxonomy decision.
+
+## TODO: instructions — r2 was not included in the model upgrade
+
+`instructions/r2/` still names the pre-#187 models (~91 occurrences). r2 is KTLO and the committed
+plugin trees build from r3, so upgrading it would change a frozen release that nothing here
+regenerates or tests. Decide whether r2 should track current models or stay pinned.
+
 ## TODO: plugin-generator — no Copilot identifier established for Grok or Composer
 
 `src/rosettify-plugins/src/spec/model-maps.ts` maps `grok-4.6*` and `composer-2.5` for Cursor

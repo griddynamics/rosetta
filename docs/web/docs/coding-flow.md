@@ -99,7 +99,7 @@ Rosetta provides instructions. Coding agents act on them. Rosetta itself does no
 
 - **If AI gets stuck.** Monitor AI if it tries to solve the same problem but gets stuck, going in loops, or diverges. You should provide inputs on how to exactly solve it or ways to tackle the problem. You can also ask AI to spawn a smarter, focused subagent to solve that problem only by filling in this template:
 
-  `Spawn subagent using <Claude Opus 4.8 | GPT-5.5> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
+  `Spawn subagent using <Claude Opus 5 | GPT-5.6-sol> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
 
 ## Compaction
 

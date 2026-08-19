@@ -25,7 +25,7 @@ Phase 8. Final security phase; never starts downstream remediation.
 4. Emit concise task files
 </phase_steps>
 
-<prepare_package step="8.1" subagent="engineer" role="Security reporter and remediation-input designer" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.6, gpt-5.6-terra">
+<prepare_package step="8.1" subagent="engineer" role="Security reporter and remediation-input designer" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security` for report, run, finding, remediation-task, and task-INDEX contracts.
@@ -43,7 +43,7 @@ Phase 8. Final security phase; never starts downstream remediation.
 Return the drafted INDEX marked pending-approval, with grouping rationale and tradeoffs. The orchestrator runs the approval gate with the user.
 </index_handoff>
 
-<emit_tasks step="8.3" subagent="engineer" role="Concise coding-flow request author" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.6, gpt-5.6-terra">
+<emit_tasks step="8.3" subagent="engineer" role="Concise coding-flow request author" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6">
 
 1. Apply approved grouping exactly.
 2. Emit one concise `tasks/<task-id>.md` per one-shot group.

@@ -61,7 +61,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </data_collection>
 
-<gap_and_contradiction_analysis phase="2" subagent="architect" role="Requirements gap analyst" subagent_required_model="claude-opus-4-8">
+<gap_and_contradiction_analysis phase="2" subagent="architect" role="Requirements gap analyst" subagent_required_model="claude-opus-5">
 
 - APPLY PHASE `testgen-flow-gap-and-contradiction-analysis.md`
 - Input: raw-data.md. Output: `plans/testgen-{TICKET-KEY}/analysis.md` with contradictions, gaps, ambiguities.
@@ -70,7 +70,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </gap_and_contradiction_analysis>
 
-<question_generation phase="3" subagent="architect" role="Requirements clarification analyst" subagent_required_model="claude-opus-4-8" type="HITL">
+<question_generation phase="3" subagent="architect" role="Requirements clarification analyst" subagent_required_model="claude-opus-5" type="HITL">
 
 - APPLY PHASE `testgen-flow-question-generation.md`
 - Input: analysis.md. Output: `plans/testgen-{TICKET-KEY}/questions.md`, `plans/testgen-{TICKET-KEY}/answers.md`.
@@ -80,7 +80,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </question_generation>
 
-<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_required_model="claude-opus-4-8">
+<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_required_model="claude-opus-5">
 
 - APPLY PHASE `testgen-flow-requirements-document-generation.md`
 - Input: raw-data.md + analysis.md + answers.md. Output: `plans/testgen-{TICKET-KEY}/requirements.md`.

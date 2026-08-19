@@ -59,7 +59,7 @@ Committed design (A3):
   key-derivation (Claude derives family key then `map[key]`; Cursor/Copilot/Codex use the token as
   key). Selection strategy is unchanged (constraint honored). The family-vs-exact-token difference
   lives inside each separately-composed function — no runtime branch on target — so
-  `claude-haiku-4-5` resolving via the `haiku` key and `gpt-5.4` resolving via exact-token key
+  `claude-haiku-4-5` resolving via the `haiku` key and `gpt-5.6-terra` resolving via exact-token key
   coexist with zero identity dispatch. (Answers orchestrator's family-key check.)
 - The `exhaustive` flag unifies BOTH per-path differences through one loop per function:
   `for token: if map has key → return mapped; else if !exhaustive → return <today's fallback>;
@@ -117,11 +117,11 @@ selection composed, not branched.
 
 GAP-1 (Codex effort suffix in a prose list) — RESOLVED here, unit flagged for amendment. A prose list
 is ONE string with no place for a separate `model_reasoning_effort`. Given
-`"claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol"` under core-codex the survivors are
-`gpt-5.5-high`, `gpt-5.6-sol`. DECISION: strip the effort suffix → emit the base id (`gpt-5.5`,
+`"claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high, gpt-5.6-sol"` under core-codex the survivors are
+`gpt-5.6-sol-high`, `gpt-5.6-sol`. DECISION: strip the effort suffix → emit the base id (`gpt-5.6-sol`,
 `gpt-5.6-sol`). Warrant: FR-COPY-0084's contract is that a given Codex token resolves to the SAME
-value at every Codex surface; the frontmatter `model:` resolves `gpt-5.5-high`→`gpt-5.5`, so keeping
-`gpt-5.5-high` in prose would diverge. Stripping also makes de-dup correct (two effort variants of one
+value at every Codex surface; the frontmatter `model:` resolves `gpt-5.6-sol-high`→`gpt-5.6-sol`, so keeping
+`gpt-5.6-sol-high` in prose would diverge. Stripping also makes de-dup correct (two effort variants of one
 base collapse). FR-COPY-0083 is genuinely UNDERSPECIFIED on this point (it says "map to its IDE-native
 value" without defining IDE-native for a Codex prose token) — recommend orchestrator amend FR-COPY-0083
 to state effort is stripped for the prose surface.
@@ -130,8 +130,8 @@ GAP-2 (de-dup testability) — CONFIRMED not covered by real data. Traced all 5 
 values through Claude, Cursor, Copilot, Codex built-in maps: none yields two source tokens collapsing
 to one mapped value (Claude keeps a single family token; Cursor/Copilot/Codex survivors map to
 distinct values). De-dup (keep-first) is therefore UNTESTABLE against real committed content and needs
-a SYNTHETIC fixture. FR-COPY-0083.AC3 already supplies one: `"gpt-5.4, claude-opus-4-8, gpt-5.4"`
-→ `"gpt-5.4"` (Codex). PLAN's test plan uses it as the dedicated dedup fixture and states plainly that
+a SYNTHETIC fixture. FR-COPY-0083.AC3 already supplies one: `"gpt-5.6-terra, claude-opus-5, gpt-5.6-terra"`
+→ `"gpt-5.6-terra"` (Codex). PLAN's test plan uses it as the dedicated dedup fixture and states plainly that
 real data does not exercise the rule.
 
 ---

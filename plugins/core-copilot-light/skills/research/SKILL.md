@@ -3,7 +3,7 @@ name: research
 description: "To run systematic deep research via meta-prompting — grounded references, incremental tracking, self-validation."
 license: Apache-2.0
 argument-hint: feature, request, scope?
-model: Claude Opus 4.8
+model: Claude Opus 5
 context: default
 agent: researcher
 baseSchema: docs/schemas/skill.md

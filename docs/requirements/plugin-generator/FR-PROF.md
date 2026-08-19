@@ -65,12 +65,12 @@ with `.AC#` sub-ids). A "target" is one of the seven `spec.name` values: `core-c
   exhaustive; a target with no block uses its built-in maps unchanged. The inner key-space of each
   block mirrors that target's built-in map keying. This unit governs which map is in force, not how a
   candidate is selected from it and not how an absent candidate is handled downstream.</statement>
-  <rationale>`PluginSpec.modelVocabulary` is currently dead plumbing populated as `{map:{}}` and read
+  <rationale>`PluginSpec.modelVocabulary` is the single live carrier of a target's effective map, read
   nowhere; profiles make it the live carrier of the effective map. Standalones inherit the parent's
   block because their preserved files derive from the parent target (V4). A dead inner entry is
   ignored silently so a profile stays valid across source drift (V5).</rationale>
   <evidence>src/rosettify-plugins/src/types.ts:94 (PluginSpec.modelVocabulary populated on every spec, read nowhere);
-  src/rosettify-plugins/src/spec/model-maps.ts:173-194 (per-target vocabulary constants; CLAUDE and CODEX are empty maps)</evidence>
+  src/rosettify-plugins/src/spec/model-maps.ts:450-487 (per-target vocabulary constants, one per IDE, each carrying a populated map)</evidence>
   <acceptance>
     <criteria id="FR-PROF-0010.AC1" ears="optional" where="a target declares a model-overrides block" system="the generator" shall="use that block as the target's entire effective map, consulting none of that target's built-in maps"/>
     <criteria id="FR-PROF-0010.AC2" ears="optional" where="a target declares no model-overrides block" system="the generator" shall="use that target's built-in maps unchanged as its effective map"/>

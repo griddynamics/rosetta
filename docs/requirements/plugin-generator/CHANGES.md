@@ -1,5 +1,21 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-08-19 — model tokens realigned to the upgraded built-in maps (GitHub #187)
+
+**Files:** `FR-COPY.md`, `FR-ARCH.md`
+
+**Source:** repo-wide model upgrade #187 — every built-in map moved forward (opus → `claude-opus-5`; gpt 5.3/5.4/5.3-codex → `gpt-5.6-terra`; gpt 5.5 → `gpt-5.6-sol`; gpt 5.4-mini → `gpt-5.6-luna`; every gemini → `gemini-3.7-flash`; grok 4.5 → `grok-4.6`), and the Codex map gained upgrade entries so a legacy `gpt-` token resolves forward with its effort preserved. Requirement text asserting a pre-upgrade OUTPUT value was corrected; INPUT citations, hypothetical profile blocks and hypothetical effective maps were left as-is.
+
+- `FR-COPY-0020` criteria: Cursor outputs corrected — `claude-4.8-opus-high` → `claude-opus-5`; `gpt-5.4-medium` → `gpt-5.6-terra`.
+- `FR-COPY-0021` statement/rationale/criteria/notes: the built-in opus family value and the accepted-full-id list now name `claude-opus-5`; the stale exact-vs-family illustration (family key "would yield claude-opus-4-8") rewritten — the two tiers now agree, and the exact tier's stated value is version-pinning when the family default later moves.
+- `FR-COPY-0022` criteria: Codex outputs corrected — `gpt-5.3-codex-high` → model `gpt-5.6-terra` effort `high`; bare `gpt-5.4` → `gpt-5.6-terra`.
+- `FR-COPY-0083` statement/criteria: whole-emit example and list outputs corrected — `gpt-5.5-high` emits whole as `gpt-5.6-sol-high`; AC2 → `claude-opus-5, claude-sonnet-5`; AC3 → `gpt-5.6-terra`; AC7 → `gpt-5.6-sol-high, gpt-5.6-terra-low`.
+- `FR-ARCH-0057` statement/rationale/criteria/implementationNotes: upgrade rules rewritten to the 5.6-era and `claude-opus-5` targets; the false "gpt-5.4 and gpt-5.5 shall not be upgraded" replaced — each superseded GPT family upgrades to its own successor, so distinct cost tiers stay distinct. "GPT 5.3 and above" scope unchanged.
+- `FR-ARCH-0046` implementationNotes: map-summary arrows corrected to the upgraded targets.
+- `status`/`approved_by`/`implementation` unchanged on every unit.
+
+---
+
 ## 2026-08-19 — `FR-COPY-0021` amended: the Claude vocabulary resolves in two tiers
 
 **Files:** `FR-COPY.md`, `MODEL.md`

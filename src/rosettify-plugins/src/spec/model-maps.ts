@@ -94,16 +94,19 @@ export function splitCodexEffort(token: string): CodexModelResult {
 // FR-COPY-0021 — Claude Code full model IDs; update here when models change
 const CLAUDE_CODE_MAP: Record<string, string> = {
   // Family keys — the default for any opus/sonnet/haiku token that names no exact entry below.
-  opus: 'claude-opus-4-8',
+  opus: 'claude-opus-5',
   sonnet: 'claude-sonnet-5',
   haiku: 'claude-haiku-4-5',
-  // Exact source tokens, consulted BEFORE the family keys (claudeLookup). Needed wherever a source
-  // token names a model version the family key does not resolve to: `opus` maps to Opus 4.8, so an
-  // author asking for Opus 5 has no other way to say it. Adding an exact key changes nothing for any
-  // other token — only a byte-equal source token hits it.
+  // Exact source tokens, consulted BEFORE the family keys (claudeLookup). Now that `opus` itself
+  // resolves to Opus 5, these exact entries agree with the family key for every token below — they no
+  // longer name a version the family key can't reach. Their remaining value is version pinning: an
+  // author who writes one of these tokens explicitly keeps getting Opus 5 even if the family default
+  // (`opus`) later moves to a newer model. Adding an exact key changes nothing for any other token —
+  // only a byte-equal source token hits it.
   'claude-5-opus-high': 'claude-opus-5',
   'claude-5-opus': 'claude-opus-5',
   'claude-opus-5': 'claude-opus-5',
+  'claude-opus-5-high': 'claude-opus-5',
 };
 
 /**
@@ -148,22 +151,23 @@ export function normalizeClaude(
 // the scan continues to subsequent tokens (FR-PROF-0011).
 
 const CURSOR_CLAUDE_MAP: Record<string, string> = {
-  'claude-4.8-opus-high': 'claude-opus-4-8',
-  'claude-4.8-opus': 'claude-opus-4-8',
-  'claude-opus-4-8': 'claude-opus-4-8',
-  'claude-4.7-opus-high': 'claude-opus-4-8',
-  'claude-4.7-opus': 'claude-opus-4-8',
-  'claude-opus-4-7': 'claude-opus-4-8',
+  'claude-4.8-opus-high': 'claude-opus-5',
+  'claude-4.8-opus': 'claude-opus-5',
+  'claude-opus-4-8': 'claude-opus-5',
+  'claude-4.7-opus-high': 'claude-opus-5',
+  'claude-4.7-opus': 'claude-opus-5',
+  'claude-opus-4-7': 'claude-opus-5',
   'claude-4.6-sonnet': 'claude-sonnet-5',
   'claude-5-sonnet': 'claude-sonnet-5',
   'claude-4.5-haiku': 'claude-haiku-4-5',
-  'claude-opus-4-6': 'claude-opus-4-8',
+  'claude-opus-4-6': 'claude-opus-5',
   'claude-sonnet-4-6': 'claude-sonnet-5',
   'claude-sonnet-5': 'claude-sonnet-5',
   'claude-haiku-4-5': 'claude-haiku-4-5',
   'claude-5-opus-high': 'claude-opus-5',
   'claude-5-opus': 'claude-opus-5',
   'claude-opus-5': 'claude-opus-5',
+  'claude-opus-5-high': 'claude-opus-5',
 };
 
 const CURSOR_GPT_MAP: Record<string, string> = {
@@ -185,26 +189,29 @@ const CURSOR_GPT_MAP: Record<string, string> = {
   'gpt-5.6-luna-high':    'gpt-5.6-luna',
   'gpt-5.6-luna-medium':  'gpt-5.6-luna',
   'gpt-5.6-luna-low':     'gpt-5.6-luna',
-  // GPT-5.5
-  'gpt-5.5-high':         'gpt-5.5',
-  'gpt-5.5-medium':       'gpt-5.5',
-  'gpt-5.5-low':          'gpt-5.5',
-  'gpt-5.5':              'gpt-5.5',
-  // GPT-5.4
-  'gpt-5.4-high':         'gpt-5.4',
-  'gpt-5.4-medium':       'gpt-5.4',
-  'gpt-5.4-low':          'gpt-5.4',
-  'gpt-5.4':              'gpt-5.4',
-  // GPT-5.3 → upgrade to 5.4
-  'gpt-5.3-high':         'gpt-5.4',
-  'gpt-5.3-medium':       'gpt-5.4',
-  'gpt-5.3-low':          'gpt-5.4',
-  'gpt-5.3':              'gpt-5.4',
-  // GPT-5.3-Codex → upgrade to 5.4
-  'gpt-5.3-codex-high':   'gpt-5.4',
-  'gpt-5.3-codex-medium': 'gpt-5.4',
-  'gpt-5.3-codex-low':    'gpt-5.4',
-  'gpt-5.3-codex':        'gpt-5.4',
+  // GPT-5.5 → upgrade to 5.6 Sol
+  'gpt-5.5-high':         'gpt-5.6-sol',
+  'gpt-5.5-medium':       'gpt-5.6-sol',
+  'gpt-5.5-low':          'gpt-5.6-sol',
+  'gpt-5.5':              'gpt-5.6-sol',
+  // GPT-5.4 → upgrade to 5.6 Terra
+  'gpt-5.4-high':         'gpt-5.6-terra',
+  'gpt-5.4-medium':       'gpt-5.6-terra',
+  'gpt-5.4-low':          'gpt-5.6-terra',
+  'gpt-5.4':              'gpt-5.6-terra',
+  // GPT-5.4 mini → upgrade to 5.6 Luna
+  'gpt-5.4-mini-medium':  'gpt-5.6-luna',
+  'gpt-5.4-mini':         'gpt-5.6-luna',
+  // GPT-5.3 → upgrade to 5.6 Terra
+  'gpt-5.3-high':         'gpt-5.6-terra',
+  'gpt-5.3-medium':       'gpt-5.6-terra',
+  'gpt-5.3-low':          'gpt-5.6-terra',
+  'gpt-5.3':              'gpt-5.6-terra',
+  // GPT-5.3-Codex → upgrade to 5.6 Terra
+  'gpt-5.3-codex-high':   'gpt-5.6-terra',
+  'gpt-5.3-codex-medium': 'gpt-5.6-terra',
+  'gpt-5.3-codex-low':    'gpt-5.6-terra',
+  'gpt-5.3-codex':        'gpt-5.6-terra',
 };
 
 const CURSOR_GEMINI_MAP: Record<string, string> = {
@@ -212,10 +219,11 @@ const CURSOR_GEMINI_MAP: Record<string, string> = {
   'gemini-3.7-flash-medium': 'gemini-3.7-flash',
   'gemini-3.7-flash-low': 'gemini-3.7-flash',
   'gemini-3.7-flash': 'gemini-3.7-flash',
-  'gemini-3.5-flash': 'gemini-3.5-flash',
-  'gemini-3-flash': 'gemini-3.5-flash',
-  'gemini-3.1-pro-preview': 'gemini-3.1-pro',
-  'gemini-3.1-pro': 'gemini-3.1-pro',
+  'gemini-3.5-flash': 'gemini-3.7-flash',
+  'gemini-3-flash': 'gemini-3.7-flash',
+  'gemini-3-flash-preview': 'gemini-3.7-flash',
+  'gemini-3.1-pro-preview': 'gemini-3.7-flash',
+  'gemini-3.1-pro': 'gemini-3.7-flash',
 };
 
 const CURSOR_GROK_MAP: Record<string, string> = {
@@ -265,22 +273,23 @@ export function normalizeCursor(
 // core-copilot/agents/*.agent.md.
 
 const COPILOT_CLAUDE_MAP: Record<string, string> = {
-  'claude-4.8-opus-high': 'Claude Opus 4.8',
-  'claude-4.8-opus': 'Claude Opus 4.8',
-  'claude-opus-4-8': 'Claude Opus 4.8',
-  'claude-4.7-opus-high': 'Claude Opus 4.8',
-  'claude-4.7-opus': 'Claude Opus 4.8',
-  'claude-opus-4-7': 'Claude Opus 4.8',
+  'claude-4.8-opus-high': 'Claude Opus 5',
+  'claude-4.8-opus': 'Claude Opus 5',
+  'claude-opus-4-8': 'Claude Opus 5',
+  'claude-4.7-opus-high': 'Claude Opus 5',
+  'claude-4.7-opus': 'Claude Opus 5',
+  'claude-opus-4-7': 'Claude Opus 5',
   'claude-4.6-sonnet': 'Claude Sonnet 5',
   'claude-5-sonnet': 'Claude Sonnet 5',
   'claude-4.5-haiku': 'Claude Haiku 4.5',
-  'claude-opus-4-6': 'Claude Opus 4.8',
+  'claude-opus-4-6': 'Claude Opus 5',
   'claude-sonnet-4-6': 'Claude Sonnet 5',
   'claude-sonnet-5': 'Claude Sonnet 5',
   'claude-haiku-4-5': 'Claude Haiku 4.5',
   'claude-5-opus-high': 'Claude Opus 5',
   'claude-5-opus': 'Claude Opus 5',
   'claude-opus-5': 'Claude Opus 5',
+  'claude-opus-5-high': 'Claude Opus 5',
 };
 
 const COPILOT_GPT_MAP: Record<string, string> = {
@@ -300,26 +309,29 @@ const COPILOT_GPT_MAP: Record<string, string> = {
   'gpt-5.6-luna-high':    'GPT-5.6 Luna',
   'gpt-5.6-luna-medium':  'GPT-5.6 Luna',
   'gpt-5.6-luna-low':     'GPT-5.6 Luna',
-  // GPT-5.5
-  'gpt-5.5-high':         'GPT-5.5',
-  'gpt-5.5-medium':       'GPT-5.5',
-  'gpt-5.5-low':          'GPT-5.5',
-  'gpt-5.5':              'GPT-5.5',
-  // GPT-5.4
-  'gpt-5.4-high':         'GPT-5.4',
-  'gpt-5.4-medium':       'GPT-5.4',
-  'gpt-5.4-low':          'GPT-5.4',
-  'gpt-5.4':              'GPT-5.4',
-  // GPT-5.3 → upgrade to 5.4
-  'gpt-5.3-high':         'GPT-5.4',
-  'gpt-5.3-medium':       'GPT-5.4',
-  'gpt-5.3-low':          'GPT-5.4',
-  'gpt-5.3':              'GPT-5.4',
-  // GPT-5.3-Codex → upgrade to 5.4
-  'gpt-5.3-codex-high':   'GPT-5.4',
-  'gpt-5.3-codex-medium': 'GPT-5.4',
-  'gpt-5.3-codex-low':    'GPT-5.4',
-  'gpt-5.3-codex':        'GPT-5.4',
+  // GPT-5.5 → upgrade to 5.6 Sol
+  'gpt-5.5-high':         'GPT-5.6 Sol',
+  'gpt-5.5-medium':       'GPT-5.6 Sol',
+  'gpt-5.5-low':          'GPT-5.6 Sol',
+  'gpt-5.5':              'GPT-5.6 Sol',
+  // GPT-5.4 → upgrade to 5.6 Terra
+  'gpt-5.4-high':         'GPT-5.6 Terra',
+  'gpt-5.4-medium':       'GPT-5.6 Terra',
+  'gpt-5.4-low':          'GPT-5.6 Terra',
+  'gpt-5.4':              'GPT-5.6 Terra',
+  // GPT-5.4 mini → upgrade to 5.6 Luna
+  'gpt-5.4-mini-medium':  'GPT-5.6 Luna',
+  'gpt-5.4-mini':         'GPT-5.6 Luna',
+  // GPT-5.3 → upgrade to 5.6 Terra
+  'gpt-5.3-high':         'GPT-5.6 Terra',
+  'gpt-5.3-medium':       'GPT-5.6 Terra',
+  'gpt-5.3-low':          'GPT-5.6 Terra',
+  'gpt-5.3':              'GPT-5.6 Terra',
+  // GPT-5.3-Codex → upgrade to 5.6 Terra
+  'gpt-5.3-codex-high':   'GPT-5.6 Terra',
+  'gpt-5.3-codex-medium': 'GPT-5.6 Terra',
+  'gpt-5.3-codex-low':    'GPT-5.6 Terra',
+  'gpt-5.3-codex':        'GPT-5.6 Terra',
 };
 
 const COPILOT_GEMINI_MAP: Record<string, string> = {
@@ -327,9 +339,10 @@ const COPILOT_GEMINI_MAP: Record<string, string> = {
   'gemini-3.7-flash-medium': 'Gemini 3.7 Flash',
   'gemini-3.7-flash-low': 'Gemini 3.7 Flash',
   'gemini-3.7-flash': 'Gemini 3.7 Flash',
-  'gemini-3.1-pro-preview': 'Gemini 3.1 Pro (Preview)',
-  'gemini-3.1-pro': 'Gemini 3.1 Pro (Preview)',
-  'gemini-3-flash': 'Gemini 3.5 Flash',
+  'gemini-3.1-pro-preview': 'Gemini 3.7 Flash',
+  'gemini-3.1-pro': 'Gemini 3.7 Flash',
+  'gemini-3-flash': 'Gemini 3.7 Flash',
+  'gemini-3-flash-preview': 'Gemini 3.7 Flash',
 };
 
 /**
@@ -356,12 +369,17 @@ export function normalizeCopilot(
 }
 
 // ─── Codex vocabulary (FR-COPY-0022) ──────────────────────────────────────────
-// Selection strategy UNCHANGED: scan all tokens for first gpt-* token. Built-in map is `{}`
-// (identity/pass-through) so non-exhaustive resolution is always "token as-is" — byte-identical to
-// the pre-refactor pure effort-split. A profile block may map a gpt- token to any string (including
-// one carrying its own effort suffix, e.g. "gpt-5.4-medium"); the chosen value (mapped or as-is) is
-// THEN effort-split into {model, effort}. No gpt- token found ⇒ null (non-exhaustive, today) ; all
-// gpt- candidates absent under exhaustive ⇒ MODEL_DROP.
+// Selection strategy UNCHANGED: scan all tokens for first gpt-* token. The built-in map now carries
+// upgrade entries for every superseded GPT family (5.3, 5.3-codex, 5.4, 5.4-mini, 5.5) so a legacy
+// gpt- token resolves forward to its 5.6-era successor instead of pinning the old model — same idiom
+// as the Cursor/Copilot GPT maps above. Each key is paired with a VALUE carrying the matching effort
+// suffix (e.g. 'gpt-5.4-medium' → 'gpt-5.6-terra-medium') so effort survives the upgrade: the chosen
+// value (mapped or as-is) is THEN effort-split into {model, effort} by normalizeCodex. A gpt-5.6-*
+// token is not superseded and carries no entry — it is not "mapped to itself"; it simply passes
+// through unmapped like any other unknown token, which is the existing pass-through contract. A
+// profile block may map a gpt- token to any string; that value is effort-split the same way. No gpt-
+// token found ⇒ null (non-exhaustive, today); all gpt- candidates absent under exhaustive ⇒
+// MODEL_DROP; an unmapped gpt- token under non-exhaustive still passes through as-is.
 
 export interface CodexModelResult {
   model: string;
@@ -386,12 +404,42 @@ export function normalizeCodex(
       return splitCodexEffort(map[token]);
     }
     if (!exhaustive) {
-      return splitCodexEffort(token); // built-in map {} ⇒ always as-is (today)
+      return splitCodexEffort(token); // unmapped candidate ⇒ pass through as-is (today)
     }
     // exhaustive and candidate absent from map: skip, continue scan
   }
   return exhaustive ? MODEL_DROP : null;
 }
+
+// FR-COPY-0022 — Codex built-in upgrade table: superseded gpt- families resolve forward to their
+// 5.6-era successor, one entry per effort-qualified form (plus the bare form) so normalizeCodex's
+// effort-split recovers the same effort the author wrote. gpt-5.6-* itself has no entry (see comment
+// above the Codex vocabulary section).
+const CODEX_GPT_MAP: Record<string, string> = {
+  // GPT-5.5 → upgrade to 5.6 Sol
+  'gpt-5.5-high':         'gpt-5.6-sol-high',
+  'gpt-5.5-medium':       'gpt-5.6-sol-medium',
+  'gpt-5.5-low':          'gpt-5.6-sol-low',
+  'gpt-5.5':              'gpt-5.6-sol',
+  // GPT-5.4 → upgrade to 5.6 Terra
+  'gpt-5.4-high':         'gpt-5.6-terra-high',
+  'gpt-5.4-medium':       'gpt-5.6-terra-medium',
+  'gpt-5.4-low':          'gpt-5.6-terra-low',
+  'gpt-5.4':              'gpt-5.6-terra',
+  // GPT-5.4 mini → upgrade to 5.6 Luna
+  'gpt-5.4-mini-medium':  'gpt-5.6-luna-medium',
+  'gpt-5.4-mini':         'gpt-5.6-luna',
+  // GPT-5.3 → upgrade to 5.6 Terra
+  'gpt-5.3-high':         'gpt-5.6-terra-high',
+  'gpt-5.3-medium':       'gpt-5.6-terra-medium',
+  'gpt-5.3-low':          'gpt-5.6-terra-low',
+  'gpt-5.3':              'gpt-5.6-terra',
+  // GPT-5.3-Codex → upgrade to 5.6 Terra
+  'gpt-5.3-codex-high':   'gpt-5.6-terra-high',
+  'gpt-5.3-codex-medium': 'gpt-5.6-terra-medium',
+  'gpt-5.3-codex-low':    'gpt-5.6-terra-low',
+  'gpt-5.3-codex':        'gpt-5.6-terra',
+};
 
 // ─── Vocabulary objects ────────────────────────────────────────────────────────
 // FR-ARCH-0059: `modelVocabulary.map` is now the real, live effective map consulted by the
@@ -405,7 +453,7 @@ export const CLAUDE_VOCABULARY: ModelVocabulary = {
 
 // Cursor/Copilot merge their per-vendor maps into one flat map consulted by exact-token lookup.
 // Keys are disjoint across the source maps (claude-*/gpt-*/gemini-*/grok-*/composer-* prefixes never
-// collide — verified: Cursor 61 total keys, 61 unique; Copilot 54 total, 54 unique), so merge order
+// collide — verified: Cursor 65 total keys, 65 unique; Copilot 58 total, 58 unique), so merge order
 // is immaterial.
 //
 // The Copilot map carries no Grok or Composer entry. That records only that no Copilot-native
@@ -427,7 +475,8 @@ export const COPILOT_VOCABULARY: ModelVocabulary = {
 };
 
 export const CODEX_VOCABULARY: ModelVocabulary = {
-  map: {}, // identity/pass-through — normalizeCodex() effort-splits the token as-is when unmapped
+  map: CODEX_GPT_MAP, // superseded gpt- tokens upgrade forward (CODEX_GPT_MAP); any other token —
+  // including gpt-5.6-* — is unmapped and normalizeCodex() effort-splits it as-is
 };
 
 // AG-2, DATA-CFG-0004: Antigravity carries no model vocabulary. Agent/skill frontmatter model

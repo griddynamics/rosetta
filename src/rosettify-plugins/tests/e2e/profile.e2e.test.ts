@@ -161,8 +161,10 @@ describe('Profile E2E — profiled build (--profile lightweight)', () => {
   // match, and Codex's first-gpt-token match plus reasoning-effort split.
   it('light agents resolve to the profile-scoped models on all four vocabularies', () => {
     // Claude, exact-token tier: architect's light list carries claude-5-opus-high, which the Claude
-    // map resolves by EXACT token to claude-opus-5. The family key alone could not express this —
-    // `opus` maps to claude-opus-4-8, which is what the base architect resolves to.
+    // map resolves by EXACT token. The `opus` family key resolves to the same value, so this agrees
+    // with the base build rather than diverging from it — Claude Code exposes three tiers and the
+    // light profile asks for the same one here. What the exact entry guarantees is that an author
+    // naming a version explicitly keeps getting THAT version even if the family default later moves.
     const claudeArchitect = fs.readFileSync(
       path.join(outputDir, 'core-claude-light', 'agents', 'architect.md'), 'utf-8');
     expect(claudeArchitect).toMatch(/^model: claude-opus-5$/m);
@@ -174,7 +176,7 @@ describe('Profile E2E — profiled build (--profile lightweight)', () => {
     expect(claudeDiscoverer).toMatch(/^model: claude-haiku-4-5$/m);
 
     // Cursor: reviewer's light list leads with gemini-3.7-flash-medium, mapped to the IDE-native
-    // gemini-3.7-flash (the base list leads with gpt-5.4-medium -> gpt-5.4).
+    // gemini-3.7-flash (the base list leads with gpt-5.6-terra-medium -> gpt-5.6-terra).
     const cursorReviewer = fs.readFileSync(
       path.join(outputDir, 'core-cursor-light', 'agents', 'reviewer.md'), 'utf-8');
     expect(cursorReviewer).toMatch(/^model: gemini-3\.7-flash$/m);
@@ -243,19 +245,18 @@ describe('Profile E2E — no-profile run (regression guard, FR-PROF-0040)', () =
       path.join(outputDir, 'core-claude', 'agents', 'discoverer.md'), 'utf-8');
     expect(claudeDiscoverer).toMatch(/^model: claude-sonnet-5$/m);
 
-    // The Claude map's exact-token tier must not disturb any base token: the base architect carries
-    // claude-4.8-opus-high, which matches no exact entry and still resolves via the `opus` family key.
+    // The base architect resolves to the current Opus through the Claude vocabulary.
     const claudeArchitect = fs.readFileSync(
       path.join(outputDir, 'core-claude', 'agents', 'architect.md'), 'utf-8');
-    expect(claudeArchitect).toMatch(/^model: claude-opus-4-8$/m);
+    expect(claudeArchitect).toMatch(/^model: claude-opus-5$/m);
 
     const cursorReviewer = fs.readFileSync(
       path.join(outputDir, 'core-cursor', 'agents', 'reviewer.md'), 'utf-8');
-    expect(cursorReviewer).toMatch(/^model: gpt-5\.4$/m);
+    expect(cursorReviewer).toMatch(/^model: gpt-5\.6-terra$/m);
 
     const codexEngineer = fs.readFileSync(
       path.join(outputDir, 'core-codex', '.codex', 'agents', 'engineer.toml'), 'utf-8');
-    expect(codexEngineer).toContain('model = "gpt-5.4"');
+    expect(codexEngineer).toContain('model = "gpt-5.6-terra"');
     expect(codexEngineer).toContain('model_reasoning_effort = "medium"');
   });
 

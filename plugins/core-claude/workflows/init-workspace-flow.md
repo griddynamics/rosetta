@@ -90,7 +90,7 @@ DISABLED
 
 </code-graph>
 
-<documentation phase="7" subagent="architect" role="Architect and documentation analyst" subagent_required_model="claude-opus-4-8">
+<documentation phase="7" subagent="architect" role="Architect and documentation analyst" subagent_required_model="claude-opus-5">
 
 1. Create project documentation from workspace analysis.
 2. Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md.

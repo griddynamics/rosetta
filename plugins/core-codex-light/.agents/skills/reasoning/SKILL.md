@@ -4,7 +4,7 @@ description: "To apply structured meta-cognitive thinking to complex problems. I
 license: Apache-2.0
 disable-model-invocation: false
 argument-hint: problem, context?, constraints?
-model: gpt-5.5
+model: gpt-5.6-sol
 model_reasoning_effort: high
 context: default
 agent: planner, architect, prompt-engineer

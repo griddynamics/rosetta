@@ -4,7 +4,7 @@ description: "To apply structured meta-cognitive thinking to complex problems. I
 license: Apache-2.0
 disable-model-invocation: false
 argument-hint: problem, context?, constraints?
-model: Claude Opus 4.8
+model: Claude Opus 5
 context: default
 agent: planner, architect, prompt-engineer
 baseSchema: docs/schemas/skill.md

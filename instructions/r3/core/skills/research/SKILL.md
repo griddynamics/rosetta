@@ -3,7 +3,7 @@ name: research
 description: "To run systematic deep research via meta-prompting — grounded references, incremental tracking, self-validation."
 license: Apache-2.0
 argument-hint: feature, request, scope?
-model: claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol
+model: claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high
 context: default
 agent: researcher
 baseSchema: docs/schemas/skill.md

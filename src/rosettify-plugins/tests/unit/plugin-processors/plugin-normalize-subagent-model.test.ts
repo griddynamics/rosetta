@@ -103,7 +103,7 @@ describe('pluginNormalizeSubagentRequiredModel — Claude mapper, real fixtures'
   it('A: filters to the opus family and maps through the built-in Claude vocabulary', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_A}"`, CLAUDE_VOCABULARY, claudeSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="claude-opus-4-8"');
+    ).toBe('subagent_required_model="claude-opus-5"');
   });
 
   it('B: filters to the sonnet family', () => {
@@ -132,29 +132,38 @@ describe('pluginNormalizeSubagentRequiredModel — Claude mapper, real fixtures'
   });
 });
 
-// The expected values below grew when the Cursor and Copilot vocabularies learned the GPT-5.6 family
-// (bare and effort-qualified), grok and composer: those tokens used to have no key and were dropped
-// from the list, so the earlier expectations recorded models silently going missing. Nothing about
-// the filtering rule changed — only which tokens the maps can now name.
+// The expected values below changed because every legacy Claude/GPT/Gemini token these fixtures
+// carry now upgrades forward to its 5.6/Opus-5/3.7-Flash-era successor (same idiom as the existing
+// grok-4.5 → grok-4.6 upgrade). Two consequences follow purely from that value change, not from any
+// change to the filtering/dedup rule itself: (1) a legacy token and a same-family bare 5.6/Opus-5
+// token appearing in the same fixture can now map to the SAME value and collapse under the existing
+// first-occurrence dedup where they used to stay distinct; (2) tokens the maps could already name
+// keep surviving, just with a newer mapped value.
 describe('pluginNormalizeSubagentRequiredModel — Cursor mapper, real fixtures', () => {
-  it('A: filters to tokens present in the merged Cursor map, source order preserved', () => {
+  it('A: filters to tokens present in the merged Cursor map, source order preserved, upgraded tokens de-duplicated', () => {
+    // gpt-5.5-high and the fixture's own gpt-5.6-sol both now map to 'gpt-5.6-sol', so they collapse
+    // to one survivor, keeping the first occurrence.
     expect(
       normalize(`subagent_required_model="${FIXTURE_A}"`, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="claude-opus-4-8, gpt-5.5, gpt-5.6-sol"');
+    ).toBe('subagent_required_model="claude-opus-5, gpt-5.6-sol"');
   });
 
-  it('D: same filtering with the gpt- token appearing FIRST in source order (not IDE priority order)', () => {
+  it('D: same filtering with the gpt- token appearing FIRST in source order (not IDE priority order), upgraded tokens de-duplicated', () => {
+    // gpt-5.4-medium and the fixture's own gpt-5.6-terra both now map to 'gpt-5.6-terra', so they
+    // collapse to one survivor, keeping the first (source-order) occurrence.
     expect(
       normalize(`subagent_required_model="${FIXTURE_D}"`, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="gpt-5.4, gemini-3.1-pro, claude-sonnet-5, grok-4.6, gpt-5.6-terra"');
+    ).toBe('subagent_required_model="gpt-5.6-terra, gemini-3.7-flash, claude-sonnet-5, grok-4.6"');
   });
 });
 
 describe('pluginNormalizeSubagentRequiredModel — Copilot mapper, real fixtures', () => {
-  it('C: filters to tokens present in the merged Copilot map, mapped to IDE-native display names', () => {
+  it('C: filters to tokens present in the merged Copilot map, mapped to IDE-native display names, upgraded tokens de-duplicated', () => {
+    // gpt-5.4-medium and the fixture's own gpt-5.6-terra both now map to 'GPT-5.6 Terra', so they
+    // collapse to one survivor, keeping the first (source-order) occurrence.
     expect(
       normalize(`subagent_required_model="${FIXTURE_C}"`, COPILOT_VOCABULARY, copilotSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="Claude Sonnet 5, GPT-5.4, Gemini 3.1 Pro (Preview), GPT-5.6 Terra"');
+    ).toBe('subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash"');
   });
 
   it('C: grok is still absent from the Copilot list — no Copilot identifier for it is established here', () => {
@@ -187,16 +196,18 @@ describe('pluginNormalizeSubagentRequiredModel — legacy token upgrade', () => 
 });
 
 describe('pluginNormalizeSubagentRequiredModel — Codex mapper, real fixtures (effort retained, whole token)', () => {
-  it('A: gpt- tokens survive whole; reasoning-effort suffix is authored guidance and is retained as-is (gpt-5.5-high stays gpt-5.5-high)', () => {
+  it('A: superseded gpt- token upgrades forward whole, with its reasoning-effort suffix intact (gpt-5.5-high -> gpt-5.6-sol-high); the fixture bare gpt-5.6-sol survives unmapped', () => {
+    // CODEX_VOCABULARY now carries an upgrade entry for gpt-5.5-high; the whole-token Codex mapper
+    // never effort-splits, so the mapped value's own "-high" suffix comes along as part of the value.
     expect(
       normalize(`subagent_required_model="${FIXTURE_A}"`, CODEX_VOCABULARY, codexSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="gpt-5.5-high, gpt-5.6-sol"');
+    ).toBe('subagent_required_model="gpt-5.6-sol-high, gpt-5.6-sol"');
   });
 
-  it('B: same whole-token behavior, source order preserved', () => {
+  it('B: same whole-token upgrade behavior, source order preserved (gpt-5.4-medium -> gpt-5.6-terra-medium)', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_B}"`, CODEX_VOCABULARY, codexSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="gpt-5.4-medium, gpt-5.6-terra"');
+    ).toBe('subagent_required_model="gpt-5.6-terra-medium, gpt-5.6-terra"');
   });
 });
 
@@ -263,7 +274,7 @@ describe('pluginNormalizeSubagentRequiredModel — boundary safety', () => {
   it('does not corrupt an adjacent attribute on the same line', () => {
     const content = 'subagent_required_model="claude-opus-4-8" other="kept"';
     expect(normalize(content, CLAUDE_VOCABULARY, claudeSubagentModelTokenMapper)).toBe(
-      'subagent_required_model="claude-opus-4-8" other="kept"',
+      'subagent_required_model="claude-opus-5" other="kept"',
     );
   });
 });

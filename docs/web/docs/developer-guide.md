@@ -28,7 +28,7 @@ fork/clone → branch → edit → validate → push → PR
 
 2. **Develop using claude code / codex / cursor** or **use the prompting flow.**
    - **Development:** use rosetta plugins to develop rosetta. [TESTING-PLUGINS.md](https://github.com/griddynamics/rosetta/blob/main/docs/TESTING-PLUGINS.md) shows how to install and test plugins locally. Plugins allow contributors to see their in-progress instruction changes reflected almost immediately. End users should use plugins built from `main` or the production MCP endpoints.
-   - **Prompting:** use the [`coding-agents-prompting-flow`](/rosetta/docs/usage-guide/#workflows) with the `coding-agents-prompt-authoring` skill to author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with the Opus 4.8 model.
+   - **Prompting:** use the [`coding-agents-prompting-flow`](/rosetta/docs/usage-guide/#workflows) with the `coding-agents-prompt-authoring` skill to author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with the Opus 5 model.
 
      Example invocations:
 

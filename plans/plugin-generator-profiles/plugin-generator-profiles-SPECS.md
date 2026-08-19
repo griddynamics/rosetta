@@ -196,31 +196,31 @@ structure.ts:108-114`). Optional `activeProfile`+`destinationSuffix` params for 
 
 Real `subagent_required_model` values (orchestrator measurement, 11 distinct; top 5):
 ```
-A: claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol
-B: claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.6, gpt-5.6-terra
-C: claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.6, gpt-5.6-terra
-D: gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5, grok-4.6, gpt-5.6-terra
-E: claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna
+A: claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high, gpt-5.6-sol
+B: claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6, gpt-5.6-terra
+C: claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-high, grok-4.6, gpt-5.6-terra
+D: gpt-5.6-terra-medium, gemini-3.7-flash-high, claude-sonnet-5, grok-4.6, gpt-5.6-terra
+E: claude-haiku-4-5, gpt-5.6-terra-low, gemini-3.7-flash-low, composer-2.5, gpt-5.6-luna
 ```
-Expected (built-in maps, always-on): A→claude: `claude-opus-4-8`; A→codex: `gpt-5.5, gpt-5.6-sol`
-(effort stripped, GAP-1); A→cursor: `claude-opus-4-8, gpt-5.5`; B→claude: `claude-sonnet-5`;
+Expected (built-in maps, always-on): A→claude: `claude-opus-5`; A→codex: `gpt-5.6-sol`
+(effort stripped, GAP-1); A→cursor: `claude-opus-5, gpt-5.6-sol`; B→claude: `claude-sonnet-5`;
 E→claude: `claude-haiku-4-5` (via `haiku` family key — family-lookup proof); B→codex:
-`gpt-5.4, gpt-5.6-terra`. No-survivor: a claude-only-empty value ⇒ `inherit`.
+`gpt-5.6-terra`. No-survivor: a claude-only-empty value ⇒ `inherit`.
 DE-DUP not exercised by ANY real value (traced all 5) ⇒ dedicated SYNTHETIC fixture from
-FR-COPY-0083.AC3: codex `gpt-5.4, claude-opus-4-8, gpt-5.4` → `gpt-5.4`.
+FR-COPY-0083.AC3: codex `gpt-5.6-terra, claude-opus-5, gpt-5.6-terra` → `gpt-5.6-terra`.
 
 Frontmatter model cases (FR-COPY-0020/21/22 amended ACs are the source of truth; representative):
-- Cursor built-in `claude-4.8-opus-high, gpt-5.5-high` → `claude-opus-4-8`.
-- Cursor profile block `{claude-opus-4-8: gpt-5.4}`, field `claude-opus-4-8` → `gpt-5.4`.
-- Cursor profile exhaustive, field `claude-opus-4-8, gpt-5.4`, block has `gpt-5.4` only → `gpt-5.4`.
+- Cursor built-in `claude-5-opus-high, gpt-5.6-sol-high` → `claude-opus-5`.
+- Cursor profile block `{claude-opus-5: gpt-5.6-terra}`, field `claude-opus-5` → `gpt-5.6-terra`.
+- Cursor profile exhaustive, field `claude-opus-5, gpt-5.6-terra`, block has `gpt-5.6-terra` only → `gpt-5.6-terra`.
 - Cursor profile exhaustive, no survivor → `model:` line dropped.
-- Claude profile `{sonnet: claude-sonnet-5}` (no opus), field `claude-4.8-opus-high, claude-5-sonnet`
+- Claude profile `{sonnet: claude-sonnet-5}` (no opus), field `claude-5-opus-high, claude-5-sonnet`
   → skip opus, `claude-sonnet-5`.
-- Codex profile `{gpt-5.5-high: gpt-5.4-medium}`, field `gpt-5.5-high` → model `gpt-5.4` effort
+- Codex profile `{gpt-5.6-sol-high: gpt-5.6-terra-medium}`, field `gpt-5.6-sol-high` → model `gpt-5.6-terra` effort
   `medium`, at BOTH call sites.
 
 Validation negatives (V1–V7): outer key `core-windsurf` ⇒ abort naming key + 7 names; `core-antigravity`
-block ⇒ abort; claude inner `claude-opus-4-8` ⇒ abort naming accepted set; unknown top-level field ⇒
+block ⇒ abort; claude inner `claude-opus-5` ⇒ abort naming accepted set; unknown top-level field ⇒
 abort; missing file ⇒ abort; unparseable JSON ⇒ abort; `--profile foo/bar` or `x.json` ⇒ usage exit≠0.
 All abort BEFORE any file written (assert clean output dir).
 

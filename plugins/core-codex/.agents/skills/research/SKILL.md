@@ -3,7 +3,7 @@ name: research
 description: "To run systematic deep research via meta-prompting — grounded references, incremental tracking, self-validation."
 license: Apache-2.0
 argument-hint: feature, request, scope?
-model: gpt-5.5
+model: gpt-5.6-sol
 model_reasoning_effort: high
 context: default
 agent: researcher

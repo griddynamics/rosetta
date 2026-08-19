@@ -25,7 +25,7 @@ Phase 5. Reuse independent `engineer` invocations by coherent area bundle; paral
 4. Return evidence envelopes
 </phase_steps>
 
-<run_area_bundle step="5.1" subagent="engineer" role="Security engineer for an approved coherent area bundle" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.6, gpt-5.6-terra">
+<run_area_bundle step="5.1" subagent="engineer" role="Security engineer for an approved coherent area bundle" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6">
 
 For each bounded bundle:
 
