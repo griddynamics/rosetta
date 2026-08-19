@@ -109,7 +109,7 @@ export interface Spec {
   title: string;
   statement: string;
   rationale: string;
-  evidence: string[]; // FR-SPECS-0001 — one "path:line-range" per source location; default []
+  evidence: string[]; // FR-SPECS-0001 — one "path:line-range" or better "path:symbol" per source location; default []
   source: SourceEnum;
   priority: MoscowEnum;
   // Guarded (FR-SPECS-0040) — settable only via lifecycle ops, never by add/update directly.
