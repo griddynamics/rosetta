@@ -2,5 +2,5 @@
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "rosetta-light",
   "description": "Rosetta for Antigravity - Software Engineering Accelerator instruction set, rules, workflows, and guardrails. (lightweight profile: simpler workflows, smaller models)",
-  "version": "3.1.9"
+  "version": "3.1.10"
 }
