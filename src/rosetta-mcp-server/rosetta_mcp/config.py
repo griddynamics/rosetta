@@ -184,8 +184,10 @@ def _extract_response_message(body: dict[str, Any], fallback: str) -> str:
 
 
 def _load_response(request: Request) -> tuple[dict[str, Any], Any]:
+    # Runs before RosettaConfig exists, so read the shared RAGFlow HTTP timeout from env.
+    timeout = _parse_int(os.getenv(ENV_RAGFLOW_HTTP_TIMEOUT, ""), DEFAULT_RAGFLOW_HTTP_TIMEOUT)
     try:
-        with urlopen(request, timeout=60) as response:
+        with urlopen(request, timeout=timeout) as response:
             charset = response.headers.get_content_charset() or "utf-8"
             raw_body = response.read().decode(charset)
             payload = json.loads(raw_body) if raw_body else {}

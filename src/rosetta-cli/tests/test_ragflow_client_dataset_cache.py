@@ -35,6 +35,7 @@ class _FakeRagFlow:
 def _make_client(fake: _FakeRagFlow) -> RAGFlowClient:
     client = object.__new__(RAGFlowClient)
     client._client = fake
+    client.page_size = 1000
     client.embedding_model = None
     client.chunk_method = "naive"
     client.parser_config = {}

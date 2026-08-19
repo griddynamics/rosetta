@@ -84,7 +84,7 @@ DISABLED
 1. Suggest user to install LSPs xor code graphs if relevant
 2. Output: user selection, updates to CONTEXT.md
 3. APPLY SKILL FILE `phases/init-workspace-flow-codegraph.md`
-4. Update state. Log gaps for Phase 6.
+4. Update state. Log gaps for Phase 8.
 
 </code-graph>
 

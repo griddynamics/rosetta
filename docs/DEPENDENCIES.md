@@ -4,12 +4,13 @@ Direct dependencies of all modules in this Rosetta repository.
 
 | Package | Version Constraint | Purpose |
 |---|---|---|
-| ragflow-sdk | >=0.24.0,<1.0.0 | Document storage and retrieval (RAGFlow backend) |
+| ragflow-sdk | >=0.25.1,<0.26.0 | Document storage and retrieval (RAGFlow backend) |
 | mcp | >=1.26.0,<2.0.0 | MCP Python SDK |
 | fastmcp | >=3.1.0,<4 | FastMCP framework (Streamable HTTP + OAuth proxy) |
 | posthog | >=7.0.0,<8.0.0 | Usage analytics |
 | cryptography | >=43.0.0 | Fernet encryption for Redis token storage |
 | uuid7-standard | >=1.0.0,<2.0.0 | UUID v7 generation for deterministic document IDs |
+| cachetools | >=5.5.0,<6.0.0 | In-process TTL caches (datasets, documents, tool responses) |
 
 ### rosetta-mcp-server optional[redis]
 
@@ -32,7 +33,7 @@ Direct dependencies of all modules in this Rosetta repository.
 |---|---|---|
 | python-dotenv | >=1.0.0,<2.0.0 | .env file loading |
 | python-frontmatter | >=1.1.0,<2.0.0 | YAML frontmatter extraction from instruction files |
-| ragflow-sdk | >=0.23.1,<1.0.0 | RAGFlow API client for publishing |
+| ragflow-sdk | >=0.25.1,<0.26.0 | RAGFlow API client for publishing |
 | requests | >=2.31.0,<3.0.0 | HTTP client |
 | tqdm | >=4.67.0,<5.0.0 | Progress bars during publish |
 

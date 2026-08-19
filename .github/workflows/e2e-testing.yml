@@ -57,6 +57,9 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    # Covers the default matrix: 3 cases x trials(1) x timeout_sec(1800s) = 90m of
+    # trial budget, plus setup/build/upload. Raise it for larger trials/timeout_sec.
+    timeout-minutes: 180
 
     permissions:
       contents: read
@@ -72,6 +75,8 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: src/curiocity/package-lock.json
 
       - name: Set up Java
         uses: actions/setup-java@v5

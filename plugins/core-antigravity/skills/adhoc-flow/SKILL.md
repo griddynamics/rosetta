@@ -67,7 +67,6 @@ Compose any of these (not limited) into plan phases/steps to build any execution
 3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
 3. MUST use available MCPs, tools, skills and agents.
 4. You will FOR SURE run out of LLM context, leading to loss of information, delegate to subagents!
-5. If `/goal` is set repeat phases 4-5 until goal is met.
 
 </prerequisites>
 

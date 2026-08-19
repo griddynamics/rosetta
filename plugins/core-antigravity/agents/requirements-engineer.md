@@ -23,7 +23,8 @@ Validation: Requirements are atomic and testable, traceability is explicit, and 
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
+- `bootstrap-alwayson.md` + dispatch context loaded; MUST USE SKILL `subagent-directives`
+- Load `load-project-context` only when required by the assigned task
 - Discovery phase complete with context and affected requirement areas identified
 - Scope, constraints, and existing requirements provided by orchestrator
 

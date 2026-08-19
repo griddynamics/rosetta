@@ -81,7 +81,7 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
 3. Phases are sequential. Orchestrator coordinates; trust skills and subagents to execute.
 4. Scale: conversational — output is a message, no files, no state tracking.
 
-<prerequisites phase="0", applies="ALL">
+</prerequisites>
 
 <list_capabilities phase="1" subagent="discoverer" role="KB catalog lister">
 

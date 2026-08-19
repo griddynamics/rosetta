@@ -30,6 +30,10 @@ jobs:
   validate-test-cases:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
     runs-on: ubuntu-latest
+    # Safety net only: the job runs 3 Claude CLI calls per matched test-library case
+    # (prompt-request on root-old + root-new, then prompt-validation), so raise this
+    # if a change fans out to many cases.
+    timeout-minutes: 180
     env:
       PR_COMMENT_FILE: .tmp/pr-comment.md
     steps:

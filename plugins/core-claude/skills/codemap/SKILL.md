@@ -30,8 +30,8 @@ IF LSP tools are already in current context:
 <graphify>
 
 IF graphify is already **REQUESTED** in current context:
-- querying the codebase, tracing dependency paths between symbols, or explaining concepts (`graphify query/path/explain`): MUST USE SKILL `graphify`
-- building or incrementally updating the knowledge graph (`/graphify <path>`, `--update`): MUST USE SKILL `graphify`
+- querying the codebase, tracing dependency paths between symbols, or explaining concepts: MUST use graphify's own commands `graphify query/path/explain`
+- building or incrementally updating the knowledge graph: MUST use `/graphify <path>` (`--update` for incremental)
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost)
 
 </graphify>

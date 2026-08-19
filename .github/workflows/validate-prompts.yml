@@ -28,6 +28,7 @@ jobs:
   validate:
     if: github.event_name != 'pull_request_target' || github.event.pull_request.draft != true
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     permissions:
       contents: read
       pull-requests: write # Required for creating PR comments

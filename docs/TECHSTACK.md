@@ -7,9 +7,10 @@ Tech stack of all modules in this Rosetta repository.
 | Language | Python 3.10+ (3.12 recommended) |
 | Framework | FastMCP v3 (>=3.1.0,<4) |
 | MCP SDK | mcp >=1.26.0,<2.0.0 |
-| Knowledge backend | RAGFlow SDK >=0.24.0,<1.0.0 |
+| Knowledge backend | RAGFlow SDK >=0.25.1,<0.26.0 |
 | Auth | OAuth 2.1 via FastMCP OAuthProxy; OIDC or introspection modes |
 | Session store | Redis (optional, via py-key-value-aio[redis] >=0.4.4) |
+| Response cache | cachetools >=5.5.0,<6.0.0 (in-process TTL) |
 | Token encryption | cryptography >=43.0.0 (Fernet) |
 | Analytics | PostHog >=7.0.0,<8.0.0 |
 | Transport | Streamable HTTP (default, port 8000) or STDIO |
@@ -27,7 +28,7 @@ Tech stack of all modules in this Rosetta repository.
 | HTTP client | requests >=2.31.0,<3.0.0 |
 | Env config | python-dotenv >=1.0.0,<2.0.0 |
 | Frontmatter | python-frontmatter >=1.1.0,<2.0.0 |
-| Knowledge backend | RAGFlow SDK >=0.23.1,<1.0.0 |
+| Knowledge backend | RAGFlow SDK >=0.25.1,<0.26.0 |
 | Progress UI | tqdm >=4.67.0,<5.0.0 |
 | Build | setuptools >=61.0 + wheel |
 | Type checking | mypy (strict, shared mypy.ini) |

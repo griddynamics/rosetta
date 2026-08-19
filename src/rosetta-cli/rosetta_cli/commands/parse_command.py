@@ -25,8 +25,10 @@ class ParseCommand(BaseCommand):
         """Execute parse command."""
         self._start_timing()
 
-        # CLI flag must override config default for this run.
-        self.config.parse_timeout = args.parse_timeout
+        # Explicit CLI flag wins for this run; an unset flag keeps the
+        # configured (RAGFLOW_PARSE_TIMEOUT) value.
+        if getattr(args, "parse_timeout", None) is not None:
+            self.config.parse_timeout = args.parse_timeout
 
         # Verify authentication before any dataset auto-detection touches the API.
         AuthService.verify_or_exit(self.client, self.config)

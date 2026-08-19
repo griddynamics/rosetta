@@ -30,11 +30,22 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: '3.12'
+        cache: 'pip'
+        cache-dependency-path: requirements.txt
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    # mypy.ini lists src/rosetta-cli in files=, but the only other mypy entrypoint
+    # (src/validate-types.sh, run from ci-rosetta-mcp.yml) is path-filtered to
+    # src/rosetta-mcp-server/**. mypy is invoked directly rather than through that
+    # script because this job creates no venv and no node_modules, so the script
+    # would warn-and-pass rather than gate.
+    - name: Run type validation
+      run: |
+        python -m mypy --config-file mypy.ini src/rosetta-cli
 
     - name: Run CLI tests
       run: |

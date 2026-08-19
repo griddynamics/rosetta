@@ -19,6 +19,11 @@ logger = logging.getLogger(__name__)
 
 ENV_FILE_ENV_VAR = "ROSETTA_CLI_ENV_FILE"
 
+# Default timeouts in seconds. Single source of truth for the dataclass
+# defaults, the env-var fallbacks, and env.template.
+DEFAULT_TIMEOUT = 30
+DEFAULT_PARSE_TIMEOUT = 1200
+
 
 def _candidate_env_names(env_name: str | None) -> list[str]:
     names: list[str] = []
@@ -92,6 +97,7 @@ class RosettaConfig:
         RAGFLOW_AUTO_QUESTIONS: Auto-generate questions per chunk (default: 0)
         RAGFLOW_PAGE_SIZE: Page size for listing operations (default: 1000)
         RAGFLOW_PARSE_TIMEOUT: Timeout for parsing operations in seconds (default: 1200)
+        RAGFLOW_TIMEOUT: HTTP request timeout in seconds (default: 30)
         ENVIRONMENT: Environment name (default: "local")
     
     Examples:
@@ -112,7 +118,8 @@ class RosettaConfig:
     parser_config: JsonDict | None = None
     environment: str = "local"
     page_size: int = 1000
-    parse_timeout: int = 300
+    parse_timeout: int = DEFAULT_PARSE_TIMEOUT
+    timeout: int = DEFAULT_TIMEOUT
     
     @classmethod
     def from_env(
@@ -216,7 +223,8 @@ class RosettaConfig:
         
         # Pagination and timeout settings
         page_size = int(os.getenv("RAGFLOW_PAGE_SIZE", "1000"))
-        parse_timeout = int(os.getenv("RAGFLOW_PARSE_TIMEOUT", "1200"))
+        parse_timeout = int(os.getenv("RAGFLOW_PARSE_TIMEOUT", str(DEFAULT_PARSE_TIMEOUT)))
+        timeout = int(os.getenv("RAGFLOW_TIMEOUT", str(DEFAULT_TIMEOUT)))
         
         # Parser configuration for naive chunking
         parser_config: JsonDict | None = None
@@ -243,7 +251,8 @@ class RosettaConfig:
             parser_config=parser_config,
             environment=environment,
             page_size=page_size,
-            parse_timeout=parse_timeout
+            parse_timeout=parse_timeout,
+            timeout=timeout
         )
     
     def validate(self) -> bool:

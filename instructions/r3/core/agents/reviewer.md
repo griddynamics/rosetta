@@ -27,7 +27,8 @@ Validation: Every recommendation traces to a specific contract or intent element
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
+- `bootstrap-alwayson.md` + dispatch context loaded; MUST USE SKILL `subagent-directives`
+- Load `load-project-context` only when required by the assigned task
 - Artifacts to review available
 - Original intent, contracts, or specifications provided by orchestrator
 
