@@ -33,7 +33,7 @@ Work through these five steps once per repository.
 
 ### Step 1 — Capture business context in `CONTEXT.md`
 
-Ask Opus-class model or GPT-5.5 to help you with:
+Ask Opus-class model or GPT-5.6-sol to help you with:
 
 ```
 Read and record the non-technical and engineering behavior facts about the project in `docs/CONTEXT.md`:
@@ -61,7 +61,7 @@ Audience: AI like you.
 
 ### Step 2 — Capture technical context in `ARCHITECTURE.md`
 
-Similarly, ask Opus-class model or GPT-5.5 to help you with:
+Similarly, ask Opus-class model or GPT-5.6-sol to help you with:
 
 ```
 Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:

@@ -67,9 +67,9 @@ jobs:
           show_full_output: false
           claude_args: >-
             --allowedTools
-            "Read,Glob,Grep,Agent,Bash(gh * list*),Bash(gh * status*),Bash(gh repo view*),Bash(gh issue view*),Bash(gh issue create*),Bash(gh issue edit*),Bash(gh issue close*),Bash(gh issue comment*),Bash(gh pr view*),Bash(gh project view*),Bash(gh project field-list*),Bash(gh project item-list*),Bash(gh project item-add*),Bash(gh project item-edit*),Bash(gh api graphql*),Bash(gh api repos/*/tags*),Bash(gh api repos/*/contents/*),Bash(gh api repos/*/git/trees/*),Bash(gh api repos/*/code-scanning/alerts*),Bash(gh api repos/*/code-scanning/analyses*),Bash(gh api repos/*/dependabot/alerts*),Bash(gh api repos/*/commits/*/check-runs*)"
-            --model sonnet
-            --effort medium
+            "Read,Glob,Grep,Agent,Bash(gh * list*),Bash(gh * status*),Bash(gh repo view*),Bash(gh issue view*),Bash(gh issue create*),Bash(gh issue edit*),Bash(gh issue close*),Bash(gh issue comment*),Bash(gh pr view*),Bash(gh project view*),Bash(gh project field-list*),Bash(gh project item-list*),Bash(gh project item-add*),Bash(gh project item-edit*),Bash(gh api graphql*),Bash(gh api repos/*/tags*),Bash(gh api repos/*/contents/*),Bash(gh api repos/*/git/trees/*),Bash(gh api repos/*/code-scanning/alerts*),Bash(gh api repos/*/code-scanning/analyses*),Bash(gh api repos/*/dependabot/alerts*),Bash(gh api repos/*/commits/*/check-runs*),WebSearch"
+            --model opus
+            --effort high
             --disallowedTools
             "ScheduleWakeup,Bash(* --show-token),Bash(* --show-token*)"
 

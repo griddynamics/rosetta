@@ -32,7 +32,7 @@ export const looseFilesHook = defineHook({
     toolKinds: ['write'],
     filePath: {
       extOneOf: ['.py', '.js'],
-      notContainsAny: [
+      notStartsWithAny: [
         'agents/TEMP/', 'scripts/', 'tests/', 'validation/',
         'node_modules/', '.venv/', '__pycache__/',
       ],

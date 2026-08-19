@@ -15,5 +15,8 @@
   },
   "dependencies": {
     "json-cycle": "^1.5.0"
+  },
+  "overrides": {
+    "postcss": "8.5.23"
   }
 }

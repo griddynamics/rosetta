@@ -100,7 +100,7 @@ export const SPEC_FIELD_GUIDE: readonly SpecFieldGuide[] = [
     required: false,
     default: "empty list",
     guidance:
-      "Give one path and line range per source location backing a unit recovered from existing code. Leave it empty for a unit authored from intent.",
+      "Give one path and line range or better symbol per source location backing a unit recovered from existing code. Leave it empty for a unit authored from intent.",
   },
   {
     field: "source",

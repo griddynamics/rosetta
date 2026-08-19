@@ -28,6 +28,9 @@ interface FrameWithEntry {
  */
 export function pluginProcessSpecEntries(
   release: import('../types.js').ReleaseDescriptor,
+  // FR-PROF-0030: active --profile name for this run; null when no profile is set (FR-PROF-0040
+  // regression guard — omitted argument keeps every pre-existing call site's behavior unchanged).
+  activeProfile: string | null = null,
 ): (p: PluginProcessingFrame) => PluginProcessingFrame {
   return function pluginProcessSpecEntriesProcessor(
     p: PluginProcessingFrame,
@@ -41,6 +44,7 @@ export function pluginProcessSpecEntries(
       spec,
       vfs,
       release,
+      activeProfile,
     };
 
     const logger = getLogger();

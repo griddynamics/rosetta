@@ -25,6 +25,13 @@
  *     layouts (FR-VAR-0050/0051), and Antigravity workflow→skill mapping (FR-VAR-0081,
  *     FR-COPY-0080).
  *   - deterministicHooks:false ⇒ NO `*.js` hook bundles are expected (so none are derived).
+ *   - FilenameDirective resolution (NFR-0001 §9, FR-ARCH-0020/0021, FR-PROF-0030): rules/,
+ *     workflows/, agents/ top-level source files may carry a tilde-fenced directive segment
+ *     (`name~token[~token...]~.ext`). This module independently restates the grammar and the
+ *     `<target>-only` / `profile-<name>-only` selection rules (see `splitDirectiveStem` and
+ *     `includedForTargetAndProfile` below) — it does NOT import `parseDirectives`/`matchesTarget`/
+ *     `matchesProfile` from `src/`, precisely so the oracle can't be defeated by mirroring a bug in
+ *     the generator's own directive matcher.
  *
  * PATHS/STRUCTURE ONLY — this module never reads or compares file CONTENT.
  */
@@ -46,6 +53,48 @@ export type Target = (typeof TARGETS)[number];
 // FR-COPY-0011: legacy MCP-mode / bootstrap rule files never emitted to any target.
 const RULES_EXCLUDES = new Set(['bootstrap.md', 'mcp-files-mode.md', 'local-files-mode.md']);
 
+/**
+ * FilenameDirective grammar — INDEPENDENT restatement (FR-ARCH-0020/0021). A source filename stem
+ * is tilde-separated into a leading base-document token followed by zero or more directive tokens,
+ * closed by a trailing tilde fence: `name~token[~token...]~.ext`. Splitting the fenced stem on `~`
+ * yields a final EMPTY segment (nothing follows the closing tilde) — that empty segment carries no
+ * directive and is inert, so it must be dropped rather than treated as a (malformed) token.
+ * Example: `coding-flow~profile-lightweight-only~overwrite~.md` → cleanStem `coding-flow`,
+ * tokens `['profile-lightweight-only', 'overwrite']`.
+ */
+function splitDirectiveStem(rawStem: string): { cleanStem: string; tokens: string[] } {
+  const parts = rawStem.split('~');
+  return { cleanStem: parts[0], tokens: parts.slice(1).filter((t) => t.length > 0) };
+}
+
+/**
+ * FR-PROF-0030: a `-only` token scopes a file to exactly one of two DISJOINT namespaces that share
+ * the same `-only` suffix shape — a TARGET (one of the seven `spec.name` values) or, when prefixed
+ * `profile-`, a PROFILE. This restates that distinction independently of the generator's own
+ * `matchesTarget`/`matchesProfile`: a `profile-`-prefixed `-only` token is NEVER read as a target
+ * selector (so it never accidentally excludes a file for every target), and a bare `-only` token is
+ * never read as a profile selector. With no active profile (`activeProfile === null`), a file
+ * carrying ANY `profile-*-only` token is excluded outright — every profile-scoped file is inert on
+ * an unprofiled run (FR-PROF-0040 regression guard).
+ */
+function includedForTargetAndProfile(
+  tokens: string[],
+  target: Target,
+  activeProfile: string | null,
+): boolean {
+  for (const token of tokens) {
+    if (!token.endsWith('-only')) continue;
+    const scoped = token.slice(0, -'-only'.length);
+    if (scoped.startsWith('profile-')) {
+      const profileName = scoped.slice('profile-'.length);
+      if (profileName !== activeProfile) return false;
+    } else if (scoped !== target) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /** Direct child files of a folder (one level), sorted, OS-artifact filtered. */
 function listTopFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];
@@ -65,6 +114,35 @@ function walkRel(dir: string, base: string = dir): string[] {
     if (e.name === '.DS_Store') return [];
     return [path.relative(base, full).split(path.sep).join('/')];
   });
+}
+
+/**
+ * Directive-aware top-level `.md` stems for one folder (NFR-0001 §9, FR-PROF-0030): strips the
+ * directive segment from each filename (independent restatement, see `splitDirectiveStem` above),
+ * drops any file not selected for `target`/`activeProfile` (see `includedForTargetAndProfile`), and
+ * COLLAPSES every directive-stripped stem onto its base document — a profile override of `x.md`
+ * (e.g. `x~profile-foo-only~overwrite~.md`) contributes the SAME clean stem `x` as the base file,
+ * never a second entry, because both collapse into one `Set` key. This is what keeps the Codex /
+ * Antigravity workflow→skill ROOT GROUPING correct for a stripped stem: `workflowRoot` sees exactly
+ * one `coding-flow` stem, so the light override still groups under `skills/coding-flow/...` rather
+ * than being misread as its own (phantom) root or phase.
+ */
+function directiveAwareStems(
+  dir: string,
+  target: Target,
+  activeProfile: string | null,
+  excludeCleanFilenames: Set<string> = new Set(),
+): string[] {
+  const stems = new Set<string>();
+  for (const f of listTopFiles(dir)) {
+    if (!f.endsWith('.md')) continue;
+    const rawStem = f.slice(0, -'.md'.length);
+    const { cleanStem, tokens } = splitDirectiveStem(rawStem);
+    if (excludeCleanFilenames.has(`${cleanStem}.md`)) continue;
+    if (!includedForTargetAndProfile(tokens, target, activeProfile)) continue;
+    stems.add(cleanStem);
+  }
+  return [...stems].sort();
 }
 
 /**
@@ -103,15 +181,27 @@ function workflowRoot(stem: string, allStems: string[]): string {
 /**
  * Enumerate the expected set of output-relative file paths for a target, from the live source
  * folder `coreDir` (= instructions/<release>/<domain>) and preserved sources under `pluginsDir`.
+ *
+ * `activeProfile` (NFR-0001, FR-PROF-0030) is OPTIONAL and defaults to `null` (no profile) so this
+ * remains backward compatible with existing 3-argument call sites: with no active profile every
+ * `profile-*-only`-scoped source file is excluded (FR-PROF-0040), matching today's behavior exactly.
+ * Passing a profile name makes that profile's directive-scoped files (and only that profile's)
+ * eligible, for profile-and-target combo parity (NFR-0001 acceptance criterion 3).
+ *
+ * NOTE: no `destinationSuffix` parameter is needed here — every path this function returns is
+ * relative to a target's OWN output root (e.g. `rules/x.md`), and a profile's `destinationSuffix`
+ * only renames that output root itself (handled by the caller, e.g. `outputDir/<target><suffix>`),
+ * never any path segment derived below it. Adding it would be a no-op inside this function.
  */
-export function deriveExpectedPaths(target: Target, coreDir: string, pluginsDir: string): Set<string> {
-  const ruleStems = listTopFiles(path.join(coreDir, 'rules'))
-    .filter((f) => f.endsWith('.md') && !RULES_EXCLUDES.has(f))
-    .map((f) => f.replace(/\.md$/, ''));
-  const workflows = listTopFiles(path.join(coreDir, 'workflows')).filter((f) => f.endsWith('.md'));
-  const workflowStems = workflows.map((f) => f.replace(/\.md$/, ''));
-  const agents = listTopFiles(path.join(coreDir, 'agents')).filter((f) => f.endsWith('.md'));
-  const agentStems = agents.map((f) => f.replace(/\.md$/, ''));
+export function deriveExpectedPaths(
+  target: Target,
+  coreDir: string,
+  pluginsDir: string,
+  activeProfile: string | null = null,
+): Set<string> {
+  const ruleStems = directiveAwareStems(path.join(coreDir, 'rules'), target, activeProfile, RULES_EXCLUDES);
+  const workflowStems = directiveAwareStems(path.join(coreDir, 'workflows'), target, activeProfile);
+  const agentStems = directiveAwareStems(path.join(coreDir, 'agents'), target, activeProfile);
   // Skill folders and configure/ pass through with their full relative layout, for every target.
   const skillFiles = walkRel(path.join(coreDir, 'skills')).map((p) => `skills/${p}`);
   const configureFiles = walkRel(path.join(coreDir, 'configure')).map((p) => `configure/${p}`);
@@ -129,9 +219,9 @@ export function deriveExpectedPaths(target: Target, coreDir: string, pluginsDir:
     case 'core-claude': {
       ruleStems.forEach((x) => add(`rules/${x}.md`));
       add('rules/INDEX.md');
-      workflows.forEach((w) => add(`workflows/${w}`));
+      workflowStems.forEach((w) => add(`workflows/${w}.md`));
       add('workflows/INDEX.md');
-      agents.forEach((a) => add(`agents/${a}`));
+      agentStems.forEach((a) => add(`agents/${a}.md`));
       skillFiles.forEach(add);
       configureFiles.forEach(add);
       preservedOutputs(pluginsDir, 'core-claude').forEach(add); // .claude-plugin/plugin.json + hooks/hooks.json
@@ -141,9 +231,9 @@ export function deriveExpectedPaths(target: Target, coreDir: string, pluginsDir:
     case 'core-cursor': {
       ruleStems.forEach((x) => add(`rules/${x}.mdc`));
       add('rules/INDEX.md');
-      workflows.forEach((w) => add(`commands/${w}`));
+      workflowStems.forEach((w) => add(`commands/${w}.md`));
       add('commands/INDEX.md');
-      agents.forEach((a) => add(`agents/${a}`));
+      agentStems.forEach((a) => add(`agents/${a}.md`));
       skillFiles.forEach(add);
       configureFiles.forEach(add);
       preservedOutputs(pluginsDir, 'core-cursor').forEach(add); // .cursor-plugin/plugin.json + hooks.json + hooks/hooks.json
@@ -154,7 +244,7 @@ export function deriveExpectedPaths(target: Target, coreDir: string, pluginsDir:
     case 'core-copilot': {
       ruleStems.forEach((x) => add(`rules/${x}.md`));
       add('rules/INDEX.md');
-      workflows.forEach((w) => add(`commands/${w}`));
+      workflowStems.forEach((w) => add(`commands/${w}.md`));
       add('commands/INDEX.md');
       agentStems.forEach((a) => add(`agents/${a}.agent.md`));
       skillFiles.forEach(add);
@@ -190,9 +280,9 @@ export function deriveExpectedPaths(target: Target, coreDir: string, pluginsDir:
       add('plugin.json');
       ruleStems.forEach((x) => add(`.cursor/rules/${x}.mdc`));
       add('.cursor/rules/INDEX.md');
-      workflows.forEach((w) => add(`.cursor/commands/${w}`));
+      workflowStems.forEach((w) => add(`.cursor/commands/${w}.md`));
       add('.cursor/commands/INDEX.md');
-      agents.forEach((a) => add(`.cursor/agents/${a}`));
+      agentStems.forEach((a) => add(`.cursor/agents/${a}.md`));
       skillFiles.forEach((f) => add(`.cursor/${f}`));
       configureFiles.forEach((f) => add(`.cursor/${f}`));
       add('.cursor/hooks.json');
@@ -207,7 +297,7 @@ export function deriveExpectedPaths(target: Target, coreDir: string, pluginsDir:
       bootstrapStems.forEach((x) => add(`.github/instructions/${x}.instructions.md`));
       remainingStems.forEach((x) => add(`.github/rules/${x}.md`));
       add('.github/rules/INDEX.md');
-      workflows.forEach((w) => add(`.github/prompts/${w.replace(/\.md$/, '.prompt.md')}`));
+      workflowStems.forEach((w) => add(`.github/prompts/${w}.prompt.md`));
       add('.github/prompts/INDEX.md');
       agentStems.forEach((a) => add(`.github/agents/${a}.agent.md`));
       skillFiles.forEach((f) => add(`.github/${f}`));
@@ -223,7 +313,7 @@ export function deriveExpectedPaths(target: Target, coreDir: string, pluginsDir:
       add('hooks.json');
       ruleStems.forEach((x) => add(`rules/${x}.md`));
       add('rules/INDEX.md');
-      agents.forEach((a) => add(`agents/${a}`));
+      agentStems.forEach((a) => add(`agents/${a}.md`));
       configureFiles.forEach(add);
       skillFiles.forEach(add); // source skills pass through
       for (const stem of workflowStems) {

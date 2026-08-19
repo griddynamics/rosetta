@@ -3,12 +3,6 @@ name: coding-agents-prompt-authoring
 description: "To author, adapt, review, and validate prompts (skills, agents, workflows, rules, etc.) with brief, contracts, and a validation pack."
 license: Apache-2.0
 argument-hint: request, existing-prompt?, constraints?, audience?
-model: claude-opus-4-8
-context: default
-agent: prompt-engineer, reviewer, validator
-metadata:
-  version: "1.0"
-  category: "prompt-engineering"
 tags:
   - coding-agents-prompt-authoring
   - coding-agents-prompt-validation

@@ -129,6 +129,7 @@ export function buildTrialSpecs(args: BuildSpecsArgs): BuiltSpecs {
       caseName: entry.case,
       repeat: entry.repeat,
       timeoutSec: entry.timeoutSec,
+      ...(entry.maxTurns !== undefined ? { maxTurns: entry.maxTurns } : {}),
       prompt: def.prompt,
       qna: def.qna,
       ...(resolved.evaluate && def.evaluation !== undefined ? { evaluation: def.evaluation } : {}),

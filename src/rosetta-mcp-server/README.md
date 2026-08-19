@@ -293,21 +293,21 @@ query_instructions(tags=["bootstrap"])
 List immediate children under a virtual instruction path without loading file content.
 
 **Parameters:**
-- `path_prefix` (str): Virtual path prefix such as `skills`, `rules`, or `workflows`, or `all` to list all instruction files without content
+- `full_path_from_root` (str): Virtual path prefix such as `skills`, `rules`, or `workflows`, or `all` to list all instruction files without content
 
 Validation notes:
 - Use `""` or `/` to list the root
 - Use `all` to list all `<rosetta:file />` entries without content
 - `all` includes a note that duplicate `path` values are bundled/combined when acquired
 - Use guaranteed unique 3-part/2-part tags to read specific content
-- `path_prefix` must stay relative
-- `path_prefix` must not contain `.` or `..` path segments
+- `full_path_from_root` must stay relative
+- `full_path_from_root` must not contain `.` or `..` path segments
 - max length: 512 characters
 
 **Example:**
 ```python
-list_instructions(path_prefix="rules")
-list_instructions(path_prefix="all")
+list_instructions(full_path_from_root="rules")
+list_instructions(full_path_from_root="all")
 ```
 
 ## Resource Template

@@ -7,7 +7,7 @@
 > You must receive prior approval from your manager and company to use Rosetta.
 
 > [!WARNING]
-> Use **Sonnet 5 medium**, **GPT-5.4-medium**, **gemini-3.1-pro** or newer models. Avoid Auto model selection.
+> Use **Sonnet 5 medium**, **GPT-5.6-terra-medium**, **gemini-3.7-flash-high** or newer models. Avoid Auto model selection.
 
 > [!NOTE]
 > There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.

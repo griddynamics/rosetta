@@ -6,9 +6,8 @@ from folder structure.
 
 Features:
 - RAGFlow SDK integration for document upload and management
-- Tag-in-title format: [tag1][tag2] filename.ext
-- Preserves dots in filenames (e.g., "agents.md" stays "agents.md")
-- Two-location tag storage: title + meta_fields for optimal search performance
+- Plain filename titles (e.g., "agents.md" stays "agents.md")
+- Tags stored in meta_fields for metadata filtering
 - Dataset-based organization
 - MD5 hash-based change detection
 """
@@ -26,6 +25,7 @@ from typing import cast
 from .services.document_service import DocumentService
 from .services.document_data import DocumentData
 from .ragflow_client import DocumentMetadata, RAGFlowClient, RAGFlowClientError
+from .rosetta_config import DEFAULT_PARSE_TIMEOUT
 from .typing_utils import DocumentLike, JsonDict
 
 # Extensions RAGFlow can actually parse (from ragflow source: api/utils/file_utils.py).
@@ -80,7 +80,8 @@ class ContentPublisher:
         dataset_default: str = "aia",
         dataset_template: str = "aia-{release}",
         enable_change_tracking: bool = True,
-        file_extensions: list[str] | None = None
+        file_extensions: list[str] | None = None,
+        parse_timeout: int = DEFAULT_PARSE_TIMEOUT
     ):
         """
         Initialize the publisher.
@@ -92,6 +93,7 @@ class ContentPublisher:
             dataset_template: Dataset name template (can use {release} placeholder)
             enable_change_tracking: Enable hash-based change detection (default: True)
             file_extensions: List of file extensions to publish (default: None = all files)
+            parse_timeout: Max seconds to wait for parsing (default: 1200)
         """
         self.client = client
         self.workspace_root = Path(workspace_root).resolve()
@@ -99,6 +101,7 @@ class ContentPublisher:
         self.dataset_template = dataset_template
         self.enable_change_tracking = enable_change_tracking
         self.file_extensions = file_extensions  # None = all files (no extension filter)
+        self.parse_timeout = parse_timeout
         self._skip_names = {'.DS_Store', 'Thumbs.db', '.gitkeep', '.mcp.json'}
         self._skip_folders = {'.cursor-plugin', '.claude-plugin'}
     
@@ -502,12 +505,12 @@ class ContentPublisher:
             if docs_to_wait:
                 # Use DocumentService for consistent waiting with progress bar
                 doc_service = DocumentService(self.client)
-                doc_service.wait_for_parsing(docs_to_wait)
+                doc_service.wait_for_parsing(docs_to_wait, self.parse_timeout)
     
     def _wait_for_all_parsing_with_progress(
         self,
         documents: list[JsonDict],
-        timeout: int = 300,  # 5 minutes
+        timeout: int | None = None,
         poll_interval: float = 0.5
     ) -> None:
         """
@@ -517,10 +520,12 @@ class ContentPublisher:
         
         Args:
             documents: List of {"id": doc_id, "name": name, "dataset_id": dataset_id, "folder": folder}
-            timeout: Max seconds to wait
+            timeout: Max seconds to wait (default: None = configured parse_timeout)
             poll_interval: Seconds between status checks (reduced to 0.5 for smoother progress)
         """ 
         doc_service = DocumentService(self.client)
+        if timeout is None:
+            timeout = self.parse_timeout
         doc_service.wait_for_parsing(documents, timeout, poll_interval)
     
     def _has_content_changed_cached(self, cache: DocumentData) -> bool:

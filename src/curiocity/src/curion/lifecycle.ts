@@ -229,6 +229,7 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
       router,
       qnaPolicy: spec.qna,
       maxWallClockMs: opts.maxWallClockMs ?? spec.timeoutSec * 1000 + 10_000,
+      ...(spec.maxTurns !== undefined ? { maxTurns: spec.maxTurns } : {}),
       ...(opts.pollIntervalMs !== undefined ? { pollIntervalMs: opts.pollIntervalMs } : {}),
       ...(opts.onQna ? { onQna: opts.onQna } : {}),
       ...(spawnedAt !== undefined ? { spawnedAt } : {}),

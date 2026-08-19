@@ -25,7 +25,7 @@
 ## Requirements
 
 - **MUST** review ALL `docs/reference-code-specs-<lib/project>.md` files together
-- **MUST** review ALL `docs/source-code-specs-<lib/project>.md` files together
+- **MUST** review ALL `docs/original-code-specs-<lib/project>.md` files together
 - **MUST** review ALL `docs/target-code-specs-<lib/project>.md` files together
 - **MUST** review and update `docs/cross-project-analysis-<feature>.md` file
 - **MUST** check for patterns and inconsistencies

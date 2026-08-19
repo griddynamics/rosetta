@@ -17,7 +17,7 @@ A short collection of the things that make Rosetta run smoothly, the mistakes th
 
 This is the single biggest lever on both quality and cost.
 
-- **Use a *medium* reasoning model:** **Sonnet 5 (medium)**, **GPT-5.4-medium**, or **gemini-3.1-pro**. Set the reasoning effort to **medium** — higher effort can burn 30 minutes on unnecessary reasoning.
+- **Use a *medium* reasoning model:** **Sonnet 5 (medium)**, **GPT-5.6-terra-medium**, or **gemini-3.7-flash-high**. Set the reasoning effort to **medium** — higher effort can burn 30 minutes on unnecessary reasoning.
 - **Don't run everything on a high-reasoning or Opus-class model.** They spend heavily on reasoning and can drain a daily budget in one sitting. Rosetta already assigns an appropriate model to each step and switches automatically — you don't need to force the most expensive one.
 - **Don't use "Auto" model selection.** It often quietly downgrades to a weaker model mid-task, hurting quality. Pick the model explicitly.
 

@@ -155,7 +155,7 @@ After this command `package.json` is back in place — subsequent tests in `<ROO
 
 **Action:** **Write** → `<ROOT>/scripts/helper-claude.js` with content `// helper`.
 
-**Expected:** silent — `scripts/` is in the hook's `notContainsAny` exclusion list.
+**Expected:** silent — `scripts/` is in the hook's `notStartsWithAny` exclusion list.
 
 **Verify & Report:** expect silent.
 

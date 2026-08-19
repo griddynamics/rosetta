@@ -40,7 +40,7 @@ Fill all fields with true/false plus short notes for any false result.
   </quality>
   <language>
     <shall_usage>[true if mandatory uses shall]</shall_usage>
-    <gwt_acceptance>[true if acceptance uses Given/When/Then]</gwt_acceptance>
+    <ears_acceptance>[true if acceptance uses EARS vocabulary]</ears_acceptance>
     <consistent_terms>[true if terminology is consistent]</consistent_terms>
     <no_ambiguous_timewords>[true if time references are explicit]</no_ambiguous_timewords>
   </language>

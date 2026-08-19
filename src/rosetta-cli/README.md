@@ -15,7 +15,7 @@ This directory contains the Python package for publishing knowledge base content
 
 - **🚀 Smart Publishing** - MD5 hash-based change detection (~77% faster republishing)
 - **🏗️ Modular Architecture** - Command pattern with service layer for maintainability
-- **🏷️ Tag-in-Title Format** - `[tag1][tag2] filename.ext` for powerful server-side filtering
+- **🏷️ Metadata Tags** - path-derived tags in document metadata for `--tags` filtering
 - **📊 Parse Status Tracking** - Monitor document parsing progress with visual indicators
 - **🔄 Upsert Semantics** - No duplicates, republishing updates existing documents
 - **⏱️ Performance Timing** - All commands show execution time
@@ -116,9 +116,9 @@ File: /instructions/agents/r1/agents.md
 
 Published as:
   Document ID: b0ec4d56-6cc5-5bbd-9868-5d49afa2a7d8 (UUID from path)
-  Title: [instructions][agents][r1] agents.md
+  Title: agents.md (path relative to the release folder, no tag prefixes)
   Dataset: aia-r1 (from template: aia-{release})
-  Tags: ["instructions", "agents", "r1"]  (in metadata)
+  Tags: ["instructions", "agents", "r1", "agents.md"]  (in metadata only)
   Domain: instructions (first folder)
   Release: r1 (auto-detected from path)
   Content Hash: abc123... (MD5 of content)
@@ -153,7 +153,7 @@ uvx rosetta-cli@latest list-dataset --dataset aia-r1
 ```
 
 **Output shows:**
-- Document title (with tag prefixes)
+- Document title (path relative to the release folder, no tag prefixes)
 - Document ID, file size, parse status, chunk count
 - Metadata (tags, domain, release, source path)
 
@@ -185,7 +185,7 @@ uvx rosetta-cli@latest cleanup-dataset --dataset aia-r1 --tags "r1,agents" --for
 ⚠️ **Warning:** Without `--prefix` or `--tags`, this deletes ALL documents. Use `--dry-run` first.
 
 **Filtering Options:**
-- `--prefix`: Match documents by title prefix (e.g., `"[instructions]"`)
+- `--prefix`: Match documents by literal title prefix (e.g., `"aqa-phase"`, `"core/skills"`)
 - `--tags`: Match documents by metadata tags (e.g., `"r1 agents"` or `"r1,agents"`)
   - Uses OR logic: finds documents with ANY of the specified tags
   - Server-side filtering for efficiency
@@ -333,7 +333,7 @@ results = publisher.publish(
     force=False,      # Skip unchanged files
     dry_run=False,    # Preview mode
     no_parse=False,   # Skip parsing after upload
-    parse_timeout=300 # Parse timeout in seconds
+    parse_timeout=1200 # Parse timeout in seconds
 )
 
 print(f"Published: {results.published_count}")
@@ -347,7 +347,7 @@ print(f"Failed: {results.failed_count}")
 File: /instructions/agents/r1/bootstrap.md
 
 Extracted:
-  Tags: ["instructions", "agents", "r1"]
+  Tags: ["instructions", "agents", "r1", "bootstrap.md"]
   Domain: instructions
   Release: r1
   Title: bootstrap.md
@@ -355,46 +355,49 @@ Extracted:
   Document ID: uuid-from-path
 ```
 
-## 🎯 Tag-in-Title Format
+## 🎯 Titles and Tags
 
-### What is Tag-in-Title?
+### Document Titles
 
-Documents are stored with tags as prefixes for server-side filtering:
+Titles carry no tag prefixes. A title is the document path relative to its
+release folder, or just the filename for files outside an `instructions/<release>` tree:
 
 ```
-Format: [tag1][tag2][tag3] filename.ext
-
-Examples:
-  [instructions][agents][r1] agents.md
-  [business][project] RFP.pdf
+File: /instructions/agents/r1/agents.md              → Title: agents.md
+File: /instructions/r3/core/skills/coding/SKILL.md   → Title: core/skills/coding/SKILL.md
+File: /business/project/RFP.pdf                      → Title: RFP.pdf
 ```
 
-### Why Two Locations?
+### Where Tags Live
 
-Tags are stored in **both title and metadata**:
-
-**Title:** Fast server-side keyword search
-**Metadata:** Precise client-side filtering with complex queries
+Tags are stored in document **metadata** (`meta_fields.tags`) only, never in the title.
 
 ### How Tags are Generated
 
-Tags come from **folder structure only**:
+Tags come from the file path, plus optional Markdown frontmatter `tags`:
 
 ```
-File: /instructions/agents/r1/bootstrap.md
-Folders: instructions / agents / r1 / (file)
-Tags: [instructions][agents][r1]
+File: /instructions/r3/core/skills/coding/SKILL.md
+Tags: instructions, r3, core, skills, coding, SKILL.md,
+      coding/SKILL.md, skills/coding/SKILL.md
 ```
+
+- Every folder in the path
+- The filename, with extension
+- The last two and last three path segments, joined with `/`
+- Any `tags:` values from Markdown frontmatter (`.md`/`.markdown` only)
 
 ### Using Tags for Filtering
 
 ```bash
 # Delete all instruction documents
-uvx rosetta-cli@latest cleanup-dataset --prefix "[instructions]"
+uvx rosetta-cli@latest cleanup-dataset --tags "instructions"
 
-# Delete all r1 agent documents
-uvx rosetta-cli@latest cleanup-dataset --prefix "[instructions][agents][r1]"
+# Delete documents tagged "agents" OR "r1"
+uvx rosetta-cli@latest cleanup-dataset --tags "agents,r1"
 ```
+
+Use `--prefix` for literal title-prefix matching instead, e.g. `--prefix "core/skills"`.
 
 ## 💻 Usage Examples
 
@@ -522,10 +525,11 @@ nano .env
 
 ### Documents Not Showing Tags
 
-Tags should appear in title with format `[tag1][tag2]`:
+Tags live in metadata, not in the title. `list-dataset` prints them on their own line:
 ```bash
 uvx rosetta-cli@latest list-dataset
-# Output: 1. [instructions][agents][r1] agents.md
+# Output: 1. agents.md
+#            Tags: instructions, agents, r1, agents.md
 ```
 
 ## 🚦 Performance Tips
@@ -564,7 +568,7 @@ RAGFLOW_CHUNK_TOKEN_NUM=1024
 
 ```bash
 # Fast: Delete specific documents
-uvx rosetta-cli@latest cleanup-dataset --prefix "[instructions][agents]" --force
+uvx rosetta-cli@latest cleanup-dataset --tags "agents" --force
 
 # Slow: Delete and republish everything
 uvx rosetta-cli@latest cleanup-dataset --force

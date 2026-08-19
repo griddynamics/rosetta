@@ -2,11 +2,6 @@
 name: questioning
 description: "To ask targeted clarification questions only when high-impact unknowns block safe execution."
 license: Apache-2.0
-context: default
-agent: planner, prompt-engineer
-metadata:
-  version: "1.0"
-  category: "questioning"
 tags:
   - questioning
   - planning

@@ -6,8 +6,8 @@ This module provides a wrapper around the ragflow-sdk for Rosetta-specific opera
 Key Features:
 - Dataset management with template resolution (aia-{release})
 - Document upload with change detection (MD5 hashing)
-- Tag-in-title format: [tag1][tag2][tag3] filename.ext
-- Two-stage filtering support (server keyword + client metadata)
+- Plain titles (path relative to the release folder, or the filename)
+- Tags stored in meta_fields for metadata filtering
 """
 
 import hashlib
@@ -90,7 +90,7 @@ class RAGFlowClient:
     Wrapper class for RAGFlow SDK operations.
     
     Provides high-level methods for dataset and document management
-    with Rosetta-specific functionality like tag-in-title format and
+    with Rosetta-specific functionality like metadata tagging and
     change detection.
     
     Usage:
@@ -409,7 +409,10 @@ class RAGFlowClient:
                 if cached is not None:
                     return cached
 
-                # Filter by name (RAGFlow does substring, we verify exact match)
+                # Filter by name (RAGFlow does substring, we verify exact match).
+                # page_size=10 is intentional and sufficient: dataset names are
+                # unique, so this lookup can return at most one exact match.
+                # Do not "fix" this to a larger page size or a pagination loop.
                 with _timed(f"list_datasets(name={name})"):
                     datasets = self._client.list_datasets(name=name, page_size=10)
                 # Filter for exact match

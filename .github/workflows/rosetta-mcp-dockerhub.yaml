@@ -12,6 +12,13 @@ on:
       - 'src/rosetta-mcp-server/Dockerfile'
       - 'requirements.txt'
 
+# Static group, not ref-scoped: this publishes to a shared image repo and moves the
+# mutable `latest` tag, so only one run may push at a time regardless of ref
+# (workflow_dispatch can fire from any branch). Never cancel a layer upload mid-push.
+concurrency:
+  group: rosetta-mcp-dockerhub
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
@@ -41,6 +48,8 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
 
       - name: Create venv and install dependencies
         run: |
@@ -54,6 +63,8 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: src/rosettify/package-lock.json
 
       - name: Install rosettify dependencies
         working-directory: ./src/rosettify

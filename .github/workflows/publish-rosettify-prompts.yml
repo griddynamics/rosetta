@@ -8,6 +8,11 @@ on:
       - 'src/rosettify-prompts/**'
   workflow_dispatch:
 
+
+concurrency:
+  group: publish-rosettify-prompts-main
+  cancel-in-progress: false
+
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest

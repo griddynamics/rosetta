@@ -69,7 +69,7 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
 
 <req id="FR-VAR-0010" type="FR" level="System" ticketId="" classification="technical">
   <title>Claude output</title>
-  <statement>The Claude variant shall contain instruction folders unchanged in name, model values in Claude short-name vocabulary, generated `rules` and `workflows` indexes, a rendered `hooks/hooks.json`, and a preserved `.claude-plugin` config folder.</statement>
+  <statement>The Claude variant shall contain instruction folders unchanged in name, model values drawn from Claude Code's accepted model vocabulary — either a family short name (`opus`, `sonnet`, `haiku`) or a full model ID (`claude-opus-5`, `claude-sonnet-5`, `claude-haiku-4-5`), both of which Claude Code accepts — generated `rules` and `workflows` indexes, a rendered `hooks/hooks.json`, and a preserved `.claude-plugin` config folder. This unit permits both forms and constrains neither; which form a value takes is determined by the effective `ModelVocabulary` (FR-COPY-0021).</statement>
   <rationale>Claude Code consumes native folder names, short model names, and a plugin manifest.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
@@ -79,7 +79,7 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: the Claude variant When: generated Then: `rules/INDEX.md`, `workflows/INDEX.md`, and `hooks/hooks.json` exist and `.claude-plugin` is preserved.</criteria>
-    <criteria>Given: a document model `claude-opus-4-6` When: generated Then: its model reads `opus`.</criteria>
+    <criteria>Given: a document model `claude-opus-4-6` When: generated Then: its model reads the effective Claude vocabulary's value for the opus family, in either accepted form — the family short name `opus` or a full opus model ID.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>

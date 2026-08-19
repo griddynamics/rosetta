@@ -151,7 +151,7 @@ git -C "$(git rev-parse --show-toplevel)" checkout -- package.json
 
 **Action:** **Write** → `<ROOT>/scripts/helper-cursor.js` with content `// helper`.
 
-**Expected:** silent — `scripts/` is in the hook's `notContainsAny` exclusion list.
+**Expected:** silent — `scripts/` is in the hook's `notStartsWithAny` exclusion list.
 
 **Verify & Report:** expect silent.
 

@@ -11,6 +11,7 @@ import { preflightAgentHomes } from '../../orchestrator/preflight';
 import { resolveBaseUrls, resolveKeys } from '../../llm/keys';
 import { evaluatorRegistry } from '../../evaluators';
 import { evaluatorEntrySchema } from '../../config/schema';
+import { DEFAULT_MAX_TURNS } from '../../interaction/engine';
 import type { ResolvedCaseConfig } from '../../config/merge';
 import type { PartialModelRoles } from '../../shared/models';
 import { ConfigError } from '../../shared/errors';
@@ -33,6 +34,7 @@ export interface RunOptions {
   repeats?: number;
   concurrency?: number;
   timeout?: number;
+  maxTurns?: number;
   config?: string;
   out?: string;
   evaluate?: boolean;
@@ -139,6 +141,7 @@ function printMatrix(matrix: MatrixEntry[]): void {
     out.write(
       `  - ${cell.case} × ${cell.agent} × repeat ${cell.repeat}` +
         `  [timeout=${cell.timeoutSec}s, combiner=${cell.combiner}, evaluate=${cell.evaluate}` +
+        `, maxTurns=${cell.maxTurns ?? DEFAULT_MAX_TURNS}` +
         (models ? `, models: ${models}` : '') +
         ']\n',
     );
@@ -154,6 +157,7 @@ export async function runRun(opts: RunOptions): Promise<number> {
     ...(opts.agent && opts.agent.length > 0 ? { agents: opts.agent } : {}),
     ...(opts.repeats !== undefined ? { repeats: opts.repeats } : {}),
     ...(opts.timeout !== undefined ? { timeoutSec: opts.timeout } : {}),
+    ...(opts.maxTurns !== undefined ? { maxTurns: opts.maxTurns } : {}),
     ...(opts.concurrency !== undefined ? { concurrency: opts.concurrency } : {}),
     ...(opts.out !== undefined ? { out: opts.out } : {}),
     ...(opts.evaluate !== undefined ? { evaluate: opts.evaluate } : {}),

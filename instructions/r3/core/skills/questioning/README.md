@@ -18,7 +18,6 @@ Single flat `SKILL.md`, no `assets/`/`references/` subfolders. `<role>` casts th
 - "Interview user relentlessly about every aspect of his task" — this is intentionally stronger than a normal clarification pass; the skill is now explicitly adversarial toward hidden assumptions.
 - "Walk down each branch of the design tree, resolving dependencies between decisions one-by-one." — the loop is meant to narrow uncertainty structurally, not just collect miscellaneous answers.
 - "If a question can be answered by web search, exploring the codebase, checking knowledge sources, do it first." — the skill owns self-service discovery before asking.
-- Frontmatter `agent: planner, prompt-engineer` with `context: default` — intended; kept as affinity metadata (which subagents this skill serves). It only becomes a fork target under `context: fork` (same pattern on `planning` and `reasoning`).
 
 ## Invariants — do not change
 - `name: questioning` must equal the folder name; registered in `docs/definitions/skills.md` (line 8). `requirements-authoring/SKILL.md`: "USE SKILL `questioning` for Q&A." `requirements-use/SKILL.md`: "If requirements are missing or unclear, USE SKILL `questioning`." Both resolve the skill by this exact name.

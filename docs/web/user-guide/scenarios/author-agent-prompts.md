@@ -21,7 +21,7 @@ permalink: /user-guide/scenarios/author-agent-prompts/
 /coding-agents-prompting-flow Adapt this Claude prompt for Cursor
 ```
 
-> Like requirements authoring, this expects a strong model (Opus / GPT-5.5-class or similar). The agent will ask you to switch if yours is too small.
+> Like requirements authoring, this expects a strong model (Opus / GPT-5.6-sol-class or similar). The agent will ask you to switch if yours is too small.
 
 ## How it works
 

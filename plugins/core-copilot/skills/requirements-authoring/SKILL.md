@@ -3,12 +3,6 @@ name: requirements-authoring
 description: "To author, update, and validate functional/non-functional requirements as atomic units with user approval."
 license: Apache-2.0
 argument-hint: request, existing-requirements?, scope?, constraints?, stakeholders?
-context: default
-agent: requirements-engineer, reviewer
-metadata:
-  version: "1.0"
-  category: "requirements-engineering"
-  tags: "requirements functional non-functional traceability hitl"
 tags:
   - requirements-authoring
   - requirements-validation
@@ -245,7 +239,7 @@ Attributes are ordered by volatility — status, approved_by, changed always cha
   <title>[the single outcome this unit governs; noun phrase, unique within the area]</title>
   <statement>[the governing rule: what shall hold, over which cases, with its limits and explicit exclusions. NOT an EARS sentence, NOT a restatement of the criteria]</statement>
   <rationale>[why this shape and not another: basis for each threshold, actor and boundary; alternatives rejected and why rejected]</rationale>
-  <evidence>[reverse-engineering only: path:line-range per source location]</evidence>
+  <evidence>[reverse-engineering only: source-code path + the named symbol + artifact at it (function, class, const, type) per location. Source code ONLY - never a plan, discovery, TEMP or other working artifact. Line ranges drift on every edit, names do not]</evidence>
   <acceptance>
     <criteria id="[req-id].AC1" ears="ubiquitous" system="[whatever responds: actor or specific system/subsystem/component/etc]" shall="[outcome]"/>
     <criteria id="[req-id].AC2" ears="event" when="[trigger]" system="[responder]" shall="[outcome]"/>
@@ -456,7 +450,7 @@ The statement is still one pattern, one trigger, one response; criteria decompos
 - FRs and NFRs are separated
 - NFRs are measurable
 - Language is unambiguous
-- Acceptance uses Given/When/Then
+- Acceptance uses EARS vocabulary
 - Verification method exists per req
 - Trace links exist
 - Conflicts are resolved

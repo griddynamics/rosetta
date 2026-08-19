@@ -305,8 +305,8 @@ export function depsSatisfied(
 // Validation Functions
 // ---------------------------------------------------------------------------
 
-export function validatePlanName(name: string): string | null {
-  if (!name || !name.trim()) return "size_limit_exceeded";
+export function validatePlanName(name: unknown): string | null {
+  if (typeof name !== "string" || !name.trim()) return "size_limit_exceeded";
   if (name.length > PLAN_MAX_NAME_LENGTH) return "size_limit_exceeded";
   return null;
 }
@@ -383,8 +383,8 @@ export function validateDependencies(plan: Plan): string | null {
 export function validateSizeLimits(plan: Plan): string | null {
   if ((plan.phases ?? []).length > PLAN_MAX_PHASES) return "size_limit_exceeded";
 
-  if (plan.name && plan.name.length > PLAN_MAX_NAME_LENGTH)
-    return "size_limit_exceeded";
+  const nameErr = validatePlanName(plan.name);
+  if (nameErr) return nameErr;
 
   function checkStringLength(value: unknown): boolean {
     if (typeof value === "string" && value.length > PLAN_MAX_STRING_LENGTH)

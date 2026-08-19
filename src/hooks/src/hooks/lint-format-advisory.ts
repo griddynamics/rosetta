@@ -22,7 +22,7 @@ export const lintFormatAdvisoryHook = defineHook({
     toolKinds: ['write', 'edit', 'multi-edit', 'patch', 'create', 'replace'],
     filePath: {
       extOneOfCi: MONITORED_EXTENSIONS,
-      notContainsAny: [
+      notStartsWithAny: [
         'node_modules/', '.venv/', '__pycache__/',
         'dist/', 'build/', '.git/',
       ],

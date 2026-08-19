@@ -1,15 +1,18 @@
 // FR-ARCH-0041 — fileApplyOverrides: overwrite drops earlier; target-only mismatch drops
+// FR-PROF-0030 — profile-<name>-only exclusion applies in the SAME step as target-only, before
+// overwrite truncation, so overwrite cannot bypass an inactive profile's exclusion either.
 import { describe, it, expect } from 'vitest';
 import { fileApplyOverrides } from '../../../src/file-processors/file-apply-overrides.js';
 import type { FileProcessingFrame, TargetContext, PluginSpec, Vfs } from '../../../src/types.js';
 
-function makeCtx(specName = 'core-claude'): TargetContext {
+function makeCtx(specName = 'core-claude', activeProfile: string | null = null): TargetContext {
   return {
     spec: { name: specName } as unknown as PluginSpec,
     vfs: [] as unknown as Vfs,
     release: { name: 'r2', deterministicHooks: false, displayName: 'R2' },
     repoRoot: '',
-  };
+    activeProfile,
+  } as unknown as TargetContext;
 }
 
 function makeSource(conditions: string[]) {
@@ -79,5 +82,32 @@ describe('fileApplyOverrides', () => {
     const result = fileApplyOverrides(frame, makeCtx());
     // firstOverwriteIdx = 0, which is NOT > 0, so targetFiltered unchanged
     expect(result.source.length).toBe(2);
+  });
+});
+
+// FR-PROF-0030.AC4: profile filtering and target filtering run in the same step, before overwrite
+// truncation — an inactive profile's overwrite source must not supersede the base document, and
+// activating the profile must let that same source do exactly that.
+describe('fileApplyOverrides — profile-scoped exclusion (FR-PROF-0030.AC4)', () => {
+  it('overwrite + INACTIVE profile-<name>-only is excluded before overwrite truncation — base document is not superseded', () => {
+    const frame = makeFrame([
+      { conditions: [] }, // base document
+      { conditions: ['profile-lightweight-only', 'overwrite'] }, // profile override, profile inactive
+    ]);
+    const result = fileApplyOverrides(frame, makeCtx('core-claude', null));
+    expect(result.source.length).toBe(1);
+    expect(result.source[0].conditions.has('overwrite')).toBe(false);
+    expect(result.source[0].conditions.has('profile-lightweight-only')).toBe(false);
+  });
+
+  it('overwrite + ACTIVE profile-<name>-only DOES supersede the base document', () => {
+    const frame = makeFrame([
+      { conditions: [] }, // base document
+      { conditions: ['profile-lightweight-only', 'overwrite'] }, // profile override, profile active
+    ]);
+    const result = fileApplyOverrides(frame, makeCtx('core-claude', 'lightweight'));
+    expect(result.source.length).toBe(1);
+    expect(result.source[0].conditions.has('overwrite')).toBe(true);
+    expect(result.source[0].conditions.has('profile-lightweight-only')).toBe(true);
   });
 });

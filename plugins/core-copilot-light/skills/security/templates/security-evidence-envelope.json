@@ -1,0 +1,16 @@
+{
+  "evidence_id": "<evidence-id>",
+  "approved_scope_ref": "<scope-ref>",
+  "producer": "<tool-or-agent>",
+  "version": "<version>",
+  "configuration_or_rule": "<config-or-rule>",
+  "invocation": "<sanitized-invocation>",
+  "started_at": "<ISO-8601>",
+  "finished_at": "<ISO-8601>",
+  "source_hash": "<hash>",
+  "sanitization": "<what-was-removed>",
+  "retained_reference": "<temporary-or-approved-path>",
+  "integrity_status": "<verified|partial|failed>",
+  "side_effects": ["<side-effect>"],
+  "anomalies": ["<anomaly>"]
+}
