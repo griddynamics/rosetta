@@ -1,6 +1,6 @@
 // FR-ARCH-0020–0024 — FilenameDirective parse and validate
 
-import { TARGET_NAME_LIST } from '../spec/target-names.js';
+import { TARGET_FAMILIES, TARGET_FAMILY_KEYS, TARGET_NAME_LIST } from '../spec/target-names.js';
 
 export type DirectiveToken = string;
 
@@ -18,6 +18,8 @@ export interface ParsedFilename {
 const KNOWN_DIRECTIVES = new Set([
   'overwrite',
   ...TARGET_NAME_LIST.map((target) => `${target}-only`),
+  // FR-ARCH-0023: an IDE-family key is equally valid and expands to every target of that IDE.
+  ...TARGET_FAMILY_KEYS.map((family) => `${family}-only`),
 ]);
 
 /**
@@ -75,8 +77,14 @@ export function matchesTarget(conditions: Set<DirectiveToken>, targetName: strin
       // FR-PROF-0030: profile-<name>-only is a distinct, namespaced token kind — not a target
       // selector. Ignoring it here keeps the two -only namespaces disjoint.
       if (cond.startsWith('profile-')) continue;
-      const target = cond.replace(/-only$/, '');
-      if (target !== targetName) return false;
+      const key = cond.replace(/-only$/, '');
+      // FR-ARCH-0023: an exact target name matches that target alone; an IDE-family key matches
+      // every target of that IDE, so `copilot-only` reaches core-copilot AND
+      // core-copilot-standalone while `core-copilot-only` reaches only the former.
+      if (key === targetName) continue;
+      const family = TARGET_FAMILIES[key] as readonly string[] | undefined;
+      if (family?.includes(targetName)) continue;
+      return false;
     }
   }
   return true;

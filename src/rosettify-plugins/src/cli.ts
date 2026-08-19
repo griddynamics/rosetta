@@ -71,11 +71,14 @@ Source structure:
 Directives (in filenames, tilde-separated, opening and closing tilde fence around the
 token list: name~token[~token...]~.ext):
   file~overwrite~.md                 — overwrite earlier layers
-  file~core-claude-only~.md          — include only when generating the core-claude target
-                                        (target-only tokens are matched against a target's
-                                        name, e.g. core-claude, core-cursor, core-copilot,
-                                        core-codex, core-antigravity, core-cursor-standalone,
+  file~core-claude-only~.md          — include only when generating that exact target
+                                        (core-claude, core-cursor, core-copilot, core-codex,
+                                        core-antigravity, core-cursor-standalone,
                                         core-copilot-standalone)
+  file~copilot-only~.md              — include for every target of one IDE: claude, cursor,
+                                        copilot, codex, antigravity. copilot-only covers
+                                        core-copilot AND core-copilot-standalone, while
+                                        core-copilot-only covers only the former
   file~profile-lightweight-only~.md  — include only when the "lightweight" profile is active
 
 Build profiles (--profile, --profileSource):

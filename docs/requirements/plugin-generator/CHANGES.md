@@ -1,5 +1,16 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-08-19 — `FR-ARCH-0023` implemented: TargetOnlyToken family keys
+
+**Files:** `FR-ARCH.md`
+
+**Source:** reviewer finding — `rule~copilot-only~.md` never worked. Before the directive allow-list it was silently dropped from every plugin, Copilot included, because the token ends in `-only` and target matching compared it against exact names only; after the allow-list it became a hard build failure. `FR-ARCH-0023` had specified family keys as an Approved Must since 2026-06-04 and was never implemented.
+
+- `FR-ARCH-0023` `implementation` NotStarted -> Implemented, with notes naming the artifacts. All three of its criteria are now covered by tests: `copilot-only` reaches `core-copilot` and `core-copilot-standalone` only; `core-copilot-standalone-only` reaches that exact target only; an unmatched target contributes nothing. Families are DERIVED from the target names by stripping the `core-` prefix and any `-standalone` suffix, so adding a target joins or creates its family with no second list to maintain.
+- `FR-ARCH-0060` statement: its recognized-token clause admitted only `<target>-only` for the seven exact names, which contradicted `FR-ARCH-0023`'s Approved Must and codified the unimplemented gap as correct. It now admits an IDE-family key too, and a criterion covers `rule~copilot-only~.md` being accepted. This corrects an error introduced when that unit was authored.
+
+---
+
 ## 2026-08-19 — `FR-ARCH-0060` added; the closing tilde fence contributes no token (merge with main)
 
 **Files:** `FR-ARCH.md`, `FR-PROF.md`, `ASSUMPTIONS.md`, `GLOSSARY.md`

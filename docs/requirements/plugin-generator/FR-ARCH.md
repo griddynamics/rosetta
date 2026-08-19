@@ -271,15 +271,15 @@ Architecture requirements: the configuration-driven generation model — uniform
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-08-19</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: `copilot-only` When: generating Then: the file participates for `core-copilot` and `core-copilot-standalone` only.</criteria>
     <criteria>Given: `core-copilot-standalone-only` When: generating Then: the file participates for that exact target only.</criteria>
     <criteria>Given: a `PluginTarget` not matched When: generating Then: the `SourceFile` is absent from that `PluginTarget`'s VFS contribution.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/target-names.ts TARGET_FAMILIES and TARGET_FAMILY_KEYS (families derived from the target names by stripping the `core-` prefix and any `-standalone` suffix, so no second list is maintained); src/rosettify-plugins/src/vfs/directives.ts matchesTarget (an exact target name matches that target alone, a family key matches every target of that IDE) and KNOWN_DIRECTIVES (family tokens accepted by the allow-list, FR-ARCH-0060). Tests: tests/unit/vfs/directives.test.ts.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0024" type="FR" level="System" ticketId="" classification="technical">
@@ -899,7 +899,7 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0060" type="FR" level="System" ticketId="" classification="technical">
   <title>Unrecognized FilenameDirective token rejection</title>
-  <statement>The generator shall reject a source filename that carries a directive token it does not recognize, aborting the run with a message naming the offending token, the filename it appeared in, and the accepted tokens. A token is recognized when it is `overwrite`, when it is a target-only token `<target>-only` for one of the seven target names (DATA-CFG-0003), or when it matches the profile-only shape `profile-<name>-only` with a non-empty `<name>` (FR-PROF-0030). The closing tilde fence contributes no token and is therefore never subject to this check. A profile-only token's `<name>` shall not be resolved against the profiles that exist: a file scoped to an inactive profile is excluded by profile matching, and an unknown `--profile` value is rejected at pre-flight, so filename parsing shall not depend on the profile source directory.</statement>
+  <statement>The generator shall reject a source filename that carries a directive token it does not recognize, aborting the run with a message naming the offending token, the filename it appeared in, and the accepted tokens. A token is recognized when it is `overwrite`, when it is a target-only token — either `<target>-only` for one of the seven target names (DATA-CFG-0003) or `<family>-only` for one of the IDE-family keys those names derive, which expands to every target of that IDE (FR-ARCH-0023) — or when it matches the profile-only shape `profile-<name>-only` with a non-empty `<name>` (FR-PROF-0030). The closing tilde fence contributes no token and is therefore never subject to this check. A profile-only token's `<name>` shall not be resolved against the profiles that exist: a file scoped to an inactive profile is excluded by profile matching, and an unknown `--profile` value is rejected at pre-flight, so filename parsing shall not depend on the profile source directory.</statement>
   <rationale>An unrecognized token used to be kept in the condition set and then silently misread: a mistyped target token such as `core-clade-only` still ends with `-only`, so target matching excluded the file from EVERY target and the document vanished from all seven plugins with no diagnostic. Failing the run loudly is the only outcome that surfaces a typo, and naming the accepted set turns the failure into its own fix. The profile-only kind is recognized by shape rather than enumerated because its `<name>` is chosen per profile and cannot be listed in advance; requiring a non-empty name keeps `profile-only` itself a rejected typo. Resolving the name here would make VFS parsing depend on the profile directory, which it otherwise knows nothing about, and would reject a perfectly valid unprofiled build of a repository that carries profile-scoped files.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -912,6 +912,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: `file~overwrite~.md` When: parsed Then: the token set is `{overwrite}` and the closing fence raises no rejection.</criteria>
     <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: parsed Then: both tokens are accepted, with no profile source consulted.</criteria>
     <criteria>Given: `file~profile-only.md` When: parsed Then: the run aborts, because a profile-only token requires a non-empty name.</criteria>
+    <criteria>Given: `rule~copilot-only~.md` When: parsed Then: the token is accepted, because an IDE-family key is a valid target-only token (FR-ARCH-0023).</criteria>
     <criteria>Given: a repository carrying profile-scoped files and a build with no active profile When: generated Then: the run completes, and each profile-scoped file is excluded by profile matching rather than rejected as an unknown directive.</criteria>
   </acceptance>
   <depends>FR-ARCH-0020, FR-ARCH-0021, FR-PROF-0030, DATA-CFG-0003</depends>

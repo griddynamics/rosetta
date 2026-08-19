@@ -3,6 +3,7 @@
 // from the target-only token kind.
 import { describe, it, expect } from 'vitest';
 import { parseDirectives, matchesTarget, matchesProfile } from '../../../src/vfs/directives.js';
+import { TARGET_FAMILY_KEYS, TARGET_NAME_LIST } from '../../../src/spec/target-names.js';
 
 describe('parseDirectives', () => {
   it('returns clean name unchanged when no directives', () => {
@@ -125,6 +126,56 @@ describe('matchesProfile', () => {
   it('unrelated conditions (overwrite, target-only) do not affect the profile check', () => {
     expect(matchesProfile(new Set(['overwrite', 'core-claude-only']), null)).toBe(true);
     expect(matchesProfile(new Set(['overwrite', 'core-claude-only']), 'lightweight')).toBe(true);
+  });
+});
+
+// FR-ARCH-0023 — a TargetOnlyToken accepts an IDE-family key as well as an exact target name.
+// Before this, `rule~copilot-only~.md` was silently dropped from every plugin (the token ended in
+// `-only`, so target matching excluded it everywhere including Copilot) and later became a hard
+// build failure once the allow-list landed. Neither is what the unit specifies.
+describe('TargetOnlyToken family keys (FR-ARCH-0023)', () => {
+  const conditionsFor = (token: string) => parseDirectives(`rule~${token}~.md`).conditions;
+  const matching = (token: string) =>
+    TARGET_NAME_LIST.filter((t) => matchesTarget(conditionsFor(token), t));
+
+  it('copilot-only expands to both Copilot targets and nothing else (AC1)', () => {
+    expect(matching('copilot-only')).toEqual(['core-copilot', 'core-copilot-standalone']);
+  });
+
+  it('cursor-only expands to both Cursor targets', () => {
+    expect(matching('cursor-only')).toEqual(['core-cursor', 'core-cursor-standalone']);
+  });
+
+  it.each(['claude-only', 'codex-only', 'antigravity-only'])(
+    'a single-target IDE family (%s) expands to exactly one target',
+    (token) => {
+      expect(matching(token)).toHaveLength(1);
+    },
+  );
+
+  it('an exact target name stays exact: core-cursor-only does NOT pull in the standalone (AC2)', () => {
+    expect(matching('core-cursor-only')).toEqual(['core-cursor']);
+  });
+
+  it('core-copilot-standalone-only participates for that exact target only (AC2)', () => {
+    expect(matching('core-copilot-standalone-only')).toEqual(['core-copilot-standalone']);
+  });
+
+  it('an unmatched target contributes nothing (AC3)', () => {
+    expect(matchesTarget(conditionsFor('copilot-only'), 'core-claude')).toBe(false);
+  });
+
+  it('a family key composes with overwrite', () => {
+    const { conditions } = parseDirectives('rule~copilot-only~overwrite~.md');
+    expect(conditions).toEqual(new Set(['copilot-only', 'overwrite']));
+    expect(matchesTarget(conditions, 'core-copilot-standalone')).toBe(true);
+    expect(matchesTarget(conditions, 'core-codex')).toBe(false);
+  });
+
+  it('every family key is accepted by the directive allow-list', () => {
+    for (const family of TARGET_FAMILY_KEYS) {
+      expect(() => parseDirectives(`rule~${family}-only~.md`)).not.toThrow();
+    }
   });
 });
 
