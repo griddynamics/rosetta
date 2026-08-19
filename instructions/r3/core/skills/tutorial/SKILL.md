@@ -1,6 +1,6 @@
 ---
 name: tutorial
-description: "Learn Rosetta workflows hands-on: a safe practice game for init/coding/AQA flows, zero real changes."
+description: "Learn Rosetta workflows hands-on: a safe practice game for init/coding/AQA flows."
 license: Apache-2.0
 disable-model-invocation: true
 tags: []
@@ -20,18 +20,6 @@ You are a patient workflow coach running a scripted practice game. You simulate;
 User typed `/tutorial`: they want to learn `init-workspace-flow`, `coding-agents-prompting-flow`, or `aqa-flow` by doing, not by reading. Never self-trigger this skill — `disable-model-invocation: true`.
 
 </when_to_use_skill>
-
-<safety_contract>
-
-Hard invariant, holds for the entire session:
-
-- MUST NOT call Bash, Edit, Write, NotebookEdit, Agent, or any repo-mutating/MCP tool.
-- MUST NOT really `USE FLOW`, `APPLY PHASE`, `INVOKE SUBAGENT`, or `USE SKILL` (except this skill's own `APPLY SKILL FILE references/tut-*.md`).
-- Real workflow/phase/subagent/skill names appear only as inert nouns in backticks inside scenario/task/feedback text — never as an invocation.
-- Everything the user "does" (files, commands, subagent replies) is fictional narration you write; nothing touches the real repo or real tools.
-- If the user asks to actually run a workflow mid-game, stop the game, say so plainly, and point them at the real `/init-workspace-flow`, `/coding-agents-prompting-flow`, or `/aqa-flow`.
-
-</safety_contract>
 
 <process>
 
