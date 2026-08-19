@@ -1,5 +1,17 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-08-19 — `FR-ARCH-0060` added; the closing tilde fence contributes no token (merge with main)
+
+**Files:** `FR-ARCH.md`, `FR-PROF.md`, `ASSUMPTIONS.md`, `GLOSSARY.md`
+
+**Source:** merging origin/main, which shipped throw-on-unknown-filename-directive with no requirement unit, and which drops the trailing empty segment before validating. Both changes approved by the owner.
+
+- `FR-ARCH-0060` (new, Approved, Implemented): the generator rejects a filename carrying an unrecognized directive token, aborting with a message naming the token, the filename and the accepted set. Recognized: `overwrite`; a target-only token for each of the seven target names; and the profile-only shape `profile-<name>-only` with a non-empty name. A profile-only name is deliberately not resolved against existing profiles — filename parsing must not depend on the profile source directory, and an unprofiled build of a repository carrying profile-scoped files must still succeed. Rationale records why silence was worse: a mistyped `core-clade-only` still ends in `-only`, so target matching excluded the document from all seven plugins with no diagnostic.
+- The closing tilde fence now contributes no token rather than an inert empty one, since the parser drops the trailing empty segment — which is also what lets the allow-list run without an empty string tripping it. Reworded in `FR-ARCH-0020` and `FR-ARCH-0021` (statements and criteria), `FR-PROF-0030` (notes and AC5), `GLOSSARY.md`, and `ASSUMPTIONS.md` AC-9 and AC-19. AC-19 had anticipated exactly this and now records that the predicted risk materialized and was handled.
+- `status`/`approved_by`/`implementation` unchanged on every pre-existing unit.
+
+---
+
 ## 2026-08-19 — owner review pass: evidence convention, gemini effort, and two conflicts resolved
 
 **Files:** `FR-ARCH.md`, `FR-COPY.md`, `FR-PROF.md`, `FR-VAR.md`

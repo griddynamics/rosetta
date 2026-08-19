@@ -189,8 +189,8 @@ with `.AC#` sub-ids). A "target" is one of the seven `spec.name` values: `core-c
   <title>ProfileOnlyToken filename directive</title>
   <statement>The FilenameDirective grammar shall recognize a namespaced token kind
   `profile-<name>-only`, distinct from the target-only token so the two cannot be confused. The
-  grammar is tilde-separated with an opening and a closing tilde fence; an empty trailing token is
-  inert. A file carrying `profile-<name>-only` is included only while that profile is active. Profile
+  grammar is tilde-separated with an opening and a closing tilde fence; the closing fence contributes
+  no token. A file carrying `profile-<name>-only` is included only while that profile is active. Profile
   filtering occurs in the same pipeline step as target filtering, before overwrite truncation; the
   `overwrite` token does not bypass profile exclusion.</statement>
   <rationale>A bare `<name>-only` token would be read by `matchesTarget` as a target-only token — it
@@ -206,7 +206,7 @@ with `.AC#` sub-ids). A "target" is one of the seven `spec.name` values: `core-c
     <criteria id="FR-PROF-0030.AC2" ears="unwanted" if="profile `lightweight` is not active" system="the generator" shall="exclude every file carrying `profile-lightweight-only` from all targets"/>
     <criteria id="FR-PROF-0030.AC3" ears="ubiquitous" system="the generator" shall="treat `profile-<name>-only` as a token kind distinct from a target-only token"/>
     <criteria id="FR-PROF-0030.AC4" ears="event" when="a file carries both `profile-<name>-only` and `overwrite` and its profile is inactive" system="the generator" shall="exclude the file before overwrite truncation, so it does not supersede the base document"/>
-    <criteria id="FR-PROF-0030.AC5" ears="ubiquitous" system="the generator" shall="treat the empty trailing token produced by the closing tilde fence as inert"/>
+    <criteria id="FR-PROF-0030.AC5" ears="ubiquitous" system="the generator" shall="contribute no token for the closing tilde fence, so it is never read as a directive"/>
   </acceptance>
   <implementationNotes>Implemented: src/rosettify-plugins/src/vfs/directives.ts (matchesProfile; matchesTarget ignores profile-*-only tokens); src/rosettify-plugins/src/file-processors/file-apply-overrides.ts (profile and target filters applied together before overwrite truncation); src/rosettify-plugins/src/types.ts (TargetContext.activeProfile); src/rosettify-plugins/src/plugin-processors/plugin-process-spec-entries.ts (activeProfile threaded). Tests: tests/unit/vfs/directives.test.ts, tests/unit/file-processors/file-apply-overrides.test.ts.</implementationNotes>
   <notes></notes>

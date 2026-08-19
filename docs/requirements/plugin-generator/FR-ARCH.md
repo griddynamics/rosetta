@@ -205,7 +205,7 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0020" type="FR" level="System" ticketId="" classification="technical">
   <title>Directive-bearing filenames</title>
-  <statement>The generator shall recognize a `FilenameDirective` in a source filename of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence yields an empty token, which is inert — and shall map the `SourceFile` to the VFS path `name.ext` (the `FilenameDirective` removed).</statement>
+  <statement>The generator shall recognize a `FilenameDirective` in a source filename of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence contributes no token — and shall map the `SourceFile` to the VFS path `name.ext` (the `FilenameDirective` removed).</statement>
   <rationale>Per-file behavior is declared in the filename; the output name is the clean base name.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -216,7 +216,7 @@ Architecture requirements: the configuration-driven generation model — uniform
   <acceptance>
     <criteria>Given: `bootstrap-core-policy~1a~core-claude-only~overwrite~.md` When: mapped Then: VFS path is `rules/bootstrap-core-policy.md` with order `1a` and conditions `{core-claude-only, overwrite}`.</criteria>
     <criteria>Given: a filename with no tilde-fenced directive segment When: mapped Then: it maps to its plain name with default order and no conditions.</criteria>
-    <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: mapped Then: the clean name is `bootstrap-guardrails.md` and conditions are `{overwrite}`; the empty trailing token produced by the closing tilde fence is inert.</criteria>
+    <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: mapped Then: the clean name is `bootstrap-guardrails.md` and conditions are `{overwrite}`; the closing tilde fence contributes no token.</criteria>
     <criteria>Given: `bootstrap-core-policy~core-claude-only~overwrite~.md` When: mapped Then: conditions are `{core-claude-only, overwrite}`; a target-only token compares against the target `name`, whose values are `core-claude`, `core-cursor`, `core-copilot`, `core-codex`, `core-cursor-standalone`, `core-copilot-standalone`, `core-antigravity` (so the correct form is `core-claude-only`, not `claude-only`).</criteria>
     <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: mapped Then: the clean name is `coding-flow.md` and conditions are `{profile-lightweight-only, overwrite}`; the profile token's selection semantics are governed by FR-PROF-0030.</criteria>
   </acceptance>
@@ -226,7 +226,7 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0021" type="FR" level="System" ticketId="" classification="technical">
   <title>Directive grammar and validation</title>
-  <statement>The generator shall parse a `FilenameDirective` of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence yields an empty token, which is inert — as an ordered token list where an optional `OrderToken`, if present, appears first and the remaining `DirectiveToken`s appear in any order; it shall reject the `SourceFile` with an error if any `DirectiveToken` is unknown or if any appears more than once.</statement>
+  <statement>The generator shall parse a `FilenameDirective` of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence contributes no token — as an ordered token list where an optional `OrderToken`, if present, appears first and the remaining `DirectiveToken`s appear in any order; it shall reject the `SourceFile` with an error if any `DirectiveToken` is unknown or if any appears more than once.</statement>
   <rationale>Strict validation prevents silent misconfiguration.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -238,7 +238,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: `policy~1a~overwrite~core-claude-only~.md` When: parsed Then: it is accepted.</criteria>
     <criteria>Given: a duplicate token or an unknown token When: parsed Then: it errors naming the file and token.</criteria>
     <criteria>Given: an order token not in first position When: parsed Then: it errors.</criteria>
-    <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: parsed Then: the token set is `{overwrite}` and the empty trailing token produced by the closing tilde fence is inert.</criteria>
+    <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: parsed Then: the token set is `{overwrite}` and the closing tilde fence contributes no token.</criteria>
     <criteria>Given: `bootstrap-core-policy~core-claude-only~overwrite~.md` When: parsed Then: the token set is `{core-claude-only, overwrite}`; the target-only token compares against the target `name` (e.g. `core-claude`), so `core-claude-only` is correct and `claude-only` matches no target.</criteria>
     <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: parsed Then: the token set is `{profile-lightweight-only, overwrite}`; the profile token's selection semantics are governed by FR-PROF-0030.</criteria>
   </acceptance>
@@ -895,4 +895,26 @@ Architecture requirements: the configuration-driven generation model — uniform
   <implementation>Implemented</implementation>
   <implementationNotes>src/rosettify-plugins/src/logging.ts (pino factory; level precedence: `info` default, then `ROSETTIFY_PLUGINS_LOG_LEVEL`, then verbose which forces `debug`); per-PluginProcessor input/output metadata logging in src/rosettify-plugins/src/generate.ts and per-FileProcessor detail in src/rosettify-plugins/src/plugin-processors/plugin-process-spec-entries.ts (no file content). Covered by src/rosettify-plugins/tests/e2e/sample.e2e.test.ts (verbose emits more log lines than non-verbose).</implementationNotes>
   <depends>FR-CLI-0051, NFR-0010</depends>
+</req>
+
+<req id="FR-ARCH-0060" type="FR" level="System" ticketId="" classification="technical">
+  <title>Unrecognized FilenameDirective token rejection</title>
+  <statement>The generator shall reject a source filename that carries a directive token it does not recognize, aborting the run with a message naming the offending token, the filename it appeared in, and the accepted tokens. A token is recognized when it is `overwrite`, when it is a target-only token `<target>-only` for one of the seven target names (DATA-CFG-0003), or when it matches the profile-only shape `profile-<name>-only` with a non-empty `<name>` (FR-PROF-0030). The closing tilde fence contributes no token and is therefore never subject to this check. A profile-only token's `<name>` shall not be resolved against the profiles that exist: a file scoped to an inactive profile is excluded by profile matching, and an unknown `--profile` value is rejected at pre-flight, so filename parsing shall not depend on the profile source directory.</statement>
+  <rationale>An unrecognized token used to be kept in the condition set and then silently misread: a mistyped target token such as `core-clade-only` still ends with `-only`, so target matching excluded the file from EVERY target and the document vanished from all seven plugins with no diagnostic. Failing the run loudly is the only outcome that surfaces a typo, and naming the accepted set turns the failure into its own fix. The profile-only kind is recognized by shape rather than enumerated because its `<name>` is chosen per profile and cannot be listed in advance; requiring a non-empty name keeps `profile-only` itself a rejected typo. Resolving the name here would make VFS parsing depend on the profile directory, which it otherwise knows nothing about, and would reject a perfectly valid unprofiled build of a repository that carries profile-scoped files.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-08-19</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: `policy~clade-only.md` When: parsed Then: the run aborts with a message naming `clade-only`, the filename, and the accepted tokens.</criteria>
+    <criteria>Given: `file~overwrite~.md` When: parsed Then: the token set is `{overwrite}` and the closing fence raises no rejection.</criteria>
+    <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: parsed Then: both tokens are accepted, with no profile source consulted.</criteria>
+    <criteria>Given: `file~profile-only.md` When: parsed Then: the run aborts, because a profile-only token requires a non-empty name.</criteria>
+    <criteria>Given: a repository carrying profile-scoped files and a build with no active profile When: generated Then: the run completes, and each profile-scoped file is excluded by profile matching rather than rejected as an unknown directive.</criteria>
+  </acceptance>
+  <depends>FR-ARCH-0020, FR-ARCH-0021, FR-PROF-0030, DATA-CFG-0003</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/vfs/directives.ts (KNOWN_DIRECTIVES built from TARGET_NAME_LIST, PROFILE_ONLY_PATTERN for the profile-only shape, isKnownDirective, and the throw in parseDirectives which also drops the trailing empty segment first); src/rosettify-plugins/src/spec/target-names.ts (TARGET_NAMES and the derived TARGET_NAME_LIST). Tests: tests/unit/vfs/directives.test.ts.</implementationNotes>
 </req>

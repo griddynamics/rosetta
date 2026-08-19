@@ -141,6 +141,15 @@ describe('the closing tilde fence contributes no directive', () => {
     expect(matchesProfile(conditions, null)).toBe(false);
   });
 
+  it('rejects a nameless profile-only token, so the shape exemption is not a hole (FR-ARCH-0060)', () => {
+    expect(() => parseDirectives('file~profile-only.md')).toThrow('Unknown filename directive "profile-only"');
+  });
+
+  it('accepts any profile name without consulting a profile source (FR-ARCH-0060)', () => {
+    expect(parseDirectives('file~profile-some-client-only~.md').conditions)
+      .toEqual(new Set(['profile-some-client-only']));
+  });
+
   it('an unfenced stem parses identically, so the fence is optional in the grammar', () => {
     const fenced = parseDirectives('coding-flow~profile-lightweight-only~overwrite~.md');
     const unfenced = parseDirectives('coding-flow~profile-lightweight-only~overwrite.md');
