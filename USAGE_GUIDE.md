@@ -685,7 +685,7 @@ See [PLUGINS.md](PLUGINS.md) for install commands.
 
 - **If AI gets stuck.** Monitor AI if it tries to solve the same problem but gets stuck, going in loops, or diverges. You should provide inputs on how to exactly solve it or ways to tackle the problem. You can also ask AI to spawn a smarter, focused subagent to solve that problem only by filling in this template:
 
-  `Spawn subagent using <Claude Opus 4.8 | GPT-5.5> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
+  `Spawn subagent using <Claude Opus 5 | GPT-5.6-sol> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
 
 - **Run a post-mortem on anything you want improved.** Not just failures — whenever a run disappointed you, fought you, or simply could have gone better, invoke the `post-mortem` skill (`/post-mortem`). It root-causes the behavior across your prompt, workspace files, local config, and Rosetta instructions, and recommends concrete fixes. If a defect is in Rosetta itself, it can also file sanitized feedback as a [Rosetta issue](https://github.com/griddynamics/rosetta/issues) — only with your explicit approval of the exact draft. Nothing is submitted without your sanction; no private code or data leaves your repository.
 - Save cost — add the line below to your workspace AGENTS.md/CLAUDE.md to cut model output tokens:

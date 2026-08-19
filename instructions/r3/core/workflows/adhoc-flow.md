@@ -19,9 +19,9 @@ If request is trivial / one-liner AND you confirmed it is true (by checking code
 
 <models>
 
-- large (smart, slow): claude-opus-4-8, gpt-5.3-codex-high, gpt-5.5-high, gpt-5.6-sol-high, gemini-3.1-pro-preview, kimi-k3, glm-5.2
-- medium (workhorse): claude-sonnet-5, gpt-5.3-codex-medium, gpt-5.4-medium, gpt-5.6-terra-medium, glm-5, kimi-k2.5, minimax-m2.5, grok-4.5
-- small (fast): claude-haiku-4-5, gpt-5.4-mini, gpt-5.6-luna-medium, gemini-3.5-flash
+- large (smart, slow): claude-opus-5, gpt-5.6-terra-high, gpt-5.6-sol-high, gemini-3.7-flash-high, kimi-k3, glm-5.2
+- medium (workhorse): claude-sonnet-5, gpt-5.6-terra-medium, glm-5, kimi-k2.5, minimax-m2.5, grok-4.6
+- small (fast): claude-haiku-4-5, gpt-5.6-luna, gpt-5.6-luna-medium, gemini-3.7-flash-low
 
 Match to cognitive demand. Match to current tool.
 
@@ -55,7 +55,7 @@ Compose any of these (not limited) into plan phases/steps to build any execution
 - **draft-improve**: short core draft → improve one non-conflicting aspect at a time
 - **ralph-loop**: execute → review → update task memory with root causes → loop
 - **use**: use existing skills, agents, workflows
-- **plan-sessions**: create plan (one file, with refs to per-session files) and implementation specs for each session for workhorse model (sonnet 5, gpt-5.4, so you need to provide more details) in multiple files in order of execution, so that it can be given one-by-one in different sessions of subagents. 
+- **plan-sessions**: create plan (one file, with refs to per-session files) and implementation specs for each session for workhorse model (sonnet 5, gpt-5.6-terra, so you need to provide more details) in multiple files in order of execution, so that it can be given one-by-one in different sessions of subagents. 
 - **Do not duplicate**: existing files, instructions, protocols => instead use references "file-name:line-ranges". 
 
 </building_blocks>
@@ -81,7 +81,7 @@ Compose any of these (not limited) into plan phases/steps to build any execution
 
 </build_plan>
 
-<review_plan phase="3" if="MEDIUM, LARGE" subagent="reviewer" role="Plan reviewer of AI automated tasks" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5, grok-4.5, gpt-5.6-terra" must-be-subagent>
+<review_plan phase="3" if="MEDIUM, LARGE" subagent="reviewer" role="Plan reviewer of AI automated tasks" subagent_required_model="gpt-5.6-terra-medium, gemini-3.7-flash-high, claude-sonnet-5, grok-4.6" must-be-subagent>
 
 1. Review: completeness, sequencing, dependency correctness, prompt clarity, etc.
 2. Subagent to query by full path to plan.json. Orchestrator to upsert fixes.

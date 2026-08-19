@@ -9,6 +9,11 @@ on:
       - 'requirements.txt'
   workflow_dispatch:
 
+
+concurrency:
+  group: publish-rosetta-cli-main
+  cancel-in-progress: false
+
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest

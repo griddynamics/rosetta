@@ -3,14 +3,15 @@
 // frontmatter.model NOT updated in either branch.
 import { describe, it, expect } from 'vitest';
 import { fileNormalizeCodexModels } from '../../../src/file-processors/file-normalize-codex-models.js';
+import { CODEX_VOCABULARY } from '../../../src/spec/model-maps.js';
 import type { FileProcessingFrame, TargetContext, PluginSpec, Vfs } from '../../../src/types.js';
 
 function makeCtx(): TargetContext {
   return {
-    spec: { name: 'core-codex' } as unknown as PluginSpec,
+    spec: { name: 'core-codex', modelVocabulary: CODEX_VOCABULARY } as unknown as PluginSpec,
     vfs: [] as unknown as Vfs,
     release: { name: 'r2', deterministicHooks: false, displayName: 'R2' },
-    repoRoot: '',
+    activeProfile: null,
   };
 }
 
@@ -107,11 +108,11 @@ describe('fileNormalizeCodexModels — no gpt token: strip model line', () => {
 // ─── GPT token with effort → two-field rewrite ───────────────────────────────
 
 describe('fileNormalizeCodexModels — gpt token with effort: two-field rewrite', () => {
-  it('gpt-5.5-high → model: gpt-5.5 and model_reasoning_effort: high', () => {
+  it('gpt-5.5-high → model: gpt-5.6-sol and model_reasoning_effort: high', () => {
     const content = '---\nmodel: gpt-5.5-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.5-high');
     const result = fileNormalizeCodexModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gpt-5.5\nmodel_reasoning_effort: high');
+    expect(result.target_contents as string).toContain('model: gpt-5.6-sol\nmodel_reasoning_effort: high');
   });
 
   it('CRITICAL: source[0].frontmatter.model NOT updated for gpt token (two-field replacement)', () => {
@@ -127,7 +128,7 @@ describe('fileNormalizeCodexModels — gpt token with effort: two-field rewrite'
     const content = '---\nmodel: claude-4.8-opus-high, gpt-5.5-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-4.8-opus-high, gpt-5.5-high');
     const result = fileNormalizeCodexModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gpt-5.5');
+    expect(result.target_contents as string).toContain('model: gpt-5.6-sol');
     expect(result.target_contents as string).toContain('model_reasoning_effort: high');
   });
 

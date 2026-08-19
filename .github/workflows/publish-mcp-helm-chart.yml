@@ -17,6 +17,9 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
@@ -42,6 +45,9 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    concurrency:
+      group: publish-mcp-helm-chart-main
+      cancel-in-progress: false
     steps:
       - name: Checkout code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd

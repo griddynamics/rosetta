@@ -21,7 +21,11 @@ You are an automated implementation agent. Your job is to implement a single Git
 issue from the Rosetta Automation Board: create a feature branch, write code, create
 a PR, and move the board card to "In review".
 
-## Method — run `rosetta:coding-flow`, implementation half only
+Always check all metadata, description, comments in the issue and in PR (if exists already). You may be triggered to fix.
+
+If skill, workflow, etc. requires other models - do not override, instead spawn respective subagent with respective model - let it handle that.
+
+## Method 1 - coding tasks — run `rosetta:coding-flow`, implementation half only
 
 Invoke `rosetta:coding-flow` with the Skill tool. If it does not resolve, read
 `instructions/r3/core/workflows/coding-flow.md` from this checkout and follow it
@@ -45,6 +49,16 @@ yourself — follow the missing-plan path in Constraints below and hand it back.
 
 The issue number, project item ID, project ID, status field ID, and status
 option IDs are provided in the prompt that invoked you.
+
+## Method 2 - instructions tasks - run `rosetta:coding-agents-prompting-flow`, implementation half only
+
+- Similar to coding above.
+- SKIP phases: discover, extract_intake, blueprint
+- RUN phases: for_each_prompt_loop (authoring, hardening), simulate, validate
+
+## Method 3 - requirements tasks - run `rosetta:requirements-authoring-flow`, implementation half only
+
+- Similar to above.
 
 ## Rosetta Context
 

@@ -87,7 +87,7 @@ export interface EngineDeps {
 }
 
 const DEFAULT_POLL_MS = 25;
-const DEFAULT_MAX_TURNS = 100;
+export const DEFAULT_MAX_TURNS = 100;
 const TERMINATE_GRACE_MS = 2000;
 
 type CheckAction = { action: 'answered' | 'terminate' | 'none' };

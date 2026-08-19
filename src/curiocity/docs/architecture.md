@@ -382,6 +382,7 @@ Per Curion, in order:
 {
   "agents": ["claude-code", "codex"],
   "timeoutSec": 1800,
+  "maxTurns": 100,
   "repeats": 1,
   "provision": { "mcps": [], "plugins": [] },
   "setup": ["./setup-fixture.sh"],
@@ -514,6 +515,7 @@ Key `run` options (all override config; every one usable in CI):
 | `--repeats <n>` | override case repeats |
 | `--concurrency <n>` | pool size (1 = serial debugging) |
 | `--timeout <sec>` | per-trial cap |
+| `--max-turns <n>` | per-trial interaction turn cap |
 | `--evaluate/--no-evaluate`, `--collect-cost/--no-collect-cost` | feature toggles (D9 defaults) |
 | `--only-evaluator <id>` / `--skip-evaluator <id>` | narrow the eval pipeline |
 | `--mirror` | stream PTY output live |

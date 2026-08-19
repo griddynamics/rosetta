@@ -12,6 +12,7 @@ import type { TopLevelConfig } from './schema';
 
 export interface MatrixEntry extends MatrixCell {
   timeoutSec: number;
+  maxTurns?: number;
   /** Effective model roles for this cell: top-level < profile < case < CLI (D13). */
   models: PartialModelRoles;
   combiner: string;
@@ -40,6 +41,7 @@ export function buildMatrix(args: BuildMatrixArgs): MatrixEntry[] {
           agent,
           repeat,
           timeoutSec: c.timeoutSec,
+          ...(c.maxTurns !== undefined ? { maxTurns: c.maxTurns } : {}),
           models: effectiveModels,
           combiner: c.combiner,
           evaluate: c.evaluate,

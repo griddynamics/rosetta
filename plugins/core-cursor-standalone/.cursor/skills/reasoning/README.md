@@ -8,7 +8,7 @@ Without this skill a capable model jumps to a plausible-sounding answer, states 
 
 ## When to engage
 
-Multi-dependency/tradeoff problems needing explicit confidence; skip simple, low-risk questions. Output: answer + confidence + key caveats grounded in explicit reasoning steps (per `<when_to_use_skill>`). Frontmatter also routes engagement via `description`'s "Must use when asked to think or reason." Named `agent` affinities: `planner`, `architect`, `prompt-engineer` — used by other agents (planner, architect, reviewer, requirements-engineer, researcher) as a mid-flow step, and by workflows as a required/recommended skill at specific phases.
+Multi-dependency/tradeoff problems needing explicit confidence; skip simple, low-risk questions. Output: answer + confidence + key caveats grounded in explicit reasoning steps (per `<when_to_use_skill>`). Frontmatter also routes engagement via `description`'s "Must use when asked to think or reason."
 
 ## How it works
 

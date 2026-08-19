@@ -13,7 +13,7 @@ model: "[Specifies which LLM model to use, any thinking/reasoning must be done w
 # temperature — [Controls response randomness] [float] [OpenCode] [ex: 0.7]
 temperature: "[Controls response randomness]"
 
-# [Latest Models: Anthropic (claude-opus-4-8, claude-sonnet-5, claude-haiku-4-5), OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.5-high, gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna), Google (gemini-3.1-pro-preview, gemini-3.5-flash), Cursor (grok-4.5, composer-2.5), Z.ai (glm-5).]
+# [Latest Models: Anthropic (claude-opus-5, claude-sonnet-5, claude-haiku-4-5), OpenAI (gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna), Google (gemini-3.7-flash), Cursor (grok-4.6, composer-2.5), Z.ai (glm-5).]
 
 # Tools Configuration (Optional)
 # tools — [Array specifying which tools are enabled, dangerous, only limit if it is a must and you know exactly in advance, otherwise remove completely] [array] [Claude Code] [ex: ["read", "grep"]]

@@ -109,6 +109,28 @@ describe('D13: scalar precedence (defaults < top-level < case < CLI)', () => {
     expect(resolved.combiner).toBe(DEFAULT_COMBINER);
   });
 
+  it('maxTurns stays optional and CLI overrides the case value', () => {
+    const topLevel = topLevelConfigSchema.parse({});
+    const unset = resolveCaseConfig({
+      caseName: 'c',
+      topLevel,
+      caseConfig: caseConfigSchema.parse({ agents: ['x'] }),
+      evaluateDefault: true,
+    });
+    expect(unset.maxTurns).toBeUndefined();
+
+    const resolved = resolveCaseConfig({
+      caseName: 'c',
+      topLevel,
+      caseConfig: caseConfigSchema.parse({ agents: ['x'], maxTurns: 7 }),
+      cli: { maxTurns: 9 },
+      evaluateDefault: true,
+    });
+    expect(resolved.maxTurns).toBe(9);
+    expect(buildMatrix({ topLevel, cases: [resolved] })[0]!.maxTurns).toBe(9);
+    expect(() => caseConfigSchema.parse({ agents: ['x'], maxTurns: 0 })).toThrow();
+  });
+
   it('--agent narrows the case-declared agent list', () => {
     const resolved = resolveCaseConfig({
       caseName: 'c',

@@ -83,7 +83,31 @@ export interface ReleaseDescriptor {
 // DATA-CFG-0004
 export interface ModelVocabulary {
   map: Record<string, string>; // logical key → IDE-specific value
+  /**
+   * Behavior flag — NOT an identity discriminant (FR-ARCH-0005). Its value set is
+   * {profiled, unprofiled}; any target may carry either value, the same species as the
+   * permitted `ReleaseDescriptor.deterministicHooks` flag. The deleted `ModelVocabulary.kind`
+   * was forbidden because it switched dispatch on IDE identity — this does not: every
+   * normalize*() function runs the identical single-loop scan regardless of target, and
+   * `exhaustive` only selects which OUTCOME terminates that scan. Its ONLY permitted use is
+   * selecting the no-survivor outcome: `true` ⇒ an exhausted scan ends in `MODEL_DROP`
+   * (profiled exhaustive replacement); `false`/omitted ⇒ the scan ends in today's per-vocabulary
+   * fallback (byte-identical built-in behavior). Omitted (=false) on every built-in vocabulary.
+   * No processor may branch on target/IDE identity off this or any other field (FR-ARCH-0059).
+   */
+  exhaustive?: boolean;
 }
+
+/**
+ * Sentinel returned by normalize{Claude,Cursor,Copilot,Codex}() (spec/model-maps.ts) to mean
+ * "remove the model: line" — the profiled exhaustive-replacement no-survivor outcome — distinct
+ * from `null` ("no qualifying token found → leave field unchanged", today's non-exhaustive
+ * behavior). FR-ARCH-0059, DATA-CFG-0004. Declared here rather than in spec/model-maps.ts: it is
+ * a cross-module contract value shared by the 4 normalize*() functions and the FileProcessors
+ * that call them (file-normalize-*-models.ts, file-codex-agent.ts) — import it from
+ * '../types.js' rather than redeclaring it.
+ */
+export const MODEL_DROP: unique symbol = Symbol('MODEL_DROP');
 
 // FR-ARCH-0001, DATA-CFG-0002
 export interface PluginSpec {
@@ -151,6 +175,11 @@ export interface TargetContext {
   spec: PluginSpec;
   vfs: Vfs;
   release: ReleaseDescriptor;
+  // FR-PROF-0030 — active --profile name for this run, or null when no profile is set; mirrors
+  // the `release` axis. Read by matchesProfile()/fileApplyOverrides to resolve `profile-<name>-only`
+  // filename directives. Threaded GenerateOptions.profile → SpecBuildContext →
+  // pluginProcessSpecEntries → this literal.
+  activeProfile: string | null;
 }
 
 // FR-CLI-0020 — resolved source locations (derived from --source + per-source overrides)
@@ -159,6 +188,9 @@ export interface ResolvedSources {
   pluginsSource: string;      // <source>/src/rosettify-plugins/plugins (or --pluginsSource override)
   hooksSource: string;        // <source>/src/hooks (or --hooksSource override)
   outputDir: string;          // <source>/plugins (or --output override)
+  // FR-CLI-0033 — <source>/src/rosettify-plugins/profiles (or --profileSource override), resolved
+  // from --source exactly as pluginsSource/hooksSource/instructionsSource above.
+  profileSource: string;
 }
 
 export interface GenerateOptions {
@@ -169,4 +201,12 @@ export interface GenerateOptions {
   verbose: boolean;
   deterministicHooks?: boolean; // FR-CLI-0012 — per-run override; undefined → false (fixed default, not the release descriptor value)
   out?: Writable;               // FR-ARCH-0045/FR-CLI-0050 — dry-run output sink; defaults to process.stdout
+  // FR-CLI-0032 — active profile name, validated/loaded via loadProfile() at generate() pre-flight
+  // (before buildVfs) so any violation aborts before output is written; undefined = no profile.
+  profile?: string;
 }
+
+// FR-ARCH-0003, DATA-CFG-0003 — the canonical target-name list. SINGLE SOURCE OF TRUTH: both
+// `spec/targets.ts` (which builds one PluginSpec per name) and `spec/profiles.ts` (which validates a
+// profile's modelOverrides outer keys against it) MUST import from here rather than restate it.
+// `types.ts` is the right home because it imports nothing from `spec/`, so neither direction cycles.

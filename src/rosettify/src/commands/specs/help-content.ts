@@ -36,7 +36,7 @@ export const specsNotes: string[] = [
   "the statement carries the rule: what shall hold, the cases it covers, and the cases it excludes — write it as the governing rule, not as a one-trigger sentence, and do not repeat the criteria in it",
   "each criterion names exactly one pattern (ubiquitous, event, state, optional, unwanted), carries only that pattern's condition word (none, when, while, where, if respectively), and always names a responder and an outcome",
   "criterion sub-ids read <spec-id>.AC<n> and are assigned automatically when omitted; supply one when you want to keep the stable target a test or a traceability row claims",
-  "evidence lists one path and line range per source location and is expected on a spec derived from existing code; a spec authored from intent leaves it empty",
+  "evidence lists one path and line range or better symbol per source location and is expected on a spec derived from existing code; a spec authored from intent leaves it empty",
   "render returns markup as well as markdown and plain text, so a document held here can be published back out and read back in by migrate",
   "a new spec always enters as Draft/NotStarted; any status, approved_by, or implementation supplied on add or update is silently dropped",
   "guarded fields (status, approved_by, implementation, changed_by) change only through the lifecycle ops (approve, deprecate, restore, reopen, delete, implemented) and the actor resolver — never through add or update directly",
@@ -107,7 +107,7 @@ export const specsHelpContent = {
       "assigned in order; supply it to keep the stable target a test or a traceability row claims. A supplied " +
       "sub-id is never renumbered, and two criteria of the same spec may not share one.",
     evidence:
-      "evidence lists the source locations backing a unit recovered from existing code — one path and line range " +
+      "evidence lists the source locations backing a unit recovered from existing code — one path and line range or better symbol " +
       "per location. A unit derived from existing code is expected to carry it; a unit authored from intent leaves " +
       "it empty.",
     areas:

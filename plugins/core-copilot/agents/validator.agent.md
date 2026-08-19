@@ -2,7 +2,7 @@
 name: validator
 description: "Validate that implementation matches intent via execution and evidence. Full subagent."
 mode: subagent
-model: GPT-5.4
+model: GPT-5.6 Terra
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

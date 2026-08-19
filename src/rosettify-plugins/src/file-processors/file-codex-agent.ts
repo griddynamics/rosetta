@@ -4,6 +4,7 @@ import { updateFileFrame } from '../frames.js';
 import { parseFrontmatter } from '../serialize/frontmatter.js';
 import { emitCodexToml } from '../serialize/toml.js';
 import { normalizeCodex } from '../spec/model-maps.js';
+import { MODEL_DROP } from '../types.js';
 import type { FileProcessingFrame, TargetContext } from '../types.js';
 
 /**
@@ -27,8 +28,15 @@ export function fileCodexAgentFormat(
   const modelField = (fm.model as string) ?? '';
   const readonly = (fm.readonly as boolean) === true;
 
-  // Extract gpt model+effort for codex
-  const codexModel = modelField ? normalizeCodex(modelField) : null;
+  // Extract gpt model+effort for codex. FR-COPY-0084: same normalizeCodex() call (field, map,
+  // exhaustive) as fileNormalizeCodexModels, so a given token resolves identically at both
+  // Codex call sites. FR-ARCH-0059: map/exhaustive come solely from ctx.spec.modelVocabulary.
+  const { map: codexMap, exhaustive: codexExhaustive } = ctx.spec.modelVocabulary;
+  const codexResult = modelField ? normalizeCodex(modelField, codexMap, codexExhaustive) : null;
+  // MODEL_DROP (FR-PROF-0011, profiled exhaustive no-survivor) behaves like "no model field"
+  // here, same as null (no gpt- token found): emit no model/model_reasoning_effort lines.
+  const codexModel =
+    codexResult && codexResult !== MODEL_DROP ? codexResult : null;
 
   // Body: content after frontmatter (the full markdown body)
   const body = parsed.body;
