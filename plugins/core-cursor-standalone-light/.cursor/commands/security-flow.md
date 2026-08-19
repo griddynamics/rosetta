@@ -51,7 +51,7 @@ Run task-adaptive security review through mandatory canonical subagents. End wit
 - Control: advance only on PASS or approved DEV/QA envs; high-risk and scanner-unusable stops are non-overridable.
 </readiness>
 
-<authorize phase="2" applies="ALL" subagent="engineer" role="Enterprise security scope and authorization advisor" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash, grok-4.5, gpt-5.6-terra" type="HITL" must-be-subagent>
+<authorize phase="2" applies="ALL" subagent="engineer" role="Enterprise security scope and authorization advisor" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash, grok-4.6, gpt-5.6-terra" type="HITL" must-be-subagent>
 - Purpose: Recommends an enterprise-safe run contract from readiness evidence and task intent. Identifies every material decision requiring user approval before security work begins.
 - Input: readiness result; task intent; known policy.
 - Output: recommended run contract and approval record.
@@ -78,7 +78,7 @@ Run task-adaptive security review through mandatory canonical subagents. End wit
 - Control: full review covers all applicable/available/authorized work; gaps return for correction.
 </model_and_select>
 
-<inspect_and_test phase="5" applies="ALL" subagent="engineer" role="Security engineer producing bounded evidence by applicable area" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash, grok-4.5, gpt-5.6-terra" must-be-subagent>
+<inspect_and_test phase="5" applies="ALL" subagent="engineer" role="Security engineer producing bounded evidence by applicable area" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash, grok-4.6, gpt-5.6-terra" must-be-subagent>
 - Purpose: Executes one approved security-area bundle within its assigned bounds. Produces evidence, findings, limitations, anomalies, and unresolved coverage.
 - Input: approved plan; one coherent area bundle; its scope/bounds.
 - Output: area-bundle evidence package and candidate findings.
@@ -97,7 +97,7 @@ Run task-adaptive security review through mandatory canonical subagents. End wit
 - Control: no evidence loss; material high+ gets second signal or remains unverified.
 </normalize_and_triage>
 
-<independent_review phase="7" applies="ALL" subagent="reviewer" role="Independent security evidence and coverage reviewer" subagent_required_model="gpt-5.4, gemini-3.1-pro, claude-sonnet-5, grok-4.5, gpt-5.6-terra" must-be-subagent>
+<independent_review phase="7" applies="ALL" subagent="reviewer" role="Independent security evidence and coverage reviewer" subagent_required_model="gpt-5.4, gemini-3.1-pro, claude-sonnet-5, grok-4.6, gpt-5.6-terra" must-be-subagent>
 - Purpose: Independently challenges coverage, evidence, safety, certainty, and prioritization. Determines whether reporting may proceed or producing work requires correction and rereview.
 - Input: approved plan; threat model; evidence; findings.
 - Output: independent acceptance or correction decision.
@@ -106,7 +106,7 @@ Run task-adaptive security review through mandatory canonical subagents. End wit
 - Control: material defects return to producer; corrected output requires fresh review.
 </independent_review>
 
-<report_and_package phase="8" applies="ALL" subagent="engineer" role="Security reporter and remediation-input designer" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash, grok-4.5, gpt-5.6-terra" type="HITL" must-be-subagent>
+<report_and_package phase="8" applies="ALL" subagent="engineer" role="Security reporter and remediation-input designer" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.5-flash, grok-4.6, gpt-5.6-terra" type="HITL" must-be-subagent>
 - Purpose: Builds sanitized review artifacts and a proposed fix-similarity task INDEX, then emits approved task inputs. Ends without starting or managing remediation.
 - Input: accepted findings; evidence; storage policy; grouping constraints.
 - Output: sanitized review package and approved remediation-task package.

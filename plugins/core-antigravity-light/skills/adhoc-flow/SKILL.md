@@ -18,7 +18,7 @@ If request is trivial / one-liner AND you confirmed it is true (by checking code
 <models>
 
 - large (smart, slow): claude-opus-4-8, gpt-5.3-codex-high, gpt-5.5-high, gpt-5.6-sol-high, gemini-3.1-pro-preview, kimi-k3, glm-5.2
-- medium (workhorse): claude-sonnet-5, gpt-5.3-codex-medium, gpt-5.4-medium, gpt-5.6-terra-medium, glm-5, kimi-k2.5, minimax-m2.5, grok-4.5
+- medium (workhorse): claude-sonnet-5, gpt-5.3-codex-medium, gpt-5.4-medium, gpt-5.6-terra-medium, glm-5, kimi-k2.5, minimax-m2.5, grok-4.6
 - small (fast): claude-haiku-4-5, gpt-5.4-mini, gpt-5.6-luna-medium, gemini-3.5-flash
 
 Match to cognitive demand. Match to current tool.

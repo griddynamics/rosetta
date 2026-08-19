@@ -37,7 +37,7 @@ Phase 6. Requires separate `executor` and `engineer` invocations.
 
 </normalize>
 
-<triage step="6.2" subagent="engineer" role="Security triager correlating evidence without loss" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.5, gpt-5.6-terra">
+<triage step="6.2" subagent="engineer" role="Security triager correlating evidence without loss" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.6, gpt-5.6-terra">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security`.

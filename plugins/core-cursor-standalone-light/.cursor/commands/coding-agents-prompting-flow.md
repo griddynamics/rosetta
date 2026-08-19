@@ -30,7 +30,7 @@ Orchestrates prompt authoring/adaptation via `discover -> extract+intake -> blue
 
 </prerequisites>
 
-<discover step="1" subagent="discoverer" role="Context discoverer" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.1-pro, grok-4.5, gpt-5.6-terra">
+<discover step="1" subagent="discoverer" role="Context discoverer" subagent_required_model="claude-sonnet-5, gpt-5.4, gemini-3.1-pro, grok-4.6, gpt-5.6-terra">
 
 1. Discover project-local context, relevant prompt-family artifacts, and required references for this request.
 2. Input: request + optional existing prompt. Output: `Discovery Notes` + `Reference Set`.

@@ -146,9 +146,13 @@ describe('normalizeCursor — new vocabulary entries', () => {
     expect(normalizeCursor('gpt-5.6-sol', CURSOR_VOCABULARY.map)).toBe('gpt-5.6-sol');
   });
 
-  it('maps grok-4.5 and composer-2.5, both Cursor-native models', () => {
-    expect(normalizeCursor('grok-4.5', CURSOR_VOCABULARY.map)).toBe('grok-4.5');
+  it('maps grok-4.6 and composer-2.5, both Cursor-native models', () => {
+    expect(normalizeCursor('grok-4.6', CURSOR_VOCABULARY.map)).toBe('grok-4.6');
     expect(normalizeCursor('composer-2.5', CURSOR_VOCABULARY.map)).toBe('composer-2.5');
+  });
+
+  it('upgrades the superseded grok-4.5 to grok-4.6 rather than pinning it', () => {
+    expect(normalizeCursor('grok-4.5', CURSOR_VOCABULARY.map)).toBe('grok-4.6');
   });
 });
 

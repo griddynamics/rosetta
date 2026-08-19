@@ -197,9 +197,9 @@ structure.ts:108-114`). Optional `activeProfile`+`destinationSuffix` params for 
 Real `subagent_required_model` values (orchestrator measurement, 11 distinct; top 5):
 ```
 A: claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol
-B: claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.5, gpt-5.6-terra
-C: claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra
-D: gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5, grok-4.5, gpt-5.6-terra
+B: claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.6, gpt-5.6-terra
+C: claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.6, gpt-5.6-terra
+D: gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5, grok-4.6, gpt-5.6-terra
 E: claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna
 ```
 Expected (built-in maps, always-on): A→claude: `claude-opus-4-8`; A→codex: `gpt-5.5, gpt-5.6-sol`

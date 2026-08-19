@@ -223,7 +223,10 @@ const CURSOR_GROK_MAP: Record<string, string> = {
   'grok-4.6-medium': 'grok-4.6',
   'grok-4.6-low': 'grok-4.6',
   'grok-4.6': 'grok-4.6',
-  'grok-4.5': 'grok-4.5',
+  // Grok 4.5 -> upgrade to 4.6, same idiom as GPT-5.3 -> 5.4 above: same cost, better model, so a
+  // legacy token resolves forward rather than pinning a superseded version. The instruction set no
+  // longer authors grok-4.5; this entry keeps an older or third-party layer resolving correctly.
+  'grok-4.5': 'grok-4.6',
 };
 
 const CURSOR_COMPOSER_MAP: Record<string, string> = {

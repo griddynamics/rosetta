@@ -75,9 +75,9 @@ expect exactly one changed line.
 
 ## TODO: plugin-generator — no Copilot identifier established for Grok or Composer
 
-`src/rosettify-plugins/src/spec/model-maps.ts` maps `grok-4.5`, `grok-4.6*` and `composer-2.5` for
-Cursor (identity values; the repo's authoring catalogue names all three as Cursor models) but carries
-no Copilot entry for any of them, so those tokens are dropped from Copilot's `subagent_required_model`
-lists. That records only that no Copilot-native identifier has been established here — it is NOT a
+`src/rosettify-plugins/src/spec/model-maps.ts` maps `grok-4.6*` and `composer-2.5` for Cursor
+(identity values; the repo's authoring catalogue names both as Cursor models, and the superseded
+`grok-4.5` upgrades forward to `grok-4.6`) but carries no Copilot entry for either, so those tokens
+are dropped from Copilot's `subagent_required_model` lists. That records only that no Copilot-native identifier has been established here — it is NOT a
 finding that Copilot lacks the models. Resolve by confirming what Copilot calls them and adding the
 entries, or by recording a sourced decision that Copilot does not offer them.

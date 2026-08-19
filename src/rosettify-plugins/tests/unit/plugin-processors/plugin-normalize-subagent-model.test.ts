@@ -68,9 +68,9 @@ function normalize(
 
 // Real measured subagent_required_model values (SPECS §10 / orchestrator measurement).
 const FIXTURE_A = 'claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol';
-const FIXTURE_B = 'claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.5, gpt-5.6-terra';
-const FIXTURE_C = 'claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra';
-const FIXTURE_D = 'gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5, grok-4.5, gpt-5.6-terra';
+const FIXTURE_B = 'claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.6, gpt-5.6-terra';
+const FIXTURE_C = 'claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.6, gpt-5.6-terra';
+const FIXTURE_D = 'gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5, grok-4.6, gpt-5.6-terra';
 const FIXTURE_E = 'claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna';
 
 describe('claudeSubagentModelTokenMapper — exact-token tier (claudeLookup, FR-COPY-0083)', () => {
@@ -119,7 +119,7 @@ describe('pluginNormalizeSubagentRequiredModel — Claude mapper, real fixtures'
   });
 
   it('no claude-family token survives -> "inherit"', () => {
-    const noClaudeValue = 'gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra';
+    const noClaudeValue = 'gpt-5.4-medium, gemini-3.1-pro, grok-4.6, gpt-5.6-terra';
     expect(
       normalize(`subagent_required_model="${noClaudeValue}"`, CLAUDE_VOCABULARY, claudeSubagentModelTokenMapper),
     ).toBe('subagent_required_model="inherit"');
@@ -146,7 +146,7 @@ describe('pluginNormalizeSubagentRequiredModel — Cursor mapper, real fixtures'
   it('D: same filtering with the gpt- token appearing FIRST in source order (not IDE priority order)', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_D}"`, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="gpt-5.4, gemini-3.1-pro, claude-sonnet-5, grok-4.5, gpt-5.6-terra"');
+    ).toBe('subagent_required_model="gpt-5.4, gemini-3.1-pro, claude-sonnet-5, grok-4.6, gpt-5.6-terra"');
   });
 });
 
@@ -157,10 +157,32 @@ describe('pluginNormalizeSubagentRequiredModel — Copilot mapper, real fixtures
     ).toBe('subagent_required_model="Claude Sonnet 5, GPT-5.4, Gemini 3.1 Pro (Preview), GPT-5.6 Terra"');
   });
 
-  it('C: grok-4.5 is still absent from the Copilot list — no Copilot identifier for it is established here', () => {
+  it('C: grok is still absent from the Copilot list — no Copilot identifier for it is established here', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_D}"`, COPILOT_VOCABULARY, copilotSubagentModelTokenMapper),
     ).not.toContain('grok');
+  });
+});
+
+describe('pluginNormalizeSubagentRequiredModel — legacy token upgrade', () => {
+  it('a superseded grok-4.5 in an older layer resolves forward to grok-4.6 for Cursor', () => {
+    expect(
+      normalize(
+        'subagent_required_model="claude-sonnet-5, grok-4.5"',
+        CURSOR_VOCABULARY,
+        cursorSubagentModelTokenMapper,
+      ),
+    ).toBe('subagent_required_model="claude-sonnet-5, grok-4.6"');
+  });
+
+  it('grok-4.5 and grok-4.6 in one list de-duplicate to a single grok-4.6', () => {
+    expect(
+      normalize(
+        'subagent_required_model="grok-4.5, grok-4.6"',
+        CURSOR_VOCABULARY,
+        cursorSubagentModelTokenMapper,
+      ),
+    ).toBe('subagent_required_model="grok-4.6"');
   });
 });
 
