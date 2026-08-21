@@ -1,12 +1,12 @@
 # planning
-Produces a graph of session plan files for incremental modernization. Each file is later executed by a coding agent. Human WBS is not here: it lives in the `backlog` skill.
+Produces a graph of session plan files for incremental modernization. Each file is later executed by a coding agent. Human WBS lives in the `backlog` skill.
 
 ## Why it exists
 Without it, a plan restates docs, narrates process the executor already knows, or dumps code instead of WHAT + CHECKLIST. The skill forces terse session files, project-specific traps only, dependency-ordered decomposition, and a handoff index that stays factual.
 
 ## When to engage
 - Default: a multi-session (or mergeable one-session) modernization plan for an AI executor that already has the same env, docs, subagents, and skills.
-- Human work breakdown: not this skill — redirect to `USE SKILL backlog`, mode `work-breakdown`.
+- Human work breakdown: `USE SKILL backlog`, mode `work-breakdown`.
 - Skip: small or trivial request → do nothing.
 - One session: merge into `plans/<FEATURE>/<FEATURE>-PLAN.md` and `plans/<FEATURE>/HANDOFF.md`.
 - No `<when_to_use_skill>` block. Frontmatter has no `agent`. Callers still `USE SKILL planning` from `agents/architect.md`, `agents/planner.md`, `skills/coding-flow/SKILL.md`, `skills/adhoc-flow/SKILL.md`.
@@ -31,7 +31,7 @@ No assets. Human-WBS content lives in `skills/backlog/assets/work-breakdown.md` 
 - `description` is still the auto-invocation string and still names EARS, sequenced WBS, and HITL checkpoints. The body does not use those terms. Do not pad the description; changing it changes auto-activation.
 - Output paths: `plans/<FEATURE>/<FEATURE>-PLAN.md`, `<NN>-plan-<slug>.md`, `HANDOFF.md`, `<NN>-handoff.md`. Two `output` lines are missing a closing backtick in SKILL.md.
 - Index contract: read-first list, one-line governing rules with authority pointers, where findings land, file-ownership, per-phase table `# | Session | Depends on | Parallel with`, unlisted = sequential, parallelism only when sessions share no files, alone-sessions flagged.
-- The human-work-breakdown line is a compatibility redirect to `USE SKILL backlog`. It knowingly deviates from the prompt-authoring boundary rule that a skill must not name a sibling skill; it exists so existing callers that ask `planning` for a human WBS still reach the owner of that method. Do not "fix" it by deleting the redirect.
+- The human-work-breakdown line routes to `USE SKILL backlog` so callers asking `planning` for a human WBS reach the owner of that method. Naming a skill by concept is allowed; naming another skill's files is not. Do not delete the route.
 - Callers still speak WBS / size-scaled plans (`agents/planner.md`, `skills/adhoc-flow/SKILL.md` "plan-wbs"). Edit those with this skill, not instead of it.
 - `tech-specs` still pairs WHAT/HOW with `planning`; this SKILL.md does not restate that pair.
 

@@ -15,13 +15,13 @@ Never produce the implementation, the design, or the interface choice. Produce t
 
 3. **Business analysis.** APPLY SKILL FILE `assets/story-validator-business-analysis.md` against the intake record, the established facts from step 2, and the repository scope.
 
-4. **Gate 1 — user Q&A.** Present business findings as a short non-technical narrative, TLDR first. Ask only what code cannot answer. Answers become facts; unanswered -> labelled assumption, carried forward, never silently resolved. Anything the user cannot answer alone goes to step 8 as a `Q-nn` comment addressed to its owner.
+4. **Gate 1 — user Q&A.** USE SKILL `hitl`. Business findings first, non-technical. Answers become facts; unanswered -> labelled assumption, carried forward, never silently resolved. Anything the user cannot answer alone goes to step 8 as a `Q-nn` comment addressed to its owner.
 
 5. **Technical analysis.** APPLY SKILL FILE `assets/story-validator-technical-analysis.md` against the intake record, the business findings, and every confirmed answer. Separate prompt, separate lens — never merge it with step 3.
 
-6. **Focused concerns, parallel.** Each `needs-analysis` concern that could flip a verdict gets one `engineer`, one concern, scoped to that concern alone. Give it the concern, the single question it must answer, and the evidence bar. Ad-hoc dispatch, no `dispatch` name. Concerns that cannot flip a verdict stay listed, unanalysed, and are named as such.
+6. **Focused concerns.** Each `needs-analysis` concern that could flip a verdict gets its own pass here: one concern, its single question, its evidence bar. Concerns that cannot flip a verdict stay listed, unanalysed, and are named as such.
 
-7. **Gate 2 — user Q&A.** Unknowns surfaced by steps 5 and 6. Same rules as gate 4.
+7. **Gate 2 — user Q&A.** USE SKILL `hitl`. Unknowns surfaced by steps 5 and 6, same rules as gate 4.
 
 8. **Write-back, in this context.** APPLY SKILL FILE `assets/story-validator-backlog-writeback.md`. Never dispatch it — the approval gate needs the actor the user answers. Established facts land on the story; open questions land as comments. Each run leaves the story closer to buildable than it was.
 

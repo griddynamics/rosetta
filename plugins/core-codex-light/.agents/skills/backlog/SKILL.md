@@ -1,6 +1,6 @@
 ---
 name: backlog
-description: "To validate story readiness for sprint intake and to break work into a human WBS: BSA and architect analysis, verdicts."
+description: "To validate story readiness for a sprint and to break work into a human WBS."
 license: Apache-2.0
 argument-hint: story-ref | request, mode?, scope?
 baseSchema: docs/schemas/skill.md
@@ -26,7 +26,7 @@ Not requirements authoring from scratch. Not AI session planning. Not implementa
 
 Read this first. Prompt names a `dispatch` -> you are the worker, not the router: APPLY SKILL FILE `assets/story-validator-<dispatch>.md` and return exactly per its output contract. Ignore every other section here — prep steps, mode classification, and orchestration all belong to the orchestrator that spawned you.
 
-Valid: `business-analysis` · `technical-analysis`. Unknown name -> STOP, report to the orchestrator.
+Valid: `business-analysis` · `technical-analysis`. Write-back is never dispatched. Unknown name -> STOP, report to the orchestrator.
 
 </dispatch>
 
@@ -61,9 +61,8 @@ Classify once, state the chosen mode, then run it end to end.
 
 - USE SKILL `orchestration` for every dispatch. USE SKILL `hitl` for every gate. USE SKILL `questioning` to shape Q&A.
 - One story, one context. Run the whole mode here by default.
-- Story too big for one context -> spawn `engineer` for the business and technical passes, dispatch `business-analysis` / `technical-analysis`, `subagent_required_model="gpt-5.6-sol-high"`.
+- Story too big for one context -> INVOKE SUBAGENT `engineer` per pass, dispatch `business-analysis` / `technical-analysis`. A focused concern uses `technical-analysis` scoped to that one concern.
 - Write-back is never dispatched — it holds the approval gate.
-- Focused concerns dispatch as `engineer`, one concern each.
 - Parallel dispatches must not share a write target.
 
 </orchestration>
@@ -119,7 +118,7 @@ Classify once, state the chosen mode, then run it end to end.
 Produced artifacts:
 
 - `story-validator` -> readiness report per its `<report>` contract, plus the applied backlog changes with their keys
-- `work-breakdown` -> FEATURE PLAN folder artifacts, `wbs.md` on LARGE
+- `work-breakdown` -> FEATURE PLAN folder `wbs.md` at every size, plus the register at LARGE
 
 </templates>
 
