@@ -1,6 +1,6 @@
 ---
 name: backlog
-description: "To validate backlog story readiness for sprint intake and to break work down for humans: BSA and architect analysis, verdicts, WBS."
+description: "To validate story readiness for sprint intake and to break work into a human WBS: BSA and architect analysis, verdicts."
 ---
 
 <backlog>
@@ -109,7 +109,7 @@ Classify once, state the chosen mode, then run it end to end.
 Produced artifacts:
 
 - `story-validator` -> readiness report per its `<report>` contract, plus the applied backlog changes with their keys
-- `work-breakdown` -> `plans/<FEATURE>/` artifacts, `wbs.md` on LARGE
+- `work-breakdown` -> FEATURE PLAN folder artifacts, `wbs.md` on LARGE
 
 </templates>
 

@@ -66,14 +66,24 @@ The intake record, the business findings, and the answers already confirmed with
 
 <output>
 
-Return, in order:
-
-- **Concerns** — one block per concern: `id` · scope · how it would be built · viable options (unchosen) · options-decidable yes/no · affected files with per-file change · state (`clear` / `needs-analysis`) · `needs-analysis` question
-- **Verbatim contracts** — quoted blocks, each with source citation
-- **Prior art** — what we already did that this extends, cited; or none found and where you looked
-- **Compatibility** — per boundary: checked, verified how, or unverifiable and why
-- **Enough-information verdict** — per concern: proceedable / would require invention, and what would be invented
-- **Best guesses** — per gap: guess, precedent cited, what breaks if wrong
+```xml
+<technical_analysis story="[key]">
+  <concern id="TA-01" state="[clear|needs-analysis]" options-decidable="[yes|no]">
+    <scope>[what fails independently here]</scope>
+    <approach>[seam plus the existing pattern it extends]</approach>
+    <option>[viable option, unchosen]</option>
+    <file path="[path]">[what changes here]</file>
+    <question>[single question that settles it; omit when clear]</question>
+    <missing_input holder="[who holds it]">[input needed to decide between options]</missing_input>
+  </concern>
+  <contract source="[citation]">[verbatim quote, copied]</contract>
+  <prior_art ref="[file:line]">[what it already covers]</prior_art>
+  <compatibility boundary="[a -> b]" state="[verified|unverifiable]">[how verified, or why not]</compatibility>
+  <enough_information concern="[TA-nn]" verdict="[proceedable|requires-invention]">[what would be invented]</enough_information>
+  <best_guess ref="[TA-nn]" precedent="[file:line]">[guess, and what breaks if wrong]</best_guess>
+  <searched_absent where="[paths, queries, docs]">[what was not found]</searched_absent>
+</technical_analysis>
+```
 
 </output>
 

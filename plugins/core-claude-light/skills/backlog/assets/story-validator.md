@@ -18,11 +18,11 @@ Never produce the implementation, the design, or the interface choice. Produce t
 
 2. **Business analysis.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `business-analysis`, and carries the intake record plus the repository scope.
 
-3. **Gate 1 — user Q&A.** Business findings as a short narrative, TLDR first, non-technical. Ask only what code cannot answer: 5-10 MECE questions, one decision each, batched. Answers become facts. Unanswered -> labelled assumption, carried forward, never silently resolved.
+3. **Gate 1 — user Q&A.** Present business findings as a short non-technical narrative, TLDR first. Ask only what code cannot answer. Answers become facts; unanswered -> labelled assumption, carried forward, never silently resolved.
 
 4. **Technical analysis.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `technical-analysis`, and carries the intake record, the business findings, and the confirmed answers.
 
-5. **Focused concerns, parallel.** Each `needs-analysis` concern that could flip a verdict gets one `engineer`, one concern, scoped to that concern alone. Give it the concern, the single question it must answer, and the evidence bar. No skill dispatch name — these are ad-hoc, not one of the three fixed prompts. Concerns that cannot flip a verdict stay listed, unanalysed, and are named as such.
+5. **Focused concerns, parallel.** Each `needs-analysis` concern that could flip a verdict gets one `engineer`, one concern, scoped to that concern alone. Give it the concern, the single question it must answer, and the evidence bar. Ad-hoc dispatch, no `dispatch` name. Concerns that cannot flip a verdict stay listed, unanalysed, and are named as such.
 
 6. **Gate 2 — user Q&A.** Unknowns surfaced by steps 4 and 5. Same rules as gate 1.
 
@@ -72,7 +72,7 @@ Moves:
 
 <report>
 
-Assemble and present, in order:
+Persist to the FEATURE PLAN folder before step 7, then present. Order:
 
 - Verdicts, both, one line each with the flipping evidence
 - What this story asks for, in business language

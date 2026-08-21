@@ -59,16 +59,22 @@ The intake record (story, parents, children, sibling tasks, links, every comment
 
 <output>
 
-Return, in order:
+```xml
+<business_analysis story="[key]">
+  <outcome>[one sentence, or why it cannot be stated]</outcome>
+  <finding id="BA-01" class="[ambiguity|inconsistency|gap|dependency]" needs-analysis="[single question|none]">
+    <claim>[what is wrong]</claim>
+    <evidence>[file:line, or verbatim quote plus its source field]</evidence>
+    <impact>[business impact]</impact>
+  </finding>
+  <consequence type="[affected-elsewhere|silently-unchanged|newly-wrong|not-asked-for]" evidence="[citation]">[what happens]</consequence>
+  <enough_information gap="[BA-nn]" verdict="[proceedable|requires-invention]">[what would be invented]</enough_information>
+  <best_guess gap="[BA-nn]" precedent="[file:line]">[the guess]</best_guess>
+  <searched_absent where="[paths, queries]">[what was not found]</searched_absent>
+</business_analysis>
+```
 
-- **Outcome** — the business outcome in one sentence, or the reason it cannot be stated
-- **Findings** — one block per item: `id` · class (ambiguity/inconsistency/gap/dependency) · claim · evidence (citation) · business impact · `needs-analysis` question if any
-- **Consequences** — affected elsewhere · silently unchanged · newly wrong · not asked for; each cited
-- **Enough-information verdict** — per gap: proceedable / would require invention, and what would be invented
-- **Best guesses** — per gap: the guess, the precedent it copies, cited
-- **Searched and absent** — where you looked and found nothing
-
-Plain business language. No mechanism, no implementation vocabulary, no meta-commentary.
+Plain business language inside every element. No mechanism, no implementation vocabulary, no meta-commentary.
 
 </output>
 

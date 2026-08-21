@@ -7,7 +7,7 @@ description: Mode method for breaking approved work into a human work breakdown 
 
 <contract>
 
-Input: approved, readiness-cleared work. Output: repository artifacts only — EARS functional requirements, a chronological WBS, and an explicit assumption and unknown register. This mode never writes to the issue tracker.
+Input: approved, readiness-cleared work. Output: FEATURE PLAN folder artifacts only — EARS functional requirements, a chronological WBS, an assumption and unknown register. Never writes to the issue tracker.
 
 </contract>
 
@@ -18,7 +18,7 @@ Input: approved, readiness-cleared work. Output: repository artifacts only — E
 | Reasoning | brief | 8D full | 8D full |
 | Requirements | inline AC | inline AC | formal EARS FRs |
 | Plan artifact | todo tasks | flat task list (title, files, AC, risk) | full WBS (all fields) |
-| Persistence | todo tasks only | `plans/` if >5 tasks, else todo | `plans/` always + `wbs.md` |
+| Persistence | todo tasks only | FEATURE PLAN folder if >5 tasks, else todo | FEATURE PLAN folder always + `wbs.md` |
 | HITL gates | one before execution | one before execution | per major decision |
 | Templates | none | none | READ SKILL FILE `assets/work-breakdown-templates.md` |
 

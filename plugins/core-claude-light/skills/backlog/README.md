@@ -23,7 +23,7 @@ Left to plain judgment, an agent handed a story either declares it fine and star
 | `assets/work-breakdown.md` | mode-2 method: size scaling, WBS contract, WBS template |
 | `assets/work-breakdown-templates.md` | LARGE only: EARS FR + risk-register templates |
 
-Mode-1 flow: intake via `data-collection` (read-only) → business analysis → user Q&A → technical analysis → parallel focused concerns → user Q&A → gated write-back.
+Mode-1 flow: intake via `data-collection` (read-only) → business analysis → user Q&A → technical analysis → parallel focused concerns → user Q&A → persist report → gated write-back. The two analysis dispatches return XML, so findings carry stable `BA-nn` / `TA-nn` ids the write-back can reference.
 
 ## Mental hooks & unexpected rules
 - `"Readiness is a claim about information, not about effort"` — the verdict comes from the enough-information test, never from how polished the story reads.
@@ -44,7 +44,9 @@ Mode-1 flow: intake via `data-collection` (read-only) → business analysis → 
 - Every analysis and write-back dispatch carries `subagent_required_model="claude-opus-5"`. The `engineer` agent defaults to a workhorse tier; without the override the deep passes run under-powered.
 - The write binding names operations by capability, not by vendor tool name, and has no delete operation. Preview-then-approve, and per-operation confirmation for overwrites and closes, are the safety contract.
 - `assets/work-breakdown-templates.md` stays behind the `applies="LARGE"` gate. Inlining it loads template text into every SMALL run.
+- The two analysis dispatches return the XML shapes defined in their `<output>` blocks. Element and attribute names are contract: the write-back prompt and the report reference findings by their `BA-nn` / `TA-nn` ids.
+- Workspace locations are TERM references (FEATURE PLAN folder), never literal paths; `load-project-context` owns the actual paths.
 - `skills/planning/SKILL.md` redirects human-work-breakdown requests here. That redirect is the compatibility path for existing `planning` callers.
 
 ## Editing guide
-Safe: `role` wording, pitfall and best-practice bullets, report section ordering, toolbox phrasing. Handle with care: the verdict label strings, the seven-step sequence and its two user gates, the write binding's approval and no-delete rules, the task contract's forbidden list, the size-scaling table, and the `applies="LARGE"` gate. New capability → a new mode asset plus one row in the `SKILL.md` trigger table; never grow `SKILL.md` with method detail. New per-concern analysis depth → the relevant dispatch prompt, not the router. `plugins/**` is generated; edit here and regenerate. Referenced by `docs/definitions/skills.md` and `skills/planning/SKILL.md`.
+Safe: `role` wording, pitfall and best-practice bullets, report section ordering, toolbox phrasing. Handle with care: the verdict label strings, the XML output element names, the seven-step sequence and its two user gates, the write binding's approval and no-delete rules, the task contract's forbidden list, the size-scaling table, and the `applies="LARGE"` gate. New capability → a new mode asset plus one row in the `SKILL.md` trigger table; never grow `SKILL.md` with method detail. New per-concern analysis depth → the relevant dispatch prompt, not the router. `plugins/**` is generated; edit here and regenerate. Referenced by `docs/definitions/skills.md` and `skills/planning/SKILL.md`.
