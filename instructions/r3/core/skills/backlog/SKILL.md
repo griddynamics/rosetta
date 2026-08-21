@@ -33,6 +33,14 @@ Not requirements authoring from scratch. Not AI session planning. Not implementa
 
 </core_concepts>
 
+<dispatch>
+
+Prompt names a `dispatch` -> you are the worker, not the router. Skip `<modes>` and `<orchestration>`. APPLY SKILL FILE `assets/story-validator-<dispatch>.md`, then return exactly per its output contract.
+
+Valid: `business-analysis` · `technical-analysis` · `backlog-writeback`. Unknown name -> STOP, report to the orchestrator.
+
+</dispatch>
+
 <modes>
 
 Classify once, state the chosen mode, then run it end to end.
@@ -101,8 +109,10 @@ Classify once, state the chosen mode, then run it end to end.
 
 <templates>
 
-- APPLY SKILL FILE `assets/story-validator.md`
-- APPLY SKILL FILE `assets/work-breakdown.md`
+Produced artifacts:
+
+- `story-validator` -> readiness report per its `<report>` contract, plus the applied backlog changes with their keys
+- `work-breakdown` -> `plans/<FEATURE>/` artifacts, `wbs.md` on LARGE
 
 </templates>
 
