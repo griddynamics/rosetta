@@ -26,7 +26,7 @@ Not requirements authoring from scratch. Not AI session planning. Not implementa
 
 Read this first. Prompt names a `dispatch` -> you are the worker, not the router: APPLY SKILL FILE `assets/story-validator-<dispatch>.md` and return exactly per its output contract. Ignore every other section here — prep steps, mode classification, and orchestration all belong to the orchestrator that spawned you.
 
-Valid: `business-analysis` · `technical-analysis` · `backlog-writeback`. Unknown name -> STOP, report to the orchestrator.
+Valid: `business-analysis` · `technical-analysis`. Unknown name -> STOP, report to the orchestrator.
 
 </dispatch>
 
@@ -61,8 +61,9 @@ Classify once, state the chosen mode, then run it end to end.
 
 - USE SKILL `orchestration` for every dispatch. USE SKILL `hitl` for every gate. USE SKILL `questioning` to shape Q&A.
 - Analysis depth belongs in subagents, never in this context. The router holds mode state, gate outcomes, and the assembled report only.
-- Dispatch identity: `engineer` for analysis, focused concerns, and write-back. The asset prompt and its named skills set the lens; the identity does not.
-- Every analysis and write-back dispatch carries `subagent_required_model="Claude Opus 5, GPT-5.6 Sol, Gemini 3.7 Flash"`.
+- Dispatch identity: `engineer` for the two analysis passes and for focused concerns. The asset prompt and its named skills set the lens; the identity does not.
+- Write-back is NOT dispatched. The actor that made the promises to the user is the actor that makes the irreversible calls: a subagent cannot hold an approval gate, and by then nothing is left to discover.
+- Every analysis dispatch carries `subagent_required_model="Claude Opus 5, GPT-5.6 Sol, Gemini 3.7 Flash"`.
 - Parallel dispatches must not share a write target.
 
 </orchestration>
@@ -92,7 +93,7 @@ Classify once, state the chosen mode, then run it end to end.
 - Deep analysis happened in subagents; the router emitted no analysis of its own
 - Every finding in the report carries a citation; every uncited observation sits under unknowns
 - Both verdicts present, independently justified, each naming what would flip it
-- Every tracker write was individually approved, or none happened
+- Every tracker write was individually approved by the user in this context, never by a delegate
 - No design decision, code, or interface choice appears in any emitted task
 - Report is readable end to end without opening the codebase
 

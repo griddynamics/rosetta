@@ -1,8 +1,3 @@
----
-name: work-breakdown-templates
-description: LARGE-only templates — EARS functional requirements and the assumption, unknown, and blocker register.
----
-
 <work_breakdown_templates>
 
 <description>

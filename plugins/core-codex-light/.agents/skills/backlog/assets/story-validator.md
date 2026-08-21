@@ -1,8 +1,3 @@
----
-name: story-validator
-description: Mode method for validating whether an existing story is honestly ready for development.
----
-
 <story_validator>
 
 <contract>
@@ -16,7 +11,7 @@ Never produce the implementation, the design, or the interface choice. Produce t
 
 1. **Intake, read only.** USE SKILL `data-collection` with role `Issue Tracker` for the item, its parents, children, sibling tasks, links, and every comment — comments hold requirements more often than descriptions do, and they hold the answers to earlier runs. Referenced wiki pages -> role `Wiki`. Record retrieved / restricted / absent per source. No interpretation here.
 
-2. **Delta against prior runs.** This skill runs on the same story repeatedly, weeks before implementation. Find the prior analysis comments, the prior `Q-nn` question comments, and the verdict labels already on the item. Classify every earlier question: **answered** -> the answer is now a fact, cite the comment · **open** -> carry it forward unchanged, same id · **void** -> the story moved under it, say so and retire it. Work the delta only: what changed, what is still open, what got answered. Never re-ask an answered question. First run -> everything is delta.
+2. **Delta against prior runs.** Runs repeat on the same story for weeks before implementation. Find the prior analysis comments, the prior `Q-nn` question comments, and the verdict labels already on the item. Classify every earlier question: **answered** -> the answer is now a fact, cite the comment · **open** -> carry it forward unchanged, same id · **void** -> the story moved under it, say so and retire it. Work the delta only: what changed, what is still open, what got answered. Never re-ask an answered question. First run -> everything is delta.
 
 3. **Business analysis.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `business-analysis`, and carries the intake record, the established facts from step 2, plus the repository scope.
 
@@ -28,7 +23,7 @@ Never produce the implementation, the design, or the interface choice. Produce t
 
 7. **Gate 2 — user Q&A.** Unknowns surfaced by steps 5 and 6. Same rules as gate 4.
 
-8. **Write-back.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `backlog-writeback`, and carries every confirmed finding, answer, assumption, open question, and verdict. Established facts land on the story; open questions land as comments. Each run leaves the story closer to buildable than it was.
+8. **Write-back, in this context.** APPLY SKILL FILE `assets/story-validator-backlog-writeback.md`. Never dispatch it — the approval gate needs the actor the user answers. Established facts land on the story; open questions land as comments. Each run leaves the story closer to buildable than it was.
 
 </process>
 

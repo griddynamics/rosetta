@@ -1,8 +1,3 @@
----
-name: story-validator-business-analysis
-description: Dispatch prompt — code-grounded business analysis of an existing story for readiness.
----
-
 <story_validator_business_analysis>
 
 <role>
@@ -42,7 +37,7 @@ The intake record (story, parents, children, sibling tasks, links, every comment
    - **Inconsistency** — the text contradicts itself, a comment, a sibling item, or existing behaviour.
    - **Gap** — a decision the story leaves to whoever picks it up.
    - **Dependency** — something outside this story must exist, change, or be agreed first.
-4. Consequences of building exactly what is written: what else changes behaviour · what silently keeps the old path · what becomes wrong elsewhere · what the story forgot to ask for. Highest-value output — do not shortchange it.
+4. Consequences of building exactly what is written: what else changes behaviour · what silently keeps the old path · what becomes wrong elsewhere · what the story forgot to ask for. Do not shortchange this.
 5. Enough-information test per gap: could a competent implementer proceed inventing nothing? No -> name what they would invent.
 6. Per gap: best guess + the existing pattern it copies, cited. Guess with precedent = useful. Guess without = blocker.
 7. Mark `needs-analysis` on anything needing deeper independent analysis + the single question it must answer.

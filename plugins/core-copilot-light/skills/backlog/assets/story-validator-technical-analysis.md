@@ -1,8 +1,3 @@
----
-name: story-validator-technical-analysis
-description: Dispatch prompt — technical feasibility analysis of a story from the implementer's seat.
----
-
 <story_validator_technical_analysis>
 
 <role>

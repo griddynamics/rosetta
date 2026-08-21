@@ -1,8 +1,3 @@
----
-name: work-breakdown
-description: Mode method for breaking approved work into a human work breakdown structure with EARS requirements.
----
-
 <work_breakdown>
 
 <contract>
@@ -48,11 +43,11 @@ The WBS is always required. Size scales its depth, never its existence.
 - Never name a person or an agent. Name the skills the step needs
 - Make every step independently completable as one unit
 - Include fields: title, description, shape, skills, estimate, AC, NFR, requirement, priority, predecessors, findings closed
-- Declare each step's shape. The people doing this work use AI coding agents, so surface and difficulty scale differently:
+- Declare each step's shape. This work runs with AI coding agents: surface != difficulty.
   - **wide and shallow** — large surface, low judgement per touch. Mechanical, repetitive, AI-amplified. Sized by surface; state the surface
   - **deep and narrow** — small surface, high judgement. One hard decision, one place. Sized by the thinking, not the typing
   - A step that is both wide and deep is not a step. Split it by shape first
-- Estimate every step. The team estimates, so estimates belong in the WBS
+- Estimate every step. The team estimates.
 - Target 2-4 hours of team effort per step, AI assistance included. Above 4 -> split
 - Below 2 hours and disjoint from every neighbour -> it stays its own step. Never merge unrelated work to reach the band
 - Trace each step to the findings and confirmed answers it consumes

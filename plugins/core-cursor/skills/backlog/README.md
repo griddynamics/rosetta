@@ -5,7 +5,7 @@ Two-mode backlog skill: decide whether an existing story is honestly ready for d
 Left to plain judgment, an agent handed a story either declares it fine and starts coding, or declares it blocked and stops. Both are wrong. This skill forces a code-grounded readiness verdict on two independent axes, and makes an unready story *partially actionable* instead of blocked. The failure modes it targets are named in the technical-analysis prompt: nobody should discover mid-sprint that an external contract was never read, a package was never used here, or a field does not exist.
 
 ## When to engage
-- Actor: orchestrator or top agent. The two deep passes and the write-back run as `engineer` subagents.
+- Actor: orchestrator or top agent. The two deep passes and the focused concerns run as `engineer` subagents; write-back does not.
 - `story-validator` — a story, ticket, or epic exists and readiness is unclear. Run it repeatedly, well before implementation, until nothing is left open.
 - `work-breakdown` — readiness-cleared work needs a human WBS. Consumes mode-1 output: confirmed answers, `BA-nn` / `TA-nn` findings, verbatim contracts.
 - Prereqs: Rosetta prep steps complete, `load-project-context` executed. `story-validator` additionally needs a readable Issue Tracker integration; write-back needs write access or it degrades to ready-to-paste text.
@@ -19,7 +19,7 @@ Left to plain judgment, an agent handed a story either declares it fine and star
 | `assets/story-validator.md` | mode-1 method: 8 steps, delta handling, verdict rules, toolbox, report contract |
 | `assets/story-validator-business-analysis.md` | step 2 dispatch prompt |
 | `assets/story-validator-technical-analysis.md` | step 4 dispatch prompt |
-| `assets/story-validator-backlog-writeback.md` | step 7 dispatch prompt + tracker write binding |
+| `assets/story-validator-backlog-writeback.md` | step 8 write-back method + tracker write binding; applied in the orchestrator's context |
 | `assets/work-breakdown.md` | mode-2 method: mandatory WBS, step shape, estimates, handoff from validation |
 | `assets/work-breakdown-templates.md` | LARGE only: EARS FR + risk-register templates |
 
@@ -46,11 +46,11 @@ Mode-1 flow: intake via `data-collection` (read-only) → delta against prior ru
 - `description` drives auto-activation and is budgeted at roughly 25 tokens. It must keep naming story readiness, sprint intake, and WBS.
 - The four verdict labels are external contract, written into a live tracker: `ready-for-development`, `not-ready-for-development`, `tech-ready`, `not-tech-ready`. Renaming them breaks every saved filter and board query using them.
 - `Q-nn` question ids and the `## Established technical facts` story block are cross-run contract: ids must stay stable so an answer still matches, and the block is the only place technical content may enter a story body.
-- Subagents reach a dispatch prompt by using this skill with a `dispatch` name, never by an `APPLY SKILL FILE` written into a dispatch line: `SKILL FILE` resolves against the *current* skill, and a freshly spawned subagent has none. The `<dispatch>` branch in `SKILL.md` is what anchors `assets/` in the subagent's context, and it must stay ahead of `<core_concepts>` — a subagent never runs the Rosetta prep steps, so it must reach the branch before it reaches that gate. The three names `business-analysis`, `technical-analysis`, `backlog-writeback` are load-bearing and must match the asset filenames.
-- Every analysis and write-back dispatch carries `subagent_required_model="claude-opus-5, gpt-5.6-sol, gemini-3.7-flash"`. The `engineer` agent defaults to a workhorse tier; without the override the deep passes run under-powered.
+- Subagents reach a dispatch prompt by using this skill with a `dispatch` name, never by an `APPLY SKILL FILE` written into a dispatch line: `SKILL FILE` resolves against the *current* skill, and a freshly spawned subagent has none. The `<dispatch>` branch in `SKILL.md` is what anchors `assets/` in the subagent's context, and it must stay ahead of `<core_concepts>` — a subagent never runs the Rosetta prep steps, so it must reach the branch before it reaches that gate. The two names `business-analysis` and `technical-analysis` are load-bearing and must match the asset filenames. Write-back is deliberately absent: it holds the user approval gate, which a subagent cannot, and by step 8 there is nothing left to discover — so it is applied in the orchestrator's context.
+- Every analysis dispatch carries `subagent_required_model="claude-opus-5, gpt-5.6-sol, gemini-3.7-flash"`. The `engineer` agent defaults to a workhorse tier; without the override the deep passes run under-powered.
 - The write binding names operations by capability, not by vendor tool name, and has no delete operation. Preview-then-approve, and per-operation confirmation for overwrites and closes, are the safety contract.
 - `assets/work-breakdown-templates.md` stays behind the `applies="LARGE"` gate. Inlining it loads template text into every SMALL run.
-- The two analysis dispatches return the XML shapes defined in their `<output>` blocks. Element and attribute names are contract: the write-back prompt and the report reference findings by their `BA-nn` / `TA-nn` ids.
+- Assets carry no frontmatter; the publisher tags them by path and filename. The two analysis dispatches return the XML shapes defined in their `<output>` blocks. Element and attribute names are contract: the write-back prompt and the report reference findings by their `BA-nn` / `TA-nn` ids.
 - Workspace locations are TERM references (FEATURE PLAN folder), never literal paths; `load-project-context` owns the actual paths.
 - `skills/planning/SKILL.md` redirects human-work-breakdown requests here. That redirect is the compatibility path for existing `planning` callers.
 
