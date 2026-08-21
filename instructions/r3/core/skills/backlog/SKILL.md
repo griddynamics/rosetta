@@ -22,6 +22,14 @@ Not requirements authoring from scratch. Not AI session planning. Not implementa
 
 </when_to_use_skill>
 
+<dispatch>
+
+Read this first. Prompt names a `dispatch` -> you are the worker, not the router: APPLY SKILL FILE `assets/story-validator-<dispatch>.md` and return exactly per its output contract. Ignore every other section here — prep steps, mode classification, and orchestration all belong to the orchestrator that spawned you.
+
+Valid: `business-analysis` · `technical-analysis` · `backlog-writeback`. Unknown name -> STOP, report to the orchestrator.
+
+</dispatch>
+
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
@@ -32,14 +40,6 @@ Not requirements authoring from scratch. Not AI session planning. Not implementa
 - Ungrounded output is worse than no output.
 
 </core_concepts>
-
-<dispatch>
-
-Prompt names a `dispatch` -> you are the worker, not the router. Skip `<modes>` and `<orchestration>`. APPLY SKILL FILE `assets/story-validator-<dispatch>.md`, then return exactly per its output contract.
-
-Valid: `business-analysis` · `technical-analysis` · `backlog-writeback`. Unknown name -> STOP, report to the orchestrator.
-
-</dispatch>
 
 <modes>
 
