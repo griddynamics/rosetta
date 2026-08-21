@@ -60,10 +60,10 @@ Classify once, state the chosen mode, then run it end to end.
 <orchestration>
 
 - USE SKILL `orchestration` for every dispatch. USE SKILL `hitl` for every gate. USE SKILL `questioning` to shape Q&A.
-- Analysis depth belongs in subagents, never in this context. The router holds mode state, gate outcomes, and the assembled report only.
-- Dispatch identity: `engineer` for the two analysis passes and for focused concerns. The asset prompt and its named skills set the lens; the identity does not.
-- Write-back is NOT dispatched. The actor that made the promises to the user is the actor that makes the irreversible calls: a subagent cannot hold an approval gate, and by then nothing is left to discover.
-- Every analysis dispatch carries `subagent_required_model="Claude Opus 5, GPT-5.6 Sol, Gemini 3.7 Flash"`.
+- One story, one context. Run the whole mode here by default.
+- Story too big for one context -> spawn `engineer` for the business and technical passes, dispatch `business-analysis` / `technical-analysis`, `subagent_required_model="Claude Opus 5, GPT-5.6 Sol, Gemini 3.7 Flash"`.
+- Write-back is never dispatched — it holds the approval gate.
+- Focused concerns dispatch as `engineer`, one concern each.
 - Parallel dispatches must not share a write target.
 
 </orchestration>
@@ -107,6 +107,10 @@ Classify once, state the chosen mode, then run it end to end.
 - Answering a business ambiguity with a technical workaround
 - Restating the story back at the user as if it were analysis
 - Writing to the tracker in one batch approval
+- Overly trusting the original story/task/comments
+- Following literally/mechanically as in 20% cases the problem does exist, but completely the opposite
+- Not checking for other/simpler/cleaner solutions, reusability opportunities, gaps, inconsistencies, conflicts, ambiguity, temporal references, and poka-yoke
+- Overcomplicating solution
 
 </pitfalls>
 

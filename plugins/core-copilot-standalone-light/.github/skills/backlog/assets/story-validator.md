@@ -13,11 +13,11 @@ Never produce the implementation, the design, or the interface choice. Produce t
 
 2. **Delta against prior runs.** Runs repeat on the same story for weeks before implementation. Find the prior analysis comments, the prior `Q-nn` question comments, and the verdict labels already on the item. Classify every earlier question: **answered** -> the answer is now a fact, cite the comment · **open** -> carry it forward unchanged, same id · **void** -> the story moved under it, say so and retire it. Work the delta only: what changed, what is still open, what got answered. Never re-ask an answered question. First run -> everything is delta.
 
-3. **Business analysis.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `business-analysis`, and carries the intake record, the established facts from step 2, plus the repository scope.
+3. **Business analysis.** APPLY SKILL FILE `assets/story-validator-business-analysis.md` against the intake record, the established facts from step 2, and the repository scope.
 
 4. **Gate 1 — user Q&A.** Present business findings as a short non-technical narrative, TLDR first. Ask only what code cannot answer. Answers become facts; unanswered -> labelled assumption, carried forward, never silently resolved. Anything the user cannot answer alone goes to step 8 as a `Q-nn` comment addressed to its owner.
 
-5. **Technical analysis.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `technical-analysis`, and carries the intake record, the business findings, and every confirmed answer.
+5. **Technical analysis.** APPLY SKILL FILE `assets/story-validator-technical-analysis.md` against the intake record, the business findings, and every confirmed answer. Separate prompt, separate lens — never merge it with step 3.
 
 6. **Focused concerns, parallel.** Each `needs-analysis` concern that could flip a verdict gets one `engineer`, one concern, scoped to that concern alone. Give it the concern, the single question it must answer, and the evidence bar. Ad-hoc dispatch, no `dispatch` name. Concerns that cannot flip a verdict stay listed, unanalysed, and are named as such.
 
