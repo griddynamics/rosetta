@@ -1,6 +1,6 @@
 ---
 name: backlog
-description: "To validate story readiness for a sprint and to break work into a human WBS."
+description: "To validate story readiness for a sprint or to break work into a human WBS."
 license: Apache-2.0
 argument-hint: story-ref | request, mode?, scope?
 baseSchema: docs/schemas/skill.md

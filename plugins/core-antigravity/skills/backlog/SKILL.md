@@ -1,6 +1,6 @@
 ---
 name: backlog
-description: "To validate story readiness for a sprint and to break work into a human WBS."
+description: "To validate story readiness for a sprint or to break work into a human WBS."
 ---
 
 <backlog>
