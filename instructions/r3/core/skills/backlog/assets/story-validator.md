@@ -14,19 +14,21 @@ Never produce the implementation, the design, or the interface choice. Produce t
 
 <process>
 
-1. **Intake, read only.** USE SKILL `data-collection` with role `Issue Tracker` for the item, its parents, children, sibling tasks, links, and every comment — comments hold requirements more often than descriptions do. Referenced wiki pages -> role `Wiki`. Record retrieved / restricted / absent per source. No interpretation here.
+1. **Intake, read only.** USE SKILL `data-collection` with role `Issue Tracker` for the item, its parents, children, sibling tasks, links, and every comment — comments hold requirements more often than descriptions do, and they hold the answers to earlier runs. Referenced wiki pages -> role `Wiki`. Record retrieved / restricted / absent per source. No interpretation here.
 
-2. **Business analysis.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `business-analysis`, and carries the intake record plus the repository scope.
+2. **Delta against prior runs.** This skill runs on the same story repeatedly, weeks before implementation. Find the prior analysis comments, the prior `Q-nn` question comments, and the verdict labels already on the item. Classify every earlier question: **answered** -> the answer is now a fact, cite the comment · **open** -> carry it forward unchanged, same id · **void** -> the story moved under it, say so and retire it. Work the delta only: what changed, what is still open, what got answered. Never re-ask an answered question. First run -> everything is delta.
 
-3. **Gate 1 — user Q&A.** Present business findings as a short non-technical narrative, TLDR first. Ask only what code cannot answer. Answers become facts; unanswered -> labelled assumption, carried forward, never silently resolved.
+3. **Business analysis.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `business-analysis`, and carries the intake record, the established facts from step 2, plus the repository scope.
 
-4. **Technical analysis.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `technical-analysis`, and carries the intake record, the business findings, and the confirmed answers.
+4. **Gate 1 — user Q&A.** Present business findings as a short non-technical narrative, TLDR first. Ask only what code cannot answer. Answers become facts; unanswered -> labelled assumption, carried forward, never silently resolved. Anything the user cannot answer alone goes to step 8 as a `Q-nn` comment addressed to its owner.
 
-5. **Focused concerns, parallel.** Each `needs-analysis` concern that could flip a verdict gets one `engineer`, one concern, scoped to that concern alone. Give it the concern, the single question it must answer, and the evidence bar. Ad-hoc dispatch, no `dispatch` name. Concerns that cannot flip a verdict stay listed, unanalysed, and are named as such.
+5. **Technical analysis.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `technical-analysis`, and carries the intake record, the business findings, and every confirmed answer.
 
-6. **Gate 2 — user Q&A.** Unknowns surfaced by steps 4 and 5. Same rules as gate 1.
+6. **Focused concerns, parallel.** Each `needs-analysis` concern that could flip a verdict gets one `engineer`, one concern, scoped to that concern alone. Give it the concern, the single question it must answer, and the evidence bar. Ad-hoc dispatch, no `dispatch` name. Concerns that cannot flip a verdict stay listed, unanalysed, and are named as such.
 
-7. **Write-back.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `backlog-writeback`, and carries every confirmed finding, answer, assumption, and verdict.
+7. **Gate 2 — user Q&A.** Unknowns surfaced by steps 5 and 6. Same rules as gate 4.
+
+8. **Write-back.** INVOKE SUBAGENT `engineer`; its prompt MUST USE SKILL `backlog` with dispatch `backlog-writeback`, and carries every confirmed finding, answer, assumption, open question, and verdict. Established facts land on the story; open questions land as comments. Each run leaves the story closer to buildable than it was.
 
 </process>
 
@@ -72,8 +74,10 @@ Moves:
 
 <report>
 
-Persist to the FEATURE PLAN folder before step 7, then present. Order:
+Persist to the FEATURE PLAN folder before step 8, then present. Order:
 
+- **Open questions** — `Q-nn`, each with its owner and one line on what it blocks. The extractable list: an analyst takes it to stakeholders unchanged
+- Answered since last run — question id, the answer, the comment it came from
 - Verdicts, both, one line each with the flipping evidence
 - What this story asks for, in business language
 - Consequences if built exactly as written now
@@ -81,6 +85,7 @@ Persist to the FEATURE PLAN folder before step 7, then present. Order:
 - Technical concerns per split concern, each with its own state
 - Unknowns still open, with who owns each
 - Assumptions carried, and the follow-up raised for each
+- Facts promoted onto the story this run
 - Backlog changes proposed or applied
 
 </report>
@@ -88,6 +93,9 @@ Persist to the FEATURE PLAN folder before step 7, then present. Order:
 <validation_checklist>
 
 - Comments and linked items were read, not only the description
+- Prior questions were classified answered / open / void before any new question was asked
+- No question carries a new id when an open one already covers it
+- Every open question names an owner, and exists as a comment on the item
 - Business findings were shown to the user before technical analysis started
 - Every `needs-analysis` concern that could flip a verdict was actually dispatched, or named as deliberately not analysed
 - Each verdict states its flipping evidence
@@ -99,6 +107,9 @@ Persist to the FEATURE PLAN folder before step 7, then present. Order:
 <pitfalls>
 
 - Treating the description as the requirement while the answer sits in comment 14
+- Re-asking a question a stakeholder already answered in a comment
+- Renumbering question ids between runs, so answers can no longer be matched
+- Leaving established facts in the report only, where implementation will never read them
 - Running technical analysis on a premise the user would have corrected in one sentence
 - A single unresolved external dependency collapsing every concern into not-ready
 - Proposing a split that leaves one side undeliverable on its own

@@ -37,6 +37,7 @@ Valid: `business-analysis` · `technical-analysis` · `backlog-writeback`. Unkno
 - Readiness is a claim about information, not about effort: can this be built with no assumption and no hallucination?
 - Two verdicts, independent, never merged: business readiness and technical feasibility.
 - Blocking is the last resort. Partial actionability beats a blocked story.
+- Runs repeat on the same item over weeks. Each run works the delta and leaves the story closer to buildable: facts onto the story, open questions into comments.
 - Ungrounded output is worse than no output.
 
 </core_concepts>
@@ -77,7 +78,8 @@ Classify once, state the chosen mode, then run it end to end.
 
 <audience>
 
-- Story text, comments, questions, and the report: plain language a non-technical analyst reads unaided. Name the business consequence, not the mechanism.
+- Story narrative, comments, questions, and the report: plain language a non-technical analyst reads unaided. Name the business consequence, not the mechanism.
+- One exception, delimited: a story's `## Established technical facts` block carries verbatim contracts, paths, and settled decisions. Technical content lives there or in a task, nowhere else in a story.
 - Task bodies: verbatim contracts, affected paths, links to existing specs, examples, and patterns. Context, never decisions.
 - No meta-commentary anywhere: never "user said", "we updated because", "skill requires", "engineer will need".
 - Professionally direct. Short lines. No hedging adjectives.
