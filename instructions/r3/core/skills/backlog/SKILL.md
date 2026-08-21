@@ -107,6 +107,10 @@ Classify once, state the chosen mode, then run it end to end.
 - Answering a business ambiguity with a technical workaround
 - Restating the story back at the user as if it were analysis
 - Writing to the tracker in one batch approval
+- Overly trusting the original story/task/comments
+- Following literally/mechanically as in 20% cases the problem does exist, but completely the opposite
+- Not checking for other/simpler/cleaner solutions, reusability opportunities, gaps, inconsistencies, conflicts, ambiguity, temporal references, and poka-yoke
+- Overcomplicating solution
 
 </pitfalls>
 
