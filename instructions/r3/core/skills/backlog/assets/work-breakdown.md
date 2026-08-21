@@ -1,4 +1,15 @@
-<core_concepts>
+---
+name: work-breakdown
+description: Mode method for breaking approved work into a human work breakdown structure with EARS requirements.
+---
+
+<work_breakdown>
+
+<contract>
+
+Input: approved, readiness-cleared work. Output: repository artifacts only — EARS functional requirements, a chronological WBS, and an explicit assumption and unknown register. This mode never writes to the issue tracker.
+
+</contract>
 
 <request_size_scaling>
 
@@ -9,21 +20,23 @@
 | Plan artifact | todo tasks | flat task list (title, files, AC, risk) | full WBS (all fields) |
 | Persistence | todo tasks only | `plans/` if >5 tasks, else todo | `plans/` always + `wbs.md` |
 | HITL gates | one before execution | one before execution | per major decision |
-| Templates | none | none | template files |
+| Templates | none | none | READ SKILL FILE `assets/work-breakdown-templates.md` |
 
 </request_size_scaling>
 
-Core flow:
+<process>
 
 1. USE SKILL `reasoning`
 2. Derive functional requirements in EARS form
-3. APPLY SKILL FILE `assets/pl-wbs.md` and draft technical WBS
+3. Draft the technical WBS per `<wbs_contract>`
 4. Enrich each step with prerequisites, consequences, and watch-fors
 5. Close gaps and consistency issues
 6. Integrate mistake-proofing controls into acceptance criteria
 7. Finalize dependency sequence and approval gates
 
-WBS contract:
+</process>
+
+<wbs_contract>
 
 - Preserve original user intent without speculative scope
 - Keep chronology valid across top-level and child steps
@@ -33,15 +46,10 @@ WBS contract:
 - Do not add time or duration fields
 - Keep each step about 20 minutes of work
 - Include discovery, design, implementation, tests, docs, git, and HITL steps
+- Persist critical assumptions and unknowns in `wbs.md`
+- Stop and escalate when critical unknowns block safe breakdown
 
-Boundaries:
-
-- Planning is a reusable skill and can run standalone
-- Do not force dedicated planning workflow
-- Stop and escalate when critical unknowns block safe planning
-- Keep plans compact, dense, and execution-oriented
-
-</core_concepts>
+</wbs_contract>
 
 <enforce>
 
@@ -53,13 +61,80 @@ Boundaries:
 - Where: explicit files, modules, services
 - Why: consequences and success rationale
 - How: AC, NFR, EARS FR, watch-fors
-- Keep enforcement local to this skill
+- Keep enforcement local to this mode
 - Do not add recursive propagation rules
-- Save critical assumptions and unknowns in `wbs.md`
 - Track open questions using todo tasks
 - Ask 5-10 targeted high-impact questions
 
 </enforce>
+
+<template>
+
+```md
+# WBS: [Feature Name]
+
+## Original Intent
+
+- Requested outcome: [single sentence]
+- In-scope: [explicit list]
+- Out-of-scope: [explicit list]
+
+## Functional Requirements (EARS)
+
+- [FR-AREA-0001] [WHEN/IF/WHILE/WHERE ... THEN the system SHALL ...]
+
+## Assumptions and Unknowns
+
+- [critical/high assumption or unknown]
+
+## 1. [Top-Level Step Name]
+
+### 1.1 [Step Name]
+
+**Priority**: [P0|P1|P2|P3]
+**Predecessors**: [None|1.1, 1.2]
+**Agent**: [role with specialization]
+**Where**: [files/folders/services/modules]
+**Description**: [what will be done]
+**AC**:
+- [measurable acceptance criterion]
+**NFR**:
+- [performance/security/reliability constraint]
+**EARS FR**:
+- [FR-AREA-0001]
+**Prerequisites**:
+- [required precondition]
+**Consequences**:
+- [if step is wrong or skipped]
+**Watch For**:
+- [common failure or risk]
+**HITL**:
+- [required approval or "None"]
+
+## [Testing]
+
+### [Scenario Design]
+- [scenario set]
+
+### [Test Data]
+- [input datasets and edge cases]
+
+### [Automation / Local Validation]
+- [test execution strategy]
+
+## [Documentation and Git]
+
+### [Docs Update]
+- [files to update]
+
+### [Git Checkpoints]
+- [branch]
+- [commit]
+- [push]
+- [PR]
+```
+
+</template>
 
 <validation_checklist>
 
@@ -92,8 +167,8 @@ Boundaries:
 
 <pitfalls>
 
-- Planning before intent is clear
-- Mixing specs and plan responsibilities
+- Breaking down before intent is clear
+- Mixing specs and breakdown responsibilities
 - Skipping dependencies and predecessors
 - Ambiguous acceptance criteria
 - Overly large steps with unclear owners
@@ -102,8 +177,6 @@ Boundaries:
 
 <resources>
 
-Use `INVOKE SUBAGENT` for agents, `USE SKILL` for skills.
-
 - agent `planner`
 - skill `reasoning`
 
@@ -111,8 +184,8 @@ Use `INVOKE SUBAGENT` for agents, `USE SKILL` for skills.
 
 <templates applies="LARGE">
 
-- READ SKILL FILE `assets/pl-functional-requirements.md`
-- READ SKILL FILE `assets/pl-wbs.md`
-- READ SKILL FILE `assets/pl-risk-and-unknowns.md`
+- READ SKILL FILE `assets/work-breakdown-templates.md`
 
 </templates>
+
+</work_breakdown>

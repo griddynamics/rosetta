@@ -4,6 +4,7 @@
 - research
 - context-engineering (TBD)
 - planning
+- backlog
 - reasoning
 - questioning
 - tech-specs
