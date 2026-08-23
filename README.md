@@ -47,8 +47,6 @@ Connect the agent to your other tools, such as a code graph or test runner. Add 
 
 Those are implemented to fully cover entire area of work as All-In-One. If full workflow is not needed you can ask or use skills directly.
 
-**Getting started**
-
 ### 4.1 Help Workflow
 
 Finds the right workflow for your request and hands off directly into it.
@@ -58,8 +56,6 @@ Use it when you do not know what Rosetta can do, or which workflow fits.
 **Skills:** [`/natural-writing`](instructions/r3/core/skills/natural-writing/SKILL.md), [`/reasoning`](instructions/r3/core/skills/reasoning/SKILL.md)
 
 [Help Workflow Details](https://griddynamics.github.io/rosetta/docs/help-flow/)
-
-**Coding**
 
 ### 4.2 Coding Workflow
 
@@ -71,7 +67,17 @@ Covers E2E and gives a fully implemented and tested solution. Intended for mediu
 
 [Coding Workflow Details](https://griddynamics.github.io/rosetta/docs/coding-flow/)
 
-### 4.3 Ad-hoc Workflow
+### 4.3 Code Analysis Workflow
+
+Reverse-engineers a codebase into architecture documentation. Every claim traces to real code.
+
+Use it to understand a system before you plan, refactor, or migrate it.
+
+**Skills:** [`/requirements-authoring`](instructions/r3/core/skills/requirements-authoring/SKILL.md), [`/reverse-engineering`](instructions/r3/core/skills/reverse-engineering/SKILL.md), [`/reasoning`](instructions/r3/core/skills/reasoning/SKILL.md), [`/large-workspace-handling`](instructions/r3/core/skills/large-workspace-handling/SKILL.md), [`/questioning`](instructions/r3/core/skills/questioning/SKILL.md)
+
+[Code Analysis Workflow Details](https://griddynamics.github.io/rosetta/docs/code-analysis-flow/)
+
+### 4.4 Ad-hoc Workflow
 
 Builds a custom plan from reusable building blocks, then executes it with tracking.
 
@@ -81,29 +87,7 @@ Use it for small or unusual tasks that do not fit any other workflow.
 
 [Ad-hoc Workflow Details](https://griddynamics.github.io/rosetta/docs/adhoc-flow/)
 
-**Quality engineering (QE)**
-
-### 4.4 API AQA Workflow
-
-Turns API contracts and test cases into working, corrected, automated tests. Gated by your approval.
-
-Use it to automate backend API tests from OpenAPI specs or request/response cases.
-
-**Skills:** [`/data-collection`](instructions/r3/core/skills/data-collection/SKILL.md), [`/qa-knowledge`](instructions/r3/core/skills/qa-knowledge/SKILL.md), [`/qa-structure`](instructions/r3/core/skills/qa-structure/SKILL.md), [`/reverse-engineering`](instructions/r3/core/skills/reverse-engineering/SKILL.md), [`/coding`](instructions/r3/core/skills/coding/SKILL.md), [`/testing`](instructions/r3/core/skills/testing/SKILL.md), [`/debugging`](instructions/r3/core/skills/debugging/SKILL.md)
-
-[API AQA Workflow Details](https://griddynamics.github.io/rosetta/docs/api-aqa-flow/)
-
-### 4.5 UI AQA Workflow
-
-Turns a test case into a working automated UI test. Follows your repo's existing page objects.
-
-Use it to automate browser or end-to-end tests, or to fix a failing one.
-
-**Skills:** [`/data-collection`](instructions/r3/core/skills/data-collection/SKILL.md), [`/qa-knowledge`](instructions/r3/core/skills/qa-knowledge/SKILL.md), [`/qa-structure`](instructions/r3/core/skills/qa-structure/SKILL.md), [`/reverse-engineering`](instructions/r3/core/skills/reverse-engineering/SKILL.md), [`/coding`](instructions/r3/core/skills/coding/SKILL.md), [`/testing`](instructions/r3/core/skills/testing/SKILL.md), [`/debugging`](instructions/r3/core/skills/debugging/SKILL.md)
-
-[UI AQA Workflow Details](https://griddynamics.github.io/rosetta/docs/ui-aqa-flow/)
-
-### 4.6 Test Case Generation Workflow
+### 4.5 Test Case Generation Workflow
 
 Turns a ticket into a requirements document and a set of manual test cases.
 
@@ -113,9 +97,27 @@ Use it when you need designed test scenarios with traceability, before any autom
 
 [Test Case Generation Workflow Details](https://griddynamics.github.io/rosetta/docs/testgen-flow/)
 
-**Requirements, specs & research**
+### 4.6 API AQA Workflow
 
-### 4.7 Requirements Authoring Workflow
+Turns API contracts and test cases into working, corrected, automated tests. Gated by your approval.
+
+Use it to automate backend API tests from OpenAPI specs or request/response cases.
+
+**Skills:** [`/data-collection`](instructions/r3/core/skills/data-collection/SKILL.md), [`/qa-knowledge`](instructions/r3/core/skills/qa-knowledge/SKILL.md), [`/qa-structure`](instructions/r3/core/skills/qa-structure/SKILL.md), [`/reverse-engineering`](instructions/r3/core/skills/reverse-engineering/SKILL.md), [`/coding`](instructions/r3/core/skills/coding/SKILL.md), [`/testing`](instructions/r3/core/skills/testing/SKILL.md), [`/debugging`](instructions/r3/core/skills/debugging/SKILL.md)
+
+[API AQA Workflow Details](https://griddynamics.github.io/rosetta/docs/api-aqa-flow/)
+
+### 4.7 UI AQA Workflow
+
+Turns a test case into a working automated UI test. Follows your repo's existing page objects.
+
+Use it to automate browser or end-to-end tests, or to fix a failing one.
+
+**Skills:** [`/data-collection`](instructions/r3/core/skills/data-collection/SKILL.md), [`/qa-knowledge`](instructions/r3/core/skills/qa-knowledge/SKILL.md), [`/qa-structure`](instructions/r3/core/skills/qa-structure/SKILL.md), [`/reverse-engineering`](instructions/r3/core/skills/reverse-engineering/SKILL.md), [`/coding`](instructions/r3/core/skills/coding/SKILL.md), [`/testing`](instructions/r3/core/skills/testing/SKILL.md), [`/debugging`](instructions/r3/core/skills/debugging/SKILL.md)
+
+[UI AQA Workflow Details](https://griddynamics.github.io/rosetta/docs/ui-aqa-flow/)
+
+### 4.8 Requirements Authoring Workflow
 
 Drafts and validates requirements as small, atomic units. Each unit needs your approval.
 
@@ -124,16 +126,6 @@ Use it when behavior is unclear or high-impact, or when you need traceability.
 **Skills:** [`/hitl`](instructions/r3/core/skills/hitl/SKILL.md), [`/requirements-authoring`](instructions/r3/core/skills/requirements-authoring/SKILL.md), [`/reverse-engineering`](instructions/r3/core/skills/reverse-engineering/SKILL.md)
 
 [Requirements Authoring Workflow Details](https://griddynamics.github.io/rosetta/docs/requirements-authoring-flow/)
-
-### 4.8 Code Analysis Workflow
-
-Reverse-engineers a codebase into architecture documentation. Every claim traces to real code.
-
-Use it to understand a system before you plan, refactor, or migrate it.
-
-**Skills:** [`/requirements-authoring`](instructions/r3/core/skills/requirements-authoring/SKILL.md), [`/reverse-engineering`](instructions/r3/core/skills/reverse-engineering/SKILL.md), [`/reasoning`](instructions/r3/core/skills/reasoning/SKILL.md), [`/large-workspace-handling`](instructions/r3/core/skills/large-workspace-handling/SKILL.md), [`/questioning`](instructions/r3/core/skills/questioning/SKILL.md)
-
-[Code Analysis Workflow Details](https://griddynamics.github.io/rosetta/docs/code-analysis-flow/)
 
 ### 4.9 Research Workflow
 
@@ -144,8 +136,6 @@ Use it for deep investigation or a technology comparison before you choose an ap
 **Skills:** [`/reasoning`](instructions/r3/core/skills/reasoning/SKILL.md), [`/research`](instructions/r3/core/skills/research/SKILL.md)
 
 [Research Workflow Details](https://griddynamics.github.io/rosetta/docs/research-flow/)
-
-**Modernization**
 
 ### 4.10 Modernization Workflow
 
@@ -166,8 +156,6 @@ Use it when your project depends on an internal SDK or external client, without 
 **Skills:** [`/hitl`](instructions/r3/core/skills/hitl/SKILL.md), [`/load-project-context`](instructions/r3/core/skills/load-project-context/SKILL.md), [`/orchestration`](instructions/r3/core/skills/orchestration/SKILL.md)
 
 [External Library Onboarding Workflow Details](https://griddynamics.github.io/rosetta/docs/external-lib-flow/)
-
-**Governance & prompt authoring**
 
 ### 4.12 Security Workflow
 
@@ -191,7 +179,7 @@ Use it to create, refactor, review, or port a prompt to another agent.
 
 ## Skills
 
-40 skills power these workflows. Browse them [here](instructions/r3/core/skills).
+40+ skills power these workflows. Browse them [here](instructions/r3/core/skills).
 
 ## Documentation
 
