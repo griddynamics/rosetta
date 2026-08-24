@@ -16,6 +16,9 @@ name: Validate Prompts
 # - Creates a PR comment with all issues by severity
 
 on:
+  # The pull_request_target trigger below is disabled on purpose and temporarily:
+  # the agent run costs more per PR than the current CI budget allows. It is not
+  # broken. Run it by hand via workflow_dispatch until the budget is restored.
   #pull_request_target:
   #  types: [opened, synchronize, reopened, ready_for_review]
   #  paths:
