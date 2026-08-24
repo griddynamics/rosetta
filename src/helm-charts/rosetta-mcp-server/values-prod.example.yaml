@@ -2,7 +2,7 @@
 # Use with: helm install -f values.yaml -f values-prod.yaml ...
 
 image:
-  tag: "2.0.25"
+  tag: "3.0.4"
 
 ingress:
   host: rosetta.example.com
