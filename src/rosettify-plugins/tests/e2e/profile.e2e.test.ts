@@ -27,6 +27,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { parse as parseToml } from 'smol-toml';
 import { generate } from '../../src/index.js';
 import type { ResolvedSources } from '../../src/types.js';
 
@@ -66,6 +67,36 @@ function buildSources(outputDir: string): ResolvedSources {
     outputDir,
     profileSource: PROFILE_SOURCE,
   };
+}
+
+/**
+ * NFR-0001 (#271) — "Given: any generated subagent TOML When: parsed Then: parsing succeeds."
+ *
+ * Both real-repo builds in this file emit a full `.codex/agents/*.toml` set from the live
+ * instruction tree, so the acceptance criterion is checked here for free rather than paying for a
+ * third generate() run. This is the poka-yoke for the whole class of emitter defects: the moment a
+ * maintainer authors an agent body containing a backslash (a regex, a Windows path) or a literal
+ * triple-quote, this fails in CI instead of shipping a Codex plugin that won't load.
+ */
+function expectEveryCodexAgentTomlParses(outputDir: string, codexTargetDir: string): void {
+  const agentsDir = path.join(outputDir, codexTargetDir, '.codex', 'agents');
+  expect(fs.existsSync(agentsDir), `${agentsDir} must exist`).toBe(true);
+  const files = fs.readdirSync(agentsDir).filter((f) => f.endsWith('.toml'));
+  // Guard against the assertion silently passing on an empty directory.
+  expect(files.length, 'expected a non-empty set of emitted agent TOMLs').toBeGreaterThan(0);
+  for (const file of files) {
+    const full = path.join(agentsDir, file);
+    const raw = fs.readFileSync(full, 'utf-8');
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = parseToml(raw) as Record<string, unknown>;
+    } catch (err) {
+      throw new Error(`${codexTargetDir}/.codex/agents/${file} is not valid TOML: ${String(err)}`);
+    }
+    // A parse that yields no body would mean the block collapsed — assert the field is really there.
+    expect(typeof parsed.developer_instructions, `${file} developer_instructions`).toBe('string');
+    expect((parsed.developer_instructions as string).length, `${file} body`).toBeGreaterThan(0);
+  }
 }
 
 function listFilesRecursive(dir: string): string[] {
@@ -194,6 +225,10 @@ describe('Profile E2E — profiled build (--profile lightweight)', () => {
     expect(codexEngineer).toContain('model_reasoning_effort = "xhigh"');
   });
 
+  it('every emitted core-codex-light agent TOML parses (NFR-0001, #271)', () => {
+    expectEveryCodexAgentTomlParses(outputDir, 'core-codex-light');
+  });
+
   it('light manifest name carries the -light suffix (FR-PROF-0021.AC1)', () => {
     const manifestPath = path.join(outputDir, 'core-claude-light', '.claude-plugin', 'plugin.json');
     expect(fs.existsSync(manifestPath)).toBe(true);
@@ -258,6 +293,10 @@ describe('Profile E2E — no-profile run (regression guard, FR-PROF-0040)', () =
       path.join(outputDir, 'core-codex', '.codex', 'agents', 'engineer.toml'), 'utf-8');
     expect(codexEngineer).toContain('model = "gpt-5.6-terra"');
     expect(codexEngineer).toContain('model_reasoning_effort = "medium"');
+  });
+
+  it('every emitted core-codex agent TOML parses (NFR-0001, #271)', () => {
+    expectEveryCodexAgentTomlParses(outputDir, 'core-codex');
   });
 
   it('base manifest name carries no suffix (FR-PROF-0040.AC2)', () => {
