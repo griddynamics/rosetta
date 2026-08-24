@@ -341,6 +341,13 @@ const COPILOT_GEMINI_MAP: Record<string, string> = {
   'gemini-3.7-flash': 'Gemini 3.7 Flash',
   'gemini-3.1-pro-preview': 'Gemini 3.7 Flash',
   'gemini-3.1-pro': 'Gemini 3.7 Flash',
+  // FR-ARCH-0057 key-retention invariant: a superseded token keeps its key and resolves FORWARD to
+  // the current model of its own cost tier. CURSOR_GEMINI_MAP has carried gemini-3.5-flash since the
+  // forward-upgrade rewrite; Copilot's omission was the only unexplained asymmetry between the two
+  // vocabularies (the missing grok-*/composer-* keys are deliberate — see the note above
+  // COPILOT_VOCABULARY). Value is `Gemini 3.7 Flash`, NOT `Gemini 3.5 Flash`: pinning the superseded
+  // model on Copilot while Cursor upgrades it would create a divergence, not close one.
+  'gemini-3.5-flash': 'Gemini 3.7 Flash',
   'gemini-3-flash': 'Gemini 3.7 Flash',
   'gemini-3-flash-preview': 'Gemini 3.7 Flash',
 };
@@ -453,7 +460,7 @@ export const CLAUDE_VOCABULARY: ModelVocabulary = {
 
 // Cursor/Copilot merge their per-vendor maps into one flat map consulted by exact-token lookup.
 // Keys are disjoint across the source maps (claude-*/gpt-*/gemini-*/grok-*/composer-* prefixes never
-// collide — verified: Cursor 65 total keys, 65 unique; Copilot 58 total, 58 unique), so merge order
+// collide — verified: Cursor 65 total keys, 65 unique; Copilot 59 total, 59 unique), so merge order
 // is immaterial.
 //
 // The Copilot map carries no Grok or Composer entry. That records only that no Copilot-native
