@@ -15,6 +15,10 @@
 name: Validate Test Cases
 
 on:
+  # The pull_request trigger below is disabled on purpose and temporarily:
+  # each run makes 3 Claude CLI calls per matched test-library case, which costs
+  # more per PR than the current CI budget allows. It is not broken. Run it by
+  # hand via workflow_dispatch until the budget is restored.
 #  pull_request:
 #    types: [opened, synchronize, reopened, ready_for_review]
 #    paths:
