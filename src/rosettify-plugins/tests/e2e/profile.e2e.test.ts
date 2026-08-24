@@ -191,17 +191,22 @@ describe('Profile E2E — profiled build (--profile lightweight)', () => {
   // exact-token tier and its family-substring fallback, Cursor's and Copilot's first-token exact
   // match, and Codex's first-gpt-token match plus reasoning-effort split.
   it('light agents resolve to the profile-scoped models on all four vocabularies', () => {
-    // Claude, exact-token tier: architect's light list carries claude-5-opus-high, which the Claude
-    // map resolves by EXACT token. The `opus` family key resolves to the same value, so this agrees
-    // with the base build rather than diverging from it — Claude Code exposes three tiers and the
-    // light profile asks for the same one here. What the exact entry guarantees is that an author
-    // naming a version explicitly keeps getting THAT version even if the family default later moves.
+    // Claude, exact-token tier: architect's light list carries claude-opus-5, which the Claude map
+    // resolves by EXACT token (#178 normalized the source token from claude-5-opus-high; both forms
+    // are exact keys and both resolve here, so the tier this exercises did not change). The `opus`
+    // family key resolves to the same value, so this agrees with the base build rather than diverging
+    // from it — Claude Code exposes three tiers and the light profile asks for the same one here.
+    // What the exact entry guarantees is that an author naming a version explicitly keeps getting
+    // THAT version even if the family default later moves.
     const claudeArchitect = fs.readFileSync(
       path.join(outputDir, 'core-claude-light', 'agents', 'architect.md'), 'utf-8');
     expect(claudeArchitect).toMatch(/^model: claude-opus-5$/m);
 
-    // Claude, family fallback: discoverer's light list carries claude-4.5-haiku, no exact entry, so
-    // the haiku family key resolves it (the base list leads with claude-5-sonnet -> claude-sonnet-5).
+    // Claude, family fallback: discoverer's light list carries claude-haiku-4-5. CLAUDE_CODE_MAP has
+    // exact keys only for the opus tokens, so this still has no exact entry and the `haiku` family
+    // key resolves it — #178's source normalization (claude-4.5-haiku -> claude-haiku-4-5) kept this
+    // case on the family tier, so the family-substring fallback remains covered by the real source
+    // tree. (The base list leads with claude-sonnet-5, also family-resolved, via `sonnet`.)
     const claudeDiscoverer = fs.readFileSync(
       path.join(outputDir, 'core-claude-light', 'agents', 'discoverer.md'), 'utf-8');
     expect(claudeDiscoverer).toMatch(/^model: claude-haiku-4-5$/m);

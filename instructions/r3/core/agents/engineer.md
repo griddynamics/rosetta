@@ -2,7 +2,7 @@
 name: engineer
 description: "Implement and test to high quality under the orchestrator-assigned identity. Full subagent."
 mode: subagent
-model: claude-5-sonnet, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6
+model: claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

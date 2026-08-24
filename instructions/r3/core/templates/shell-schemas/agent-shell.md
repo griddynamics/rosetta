@@ -8,7 +8,7 @@ description: "[Brief description of WHEN and HOW to use this agent and WHAT it d
 mode: "[Defines agent type]"
 
 # Model Configuration (Optional)
-# model — [Specifies which LLM model to use, any thinking/reasoning must be done with stronger models and high reasoning efforts, while execution with cheaper] [string] [Cursor, OpenCode, Claude Code] [ex: claude-5-sonnet]
+# model — [Specifies which LLM model to use, any thinking/reasoning must be done with stronger models and high reasoning efforts, while execution with cheaper] [string] [Cursor, OpenCode, Claude Code] [ex: claude-sonnet-5]
 model: "[Specifies which LLM model to use, any thinking/reasoning must be done with stronger models and high reasoning efforts, while execution with cheaper]"
 # temperature — [Controls response randomness] [float] [OpenCode] [ex: 0.7]
 temperature: "[Controls response randomness]"
