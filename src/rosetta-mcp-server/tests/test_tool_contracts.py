@@ -37,7 +37,7 @@ class _InstructionDocCache:
         self.calls.append((dataset, dataset_name))
         return self.docs
 
-    async def get_all_docs_async(self, dataset, dataset_name: str, tool_timeout: int = 120):
+    async def get_all_docs_async(self, dataset, dataset_name: str, tool_timeout: int | None = None):
         self.calls.append((dataset, dataset_name))
         return self.docs
 
