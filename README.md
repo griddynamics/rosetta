@@ -15,11 +15,11 @@
   </p>
 </div>
 
-AI coding agents are impressive on their own — but on a real team they don't know your architecture, your conventions, or your rules. So they read a couple of open files and confidently do the wrong thing.
+AI coding agents are great — until you try to use them across a real team. Everyone builds their own prompts and instructions, knowledge stays in silos, and the agent — not knowing your architecture or constraints — guesses from a few open files and confidently does the wrong thing.
 
-Rosetta fixes that. It loads your team's shared engineering knowledge into every agent session, so the agent works the way an experienced teammate would: understand the codebase first, propose a plan, get your sign-off, do the work, then check it actually works.
+That's why we built Rosetta — open-source engineering governance and context for AI coding agents. It's not another proprietary agent; it works with the tools you already use (Claude Code, Cursor, Copilot, Codex, and other MCP-compatible agents) and loads your team's shared engineering instructions into every session. Everything is versioned in Git and can run inside your perimeter.
 
-It's not a new AI agent and it doesn't replace the tools you already have. It plugs into Claude Code, Cursor, GitHub Copilot, Codex, Antigravity, and other MCP-compatible agents, and makes them behave better.
+**Teach agents how to think, not what to do.** The model already knows Python and React; what it lacks is your engineering discipline. That's what Rosetta encodes.
 
 ## 1. Install
 
@@ -179,7 +179,7 @@ Use it to create, refactor, review, or port a prompt to another agent.
 
 ## Skills
 
-40+ skills power these workflows. Browse them [here](instructions/r3/core/skills).
+40+ built-in disciplines run behind the scenes, covering everyday engineering work like [`coding`](instructions/r3/core/skills/coding/SKILL.md), [`qa-knowledge`](instructions/r3/core/skills/qa-knowledge/SKILL.md), and [`testing`](instructions/r3/core/skills/testing/SKILL.md). Browse the full set [here](instructions/r3/core/skills).
 
 ## Documentation
 
