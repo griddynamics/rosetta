@@ -50,7 +50,7 @@ Infrastructure:
 
 - Kill all existing servers that may have been started previously before running tests
 - Use Playwright MCP as the first testing step for browser-based validation
-- CLI testing harness for libraries/packages: commands outputting intermediate results
+- Cannot execute or observe the system under test → RECOMMEND USE SKILL `harness`
 
 </core_concepts>
 
@@ -74,7 +74,7 @@ Infrastructure:
 
 - Start browser-based testing with Playwright MCP
 - Use scenario testing for services and orchestrators
-- Use CLI harness for library testing: execute commands, inspect intermediate results
+- Execute through the project harness; inspect intermediate results
 - Separate unit, integration, and E2E test suites clearly
 
 </best_practices>

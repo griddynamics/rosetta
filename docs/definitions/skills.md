@@ -26,6 +26,7 @@
 - requirements-use
 - coding
 - testing
+- harness
 - debugging
 - codemap
 - load-project-context
