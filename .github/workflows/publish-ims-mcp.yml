@@ -17,6 +17,10 @@ jobs:
   build-test-deploy:
     runs-on: ubuntu-latest
 
+    # Least privilege: no step consumes GITHUB_TOKEN; PyPI auth uses a password secret.
+    permissions:
+      contents: read
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v5
