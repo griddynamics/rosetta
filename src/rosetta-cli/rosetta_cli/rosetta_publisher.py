@@ -641,13 +641,16 @@ class ContentPublisher:
                 return name[: -len(path.name)] + new_name
 
             # Collect all docs to delete into one list: (doc, label)
-            # Start with unmanaged: incomplete metadata (ims_doc_id or original_path absent)
+            # Start with managed docs carrying incomplete metadata: original_path is
+            # set (so the doc is ours) but ims_doc_id is absent. A doc with no
+            # original_path is custom/unmanaged and is never touched - see the
+            # docstring guarantee, which _cleanup_orphans enforces the same way.
             duplicates: list[tuple[DocumentLike, str]] = []
             for doc in all_docs:
                 meta = getattr(doc, "meta_fields", {}) or {}
                 ims_doc_id = meta.get("ims_doc_id") if isinstance(meta, dict) else getattr(meta, "ims_doc_id", None)
                 doc_original_path = meta.get("original_path", "") if isinstance(meta, dict) else getattr(meta, "original_path", "")
-                if not ims_doc_id or not doc_original_path:
+                if doc_original_path and not ims_doc_id:
                     doc_name = getattr(doc, "name", "") or doc.id
                     duplicates.append((doc, doc_name))
 
@@ -674,8 +677,10 @@ class ContentPublisher:
                     duplicates.append((doc, original_path))
 
             # Name duplicates: foo.md + foo(1).md + foo(2).md ...
+            # Grouped over managed_docs, not all_docs: a custom doc whose stripped
+            # name happens to collide with a managed one must not be deleted.
             name_groups: dict[str, list[DocumentLike]] = defaultdict(list)
-            for doc in all_docs:
+            for doc in managed_docs:
                 doc_name = getattr(doc, "name", "") or ""
                 if not doc_name:
                     continue
