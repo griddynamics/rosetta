@@ -159,7 +159,9 @@ def track_tool_call(func: Callable[P, Awaitable[str]]) -> Callable[P, Awaitable[
         call_ctx = kwargs.get("call_ctx")
         repository = await get_repository_from_context(ctx) if ctx else "unknown"
         tool_name = func.__name__
-        agent_name, agent_version = get_agent_info_from_context(ctx)
+        agent_name, agent_version = (
+            get_agent_info_from_context(ctx) if ctx else ("unknown", "unknown")
+        )
 
         try:
             result = await func(*args, **kwargs)
