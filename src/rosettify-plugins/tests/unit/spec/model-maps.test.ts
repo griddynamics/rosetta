@@ -193,6 +193,16 @@ describe('normalizeCopilot — new vocabulary entries', () => {
     expect(normalizeCopilot('gemini-3.7-flash-low', COPILOT_VOCABULARY.map)).toBe('Gemini 3.7 Flash');
   });
 
+  // #197 — the superseded Flash token used to have no Copilot key, so normalizeCopilot's passthrough
+  // returned the raw lowercase id while Cursor upgraded the same token. FR-ARCH-0057: "every
+  // `gemini-*` token shall map to `gemini-3.7-flash`".
+  it('maps the superseded gemini-3.5-flash forward to Gemini 3.7 Flash, matching Cursor (#197)', () => {
+    expect(normalizeCopilot('gemini-3.5-flash', COPILOT_VOCABULARY.map)).toBe('Gemini 3.7 Flash');
+    // Not the raw passthrough, and not the superseded display name.
+    expect(normalizeCopilot('gemini-3.5-flash', COPILOT_VOCABULARY.map)).not.toBe('gemini-3.5-flash');
+    expect(normalizeCopilot('gemini-3.5-flash', COPILOT_VOCABULARY.map)).not.toBe('Gemini 3.5 Flash');
+  });
+
   it('maps claude-5-opus-high to Claude Opus 5', () => {
     expect(normalizeCopilot('claude-5-opus-high', COPILOT_VOCABULARY.map)).toBe('Claude Opus 5');
   });
@@ -396,7 +406,7 @@ describe('merged Cursor/Copilot effective map (claude+gpt+gemini, FR-ARCH-0059)'
 
 // ─── Key-disjointness guard: merge order cannot matter (FR-ARCH-0059) ───────────────────────────
 // Cursor merges 5 per-vendor maps (claude/gpt/gemini/grok/composer = 17+33+9+5+1 = 65 keys);
-// Copilot merges 3 (claude/gpt/gemini = 17+33+8 = 58 keys, no grok/composer). Counts grew when the
+// Copilot merges 3 (claude/gpt/gemini = 17+33+9 = 59 keys, no grok/composer). Counts grew when the
 // GPT-5.6 upgrade added the mini family and effort-preserving entries, and the exact-token/Opus-5
 // entries gained a "-high" form. If the per-vendor prefixes ever collided, the spread merge in
 // CURSOR_VOCABULARY/COPILOT_VOCABULARY would silently drop a key and this count would fall below the
@@ -409,9 +419,46 @@ describe('merged vocabulary key disjointness (FR-ARCH-0059)', () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it('COPILOT_VOCABULARY.map has exactly 58 keys — the 3 per-vendor source maps never collide', () => {
+  it('COPILOT_VOCABULARY.map has exactly 59 keys — the 3 per-vendor source maps never collide', () => {
     const keys = Object.keys(COPILOT_VOCABULARY.map);
-    expect(keys.length).toBe(58);
+    expect(keys.length).toBe(59);
     expect(new Set(keys).size).toBe(keys.length);
+  });
+});
+
+// ─── Cursor/Copilot key-set parity guard (#197, FR-ARCH-0057) ───────────────────────────────────
+// The gemini-3.5-flash gap above survived because a key count can only report that a number moved,
+// never WHICH key went missing — and the 9-vs-8 asymmetry was written into the comment beside it as
+// though it were intended. This asserts the two key sets are identical apart from one explicit
+// allowlist, so the next drift names itself. The allowlist encodes the justification already given
+// in prose above COPILOT_VOCABULARY in model-maps.ts: no Copilot-native identifier has been
+// established for Grok or Composer, so those keys are deliberately Cursor-only.
+describe('Cursor/Copilot vocabulary key-set parity (#197, FR-ARCH-0057)', () => {
+  const CURSOR_ONLY_ALLOWLIST = /^(grok|composer)-/;
+
+  it('every Cursor key is a Copilot key too, except the documented grok-*/composer-* exceptions', () => {
+    const unexplained = Object.keys(CURSOR_VOCABULARY.map)
+      .filter((k) => !(k in COPILOT_VOCABULARY.map))
+      .filter((k) => !CURSOR_ONLY_ALLOWLIST.test(k));
+    expect(unexplained).toEqual([]);
+  });
+
+  it('Copilot carries no key Cursor lacks — Cursor is the superset', () => {
+    const copilotOnly = Object.keys(COPILOT_VOCABULARY.map).filter(
+      (k) => !(k in CURSOR_VOCABULARY.map),
+    );
+    expect(copilotOnly).toEqual([]);
+  });
+
+  it('the allowlist is not vacuous — grok/composer keys really are Cursor-only', () => {
+    // Guards the guard: if Copilot ever gains these, the allowlist must be narrowed rather than
+    // left as a permanent blanket exemption.
+    const allowlisted = Object.keys(CURSOR_VOCABULARY.map).filter((k) =>
+      CURSOR_ONLY_ALLOWLIST.test(k),
+    );
+    expect(allowlisted.length).toBeGreaterThan(0);
+    for (const key of allowlisted) {
+      expect(key in COPILOT_VOCABULARY.map, `${key} unexpectedly present in Copilot`).toBe(false);
+    }
   });
 });

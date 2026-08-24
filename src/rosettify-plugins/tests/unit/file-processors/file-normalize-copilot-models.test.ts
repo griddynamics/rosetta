@@ -171,6 +171,18 @@ describe('fileNormalizeCopilotModels — gemini token to display name', () => {
     const result = fileNormalizeCopilotModels(frame, makeCtx());
     expect(result.target_contents as string).toContain('model: Gemini 3.7 Flash');
   });
+
+  // #197 — this token had no Copilot key, so it fell through normalizeCopilot's passthrough and the
+  // raw lowercase id was written into a Copilot plugin as if it were a display name. Cursor mapped
+  // the same literal correctly; this was the only unexplained gap between the two vocabularies.
+  it('gemini-3.5-flash → COPILOT_GEMINI_MAP → Gemini 3.7 Flash, not raw passthrough (#197)', () => {
+    const content = '---\nmodel: gemini-3.5-flash\ntags: []\n---\n# Body\n';
+    const frame = makeFrame(content, 'gemini-3.5-flash');
+    const result = fileNormalizeCopilotModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: Gemini 3.7 Flash');
+    expect(result.target_contents as string).not.toContain('model: gemini-3.5-flash');
+    expect((result.source[0]?.frontmatter as any).model).toBe('Gemini 3.7 Flash');
+  });
 });
 
 // ─── Unknown token passthrough ────────────────────────────────────────────────

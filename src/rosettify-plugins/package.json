@@ -50,6 +50,7 @@
     "@types/micromatch": "^4.0.10",
     "@types/node": "^25.5.2",
     "@vitest/coverage-v8": "^4.1.10",
+    "smol-toml": "^1.8.0",
     "tsx": "^4.19.4",
     "typescript": "^6.0.0",
     "vitest": "^4.1.10"

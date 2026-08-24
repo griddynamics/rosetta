@@ -27,6 +27,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { parse as parseToml } from 'smol-toml';
 import { generate } from '../../src/index.js';
 import type { ResolvedSources } from '../../src/types.js';
 
@@ -66,6 +67,36 @@ function buildSources(outputDir: string): ResolvedSources {
     outputDir,
     profileSource: PROFILE_SOURCE,
   };
+}
+
+/**
+ * NFR-0001 (#271) — "Given: any generated subagent TOML When: parsed Then: parsing succeeds."
+ *
+ * Both real-repo builds in this file emit a full `.codex/agents/*.toml` set from the live
+ * instruction tree, so the acceptance criterion is checked here for free rather than paying for a
+ * third generate() run. This is the poka-yoke for the whole class of emitter defects: the moment a
+ * maintainer authors an agent body containing a backslash (a regex, a Windows path) or a literal
+ * triple-quote, this fails in CI instead of shipping a Codex plugin that won't load.
+ */
+function expectEveryCodexAgentTomlParses(outputDir: string, codexTargetDir: string): void {
+  const agentsDir = path.join(outputDir, codexTargetDir, '.codex', 'agents');
+  expect(fs.existsSync(agentsDir), `${agentsDir} must exist`).toBe(true);
+  const files = fs.readdirSync(agentsDir).filter((f) => f.endsWith('.toml'));
+  // Guard against the assertion silently passing on an empty directory.
+  expect(files.length, 'expected a non-empty set of emitted agent TOMLs').toBeGreaterThan(0);
+  for (const file of files) {
+    const full = path.join(agentsDir, file);
+    const raw = fs.readFileSync(full, 'utf-8');
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = parseToml(raw) as Record<string, unknown>;
+    } catch (err) {
+      throw new Error(`${codexTargetDir}/.codex/agents/${file} is not valid TOML: ${String(err)}`);
+    }
+    // A parse that yields no body would mean the block collapsed — assert the field is really there.
+    expect(typeof parsed.developer_instructions, `${file} developer_instructions`).toBe('string');
+    expect((parsed.developer_instructions as string).length, `${file} body`).toBeGreaterThan(0);
+  }
 }
 
 function listFilesRecursive(dir: string): string[] {
@@ -160,17 +191,22 @@ describe('Profile E2E — profiled build (--profile lightweight)', () => {
   // exact-token tier and its family-substring fallback, Cursor's and Copilot's first-token exact
   // match, and Codex's first-gpt-token match plus reasoning-effort split.
   it('light agents resolve to the profile-scoped models on all four vocabularies', () => {
-    // Claude, exact-token tier: architect's light list carries claude-5-opus-high, which the Claude
-    // map resolves by EXACT token. The `opus` family key resolves to the same value, so this agrees
-    // with the base build rather than diverging from it — Claude Code exposes three tiers and the
-    // light profile asks for the same one here. What the exact entry guarantees is that an author
-    // naming a version explicitly keeps getting THAT version even if the family default later moves.
+    // Claude, exact-token tier: architect's light list carries claude-opus-5, which the Claude map
+    // resolves by EXACT token (#178 normalized the source token from claude-5-opus-high; both forms
+    // are exact keys and both resolve here, so the tier this exercises did not change). The `opus`
+    // family key resolves to the same value, so this agrees with the base build rather than diverging
+    // from it — Claude Code exposes three tiers and the light profile asks for the same one here.
+    // What the exact entry guarantees is that an author naming a version explicitly keeps getting
+    // THAT version even if the family default later moves.
     const claudeArchitect = fs.readFileSync(
       path.join(outputDir, 'core-claude-light', 'agents', 'architect.md'), 'utf-8');
     expect(claudeArchitect).toMatch(/^model: claude-opus-5$/m);
 
-    // Claude, family fallback: discoverer's light list carries claude-4.5-haiku, no exact entry, so
-    // the haiku family key resolves it (the base list leads with claude-5-sonnet -> claude-sonnet-5).
+    // Claude, family fallback: discoverer's light list carries claude-haiku-4-5. CLAUDE_CODE_MAP has
+    // exact keys only for the opus tokens, so this still has no exact entry and the `haiku` family
+    // key resolves it — #178's source normalization (claude-4.5-haiku -> claude-haiku-4-5) kept this
+    // case on the family tier, so the family-substring fallback remains covered by the real source
+    // tree. (The base list leads with claude-sonnet-5, also family-resolved, via `sonnet`.)
     const claudeDiscoverer = fs.readFileSync(
       path.join(outputDir, 'core-claude-light', 'agents', 'discoverer.md'), 'utf-8');
     expect(claudeDiscoverer).toMatch(/^model: claude-haiku-4-5$/m);
@@ -192,6 +228,10 @@ describe('Profile E2E — profiled build (--profile lightweight)', () => {
       path.join(outputDir, 'core-codex-light', '.codex', 'agents', 'engineer.toml'), 'utf-8');
     expect(codexEngineer).toContain('model = "gpt-5.6-luna"');
     expect(codexEngineer).toContain('model_reasoning_effort = "xhigh"');
+  });
+
+  it('every emitted core-codex-light agent TOML parses (NFR-0001, #271)', () => {
+    expectEveryCodexAgentTomlParses(outputDir, 'core-codex-light');
   });
 
   it('light manifest name carries the -light suffix (FR-PROF-0021.AC1)', () => {
@@ -258,6 +298,10 @@ describe('Profile E2E — no-profile run (regression guard, FR-PROF-0040)', () =
       path.join(outputDir, 'core-codex', '.codex', 'agents', 'engineer.toml'), 'utf-8');
     expect(codexEngineer).toContain('model = "gpt-5.6-terra"');
     expect(codexEngineer).toContain('model_reasoning_effort = "medium"');
+  });
+
+  it('every emitted core-codex agent TOML parses (NFR-0001, #271)', () => {
+    expectEveryCodexAgentTomlParses(outputDir, 'core-codex');
   });
 
   it('base manifest name carries no suffix (FR-PROF-0040.AC2)', () => {

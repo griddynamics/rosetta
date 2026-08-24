@@ -2,7 +2,7 @@
 name: architect
 description: "Architect solution, transform intent into reliable tech specs, etc. Full subagent."
 mode: subagent
-model: claude-5-opus-high, gpt-5.6-sol-high, gemini-3.7-flash-high
+model: claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---
