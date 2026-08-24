@@ -12,6 +12,7 @@ import time
 import pytest
 
 from rosetta_mcp.clients.doc_cache import InstructionDocCache
+from rosetta_mcp.constants import DEFAULT_TOOL_TIMEOUT
 
 
 class _FakeDocumentClient:
@@ -111,3 +112,69 @@ async def test_get_all_docs_async_invalidate_forces_refetch():
 
     await cache.get_all_docs_async(dataset, "ds1", tool_timeout=5)
     assert fake.calls == 2
+
+
+# ---------------------------------------------------------------------------
+# ROSETTA_TOOL_TIMEOUT resolution (issue #207)
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def recorded_wait_for(monkeypatch):
+    """Record the timeout passed to asyncio.wait_for, then delegate to the real one."""
+    recorded: dict[str, float] = {}
+    real_wait_for = asyncio.wait_for
+
+    async def _spy(awaitable, timeout=None):
+        recorded["timeout"] = timeout
+        return await real_wait_for(awaitable, timeout)
+
+    monkeypatch.setattr(asyncio, "wait_for", _spy)
+    return recorded
+
+
+@pytest.mark.asyncio
+async def test_get_all_docs_async_default_timeout_honors_env(monkeypatch, recorded_wait_for):
+    """With tool_timeout omitted, ROSETTA_TOOL_TIMEOUT must be honored (issue #207)."""
+    monkeypatch.setenv("ROSETTA_TOOL_TIMEOUT", "7")
+    fake = _FakeDocumentClient(docs=["doc1"])
+    cache = InstructionDocCache(document_client=fake, ttl=300)
+
+    assert await cache.get_all_docs_async(object(), "ds1") == ["doc1"]
+    assert recorded_wait_for["timeout"] == 7
+
+
+@pytest.mark.asyncio
+async def test_get_all_docs_async_default_timeout_unchanged_without_env(
+    monkeypatch, recorded_wait_for
+):
+    """No env var set: the effective timeout stays DEFAULT_TOOL_TIMEOUT (issue #207)."""
+    monkeypatch.delenv("ROSETTA_TOOL_TIMEOUT", raising=False)
+    fake = _FakeDocumentClient(docs=["doc1"])
+    cache = InstructionDocCache(document_client=fake, ttl=300)
+
+    assert await cache.get_all_docs_async(object(), "ds1") == ["doc1"]
+    assert recorded_wait_for["timeout"] == DEFAULT_TOOL_TIMEOUT
+
+
+@pytest.mark.asyncio
+async def test_get_all_docs_async_explicit_timeout_overrides_env(monkeypatch, recorded_wait_for):
+    """An explicit tool_timeout still wins over the env var (issue #207)."""
+    monkeypatch.setenv("ROSETTA_TOOL_TIMEOUT", "7")
+    fake = _FakeDocumentClient(docs=["doc1"])
+    cache = InstructionDocCache(document_client=fake, ttl=300)
+
+    assert await cache.get_all_docs_async(object(), "ds1", tool_timeout=5) == ["doc1"]
+    assert recorded_wait_for["timeout"] == 5
+
+
+@pytest.mark.asyncio
+async def test_get_all_docs_async_invalid_env_falls_back_to_default(
+    monkeypatch, recorded_wait_for
+):
+    """A non-numeric ROSETTA_TOOL_TIMEOUT falls back to the default (issue #207)."""
+    monkeypatch.setenv("ROSETTA_TOOL_TIMEOUT", "not-a-number")
+    fake = _FakeDocumentClient(docs=["doc1"])
+    cache = InstructionDocCache(document_client=fake, ttl=300)
+
+    assert await cache.get_all_docs_async(object(), "ds1") == ["doc1"]
+    assert recorded_wait_for["timeout"] == DEFAULT_TOOL_TIMEOUT
