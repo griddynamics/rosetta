@@ -76,6 +76,16 @@ jobs:
         with:
           version: v3.20.2
 
+      - name: Refuse overwrite of existing chart version
+        run: |
+          set -euo pipefail
+          VER=$(grep -E "^version:" Chart.yaml | head -1 | awk "{print \$2}")
+          echo "Chart version is ${VER}"
+          # Best-effort: if the OCI tag already resolves, abort instead of overwriting.
+          if helm pull oci://ghcr.io/${{ github.repository_owner }}/charts/$(basename $(pwd)) --version "${VER}" --destination /tmp/helm-check 2>/dev/null; then
+            echo "::error::version ${VER} already published"
+            exit 1
+          fi
       - name: Package and push Helm chart (OCI / Docker Hub)
         run: |
           set -euo pipefail
