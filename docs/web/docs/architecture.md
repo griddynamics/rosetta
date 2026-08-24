@@ -332,7 +332,7 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 
 | Hook | Event | Purpose |
 |---|---|---|
-| `dangerous-actions.js` | PreToolUse | Two-tier deny on dangerous shell/edit/MCP patterns; `# Rosetta-AI-reviewed` marker allows retry on `reconsider` policy; `hard-deny` patterns (e.g. `curl \| sh`) require human review |
+| `dangerous-actions.js` | PreToolUse | Two policy tiers on dangerous patterns: `advise` (non-blocking notice) and `reconsider` (soft-deny, overridable by re-issuing the call with a `# Rosetta-AI-reviewed` marker). Registered on shell and MCP tool calls only. |
 | `loose-files.js` | PostToolUse (Write) | Nudges agent when `.py`/`.js` files are created without a module marker (`__init__.py` / `package.json`) |
 | `md-file-advisory.js` | PostToolUse (Write\|Edit) | Advises on markdown formatting/placement after `.md` edits |
 | `lint-format-advisory.js` | PostToolUse (Write\|Edit) | Suggests a syntax/type/lint/format check step after code edits |
