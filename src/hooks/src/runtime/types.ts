@@ -55,9 +55,9 @@ export type HookActivation = {
   fs?:        FsPredicate;
 };
 
-export type HookThrottle =
-  | { debounceMs: number }
-  | { dedupBy: readonly ('session' | 'filePath' | 'ide' | 'toolName' | 'toolInput')[] };
+export type HookThrottle = {
+  dedupBy: readonly ('session' | 'filePath' | 'ide' | 'toolName' | 'toolInput')[];
+};
 
 export interface HookDefinition {
   name:      string;
