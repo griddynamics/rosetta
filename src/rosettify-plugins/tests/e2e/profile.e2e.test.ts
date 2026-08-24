@@ -70,7 +70,7 @@ function buildSources(outputDir: string): ResolvedSources {
 }
 
 /**
- * NFR-0001 (#271) — "Given: any generated subagent TOML When: parsed Then: parsing succeeds."
+ * NFR-0005 (#271) — "Given: any generated subagent TOML When: parsed Then: parsing succeeds."
  *
  * Both real-repo builds in this file emit a full `.codex/agents/*.toml` set from the live
  * instruction tree, so the acceptance criterion is checked here for free rather than paying for a
@@ -230,7 +230,7 @@ describe('Profile E2E — profiled build (--profile lightweight)', () => {
     expect(codexEngineer).toContain('model_reasoning_effort = "xhigh"');
   });
 
-  it('every emitted core-codex-light agent TOML parses (NFR-0001, #271)', () => {
+  it('every emitted core-codex-light agent TOML parses (NFR-0005, #271)', () => {
     expectEveryCodexAgentTomlParses(outputDir, 'core-codex-light');
   });
 
@@ -300,7 +300,7 @@ describe('Profile E2E — no-profile run (regression guard, FR-PROF-0040)', () =
     expect(codexEngineer).toContain('model_reasoning_effort = "medium"');
   });
 
-  it('every emitted core-codex agent TOML parses (NFR-0001, #271)', () => {
+  it('every emitted core-codex agent TOML parses (NFR-0005, #271)', () => {
     expectEveryCodexAgentTomlParses(outputDir, 'core-codex');
   });
 

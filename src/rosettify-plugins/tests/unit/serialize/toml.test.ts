@@ -1,5 +1,5 @@
 // GT-6, PARITY-3 — codex TOML emitter field order and triple-quote
-// NFR-0001 — the emitted document must parse as TOML for ANY body content
+// NFR-0005 — the emitted document must parse as TOML for ANY body content
 import { describe, it, expect } from 'vitest';
 import { parse as parseToml } from 'smol-toml';
 import { emitCodexToml, tomlMultilineBodyEscape } from '../../../src/serialize/toml.js';
@@ -104,7 +104,7 @@ describe('emitCodexToml', () => {
 // #271 — `"""` is the multi-line BASIC form, so escape sequences are processed inside it. Before
 // this, the body went in raw: a literal triple-quote terminated the string early and any backslash
 // was either a hard parse error or a silent value rewrite.
-describe('emitCodexToml — developer_instructions body escaping (#271, NFR-0001)', () => {
+describe('emitCodexToml — developer_instructions body escaping (#271, NFR-0005)', () => {
   it('a body containing a literal """ still parses, and round-trips to the same value', () => {
     const body = 'Fence an example:\n"""\ntoml here\n"""\nDone.';
     expect(roundTripBody(body)).toBe(body);

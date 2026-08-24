@@ -18,7 +18,7 @@ function tomlStringEscape(s: string): string {
  * Escape a body for embedding in a TOML multi-line BASIC string (`"""`).
  *
  * `"""` is the multi-line *basic* form, so the parser processes escape sequences inside it — a raw
- * body is NOT passed through verbatim. Two things break an unescaped body (NFR-0001: "any generated
+ * body is NOT passed through verbatim. Two things break an unescaped body (NFR-0005: "any generated
  * subagent TOML, when parsed, parsing succeeds"):
  *   - a backslash that does not open a valid escape sequence is a hard parse error (`regex \d+`),
  *     and one that does (`literal \n`) is silently rewritten into a different value;

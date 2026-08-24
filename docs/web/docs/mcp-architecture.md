@@ -207,8 +207,8 @@ All three modes issue FastMCP JWTs to MCP clients and store upstream tokens in R
 
 **Key details:**
 - Version tracked in `rosetta:redis-schema-version` (plain integer)
-- Distributed lock (`rosetta:migration-lock`, 60 s TTL) prevents concurrent runs across pods on rolling deploys
-- Each migration runs exactly once; safe to deploy to multiple replicas simultaneously
+- Distributed lock (`rosetta:migration-lock`, 60 s TTL) deduplicates runs across pods on rolling deploys. Best-effort, not a guarantee: the TTL is never extended, so a run that outlives it loses the lock while still working. Release is fenced by a per-run token, so a run that lost the lock cannot delete another pod's fresh one
+- What actually makes multi-replica deploys safe is that every migration is idempotent and the version is re-read under the lock before any migration runs — not the lock itself. A migration may therefore run more than once
 - All migration activity logged at `INFO` level under `rosetta_mcp.migrations`
 
 **Current migrations:**

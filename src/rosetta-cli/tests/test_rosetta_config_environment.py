@@ -87,6 +87,11 @@ def test_every_keyword_is_detectable(keyword):
         ("https://Ims-Stag.example.com", "stag"),
         # Scanned as given - scheme, port and path all count.
         ("http://10.0.0.5:8080/uat-api", "uat"),
+        # Substring matching also fires on incidental hits: a hostname that merely
+        # contains a keyword resolves to it. Inherent to "basic string contains";
+        # pinned so the behaviour is documented rather than discovered.
+        ("https://advantest.example.com", "test"),
+        ("https://prodigy.example.com", "prod"),
         ("", None),
     ],
 )

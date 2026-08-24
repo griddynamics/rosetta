@@ -125,7 +125,7 @@ describe('fileCodexAgentFormat', () => {
 
   // #271 — fileCodexAgentFormat is the ONLY production path into emitCodexToml, so the escaping
   // has to hold when the trigger arrives as agent markdown rather than as a bare string.
-  it('an agent body with a literal """ and a backslash still emits parseable TOML (#271, NFR-0001)', () => {
+  it('an agent body with a literal """ and a backslash still emits parseable TOML (#271, NFR-0005)', () => {
     const body = 'Match \\d+ in a path C:\\tmp, and fence it:\n"""\nexample\n"""';
     const content = `---\nname: test\ndescription: desc\nmodel: gpt-5.5-high\nreadonly: false\n---\n\n${body}\n`;
     const result = fileCodexAgentFormat(makeFrame(content), makeCtx());
