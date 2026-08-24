@@ -121,11 +121,15 @@ class ParseCommand(BaseCommand):
         # page_size documents *needing parsing*, whereas page 1 of an unfiltered
         # list surfaces only the needing-parse documents that happen to fall inside
         # it. Once a dataset exceeds RAGFLOW_PAGE_SIZE this can therefore select
-        # fewer documents than before. Immaterial at current volumes (default
-        # page_size is 1000, against ~470 instruction files); revisit with real
-        # pagination if a dataset approaches the cap. The page-1-only truncation
-        # itself is pre-existing - it already applied to the force branch and to
-        # the done/running tally.
+        # fewer documents than before.
+        #
+        # Accepted limitation, not a deferred fix: every list path in this command
+        # reads page 1 only, bounded by RAGFLOW_PAGE_SIZE (default 1000). The
+        # instruction set is not expected to approach that cap - it is roughly 470
+        # files - and this command serves the optional MCP publishing pipeline,
+        # which is secondary to plugin delivery. The page-1-only read is also
+        # pre-existing: it already applied to the force branch and to the
+        # done/running tally.
         documents = dataset.list_documents(page_size=self.config.page_size)
         
         selected: list[tuple[DocumentLike, str]] = []
