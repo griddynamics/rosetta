@@ -1,7 +1,5 @@
 <sample_task_set flow="init-workspace-flow">
 
-Samples only — they show the shape, difficulty, and grading style of a task. Compose your own from the flow file; never present these as the lesson.
-
 <sample_task id="1" ties="invocation">
 
 Scenario: brand-new repo, no `docs/`, no Rosetta files. A teammate asks you how to start.
