@@ -13,7 +13,6 @@
 Self-hosted MCP is optional. Most organizations run Rosetta entirely through plugins and never need this. Consider self-hosting Rosetta MCP only if you specifically need:
 
 - Centrally-managed, always-fresh instructions with nothing copied into any repository
-- Cross-project intelligence — agents that see patterns across your whole portfolio, not just one repo
 - Organization-wide adoption tracking and usage analytics
 - An IDE with no Rosetta plugin (Windsurf, Junie, OpenCode, or another MCP-compatible agent)
 
@@ -23,7 +22,6 @@ If none of these apply, use [Plugins](../PLUGINS.md) instead.
 
 Rosetta itself does not store any project data — that principle doesn't change with MCP. A self-hosted MCP deployment can additionally opt into extra features; once enabled, your infrastructure stores the resulting data and you are responsible for it:
 
-- **Project datasets** — per-repository collections in RAGFlow, enabling cross-project intelligence.
 - **`execution_controller`** (large tasks only) — receives execution plans created by AI, which may contain project-specific information.
 - **Usage analytics (PostHog)** — collects basic operational metadata (IP address, user email, coding agent with version, tool called, tool parameters) when you deploy and configure a PostHog instance on your infrastructure.
 

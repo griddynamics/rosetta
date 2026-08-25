@@ -1,5 +1,6 @@
 // FR-ARCH-0044 — fileCodexAgentFormat: produces TOML, sandbox from readonly, field order GT-6
 import { describe, it, expect } from 'vitest';
+import { parse as parseToml } from 'smol-toml';
 import { fileCodexAgentFormat } from '../../../src/file-processors/file-codex-agent.js';
 import type { FileProcessingFrame, TargetContext, PluginSpec, Vfs } from '../../../src/types.js';
 
@@ -120,6 +121,21 @@ describe('fileCodexAgentFormat', () => {
     expect(toml).toContain('sandbox_mode = "workspace-write"');
     // Body is embedded in developer_instructions
     expect(toml).toContain('# Just a plain body');
+  });
+
+  // #271 — fileCodexAgentFormat is the ONLY production path into emitCodexToml, so the escaping
+  // has to hold when the trigger arrives as agent markdown rather than as a bare string.
+  it('an agent body with a literal """ and a backslash still emits parseable TOML (#271, NFR-0005)', () => {
+    const body = 'Match \\d+ in a path C:\\tmp, and fence it:\n"""\nexample\n"""';
+    const content = `---\nname: test\ndescription: desc\nmodel: gpt-5.5-high\nreadonly: false\n---\n\n${body}\n`;
+    const result = fileCodexAgentFormat(makeFrame(content), makeCtx());
+    const toml = result.target_contents as string;
+
+    const parsed = parseToml(toml) as Record<string, unknown>;
+    // The body survives byte-for-byte (the emitter's join adds the newline before the closing fence).
+    expect(parsed.developer_instructions).toBe(`${body}\n`);
+    expect(parsed.name).toBe('test');
+    expect(parsed.sandbox_mode).toBe('workspace-write');
   });
 
   it('body without leading newline is used as-is without slicing (line 36)', () => {

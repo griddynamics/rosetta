@@ -4,8 +4,14 @@
 > received at runtime match the shapes in our test fixtures. Run these cases in
 > `/Users/akoziar/dev/gd/incarno/robotic-platform-frontend/` (INCARNO project).
 >
-> **Antigravity:** Not tested — hooks are not supported.
-
+> **Antigravity:** Hooks ARE supported — one combined adapter for all three surfaces
+> (Antigravity 2.0 / CLI / IDE): `src/hooks/src/adapters/antigravity.ts`, covered by
+> `src/hooks/tests/adapter.antigravity.test.ts` and `src/hooks/tests/e2e/antigravity.e2e.test.ts`.
+> `loose-files` specifically is NOT bundled for Antigravity — it has no non-blocking delivery
+> channel, so advise-only hooks can never reach the model (see `excludeHooks` for
+> `core-antigravity` in `src/hooks/scripts/build-bundles.mjs`). So there is nothing to test
+> for THIS hook on Antigravity.
+>
 ---
 
 ## How to Capture Real stdin (Debug Mode)
@@ -38,7 +44,7 @@ These are the exact shapes our unit tests use. Real IDE output MUST match these 
 
 ### Claude Code — PostToolUse Write
 
-**Fixture:** `tests/fixtures/claude-code-post-tool-use-write.json`
+**Fixture:** `src/hooks/tests/fixtures/claude-code-post-tool-use-write.json`
 
 ```json
 {
@@ -73,7 +79,7 @@ These are the exact shapes our unit tests use. Real IDE output MUST match these 
 
 ### Claude Code — PostToolUse Edit
 
-**Fixture:** `tests/fixtures/claude-code-post-tool-use-edit.json`
+**Fixture:** `src/hooks/tests/fixtures/claude-code-post-tool-use-edit.json`
 
 ```json
 {
@@ -104,7 +110,7 @@ These are the exact shapes our unit tests use. Real IDE output MUST match these 
 
 ### Cursor — PostToolUse Write
 
-**Fixture:** `tests/fixtures/cursor-post-tool-use-write.json`
+**Fixture:** `src/hooks/tests/fixtures/cursor-post-tool-use-write.json`
 
 ```json
 {
@@ -149,7 +155,7 @@ These are the exact shapes our unit tests use. Real IDE output MUST match these 
 
 ### Windsurf — post_write_code
 
-**Fixture:** `tests/fixtures/windsurf-post-tool-use-write.json`
+**Fixture:** `src/hooks/tests/fixtures/windsurf-post-tool-use-write.json`
 
 ```json
 {
@@ -186,32 +192,20 @@ These are the exact shapes our unit tests use. Real IDE output MUST match these 
 
 ## Expected Output Objects
 
+Verified by piping each fixture through the built bundle
+(`npm --prefix src/hooks run build`, then `node src/hooks/dist/bundles/<plugin>/loose-files.js < <fixture>`).
+
 ### Nudge Output (when file IS loose) — hook stdout
 
+Canonical shape. The marker named in the message is `__init__.py` for `.py` and `package.json` for `.js`.
+
 ```json
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PostToolUse",
-    "additionalContext": "<filename> appears to be a loose file outside a module. Consider adding __init__.py to its directory tree to make it part of a proper module."
-  },
-  "continue": true,
-  "suppressOutput": false
-}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","permissionDecision":"allow","additionalContext":"helper.py appears to be a loose file outside a module. Intended? A temporary file? __init__.py?"}}
 ```
 
-For `.js` files:
-```json
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PostToolUse",
-    "additionalContext": "<filename> appears to be a loose file outside a module. Consider adding package.json to its directory tree to make it part of a proper module."
-  },
-  "continue": true,
-  "suppressOutput": false
-}
-```
+Message text is `nudgeMessage` in `src/hooks/src/hooks/loose-files.ts`. There is no `continue` or `suppressOutput` field.
 
-### No Output (when file is NOT loose or is excluded)
+### No Output (when file is NOT loose, is excluded, or the tool kind does not match)
 
 Hook exits with code `0` and writes nothing to stdout.
 
@@ -221,28 +215,23 @@ Hook exits with code `0` and writes nothing to stdout.
 
 ### Claude Code — identity pass-through (same as canonical)
 ```json
-{
-  "hookSpecificOutput": { "hookEventName": "PostToolUse", "additionalContext": "..." },
-  "continue": true,
-  "suppressOutput": false
-}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","permissionDecision":"allow","additionalContext":"..."}}
 ```
 
 ### Cursor — mapped format
 ```json
-{
-  "additional_context": "... appears to be a loose file ..."
-}
+{"additional_context":"app.js appears to be a loose file outside a module. Intended? A temporary file? package.json?","permission":"allow"}
 ```
-(Note: `additional_context` snake_case, no `continue` or `suppressOutput`)
+(`additional_context` snake_case, plus `permission`; no `continue`/`suppressOutput`)
 
-### Windsurf — additionalContext preserved
-```json
-{
-  "additionalContext": "... appears to be a loose file ..."
-}
-```
-(Note: camelCase, no `continue`)
+### Windsurf — hook does not fire
+Windsurf's `post_write_code` payload carries `edits[]`, so the adapter normalizes it to tool kind
+`multi-edit` (`TOOL_KINDS` in `src/hooks/src/runtime/ide-rows/windsurf.ts`). `loose-files` declares
+`toolKinds: ['write']`, so it never fires on Windsurf and produces no output.
+
+### Antigravity — hook not bundled
+`loose-files` is excluded from `core-antigravity` (`excludeHooks` in
+`src/hooks/scripts/build-bundles.mjs`) because Antigravity has no non-blocking delivery channel.
 
 ---
 
@@ -250,21 +239,25 @@ Hook exits with code `0` and writes nothing to stdout.
 
 | TC | Action in IDE | File Path | Module Marker | Claude Code | Cursor | Windsurf |
 |----|--------------|-----------|---------------|-------------|--------|----------|
-| 1 | Write `.py` | `src/orphan.py` | None | NUDGE | NUDGE | NUDGE |
+| 1 | Write `.py` | `src/orphan.py` | None | NUDGE | NUDGE | no output* |
 | 2 | Write `.py` | `src/mypkg/utils.py` | `src/mypkg/__init__.py` exists | no output | no output | no output |
-| 3 | Write `.js` | `src/helper.js` | None | NUDGE | NUDGE | NUDGE |
+| 3 | Write `.js` | `src/helper.js` | None | NUDGE | NUDGE | no output* |
 | 4 | Write `.js` | `src/myapp/app.js` | `src/myapp/package.json` exists | no output | no output | no output |
-| 5 | Edit `.py` | `src/orphan.py` | None | NUDGE | NUDGE | n/a* |
-| 6 | Run Bash | — | — | no output | no output | n/a† |
+| 5 | Edit `.py` | `src/orphan.py` | None | no output† | no output† | no output* |
+| 6 | Run Bash | — | — | no output | no output | no output |
 | 7 | Write `.ts` | `src/types.ts` | — | no output | no output | no output |
 | 8 | Write `.py` | `node_modules/foo/bar.py` | — | no output | no output | no output |
 | 9 | Write `.py` | `scripts/setup.py` | — | no output | no output | no output |
 
-> *Windsurf TC-5: Windsurf only has `post_write_code`, which maps to Write. Edit actions send a
-> different event that `loose-files.js` filters out after normalization — so no nudge is expected.
+> *Windsurf never nudges for this hook. `post_write_code` carries `edits[]`, so the adapter
+> normalizes it to tool kind `multi-edit`, and `loose-files` declares `toolKinds: ['write']`.
+> Verified: piping `windsurf-post-tool-use-write.json` through the bundle produces no output.
 >
-> †Windsurf TC-6: Not applicable — Windsurf `post_run_command` maps to `Bash`, but we don't
-> register that hook event, so the hook never runs.
+> †`Edit` does not nudge on any IDE. `loose-files` matches tool kind `write` only, and Claude Code
+> maps `Edit` to kind `edit` (`src/hooks/src/runtime/ide-rows/claude-code.ts`). Verified: piping
+> `claude-code-post-tool-use-edit.json` through the bundle produces no output.
+>
+> Antigravity has no column: `loose-files` is not bundled for it at all (see above).
 
 ---
 
@@ -287,14 +280,7 @@ Hook exits with code `0` and writes nothing to stdout.
 
 **Expected hook stdout:**
 ```json
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PostToolUse",
-    "additionalContext": "orphan.py appears to be a loose file outside a module. Consider adding __init__.py to its directory tree to make it part of a proper module."
-  },
-  "continue": true,
-  "suppressOutput": false
-}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","permissionDecision":"allow","additionalContext":"orphan.py appears to be a loose file outside a module. Intended? A temporary file? __init__.py?"}}
 ```
 
 **IDE tells AI:** A context message with the nudge text appears in the conversation.
@@ -326,14 +312,7 @@ Hook exits with code `0` and writes nothing to stdout.
 
 **Expected hook stdout:**
 ```json
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PostToolUse",
-    "additionalContext": "helper.js appears to be a loose file outside a module. Consider adding package.json to its directory tree to make it part of a proper module."
-  },
-  "continue": true,
-  "suppressOutput": false
-}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","permissionDecision":"allow","additionalContext":"helper.js appears to be a loose file outside a module. Intended? A temporary file? package.json?"}}
 ```
 
 **Pass if:** Nudge mentions `package.json`.
@@ -355,13 +334,14 @@ Hook exits with code `0` and writes nothing to stdout.
 
 ---
 
-### TC-5: Edit a loose `.py` file → NUDGE (Claude Code and Cursor only)
+### TC-5: Edit a loose `.py` file → No nudge
 
 **Action:** Ask the AI to edit an existing `src/orphan.py` (no `__init__.py` in tree).
 
 **Expected stdin tool_name:** `"Edit"` (not `"Write"`).
 
-**Pass if:** Nudge appears (Edit tool is in `ALLOWED_TOOLS`).
+**Pass if:** No nudge appears. `loose-files` declares `on.toolKinds: ['write']`, and Claude Code maps
+`Edit` to kind `edit`, so the hook is filtered out on file edits. Creation events only.
 
 ---
 
@@ -369,7 +349,7 @@ Hook exits with code `0` and writes nothing to stdout.
 
 **Action:** Ask the AI to run `ls -la`.
 
-**Expected:** Hook is registered only for `Write|Edit`, so it does NOT fire for Bash.
+**Expected:** Hook matches tool kind `write` only, so it does NOT fire for Bash.
 
 **Pass if:** No nudge appears.
 
@@ -379,7 +359,7 @@ Hook exits with code `0` and writes nothing to stdout.
 
 **Action:** Ask the AI to create `src/types.ts`.
 
-**Expected:** `shouldCheck` returns `false` (`.ts` not in `ALLOWED_EXTENSIONS`).
+**Expected:** the file-path matcher rejects it (`.ts` is not in `on.filePath.extOneOfCi`).
 
 **Pass if:** No nudge.
 
@@ -390,7 +370,7 @@ Hook exits with code `0` and writes nothing to stdout.
 **Action:** Manually pipe fixture to test this (AI won't normally write to node_modules):
 ```bash
 echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","tool_input":{"file_path":"/tmp/node_modules/foo/bar.py","content":"pass"}}' \
-  | node /Users/akoziar/dev/gd/rosetta/instructions/r2/core/hooks/loose-files.js
+  | node src/hooks/dist/bundles/core-claude/loose-files.js
 ```
 
 **Expected:** No output (exit 0, empty stdout).
@@ -401,7 +381,7 @@ echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","to
 
 ```bash
 echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","tool_input":{"file_path":"/tmp/scripts/setup.py","content":"pass"}}' \
-  | node /Users/akoziar/dev/gd/rosetta/instructions/r2/core/hooks/loose-files.js
+  | node src/hooks/dist/bundles/core-claude/loose-files.js
 ```
 
 **Expected:** No output (exit 0, empty stdout).
@@ -410,39 +390,55 @@ echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","to
 
 ## Manual Pipe Tests (No IDE Needed)
 
-These allow verifying the hook logic without opening an IDE. Run from repo root.
+These allow verifying the hook logic without opening an IDE. Run from the Rosetta repo root.
+
+The hook bundles are BUILT, not committed (`src/hooks/dist/` is gitignored), and each bundle
+embeds only one IDE adapter. Build them first, then invoke the bundle for the IDE whose stdin
+shape you are piping:
+
+```bash
+npm --prefix src/hooks run build
+```
 
 ### Trigger nudge (loose Python)
 ```bash
 echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","tool_input":{"file_path":"/tmp/orphan.py","content":"pass"}}' \
-  | node instructions/r2/core/hooks/loose-files.js
+  | node src/hooks/dist/bundles/core-claude/loose-files.js
 ```
 Expected output:
 ```json
-{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"orphan.py appears to be a loose file outside a module. Consider adding __init__.py to its directory tree to make it part of a proper module."},"continue":true,"suppressOutput":false}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","permissionDecision":"allow","additionalContext":"orphan.py appears to be a loose file outside a module. Intended? A temporary file? __init__.py?"}}
 ```
 
 ### No nudge (file in module)
 ```bash
 mkdir -p /tmp/mypkg && touch /tmp/mypkg/__init__.py
 echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","tool_input":{"file_path":"/tmp/mypkg/utils.py","content":"pass"}}' \
-  | node instructions/r2/core/hooks/loose-files.js
+  | node src/hooks/dist/bundles/core-claude/loose-files.js
 ```
 Expected: no output, exit 0.
 
 ### Test with Cursor fixture shape
 ```bash
-cat instructions/r2/core/hooks/tests/fixtures/cursor-post-tool-use-write.json \
-  | node instructions/r2/core/hooks/loose-files.js
+cat src/hooks/tests/fixtures/cursor-post-tool-use-write.json \
+  | node src/hooks/dist/bundles/core-cursor/loose-files.js
 ```
-Expected: nudge for `app.js` at `/proj/src/app.js` (no `package.json` at `/proj/src/`).
+Expected: nudge for `app.js` at `/proj/src/app.js` (no `package.json` at `/proj/src/`), in Cursor's
+output format:
+```json
+{"additional_context":"app.js appears to be a loose file outside a module. Intended? A temporary file? package.json?","permission":"allow"}
+```
 
 ### Test with Windsurf fixture shape
 ```bash
-cat instructions/r2/core/hooks/tests/fixtures/windsurf-post-tool-use-write.json \
-  | node instructions/r2/core/hooks/loose-files.js
+cat src/hooks/tests/fixtures/windsurf-post-tool-use-write.json \
+  | node src/hooks/dist/bundles/core-windsurf/loose-files.js
 ```
-Expected: nudge for `app.js` at `/proj/src/app.js`.
+Expected: no output, exit 0. Windsurf's `post_write_code` carries an `edits[]` array, so the adapter
+normalizes it to `MultiEdit` (tool kind `multi-edit`), while `loose-files` only fires on tool kind
+`write` — see `TOOL_KINDS` in `src/hooks/src/runtime/ide-rows/windsurf.ts` and `on.toolKinds` in
+`src/hooks/src/hooks/loose-files.ts`. The Windsurf expectations elsewhere in this document predate
+that mapping and are stale.
 
 ---
 
@@ -453,11 +449,12 @@ Before running IDE tests, verify unit tests pass to confirm fixture objects matc
 ```bash
 cd /Users/akoziar/dev/gd/rosetta
 
-# Adapter tests (all 5 IDEs detected correctly)
-node --test src/hooks/tests/adapter.test.js
+# Adapter tests (all 6 IDEs detected correctly) + loose-files logic tests.
+# The suite is vitest; `npm test` builds the bundles first (see src/hooks/package.json).
+npm --prefix src/hooks test -- tests/adapter.test.ts tests/loose-files.test.ts
 
-# loose-files logic tests
-node --test src/hooks/tests/loose-files.test.js
+# Antigravity adapter coverage
+npm --prefix src/hooks test -- tests/adapter.antigravity.test.ts tests/e2e/antigravity.e2e.test.ts
 ```
 
 All tests must be green before proceeding to manual IDE tests.
@@ -472,8 +469,8 @@ All tests must be green before proceeding to manual IDE tests.
 | TC-2 .py in module (no nudge) | [ ] | [ ] | [ ] | |
 | TC-3 Loose .js Write | [ ] | [ ] | [ ] | Use manual pipe if INCARNO root has package.json |
 | TC-4 .js in module (no nudge) | [ ] | [ ] | [ ] | |
-| TC-5 Edit loose .py | [ ] | [ ] | n/a | |
-| TC-6 Bash (no nudge) | [ ] | [ ] | n/a | |
+| TC-5 Edit loose .py (no nudge) | [ ] | [ ] | [ ] | |
+| TC-6 Bash (no nudge) | [ ] | [ ] | [ ] | |
 | TC-7 .ts file (no nudge) | [ ] | [ ] | [ ] | |
 | TC-8 node_modules/ (no nudge) | manual pipe | manual pipe | manual pipe | |
 | TC-9 scripts/ (no nudge) | manual pipe | manual pipe | manual pipe | |

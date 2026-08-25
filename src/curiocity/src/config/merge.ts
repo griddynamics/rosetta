@@ -32,6 +32,8 @@ export interface CliOverrides {
   repeats?: number;
   /** `--timeout <sec>`. */
   timeoutSec?: number;
+  /** `--max-turns <n>`. */
+  maxTurns?: number;
   /** `--concurrency <n>` (suite-level). */
   concurrency?: number;
   /** `--out <dir>` (suite-level). */
@@ -65,6 +67,7 @@ export interface ResolvedCaseConfig {
   agents: string[];
   repeats: number;
   timeoutSec: number;
+  maxTurns?: number;
   provision: ProvisionSpec;
   setup: string[];
   teardown: string[];
@@ -172,6 +175,7 @@ export function resolveCaseConfig(args: ResolveCaseArgs): ResolvedCaseConfig {
     agents,
     repeats: cli.repeats ?? caseConfig.repeats ?? DEFAULT_REPEATS,
     timeoutSec: cli.timeoutSec ?? caseConfig.timeoutSec ?? DEFAULT_TIMEOUT_SEC,
+    maxTurns: cli.maxTurns ?? caseConfig.maxTurns,
     provision: mergeProvision(topProvision, caseConfig.provision),
     setup: concatScripts(topLevel.setup, caseConfig.setup),
     teardown: concatScripts(topLevel.teardown, caseConfig.teardown),

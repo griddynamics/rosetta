@@ -32,6 +32,7 @@ export type HookResult =
 export type FilePathPredicate = {
   extOneOf?:           readonly string[];
   extOneOfCi?:         readonly string[];
+  /** Raw substring exclusion retained for compatibility; prefer notStartsWithAny for directory roots. */
   notContainsAny?:     readonly string[];
   notTokenSegmentAny?: readonly string[];
   notStartsWithAny?:   readonly string[];
@@ -54,9 +55,9 @@ export type HookActivation = {
   fs?:        FsPredicate;
 };
 
-export type HookThrottle =
-  | { debounceMs: number }
-  | { dedupBy: readonly ('session' | 'filePath' | 'ide' | 'toolName' | 'toolInput')[] };
+export type HookThrottle = {
+  dedupBy: readonly ('session' | 'filePath' | 'ide' | 'toolName' | 'toolInput')[];
+};
 
 export interface HookDefinition {
   name:      string;

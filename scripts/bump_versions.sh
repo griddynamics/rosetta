@@ -22,6 +22,12 @@ get_json_version() {
     grep '"version"' "$1" | head -1 | sed 's/.*"version": "\(.*\)".*/\1/'
 }
 
+# get_yaml_top_version <file> <key> — reads a top-level `key: value` (quotes optional).
+# awk/tr rather than a sed group: BSD sed (macOS) has no `\?`.
+get_yaml_top_version() {
+    grep "^$2: " "$1" | head -1 | awk '{print $2}' | tr -d '"'
+}
+
 # bump_pre <version> [separator]
 # separator selects the target pre-release style, independent of the input:
 #   ""  -> PEP 440 (toml):        3.0.0b01
@@ -184,6 +190,8 @@ printf "  %-55s %s\n" "[package.json] src/rosettify/package.json" "$(get_json_ve
 printf "  %-55s %s\n" "[package.json] src/rosettify-plugins/package.json" "$(get_json_version "$ROOT/src/rosettify-plugins/package.json")"
 printf "  %-55s %s\n" "[package.json] src/rosettify-prompts/package.json" "$(get_json_version "$ROOT/src/rosettify-prompts/package.json")"
 printf "  %-55s %s\n" "[package.json] src/curiocity/package.json" "$(get_json_version "$ROOT/src/curiocity/package.json")"
+printf "  %-55s %s\n" "[chart]       src/helm-charts/rosetta-mcp-server/Chart.yaml" \
+    "$(get_yaml_top_version "$ROOT/src/helm-charts/rosetta-mcp-server/Chart.yaml" version) (appVersion $(get_yaml_top_version "$ROOT/src/helm-charts/rosetta-mcp-server/Chart.yaml" appVersion))"
 
 echo ""
 echo "Bump type:"
@@ -230,6 +238,28 @@ if ask_yn "Bump $rel  ($current → $new_version, rosetta-mcp → $ROSETTA_VERSI
     sedi "s/^version = \"${current}\"/version = \"${new_version}\"/" "$f"
     old_rosetta="$(grep 'rosetta-mcp==' "$f" | sed 's/.*rosetta-mcp==\([^"]*\)".*/\1/')"
     sedi "s/\"rosetta-mcp==${old_rosetta}\"/\"rosetta-mcp==${ROSETTA_VERSION}\"/" "$f"
+    echo -e "  ${GREEN}Updated${RESET}"
+else
+    echo "  Skipped"
+fi
+
+echo ""
+echo "--- src/helm-charts/rosetta-mcp-server/Chart.yaml ---"
+# Helm chart: bump chart `version` + sync `appVersion` to rosetta-mcp-server.
+# values.yaml leaves image.tag commented out and deployment.yaml defaults it to
+# .Chart.AppVersion, so appVersion MUST track the server version or a default
+# `helm install` pulls a stale image. The chart `version` must move in the same
+# commit: publish-mcp-helm-chart.yml pushes whatever `version:` says with no
+# version-exists guard, so reusing it overwrites the published chart in place.
+# Chart versions are SemVer 2, so pre-releases use the "-" separator (0.4.3-b00).
+f="$ROOT/src/helm-charts/rosetta-mcp-server/Chart.yaml"
+current="$(get_yaml_top_version "$f" version)"
+current_app="$(get_yaml_top_version "$f" appVersion)"
+rel="${f#$ROOT/}"
+new_version="$(compute_new_version "$current" "-")"
+if ask_yn "Bump $rel  ($current → $new_version, appVersion $current_app → $ROSETTA_VERSION)?" "n"; then
+    sedi "s/^version: ${current}$/version: ${new_version}/" "$f"
+    sedi "s/^appVersion: \"${current_app}\"$/appVersion: \"${ROSETTA_VERSION}\"/" "$f"
     echo -e "  ${GREEN}Updated${RESET}"
 else
     echo "  Skipped"

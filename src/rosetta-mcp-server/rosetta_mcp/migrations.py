@@ -1,6 +1,7 @@
 """Redis schema migrations for Rosetta."""
 
 import logging
+import uuid
 from typing import Protocol
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,12 @@ class RosettaMigrations:
     Each migration is a method named ``_migrate_to_{version}``.
     On startup, reads the current version from Redis and executes
     only the migrations that haven't run yet, in sequence order.
+
+    Every ``_migrate_to_N`` MUST be idempotent. The distributed lock is
+    best-effort deduplication only: it carries a TTL and is never extended,
+    so a run that outlives the TTL loses it while still working. Idempotent
+    migrations plus the version re-read under the lock are what actually make
+    a rolling deploy safe.
     """
 
     LATEST_REDIS_SCHEMA_VERSION = 2  # bump when adding a new migration
@@ -50,10 +57,12 @@ class RosettaMigrations:
             self.LATEST_REDIS_SCHEMA_VERSION,
         )
 
-        # Acquire distributed lock with TTL to prevent concurrent migrations.
-        # SETNX + EX ensures the lock auto-expires if the holder crashes.
+        # Acquire distributed lock with TTL to deduplicate concurrent migrations.
+        # SETNX + EX ensures the lock auto-expires if the holder crashes. The
+        # value is a per-run token so release can be fenced (#209).
+        lock_token = uuid.uuid4().hex
         acquired = await self._redis.set(
-            self.LOCK_KEY, "1", nx=True, ex=self.LOCK_TTL_SECONDS
+            self.LOCK_KEY, lock_token, nx=True, ex=self.LOCK_TTL_SECONDS
         )
         if not acquired:
             logger.info("Migration lock held by another pod, skipping")
@@ -81,7 +90,35 @@ class RosettaMigrations:
                 "Redis migrations complete (version=%d)", self.LATEST_REDIS_SCHEMA_VERSION
             )
         finally:
-            await self._redis.delete(self.LOCK_KEY)
+            await self._release_lock(lock_token)
+
+    async def _release_lock(self, token: str) -> None:
+        """Delete the migration lock only while this run still owns it.
+
+        The lock has a 60 s TTL and is never extended, so a slow run can lose
+        it to another pod. An unconditional DELETE would then wipe that pod's
+        fresh lock and let two runs proceed together (#209). Comparing the
+        token first removes that window down to the sub-millisecond gap between
+        GET and DELETE; closing it fully would need a Lua CAS (and an ``eval``
+        on ``RedisClient``), which is not worth it for a once-per-process hook.
+        """
+        try:
+            raw = await self._redis.get(self.LOCK_KEY)
+        except Exception:
+            logger.warning("Could not read migration lock to release it", exc_info=True)
+            return
+        current: str | None = raw.decode() if isinstance(raw, bytes) else raw
+        if current is None:
+            logger.info("Migration lock already expired, nothing to release")
+            return
+        if current != token:
+            logger.warning(
+                "Migration lock no longer owned by this run (expired and re-acquired "
+                "elsewhere), leaving it in place"
+            )
+            return
+        await self._redis.delete(self.LOCK_KEY)
+        logger.info("Migration lock released")
 
     async def _get_redis_schema_version(self) -> int:
         raw = await self._redis.get(REDIS_SCHEMA_VERSION_KEY)

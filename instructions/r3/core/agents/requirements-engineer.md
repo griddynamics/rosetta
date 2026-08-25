@@ -2,7 +2,9 @@
 name: requirements-engineer
 description: "Author, refine, and finalize requirements and specifications with traceability. Full subagent."
 mode: subagent
-model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol
+model: claude-opus-5-high, gpt-5.6-sol-high, gemini-3.7-flash-high, grok-4.6-high
+effort: high
+color: pink
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

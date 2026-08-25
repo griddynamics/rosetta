@@ -1,4 +1,5 @@
 from rosetta_mcp.clients.document import DocumentClient
+from rosetta_mcp.constants import DEFAULT_RAGFLOW_HTTP_TIMEOUT
 
 
 class _Doc:
@@ -87,6 +88,8 @@ class _FailingDownloadDoc:
 
 
 def test_download_content_falls_back_to_v1_document_get(monkeypatch):
+    monkeypatch.delenv("ROSETTA_RAGFLOW_HTTP_TIMEOUT", raising=False)
+
     class _Response:
         status_code = 200
         content = b"hello from fallback"
@@ -113,7 +116,7 @@ def test_download_content_falls_back_to_v1_document_get(monkeypatch):
     assert text == "hello from fallback"
     assert captured["url"] == "https://example.test/v1/document/get/doc-123"
     assert captured["headers"]["Authorization"] == "Bearer test-key"
-    assert captured["timeout"] == 30
+    assert captured["timeout"] == DEFAULT_RAGFLOW_HTTP_TIMEOUT
 
 
 def test_download_content_raises_when_fallback_returns_json_error(monkeypatch):
@@ -187,3 +190,31 @@ def test_upsert_doc_tolerates_dataset_ownership_lookup_error():
 
     assert dataset.deleted_ids == ["d2"]
     assert upserted.id == "new-doc"
+
+
+def test_download_content_fallback_honours_configured_ragflow_http_timeout(monkeypatch):
+    # The ownership-error fallback must read ROSETTA_RAGFLOW_HTTP_TIMEOUT like
+    # every other RAGFlow HTTP call instead of pinning a literal.
+    monkeypatch.setenv("ROSETTA_RAGFLOW_HTTP_TIMEOUT", "7")
+
+    class _Response:
+        status_code = 200
+        content = b"hello from fallback"
+
+        def json(self):
+            import json as _json
+            raise _json.JSONDecodeError("not json", "", 0)
+
+    captured = {}
+
+    def _fake_get(url, headers, timeout):
+        captured["timeout"] = timeout
+        return _Response()
+
+    import rosetta_mcp.clients.document as document_module
+
+    monkeypatch.setattr(document_module.requests, "get", _fake_get)
+
+    client = DocumentClient()
+    assert client.download_content(_FailingDownloadDoc("doc-123")) == "hello from fallback"
+    assert captured["timeout"] == 7

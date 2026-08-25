@@ -1,9 +1,10 @@
 # Skills
 
-- discovery (not yet)
+- discovery
 - research
 - context-engineering (TBD)
 - planning
+- backlog
 - reasoning
 - questioning
 - tech-specs
@@ -14,7 +15,7 @@
 - large-workspace-handling
 - technical-summarization (not yet)
 - review (not yet)
-- design (not yet)
+- design
 - security
 - simulation (not yet)
 - backward-compatibility (not yet)

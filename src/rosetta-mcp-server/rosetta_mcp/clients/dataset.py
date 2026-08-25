@@ -9,7 +9,7 @@ from ragflow_sdk.modules.dataset import DataSet
 
 
 class DatasetLookup:
-    """Bidirectional name<->id dataset cache with TTL and negative caching.
+    """Bidirectional dataset cache with TTL and ambiguous-name detection.
 
     Uses ``cachetools.TTLCache`` for automatic expiry.
     """
@@ -31,10 +31,17 @@ class DatasetLookup:
         self._populated = False
 
     def remember(self, dataset: DataSet) -> DataSet:
-        """Store a dataset object in all lookup caches."""
-        self._name_to_id[dataset.name] = dataset.id
+        """Store a dataset, marking colliding names as ambiguous."""
+        if dataset.name not in self._name_to_id:
+            self._name_to_id[dataset.name] = dataset.id
+            self._name_to_dataset[dataset.name] = dataset
+        elif self._name_to_id.get(dataset.name) == dataset.id:
+            self._name_to_dataset[dataset.name] = dataset
+        else:
+            self._name_to_id[dataset.name] = None
+            self._name_to_dataset.pop(dataset.name, None)
+
         self._id_to_name[dataset.id] = dataset.name
-        self._name_to_dataset[dataset.name] = dataset
         self._id_to_dataset[dataset.id] = dataset
         return dataset
 
@@ -75,4 +82,4 @@ class DatasetLookup:
     def list_datasets(self) -> list[DataSet]:
         """Return cached visible datasets."""
         self._ensure_fresh()
-        return list(self._name_to_dataset.values())
+        return list(self._id_to_dataset.values())

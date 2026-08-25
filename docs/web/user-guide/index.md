@@ -45,7 +45,7 @@ That's the whole loop. Everything else in this guide is detail on those three st
 ## Before you begin
 
 - **Get approval first.** Confirm with your manager and company that you're allowed to use Rosetta on your work.
-- **Pick a good model.** Use a *medium* reasoning model such as **Sonnet 5 (medium)**, **GPT-5.4-medium**, or **gemini-3.1-pro**. Avoid "Auto" model selection. This matters a lot for both quality and cost — see [Tips & troubleshooting](/rosetta/user-guide/tips/#choosing-a-model).
+- **Pick a good model.** Use a *medium* reasoning model such as **Sonnet 5 (medium)**, **GPT-5.6-terra-medium**, or **gemini-3.7-flash-high**. Avoid "Auto" model selection. This matters a lot for both quality and cost — see [Tips & troubleshooting](/rosetta/user-guide/tips/#choosing-a-model).
 - **Watch for plugin conflicts.** If you already use JUXT, Superpowers, GSD, or AI-DevKit, they can conflict with Rosetta. Stick with the one you know best.
 
 ## Scenarios at a glance

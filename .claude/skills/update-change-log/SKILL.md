@@ -117,6 +117,8 @@ Use weekly template:
 - GitHub slugs an en dash `–` to a double hyphen, not single (spaces aren't collapsed). Example: `Week Mon 29.06 – Sun 05.07` → `https://github.com/griddynamics/rosetta/blob/main/CHANGELOG.md#week-mon-2906--sun-0507`.
 - Message should be possible to just copy-paste: plain text, use general Slack icons, no surrounding blockquote (`>`) or code-fence wrapper
 - If the user gives a concrete upcoming publish/release/merge date (e.g. "we're publishing R3 Wednesday"), lead the Slack message with that announcement, prominently and above the fold. A bigger-than-usual message is fine when there's real release news to carry.
+- Use slack icons, each word must earn its place
+- Channel: #cto_rosetta_support, ID: C0ABNPEVD6C
 
 ## Audience and standing
 
@@ -184,3 +186,9 @@ Value written, not value appended.
 - Related links are for sure list; Terms definition is for sure a table
 - Fix web site content inconsistencies
 - Ask questions instead of assuming
+
+If you learned something new, relevant to this shill, update `## Lessons learned` below.
+
+## Lessons learned (keep updating, first line is template, follow <instructions>):
+
+- **<key action item, less then 7 words>** <concise: what happened, why, root cause, reasoning, less then 25 words>.

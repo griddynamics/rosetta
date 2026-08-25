@@ -28,7 +28,4 @@ class CallContext:
 
     def __post_init__(self) -> None:
         if self.authorizer is None:
-            self.authorizer = Authorizer(
-                self.config.read_policy,
-                config=self.config,
-            )
+            self.authorizer = Authorizer(self.config.read_policy)

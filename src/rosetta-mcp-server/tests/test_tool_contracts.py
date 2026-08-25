@@ -37,7 +37,7 @@ class _InstructionDocCache:
         self.calls.append((dataset, dataset_name))
         return self.docs
 
-    async def get_all_docs_async(self, dataset, dataset_name: str, tool_timeout: int = 120):
+    async def get_all_docs_async(self, dataset, dataset_name: str, tool_timeout: int | None = None):
         self.calls.append((dataset, dataset_name))
         return self.docs
 
@@ -111,7 +111,7 @@ def make_call_ctx(*, authorizer=None, ragflow=None, dataset_lookup=None) -> Call
         tool_name="test",
         params={},
         user_email="tester@example.com",
-        authorizer=authorizer or Authorizer("all", config=config),
+        authorizer=authorizer or Authorizer("all"),
     )
 
 

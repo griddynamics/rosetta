@@ -241,7 +241,7 @@ Matchers are internal TypeScript predicates that determine whether a hook fires 
 ```
 
 **Wiring in `run-hook.ts`:**
-- `FilePathPredicate` → checked at `evalFilePath()` — matches `ctx.filePath` against basename/extension/notContainsAny rules
+- `FilePathPredicate` → checked at `evalFilePath()` — matches `ctx.filePath` against basename/extension rules; `notStartsWithAny` is for directory roots, while raw-substring `notContainsAny` remains only for compatibility
 - `ToolInputPredicate.commandMatchWhen` → checked at `evalToolInput()` — matches `ctx.toolInput.command` against `re.test(command)`; only fires when `ctx.toolName` is in the `tools` array AND the command matches the regex
 
 **Per-hook wiring:**

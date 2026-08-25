@@ -142,7 +142,7 @@ IDE rules (`.cursorrules`, `CLAUDE.md`, Copilot custom instructions) are useful,
 | **Plain-language tasks** — a slash command, no prompt scaffolding or new syntax | **No vendor lock-in** — one instruction set across Claude Code, Cursor, Copilot, Codex; engineers keep their IDEs |
 | **Ready-made flows** — coding, testing, AQA, research, and more | **Versioned control** — review, approve, and roll back instructions in Git |
 | **Plans and approval gates** before code, not after the damage | **Knowledge captured once** — out of senior engineers' heads |
-| **Fresh-context review** and execution-backed validation | **Cross-project intelligence** _(opt-in)_ — agents see the system, not just one repo |
+| **Fresh-context review** and execution-backed validation | **Cross-repository intelligence** — agents see the system, not just one repo |
 | **Less babysitting** — fewer wrong turns to catch and re-prompt | **Runs inside your perimeter** — works with limited internet access; no source code leaves |
 
 See [how Rosetta fits your workflow](OVERVIEW.md#how-rosetta-fits-into-your-workflow) and [how it protects you](USAGE_GUIDE.md#how-rosetta-protects-you).

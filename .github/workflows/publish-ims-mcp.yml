@@ -8,14 +8,25 @@ on:
       - 'src/ims-mcp-server/**'
   workflow_dispatch:
 
+
+concurrency:
+  group: publish-ims-mcp-main
+  cancel-in-progress: false
+
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest
+
+    # Least privilege: no step consumes GITHUB_TOKEN; PyPI auth uses a password secret.
+    permissions:
+      contents: read
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v5
 
+    # No pip cache here by design (see #263): this job installs `build twine`
+    # with no lockfile or requirements file to key a cache on. NOT AN ISSUE.
     - name: Set up Python
       uses: actions/setup-python@v6
       with:

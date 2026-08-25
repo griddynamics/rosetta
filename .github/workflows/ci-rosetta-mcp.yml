@@ -30,6 +30,8 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: '3.12'
+        cache: 'pip'
+        cache-dependency-path: requirements.txt
 
     - name: Create venv and install dependencies
       run: |
@@ -44,6 +46,8 @@ jobs:
       uses: actions/setup-node@v5
       with:
         node-version: '24'
+        cache: 'npm'
+        cache-dependency-path: src/rosettify/package-lock.json
 
     - name: Install rosettify dependencies
       working-directory: ./src/rosettify
@@ -64,6 +68,21 @@ jobs:
       working-directory: ./src/rosetta-mcp-server
       run: |
         twine check dist/*
+
+    - name: Assert chart appVersion matches rosetta-mcp-server version
+      run: |
+        set -euo pipefail
+        CHART_PATH=./src/helm-charts/rosetta-mcp-server
+        SERVER_PYPROJECT=./src/rosetta-mcp-server/pyproject.toml
+        APP_VERSION="$(grep -E '^appVersion:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
+        SERVER_VERSION="$(grep -E '^version = ' "${SERVER_PYPROJECT}" | head -1 | sed 's/version = "\(.*\)"/\1/')"
+        echo "Chart appVersion:           ${APP_VERSION}"
+        echo "rosetta-mcp-server version: ${SERVER_VERSION}"
+        if [ "${APP_VERSION}" != "${SERVER_VERSION}" ]; then
+          echo "::error::Chart.yaml appVersion (${APP_VERSION}) does not match src/rosetta-mcp-server/pyproject.toml version (${SERVER_VERSION}). values.yaml defaults image.tag to .Chart.AppVersion, so a default install would pull the wrong image. Bump Chart.yaml appVersion (and the chart version) - scripts/bump_versions.sh does both."
+          exit 1
+        fi
+        echo "appVersion is in sync."
 
     - name: Run tests
       working-directory: ./src/rosetta-mcp-server

@@ -25,12 +25,18 @@ class PublishCommand(BaseCommand):
         Execute publish command.
         
         Args:
-            args: Command arguments with path, dry_run, force, no_parse flags
+            args: Command arguments with path, dry_run, force, no_parse,
+                  parse_timeout flags
         
         Returns:
             0 if successful, 1 if failed
         """
         self._start_timing()
+        
+        # Explicit CLI flag wins for this run; an unset flag keeps the
+        # configured (RAGFLOW_PARSE_TIMEOUT) value.
+        if getattr(args, "parse_timeout", None) is not None:
+            self.config.parse_timeout = args.parse_timeout
         
         # Print header
         print(f"Publishing knowledge base content from: {args.path}")
@@ -47,7 +53,8 @@ class PublishCommand(BaseCommand):
             self.client,
             str(workspace_root),
             dataset_default=self.config.dataset_default,
-            dataset_template=self.config.dataset_template
+            dataset_template=self.config.dataset_template,
+            parse_timeout=self.config.parse_timeout
         )
         
         # Publish

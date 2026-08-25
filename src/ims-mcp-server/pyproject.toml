@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ims-mcp"
-version = "3.0.1"
+version = "3.0.5"
 description = "Backward-compatibility alias for rosetta-mcp. Installs rosetta-mcp and exposes the legacy `ims-mcp` command; use rosetta-mcp directly for new setups."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -25,7 +25,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "rosetta-mcp==3.0.1",
+    "rosetta-mcp==3.0.5",
 ]
 
 [project.urls]

@@ -11,7 +11,7 @@ from ..services.auth_service import AuthService
 
 
 from .base_command import BaseCommand
-from ..typing_utils import CommandArgs, DatasetLike, JsonDict
+from ..typing_utils import CommandArgs, DatasetLike, DocumentLike, JsonDict
 
 
 class ParseCommand(BaseCommand):
@@ -25,8 +25,10 @@ class ParseCommand(BaseCommand):
         """Execute parse command."""
         self._start_timing()
 
-        # CLI flag must override config default for this run.
-        self.config.parse_timeout = args.parse_timeout
+        # Explicit CLI flag wins for this run; an unset flag keeps the
+        # configured (RAGFLOW_PARSE_TIMEOUT) value.
+        if getattr(args, "parse_timeout", None) is not None:
+            self.config.parse_timeout = args.parse_timeout
 
         # Verify authentication before any dataset auto-detection touches the API.
         AuthService.verify_or_exit(self.client, self.config)
@@ -100,58 +102,57 @@ class ParseCommand(BaseCommand):
             traceback.print_exc()
             return 1
     
+    # RAGFlow `run` values that mean a document still needs parsing.
+    PARSE_REQUIRED_STATUSES = ("FAIL", "UNSTART", "CANCEL")
+
     def _get_documents_to_parse(self, dataset: DatasetLike, args: CommandArgs) -> tuple[list[JsonDict], dict[str, int]]:
         """Get documents that need parsing."""
-        document_service = DocumentService(self.client)
         docs_to_parse: list[JsonDict] = []
         status_counts = {'done': 0, 'running': 0}
         
         print(f"Checking parsing status for documents...")
         
+        # One unfiltered list call serves both modes: force selects everything,
+        # default partitions the same list client-side on `run`. Default mode used
+        # to make two calls - a server-side run= filter, plus a full list purely to
+        # tally done/running for the summary.
+        #
+        # Deliberate tradeoff, not a no-op: the server-filtered call surfaced up to
+        # page_size documents *needing parsing*, whereas page 1 of an unfiltered
+        # list surfaces only the needing-parse documents that happen to fall inside
+        # it. Once a dataset exceeds RAGFLOW_PAGE_SIZE this can therefore select
+        # fewer documents than before.
+        #
+        # Accepted limitation, not a deferred fix: every list path in this command
+        # reads page 1 only, bounded by RAGFLOW_PAGE_SIZE (default 1000). The
+        # instruction set is not expected to approach that cap - it is roughly 470
+        # files - and this command serves the optional MCP publishing pipeline,
+        # which is secondary to plugin delivery. The page-1-only read is also
+        # pre-existing: it already applied to the force branch and to the
+        # done/running tally.
+        documents = dataset.list_documents(page_size=self.config.page_size)
+        
+        selected: list[tuple[DocumentLike, str]] = []
+        for document in documents:
+            status = self._count_parse_status(status_counts, document)
+            if args.force or status in self.PARSE_REQUIRED_STATUSES:
+                selected.append((document, status))
+        
         if args.force:
-            # Force mode: all documents
-            documents = dataset.list_documents(page_size=self.config.page_size)
-            
-            print(f"Found {len(documents)} document(s) (force mode - parsing all)\n")
-            
-            for document in documents:
-                status = self._count_parse_status(status_counts, document)
-                doc_id = getattr(document, 'id', None)
-                if doc_id:
-                    docs_to_parse.append({
-                        "id": doc_id,
-                        "name": getattr(document, 'name', 'Untitled'),
-                        "dataset_id": dataset.id,
-                        "folder": ".",
-                        "status": status
-                    })
+            print(f"Found {len(selected)} document(s) (force mode - parsing all)\n")
         else:
-            # Default mode: filter by status (need parsing)
-            documents_needing_parse = document_service.list_documents_by_status(
-                dataset,
-                statuses=["FAIL", "UNSTART", "CANCEL"],
-                limit=self.config.page_size
-            )
-
-            # Tally skipped documents from the full list so the summary reflects
-            # what this run will not re-trigger.
-            all_documents = dataset.list_documents(page_size=self.config.page_size)
-            for document in all_documents:
-                self._count_parse_status(status_counts, document)
-            
-            print(f"Found {len(documents_needing_parse)} document(s) needing parsing\n")
-            
-            for document in documents_needing_parse:
-                status = self._count_parse_status(status_counts, document)
-                doc_id = getattr(document, 'id', None)
-                if doc_id:
-                    docs_to_parse.append({
-                        "id": doc_id,
-                        "name": getattr(document, 'name', 'Untitled'),
-                        "dataset_id": dataset.id,
-                        "folder": ".",
-                        "status": status
-                    })
+            print(f"Found {len(selected)} document(s) needing parsing\n")
+        
+        for document, status in selected:
+            doc_id = getattr(document, 'id', None)
+            if doc_id:
+                docs_to_parse.append({
+                    "id": doc_id,
+                    "name": getattr(document, 'name', 'Untitled'),
+                    "dataset_id": dataset.id,
+                    "folder": ".",
+                    "status": status
+                })
         
         return docs_to_parse, status_counts
 

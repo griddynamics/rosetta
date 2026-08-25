@@ -138,6 +138,7 @@ export type TopLevelConfig = z.infer<typeof topLevelConfigSchema>;
 export const caseConfigSchema = z.object({
   agents: z.array(z.string().min(1)).min(1),
   timeoutSec: z.number().int().positive().optional(),
+  maxTurns: z.number().int().positive().optional(),
   repeats: z.number().int().positive().optional(),
   provision: provisionSchema.optional(),
   setup: z.array(z.string()).default([]),

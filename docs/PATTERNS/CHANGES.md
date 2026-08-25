@@ -1,5 +1,9 @@
 # Patterns Change Log
 
+## 2026-08-24 — Policy-based authorization pattern removed
+
+Removed `policy-based-authorization.md` after the dead `team` authorization path and project-dataset policy surface were removed from the MCP implementation. The remaining read-policy behavior is limited to the live `all` and `none` paths; this change log entry records the pattern deletion rather than replacing it with a new pattern.
+
 ## 2026-07-14 — Release examples resynced to r3
 
 R3 is now the current released version. Release-specific examples across the pattern files were resynced from r2 to r3: dataset names (`aia-r3`), instruction source paths (`instructions/r3/core/`), the plugin-generator invocation (`npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false`), and the `DEFAULT_VERSION` config sample. Pattern mechanics are unchanged; only the release labels in examples moved.

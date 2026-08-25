@@ -23,6 +23,7 @@ SKILL.md body: `<context>` (opens with `Prerequisites: USE SKILL \`hitl\`, \`loa
 - `"plan root status is always derived, never set directly"` and `"upsert follows RFC 7396"` — the plan CLI has its own merge/patch semantics that silently ignore status fields in a patch.
 
 ## Invariants — do not change
+- `consult advisor/subagent` — `advisor` is a real Claude Code feature the USER enables (`/advisor <model>`), not a Rosetta subagent. It is deliberately absent from `docs/definitions/agents.md` and `instructions/r3/core/agents/` — that absence is not a dangling reference. Do not delete it.
 - Frontmatter `name: orchestration` — must equal the folder name and matches the registry entry in `docs/definitions/skills.md` (plain list, `- orchestration`).
 - Frontmatter `description` ("To delegate, prompt and manage subagents. MUST activate to spawn subagent with a quality prompt.") — short, keyword-dense, always visible to the model for auto-activation; keep it terse.
 - `user-invocable: false` — encodes "not user-invoked"; flipping it changes who can trigger this skill.

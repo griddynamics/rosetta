@@ -63,11 +63,23 @@ logs/
 .cursor/mcp.json
 
 # OS
-.DS_Store
 Thumbs.db
 *.bak
+
+# macOS — fixed names macOS itself writes. No wildcards: AppleDouble sidecars
+# are named `._` + the real filename, so they cannot be listed explicitly.
+# .DS_Store is Finder view state; the rest appear at a volume root or with
+# Time Machine / custom volume icons.
+.DS_Store
 .AppleDouble
 .LSOverride
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.apdisk
+.com.apple.timemachine.donotpresent
 
 # Project-specific
 server_output.log

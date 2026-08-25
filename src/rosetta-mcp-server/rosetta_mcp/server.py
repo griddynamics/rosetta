@@ -321,7 +321,7 @@ def _tool_cache_key(tool_name: str, **params: object) -> tuple[Any, ...]:
     return (_CONFIG_FINGERPRINT, tool_name, sorted_params)
 
 
-_AUTHORIZER = Authorizer(_CONFIG.read_policy, config=_CONFIG)
+_AUTHORIZER = Authorizer(_CONFIG.read_policy)
 _OAUTH_PROVIDER = build_oauth_provider(_CONFIG, client_storage=_build_oauth_client_storage())
 
 

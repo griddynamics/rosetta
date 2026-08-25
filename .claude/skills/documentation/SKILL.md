@@ -278,3 +278,9 @@ Verbosity kills documentation. These are hard rules.
 - Prefer lists over tables, sometimes tables are really useful though
 - Related links are for sure list; Terms definition is for sure a table.
 - Ignore web site content -> it may be incorrect.
+
+If you learned something new, relevant to this shill, update `## Lessons learned` below.
+
+## Lessons learned (keep updating, first line is template, follow <instructions>):
+
+- **<key action item, less then 7 words>** <concise: what happened, why, root cause, reasoning, less then 25 words>.

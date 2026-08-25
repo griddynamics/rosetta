@@ -35,7 +35,7 @@ Attributes are ordered by volatility — `status`, `approved_by`, `changed` alwa
   <title>[the single outcome this unit governs; noun phrase, unique within the area]</title>
   <statement>[the governing rule: what shall hold, over which cases, with its limits and explicit exclusions. NOT an EARS sentence, NOT a restatement of the criteria]</statement>
   <rationale>[why this shape and not another: basis for each threshold, actor and boundary; alternatives rejected and why rejected]</rationale>
-  <evidence>[reverse-engineering only: path:line-range per source location]</evidence>
+  <evidence>[reverse-engineering only: source-code path + the named symbol + artifact at it (function, class, const, type) per location. Source code ONLY - never a plan, discovery, TEMP or other working artifact. Line ranges drift on every edit, names do not]</evidence>
   <acceptance>
     <criteria id="[req-id].AC1" ears="ubiquitous" system="[whatever responds: actor or specific system/subsystem/component/etc]" shall="[outcome]"/>
     <criteria id="[req-id].AC2" ears="event" when="[trigger]" system="[responder]" shall="[outcome]"/>

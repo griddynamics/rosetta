@@ -91,7 +91,7 @@ permalink: /roadmap/
     <div class="rm-label">Enterprise Security</div>
     <ul class="rm-list">
       <li>Industry-standard authentication with support for major identity providers</li>
-      <li>Tokens encrypted at rest; policy-based access control per team and project</li>
+      <li>Tokens encrypted at rest</li>
       <li>Human-in-the-loop approval gates at every critical decision point</li>
       <li>Sensitive data protection, risk assessment, and scope enforcement built in</li>
       <li>Rosetta is designed so that no source code leaves your organization</li>

@@ -13,7 +13,7 @@ Assumes the role from the input, defines Rosetta prep steps as a prerequisite, a
 
 - orchestrator - manages a team of subagents, loads orchestrator skills/best practices, it is top agent (no agents file for it!)
 - researcher - research task related to current project
-- analyst - business and technical requirements, business analysis
+- requirements-engineer - business and technical requirements, business analysis
 - planner - engineering, execution, and implementation planning
 - architect - engineering architect defining tech specifications and architecture
 - engineer - any engineering identity

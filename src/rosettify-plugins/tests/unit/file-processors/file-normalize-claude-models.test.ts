@@ -1,14 +1,15 @@
 // FR-ARCH-0046, FR-COPY-0021 — fileNormalizeClaudeModels: per-vocabulary processor for claude
 import { describe, it, expect } from 'vitest';
 import { fileNormalizeClaudeModels } from '../../../src/file-processors/file-normalize-claude-models.js';
+import { CLAUDE_VOCABULARY } from '../../../src/spec/model-maps.js';
 import type { FileProcessingFrame, TargetContext, PluginSpec, Vfs } from '../../../src/types.js';
 
 function makeCtx(): TargetContext {
   return {
-    spec: { name: 'core-claude' } as unknown as PluginSpec,
+    spec: { name: 'core-claude', modelVocabulary: CLAUDE_VOCABULARY } as unknown as PluginSpec,
     vfs: [] as unknown as Vfs,
     release: { name: 'r2', deterministicHooks: false, displayName: 'R2' },
-    repoRoot: '',
+    activeProfile: null,
   };
 }
 
@@ -86,24 +87,24 @@ describe('fileNormalizeClaudeModels — multi-token scanning', () => {
     expect((result.source[0]?.frontmatter as any).model).toBe('claude-sonnet-5');
   });
 
-  it('gpt-5.5-high first, claude-4.8-opus-high second: picks opus → claude-opus-4-8', () => {
+  it('gpt-5.5-high first, claude-4.8-opus-high second: picks opus → claude-opus-5', () => {
     const content = '---\nmodel: gpt-5.5-high, claude-4.8-opus-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.5-high, claude-4.8-opus-high');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-opus-4-8');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-4-8');
+    expect(result.target_contents as string).toContain('model: claude-opus-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5');
   });
 });
 
 // ─── Normalization: claude token cases ───────────────────────────────────────
 
 describe('fileNormalizeClaudeModels — claude token normalization', () => {
-  it('claude-opus-4-6 contains opus → maps to claude-opus-4-8', () => {
+  it('claude-opus-4-6 contains opus → maps to claude-opus-5', () => {
     const content = '---\nmodel: claude-opus-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-opus-4-6');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-opus-4-8');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-4-8');
+    expect(result.target_contents as string).toContain('model: claude-opus-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5');
   });
 
   it('claude-sonnet-4-6 contains sonnet → maps to claude-sonnet-5', () => {
@@ -137,7 +138,7 @@ describe('fileNormalizeClaudeModels — claude token normalization', () => {
     const result = fileNormalizeClaudeModels(frame, makeCtx());
     // The old value should be replaced
     const newContents = result.target_contents as string;
-    // claude-opus-4-6 is different from claude-opus-4-8
-    expect(newContents).toContain('claude-opus-4-8');
+    // claude-opus-4-6 is different from claude-opus-5
+    expect(newContents).toContain('claude-opus-5');
   });
 });

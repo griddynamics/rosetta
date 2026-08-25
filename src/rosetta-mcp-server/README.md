@@ -66,7 +66,7 @@ Rosetta MCP supports two runtime modes:
 |----------|-------|---------|-------|
 | `ROSETTA_SERVER_URL` | Runtime (all modes) | `https://<production server URL>/` | Rosetta Server base URL |
 | `ROSETTA_API_KEY` | Runtime (all modes) | Empty | Required for Rosetta Server access |
-| `VERSION` | Runtime (all modes) | `r1` | Used for instruction dataset resolution (`aia-{version}`) |
+| `VERSION` | Runtime (all modes) | `r3` | Used for instruction dataset resolution (`aia-{version}`) |
 | `ROSETTA_TRANSPORT` | Runtime (all modes) | `stdio` | `stdio` or `http` |
 | `ROSETTA_HTTP_HOST` | Runtime (HTTP) | `0.0.0.0` | HTTP bind host |
 | `ROSETTA_HTTP_PORT` | Runtime (HTTP) | `8000` | HTTP bind port |
@@ -87,7 +87,7 @@ Rosetta MCP supports two runtime modes:
 | `ROSETTA_OAUTH_EXTRA_SCOPES` | Runtime (HTTP OAuth) | Empty | Space-separated scopes forwarded to IdP authorize endpoint (e.g. `openid email offline_access`) |
 | `ROSETTA_JWT_SIGNING_KEY` | Runtime (HTTP OAuth) | Empty | Secret for signing FastMCP JWTs; if unset, derived from client secret |
 | `FERNET_KEY` | Runtime (HTTP OAuth) | Empty | Fernet key for encrypting OAuth token storage in Redis |
-| `ROSETTA_READ_POLICY` | Runtime (authz) | `all` | `all`, `team`, `none` for project dataset reads |
+| `ROSETTA_READ_POLICY` | Runtime (authz) | `all` | `all` or `none` for non-instruction dataset reads; unsupported values fall back to `all` |
 | `ROSETTA_USER_EMAIL` | Runtime (authz) | `rosetta@example.com` | STDIO identity and HTTP fallback identity |
 | `ROSETTA_MODE` | Runtime (prompts) | `HARD` | Prompt mode selection: `HARD` or `SOFT` |
 | `INSTRUCTION_ROOT_FILTER` | Runtime (instructions query) | Empty | Comma-separated root tags filter |
@@ -106,7 +106,7 @@ Rosetta MCP supports two runtime modes:
 |----------|-------------|---------|
 | `ROSETTA_SERVER_URL` | Rosetta Server base URL | `https://<production server URL>/` |
 | `ROSETTA_API_KEY` | API key used by Rosetta MCP to access Rosetta Server | Required |
-| `VERSION` | Instruction release used for instruction dataset resolution (`aia-{version}`) | `r1` |
+| `VERSION` | Instruction release used for instruction dataset resolution (`aia-{version}`) | `r3` |
 | `ROSETTA_DEBUG` | Enable debug logging to stderr (`1/true/yes/on`); legacy alias `IMS_DEBUG` still honored | Disabled |
 | `FASTMCP_LOG_LEVEL` | Set to `DEBUG` alongside `ROSETTA_DEBUG=1` for full FastMCP internals | `INFO` |
 | `FASTMCP_ENABLE_RICH_LOGGING` | Set to `false` to disable Rich formatting (use in production/Grafana) | `true` |
@@ -164,11 +164,11 @@ OAuth variables for HTTP mode:
 | `ROSETTA_JWT_SIGNING_KEY` | all | Secret for signing FastMCP JWTs |
 | `FERNET_KEY` | both | Fernet key for encrypting token storage in Redis |
 
-Authorization policy variables (dataset-level):
+Authorization policy variables:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `ROSETTA_READ_POLICY` | `all`, `team`, `none` for read access on `project-*` datasets | `all` |
+| `ROSETTA_READ_POLICY` | `all` or `none` for non-instruction dataset reads; unsupported values fall back to `all` | `all` |
 | `ROSETTA_USER_EMAIL` | Fallback user email (used in STDIO, and HTTP fallback) | `rosetta@example.com` |
 
 OAuth callback URL examples:
@@ -293,21 +293,21 @@ query_instructions(tags=["bootstrap"])
 List immediate children under a virtual instruction path without loading file content.
 
 **Parameters:**
-- `path_prefix` (str): Virtual path prefix such as `skills`, `rules`, or `workflows`, or `all` to list all instruction files without content
+- `full_path_from_root` (str): Virtual path prefix such as `skills`, `rules`, or `workflows`, or `all` to list all instruction files without content
 
 Validation notes:
 - Use `""` or `/` to list the root
 - Use `all` to list all `<rosetta:file />` entries without content
 - `all` includes a note that duplicate `path` values are bundled/combined when acquired
 - Use guaranteed unique 3-part/2-part tags to read specific content
-- `path_prefix` must stay relative
-- `path_prefix` must not contain `.` or `..` path segments
+- `full_path_from_root` must stay relative
+- `full_path_from_root` must not contain `.` or `..` path segments
 - max length: 512 characters
 
 **Example:**
 ```python
-list_instructions(path_prefix="rules")
-list_instructions(path_prefix="all")
+list_instructions(full_path_from_root="rules")
+list_instructions(full_path_from_root="all")
 ```
 
 ## Resource Template

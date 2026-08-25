@@ -8,6 +8,11 @@ on:
       - 'src/curiocity/**'
   workflow_dispatch:
 
+
+concurrency:
+  group: publish-curiocity-main
+  cancel-in-progress: false
+
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest

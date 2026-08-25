@@ -6,13 +6,18 @@
   },
   "metadata": {
     "description": "Rosetta - Software Engineering Accelerator providing AI agents with unified access to instructions, workflows, skills, and business context",
-    "version": "3.1.9"
+    "version": "3.1.11"
   },
   "plugins": [
     {
       "name": "rosetta",
       "source": "./plugins/core-claude",
       "description": "Rosetta for Claude - Software Engineering Accelerator instruction set, workflows, and guardrails."
+    },
+    {
+      "name": "rosetta-light",
+      "source": "./plugins/core-claude-light",
+      "description": "Rosetta for Claude - Software Engineering Accelerator instruction set, workflows, and guardrails. (lightweight profile: simpler workflows, smaller models)"
     }
   ],
   "renames": {

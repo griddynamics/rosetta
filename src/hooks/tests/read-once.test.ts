@@ -36,7 +36,11 @@ vi.mock('../src/runtime/state-store', () => ({
 import { runHook } from '../src/runtime/run-hook';
 import { readOnceHook } from '../src/hooks/read-once';
 import { readOnceResetHook } from '../src/hooks/read-once-reset';
-import { readReadOnceState, READ_ONCE_NAMESPACE } from '../src/hooks/read-once-shared';
+import {
+  getReadOnceConfig,
+  readReadOnceState,
+  READ_ONCE_NAMESPACE,
+} from '../src/hooks/read-once-shared';
 
 const makeClaudeRead = (
   filePath: string,
@@ -170,6 +174,16 @@ describe('read-once', () => {
 
     const result = await runHookWithRaw(readOnceHook, makeClaudeRead(filePath));
     expect(result).toBeNull();
+  });
+
+  test('zero TTL is honoured as the floored minimum, not the default', () => {
+    process.env.READ_ONCE_TTL = '0';
+    expect(getReadOnceConfig().ttlMs).toBe(1000);
+  });
+
+  test('missing TTL falls back to the default', () => {
+    delete process.env.READ_ONCE_TTL;
+    expect(getReadOnceConfig().ttlMs).toBe(20 * 60 * 1000);
   });
 
   test('preCompact reset clears the ledger for the current session', async () => {

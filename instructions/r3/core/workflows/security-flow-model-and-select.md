@@ -25,7 +25,7 @@ Phase 4. Broad/full reviews require a threat model before inspection.
 4. Define evidence contracts
 </phase_steps>
 
-<design_coverage step="4.1" subagent="architect" role="Security architect mapping threats to contextual coverage" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
+<design_coverage step="4.1" subagent="architect" role="Security architect mapping threats to contextual coverage" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security` for its threat-model contract.

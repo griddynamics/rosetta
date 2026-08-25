@@ -9,7 +9,6 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
@@ -18,6 +17,11 @@ from .typing_utils import JsonDict
 logger = logging.getLogger(__name__)
 
 ENV_FILE_ENV_VAR = "ROSETTA_CLI_ENV_FILE"
+
+# Default timeouts in seconds. Single source of truth for the dataclass
+# defaults, the env-var fallbacks, and env.template.
+DEFAULT_TIMEOUT = 30
+DEFAULT_PARSE_TIMEOUT = 1200
 
 
 def _candidate_env_names(env_name: str | None) -> list[str]:
@@ -64,14 +68,40 @@ def find_env_file(env_name: str | None = None) -> Path | None:
     return None
 
 
-def _first_subdomain(url: str) -> str | None:
-    """Extract first subdomain from URL. 'https://ims-dev.example.com/' -> 'ims-dev'."""
-    try:
-        hostname = urlparse(url).hostname or ""
-        parts = hostname.split(".")
-        return parts[0] if len(parts) > 1 else None
-    except Exception:
-        return None
+# Environment keywords searched for in the RAGFlow URL, in scan order.
+#
+# ORDER IS LOAD-BEARING - do not sort or alphabetize this tuple. The scan takes the
+# first keyword that appears anywhere in the URL, so a keyword that contains another
+# keyword must be listed before the one it contains. "prod" is a substring of
+# "preprod" - the only such pair in this set - so putting "prod" first would make
+# preprod.example.com resolve to "prod". test_environment_keyword_order_is_safe in
+# tests/test_rosetta_config_environment.py enforces this invariant.
+ENVIRONMENT_KEYWORDS: tuple[str, ...] = (
+    "preprod",  # must precede "prod", which it contains
+    "prod",
+    "stag",
+    "qa",
+    "dev",
+    "test",
+    "uat",
+    "sandbox",
+    "perf",
+)
+
+
+def _environment_from_url(url: str) -> str | None:
+    """Detect an environment name from keywords in a RAGFlow URL.
+
+    Case-insensitive substring scan over the URL exactly as given (scheme, host,
+    port and path all count). The first keyword in ENVIRONMENT_KEYWORDS to appear
+    wins, and the resolved value is the keyword itself, not the surrounding label:
+    'https://ims-dev.example.com/' -> 'dev'. Returns None when no keyword appears.
+    """
+    lowered = (url or "").lower()
+    for keyword in ENVIRONMENT_KEYWORDS:
+        if keyword in lowered:
+            return keyword
+    return None
 
 
 @dataclass
@@ -92,7 +122,13 @@ class RosettaConfig:
         RAGFLOW_AUTO_QUESTIONS: Auto-generate questions per chunk (default: 0)
         RAGFLOW_PAGE_SIZE: Page size for listing operations (default: 1000)
         RAGFLOW_PARSE_TIMEOUT: Timeout for parsing operations in seconds (default: 1200)
-        ENVIRONMENT: Environment name (default: "local")
+        RAGFLOW_TIMEOUT: HTTP request timeout in seconds (default: 30)
+        ENVIRONMENT: Environment display label. Takes precedence over URL keyword
+            detection, but not over an explicit --env argument. When unset, the
+            label is detected from RAGFLOW_BASE_URL by a case-insensitive scan for
+            the first of preprod, prod, stag, qa, dev, test, uat, sandbox, perf to
+            appear in it (the resolved value is that keyword itself, so
+            "https://ims-dev.example.com" yields "dev"); "local" if none appear.
     
     Examples:
         >>> config = RosettaConfig.from_env(".env")
@@ -112,7 +148,8 @@ class RosettaConfig:
     parser_config: JsonDict | None = None
     environment: str = "local"
     page_size: int = 1000
-    parse_timeout: int = 300
+    parse_timeout: int = DEFAULT_PARSE_TIMEOUT
+    timeout: int = DEFAULT_TIMEOUT
     
     @classmethod
     def from_env(
@@ -187,9 +224,11 @@ class RosettaConfig:
         Args:
             environment: Optional explicit environment name (e.g., "local",
                 "dev", "remote"). If provided, this value is used and takes
-                precedence over the ENVIRONMENT environment variable. If not
-                provided, the ENVIRONMENT variable is used, defaulting to
-                "local" when unset.
+                precedence over everything else. If not provided, the
+                ENVIRONMENT variable is used; failing that, the label is
+                detected from a keyword in RAGFLOW_BASE_URL (see
+                ENVIRONMENT_KEYWORDS), defaulting to "local" when no keyword
+                appears.
         
         Returns:
             RosettaConfig instance
@@ -206,9 +245,11 @@ class RosettaConfig:
         api_key = os.getenv("RAGFLOW_API_KEY", "")
         dataset_default = os.getenv("RAGFLOW_DATASET_DEFAULT", "aia")
         dataset_template = os.getenv("RAGFLOW_DATASET_TEMPLATE", "aia-{release}")
-        # fallback to ENVIRONMENT env var, or default to "local"
+        # Environment is a display label only - nothing branches on its value.
+        # Precedence: explicit argument (--env) > ENVIRONMENT > keyword detected in
+        # the RAGFlow URL > "local".
         if not environment:
-            environment = os.getenv("ENVIRONMENT") or _first_subdomain(base_url) or "local"
+            environment = os.getenv("ENVIRONMENT") or _environment_from_url(base_url) or "local"
         
         # Dataset creation settings
         embedding_model = os.getenv("RAGFLOW_EMBEDDING_MODEL") or None
@@ -216,7 +257,8 @@ class RosettaConfig:
         
         # Pagination and timeout settings
         page_size = int(os.getenv("RAGFLOW_PAGE_SIZE", "1000"))
-        parse_timeout = int(os.getenv("RAGFLOW_PARSE_TIMEOUT", "1200"))
+        parse_timeout = int(os.getenv("RAGFLOW_PARSE_TIMEOUT", str(DEFAULT_PARSE_TIMEOUT)))
+        timeout = int(os.getenv("RAGFLOW_TIMEOUT", str(DEFAULT_TIMEOUT)))
         
         # Parser configuration for naive chunking
         parser_config: JsonDict | None = None
@@ -243,7 +285,8 @@ class RosettaConfig:
             parser_config=parser_config,
             environment=environment,
             page_size=page_size,
-            parse_timeout=parse_timeout
+            parse_timeout=parse_timeout,
+            timeout=timeout
         )
     
     def validate(self) -> bool:
@@ -268,7 +311,9 @@ class RosettaConfig:
             )
         
         if not self.api_key.startswith("ragflow-"):
-            logger.warning("API key should start with 'ragflow-', got: %s...", self.api_key[:10])
+            # Never log any part of the key: the "ragflow-" prefix is 8 chars, so a
+            # 10-char excerpt leaks secret material, and the caller knows their own key.
+            logger.warning("API key should start with 'ragflow-'")
         
         return True
     
@@ -321,7 +366,9 @@ class RosettaConfig:
     
     def __str__(self) -> str:
         """String representation (masks API key)"""
-        masked_key = f"{self.api_key[:10]}..." if len(self.api_key) > 10 else "***"
+        # Show only the 8-char "ragflow-" prefix. A 10-char excerpt would expose two
+        # characters of secret material, which the docstring's "masks API key" rules out.
+        masked_key = f"{self.api_key[:8]}..." if len(self.api_key) > 8 else "***"
         return (
             f"RosettaConfig(\n"
             f"  base_url={self.base_url}\n"

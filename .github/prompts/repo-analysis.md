@@ -125,11 +125,15 @@ skills, workflows, agents, prompts, bootstrap behavior, or prompt quality genera
 
 ## Validation Gate — Before Creating Issues
 
-For each candidate improvement found in Phase 2, verify all three before creating an issue:
+Reason about every candidate on its own. Never pattern-match or work mechanically — a wrong issue costs far more than a missed one.
+
+For each candidate improvement found in Phase 2, verify all five before creating an issue:
 
 1. **Is this actually broken?** — Read the relevant code, config, or CI file to confirm the issue exists on current `main`. Don't flag theoretical problems or scenarios that don't fire in practice.
 2. **Is there already a solution?** — Grep for existing tests, validation scripts, CI steps, or utilities that already cover this concern. If covered, drop the candidate.
 3. **Is someone already working on this?** — Run `gh pr list --state open` and scan recent branch names for overlapping work. If found, skip creating an issue (or link to the existing PR instead).
+4. **Is the "undefined" thing actually external?** — Absence from this repo is NOT proof it does not exist. Use WebSearch and read `docs/definitions/workflows.md` before calling any reference dangling. `/goal` and `/advisor` are Claude Code features; `graphify` is a user-installed skill.
+5. **Is the problem real but your fix inverted?** — Write down the fix direction, then check it against the governing authority: `docs/schemas/*.md`, `instructions/r*/core/templates/shell-schemas/*.md`, and the sibling `README.md` "Invariants" section. If the authority prescribes the current form, the file is right and your fix is backwards — report the inverse instead.
 
 Drop any candidate that fails any of these checks.
 

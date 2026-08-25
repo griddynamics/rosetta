@@ -25,7 +25,7 @@ Tactics = work distribution · mini-loops = quality over time — compose freely
 
 - Pick per chunk: fan-out & collect (breadth) · map-reduce (scale — smaller chunks → much better results) · pipeline (stages independent per item) · role-layered (complex builds) · scout-then-swarm (shape unknown) · tournament / multi-hypothesis (wide solution space) · producer–consumer (generator finds items, workers drain the queue). Combos: scout → map-reduce → fresh-eyes · fan-out hypotheses → tournament judge → synthesize winner · map-reduce isolated → integrate → validate.
 - Determinism: script-it — temp script instead of N manual edits (fragile / exact / bulk ops) · build-a-harness — small CLI/probe to exercise a library or external system, validate through it · backup before risky/irreversible edits → rollback path exists before acting. Use the human: complicated → offer the simpler option · ask whether alternatives are wanted before committing to one.
-- Sessions: create plan (one file, with refs to per-session files) and implementation specs for each session for workhorse model (sonnet 5, gpt-5.4, so you need to provide more details) in multiple files in order of execution, so that it can be given one-by-one in different sessions of subagents. Do not duplicate existing files, instead use references "file-name:line-ranges".
+- Sessions: create plan (one file, with refs to per-session files) and implementation specs for each session for workhorse model (sonnet 5, gpt-5.6-terra, so you need to provide more details) in multiple files in order of execution, so that it can be given one-by-one in different sessions of subagents. Do not duplicate existing files, instead use references "file-name:line-ranges".
 
 ## 5 · Workflow
 

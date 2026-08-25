@@ -76,7 +76,7 @@ The MCP server is the guiding layer between IDEs and the knowledge base. It expo
 - **Streamable HTTP with OAuth** (default). Stateful: the server holds session state and can issue callbacks to the IDE. Zero local dependencies. Cursor, Claude Code, and Codex connect directly. When scaling to multiple replicas, sticky sessions are required (see [Deployment](/rosetta/docs/deployment/)).
 - **STDIO** for environments with limited internet access. Runs `uvx rosetta-mcp` locally with API key auth.
 
-**Authentication:** HTTP uses OAuth 2.1 via [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) (supports any provider: Keycloak, GitHub, Google, Azure). Cached token introspection. STDIO uses `ROSETTA_API_KEY`. Policy-based authorization: `aia-*` read-only, `project-*` configurable.
+**Authentication:** HTTP uses OAuth 2.1 via [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) (supports any provider: Keycloak, GitHub, Google, Azure). Cached token introspection. STDIO uses `ROSETTA_API_KEY`.
 
 **Key environment variables:** `ROSETTA_SERVER_URL`, `ROSETTA_API_KEY`, `INSTRUCTION_ROOT_FILTER`, `REDIS_URL`
 
@@ -107,7 +107,6 @@ RAGFlow is the document storage and retrieval engine. Rosetta uses it for ingest
 | `aia-r1` | R1 release (out of support) |
 | `aia-r2` | R2 release (previous; backports only) |
 | `aia-r3` | R3 release (current) |
-| `project-*` | Per-repository collections in target repos (per OAuth policy) |
 
 Instruction dataset names auto-generated from template `aia-{release}`.
 
@@ -148,7 +147,7 @@ For deployment details, see [Deployment](/rosetta/docs/deployment/).
 
 ## Authentication
 
-HTTP uses OAuth 2.1 via FastMCP's proxy layer (supports any provider: Keycloak, GitHub, Google, Azure). STDIO uses `ROSETTA_API_KEY`. Policy-based authorization: `aia-*` read-only, `project-*` configurable. For the two-leg proxy architecture, scope separation, and token lifecycle details, see [AUTHENTICATION.md](https://github.com/griddynamics/rosetta/blob/main/docs/mcp/AUTHENTICATION.md).
+HTTP uses OAuth 2.1 via FastMCP's proxy layer (supports any provider: Keycloak, GitHub, Google, Azure). STDIO uses `ROSETTA_API_KEY`. For the two-leg proxy architecture, scope separation, and token lifecycle details, see [AUTHENTICATION.md](https://github.com/griddynamics/rosetta/blob/main/docs/mcp/AUTHENTICATION.md).
 
 Three OAuth modes controlled by `ROSETTA_OAUTH_MODE`:
 
@@ -207,8 +206,8 @@ All three modes issue FastMCP JWTs to MCP clients and store upstream tokens in R
 
 **Key details:**
 - Version tracked in `rosetta:redis-schema-version` (plain integer)
-- Distributed lock (`rosetta:migration-lock`, 60 s TTL) prevents concurrent runs across pods on rolling deploys
-- Each migration runs exactly once; safe to deploy to multiple replicas simultaneously
+- Distributed lock (`rosetta:migration-lock`, 60 s TTL) deduplicates runs across pods on rolling deploys. Best-effort, not a guarantee: the TTL is never extended, so a run that outlives it loses the lock while still working. Release is fenced by a per-run token, so a run that lost the lock cannot delete another pod's fresh one
+- What actually makes multi-replica deploys safe is that every migration is idempotent and the version is re-read under the lock before any migration runs — not the lock itself. A migration may therefore run more than once
 - All migration activity logged at `INFO` level under `rosetta_mcp.migrations`
 
 **Current migrations:**

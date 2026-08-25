@@ -9,9 +9,18 @@ on:
       - 'requirements.txt'
   workflow_dispatch:
 
+
+concurrency:
+  group: publish-rosetta-mcp-main
+  cancel-in-progress: false
+
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest
+
+    # Least privilege: no step consumes GITHUB_TOKEN; PyPI auth uses a password secret.
+    permissions:
+      contents: read
 
     steps:
     - name: Checkout code

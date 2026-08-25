@@ -13,7 +13,7 @@ baseSchema: docs/schemas/skill.md
 
 <core_concepts>
 
-If request is to plan for human work breakdown -> MUST APPLY SKILL FILE `assets/pl-human.md` and `assets/pl-wbs.md` AS HIGH PRIORITY.
+If request is to plan for human work breakdown -> STOP and USE SKILL `backlog`, mode `work-breakdown`. This skill plans AI sessions only.
 If request is small or trivial -> SKIP, DO NOTHING.
 If one session only -> merge into `plans/<FEATURE>/<FEATURE>-PLAN.md` and `plans/<FEATURE>/HANDOFF.md`.
 If used together with tech-specs skill -> do not duplicate content, use references. 

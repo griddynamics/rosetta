@@ -1,6 +1,6 @@
 {
   "name": "curiocity",
-  "version": "0.2.4",
+  "version": "0.2.7",
   "description": "Evals/testing harness that drives interactive coding-agent CLIs over a real PTY.",
   "type": "module",
   "license": "Apache-2.0",
@@ -59,6 +59,7 @@
     "vitest": "^4.1.10"
   },
   "overrides": {
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "postcss": "8.5.23"
   }
 }

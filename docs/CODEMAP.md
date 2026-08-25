@@ -26,7 +26,7 @@ ragflow.py dataset.py document.py doc_cache.py
 
 #### src/rosetta-mcp-server/rosetta_mcp/services/ — core business logic
 
-bundler.py authorizer.py query_builder.py keyword_search.py _ragflow_team_api.py
+bundler.py authorizer.py query_builder.py keyword_search.py
 
 #### src/rosetta-mcp-server/rosetta_mcp/tools/ — MCP tool implementations
 

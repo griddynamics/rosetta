@@ -115,11 +115,20 @@ jobs:
 
             MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-triage.md
           show_full_output: false
+          # Read/Glob/Grep are scoped to github.workspace (which contains both the
+          # base checkout and pr/) rather than left bare: Claude Code's permission
+          # matcher applies no implicit cwd sandbox to an unscoped tool grant, so
+          # bare "Read" would let a prompt-injected instruction read anywhere the
+          # runner user can, e.g. /proc/self/environ -- where ANTHROPIC_API_KEY and
+          # GITHUB_TOKEN sit unstripped in this process's own environment. The
+          # explicit /proc and /etc denies in disallowedTools are redundant with
+          # that scoping (deny wins regardless of specificity) but kept as a second
+          # layer in case the allow scope is ever loosened by mistake.
           claude_args: |
             --allowedTools
-            "Read,Glob,Grep,Agent,Skill,Bash(gh * list*),Bash(gh * status*),Bash(gh --version),Bash(git status*),Bash(git diff*),Bash(git log*),Bash(git show*),Bash(git branch*),Bash(git ls-files*),Bash(git rev-parse*),Bash(gh pr view*),Bash(gh pr diff*),Bash(gh pr edit*),Bash(gh pr comment*),Bash(gh issue view*),Bash(gh issue edit*),Bash(gh issue comment*),Bash(gh issue create*),Bash(gh api repos/*/issues/*),Bash(gh api repos/*/pulls/*),Bash(gh api repos/*/contents/*),Bash(gh api repos/*/git/*),Bash(gh api repos/*/tags*),Bash(gh api repos/*/code-scanning/alerts*),Bash(gh api repos/*/code-scanning/analyses*),Bash(gh api repos/*/dependabot/alerts*),Bash(gh api repos/*/commits/*),Bash(gh api repos/*/actions/runs*),Bash(gh api repos/*/labels*),Bash(gh pr checks*),Bash(git -C * status*),Bash(git -C * diff*),Bash(git -C * log*),Bash(git -C * show*),Bash(git -C * branch*),Bash(git -C * ls-files*),Bash(git -C * rev-parse*)"
+            "Read(/${{ github.workspace }}/**),Glob(/${{ github.workspace }}/**),Grep(/${{ github.workspace }}/**),Agent,Skill,Bash(gh * list*),Bash(gh * status*),Bash(gh --version),Bash(git status*),Bash(git diff*),Bash(git log*),Bash(git show*),Bash(git branch*),Bash(git ls-files*),Bash(git rev-parse*),Bash(gh pr view*),Bash(gh pr diff*),Bash(gh pr edit*),Bash(gh pr comment*),Bash(gh issue view*),Bash(gh issue edit*),Bash(gh issue comment*),Bash(gh issue create*),Bash(gh api repos/*/issues/*),Bash(gh api repos/*/pulls/*),Bash(gh api repos/*/contents/*),Bash(gh api repos/*/git/*),Bash(gh api repos/*/tags*),Bash(gh api repos/*/code-scanning/alerts*),Bash(gh api repos/*/code-scanning/analyses*),Bash(gh api repos/*/dependabot/alerts*),Bash(gh api repos/*/commits/*),Bash(gh api repos/*/actions/runs*),Bash(gh api repos/*/labels*),Bash(gh pr checks*),Bash(git -C * status*),Bash(git -C * diff*),Bash(git -C * log*),Bash(git -C * show*),Bash(git -C * branch*),Bash(git -C * ls-files*),Bash(git -C * rev-parse*)"
             --disallowedTools
-            "ScheduleWakeup,Bash(* --show-token),Bash(* --show-token*),Bash(gh api * -X*),Bash(gh api * --method*),Bash(gh api * -f*),Bash(gh api * -F*),Bash(gh api * --field*),Bash(gh api * --raw-field*),Bash(gh api * --input*)"
+            "ScheduleWakeup,Read(//proc/**),Read(//etc/**),Glob(//proc/**),Glob(//etc/**),Grep(//proc/**),Grep(//etc/**),Bash(* --show-token),Bash(* --show-token*),Bash(gh api * -X*),Bash(gh api * --method*),Bash(gh api * -f*),Bash(gh api * -F*),Bash(gh api * --field*),Bash(gh api * --raw-field*),Bash(gh api * --input*)"
             --model sonnet
             --effort high
 

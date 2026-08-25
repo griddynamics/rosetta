@@ -91,6 +91,18 @@ describe('§6 interaction engine — trigger table, row by row', () => {
     expect(router!.isExhausted()).toBe(true);
   });
 
+  it('uses the TrialSpec maxTurns cap instead of the engine default', async () => {
+    const { result, router } = await run({ scene: 'two-gates.json', maxTurns: 1 }, {
+      entries: [
+        { role: 'workhorse', text: 'Yes, approved' },
+        { role: 'workhorse', text: 'Yes, approve' },
+      ],
+    });
+    expect(result.status).toBe('timeout');
+    expect(result.turnCount).toBe(2);
+    expect(router!.isExhausted()).toBe(true);
+  });
+
   it('row 2 (Stop → fast classifies question) → workhorse free-text answer → typed reply', async () => {
     const { result, router } = await run({ scene: 'free-text-question.json' }, {
       entries: [

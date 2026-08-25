@@ -1,6 +1,6 @@
 ---
 name: self-learning
-description: "MUST activate on: execution failure/error, mistake, wrong/unexpected result, expected≠actual mismatch, 2 consecutive mismatches, unhappy/upset user, user asks why something failed/didn't work."
+description: "MUST STOP and activate on: execution failure/error, your mistake, wrong/unexpected result, expected≠actual mismatch, 2 consecutive mismatches, unhappy/upset user, user WRITING IN CAPS, something failed/didn't work. No edits, no reverses, no actions, except this skill."
 license: Apache-2.0
 user-invocable: false
 baseSchema: docs/schemas/skill.md
@@ -12,7 +12,7 @@ baseSchema: docs/schemas/skill.md
 
 On failure or mismatch — also: user asks why something didn't work · 3+ errors in quick succession · retrying same approach without progress · drift from agreed plan/scope · large change without full understanding:
 
-1. STOP all changes immediately. NO "one more try".
+1. STOP all changes immediately. NO "one more try". NO "let me revert that". 
 2. Identify root cause — not symptoms. Understand BEFORE replanning.
 3. Ask 1-3 clarifying questions if ambiguous.
 4. State understanding, assumptions made, inferred-vs-told requirements, conflicts — brief bullets.

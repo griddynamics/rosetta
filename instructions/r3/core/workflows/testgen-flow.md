@@ -42,7 +42,7 @@ Prerequisite: Rosetta Prep Steps.
   - **Phase 5 test-case-count guidance** → `testgen-flow-test-case-generation.md` `<validation_checklist>`.
 - **Model tiers** (phase `subagent_required_model`): `tier: complex` = heavy reasoning / multi-source synthesis / requirements engineering (Opus-class / GPT high-tier); `tier: workhorse` = structured execution / extraction / generation + export (Sonnet-class / GPT mid-tier).
 
-<project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra">
+<project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-high, grok-4.6">
 
 - APPLY PHASE `testgen-flow-project-config-loading.md`
 - Input: user request with an Issue Tracker ticket key/URL. Output: `plans/testgen-{TICKET-KEY}/initial-data.md`, project config file.
@@ -52,7 +52,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </project_config_loading>
 
-<data_collection phase="1" subagent="discoverer" role="Requirements data collector" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra">
+<data_collection phase="1" subagent="discoverer" role="Requirements data collector" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-high, grok-4.6">
 
 - APPLY PHASE `testgen-flow-data-collection.md`
 - Input: initial user request, initial-data.md. Output: `plans/testgen-{TICKET-KEY}/raw-data.md` with Issue Tracker + Wiki data.
@@ -61,7 +61,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </data_collection>
 
-<gap_and_contradiction_analysis phase="2" subagent="architect" role="Requirements gap analyst" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
+<gap_and_contradiction_analysis phase="2" subagent="architect" role="Requirements gap analyst" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high">
 
 - APPLY PHASE `testgen-flow-gap-and-contradiction-analysis.md`
 - Input: raw-data.md. Output: `plans/testgen-{TICKET-KEY}/analysis.md` with contradictions, gaps, ambiguities.
@@ -70,7 +70,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </gap_and_contradiction_analysis>
 
-<question_generation phase="3" subagent="architect" role="Requirements clarification analyst" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol" type="HITL">
+<question_generation phase="3" subagent="architect" role="Requirements clarification analyst" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high" type="HITL">
 
 - APPLY PHASE `testgen-flow-question-generation.md`
 - Input: analysis.md. Output: `plans/testgen-{TICKET-KEY}/questions.md`, `plans/testgen-{TICKET-KEY}/answers.md`.
@@ -80,7 +80,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </question_generation>
 
-<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
+<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high">
 
 - APPLY PHASE `testgen-flow-requirements-document-generation.md`
 - Input: raw-data.md + analysis.md + answers.md. Output: `plans/testgen-{TICKET-KEY}/requirements.md`.
@@ -90,7 +90,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </requirements_document_generation>
 
-<test_case_generation phase="5" subagent="engineer" role="Test case design engineer" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.5, gpt-5.6-terra">
+<test_case_generation phase="5" subagent="engineer" role="Test case design engineer" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6">
 
 - APPLY PHASE `testgen-flow-test-case-generation.md`
 - Input: requirements.md. Output: `plans/testgen-{TICKET-KEY}/test-scenarios.md`
@@ -101,7 +101,7 @@ Prerequisite: Rosetta Prep Steps.
 
 </test_case_generation>
 
-<test_case_export phase="6" subagent="engineer" role="Test case export specialist" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.5, gpt-5.6-terra" type="HITL">
+<test_case_export phase="6" subagent="engineer" role="Test case export specialist" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6" type="HITL">
 
 - APPLY PHASE `testgen-flow-test-case-export.md`
 - Input: test-scenarios.md. Output: test cases exported to Test Management System **and** a local export receipt at `plans/testgen-{TICKET-KEY}/export-report.md` (TMS IDs/URLs, per-case status, timestamp). The local receipt is the on-disk evidence Phase 6 ran successfully.

@@ -17,6 +17,13 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    concurrency:
+      # Cancel superseded PR validations only. On a push to main, cancelling this job
+      # skips `publish` (needs: validate), so a chart version bumped by that push would
+      # never reach the registry — two chart pushes in quick succession would drop the
+      # first version from the series entirely.
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
@@ -28,6 +35,21 @@ jobs:
 
       - name: Install helm-unittest plugin
         run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version 0.6.3
+
+      - name: Assert chart appVersion matches rosetta-mcp-server version
+        run: |
+          set -euo pipefail
+          CHART_PATH=./src/helm-charts/rosetta-mcp-server
+          SERVER_PYPROJECT=./src/rosetta-mcp-server/pyproject.toml
+          APP_VERSION="$(grep -E '^appVersion:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
+          SERVER_VERSION="$(grep -E '^version = ' "${SERVER_PYPROJECT}" | head -1 | sed 's/version = "\(.*\)"/\1/')"
+          echo "Chart appVersion:           ${APP_VERSION}"
+          echo "rosetta-mcp-server version: ${SERVER_VERSION}"
+          if [ "${APP_VERSION}" != "${SERVER_VERSION}" ]; then
+            echo "::error::Chart.yaml appVersion (${APP_VERSION}) does not match src/rosetta-mcp-server/pyproject.toml version (${SERVER_VERSION}). values.yaml defaults image.tag to .Chart.AppVersion, so a default install would pull the wrong image. Bump Chart.yaml appVersion (and the chart version) - scripts/bump_versions.sh does both."
+            exit 1
+          fi
+          echo "appVersion is in sync."
 
       - name: Lint, template, and unit test chart
         run: |
@@ -42,6 +64,9 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    concurrency:
+      group: publish-mcp-helm-chart-main
+      cancel-in-progress: false
     steps:
       - name: Checkout code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
