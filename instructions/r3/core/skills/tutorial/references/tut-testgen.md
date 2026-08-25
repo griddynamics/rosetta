@@ -2,7 +2,7 @@
 
 <sample_task id="1" ties="what has to be in place before the first run">
 
-Scenario: you're a manual QA and your lead says "Rosetta can draft our test cases — try it on the next ticket." You've never run a flow. The ticket opens fine in your browser, the feature is written up in your team's wiki, and finished cases live in your test management tool.
+Scenario: you've never used Rosetta to generate test cases before. You have the ticket for the next feature, it opens fine in your browser, the detail behind it is written up in your team's wiki, and finished cases live in your test management tool.
 Task: say what you check is in place before you send anything.
 
 Rubric:
