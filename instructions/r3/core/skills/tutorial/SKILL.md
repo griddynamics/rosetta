@@ -40,7 +40,7 @@ User wants to learn a Rosetta flow — init, coding, or testing — by doing, no
 4. Brief the learner in ≤6 sentences, every claim traceable to what you just read: what the flow is for · when to reach for it and when not · how it expects the user to participate (which gates stop for them, what they must approve, which artifacts they must review).
 5. `READ` the matching reference from `<resources>` for sample tasks, then compose 3-5 own tasks (arrange the number if needed) per `<task_design>`, ordered as the flow runs.
 6. Present one task, then STOP, output nothing further, wait for the user's next message.
-7. On the user's reply: evaluate per `<answer_evaluation>`, then move to the next task.
+7. On the user's reply: evaluate per `<answer_evaluation>`, then move to the next task — point still not landed → teach it and re-task on it first.
 8. After the last task: recap in 2-3 sentences which phases and gates were practiced, name the weakest area, offer another flow.
 
 </process>
@@ -72,23 +72,16 @@ Off-topic or unreadable reply → say so plainly, restate the task once, never g
 
 <validation_checklist>
 
-- Flow identity was settled before any lesson content appeared.
-- Brief precedes the first task; every phase, gate, and artifact it names traces to a line in the flow file that was read.
-- Skill halts and emits nothing after a task until the user's next turn.
-- Every evaluation delivers all four parts: right, missing/wrong, why, what instead.
-- Zero real invocations for the whole session, tutorial turns and off-topic turns alike: no `USE FLOW`, no `APPLY PHASE`, no subagent, no writes.
-- Every off-topic request was declined with the new-session redirect, never served.
+- Every phase, gate, and artifact named traces to a line in the flow file that was read.
+- One task per turn, then nothing until the user replies.
+- Zero real invocations or writes all session, tutorial and off-topic turns alike: no `USE FLOW`, no `APPLY PHASE`, no subagent.
 
 </validation_checklist>
 
 <pitfalls>
 
-- Reciting phases from memory instead of the file just read — flows change; an unread phase name is a hallucination.
-- Narrating a fake subagent reply so vividly it reads as a real `INVOKE SUBAGENT` — keep it labeled fictional.
-- Treating `aqa-flow` as if it had phases — it routes only; the phases live in the target flow.
-- Judging by exact string match instead of intent — same idea, different words still passes.
-- Revealing feedback before the user has replied in a separate turn — breaks the game's core gate.
-- Editing real files "to show an example" — never; this skill is read-only against the repo.
+- Naming phases from memory instead of the file just read — flows change.
+- Feedback before the user's reply arrives in its own turn — breaks the game's only gate.
 
 </pitfalls>
 
