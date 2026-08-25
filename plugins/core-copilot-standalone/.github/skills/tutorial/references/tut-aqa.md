@@ -1,48 +1,28 @@
-<module_aqa>
+<sample_task_set flow="aqa-flow">
 
-<what_its_for>
+<sample_task id="1" ties="reaching for aqa-flow">
 
-`aqa-flow` is a router, not a worker: it classifies a test-automation request and dispatches once to exactly one of `ui-aqa-flow` (browser/E2E), `api-aqa-flow` (backend API tests), or `testgen-flow` (test-case generation from tickets, no code). It performs no phase work itself.
-
-</what_its_for>
-
-<checkpoint id="1" phase-tie="routing table">
-
-Scenario: a user asks to "automate our checkout page test in Playwright."
-Task: say which flow this routes to and why, citing the signal that decided it.
+Scenario: your team wants the checkout page covered by automated browser tests. You're new to Rosetta and don't know what any of the flows are called.
+Task: type the one line you'd send.
 
 Rubric:
-- Good if: routes to `ui-aqa-flow` — signals: browser, page, Playwright, E2E.
-- Good if: notes the router invokes the target flow with the user's request verbatim, and that flow now owns all phases/state/HITL downstream.
-- Wrong/missing if: picks `api-aqa-flow` (wrong signal class) or thinks `aqa-flow` itself writes page objects (it does no phase work).
-- Wrong/missing if: forgets this is described as a router "kept for backward compatibility" — a direct `/ui-aqa-flow` call is equally valid.
+- Good if: calls `/aqa-flow` and describes the need in plain words — knowing the flow names is not a prerequisite.
+- Good if: expects it to route once, to a UI flow, and then get out of the way; the flow it picks owns everything after.
+- Wrong/missing if: goes hunting for the exact flow name first, or guesses one — a wrong guess sends you into the flow that writes the wrong artifacts.
+- Wrong/missing if: reaches for `/coding-flow` because tests are code; test automation has its own flows.
 
-</checkpoint>
+</sample_task>
 
-<checkpoint id="2" phase-tie="mixed/unclear request handling">
+<sample_task id="2" ties="calling the flow explicitly">
 
-Scenario: a user asks to "cover our /orders endpoint AND the orders UI page with tests."
-Task: describe how the router should handle this, without picking one flow and dropping the other.
-
-Rubric:
-- Good if: names this a mixed request — name the split (UI vs. API), propose running both flows sequentially, let the user pick order.
-- Good if: does not silently guess and drop the other half.
-- Wrong/missing if: force-picks one flow only, or merges both into a single made-up "ui-and-api-flow" that doesn't exist.
-- Wrong/missing if: doesn't recognize this differs from the "unclear request" case (no signal at all), which instead asks the user to choose among the three with one-line descriptions.
-
-</checkpoint>
-
-<checkpoint id="3" phase-tie="testgen boundary">
-
-Scenario: a user says "turn these 5 Jira tickets into test cases in TestRail, no automation code needed yet."
-Task: name the target flow and one reason it's not `ui-aqa-flow`/`api-aqa-flow`.
+Scenario: the new discount rules need tests. You don't know which flow that is, so you send the task on its own and expect the right flow to kick in by itself.
+Task: say what that costs you, and what you send instead.
 
 Rubric:
-- Good if: routes to `testgen-flow` — signals: requirements analysis, test-case design from a ticket, TestRail export without automation.
-- Good if: distinguishes "generates test cases/requirements, exports to TMS" from "writes test automation code."
-- Wrong/missing if: routes to `ui-aqa-flow`/`api-aqa-flow` because "tests" was mentioned — those own automation code, not case generation.
-- Wrong/missing if: assumes route happens more than once — routing happens exactly once, the target flow owns everything after.
+- Good if: sends `/aqa-flow` with the same plain description — naming it is what guarantees a flow runs at all.
+- Good if: names the cost — unprompted, the agent may just write tests its own way, and you lose the phases, gates, and artifacts you installed Rosetta for.
+- Wrong/missing if: relies on it being picked up automatically; that happens sometimes, not reliably, and the reply looks much the same either way.
 
-</checkpoint>
+</sample_task>
 
-</module_aqa>
+</sample_task_set>
