@@ -100,6 +100,7 @@ Sample task sets — each holds a task's shape plus, in its rubric, what to watc
 - Reference `references/tut-coding.md` — for `coding-flow`.
 - Reference `references/tut-aqa.md` — for `aqa-flow`.
 - Reference `references/tut-testgen.md` — for `testgen-flow`.
+- Reference `references/tut-api-aqa.md` — for `api-aqa-flow`.
 
 </resources>
 
