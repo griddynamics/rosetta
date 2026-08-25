@@ -1,48 +1,44 @@
-<module_init_workspace>
+<sample_task_set flow="init-workspace-flow">
 
-<what_its_for>
+Samples only — they show the shape, difficulty, and grading style of a task. Compose your own from the flow file; never present these as the lesson.
 
-`init-workspace-flow` onboards or upgrades a target repo: detects install/upgrade/plugin mode, generates shell files (skills/agents/workflows), analyzes tech stack, extracts patterns, writes `CONTEXT.md`/`ARCHITECTURE.md`/etc, asks reflective gap-filling questions, then verifies everything exists. It's the first thing a new repo runs, once.
+<sample_task id="1" ties="invocation">
 
-</what_its_for>
-
-<checkpoint id="1" phase-tie="context (phase 1), shells (phase 2)">
-
-Scenario: a teammate opens a brand-new repo with no `docs/` folder and no prior Rosetta files, and types a plain request to get started.
-Task: type the one line you'd send to kick off onboarding for this repo.
+Scenario: brand-new repo, no `docs/`, no Rosetta files. A teammate asks you how to start.
+Task: type the one line you'd send.
 
 Rubric:
-- Good if: mentions `/init-workspace-flow` (or clearly invokes the workflow by name) and doesn't hand-author `CONTEXT.md`/`ARCHITECTURE.md` manually first.
-- Good if: doesn't try to skip straight to `/coding-flow` before onboarding exists.
-- Wrong/missing if: assumes shells phase 2 must be skipped (it only skips when already running as a plugin — this repo has no plugin yet, so shells phase runs).
-- Wrong/missing if: tries to manually create `agents/init-workspace-flow-state.md` themselves instead of letting the workflow own it.
+- Good if: invokes `/init-workspace-flow` by name, once, for the whole repo.
+- Good if: leaves `CONTEXT.md`/`ARCHITECTURE.md` to the flow instead of hand-writing them first.
+- Wrong/missing if: starts with `/coding-flow` — no onboarding docs yet, so coding runs blind.
+- Wrong/missing if: plans to re-run it per feature or per folder; it's one-time repo onboarding.
 
-</checkpoint>
+</sample_task>
 
-<checkpoint id="2" phase-tie="discovery (phase 3), patterns (phase 5)">
+<sample_task id="2" ties="context — tooling questions">
 
-Scenario: the workflow just finished analyzing the repo and reports `state.file_count = 140`.
-Task: name what changes for the remaining phases because of that number, and what phase 5 is supposed to produce.
-
-Rubric:
-- Good if: recognizes `file_count >= 100` means Phase 5/7/8 subagents get told to `USE SKILL large-workspace-handling`.
-- Good if: names phase 5's output as a `PATTERNS` folder (one `.md` per pattern, `INDEX.md`, `CHANGES.md`), not raw code dumps.
-- Wrong/missing if: thinks discovery (phase 3) writes `CONTEXT.md`/`ARCHITECTURE.md` — those are phase 7 (documentation), not phase 3 (which produces `TECHSTACK.md`, `CODEMAP.md`, `DEPENDENCIES.md`).
-- Wrong/missing if: forgets phase 4 (rules) is permanently disabled — it should not be expected to run.
-
-</checkpoint>
-
-<checkpoint id="3" phase-tie="questions (phase 8), verification (phase 9)">
-
-Scenario: documentation (phase 7) is done but phase 8 surfaces a gap — no reviewer knows whether the repo uses a monorepo or composite layout.
-Task: describe what phase 8 must do about that gap, and what "done" looks like for phase 9.
+Scenario: early on the agent asks a batch of questions — which IDEs/coding agents you use, issue tracker, wiki, SCM, CI links. You're in a hurry; three of them you'd have to look up.
+Task: say how you answer, and what skipping those three costs you.
 
 Rubric:
-- Good if: says phase 8 asks the user a reflective question AND updates the affected file(s) — collecting the answer without writing it back is incomplete (a documented pitfall of this workflow).
-- Good if: phase 9 is a completeness check — verifies files exist, runs the validation checklist, suggests next steps, marks state COMPLETE.
-- Wrong/missing if: treats phase 8 as optional or skippable because "the docs already look okay."
-- Wrong/missing if: forgets the user must start a new chat session afterward for new shells/rules to take effect.
+- Good if: answers what's known now, knowing skipped fields stay placeholders in `gain.json` and can be filled later.
+- Good if: treats the IDE/coding-agent answer as unskippable — it decides what gets set up for you.
+- Wrong/missing if: invents a plausible Jira or Confluence URL to move faster — `gain.json` wins over other files, so a wrong link misroutes later flows silently.
+- Wrong/missing if: expects the agent to figure this out alone; only you know your team's tooling.
 
-</checkpoint>
+</sample_task>
 
-</module_init_workspace>
+<sample_task id="3" ties="code-graph gate">
+
+Scenario: the agent stops and offers a code-navigation choice: the built-in default, or one of several third-party tools. This repo is commercial work.
+Task: say what you check before choosing, and who does the install.
+
+Rubric:
+- Good if: reads the tool's docs and license, and clears a third-party tool with your manager — it would get access to your code.
+- Good if: stays on the built-in default when unsure.
+- Wrong/missing if: waits for the agent to decide — it only recommends; you own the call on whether a tool is allowed and fits this project.
+- Wrong/missing if: assumes the tool installs itself — the install is yours, and the agent will help with it if you ask.
+
+</sample_task>
+
+</sample_task_set>
