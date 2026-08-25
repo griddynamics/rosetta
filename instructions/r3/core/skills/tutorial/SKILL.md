@@ -97,7 +97,7 @@ Off-topic or unreadable reply → say so plainly, restate the task once, never g
 Sample task sets — each holds a task's shape plus, in its rubric, what to watch for in the reply. Read for calibration, then write your own:
 
 - Reference `references/tut-init-workspace.md` — for `init-workspace-flow`.
-- Reference `references/tut-coding-agents-prompting.md` — for `coding-agents-prompting-flow`.
+- Reference `references/tut-coding.md` — for `coding-flow`.
 - Reference `references/tut-aqa.md` — for `aqa-flow`.
 
 </resources>
