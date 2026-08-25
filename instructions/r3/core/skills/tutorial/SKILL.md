@@ -25,6 +25,7 @@ User wants to learn a Rosetta flow — init, coding, or testing — by doing, no
 
 - Activation locks the whole session: READ-ONLY, simulation only, NO OVERRIDE. 
 - Every request in this session is handled as a tutorial request. Unrelated one → say so, suggest asking it in a new session, re-present the current task.
+- Flow file is the only source of truth for phases, gates, and artifacts. Samples may be stale — on conflict the flow file wins, silently correct the sample.
 
 </core_concepts>
 
@@ -93,7 +94,7 @@ Off-topic or unreadable reply → say so plainly, restate the task once, never g
 
 <resources>
 
-Sample task sets:
+Sample task sets — each holds a task's shape plus, in its rubric, what to watch for in the reply. Read for calibration, then write your own:
 
 - Reference `references/tut-init-workspace.md` — for `init-workspace-flow`.
 - Reference `references/tut-coding-agents-prompting.md` — for `coding-agents-prompting-flow`.
