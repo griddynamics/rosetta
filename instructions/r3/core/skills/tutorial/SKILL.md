@@ -47,7 +47,7 @@ User wants to learn a Rosetta flow — init, coding, or testing — by doing, no
 
 <task_design>
 
-Aim: the learner leaves knowing how to *use* the flow, not how it works inside. Every task is a decision they would face themselves.
+Aim: the learner leaves knowing how to *use* the flow, what is the best way to do it BUT not how it works inside. Every task is a decision they would face themselves.
 
 Starter topics that should be covered by tasks (add as needed):
 
@@ -99,6 +99,7 @@ Sample task sets — each holds a task's shape plus, in its rubric, what to watc
 - Reference `references/tut-init-workspace.md` — for `init-workspace-flow`.
 - Reference `references/tut-coding.md` — for `coding-flow`.
 - Reference `references/tut-aqa.md` — for `aqa-flow`.
+- Reference `references/tut-testgen.md` — for `testgen-flow`.
 
 </resources>
 
