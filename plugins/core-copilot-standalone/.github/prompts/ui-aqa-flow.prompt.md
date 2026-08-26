@@ -41,14 +41,14 @@ Prerequisite: Rosetta Prep Steps.
 - Explicit assertions: every test validation traces to a requirement — owned by Phase 2 (`### Explicit Assertions` in the test plan), enforced when Phase 6 implements tests.
 - **Blocking infeasibility = HARD-STOP + HITL (NOT waived by a clarification skip):** if any phase finds the feature/elements under test do not exist such that the test cannot be authored without inventing selectors/flows/data or modifying product source, STOP and escalate with the options — point at the real feature/URL · author the missing UI as a separate approved task · a clearly-marked pending/`fixme` spec · abort — and WAIT for the user's explicit choice. "Skip clarification" waives clarification *questions* only; it never authorizes this feasibility/scope call.
 
-<data_collection phase="1" applies="ALL" subagent="discoverer" role="UI-AQA data collector" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra">
+<data_collection phase="1" applies="ALL" subagent="discoverer" role="UI-AQA data collector" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash">
 - APPLY PHASE `ui-aqa-flow-data-collection.md`
 - Input: user request + repository-root `gain.json` + project context at its configured paths (canonical: `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md`). Output: test plan at `plans/ui-aqa-<test-name>/test-plan.md`
 - Required skills: `data-collection`, `sensitive-data`, `qa-structure`, `qa-knowledge`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 1 is not complete until its output spot-check passes.
 </data_collection>
 
-<requirements_clarification phase="2" applies="ALL" subagent="architect" role="Test requirements analyst" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol" type="HITL">
+<requirements_clarification phase="2" applies="ALL" subagent="architect" role="Test requirements analyst" subagent_required_model="Claude Opus 5, GPT-5.6 Sol, Gemini 3.7 Flash" type="HITL">
 - APPLY PHASE `ui-aqa-flow-requirements-clarification.md`
 - Input: user request + collected data from Phase 1. Output: clarified requirements + typed assertion list in the test plan
 - **WAIT FOR USER ANSWERS** to the clarifying questions before Phase 3.
@@ -57,14 +57,14 @@ Prerequisite: Rosetta Prep Steps.
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 2 is not complete until its output spot-check passes.
 </requirements_clarification>
 
-<code_analysis phase="3" applies="ALL" subagent="discoverer" role="Test architecture analyst" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra">
+<code_analysis phase="3" applies="ALL" subagent="discoverer" role="Test architecture analyst" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash">
 - APPLY PHASE `ui-aqa-flow-code-analysis.md`
 - Input: repo docs + test plan. Output: code analysis report at `plans/ui-aqa-<test-name>/code-analysis.md` (architecture patterns, existing page objects, test patterns)
 - Required skills: `qa-knowledge` (`code_analysis` mode), `reverse-engineering`, `sensitive-data`, `qa-structure`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 3 is not complete until its output spot-check passes.
 </code_analysis>
 
-<selector_identification phase="4" applies="ALL" subagent="engineer" role="Selector identification specialist" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.5, gpt-5.6-terra" type="HITL-CONDITIONAL">
+<selector_identification phase="4" applies="ALL" subagent="engineer" role="Selector identification specialist" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash" type="HITL-CONDITIONAL">
 - APPLY PHASE `ui-aqa-flow-selector-identification.md`
 - Input: code analysis report + frontend code (or user-provided page source). Output: identified selectors for test targets
 - **WAIT FOR USER TO PROVIDE PAGE SOURCE** only if frontend code unavailable or selectors not found.
@@ -73,7 +73,7 @@ Prerequisite: Rosetta Prep Steps.
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 4 is not complete until its output spot-check passes.
 </selector_identification>
 
-<selector_implementation phase="5" applies="ALL" subagent="engineer" role="Selector implementation specialist" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.5, gpt-5.6-terra">
+<selector_implementation phase="5" applies="ALL" subagent="engineer" role="Selector implementation specialist" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash">
 - APPLY PHASE `ui-aqa-flow-selector-implementation.md`
 - Input: identified selectors + existing page objects. Output: implemented/updated page object files
 - Required skills: `qa-knowledge` (`implementation_modes` — selector mode Part B), `qa-structure`
@@ -81,7 +81,7 @@ Prerequisite: Rosetta Prep Steps.
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 5 is not complete until its output spot-check passes.
 </selector_implementation>
 
-<test_implementation phase="6" applies="ALL" subagent="engineer" role="Test automation engineer" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.5, gpt-5.6-terra" type="HITL">
+<test_implementation phase="6" applies="ALL" subagent="engineer" role="Test automation engineer" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash" type="HITL">
 - APPLY PHASE `ui-aqa-flow-test-implementation.md`
 - Input: page objects + clarified requirements + code analysis report. Output: implemented test files
 - **STOP AND WAIT** for user to execute the test — this execution gate is **mechanical and cannot be overridden by instruction**; the only acceptable input is actual execution results (output, report path, or pass/fail). Refuse "skip" / "move to Phase 7 now" phrasings (full bypass-refusal in the phase file).
@@ -90,7 +90,7 @@ Prerequisite: Rosetta Prep Steps.
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 6 is not complete until its output spot-check passes.
 </test_implementation>
 
-<test_report_analysis phase="7" applies="ALL" subagent="engineer" role="Test failure analyst" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.5, gpt-5.6-terra" type="HITL">
+<test_report_analysis phase="7" applies="ALL" subagent="engineer" role="Test failure analyst" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash" type="HITL">
 - APPLY PHASE `ui-aqa-flow-test-report-analysis.md`
 - Input: test execution report (user-provided or from `agents/user-instructions/`). Output: failure analysis with root causes + fix recommendations
 - **WAIT FOR USER TO PROVIDE TEST REPORT** (if not in `agents/user-instructions/`).
@@ -98,7 +98,7 @@ Prerequisite: Rosetta Prep Steps.
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 7 is not complete until its output spot-check passes.
 </test_report_analysis>
 
-<test_corrections phase="8" applies="ALL" subagent="engineer" role="Test correction engineer" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3-flash, grok-4.5, gpt-5.6-terra" type="HITL">
+<test_corrections phase="8" applies="ALL" subagent="engineer" role="Test correction engineer" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash" type="HITL">
 - APPLY PHASE `ui-aqa-flow-test-correction.md`
 - Input: failure analysis + test files + page objects. Output: corrected test files and page objects
 - **WAIT FOR EXPLICIT USER APPROVAL** before applying changes; comments, questions, suggestions, and review feedback are not approval. Approval language is defined in `ui-aqa-flow-test-correction.md` section `<present_for_approval>`.

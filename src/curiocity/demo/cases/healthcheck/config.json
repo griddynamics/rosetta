@@ -1,6 +1,7 @@
 {
   "agents": ["claude-code", "codex"],
   "timeoutSec": 600,
+  "maxTurns": 100,
   "repeats": 1,
   "evaluators": [
     {

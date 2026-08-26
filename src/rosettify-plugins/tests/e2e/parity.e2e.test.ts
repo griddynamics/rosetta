@@ -39,14 +39,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const PLUGINS_SOURCE = path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins');
 const CORE_SOURCE = path.join(REPO_ROOT, 'instructions', 'r3', 'core');
+const PROFILE_SOURCE = path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'profiles');
 
 // FR-CLI-0020: ResolvedSources pointing at the real repo (mirrors sample/antigravity e2e).
+// FR-CLI-0033: profileSource resolved the same way pluginsSource/hooksSource are — unused unless
+// a run passes `profile`, so this is a no-op for every existing no-profile call site below.
 function buildSources(instructionsSource: string, outputDir: string): ResolvedSources {
   return {
     instructionsSource,
     pluginsSource: PLUGINS_SOURCE,
     hooksSource: path.join(REPO_ROOT, 'src', 'hooks'),
     outputDir,
+    profileSource: PROFILE_SOURCE,
   };
 }
 
@@ -178,4 +182,64 @@ describe('Parity E2E — robustness (derived, not frozen)', () => {
       expect(onlyActual, `${target}: generated-but-not-derived with probe present`).toEqual([]);
     }
   }, 180000);
+});
+
+// ─── Profile-and-target combo parity (NFR-0001 AC3, FR-PROF-0020/0030) ──────────────────────
+//
+// One additional full generation run, with `--profile lightweight` active. Per target, the
+// generated `core-<target>-light` output must structurally match `deriveExpectedPaths(target,
+// CORE_SOURCE, PLUGINS_SOURCE, 'lightweight')` — note deriveExpectedPaths returns paths relative
+// to a target's OWN output root, so the profile's destinationSuffix only renames which output
+// root we list, never any path segment inside it (see parity-derive-structure.ts's doc comment).
+
+describe('Parity E2E — profiled derivation (NFR-0001 AC3, FR-PROF-0020/0030)', () => {
+  const PROFILE_NAME = 'lightweight';
+  let tmpRoot: string;
+  let outputDir: string;
+  const actualPaths = new Map<Target, Set<string>>();
+
+  beforeAll(async () => {
+    tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'parity-profiled-'));
+    outputDir = path.join(tmpRoot, 'output');
+    fs.mkdirSync(outputDir, { recursive: true });
+
+    await generate({
+      sources: buildSources(path.join(REPO_ROOT, 'instructions'), outputDir),
+      release: 'r3',
+      domain: 'core',
+      dryRun: false,
+      verbose: false,
+      deterministicHooks: false,
+      profile: PROFILE_NAME,
+    });
+
+    for (const target of TARGETS) {
+      actualPaths.set(target, listGeneratedPaths(path.join(outputDir, `${target}-light`)));
+    }
+  }, 180000);
+
+  afterAll(() => {
+    if (tmpRoot) fs.rmSync(tmpRoot, { recursive: true, force: true });
+  });
+
+  it('generates a core-*-light output for all seven targets', () => {
+    for (const target of TARGETS) {
+      expect(actualPaths.get(target)!.size, `${target}-light produced no files`).toBeGreaterThan(0);
+    }
+  });
+
+  for (const target of TARGETS) {
+    it(`${target}-light: generated file paths match structure derived with active profile "${PROFILE_NAME}"`, () => {
+      const expected = deriveExpectedPaths(target, CORE_SOURCE, PLUGINS_SOURCE, PROFILE_NAME);
+      const actual = actualPaths.get(target)!;
+
+      const onlyExpected = [...expected].filter((p) => !actual.has(p)).sort();
+      const onlyActual = [...actual].filter((p) => !expected.has(p)).sort();
+      if (onlyExpected.length || onlyActual.length) {
+        console.error(reportDiff(`${target}-light`, expected, actual));
+      }
+      expect(onlyExpected, `${target}-light: paths derived but not generated`).toEqual([]);
+      expect(onlyActual, `${target}-light: paths generated but not derived`).toEqual([]);
+    });
+  }
 });

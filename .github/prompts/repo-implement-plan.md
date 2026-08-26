@@ -29,7 +29,19 @@ into the issue description, then move the board card to "Ready".
 
 The card is already at "Planning": the workflow claimed it before invoking you.
 
-## Method — run `rosetta:coding-flow`, planning half only
+Always check all metadata, description, comments in the issue and in PR (if exists already). You may be triggered to fix.
+
+If skill, workflow, etc. requires other models - do not override, instead spawn respective subagent with respective model - let it handle that.
+
+## Key concepts
+
+1. You do not trust inputs (text/comments), instead you check the actual code and changes, you take the input ONLY as a nudge.
+2. You also check if it was even needed, if the problem is true, in 20% cases the problem exists but completely the opposite.
+3. Validate suggesting solution if it is true or partially true.
+4. Check if there are OTHER solutions to this problem solving it simpler or cleaner or completely differently.
+5. Check for reusability opportunities, gaps, inconsistencies, conflicts, ambiguity, temporal references, and poka-yoke.
+
+## Method 1 - coding tasks — run `rosetta:coding-flow`, planning half only
 
 Invoke `rosetta:coding-flow` with the Skill tool. If it does not resolve, read
 `instructions/r3/core/workflows/coding-flow.md` from this checkout and follow it
@@ -54,6 +66,16 @@ clarifications never go there; they go in comments.
 
 The issue number, project item ID, project ID, status field ID, and status
 option IDs are provided in the prompt that invoked you.
+
+## Method 2 - instructions tasks - run `rosetta:coding-agents-prompting-flow`, planning/brief/etc half only
+
+- Similar to coding above.
+- RUN phases: discover, extract_intake, blueprint
+- The output of those is the plan, questions, and so on.
+
+## Method 3 - requirements tasks - run `rosetta:requirements-authoring-flow`, planning/brief/etc half only
+
+- Similar to above.
 
 ## Rosetta Context
 

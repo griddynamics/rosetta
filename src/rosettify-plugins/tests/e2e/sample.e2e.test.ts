@@ -29,6 +29,17 @@ const FIXTURES_DIR = path.join(__dirname, '..', 'fixtures');
 const SAMPLE_INSTRUCTIONS_DIR = path.join(FIXTURES_DIR, 'sample-instructions');
 const SAMPLE_PLUGINS_DIR = path.join(FIXTURES_DIR, 'sample-plugins');
 
+// The seven targets in buildAllSpecs declaration order, so a discovered target set compares stably.
+const ALL_TARGETS = [
+  'core-claude',
+  'core-cursor',
+  'core-copilot',
+  'core-codex',
+  'core-cursor-standalone',
+  'core-copilot-standalone',
+  'core-antigravity',
+] as const;
+
 // generate() writes user-facing error messages (unknown release, unresolved sources)
 // directly to process.stderr (generate.ts). Error-path tests only assert the exit code,
 // so redirect stderr to a no-op for the duration of the call to keep the run quiet.
@@ -150,16 +161,7 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
   });
 
   it('produces output directories for all seven targets', () => {
-    const targets = [
-      'core-claude',
-      'core-cursor',
-      'core-copilot',
-      'core-codex',
-      'core-cursor-standalone',
-      'core-copilot-standalone',
-      'core-antigravity',
-    ];
-    for (const t of targets) {
+    for (const t of ALL_TARGETS) {
       expect(fs.existsSync(path.join(outputDir, t)), `Missing output for ${t}`).toBe(true);
     }
   });
@@ -234,6 +236,77 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     expect(fs.existsSync(path.join(outputDir, 'core-codex', '.agents', 'rules'))).toBe(true);
   });
 
+  // ─── Dedicated additive fixture: TargetOnlyToken family keys (FR-ARCH-0023) ────────────────
+  // tests/fixtures/sample-instructions/r2/core/rules/family-key-fixture~copilot-only~.md
+  // tests/fixtures/sample-instructions/r2/core/rules/exact-target-fixture~core-cursor-only~.md
+  //
+  // Why these are e2e and not only unit: matchesTarget() unit tests pass against a hand-built
+  // condition Set, which is exactly why `copilot-only` could be broken for months — nothing proved
+  // that a family-keyed FILE reaches two plugin trees and stays out of the other five. These assert
+  // the SET of targets whose output contains the document, discovered rather than path-guessed, so
+  // they hold whatever per-target folder or extension rewriting a target applies to rules.
+  // Matches the stem anywhere in the target-relative path, not just the basename: Codex and
+  // Antigravity restructure a workflow into `<stem>/SKILL.md`, so the stem lives in the DIRECTORY
+  // name there while rules keep it in the filename. Stems below are unique, so this cannot collide.
+  const targetsContaining = (stem: string): string[] =>
+    [...ALL_TARGETS].filter((t) => {
+      const root = path.join(outputDir, t);
+      return listFilesRecursive(root).some((f) => path.relative(root, f).includes(stem));
+    });
+
+  it('FR-ARCH-0023.AC1: a copilot-only family key reaches BOTH Copilot targets and no others', () => {
+    expect(targetsContaining('family-key-fixture')).toEqual([
+      'core-copilot',
+      'core-copilot-standalone',
+    ]);
+  });
+
+  it('FR-ARCH-0023.AC2: an exact core-cursor-only token reaches core-cursor ONLY, not the standalone', () => {
+    expect(targetsContaining('exact-target-fixture')).toEqual(['core-cursor']);
+  });
+
+  it('FR-ARCH-0023.AC3: the directive segment is stripped from every emitted copy', () => {
+    // core-copilot-standalone legitimately emits a rule twice, under .github/instructions/ and
+    // .github/rules/, so assert the invariant on each copy rather than assuming a single file.
+    for (const t of ['core-copilot', 'core-copilot-standalone']) {
+      const emitted = listFilesRecursive(path.join(outputDir, t)).filter((f) =>
+        path.basename(f).startsWith('family-key-fixture'),
+      );
+      expect(emitted.length).toBeGreaterThan(0);
+      for (const f of emitted) {
+        expect(path.basename(f)).not.toContain('~');
+        expect(path.basename(f)).not.toContain('copilot-only');
+      }
+    }
+  });
+
+  // ─── Directive edge cases: token order, namespace combination, conjunction, transform order ────
+  it('token order is immaterial: overwrite~claude-only behaves as claude-only~overwrite', () => {
+    expect(targetsContaining('order-swap-fixture')).toEqual(['core-claude']);
+  });
+
+  it('a target token AND a profile token combine: with no profile active the file is excluded everywhere', () => {
+    // The copilot-only family key alone would reach both Copilot targets; the profile token vetoes
+    // it because no profile is active. Proves the two -only namespaces compose rather than compete.
+    expect(targetsContaining('both-namespaces-fixture')).toEqual([]);
+  });
+
+  it('two different family keys combine conjunctively, so no target qualifies', () => {
+    // Target tokens AND together and no target is in both families, so this reaches nothing. Pins
+    // the semantics: multiple target tokens narrow, they do not union.
+    expect(targetsContaining('conflicting-targets-fixture')).toEqual([]);
+  });
+
+  it('family filtering precedes the per-target workflow transform (codex-only workflow)', () => {
+    // Codex restructures workflows into .agents/skills/<name>/SKILL.md. If filtering ran after the
+    // transform, the document would leak into other targets' command/prompt folders.
+    expect(targetsContaining('family-workflow-fixture')).toEqual(['core-codex']);
+    const codexFiles = listFilesRecursive(path.join(outputDir, 'core-codex')).filter((f) =>
+      f.includes('family-workflow-fixture'),
+    );
+    expect(codexFiles.some((f) => f.includes(path.join('.agents', 'skills')))).toBe(true);
+  });
+
   // ─── Dedicated additive fixture: workflow-skill-fixture-flow (+ -phase) ────────────────────
   // tests/fixtures/sample-instructions/r2/core/workflows/workflow-skill-fixture-flow{,-phase}.md
   // FR-COPY-0080, FR-VAR-0041, FR-VAR-0042, FR-HOOK-0007, FR-STRUCT-0010, FR-STRUCT-0030
@@ -254,7 +327,7 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     expect(content).toContain('APPLY SKILL FILE `phases/workflow-skill-fixture-flow-phase.md`');
     expect(content).not.toContain('APPLY PHASE');
     // FR-VAR-0042: fileNormalizeCodexModels ran on the main skill doc — gpt-* token found → split
-    expect(content).toContain('model: gpt-5.5');
+    expect(content).toContain('model: gpt-5.6-sol');
     expect(content).toContain('model_reasoning_effort: high');
     expect(content).not.toContain('claude-4.8-opus-high');
   });
@@ -594,4 +667,74 @@ describe('Sample E2E — NFR-0004 synthetic oversize entry (G-1)', () => {
     // Output is still emitted (run-to-completion): output dir must have files
     expect(outputFileCount, 'output must still be emitted despite soft error').toBeGreaterThan(0);
   });
+});
+
+// FR-ARCH-0060 — an unrecognized directive must abort the whole run, not degrade quietly. This is
+// e2e rather than unit because the failure has to propagate out of buildVfs, through generate(), to
+// a non-zero exit with nothing written; a parser-level unit test proves only that parseDirectives
+// throws. The bad file cannot live in the shared fixture tree, since it would abort every other
+// test in this suite, so each case seeds its own copy of the tree.
+describe('Sample E2E — an unrecognized filename directive aborts the run (FR-ARCH-0060)', () => {
+  // Captures stderr as well as the exit code: asserting only a non-zero exit would pass even if the
+  // run failed for an unrelated reason, which would make these tests worthless as directive coverage.
+  const runWithExtraRule = async (
+    filename: string,
+  ): Promise<{ code: number; files: string[]; stderr: string }> => {
+    const repo = buildFakeRepo();
+    const outputDir = path.join(repo, 'output');
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(repo, 'instructions', 'r2', 'core', 'rules', filename),
+      '---\nname: bad-directive-probe\ndescription: probe\nalwaysApply: true\n---\n\n# Probe\n',
+      'utf-8',
+    );
+    let stderr = '';
+    const origWrite = process.stderr.write.bind(process.stderr);
+    (process.stderr as NodeJS.WriteStream).write = ((chunk: unknown) => {
+      stderr += String(chunk);
+      return true;
+    }) as typeof process.stderr.write;
+    let code: number;
+    try {
+      code = await generate({
+        sources: buildSources(repo, outputDir),
+        release: 'r2',
+        domain: 'core',
+        dryRun: false,
+        verbose: false,
+      });
+    } finally {
+      (process.stderr as NodeJS.WriteStream).write = origWrite;
+    }
+    const files = listFilesRecursive(outputDir);
+    fs.rmSync(repo, { recursive: true, force: true });
+    return { code, files, stderr };
+  };
+
+  it('a misspelled target token aborts with a non-zero exit and writes no output', async () => {
+    const { code, files, stderr } = await runWithExtraRule('probe~core-clade-only~.md');
+    expect(code).not.toBe(0);
+    expect(stderr).toContain('Unknown filename directive "core-clade-only"');
+    expect(files).toEqual([]);
+  }, 60000);
+
+  it('a nameless profile token aborts, so the shape exemption is not a hole', async () => {
+    const { code, files, stderr } = await runWithExtraRule('probe~profile-only~.md');
+    expect(code).not.toBe(0);
+    expect(stderr).toContain('Unknown filename directive "profile-only"');
+    expect(files).toEqual([]);
+  }, 60000);
+
+  it('the rejection message names every accepted form, so the failure carries its own fix', async () => {
+    const { stderr } = await runWithExtraRule('probe~core-clade-only~.md');
+    expect(stderr).toContain('core-claude-only');
+    expect(stderr).toContain('copilot-only');
+    expect(stderr).toContain('profile-<name>-only');
+  }, 60000);
+
+  it('a valid family token does NOT abort, proving the guard rejects typos and not the feature', async () => {
+    const { code, stderr } = await runWithExtraRule('probe~antigravity-only~.md');
+    expect(stderr).not.toContain('Unknown filename directive');
+    expect(code).toBe(0);
+  }, 60000);
 });

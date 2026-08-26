@@ -1,3 +1,8 @@
+import asyncio
+import time
+
+import pytest
+
 from rosetta_mcp.clients.document import DocumentClient
 from rosetta_mcp.services.bundler import Bundler
 from rosetta_mcp.services.query_builder import QueryBuilder
@@ -30,6 +35,48 @@ def test_bundler_sorts_and_wraps():
     assert xml.index('id="1"') < xml.index('id="2"')
     assert '<rosetta:file id="1" dataset="aia-r1" path="agents/a.md" name="a.md" tags="t1">' in xml
     assert '<rosetta:file id="2" dataset="aia-r1" path="rules/z.md" name="z.md" tags="t2">' in xml
+
+
+@pytest.mark.asyncio
+async def test_bundle_async_keeps_event_loop_live_while_download_blocks():
+    """Ensure blocking document downloads do not freeze the async event loop.
+
+    Run bundle_async() with a deliberately slow synchronous document download
+    alongside a fast coroutine. If the download is correctly offloaded, the
+    fast coroutine must complete before the blocking download finishes.
+    """
+    order: list[str] = []
+
+    class _SlowDocClient(DocumentClient):
+        def download_content(self, doc):
+            # Simulate a slow synchronous RAGFlow/network call.
+            time.sleep(0.6)
+            order.append("download_done")
+            return doc._content
+
+    async def _fast_task():
+        # This should still make progress while download_content() is blocked.
+        await asyncio.sleep(0.05)
+        order.append("fast_done")
+
+    bundler = Bundler(_SlowDocClient())
+
+    docs = [
+        _Doc("1", "a.md", "A", {"sort_order": 1, "tags": ["t1"], "resource_path": "agents/a.md"}),
+    ]
+
+    results = await asyncio.gather(
+        bundler.bundle_async(docs, "aia-r1"),
+        _fast_task(),
+    )
+    bundled_result = results[0]
+
+    # bundle_async() should still return the expected bundled XML document string.
+    assert 'id="1"' in bundled_result
+
+    # If download_content() ran directly on the event-loop thread,
+    # the fast coroutine could not finish until after the download.
+    assert order.index("fast_done") < order.index("download_done")
 
 
 def test_listing_uses_frontmatter_attr_and_self_closing():

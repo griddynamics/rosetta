@@ -240,6 +240,10 @@ describe("validatePlanName", () => {
     expect(validatePlanName("   ")).toBe("size_limit_exceeded");
   });
 
+  it.each([123, {}])("returns error for non-string name %#", (name) => {
+    expect(validatePlanName(name)).toBe("size_limit_exceeded");
+  });
+
   it("returns error for name exceeding 256 chars", () => {
     expect(validatePlanName("x".repeat(257))).toBe("size_limit_exceeded");
   });
@@ -500,6 +504,12 @@ describe("detectCycle — visited node not in stack", () => {
 describe("validateSizeLimits", () => {
   it("returns null for valid plan", () => {
     expect(validateSizeLimits(fullPlan())).toBeNull();
+  });
+
+  it.each(["", "   "])("rejects an empty plan name %#", (name) => {
+    const plan = fullPlan();
+    plan.name = name;
+    expect(validateSizeLimits(plan)).toBe("size_limit_exceeded");
   });
 
   it("returns size_limit_exceeded for plan name > 256", () => {

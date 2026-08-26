@@ -16,8 +16,9 @@ logger = logging.getLogger(__name__)
 _cached_username: str | None = None
 _STDIO_REPOSITORY_CACHE_KEY = "stdio"
 _repository_cache: TTLCache[str, str] = TTLCache(maxsize=1024, ttl=REPOSITORY_CACHE_TTL_SECONDS)
-_cached_agent_name: str | None = None
-_cached_agent_version: str | None = None
+_agent_info_cache: TTLCache[str, tuple[str, str]] = TTLCache(
+    maxsize=1024, ttl=REPOSITORY_CACHE_TTL_SECONDS
+)
 
 
 def get_username(call_ctx: Any = None) -> str:
@@ -127,10 +128,23 @@ async def get_repository_from_context(ctx: Any) -> str:
 
 
 def get_agent_info_from_context(ctx: Any) -> tuple[str, str]:
-    global _cached_agent_name, _cached_agent_version
-    if _cached_agent_name is not None and _cached_agent_version is not None:
-        return _cached_agent_name, _cached_agent_version
+    """Return the MCP client's (name, version), cached per session.
 
+    Keyed by the same session-scoped key as the repository cache: in HTTP mode
+    one process serves many clients, so process-wide caching reported the first
+    client's identity for every later session (#196).
+
+    Failed resolutions are deliberately not cached — otherwise a single
+    ctx-less call would pin ``"unknown"`` for the lifetime of the process.
+    Re-resolving is a plain attribute read on an in-memory session object.
+    """
+    cache_key = _repository_cache_key(ctx)
+    cached: tuple[str, str] | None = _agent_info_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    name = None
+    version = None
     try:
         client_info = (
             getattr(getattr(getattr(ctx, "session", None), "client_params", None), "clientInfo", None)
@@ -138,10 +152,12 @@ def get_agent_info_from_context(ctx: Any) -> tuple[str, str]:
         )
         name = getattr(client_info, "name", None) if client_info else None
         version = getattr(client_info, "version", None) if client_info else None
-        _cached_agent_name = name or "unknown"
-        _cached_agent_version = version or "unknown"
     except Exception:
-        _cached_agent_name = "unknown"
-        _cached_agent_version = "unknown"
+        pass
 
-    return _cached_agent_name, _cached_agent_version
+    if not name or not version:
+        return name or "unknown", version or "unknown"
+
+    result = (name, version)
+    _agent_info_cache[cache_key] = result
+    return result

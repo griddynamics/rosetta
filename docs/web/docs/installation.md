@@ -14,7 +14,7 @@ permalink: /docs/installation/
 > You must receive prior approval from your manager and company to use Rosetta.
 
 > [!WARNING]
-> Use **Sonnet 5 medium**, **GPT-5.4-medium**, **gemini-3.1-pro** or newer models. Avoid Auto model selection.
+> Use **Sonnet 5 medium**, **GPT-5.6-terra-medium**, **gemini-3.7-flash-high** or newer models. Avoid Auto model selection.
 
 > [!NOTE]
 > There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
@@ -331,7 +331,7 @@ STDIO runs Rosetta MCP as a local process. Your IDE launches it and communicates
 
 #### Join Your Team's Datasets
 
-Your team lead shares Instructions and Project datasets. You must accept the invite before you can see them. Check your Rosetta Server inbox for pending invitations.
+Your team lead shares Instructions datasets. You must accept the invite before you can see them. Check your Rosetta Server inbox for pending invitations.
 
 #### Configure Your IDE
 

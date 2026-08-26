@@ -28,6 +28,8 @@ jobs:
       uses: actions/setup-node@v5
       with:
         node-version: '24'
+        cache: 'npm'
+        cache-dependency-path: src/rosettify/package-lock.json
 
     - name: Install dependencies
       working-directory: ./src/rosettify

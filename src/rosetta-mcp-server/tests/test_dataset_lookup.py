@@ -1,3 +1,5 @@
+import pytest
+
 from rosetta_mcp.clients.dataset import DatasetLookup
 
 
@@ -66,6 +68,47 @@ def test_list_datasets_reuses_cached_refresh():
     assert lookup.list_datasets() == [dataset]
     assert lookup.get_id("known") == "d1"
     assert rag.calls == 1
+
+
+@pytest.mark.parametrize("dataset_ids", [("d1", "d2"), ("d2", "d1")])
+def test_duplicate_names_are_ambiguous_but_ids_remain_addressable(dataset_ids):
+    datasets = [_Dataset(dataset_id, "shared-name") for dataset_id in dataset_ids]
+    datasets_by_id = {dataset.id: dataset for dataset in datasets}
+    lookup = DatasetLookup(ragflow=_Rag(datasets=datasets), ttl_seconds=300)
+
+    assert lookup.get_id("shared-name") is None
+    assert lookup.get_dataset(name="shared-name") is None
+    assert lookup.get_dataset(dataset_id="d1") is datasets_by_id["d1"]
+    assert lookup.get_dataset(dataset_id="d2") is datasets_by_id["d2"]
+    assert lookup.list_datasets() == datasets
+
+
+def test_repeated_observation_of_same_dataset_remains_unambiguous():
+    first = _Dataset("d1", "shared-name")
+    refreshed = _Dataset("d1", "shared-name")
+    lookup = DatasetLookup(ragflow=_Rag(datasets=[first, refreshed]), ttl_seconds=300)
+
+    assert lookup.get_id("shared-name") == "d1"
+    assert lookup.get_dataset(name="shared-name") is refreshed
+    assert lookup.get_dataset(dataset_id="d1") is refreshed
+    assert lookup.list_datasets() == [refreshed]
+
+
+def test_refresh_rebuilds_ambiguity_from_current_visible_datasets():
+    first = _Dataset("d1", "shared-name")
+    second = _Dataset("d2", "shared-name")
+    rag = _Rag(datasets=[first])
+    lookup = DatasetLookup(ragflow=rag, ttl_seconds=300)
+
+    assert lookup.get_id("shared-name") == "d1"
+
+    rag._datasets = [first, second]
+    lookup.invalidate()
+
+    assert lookup.get_id("shared-name") is None
+    assert lookup.get_dataset(name="shared-name") is None
+    assert lookup.get_dataset(dataset_id="d1") is first
+    assert lookup.get_dataset(dataset_id="d2") is second
 
 
 def test_api_error_propagates():

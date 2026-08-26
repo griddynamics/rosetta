@@ -26,6 +26,7 @@ export const trialSpecSchema = z.object({
   caseName: z.string(),
   repeat: z.number().int().positive(),
   timeoutSec: z.number().int().positive(),
+  maxTurns: z.number().int().positive().optional(),
   /** Task prompt (launch argument, D15). */
   prompt: z.string(),
   /** QnA answering policy (§6). */

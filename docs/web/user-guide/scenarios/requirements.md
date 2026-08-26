@@ -23,7 +23,7 @@ Going requirements-first is the single most effective way to use a coding agent 
 /requirements-authoring-flow Reverse-engineer requirements from the existing orders service
 ```
 
-> This flow expects a strong model (Opus / GPT-5.5-class or similar). If yours is too small, the agent will ask you to switch.
+> This flow expects a strong model (Opus / GPT-5.6-sol-class or similar). If yours is too small, the agent will ask you to switch.
 
 ## How it works
 

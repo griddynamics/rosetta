@@ -68,7 +68,6 @@ If you prefer more vibe-coding, check the guardrails and useful skills below.
 - **Context engineering, not prompt hacking.** Agents receive your conventions, architecture, and business rules automatically — structured, versioned, and ready before the first line of code. See [how it fits your workflow](/rosetta/docs/overview/#how-rosetta-fits-into-your-workflow).
 - **Write once, run everywhere.** Agent-agnostic design adapts to any IDE and any tech stack. No per-tool maintenance.
 - **Guardrails built in.** Approval gates, risk assessment, and data protection ensure consistent AI behavior across teams. See [how Rosetta protects you](/rosetta/docs/usage-guide/#how-rosetta-protects-you).
-- **Cross-project intelligence** *(opt-in, self-hosted MCP).* Publish business and technical context from every project into a shared knowledge base. Agents see the system, not just one repo — trace flows across services, catch breaking API changes before they ship, and assess blast radius of any change across the portfolio.
 - **One-command onboarding.** New repo, new developer — productive immediately with best practices baked in.
 - **Instructions as code.** Prompts version-controlled with release management — single source of truth for all teams.
 

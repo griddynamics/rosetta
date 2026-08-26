@@ -82,6 +82,7 @@ def main() -> int:
     checks = [
         Check(name="hooks build",     runner=build_hooks),
         Check(name="plugin sync",     runner=lambda: run_command(["npx", "-y", "rosettify-plugins@latest", "--release", "r3", "--deterministic-hooks", "false"])),
+        Check(name="plugin sync light", runner=lambda: run_command(["npx", "-y", "rosettify-plugins@latest", "--release", "r3", "--deterministic-hooks", "false", "--profile", "lightweight"])),
         Check(name="type validation", runner=run_type_validation),
         Check(name="tests",           runner=run_tests),
     ]

@@ -6,7 +6,7 @@ import { loadConfig } from './config.js';
 import { createAnthropicClient, createOptimizeClient, type StreamingAnthropicClient } from './anthropic-client.js';
 import { runBenchSuite } from './runner.js';
 import { buildReport, writeReportFiles } from './report.js';
-import { OPTIMIZE_STEPS, runPromptOptimization } from './optimize.js';
+import { DEFAULT_OPTIMIZE_ANTHROPIC_BETAS, OPTIMIZE_STEPS, runPromptOptimization } from './optimize.js';
 import { createTerminalAsker } from './ask.js';
 import { colorsEnabled, createPalette } from './colors.js';
 import type { JudgeMode, SupportingFile, ThinkingEffort } from './types.js';
@@ -187,7 +187,7 @@ program
         throw new Error('At least one --target file is required');
       }
       const stepLimit = opts.stepLimit ?? OPTIMIZE_STEPS.length;
-      const defaultBetas = opts.defaultAnthropicBeta ? ['thinking-token-count-2026-05-13'] : [];
+      const defaultBetas = opts.defaultAnthropicBeta ? DEFAULT_OPTIMIZE_ANTHROPIC_BETAS : [];
       const anthropicBetas = [...defaultBetas, ...opts.anthropicBeta];
       if (opts.dryRun) {
         await runPromptOptimization(

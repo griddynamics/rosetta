@@ -5,7 +5,7 @@ tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
 
-<self_help_flow>
+<help_flow>
 
 <description_and_purpose>
 
@@ -83,7 +83,7 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
 3. Phases are sequential. Orchestrator coordinates; trust skills and subagents to execute.
 4. Scale: conversational — output is a message, no files, no state tracking.
 
-<prerequisites phase="0", applies="ALL">
+</prerequisites>
 
 <list_capabilities phase="1" subagent="discoverer" role="KB catalog lister">
 
@@ -127,10 +127,20 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
 1. Triggered when user shifts from help to action (e.g., "run that workflow", "let's do coding").
 2. `READ FLOW <selected workflow>.md` if not already loaded.
 3. Adopt acquired workflow as active flow; start from its phase 1.
-4. Self-help-flow yields control — does not wrap the adopted workflow.
+4. Help-flow yields control — does not wrap the adopted workflow.
 
 </handoff>
 
 </workflow_phases>
 
-</self_help_flow>
+<pitfalls>
+- Overloading a person with deep details -> adjust depth according how narrow question is
+- Showing trees instead of forest
+- Mechanical answers instead of looking at those from user perspective who will use those workflow with AI executing those instructions (not user)
+- Only answering -> proactively ask what is unclear, what is needed, how can you help
+- Overloading with a lot of text -> use simple, clear, short sentences, < 15 words each, < 5 sentences
+- Using only text -> use diagrams, use ASCII art, use colors, formatting
+- Using workflows files only -> in plugins mode entire repo is cloned, use PLUGIN ROOT relative paths `../../user-guide/{README,*}.md`, `../../user-guide/scenarios/*.md`, `../../docs/web/docs/*-flow.md`
+</pitfalls>
+
+</help_flow>

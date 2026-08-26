@@ -27,14 +27,27 @@ class DatasetService:
     
     def resolve_dataset_name(self, args_dataset: Optional[str]) -> tuple[Optional[str], bool]:
         """
-        Resolve dataset name with auto-detection.
-        
+        Resolve which dataset to act on.
+
+        How the name is picked:
+          1. --dataset given      -> use it               (False)
+          2. else list server datasets, keep those starting with the template
+             prefix ("aia-" from "aia-{release}")
+          3. exactly one match    -> use it               (True)
+          4. several matches      -> give up, ask user    (None, False)
+          5. no matches           -> use dataset_default  (True)
+
         Args:
             args_dataset: Dataset name from arguments (can be None)
-        
+
         Returns:
             Tuple of (dataset_name: str or None, auto_detected: bool)
             Returns (None, False) if resolution fails
+
+            auto_detected answers "did the caller supply this name?", not "did
+            we find it on the server". False only for step 1. True for steps 3
+            and 5 alike: the caller supplied nothing and this method chose.
+            True on step 5 is correct.
         """
         # Explicit dataset provided
         if args_dataset:

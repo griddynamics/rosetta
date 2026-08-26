@@ -8,7 +8,7 @@ Without this skill a capable model jumps to a plausible-sounding answer, states 
 
 ## When to engage
 
-Multi-dependency/tradeoff problems needing explicit confidence; skip simple, low-risk questions. Output: answer + confidence + key caveats grounded in explicit reasoning steps (per `<when_to_use_skill>`). Frontmatter also routes engagement via `description`'s "Must use when asked to think or reason." Named `agent` affinities: `planner`, `architect`, `prompt-engineer` — used by other agents (planner, architect, reviewer, requirements-engineer, researcher) as a mid-flow step, and by workflows as a required/recommended skill at specific phases.
+Multi-dependency/tradeoff problems needing explicit confidence; skip simple, low-risk questions. Output: answer + confidence + key caveats grounded in explicit reasoning steps (per `<when_to_use_skill>`). Frontmatter also routes engagement via `description`'s "Must use when asked to think or reason."
 
 ## How it works
 
@@ -26,8 +26,6 @@ Single flat `SKILL.md`; no `assets/` or `references/` subfolder. `<role>` frames
 
 - Frontmatter `name: reasoning` must equal the folder name and match the `- reasoning` line in `docs/definitions/skills.md`.
 - `description` follows the schema's GENERIC form but is dense with "meta-cognitive", "8D", and a 3-model CSV — likely over the schema's stated "~25 tokens" budget; not verified compliant, flagged for a maintainer to recount.
-- `model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high` — the multi-vendor CSV is intended: the plugin generator selects the appropriate id per target agent. Keep one id per vendor.
-- `agent: planner, architect, prompt-engineer` with `context: default` — intended; kept as affinity metadata (which subagents this skill serves). It only becomes a fork target under `context: fork`.
 - The flow is 8 steps (DISCOVERY, DECONSTRUCT, DIAGNOSE, DEVELOP, DESIGN, DELIVER, DEBRIEF, DECIDE) and frontmatter calls it "8D," so the file is internally self-consistent; external callers (e.g. `workflows/adhoc-flow.md:41`) now use the same "8D" label. Do not renumber the flow.
 - Inbound couplings, real (verified by reading each hit, excluding generic uses of the word "reasoning"): `USE SKILL reasoning`/`` USE SKILL `reasoning` `` in `agents/planner.md`, `agents/architect.md`, `agents/reviewer.md`, `agents/requirements-engineer.md`, `agents/researcher.md`; `skills/planning/SKILL.md` (step 1 of its core flow, plus its `<resources>` list); `skills/orchestration/assets/o-team-manager.md`; and workflow references (required or recommended skill) in `workflows/research-flow.md`, `workflows/coding-flow.md`, `workflows/adhoc-flow.md`, `workflows/code-analysis-flow.md`, `workflows/self-help-flow.md`. Renaming the skill folder or the `reasoning` alias breaks every one of these call sites.
 - Excluded as noise (word "reasoning" used generically, not as a skill reference): `configure/claude-code.md`, `configure/cursor.md`, `configure/codex.md`, `configure/github-copilot.md` (model-capability prose); `rules/bootstrap-alwayson.md` ("the reasoning was sound"); `templates/shell-schemas/agent-shell.md`; `skills/coding-agents-prompt-authoring/references/*.md`; `skills/dangerous-actions/SKILL.md` and its `README.md` (describe their own guardrail reasoning process, not this skill).

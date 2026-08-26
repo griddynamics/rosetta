@@ -134,9 +134,10 @@ Performance Notes:
   - Change detection skips unchanged files (77% faster)
   - API key verification timing shown when applicable
 
-Tag-in-Title Format:
-  - Documents are published with tags in title: [tag1][tag2] filename.ext
-  - Example: [instructions][agents][r1] agents.md
+Titles and Tags:
+  - Titles carry no tag prefixes: path relative to the release folder, or the filename
+  - Example: core/skills/coding/SKILL.md
+  - Tags are stored in metadata only; filter with --tags (--prefix matches literal titles)
 
 Frontmatter Metadata (publish flow):
   - Supported keys: tags, sort_order
@@ -192,8 +193,8 @@ Frontmatter Metadata (publish flow):
     publish_parser.add_argument(
         '--parse-timeout',
         type=int,
-        default=300,
-        help='Timeout for parsing in seconds (default: 300)'
+        default=None,
+        help='Timeout for parsing in seconds (default: RAGFLOW_PARSE_TIMEOUT, or 1200)'
     )
     publish_parser.add_argument(
         '--env',
@@ -331,8 +332,8 @@ Frontmatter Metadata (publish flow):
     parse_parser.add_argument(
         '--parse-timeout',
         type=int,
-        default=300,
-        help='Timeout for parsing in seconds (default: 300)'
+        default=None,
+        help='Timeout for parsing in seconds (default: RAGFLOW_PARSE_TIMEOUT, or 1200)'
     )
     parse_parser.add_argument(
         '--env',
@@ -376,7 +377,9 @@ Frontmatter Metadata (publish flow):
             embedding_model=config.embedding_model,
             chunk_method=config.chunk_method,
             parser_config=config.parser_config,
-            page_size=config.page_size
+            page_size=config.page_size,
+            dataset_default=config.dataset_default,
+            timeout=config.timeout,
         )
         
         return execute_command(args.command, args, client, config)

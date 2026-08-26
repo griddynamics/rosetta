@@ -124,6 +124,14 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     expect(tree.plan.name).toBe("Unnamed Plan");
   });
 
+  it.each(["", "   ", 123, {}])("rejects an invalid plan name %#", async (name) => {
+    const file = planFile();
+    const result = await cmdCreate(file, { name });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("size_limit_exceeded");
+    expect(fs.existsSync(file)).toBe(false);
+  });
+
   it("rejects plan with duplicate ids", async () => {
     const file = planFile();
     const data = {

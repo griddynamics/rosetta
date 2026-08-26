@@ -1,11 +1,16 @@
 import unittest.mock as mock
+from types import SimpleNamespace
 
 import pytest
 
 import rosetta_mcp.analytics.tracker as tracker_module
 import rosetta_mcp.analytics.user_context as user_context_module
 from rosetta_mcp.analytics.tracker import capture_error_to_posthog, get_client_ip, track_tool_call
-from rosetta_mcp.analytics.user_context import get_authenticated_identity, get_repository_from_context
+from rosetta_mcp.analytics.user_context import (
+    get_agent_info_from_context,
+    get_authenticated_identity,
+    get_repository_from_context,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -79,8 +84,9 @@ _SENTINEL_CTX = object()  # non-None; signals "we are in an HTTP request context
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(autouse=True)
-def _clear_repository_cache():
+def _clear_context_caches():
     user_context_module._repository_cache.clear()
+    user_context_module._agent_info_cache.clear()
 
 
 @pytest.mark.asyncio
@@ -722,3 +728,133 @@ async def test_track_tool_call_performance_rating_buckets(monkeypatch, sleep_ms,
 
     web_vitals = next(e for e in posthog.captured if e["event"] == "$web_vitals")
     assert web_vitals["properties"]["performance_rating"] == expected_rating
+
+
+# ---------------------------------------------------------------------------
+# get_agent_info_from_context — per-session scoping (issue #196)
+# ---------------------------------------------------------------------------
+
+class _FakeClientInfo:
+    def __init__(self, name: str | None, version: str | None):
+        if name is not None:
+            self.name = name
+        if version is not None:
+            self.version = version
+
+
+class _FakeAgentContext:
+    """Context exposing both what get_agent_info_from_context reads
+    (``session.client_params.clientInfo``) and what the cache key reads
+    (``request_context.request`` + ``session_id``)."""
+
+    def __init__(
+        self,
+        name: str | None = None,
+        version: str | None = None,
+        session_id: str | None = None,
+        http: bool = False,
+        session_raises: bool = False,
+    ):
+        self.client_info = (
+            _FakeClientInfo(name, version) if (name is not None or version is not None) else None
+        )
+        self._session_raises = session_raises
+        self.request_context = SimpleNamespace(
+            request=_FakeRequest(session_id or "missing") if http else None
+        )
+        self._session_id = session_id
+
+    @property
+    def session(self):
+        if self._session_raises:
+            raise RuntimeError("no active session")
+        return SimpleNamespace(client_params=SimpleNamespace(clientInfo=self.client_info))
+
+    @property
+    def session_id(self) -> str:
+        if self._session_id is None:
+            raise RuntimeError("no session id")
+        return self._session_id
+
+
+def test_agent_info_is_keyed_by_http_session():
+    """Two HTTP sessions from different MCP clients must not share agent info."""
+    ctx_a = _FakeAgentContext("claude-code", "1.0", session_id="session-a", http=True)
+    ctx_b = _FakeAgentContext("cursor", "2.5", session_id="session-b", http=True)
+
+    assert get_agent_info_from_context(ctx_a) == ("claude-code", "1.0")
+    assert get_agent_info_from_context(ctx_b) == ("cursor", "2.5")
+    # And back again — each session keeps its own value.
+    assert get_agent_info_from_context(ctx_a) == ("claude-code", "1.0")
+
+
+def test_agent_info_is_cached_per_session():
+    """A resolved session is cached: later reads do not re-inspect clientInfo."""
+    ctx = _FakeAgentContext("claude-code", "1.0", session_id="session-a", http=True)
+
+    assert get_agent_info_from_context(ctx) == ("claude-code", "1.0")
+    ctx.client_info = _FakeClientInfo("mutated", "9.9")
+    assert get_agent_info_from_context(ctx) == ("claude-code", "1.0")
+
+
+def test_agent_info_unknown_is_not_cached_for_the_process():
+    """A ctx-less call must not pin "unknown" for every later session."""
+    assert get_agent_info_from_context(None) == ("unknown", "unknown")
+
+    ctx = _FakeAgentContext("claude-code", "1.0", session_id="session-a", http=True)
+    assert get_agent_info_from_context(ctx) == ("claude-code", "1.0")
+
+
+def test_agent_info_session_error_is_not_cached():
+    """A session that raises must not poison later sessions either."""
+    broken = _FakeAgentContext(session_id="session-a", http=True, session_raises=True)
+    assert get_agent_info_from_context(broken) == ("unknown", "unknown")
+
+    ctx = _FakeAgentContext("cursor", "2.5", session_id="session-b", http=True)
+    assert get_agent_info_from_context(ctx) == ("cursor", "2.5")
+
+
+def test_agent_info_partial_client_info_is_not_cached():
+    """Missing version resolves to "unknown" without being cached."""
+    ctx = _FakeAgentContext("claude-code", None, session_id="session-a", http=True)
+    assert get_agent_info_from_context(ctx) == ("claude-code", "unknown")
+
+    ctx.client_info = _FakeClientInfo("claude-code", "1.0")
+    assert get_agent_info_from_context(ctx) == ("claude-code", "1.0")
+
+
+def test_agent_info_stdio_shares_a_singleton_key():
+    """STDIO/local transports intentionally share one key (single-user process)."""
+    ctx = _FakeAgentContext("claude-code", "1.0")  # http=False → no request
+    assert get_agent_info_from_context(ctx) == ("claude-code", "1.0")
+
+    other = _FakeAgentContext("cursor", "2.5")
+    assert get_agent_info_from_context(other) == ("claude-code", "1.0")
+
+
+@pytest.mark.asyncio
+async def test_track_tool_call_does_not_resolve_agent_info_without_ctx(monkeypatch):
+    """tracker must not call the resolver with ctx=None (mirrors the repository guard)."""
+    posthog = _FakePosthog()
+    monkeypatch.setattr(tracker_module, "get_posthog_client", lambda config=None: posthog)
+    monkeypatch.setattr(
+        tracker_module,
+        "get_repository_from_context",
+        mock.AsyncMock(return_value="repo"),
+    )
+    calls: list[object] = []
+
+    def _resolver(ctx):
+        calls.append(ctx)
+        return ("claude-code", "1.0")
+
+    monkeypatch.setattr(tracker_module, "get_agent_info_from_context", _resolver)
+
+    @track_tool_call
+    async def my_tool(ctx=None):
+        return "ok"
+
+    await my_tool(ctx=None)
+
+    assert calls == []
+    assert posthog.captured[0]["properties"]["$browser"] == "unknown"

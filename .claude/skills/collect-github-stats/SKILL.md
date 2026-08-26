@@ -32,6 +32,8 @@ repo root (or pass absolute `--out`). `--no-enrich` skips company/location looku
 - COULD normalize company variants when REPORTING; MUST NOT mutate stored raw values.
 - WON'T fabricate cloner identity (cloners are ANONYMOUS — counts only), store PII/secrets.
 
-## Lessons learned (keep updating, first line is template, follow <instructions>)
+If you learned something new which is reusable, there are process efficiency improvements, you can prevent faiures in the future, update `## Lessons learned` below for self-improvement.
 
-- **<key action item>** <concise: what happened, why, root cause, reasoning>.
+## Lessons learned (self-improvement, keep updating, first line is template, keep template, follow "<instructions>", high confidence only):
+
+- **<key action item, less then 7 words>** <concise/terse: what happened, why, root cause, reasoning, less then 25 words>.

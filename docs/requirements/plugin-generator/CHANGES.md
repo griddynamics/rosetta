@@ -1,5 +1,158 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-08-19 — `FR-ARCH-0023` implemented: TargetOnlyToken family keys
+
+**Files:** `FR-ARCH.md`
+
+**Source:** reviewer finding — `rule~copilot-only~.md` never worked. Before the directive allow-list it was silently dropped from every plugin, Copilot included, because the token ends in `-only` and target matching compared it against exact names only; after the allow-list it became a hard build failure. `FR-ARCH-0023` had specified family keys as an Approved Must since 2026-06-04 and was never implemented.
+
+- `FR-ARCH-0023` `implementation` NotStarted -> Implemented, with notes naming the artifacts. All three of its criteria are now covered by tests: `copilot-only` reaches `core-copilot` and `core-copilot-standalone` only; `core-copilot-standalone-only` reaches that exact target only; an unmatched target contributes nothing. Families are DERIVED from the target names by stripping the `core-` prefix and any `-standalone` suffix, so adding a target joins or creates its family with no second list to maintain.
+- `FR-ARCH-0060` statement: its recognized-token clause admitted only `<target>-only` for the seven exact names, which contradicted `FR-ARCH-0023`'s Approved Must and codified the unimplemented gap as correct. It now admits an IDE-family key too, and a criterion covers `rule~copilot-only~.md` being accepted. This corrects an error introduced when that unit was authored.
+
+---
+
+## 2026-08-19 — `FR-ARCH-0060` added; the closing tilde fence contributes no token (merge with main)
+
+**Files:** `FR-ARCH.md`, `FR-PROF.md`, `ASSUMPTIONS.md`, `GLOSSARY.md`
+
+**Source:** merging origin/main, which shipped throw-on-unknown-filename-directive with no requirement unit, and which drops the trailing empty segment before validating. Both changes approved by the owner.
+
+- `FR-ARCH-0060` (new, Approved, Implemented): the generator rejects a filename carrying an unrecognized directive token, aborting with a message naming the token, the filename and the accepted set. Recognized: `overwrite`; a target-only token for each of the seven target names; and the profile-only shape `profile-<name>-only` with a non-empty name. A profile-only name is deliberately not resolved against existing profiles — filename parsing must not depend on the profile source directory, and an unprofiled build of a repository carrying profile-scoped files must still succeed. Rationale records why silence was worse: a mistyped `core-clade-only` still ends in `-only`, so target matching excluded the document from all seven plugins with no diagnostic.
+- The closing tilde fence now contributes no token rather than an inert empty one, since the parser drops the trailing empty segment — which is also what lets the allow-list run without an empty string tripping it. Reworded in `FR-ARCH-0020` and `FR-ARCH-0021` (statements and criteria), `FR-PROF-0030` (notes and AC5), `GLOSSARY.md`, and `ASSUMPTIONS.md` AC-9 and AC-19. AC-19 had anticipated exactly this and now records that the predicted risk materialized and was handled.
+- `status`/`approved_by`/`implementation` unchanged on every pre-existing unit.
+
+---
+
+## 2026-08-19 — owner review pass: evidence convention, gemini effort, and two conflicts resolved
+
+**Files:** `FR-ARCH.md`, `FR-COPY.md`, `FR-PROF.md`, `FR-VAR.md`
+
+**Source:** owner reviewed the post-#187 reconciliation unit by unit and directed each change below.
+
+- `FR-ARCH-0057` statement: the upgrade rule generalized to a version-independent invariant — a built-in map retains a key for every authored model token, superseded ones included, and each resolves to the current model of that token's own cost tier. Keys are never removed as a model ages; only values move forward. Added a criterion asserting every GPT 5.3/5.4/5.4-mini/5.5 effort variant is present as a key and resolves to its tier successor.
+- `FR-ARCH-0057` statement: gemini reasoning-effort assignment on authored tokens defined — Pro takes `-high`, a superseded Flash token takes `-low`, every other Gemini token takes `-medium`. The maps resolve all of these to the IDE-native Gemini id, which carries no effort suffix. Cross-referenced from `FR-ARCH-0046` implementationNotes.
+- `FR-COPY-0022` criteria: an unmapped Codex `gpt-` token on the unprofiled path passes through and is effort-split rather than emitting no model fields; no model fields are emitted only when the list holds no `gpt-*` token at all. The sibling skip-and-continue criterion is scoped to the profiled path. Pre-existing defect, independent of #187.
+- `FR-VAR-0010` statement and criterion: both accepted Claude forms are permitted — a family short name and a full model ID — and neither is mandated; which form a value takes is governed by the effective `ModelVocabulary` (`FR-COPY-0021`). Resolves the contradiction with `FR-COPY-0021`.
+- Evidence convention: `<evidence>` cites source code only. Every `discovery-notes.md` citation removed from `FR-ARCH-0059`, `FR-COPY-0083` and `FR-COPY-0084` — a plan artifact is not evidence — and `FR-COPY-0084`'s note now names the two real Codex call sites. `FR-ARCH-0059`'s `<notes>` deleted: its whole content cited a baseline the unit itself removed.
+- Evidence convention: every `<evidence>` line range in `FR-PROF-0001/0010/0011/0020/0030` replaced by the named artifact at that location, since ranges drift on every edit and names do not. Two false parentheticals corrected: `PluginSpec.modelVocabulary` is no longer "read nowhere", and `FR-PROF-0001`'s V3 rationale is re-grounded on total coverage — a block replaces the vocabulary in full, so family keys are what keep every claude token resolvable — rather than on a full-id key "never matching".
+- `status`/`approved_by`/`implementation` unchanged on every unit.
+
+---
+
+## 2026-08-19 — model tokens realigned to the upgraded built-in maps (GitHub #187)
+
+**Files:** `FR-COPY.md`, `FR-ARCH.md`
+
+**Source:** repo-wide model upgrade #187 — every built-in map moved forward (opus → `claude-opus-5`; gpt 5.3/5.4/5.3-codex → `gpt-5.6-terra`; gpt 5.5 → `gpt-5.6-sol`; gpt 5.4-mini → `gpt-5.6-luna`; every gemini → `gemini-3.7-flash`; grok 4.5 → `grok-4.6`), and the Codex map gained upgrade entries so a legacy `gpt-` token resolves forward with its effort preserved. Requirement text asserting a pre-upgrade OUTPUT value was corrected; INPUT citations, hypothetical profile blocks and hypothetical effective maps were left as-is.
+
+- `FR-COPY-0020` criteria: Cursor outputs corrected — `claude-4.8-opus-high` → `claude-opus-5`; `gpt-5.4-medium` → `gpt-5.6-terra`.
+- `FR-COPY-0021` statement/rationale/criteria/notes: the built-in opus family value and the accepted-full-id list now name `claude-opus-5`; the stale exact-vs-family illustration (family key "would yield claude-opus-4-8") rewritten — the two tiers now agree, and the exact tier's stated value is version-pinning when the family default later moves.
+- `FR-COPY-0022` criteria: Codex outputs corrected — `gpt-5.3-codex-high` → model `gpt-5.6-terra` effort `high`; bare `gpt-5.4` → `gpt-5.6-terra`.
+- `FR-COPY-0083` statement/criteria: whole-emit example and list outputs corrected — `gpt-5.5-high` emits whole as `gpt-5.6-sol-high`; AC2 → `claude-opus-5, claude-sonnet-5`; AC3 → `gpt-5.6-terra`; AC7 → `gpt-5.6-sol-high, gpt-5.6-terra-low`.
+- `FR-ARCH-0057` statement/rationale/criteria/implementationNotes: upgrade rules restated to the 5.6-era and `claude-opus-5` targets, and the rule generalized to a version-independent invariant — a built-in map retains a key for every authored model token, superseded ones included, and each resolves to the current model of that token's own cost tier. The earlier wording enumerated `gpt-5.4` and `gpt-5.5` as not-upgraded, which held only while they were the current generation; naming versions pinned the rule to that moment. Keys are never removed as a model ages, only their values move forward. Added a criterion asserting every GPT 5.3/5.4/5.4-mini/5.5 effort variant is present as a key and resolves to its tier successor. "GPT 5.3 and above" scope unchanged.
+- `FR-ARCH-0046` implementationNotes: map-summary arrows corrected to the upgraded targets.
+- `status`/`approved_by`/`implementation` unchanged on every unit.
+
+---
+
+## 2026-08-19 — `FR-COPY-0021` amended: the Claude vocabulary resolves in two tiers
+
+**Files:** `FR-COPY.md`, `MODEL.md`
+
+**Source:** user request — a build profile must be able to select Opus 5 while the standard build keeps Opus 4.8.
+
+- `FR-COPY-0021` statement: a claude-compatible token is now resolved against the effective vocabulary in two tiers, exact source token before `opus`/`sonnet`/`haiku` family key. A map keyed by family alone can name exactly one model per family and so cannot express a model version. Selection strategy, `inherit` fallback and skip-and-continue behavior are unchanged; no pre-existing token resolves differently, since none matches an exact key.
+- The exact tier belongs to the built-in vocabulary only. `DATA-CFG-0006.AC3` restates why a profile's `core-claude` block stays family-keyed: a block replaces the vocabulary in full, and family keys are what guarantee every claude token remains covered.
+- Added criteria for the exact tier to `FR-COPY-0021` and `DATA-CFG-0004`; amended `DATA-CFG-0004`'s statement, which described built-in vocabularies as keyed by logical model key only.
+- `FR-COPY-0083` statement: the `subagent_required_model` surface names the same two-tier lookup rather than the family key alone, so a token resolves identically on both model surfaces. `status`/`approved_by`/`implementation` unchanged throughout.
+- Reordered `DATA-CFG-0006`'s criteria so `AC9` precedes `AC10`/`AC11`.
+
+---
+
+## 2026-08-19 — `DATA-CFG-0006` amended: every profile descriptor field is optional
+
+**Files:** `MODEL.md`
+
+**Source:** the shipped `lightweight` reference profile declares suffix fields only — a `modelOverrides` block is exhaustive per target and would downgrade every agent, skill and workflow uniformly, so a lighter build cannot use one.
+
+- `DATA-CFG-0006` statement: the four field names remain the complete set a descriptor may carry, but each is now stated optional — an absent suffix defaults to the empty string, an absent `modelOverrides` means no overrides and every target keeps its built-in vocabulary.
+- Added `DATA-CFG-0006.AC10` (suffix-only descriptor accepted, built-in vocabularies retained non-exhaustively) and `AC11` (absent suffix reads as empty string). `status`/`approved_by`/`implementation` unchanged.
+
+---
+
+## 2026-08-19 — `FR-COPY-0022` amended: `-xhigh` recognized as a Codex reasoning-effort suffix
+
+**Files:** `FR-COPY.md`
+
+**Source:** user request — a profile's `engineer` subagent needs `gpt-5.6-luna-xhigh` to split correctly.
+
+- `FR-COPY-0022` statement: the reasoning-effort suffix list gains `-xhigh` alongside `-high`/`-medium`/`-low`. Additive only; `-high`/`-medium`/`-low`/no-suffix behavior is unchanged.
+- Added a criteria proving the split (`gpt-5.6-luna-xhigh` → model `gpt-5.6-luna`, effort `xhigh`). `status`/`approved_by`/`implementation` unchanged.
+
+---
+
+## 2026-08-19 — `FR-COPY-0083` corrected: `subagent_required_model` tokens are emitted WHOLE
+
+**Files:** `FR-COPY.md`
+
+**Source:** Owner correction. `subagent_required_model` is instruction/guidance prose, not a keyword, format, or machine-parsed contract — so a Codex reasoning-effort qualifier is authored content, not a separable field.
+
+- `FR-COPY-0083` statement: the earlier rule emitting a surviving Codex token as its BASE model id with the reasoning-effort suffix removed is REVERSED. A surviving token is emitted whole (`gpt-5.5-high` emits as `gpt-5.5-high`). The original rule rested on the false premise that only a bare model id is valid on this surface; that is true of a parsed config field, not of guidance text, and stripping destroyed guidance the instruction author deliberately wrote.
+- The frontmatter `model:` path is UNCHANGED and remains correct: Codex genuinely splits a token into `model` + `model_reasoning_effort` there, because that field IS a parsed configuration contract. Two surfaces, two rules.
+- Added `FR-COPY-0083.AC7` covering whole-token emission (`gpt-5.5-high, gpt-5.4-low` normalizes to itself under the built-in map).
+- Consequence for de-duplication: two Codex tokens differing only by effort are now DISTINCT and no longer collapse, so de-dup coverage was rebuilt around two override keys mapping to the same value.
+- `implementationNotes` on `FR-COPY-0083` updated; no status or implementation value changed.
+
+---
+
+## 2026-08-19 — plugin-generator profiles: user approval of the requirement set (26 units → `Approved`); published-vs-local caveat reverted; `FR-ARCH-0022` notes
+
+**Files:** `FR-PROF.md`, `MODEL.md`, `FR-CLI.md`, `FR-COPY.md`, `FR-ARCH.md`, `NFR.md`
+
+**Source:** explicit user approval, verbatim "Requirements are approved by me", plus two corrections the user directed on the maintainer docs and the TODO backlog.
+
+- User approval recorded on the 26 units this change left `Draft`: `status` Draft→`Approved`, `approved_by`→`User`, `changed`→`2026-08-19` for `FR-PROF-0001`/`0010`/`0011`/`0020`/`0021`/`0030`/`0040`, `DATA-CFG-0003`/`0004`/`0005`/`0006`, `FR-CLI-0001`/`0020`/`0032`/`0033`/`0060`, `FR-COPY-0020`/`0021`/`0022`/`0083`/`0084`, `FR-ARCH-0057`/`0059`, `NFR-0001`/`0002`/`0003`. Every `implementation` value is UNCHANGED — approval (`status`) and code state (`implementation`) are independent fields. Seven pre-existing `Draft` units untouched by the profiles change are deliberately left `Draft` (not covered by this approval): `FR-CLI-0021`, `FR-COPY-0011`, `FR-HOOK-0005`, `FR-VAR-0070`/`0030`/`0031`, `NFR-0004`.
+- Reverted the published-vs-local `@latest` regeneration caveat: removed the "Version caveat" blockquote from the Plugins section of `docs/ARCHITECTURE.md` and the matching `agents/MEMORY.md` rule ("Verify Which Artifact A 'Regenerate' Step Actually Exercises"), both added in the 2026-08-18 flip entry. User's reason: the note documents a transient pre-publish state that self-invalidates on merge — once the PR merges, the generator and the note publish together and the note is immediately stale/wrong. Intentional reversal, not a softening. The durable profile documentation in both files is kept intact.
+- `FR-ARCH-0022` (OrderToken semantics): added `implementationNotes` recording the true state; `status`/`implementation` unchanged (`Approved`/`NotStarted`). Notes state that `SourceFile.order` is populated as the layer array index and read by nothing, no filename order token is parsed/consumed/tested, and current ordering comes from the layer order plus the stable lexicographic filename sort — exactly this requirement's own documented "plain filename order when absent" fallback — so present output is correct for every current input.
+- `docs/TODO.md`: removed two entries — the "`OrderToken` directive kind is specified but inert" note (redundant; `FR-ARCH-0022`'s own `Approved`/`NotStarted` fields already track "approved but not built") and the "`--dry-run` under-reports writes by the per-target manifests" note (obsolete; being fixed in source). The three remaining plugin-generator TODOs (oversized-file splits, ambiguous `FR-ARCH-*` prefix, requirement ids in emitted log messages) are unchanged.
+
+---
+
+## 2026-08-18 — plugin-generator profiles: implemented and verified — `implementation` flips + two `FR-COPY-0083` amendments
+
+**Files:** `FR-PROF.md`, `MODEL.md`, `FR-CLI.md`, `FR-COPY.md`, `FR-ARCH.md`, `NFR.md`
+
+**Source:** implementation of the profiles capability via the coding workflow (autonomous mode) followed by an orchestrator audit. Records the factual code-state flips and two amendments settled during implementation; requirement `status` is untouched throughout and stays `Draft` pending user approval.
+
+- `implementation` set to `Implemented`, with concise file-level `implementationNotes`, for the 24 units now backed by verified code: `FR-PROF-0001`/`0010`/`0011`/`0020`/`0021`/`0030`/`0040`, `DATA-CFG-0003`/`0004`/`0006`, `FR-CLI-0001`/`0020`/`0032`/`0033`/`0060`, `FR-COPY-0020`/`0021`/`0022`/`0083`/`0084`, `FR-ARCH-0059`, `NFR-0001`/`0002`/`0003`. `status` and `approved_by` are UNCHANGED on every unit — `implementation` (code state) and `status` (user approval) are independent fields; these units remain `Draft`. `FR-ARCH-0020`/`FR-ARCH-0021` keep `status="Approved"` and their `implementation` unchanged (no behavior change).
+- `FR-COPY-0083` amended during implementation on two points the original text left underspecified: (1) per ruling R1 as CORRECTED by the owner on 2026-08-19, a surviving token is emitted WHOLE with its reasoning-effort qualifier retained (`gpt-5.5-high` → `gpt-5.5-high`) — the attribute is instruction guidance read by the executing agent, not a machine-parsed configuration field, so the qualifier is authored content and stripping it would destroy guidance; the frontmatter `model:` split into model + reasoning-effort is unaffected because that field IS a parsed contract; (2) per ruling R4, where a per-target override block is in force that block is the whole allowed vocabulary, so a token absent from it is DROPPED from the list — Codex `gpt-` tokens included — closing a G5 leak (a disallowed model appearing anywhere in a shipped plugin). Without a block, the target's built-in behavior applies. R4 was a spec-gap closure; R1's strip rule was a wrong premise, now reversed — see the 2026-08-19 entry.
+- Verification: `tsc` clean; 655 tests green; a no-profile dry run produces 2229 paths / vfsSize 320, identical to the pre-feature baseline; all seven `core-*-light` outputs produced under `--profile lightweight`. The always-on `subagent_required_model` normalization changed 114 committed plugin files / 510 lines, with `core-antigravity` unaffected.
+- Maintainer docs updated alongside these flips (outside this change log): `docs/ARCHITECTURE.md` (profile CLI options, the profile concept, filename-directive grammar incl. `profile-<name>-only`, always-on subagent-model normalization, and a published-vs-local `@latest` regeneration caveat), `agents/IMPLEMENTATION.md` (Plugin Generator workstream entry), `agents/MEMORY.md` (preventive rules).
+
+---
+
+## 2026-08-18 — plugin-generator profiles: new `FR-PROF-*` capability, `--profile`/`--profileSource` (`FR-CLI-0032`/`FR-CLI-0033`), profile descriptor `DATA-CFG-0006`, `ProfileOnlyToken` (`FR-PROF-0030`), effective-map-as-parameter refactor (`FR-ARCH-0059`), always-on `subagent_required_model` filtering (`FR-COPY-0083`)
+
+**Files:** `MODEL.md`, `FR-CLI.md`, `FR-PROF.md`, `FR-COPY.md`, `FR-ARCH.md`, `NFR.md`, `GLOSSARY.md`, `SCOPE.md`, `ASSUMPTIONS.md`, `INDEX.md`, `TRACE.md`, `docs/TODO.md`
+
+**Source:** user-driven, authored via the requirements-authoring workflow with a five-round questioning gate, then an independent adversarial review pass whose findings were applied.
+
+- New file `FR-PROF.md` — the profile capability, all units `Draft`/`NotStarted`: `FR-PROF-0001` (Profile resolution and fail-fast validation — sole owner of the abort-on-bad-descriptor outcome; aborts non-zero before any output on a missing or unparseable file, an unknown outer key, a `core-antigravity` block, a `core-claude` inner key outside {opus, sonnet, haiku}, or an unrecognized top-level descriptor field); `FR-PROF-0010` (Effective model map resolution per target — a profile's per-target block replaces that target's built-in map entirely; a standalone inherits its parent's block; a dead inner entry is ignored silently); `FR-PROF-0011` (Exhaustive candidate skipping under the effective map — a selected candidate absent from the effective map is skipped and the scan continues; under an ACTIVE override block, no survivor → drop the `model:` line; governs the PROFILED path ONLY, deferring the unprofiled path to `FR-COPY-0020/0021/0022` by id); `FR-PROF-0020` (Destination suffixing on `spec.destination` only, never `spec.name`); `FR-PROF-0021` (Global manifest name and description suffixing); `FR-PROF-0030` (`ProfileOnlyToken` filename directive — `profile-<name>-only`, kind distinct from a target-only token); `FR-PROF-0040` (No-profile run unaffected by the profile mechanism — the regression guard).
+- New file `TRACE.md` — goal-to-requirement-to-criteria traceability matrix.
+- `MODEL.md`: new `DATA-CFG-0006` (`Draft`/`NotStarted`) — Profile descriptor: exactly four fields `destinationSuffix`, `pluginNameSuffix`, `pluginDescriptionSuffix`, and two-level `modelOverrides` (outer key = target `name`, inner key-space per target); a `core-antigravity` block is invalid. Amended `DATA-CFG-0003` Target inventory (`Draft`/`ToBeModified` — an active profile suffixes a target's `destination`, never `name`) and `DATA-CFG-0004` Model vocabularies (`Draft`/`ToBeModified` — resolves an effective vocabulary; a profile block replaces the built-in map). `DATA-CFG-0005` Preserved-file source location (`Draft`; `implementation` stays `Implemented` because the change is descriptive-to-match-reality) — expresses the effective preserved-file source root.
+- `FR-CLI.md`: new `FR-CLI-0032` Profile selection by name (name only; a path-like value — path separator or `.json` extension — is rejected before any output; defers the descriptor abort to `FR-PROF-0001` by id, with NO `depends` edge added, deliberately, to avoid a cycle) and `FR-CLI-0033` Profile source root override (default `<source>/src/rosettify-plugins/profiles`), both `Draft`/`NotStarted`. Amended `FR-CLI-0001` Command-line invocation (`ToBeModified` — synopsis gains the two options), `FR-CLI-0020` Source resolution (`ToBeModified` — derives `profileSource`), `FR-CLI-0060` Comprehensive help (`NotStarted` — documents the profile mechanism).
+- `FR-COPY.md`: new `FR-COPY-0083` subagent_required_model list normalization (always-on) and `FR-COPY-0084` Codex model normalization applied at both call sites (`fileNormalizeCodexModels` markdown + `fileCodexAgentFormat` agents-TOML), both `Draft`/`NotStarted`. `FR-COPY-0083` is a PRE-EXISTING GAP fix, NOT a profile feature: it filters each list through per-IDE selection + the effective map → survivors in SOURCE order, de-duplicated keeping the FIRST occurrence → re-emitted as a comma list; none survive → `inherit`. It applies with or without a profile and deliberately CHANGES the content of already-shipped plugins (attribute values only); structural parity (`NFR-0001`, path sets) is unaffected. Amended `FR-COPY-0020`/`FR-COPY-0021`/`FR-COPY-0022` (`ToBeModified`) — per-IDE normalization consults the effective vocabulary, selection strategy unchanged; each states its own unprofiled no-survivor behavior and defers the profiled path to `FR-PROF-0011` by id.
+- `FR-ARCH.md`: new `FR-ARCH-0059` Effective model map threaded as a processor parameter (`Draft`/`NotStarted`) — refactor the normalization functions IN PLACE to take the effective map as a parameter; `PluginSpec.modelVocabulary` becomes the sole live carrier; no parallel code path. (This is NOT `ProfileOnlyToken`, which is `FR-PROF-0030`.) Amended `FR-ARCH-0020` Directive-bearing filenames and `FR-ARCH-0021` Directive grammar and validation — profile/target token EXAMPLES added AND the statement grammar reconciled from a stale dot-fenced, comma-separated notation to the tilde-separated, tilde-fenced form `name~token[~token...]~.ext` that the implementation, the one real fixture, and the user's stated intent all use. Both deliberately REMAIN `status="Approved"` with `approved_by="User"` and `implementation` unchanged: this aligns stale text with shipped behavior rather than changing a requirement — not a missed status reset. Amended `FR-ARCH-0057` Model vocabulary scope/upgrade/Codex-effort rule (`ToBeModified`) — the "GPT 5.3+" allow-list is scoped to the built-in maps only, so a profile block may name ids the built-in maps exclude.
+- `NFR.md`: `NFR-0001` Per-target structural parity (`Approved`→`Draft`, `approved_by` cleared, `changed`→`2026-08-18`, `implementation` `ToBeModified`) — parity oracle now spans every profile-and-target combination, over PATHS only, including `destination` suffixing and `ProfileOnlyToken` resolution. `NFR-0002` Deterministic, reproducible output (`Draft`/`NotStarted`) — profile counted as an input dimension. `NFR-0003` Idempotent re-generation (`Draft`/`NotStarted`) — seeding via the effective preserved-file source; `depends` += `FR-CLI-0060`.
+- `GLOSSARY.md`: added `Profile`, `ProfileOnlyToken`, `Effective model vocabulary`, `Effective preserved-file source`; amended `DirectiveToken` (kinds += `ProfileOnlyToken`), `ModelVocabulary` (profile block may replace the built-in map), `Preserved-file source` (references the effective root), `Plugin variant / Target` (`destination` suffixed, `name` fixed).
+- `SCOPE.md`: In Scope gains profile selection/descriptor, profile effects (effective vocabulary, `destination` + manifest suffixing, profile directive token), and always-on `subagent_required_model` filtering (with or without a profile); Non-Goals gains schema migration, profile-driven target selection, changing `--pluginsSource` semantics, profile influence over release/hook posture, and changing Antigravity's model handling.
+- `ASSUMPTIONS.md`: new `AC-15`–`AC-21` (profile assumptions: `--profileSource` default, filtered survivor SOURCE order + first-occurrence de-dup, dead inner entry ignored silently, standalone-inherits-parent block, inert closing-fence token, AC-6 extension to profile-scoped substitution, profile affects only its own build); `AC-9` records that the comma-separator notation was a documentation artifact never implemented.
+- `INDEX.md`: added `FR-PROF.md` and `TRACE.md` header lines.
+- All new and amended units are `Draft` pending user approval, EXCEPT `FR-ARCH-0020`/`FR-ARCH-0021`, which stay `Approved` (documentation-alignment only, no behavior change).
+- Tracked follow-ups (logged in `docs/TODO.md`): split `FR-ARCH.md` (898 lines) and `FR-COPY.md` (418 lines), both over the 300-line refactor threshold; `OrderToken` is specified in `FR-ARCH-0020/0021`/`GLOSSARY.md` but inert (nothing consumes an order token); the `FR-ARCH-*` id prefix is ambiguous across the rosettify and plugin-generator components.
+
+---
+
 ## 2026-07-28 — `FR-HOOK-0003` Deprecated: bootstrap prefix removed
 
 **Files:** `FR-HOOK.md`, `GLOSSARY.md`, `ASSUMPTIONS.md`, `NFR.md`

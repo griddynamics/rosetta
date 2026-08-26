@@ -14,7 +14,7 @@ Installing Rosetta means adding a **plugin** to your IDE. The plugin bundles eve
 ## Before you install
 
 - **Get approval.** Confirm with your manager and company that you're allowed to use Rosetta.
-- **Choose a medium model.** Use **Sonnet 5 (medium)**, **GPT-5.4-medium**, **gemini-3.1-pro**, or newer. Avoid "Auto" selection — it tends to downgrade mid-task and waste tokens. More on this in [Tips → Choosing a model](/rosetta/user-guide/tips/#choosing-a-model).
+- **Choose a medium model.** Use **Sonnet 5 (medium)**, **GPT-5.6-terra-medium**, **gemini-3.7-flash-high**, or newer. Avoid "Auto" selection — it tends to downgrade mid-task and waste tokens. More on this in [Tips → Choosing a model](/rosetta/user-guide/tips/#choosing-a-model).
 - **Avoid conflicting plugins.** JUXT, Superpowers, GSD, and AI-DevKit can clash with Rosetta. Use only the one you're most comfortable with.
 
 ## Install for your IDE

@@ -13,6 +13,7 @@ from cachetools import TTLCache
 
 from rosetta_mcp.clients.document import DocumentClient
 from rosetta_mcp.constants import DOC_CACHE_TTL_SECONDS
+from rosetta_mcp.tracing import _get_tool_timeout
 from rosetta_mcp.typing_utils import DatasetLike, DocumentLike
 
 
@@ -43,16 +44,22 @@ class InstructionDocCache:
         return docs
 
     async def get_all_docs_async(
-        self, dataset: DatasetLike, dataset_name: str, tool_timeout: int = 120
+        self, dataset: DatasetLike, dataset_name: str, tool_timeout: int | None = None
     ) -> list[DocumentLike]:
         """Async variant: cache check on event loop; blocking fetch off-loop (A4).
 
         Cache read/write happen on the event-loop thread (SPECS A-1).
         Only the sync RAGFlow list_docs is offloaded via asyncio.to_thread.
+
+        ``tool_timeout=None`` (the default) resolves the ceiling from
+        ``ROSETTA_TOOL_TIMEOUT`` via the same helper ``tracing.offload`` uses,
+        so callers do not have to plumb it through (#207). Falls back to
+        ``DEFAULT_TOOL_TIMEOUT`` when the env var is unset or invalid.
         """
         cached: list[DocumentLike] | None = self._cache.get(dataset_name)
         if cached is not None:
             return cached
+        timeout = _get_tool_timeout() if tool_timeout is None else tool_timeout
         # Offload only the blocking I/O, not the cache access (SPECS A-1).
         docs = await asyncio.wait_for(
             asyncio.to_thread(
@@ -62,7 +69,7 @@ class InstructionDocCache:
                     page_size=10000,
                 )
             ),
-            timeout=tool_timeout,
+            timeout=timeout,
         )
         # Write back on the event-loop thread (SPECS A-1).
         self._cache[dataset_name] = docs

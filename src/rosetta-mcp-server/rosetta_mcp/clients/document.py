@@ -151,7 +151,12 @@ class DocumentClient:
 
         url = f"{base_url}/v1/document/get/{doc.id}"
 
-        from rosetta_mcp.tracing import current_trace_id, SLOW_CALL_THRESHOLD_SECONDS, _log_prefix
+        from rosetta_mcp.tracing import (
+            current_trace_id,
+            SLOW_CALL_THRESHOLD_SECONDS,
+            _get_ragflow_http_timeout,
+            _log_prefix,
+        )
         trace_id = current_trace_id.get(None)
         label = f"GET /v1/document/get/{doc.id}"
         _logger.info(
@@ -175,7 +180,7 @@ class DocumentClient:
         _timer.daemon = True
         _timer.start()
         try:
-            res = requests.get(url=url, headers=headers, timeout=30)
+            res = requests.get(url=url, headers=headers, timeout=_get_ragflow_http_timeout())
             _elapsed = time.monotonic() - _start
             _logger.info(
                 "%s %s — success",

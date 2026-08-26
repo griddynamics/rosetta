@@ -124,8 +124,11 @@ Verbosity kills documentation. These are hard rules.
 - Fix web site content inconsistencies
 - Ask questions instead of assuming
 
-## Lessons learned (keep updating)
+If you learned something new which is reusable, there are process efficiency improvements, you can prevent faiures in the future, update `## Lessons learned` below for self-improvement.
 
+## Lessons learned (self-improvement, keep updating, first line is template, keep template, follow "<instructions>", high confidence only):
+
+- **<key action item, less then 7 words>** <concise/terse: what happened, why, root cause, reasoning, less then 25 words>.
 - **npm/src/* tools are public, not internal.** `rosettify`, `rosettify-prompts`, `curiocity`, and similar packages under `src/` are published and user-facing. Default to mirroring their ARCHITECTURE.md sections on the web page — don't assume "internal tooling" and drop them.
 - **Use DOC-STRUCTURE-PLAN's per-doc contract to scope ARCHITECTURE.md sync.** Its `Excludes` line (build/run-local → DEVELOPER_GUIDE, deploy/ops → DEPLOYMENT_GUIDE) is the tiebreaker for what NOT to port to the web page: deep OAuth-mode env-var tables, Redis schema migration internals, and local `refsrc/` reference-package notes stay contributor-repo-only even when root ARCHITECTURE.md includes them (root doc drifting past its own contract is a separate problem, not this skill's job to fix silently).
 - **Root docs sometimes carry trailing AI-agent-imperative sections** (`MUST`, `DO NOT FILTER`, validation scripts) mixed into otherwise human-facing prose. Treat these as intentionally contributor/agent-only — never sync them to the public web page unless explicitly told to.

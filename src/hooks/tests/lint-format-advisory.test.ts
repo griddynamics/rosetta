@@ -223,16 +223,16 @@ describe('case-insensitive extension matching', () => {
   });
 });
 
-// ── integration: exclusion boundary precision (notContainsAny w/ trailing slash) ────
+// ── integration: exclusion boundary precision (notStartsWithAny) ─────────────
 //
-// Exclusions match exact substrings WITH a trailing slash (`dist/`, `build/`,
-// `node_modules/`). Directory names that merely share a prefix must NOT be
-// excluded.
+// Exclusions match directory segments (`dist/`, `build/`, `node_modules/`).
+// Directory names that merely share a prefix or suffix must NOT be excluded.
 
-describe('exclusion boundary — prefix-only matches still fire', () => {
+describe('exclusion boundary — near matches still fire', () => {
   const nearMiss = [
     'distillery/app.ts',          // `dist` ≠ `dist/`
     'builder/app.ts',             // `build` ≠ `build/`
+    'rebuild/app.ts',             // `build/` is only a suffix of the segment
     'node_modules_local/foo.ts',  // `node_modules` ≠ `node_modules/`
   ];
 

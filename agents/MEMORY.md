@@ -7,6 +7,12 @@ Content: brief, grep-friendly, MECE across sections. Style: one-liner per entry,
 
 ## Preventive Rules
 
+### Absence From This Repo Is Not Proof A Referenced Thing Does Not Exist [ACTIVE]
+Before calling a reference dangling, establish what it is FOR. `/goal` and `/advisor` are Claude Code features the user sets; `graphify` is a third-party skill installed via `graphify install`. None is defined in this repo by design. Web-search and read `docs/definitions/workflows.md` first. Six issues in one batch rested on this error, and acting on them deleted working features.
+
+### Prescriptive Schemas Outrank Observed Patterns [ACTIVE]
+When an instruction file looks wrong, check `docs/schemas/*.md`, `instructions/r*/core/templates/shell-schemas/*.md`, and the sibling `README.md` "Invariants" section before changing it. A line repeated verbatim across many files is a convention, not a defect — `All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed` is mandated by all three schemas and `skills/coding/README.md` forbids rewording it locally.
+
 ### HITL Applies At Workflow Gates, Not Every Internal Mechanic [ACTIVE]
 Proceed through read-only discovery, analysis, delegation, retries, and draft refinement; ask only at the workflow's defined approval or material-risk gates.
 
@@ -142,7 +148,16 @@ Any SpecEntry whose source content must be emitted verbatim (e.g. configure/*.md
 When a content-rewriting processor applies folder rename pairs (e.g. `workflows/ → commands/`), the boundary between paths that SHOULD be rewritten and paths that MUST NOT is the dot-directory prefix. Bare tokens like `workflows/coding-flow.md` are plugin-internal and must be rewritten. Tokens preceded by a vendor dot-directory segment (`.windsurf/`, `.cursor/`, `.github/`) are IDE-native filesystem documentation and must never be rewritten. Implement this via a negative lookbehind `(?<!\.[A-Za-z][A-Za-z0-9_-]*/)` ahead of the existing word-boundary guard. Do NOT solve this with a regex lookahead or an opt-out flag alone — those are bandaids that don't capture the structural rule.
 
 ### Requirement IDs And Internal Refs Belong In Code Comments Only, Never User-Facing Strings [ACTIVE]
-Any `FR-`/`NFR-` identifier, internal path, or module name placed in a string that gets SERIALIZED or shown to a user — JSON-schema `description`, CLI argument help text, help-content fields, error messages — leaks internal traceability and violates the no-leak rule (FR-ARCH-0016); a serialized-help no-leak test enforces it. Keep all such identifiers in `//` or `/** */` comments. Before finishing any change that adds schema/arg/help/error strings, grep the diff for `\bN?FR-[A-Z]` inside quoted strings and move any hit into a comment.
+Any `FR-`/`NFR-` identifier, internal path, or module name placed in a string that gets SERIALIZED or shown to a user — JSON-schema `description`, CLI argument help text, help-content fields, error messages — leaks internal traceability and violates the no-leak rule (FR-ARCH-0016); a serialized-help no-leak test enforces it. Keep all such identifiers in `//` or `/** */` comments. Before finishing any change that adds schema/arg/help/error strings, grep the diff for `\bN?FR-[A-Z]` inside quoted strings and move any hit into a comment. Pre-existing leaks hide: two shipped `--help` strings carried `FR-CLI-*` ids unnoticed for a long time, so the grep must sweep EVERY current help/schema/error string, not only newly-added ones.
+
+### A Green Dry-Run Proves Output Parity, Not Oracle Parity [ACTIVE]
+A passing generator dry-run or parity run only shows the generator agrees with its oracle on OUTPUT; it does not prove the oracle is complete. An oracle that independently restates a mapping contract must ALSO restate the filename-directive grammar — otherwise a directive-bearing source file reddens the suite while the generator is provably correct (this cost real time). When adding a directive kind, extend the oracle's grammar restatement in the same change.
+
+### A Re-Export Does Not Bring A Name Into Local Scope [ACTIVE]
+`export { X } from './m'` re-exposes `X` to importers but does NOT make `X` usable in the re-exporting module's own body. Consolidating a shared constant or type into one source-of-truth module needs a real `import` — and an `import type` when the name is used as a type — alongside the re-export, or the consuming code fails with an undefined-name error.
+
+### `status` And `implementation` Are Independent Requirement Fields [ACTIVE]
+`status` records the USER'S approval of a requirement (only the user grants it); `implementation` records the factual code state. Never advance one to reflect the other: shipped, verified code keeps `status="Draft"` until the user approves, and a unit may be `Approved` yet `NotStarted`. Conflating them either fakes an approval the user never gave or hides that code already exists.
 
 ## What Worked
 

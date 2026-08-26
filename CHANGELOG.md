@@ -118,6 +118,57 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 17.08 – Sun 23.08
+
+The planning skill got rebuilt around how Rosetta actually works: it now hands each execution session a self-contained "what to do and what to check" file instead of a human-style work breakdown, with the old format demoted to an explicit ask. A new arrange-workspace-flow turns workspace setup from an unenforced checklist into a tracked six-phase interview, and two new skills, discovery and design, add disciplined fact-finding and reversibility-weighted decisions you can trigger directly.
+
+The plugin generator can now build a lighter, cheaper-model distribution alongside the standard one, and every model name Rosetta references moved forward a generation. A batch of small fixes closed real gaps: RAGFlow uploads without a release no longer land in a garbage dataset, the MCP server stops blocking on slow downloads, and a `git branch` force-delete guardrail bypass is closed. repo-triage runs for external contributors again, with its file-read tools scoped so a malicious PR can't read runner secrets.
+
+**Highlights**
+
+- The planning skill now hands each execution session a self-contained file, what to do and a checklist, with the old human-style work breakdown demoted to an explicit ask
+- A new arrange-workspace-flow walks you through workspace setup in six tracked phases instead of a static checklist (#217)
+- Two new skills, discovery and design, are ready to use: fact-only investigation, and decisions weighted by how hard they are to reverse
+- The plugin generator can build a lightweight, cheaper-model plugin alongside the standard one (#310)
+- Every model name Rosetta references moved forward a generation, and Cursor/Copilot stopped silently dropping tokens they had no mapping for
+- repo-triage runs for external contributors again, with its file-read tools scoped to the checkout so a malicious PR can't read runner secrets
+- Prompt-diff validation is paused on pull requests (manual dispatch only) while it moves onto the shared Claude Code action
+- RAGFlow publishes without a release no longer land in a dataset literally named `aia-{release}`, and RAGFlow HTTP timeouts are configurable instead of hardcoded
+- The MCP server no longer blocks other requests while one document downloads
+- A `git branch` force-delete guardrail bypass (`-fd`, `--delete --force`) is closed
+- Package publish workflows can no longer race or double-publish
+- Plugins 3.1.10 / rosettify 3.2.3 / rosettify-plugins 3.3.2 / rosetta-cli 3.0.5 / rosetta-mcp 3.0.4 carry all of the above
+
+#### Planning rebuilt for AI-executed sessions, not human readers
+
+- **Change.** `[R3]` The planning skill's default output changed from a human-oriented work breakdown (EARS requirements, a size-scaling table, 20-minute WBS steps) to a graph of self-contained session files, one per fresh coding-agent session that already shares the same environment and skills. Each file states only what to do and a final checklist, no process or methodology, and calls out project-specific traps (an asymmetry to preserve, ported code that must stay unchanged, hidden ordering) instead of restating docs it can reference by path. Sessions are ordered leaf-first with explicit file ownership so parallel sessions can't collide, and a new HANDOFF.md tracks cross-session status. The old EARS/WBS flow still runs, but only when you explicitly ask for a human work breakdown. (Igor Solomatov, with Claude Opus 5)
+- **Why it helps.** Plans were being read by AI subagents, not people, but the old format assumed a human reader and either over-specified process the executing agent didn't need or missed the traps that make ported code silently wrong.
+
+#### A tracked workspace-setup interview replaces the static checklist (#217)
+
+- **Change.** `[R3]` A new arrange-workspace-flow walks you through workspace setup in six phases: choose a layout, onboard reference source code, fill gaps in business and technical context, cover modernization facts if that's your goal, then get ecosystem recommendations. It replaces a static checklist you had to self-drive with a tracked interview: progress persists between phases, and only gaps get asked about, so nothing you already documented gets asked again. Anything the AI infers without your confirmation goes to docs/ASSUMPTIONS.md instead of straight into CONTEXT.md or ARCHITECTURE.md as fact. (Yevheniia Lementova)
+- **Why it helps.** A manual checklist enforced nothing and tracked nothing; you could skip a step silently, and the AI had no record of what it already covered.
+
+#### Two new skills: discovery and design
+
+- **Change.** `[New skill]` discovery enforces fact-only investigation: everything you state must be cited, a path and line range or command output, "not examined" is called out separately from "examined and found absent," and a wrong existing solution gets flagged instead of silently worked around. design enforces proportional rigor: a one-way, high-blast-radius choice gets real alternatives and written reasoning, a reversible local one gets a sentence, and alternatives can't be invented after the fact to justify a favorite. design ships with 13 domain reference files, covering payments, regulated data, multi-tenancy, and more, each naming the traps specific to that domain.
+- **Why it helps.** Nothing previously forced a disciplined, evidence-only fact-finding pass distinct from opinion, or forced a decision's rigor to match how expensive it would be to reverse.
+
+#### Plugin generator builds a lighter distribution, model list moved forward a generation (#310)
+
+- **Change.** `[R3]` `[Tooling]` The plugin generator now supports build profiles: a lightweight profile ships alongside the standard build, steering each of the 10 subagent roles toward its own smaller model instead of moving every role the same way. It also gained a filename-directive validator, so a typo in a plugin source filename now fails the build instead of shipping a directive that silently did nothing. Every model name Rosetta references also moved forward a generation (Opus to claude-opus-5, GPT, Gemini, and Grok to their next tier), and Cursor and Copilot stopped silently dropping model tokens they had no mapping entry for. (Igor Solomatov, nightcityblade)
+- **Why it helps.** A single uniform model override suits a client pinned to one vendor, but a genuinely lighter build needs each role downgraded on its own terms. A guidance list that quietly loses entries for two of four target IDEs, or a plugin source file with a silently-ignored typo, undercuts the same goal: shipping instructions that say what they mean.
+
+#### CI: repo-triage reopened to external contributors, prompt validation paused for now
+
+- **Change.** `[CI]` `[Security]` repo-triage now runs for pull requests, issues, and comments from non-collaborators, the exact audience it exists to greet, instead of failing outright on every one of them. That widening exposed a real gap: bare Read/Glob/Grep grants carry no implicit sandbox, so a prompt-injected instruction from an untrusted PR could read anywhere the CI runner can, including environment variables holding API keys. Both tools are now scoped to the checkout directory, with an explicit deny on /proc and /etc as a second layer. Separately, validate-prompts moved onto the same shared Claude Code action the other pipelines use, then had its pull-request trigger turned off pending further work, so prompt-diff validation currently runs on manual dispatch only. (Igor Solomatov)
+- **Why it helps.** Triage existed to help outside contributors but was failing on all of them; fixing that without scoping its tools first would have traded a broken feature for an exploitable one.
+
+#### Small fixes that closed real gaps
+
+- **Change.** `[CLI]` `[Server]` `[Hooks]` A publish without a configured release no longer lands in (or creates) a RAGFlow dataset literally named `aia-{release}`. The MCP server no longer blocks other requests while one document downloads, and a `git branch` force-delete guardrail bypass (`-fd`, `--delete --force` in either order) is closed. `loose-files` and lint advisories stopped skipping a real path just because it contains an excluded name as a substring, so `rebuild/app.ts` is no longer treated as `build/`. Package publish workflows gained concurrency locks, so consecutive commits to the same package can no longer race or double-publish. A handful of smaller fixes round out the batch: curiocity's max-turn limit is now configurable per trial, a `READ_ONCE_TTL=0` no longer silently reverts to the default, RAGFlow HTTP timeouts are configurable instead of hardcoded, a partial API key excerpt is trimmed out of CLI logs, and a confirmed-dead validation function was removed from the MCP server. (fauad123, nightcityblade, Shin, joyheroes, David Turner, mikemikimike, Tech Guy, Igor Solomatov)
+- **Why it helps.** Each of these either silently corrupted state, stalled other requests, bypassed a safety guardrail, or leaked secret material; none needed a redesign, just a real fix.
+
 ### Week Mon 10.08 – Sun 16.08
 
 The AI's specs command now writes requirements the way `requirements-authoring` already teaches it to: acceptance criteria as typed EARS objects, evidence and subsystem/component per requirement, one shared markup grammar for both writing and reading a unit. You also get two new guides this week — a day-to-day User Guide and a Modernization Guide — both published through a web build that now matches what you see locally.

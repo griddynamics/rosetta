@@ -26,7 +26,6 @@ Coding and architectural patterns extracted from the Rosetta workspace. Each fil
 | Pattern | File | Description |
 |---|---|---|
 | OAuth Proxy | `oauth-proxy-pattern.md` | FastMCP OAuthProxy bridges any upstream IdP to MCP DCR; upstream tokens encrypted in Redis |
-| Policy-Based Authorization | `policy-based-authorization.md` | Named policies (all/team/none) evaluated by Authorizer; aia-* datasets have hard rules |
 
 ## Code Organization
 

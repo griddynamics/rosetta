@@ -7,9 +7,12 @@ The plugin generator produces ready-to-install IDE plugin distributions from a s
 ## In Scope
 
 - Resolving the instruction source from a release and one or more domain layers.
-- Sourcing each target's preserved files from a committed preserved-file source (`src/rosettify-plugins/plugins/<target>/`) and copying them into the target output before generation, so a target can be produced into a clean or empty output directory.
+- Sourcing each target's preserved files from the effective preserved-file source (`<pluginsSource>/<target>/`, where the `--pluginsSource` value defaults to `src/rosettify-plugins/plugins`) and copying them into the target output before generation, so a target can be produced into a clean or empty output directory.
 - Producing every plugin variant: Claude Code, Cursor, Copilot, Codex, the Cursor and Copilot standalone distributions, and Antigravity — a single combined plugin (`core-antigravity`) that serves all three Antigravity products (Antigravity, Antigravity CLI, Antigravity IDE).
 - Per-IDE adaptation: model normalization, agent file format, directory layout, cross-reference rewriting, index generation, template rendering, bootstrap-context delivery, and hook-bundle placement.
+- Profile selection and descriptor: the `--profile <name>` and `--profileSource <dir>` options, and loading the profile descriptor from `<profileSource>/<name>.json`.
+- Profile effects: resolving the effective model vocabulary (a profile's per-target block replaces that target's built-in map), suffixing each target's `destination` output folder and its manifest name and description, and the profile filename-directive token (`ProfileOnlyToken`).
+- Always-on `subagent_required_model` filtering through the same per-IDE selection and effective model vocabulary, de-duplicating survivors and re-emitting them. This applies on every run, with or without a profile.
 - Command-line invocation and process exit status.
 
 ## Out of Scope (Non-Goals)
@@ -19,6 +22,11 @@ The plugin generator produces ready-to-install IDE plugin distributions from a s
 - The pre-commit orchestration that invokes the generator (`scripts/pre_commit.py`).
 - Publishing instructions to the Rosetta server / RAGFlow (the CLI's job).
 - Installing or distributing the generated plugins into IDEs or marketplaces. For Antigravity specifically, the install/extraction location is documented for the user and is not a generator concern.
+- Migrating existing requirement units to a different schema.
+- Profile-driven selection of which targets build.
+- Changing `--pluginsSource` semantics.
+- Profile influence over release selection or hook posture.
+- Changing Antigravity's model handling.
 
 ## Deprecations
 

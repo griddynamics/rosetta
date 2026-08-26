@@ -1,0 +1,29 @@
+<draft>
+
+- Small prompt rules, extensive coverage, clear concerns, max terse, no obvious
+- Precise wording
+- Avoid filler text
+- Avoid AI slop
+- Avoid tautology
+- Avoid fabricated requirements
+- Avoid vague qualifiers
+- Assume common knowledge
+- Skip obvious explanations
+- Target each rule line <8 words; split if needed
+- Prefer imperative/infinitive form
+- Templates with contextual placeholders
+- Use mental hooks
+- Prefer XML with explicit tags
+- Remove non-operational clarifications
+- Prefer existing patterns within current prompt family set
+- Prefer flexible over rigid
+- Prefer simplicity over complexity if intent met
+- Agent-agnostic
+- Feature-alignment to polyfill
+- Serve intended purpose
+- No content duplication or repetition
+- Max compress for AI like you
+- Draft means: the best quality content, just not reviewed nor approved
+- Do not use references by numbers (ex: see phase 1, info for step 3)
+
+</draft>

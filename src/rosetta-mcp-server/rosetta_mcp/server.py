@@ -321,7 +321,7 @@ def _tool_cache_key(tool_name: str, **params: object) -> tuple[Any, ...]:
     return (_CONFIG_FINGERPRINT, tool_name, sorted_params)
 
 
-_AUTHORIZER = Authorizer(_CONFIG.read_policy, config=_CONFIG)
+_AUTHORIZER = Authorizer(_CONFIG.read_policy)
 _OAUTH_PROVIDER = build_oauth_provider(_CONFIG, client_storage=_build_oauth_client_storage())
 
 
@@ -540,13 +540,6 @@ async def _build_call_context(tool_name: str, params: dict[str, Any], ctx: Conte
         user_email=_identity,
         authorizer=_AUTHORIZER,
     )
-
-
-def _validate_topic(topic: str | None) -> str | None:
-    # >10 is intentional: AI will always add more words, gives extra word buffer
-    if topic and len(topic.split()) > 10:
-        return "Error: topic must be 10 words or less"
-    return None
 
 
 # This is required, as sometimes models hallucinate tags as single string, but we don't want tool contract to be different (as it causes more hallucinations)

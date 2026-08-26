@@ -87,20 +87,29 @@ class CleanupCommand(BaseCommand):
         dataset_service: DatasetService,
         args: CommandArgs,
     ) -> list[DocumentLike]:
-        """Get documents to delete based on filters."""
+        """Get documents to delete based on filters.
+
+        Accepted limitation: every branch below reads one page, bounded by
+        RAGFLOW_PAGE_SIZE (default 1000). On a dataset larger than that, this
+        command deletes the documents on the first page and reports success -
+        the remainder is left in place with no warning. The instruction set is
+        not expected to approach the cap, and this command serves the optional
+        MCP publishing pipeline rather than plugin delivery. Anyone pointing
+        `--dataset` at a larger dataset should know the delete is partial.
+        """
         document_service = DocumentService(self.client)
         
         if args.tags:
             # Filter by tags (metadata condition)
             tags_list = self._parse_tags(args.tags)
             filtered_documents = document_service.filter_documents_by_tags(
-                dataset, tags_list
+                dataset, tags_list, limit=self.config.page_size
             )
             print(f"\nFiltered {len(filtered_documents)} document(s) with tags: {', '.join(tags_list)}\n")
         elif args.prefix:
             # Filter by prefix
             filtered_documents = document_service.filter_documents_by_prefix(
-                dataset, args.prefix
+                dataset, args.prefix, limit=self.config.page_size
             )
             print(f"\nFiltered {len(filtered_documents)} document(s) matching prefix '{args.prefix}'\n")
         else:

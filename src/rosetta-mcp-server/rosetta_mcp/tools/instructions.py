@@ -280,7 +280,7 @@ async def query_instructions(
         )
         return header + "\n" + bundler.format_as_listing(docs, dataset_name)
 
-    return bundler.bundle(docs, dataset_name, strip_frontmatter=_strip_frontmatter_content)
+    return await bundler.bundle_async(docs, dataset_name, strip_frontmatter=_strip_frontmatter_content)
 
 
 async def list_instructions(

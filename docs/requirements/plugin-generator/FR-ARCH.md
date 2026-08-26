@@ -205,17 +205,20 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0020" type="FR" level="System" ticketId="" classification="technical">
   <title>Directive-bearing filenames</title>
-  <statement>The generator shall recognize a `FilenameDirective` (a tilde-fenced `~…~` segment with comma-separated tokens) in a source filename of the form `name.~tokens~.ext`, and shall map the `SourceFile` to the VFS path `name.ext` (the `FilenameDirective` removed).</statement>
+  <statement>The generator shall recognize a `FilenameDirective` in a source filename of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence contributes no token — and shall map the `SourceFile` to the VFS path `name.ext` (the `FilenameDirective` removed).</statement>
   <rationale>Per-file behavior is declared in the filename; the output name is the clean base name.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-08-18</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `bootstrap-core-policy.~1a,claude-only,overwrite~.md` When: mapped Then: VFS path is `rules/bootstrap-core-policy.md` with order `1a` and conditions `{claude-only, overwrite}`.</criteria>
+    <criteria>Given: `bootstrap-core-policy~1a~core-claude-only~overwrite~.md` When: mapped Then: VFS path is `rules/bootstrap-core-policy.md` with order `1a` and conditions `{core-claude-only, overwrite}`.</criteria>
     <criteria>Given: a filename with no tilde-fenced directive segment When: mapped Then: it maps to its plain name with default order and no conditions.</criteria>
+    <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: mapped Then: the clean name is `bootstrap-guardrails.md` and conditions are `{overwrite}`; the closing tilde fence contributes no token.</criteria>
+    <criteria>Given: `bootstrap-core-policy~core-claude-only~overwrite~.md` When: mapped Then: conditions are `{core-claude-only, overwrite}`; a target-only token compares against the target `name`, whose values are `core-claude`, `core-cursor`, `core-copilot`, `core-codex`, `core-cursor-standalone`, `core-copilot-standalone`, `core-antigravity` (so the correct form is `core-claude-only`, not `claude-only`).</criteria>
+    <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: mapped Then: the clean name is `coding-flow.md` and conditions are `{profile-lightweight-only, overwrite}`; the profile token's selection semantics are governed by FR-PROF-0030.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
@@ -223,18 +226,21 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0021" type="FR" level="System" ticketId="" classification="technical">
   <title>Directive grammar and validation</title>
-  <statement>The generator shall parse a `FilenameDirective` as comma-separated `DirectiveToken`s where an optional `OrderToken`, if present, appears first and the remaining `DirectiveToken`s appear in any order; it shall reject the `SourceFile` with an error if any `DirectiveToken` is unknown or if any appears more than once.</statement>
+  <statement>The generator shall parse a `FilenameDirective` of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence contributes no token — as an ordered token list where an optional `OrderToken`, if present, appears first and the remaining `DirectiveToken`s appear in any order; it shall reject the `SourceFile` with an error if any `DirectiveToken` is unknown or if any appears more than once.</statement>
   <rationale>Strict validation prevents silent misconfiguration.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-08-18</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `~1a,overwrite,claude-only~` When: parsed Then: it is accepted.</criteria>
+    <criteria>Given: `policy~1a~overwrite~core-claude-only~.md` When: parsed Then: it is accepted.</criteria>
     <criteria>Given: a duplicate token or an unknown token When: parsed Then: it errors naming the file and token.</criteria>
     <criteria>Given: an order token not in first position When: parsed Then: it errors.</criteria>
+    <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: parsed Then: the token set is `{overwrite}` and the closing tilde fence contributes no token.</criteria>
+    <criteria>Given: `bootstrap-core-policy~core-claude-only~overwrite~.md` When: parsed Then: the token set is `{core-claude-only, overwrite}`; the target-only token compares against the target `name` (e.g. `core-claude`), so `core-claude-only` is correct and `claude-only` matches no target.</criteria>
+    <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: parsed Then: the token set is `{profile-lightweight-only, overwrite}`; the profile token's selection semantics are governed by FR-PROF-0030.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
@@ -254,7 +260,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: files with order `1a`, `2a`, `10a` When: ordered Then: ordering follows lexicographic name sort (`10a` before `2a`), matching the filesystem.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementationNotes>NotStarted: `SourceFile.order` is populated in src/rosettify-plugins/src/vfs/build-vfs.ts as the layer array index (`order: ${i}`), not from a filename token, and no code reads it. No filename order token is parsed, consumed, or tested — no `OrderToken` reference exists in src or tests. Current ordering comes from the layer order plus the stable lexicographic filename sort in src/rosettify-plugins/src/vfs/source-resolver.ts, which is exactly this requirement's own documented fallback ("plain filename order when absent"); present output is therefore correct for every current input, since no source file uses an order token.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0023" type="FR" level="System" ticketId="" classification="technical">
@@ -265,15 +271,15 @@ Architecture requirements: the configuration-driven generation model — uniform
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-08-19</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: `copilot-only` When: generating Then: the file participates for `core-copilot` and `core-copilot-standalone` only.</criteria>
     <criteria>Given: `core-copilot-standalone-only` When: generating Then: the file participates for that exact target only.</criteria>
     <criteria>Given: a `PluginTarget` not matched When: generating Then: the `SourceFile` is absent from that `PluginTarget`'s VFS contribution.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/target-names.ts TARGET_FAMILIES and TARGET_FAMILY_KEYS (families derived from the target names by stripping the `core-` prefix and any `-standalone` suffix, so no second list is maintained); src/rosettify-plugins/src/vfs/directives.ts matchesTarget (an exact target name matches that target alone, a family key matches every target of that IDE) and KNOWN_DIRECTIVES (family tokens accepted by the allow-list, FR-ARCH-0060). Tests: tests/unit/vfs/directives.test.ts.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0024" type="FR" level="System" ticketId="" classification="technical">
@@ -588,7 +594,7 @@ Architecture requirements: the configuration-driven generation model — uniform
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-11</changed>
+  <changed>2026-08-19</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a frame whose frontmatter declares a model When: normalized for a `PluginTarget` Then: the model value is rewritten per that target's `ModelVocabulary`.</criteria>
@@ -597,7 +603,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: the Python generator's CURSOR_MODEL_MAP, COPILOT_MODEL_MAP, or CLAUDE_MODEL_MAP is updated to a new model version When: the TypeScript CURSOR_CLAUDE_MAP, CURSOR_GPT_MAP, CURSOR_GEMINI_MAP, COPILOT_CLAUDE_MAP, COPILOT_GPT_MAP, or COPILOT_GEMINI_MAP are inspected Then: they produce identical output values for all model token inputs present in instruction source frontmatter. (Parity enforcement: TypeScript maps must be kept in sync with Python authoritative maps.)</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/file-processors/file-normalize-models.ts (switch dispatcher deleted; 4 helpers exported); file-normalize-claude-models.ts; file-normalize-cursor-models.ts; file-normalize-copilot-models.ts; file-normalize-codex-models.ts. Multi-vendor model ordering intentional: maintainers order models in frontmatter to select different providers per agent/skill (engineer=Sonnet, reviewer=GPT). Maps: CURSOR_CLAUDE_MAP + CURSOR_GPT_MAP (GPT 5.3+; 5.3/5.3-codex→5.4) + CURSOR_GEMINI_MAP (gemini-3→3.5); COPILOT_CLAUDE_MAP + COPILOT_GPT_MAP (GPT 5.3+; 5.3/5.3-codex→5.4) + COPILOT_GEMINI_MAP (gemini-3→3.5). Opus 4.6/4.7→4-8. gpt-5.4 and gpt-5.5 preserved as-is (different cost tiers).</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/file-processors/file-normalize-models.ts (switch dispatcher deleted; 4 helpers exported); file-normalize-claude-models.ts; file-normalize-cursor-models.ts; file-normalize-copilot-models.ts; file-normalize-codex-models.ts. Multi-vendor model ordering intentional: maintainers order models in frontmatter to select different providers per agent/skill (engineer=Sonnet, reviewer=GPT). Maps: CURSOR_CLAUDE_MAP + CURSOR_GPT_MAP (GPT 5.3+; 5.5→5.6-sol, 5.4/5.3/5.3-codex→5.6-terra, 5.4-mini→5.6-luna) + CURSOR_GEMINI_MAP (every gemini→3.7-flash) + CURSOR_GROK_MAP (4.5→4.6); COPILOT_CLAUDE_MAP + COPILOT_GPT_MAP (same GPT upgrades) + COPILOT_GEMINI_MAP (every gemini→3.7-flash). Every opus variant (4.6/4.7/4.8)→opus-5. Distinct GPT cost tiers map to distinct 5.6-era successors. Gemini effort assignment on authored tokens (Pro -> -high, superseded Flash -> -low, otherwise -medium) is a source-authoring rule, not a map value; see FR-ARCH-0057.</implementationNotes>
   <depends>DATA-CFG-0004, FR-ARCH-0005</depends>
 </req>
 
@@ -788,23 +794,45 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0057" type="FR" level="System" ticketId="" classification="technical">
   <title>Model vocabulary scope, upgrade rules, and Codex effort-omission rule</title>
-  <statement>The Cursor and Copilot model vocabulary maps (CURSOR_GPT_MAP, COPILOT_GPT_MAP) shall cover only GPT 5.3 and above; no entry whose key starts with `gpt-4`, `o3`, or `o4` shall be present. The following upgrade rules shall be applied during normalization: `claude-opus-4-6`, `claude-opus-4-7`, and any `claude-4.7-opus*` token shall map to `claude-opus-4-8`; `gpt-5.3` and `gpt-5.3-codex` (all effort variants) shall map to `gpt-5.4`; `gemini-3-flash` shall map to `gemini-3.5-flash`. `gpt-5.4` and `gpt-5.5` shall not be upgraded to a higher version. When a Codex normalization encounters a GPT token with no trailing effort suffix, the generator shall write only `model: <id>` and shall not write a `model_reasoning_effort` field; no default effort value is substituted.</statement>
-  <rationale>Stale or over-broad maps produce silent model downgrades or wrong IDE-specific IDs. Restricting Cursor/Copilot GPT maps to 5.3+ and encoding explicit upgrade rules prevents unintentional degradation. `gpt-5.4` and `gpt-5.5` belong to different cost tiers and must not be conflated by automatic upgrade. Requiring an explicit effort suffix in source is a content authoring contract; the generator must not silently substitute a default.</rationale>
+  <statement>The built-in Cursor and Copilot model vocabulary maps (CURSOR_GPT_MAP, COPILOT_GPT_MAP) shall cover only GPT 5.3 and above; no entry whose key starts with `gpt-4`, `o3`, or `o4` shall be present in a built-in map. This restriction is scoped to the built-in maps only: a profile's per-target model-override block may name model ids the built-in maps exclude, because a profile exists to serve a client whose available models differ. The following upgrade rules shall be applied during normalization: every opus token — `claude-opus-4-6`, `claude-opus-4-7`, `claude-opus-4-8`, and any `claude-4.7-opus*` or `claude-4.8-opus*` token — shall map to `claude-opus-5`; `gpt-5.5` (all effort variants) shall map to `gpt-5.6-sol`; `gpt-5.4`, `gpt-5.3`, and `gpt-5.3-codex` (all effort variants) shall map to `gpt-5.6-terra`; `gpt-5.4-mini` shall map to `gpt-5.6-luna`; every `gemini-*` token shall map to `gemini-3.7-flash`; and `grok-4.5` shall map to `grok-4.6`. The governing invariant is version-independent: a built-in map shall RETAIN a key for every model token the instruction set has authored, including superseded ones, and each such key shall resolve to the current model of that token's own cost tier. Where a superseded Gemini token is carried forward into authored source, its reasoning-effort suffix shall be assigned by tier: a Gemini Pro token takes `-high`; a superseded Flash token (`gemini-3-flash`, `gemini-3.5-flash`, `gemini-3-flash-preview`) takes `-low`; every other Gemini token takes `-medium`. The vocabulary maps resolve any of these to the IDE-native Gemini id, which carries no effort suffix — the suffix is authored guidance read by the agent, not a mapped value. Keys are therefore never removed as a model ages — only their values move forward — and each superseded GPT family upgrades to its own successor so distinct cost tiers stay distinct rather than being conflated. When a Codex normalization encounters a GPT token with no trailing effort suffix, the generator shall write only `model: <id>` and shall not write a `model_reasoning_effort` field; no default effort value is substituted.</statement>
+  <rationale>Stale or over-broad maps produce silent model downgrades or wrong IDE-specific IDs. Restricting Cursor/Copilot GPT maps to 5.3+ and encoding explicit upgrade rules prevents unintentional degradation. Retaining a superseded key rather than deleting it is what makes an older or third-party instruction layer keep resolving to a usable model instead of silently emitting a model the IDE no longer offers; enumerating specific versions as permanently exempt from upgrade would instead pin the maps to whichever generation was current when the rule was written. `gpt-5.4` and `gpt-5.5` belong to different cost tiers and so resolve to different successors (`gpt-5.6-terra` and `gpt-5.6-sol`), never to a single shared one. Requiring an explicit effort suffix in source is a content authoring contract; the generator must not silently substitute a default. The built-in-map restriction is scoped to the built-in maps and does not extend to profile override blocks, which exist precisely to name models a standard client would not use.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-16</changed>
+  <changed>2026-08-19</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: a Cursor or Copilot SpecEntry normalizes a file whose frontmatter first token is `claude-opus-4-7` When: normalized Then: the output model field is `claude-opus-4-8`.</criteria>
-    <criteria>Given: a Cursor or Copilot SpecEntry normalizes a file whose frontmatter first token is `gpt-5.3-high` When: normalized Then: the output model field is `gpt-5.4`.</criteria>
-    <criteria>Given: a Codex SpecEntry normalizes a file whose frontmatter first token is `gpt-5.4` (no effort suffix) When: normalized Then: the output contains `model: gpt-5.4` and does not contain `model_reasoning_effort`.</criteria>
-    <criteria>Given: CURSOR_GPT_MAP or COPILOT_GPT_MAP is inspected When: inspected Then: no entry key starts with `gpt-4`, `o3`, or `o4`.</criteria>
+    <criteria>Given: a Cursor or Copilot SpecEntry normalizes a file whose frontmatter first token is `claude-opus-4-7` When: normalized Then: the output model field is `claude-opus-5`.</criteria>
+    <criteria>Given: a Cursor or Copilot SpecEntry normalizes a file whose frontmatter first token is `gpt-5.3-high` When: normalized Then: the output model field is `gpt-5.6-terra`.</criteria>
+    <criteria>Given: a Codex SpecEntry normalizes a file whose frontmatter first token is `gpt-5.4` (no effort suffix) When: normalized Then: the output contains `model: gpt-5.6-terra` and does not contain `model_reasoning_effort`.</criteria>
+    <criteria>Given: the built-in CURSOR_GPT_MAP or COPILOT_GPT_MAP is inspected When: inspected Then: no entry key starts with `gpt-4`, `o3`, or `o4`.</criteria>
+    <criteria>Given: a profile `core-cursor` override block naming `gpt-4o` When: the profile is applied Then: the id is accepted and used, and the built-in-map restriction is not treated as violated.</criteria>
+    <criteria>Given: the built-in Cursor, Copilot and Codex maps are inspected When: inspected Then: every GPT 5.3, 5.4, 5.4-mini and 5.5 token, in each of its effort variants, is present as a key and resolves to its tier's current successor — `gpt-5.6-sol` for the 5.5 family, `gpt-5.6-terra` for the 5.4 and 5.3 families, `gpt-5.6-luna` for the mini family.</criteria>
   </acceptance>
   <depends>FR-ARCH-0046, FR-COPY-0022</depends>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/spec/model-maps.ts: CURSOR_GPT_MAP and COPILOT_GPT_MAP cover GPT 5.3+ only; CURSOR_CLAUDE_MAP and COPILOT_CLAUDE_MAP map opus-4-6 and opus-4-7 variants to claude-opus-4-8; normalizeCodex() returns effort: undefined when no suffix present and the Codex emitter writes only the model field in that case.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/spec/model-maps.ts: CURSOR_GPT_MAP and COPILOT_GPT_MAP cover GPT 5.3+ only; CURSOR_CLAUDE_MAP and COPILOT_CLAUDE_MAP map every opus variant (opus-4-6, opus-4-7, opus-4-8) to claude-opus-5; normalizeCodex() returns effort: undefined when no suffix present and the Codex emitter writes only the model field in that case. The profile-override carve-out is realized by exhaustive block replacement in src/rosettify-plugins/src/spec/profiles.ts (resolveEffectiveVocabulary): a per-target block becomes the whole effective vocabulary, so the GPT-5.3-and-above restriction constrains only the built-in maps and a profile may name ids they exclude.</implementationNotes>
+</req>
+
+<req id="FR-ARCH-0059" type="FR" level="System"
+     ticketId="" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="User" changed="2026-08-19"
+     depends="FR-ARCH-0005, FR-ARCH-0046"
+     implementation="Implemented">
+  <title>Effective model map threaded as a processor parameter</title>
+  <statement>The generator shall supply each model-normalization function with its target's effective model map as an explicit parameter passed by the caller, and shall refactor the existing normalization functions in place to accept that parameter rather than reading a hardcoded map. Every caller shall be updated to pass the effective map; no parallel or duplicated normalization code path shall be introduced for the profile case. `PluginSpec.modelVocabulary` shall be the sole live carrier of the effective map — the built-in vocabulary by default, or the active profile's per-target override block when present — and no new field shall be added beside it. The effective map shall be plain data read from the passed-in parameter; no normalization function shall branch on target or IDE identity to choose the map (FR-ARCH-0005).</statement>
+  <rationale>`PluginSpec.modelVocabulary` is the single live carrier of each target's effective model map: the four normalization functions read the map handed to them and nothing else, rather than reaching for hardcoded maps directly and ignoring their context argument. Making the field the live carrier and threading it as a parameter is the minimal change that lets a profile substitute the map without duplicating logic; the alternative of a second, profile-specific code path was rejected because it would drift from the built-in path and double the maintenance surface. The map must be data passed in rather than a switch on identity, because FR-ARCH-0005 forbids branching on target/IDE identity or an identity-discriminant flag.</rationale>
+  <acceptance>
+    <criteria id="FR-ARCH-0059.AC1" ears="ubiquitous" system="each model-normalization function" shall="accept the effective model map as an explicit parameter supplied by its caller and normalize using only that passed-in map"/>
+    <criteria id="FR-ARCH-0059.AC2" ears="event" when="a caller invokes a model-normalization function" system="the generator" shall="pass the target's `PluginSpec.modelVocabulary` as the effective map for that invocation"/>
+    <criteria id="FR-ARCH-0059.AC3" ears="state" while="a profile supplies a per-target override block for a target" system="the generator" shall="place that block on the target's `PluginSpec.modelVocabulary` as the effective map, introducing no field beside `modelVocabulary`"/>
+    <criteria id="FR-ARCH-0059.AC4" ears="optional" where="no profile override block exists for a target" system="the generator" shall="place the target's built-in vocabulary on `PluginSpec.modelVocabulary` so normalization output is identical to today"/>
+    <criteria id="FR-ARCH-0059.AC5" ears="unwanted" if="a normalization path would select the map by branching on target or IDE identity, or a second parallel normalization implementation is introduced for the profile case" system="the generator" shall="fail the build at type-check time, since the normalization functions accept the map only as a parameter and expose no target-identity argument to branch on (FR-ARCH-0005)"/>
+  </acceptance>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/model-maps.ts (the four normalize functions refactored in place to take the effective map as a parameter; no parallel path); src/rosettify-plugins/src/types.ts (PluginSpec.modelVocabulary is the sole live carrier; ModelVocabulary.exhaustive added; no new field); src/rosettify-plugins/src/spec/targets.ts (every caller passes spec.modelVocabulary); src/rosettify-plugins/src/file-processors/file-normalize-{claude,cursor,copilot,codex}-models.ts and file-codex-agent.ts (all callers updated). Tests: tests/unit/spec/model-maps.test.ts.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0048" type="FR" level="System" ticketId="" classification="technical">
@@ -867,4 +895,27 @@ Architecture requirements: the configuration-driven generation model — uniform
   <implementation>Implemented</implementation>
   <implementationNotes>src/rosettify-plugins/src/logging.ts (pino factory; level precedence: `info` default, then `ROSETTIFY_PLUGINS_LOG_LEVEL`, then verbose which forces `debug`); per-PluginProcessor input/output metadata logging in src/rosettify-plugins/src/generate.ts and per-FileProcessor detail in src/rosettify-plugins/src/plugin-processors/plugin-process-spec-entries.ts (no file content). Covered by src/rosettify-plugins/tests/e2e/sample.e2e.test.ts (verbose emits more log lines than non-verbose).</implementationNotes>
   <depends>FR-CLI-0051, NFR-0010</depends>
+</req>
+
+<req id="FR-ARCH-0060" type="FR" level="System" ticketId="" classification="technical">
+  <title>Unrecognized FilenameDirective token rejection</title>
+  <statement>The generator shall reject a source filename that carries a directive token it does not recognize, aborting the run with a message naming the offending token, the filename it appeared in, and the accepted tokens. A token is recognized when it is `overwrite`, when it is a target-only token — either `<target>-only` for one of the seven target names (DATA-CFG-0003) or `<family>-only` for one of the IDE-family keys those names derive, which expands to every target of that IDE (FR-ARCH-0023) — or when it matches the profile-only shape `profile-<name>-only` with a non-empty `<name>` (FR-PROF-0030). The closing tilde fence contributes no token and is therefore never subject to this check. A profile-only token's `<name>` shall not be resolved against the profiles that exist: a file scoped to an inactive profile is excluded by profile matching, and an unknown `--profile` value is rejected at pre-flight, so filename parsing shall not depend on the profile source directory.</statement>
+  <rationale>An unrecognized token used to be kept in the condition set and then silently misread: a mistyped target token such as `core-clade-only` still ends with `-only`, so target matching excluded the file from EVERY target and the document vanished from all seven plugins with no diagnostic. Failing the run loudly is the only outcome that surfaces a typo, and naming the accepted set turns the failure into its own fix. The profile-only kind is recognized by shape rather than enumerated because its `<name>` is chosen per profile and cannot be listed in advance; requiring a non-empty name keeps `profile-only` itself a rejected typo. Resolving the name here would make VFS parsing depend on the profile directory, which it otherwise knows nothing about, and would reject a perfectly valid unprofiled build of a repository that carries profile-scoped files.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-08-19</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: `policy~clade-only.md` When: parsed Then: the run aborts with a message naming `clade-only`, the filename, and the accepted tokens.</criteria>
+    <criteria>Given: `file~overwrite~.md` When: parsed Then: the token set is `{overwrite}` and the closing fence raises no rejection.</criteria>
+    <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: parsed Then: both tokens are accepted, with no profile source consulted.</criteria>
+    <criteria>Given: `file~profile-only.md` When: parsed Then: the run aborts, because a profile-only token requires a non-empty name.</criteria>
+    <criteria>Given: `rule~copilot-only~.md` When: parsed Then: the token is accepted, because an IDE-family key is a valid target-only token (FR-ARCH-0023).</criteria>
+    <criteria>Given: a repository carrying profile-scoped files and a build with no active profile When: generated Then: the run completes, and each profile-scoped file is excluded by profile matching rather than rejected as an unknown directive.</criteria>
+  </acceptance>
+  <depends>FR-ARCH-0020, FR-ARCH-0021, FR-PROF-0030, DATA-CFG-0003</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/vfs/directives.ts (KNOWN_DIRECTIVES built from TARGET_NAME_LIST, PROFILE_ONLY_PATTERN for the profile-only shape, isKnownDirective, and the throw in parseDirectives which also drops the trailing empty segment first); src/rosettify-plugins/src/spec/target-names.ts (TARGET_NAMES and the derived TARGET_NAME_LIST). Tests: tests/unit/vfs/directives.test.ts.</implementationNotes>
 </req>

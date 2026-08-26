@@ -46,7 +46,7 @@ class RosettaConfig:
 _CONFIG = RosettaConfig.from_env()   # server.py top-level
 set_runtime_config(_CONFIG)          # analytics
 _OAUTH_PROVIDER = build_oauth_provider(_CONFIG, ...)
-_AUTHORIZER = Authorizer(_CONFIG.read_policy, _CONFIG.write_policy, config=_CONFIG)
+_AUTHORIZER = Authorizer(_CONFIG.read_policy)
 ```
 
 ## Normalization Functions

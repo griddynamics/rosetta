@@ -1,6 +1,6 @@
 {
   "name": "rosettify-plugins",
-  "version": "3.2.1",
+  "version": "3.3.4",
   "description": "Generate Rosetta IDE plugin outputs from instruction sources via CLI or library API",
   "license": "Apache-2.0",
   "author": "isolomatovgd",
@@ -50,11 +50,13 @@
     "@types/micromatch": "^4.0.10",
     "@types/node": "^25.5.2",
     "@vitest/coverage-v8": "^4.1.10",
+    "smol-toml": "^1.8.0",
     "tsx": "^4.19.4",
     "typescript": "^6.0.0",
     "vitest": "^4.1.10"
   },
   "overrides": {
-    "js-yaml": "3.15.0"
+    "js-yaml": "3.15.1",
+    "postcss": "8.5.23"
   }
 }

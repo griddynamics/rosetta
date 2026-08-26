@@ -127,6 +127,9 @@ describe('runHook — filePath predicates', () => {
   test('notStartsWithAny with absolute /proj/docs/ path → silent', async () => {
     expect(await runWithFilePath({ extOneOfCi: ['.md'], notStartsWithAny: ['docs/'] }, '/proj/docs/notes.md')).toBe(false);
   });
+  test('notStartsWithAny does not match a directory-name suffix → fires', async () => {
+    expect(await runWithFilePath({ extOneOf: ['.py'], notStartsWithAny: ['tests/'] }, 'contests/foo.py')).toBe(true);
+  });
   test('notBasenameOneOf README.md excludes → silent', async () => {
     expect(await runWithFilePath({ extOneOfCi: ['.md'], notBasenameOneOf: ['README.md'] }, 'packages/web/README.md')).toBe(false);
   });

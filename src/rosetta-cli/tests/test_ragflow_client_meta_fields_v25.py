@@ -49,6 +49,7 @@ def _make_client(dataset: _FakeDataset, list_documents_returns=()):
     client = object.__new__(RAGFlowClient)
     client._client = None
     client.page_size = 1000
+    client.dataset_default = "aia"
     client._doc_index_by_dataset = {}
     client._ensure_dataset = lambda *_a, **_k: dataset
     client.list_documents = lambda *_a, **_k: list(list_documents_returns)

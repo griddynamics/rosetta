@@ -31,7 +31,7 @@ export {
   type OptimizeSubStepId,
 } from './optimize-prompts.js';
 
-const DEFAULT_OPTIMIZE_ANTHROPIC_BETAS = ['thinking-token-count-2026-05-13'];
+export const DEFAULT_OPTIMIZE_ANTHROPIC_BETAS = ['thinking-token-count-2026-05-13'];
 const DEFAULT_EFFORT: ThinkingEffort = 'high';
 
 /** In-conversation labels for the non-content operations of the single-session pipeline. */

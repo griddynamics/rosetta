@@ -5,6 +5,7 @@ All paths are relative to Rosetta Plugin Path.
 - `commands/adhoc-flow.md`: "Workflow for the rest of tasks: lightweight documentation, build, track, synchronize, etc."
 - `commands/api-aqa-flow.md`: "Workflow for backend API test automation: TMS / Issue Tracker test cases → automated API tests, HITL-gated."
 - `commands/aqa-flow.md`: "Router workflow for test automation: routes to ui-aqa-flow, api-aqa-flow, or testgen-flow. Kept for backward compatibility."
+- `commands/arrange-workspace-flow.md`: "Workflow for arranging a workspace: layout, reference source code, business/technical context, ecosystem setup."
 - `commands/code-analysis-flow.md`: "Workflow for reverse-engineering a codebase into grounded architecture docs, requirements capture, etc."
 - `commands/coding-agents-prompting-flow.md`: "Workflow for authoring and adapting AI-agent prompts: skills, agents, workflows, rules, etc."
 - `commands/coding-flow.md`: "Workflow for all coding: features, fixes, refactors, unit tests, etc.; scales small to large."

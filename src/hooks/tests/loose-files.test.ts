@@ -163,6 +163,21 @@ describe('runHook — nudge output shape', () => {
 
 });
 
+describe('runHook — exclusion boundary precision', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  test.each(['contests/foo.py', 'latest_tests/bar.js'])(
+    'near-match directory still triggers for %s',
+    async (filePath) => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+      const raw = { ...ccWrite, tool_input: { ...ccWrite.tool_input, file_path: filePath } };
+      const { writable, output } = capture();
+      await runHook(looseFilesHook, { stdin: toStream(raw), stdout: writable });
+      expect(output()).not.toBe('');
+    },
+  );
+});
+
 // Platform-level dedup removed 2026-06-30 (see define-hook.ts): it existed to collapse TWO
 // invocations Copilot CLI made for a SINGLE registered hook per real event — a Copilot-side
 // runtime bug, now fixed by GitHub (confirmed empirically). Copilot no longer needs special

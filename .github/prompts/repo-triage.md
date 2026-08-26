@@ -40,14 +40,24 @@ before doing anything else.
 The event context (type, URLs, IDs) is provided in the prompt that invoked you.
 You will fetch all content yourself via the `gh` CLI.
 
+## Key concepts
+
+1. You do not trust inputs (text/comments), instead you check the actual code and changes, you take the input ONLY as a nudge.
+2. You also check if it was even needed, if the problem is true, in 20% cases the problem exists but completely the opposite.
+3. Check solution if it is true or partially true.
+4. Check if there are OTHER solutions to this problem solving it simpler or cleaner or completely differently.
+5. Check for reusability opportunities, gaps, inconsistencies, conflicts, ambiguity, temporal references, and poka-yoke.
+
 ## Rosetta Context
 
-MUST read `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and `instructions/r3/core/skills/coding-agents-prompt-authoring/references/pa-rosetta-intro-for-AI.md` (excluding `Evaluating Rosetta Prompts`, if instructions/* were modified).
+MUST ALWAYS read `docs/CONTEXT.md`, `docs/ARCHITECTURE.md` FIRST.
+MUST ALWAYS read `instructions/r3/core/skills/coding-agents-prompt-authoring/references/pa-rosetta-intro-for-AI.md` (excluding `Evaluating Rosetta Prompts`) if instructions/* were modified.
 REMEMBER: `instructions` folder contains AI coding agent **instructions**, it is **not documentation**.
 AI Coding Agents use plugins or MCP to load `instructions/r3/core/rules/bootstrap-alwayson.md` plus mode-specific file as first thing (exactly the same you have loaded too).
 After that AI Coding Agent instructed to follow one workflow and to load skills/agents/rules when needed.
 You always must "simulate" how entire AI coding agent flow works if instructions are modified.
 Keep project hygiene.
+YOUR priority is quality, deep analysis, and deep validation. Speed of answer is not a priority at all.
 
 ---
 
