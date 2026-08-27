@@ -60,7 +60,7 @@ describe('loadProfile — valid descriptor', () => {
     const descriptor = loadProfile(REPO_PROFILES_DIR, 'lightweight');
     expect(descriptor.destinationSuffix).toBe('-light');
     expect(descriptor.pluginNameSuffix).toBe('-light');
-    expect(descriptor.pluginDescriptionSuffix).toContain('lightweight profile');
+    expect(descriptor.pluginDescriptionSuffix).toBe(' (lightweight: simpler workflows, smaller models)');
     // The reference profile declares suffixes only: it selects lighter models by shipping
     // profile-scoped instruction sources (agent `model:` lists resolved through each target's
     // built-in vocabulary), not by overriding the vocabularies themselves. An absent
