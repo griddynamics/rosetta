@@ -1,7 +1,7 @@
 {
   "name": "rosetta",
   "description": "Rosetta for Copilot - Software Engineering Accelerator instruction set, workflows, and guardrails.",
-  "version": "3.1.11",
+  "version": "3.1.12",
   "author": {
     "name": "Grid Dynamics",
     "email": "rosetta-support@griddynamics.com"
