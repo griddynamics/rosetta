@@ -4,12 +4,8 @@ Isolated ephemeral environment where the agent develops, runs, tests, and valida
 
 <runnable_set>
 
-What "running" actually requires:
-
-- the service(s) under change
-- data services: databases, caches, brokers, object storage, search
-- schema and data: migrations, sanitized backup restore, init scripts, fixtures
-- supporting infra: reverse proxy, mail catcher, identity stub
+- the service(s) under change, plus their data services and supporting infra
+- schema and data: migrations, sanitized restore, init scripts, fixtures
 - config: env files, ports, service discovery names
 
 Empty schema ≠ runnable. Data is part of the environment.
@@ -18,9 +14,8 @@ Empty schema ≠ runnable. Data is part of the environment.
 
 <artifacts>
 
-- `devcontainer.json` — image or compose reference, features, post-create and post-start commands, forwarded ports.
-- compose file — topology, health checks, dependency ordering, named volumes.
-- Dockerfile — only when image plus features cannot express it.
+- `devcontainer.json` plus a compose file. Dockerfile only when image plus features cannot express it.
+- health checks and dependency ordering — a container that is up is not a service that is ready.
 - seed and restore scripts — idempotent, re-runnable, fast, sanitized data only.
 - reset command — tear down, recreate from scratch. Ephemeral is the point.
 
@@ -83,11 +78,5 @@ Gate, never assume:
 - No unsafe dependency reachable from inside — verify by attempting the call, not by reading config.
 
 </proof>
-
-<registration>
-
-`ARCHITECTURE.md` under `## Harness`: how to start it, what runs inside, which externals are contained and by which option.
-
-</registration>
 
 </harness_environment>

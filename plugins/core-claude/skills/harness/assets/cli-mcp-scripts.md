@@ -5,8 +5,8 @@ Callable surface the agent uses to exercise a RUNNING service.
 <delivery_shape>
 
 - CLI — default. No install, any coding agent, output lands in context.
-- MCP — native tool calls, typed args; costs per-developer IDE config. Choose when called constantly, mid-conversation.
-- Scripts — only when the stack already standardizes on them (make, npm, task, gradle, python, typescript, bash/zsh, powershell).
+- MCP — typed args, native tool calls; costs per-developer IDE config. Choose when called constantly, mid-conversation.
+- Scripts — only when the stack already standardizes on them (make, npm, task, gradle, python, bash, powershell).
 - Dual CLI+MCP — one core, two thin frontends. Never two implementations.
 
 Decide with the user; record the choice.
@@ -46,6 +46,7 @@ Encode once, so no session rediscovers it:
 - Redact credentials, tokens, cookies, keys on EVERY path. Default, not a flag.
 - `--show-secrets` opt-in, auth debugging only. USE SKILL `sensitive-data` before authoring it, and before such output is shown, stored, or committed.
 - Exit code reflects outcome; failure prints the failing call's full trace.
+- `--help` is the reference. Write no manual.
 
 </output_contract>
 
@@ -57,17 +58,5 @@ Encode once, so no session rediscovers it:
 - Target is explicit config or a required flag — never an implicit default resolving to production.
 
 </environment_boundary>
-
-<why_verbose>
-
-Execute → see real request/response → verify behavior → write tests from observed payloads, not invented ones. Missing, noisy, or over-redacted trace breaks the loop.
-
-</why_verbose>
-
-<registration>
-
-One MoSCoW sentence in `ARCHITECTURE.md` under `## Harness`: what to run, for what, against which environment. `--help` is the reference — write no manual.
-
-</registration>
 
 </harness_actions>
