@@ -1,6 +1,6 @@
 ---
 name: harness
-description: "To build an AI harness to run, observe, validate: CLI/MCP actions, devcontainers, CI pipelines, skills and subagents."
+description: "To build an AI harness to run, observe, validate: CLI/MCP actions, devcontainers, automations, skills and subagents."
 ---
 
 <harness>
@@ -16,7 +16,7 @@ Harness engineer. Build the execution environment that makes verification possib
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Prerequisites: USE SKILL `hitl`, `orchestration`, `load-project-context`
 - Harness = executable environment exercising the system under real conditions. Definition of done + its proof. Not docs, not an API wrapper.
-- Four kinds, independent, often combined: ACTIONS — CLI/MCP/scripts against a running service · ENVIRONMENT — devcontainers running it locally · PROMPTING — skills and subagents the agent loads · PIPELINES — the agent running in CI on the project's own events.
+- Four kinds, independent, often combined: ACTIONS — CLI/MCP/scripts against a running service · ENVIRONMENT — devcontainers running it locally · PROMPTING — skills and subagents the agent loads · AUTOMATIONS — work running without a human driving it: prevention, or autonomous execution.
 - Scope: pre-PR local verification by the agent. Not unit-test frameworks, CI, prod tooling, load testing.
 - Encodes tribal knowledge once — auth, secret loading, headers, naming, FK resolution, test-data markers. No rediscovery per session.
 - Trace = fixture for later automated tests. Verbose is the product, not noise.
@@ -28,13 +28,13 @@ Harness engineer. Build the execution environment that makes verification possib
 
 <process>
 
-1. Classify the gap: cannot run → ENVIRONMENT · cannot act or observe → ACTIONS · cannot author or prove a skill or subagent → PROMPTING · nothing guards changes or advances work items unattended → PIPELINES. Combine as needed. Ambiguous → ask.
+1. Classify the gap: cannot run → ENVIRONMENT · cannot act or observe → ACTIONS · cannot author or prove a skill or subagent → PROMPTING · nothing guards changes or advances work items unattended → AUTOMATIONS. Combine as needed. Ambiguous → ask.
 2. Discover before creating: `ARCHITECTURE.md`, `TECHSTACK.md`, `DEPENDENCIES.md`, `CODEMAP.md`, existing scripts, compose files, local-run assets, existing `## Harness`. Extend, never fork.
 3. Propose placement inside the repo's own conventions. Never impose a path.
-4. Load the matching asset: ACTIONS → APPLY SKILL FILE `assets/cli-mcp-scripts.md` · ENVIRONMENT → APPLY SKILL FILE `assets/devcontainers.md` · PROMPTING → APPLY SKILL FILE `assets/prompting.md` · PIPELINES → APPLY SKILL FILE `assets/pipelines.md`.
+4. Load the matching asset: ACTIONS → APPLY SKILL FILE `assets/cli-mcp-scripts.md` · ENVIRONMENT → APPLY SKILL FILE `assets/devcontainers.md` · PROMPTING → APPLY SKILL FILE `assets/prompting.md` · AUTOMATIONS → APPLY SKILL FILE `assets/automations.md`.
 5. Write the specification to FEATURE PLAN folder: kind, delivery shape, placement, action list or service set, target environment, dependency decisions, secret handling.
 6. HITL gate on that specification. Explicit approval before any code.
-7. USE FLOW `coding-flow.md` to implement. Hand over: specification, original intent, Q&A, environment boundary, redaction requirement. Load ONLY once pre-requisites are ready. PROMPTING authors text and scripts inline per its assets; `coding-flow` does not apply. PIPELINES builds its definition through the flow, and authors its router prompt through the PROMPTING assets.
+7. USE FLOW `coding-flow.md` to implement. Hand over: specification, original intent, Q&A, environment boundary, redaction requirement. Load ONLY once pre-requisites are ready. PROMPTING authors text and scripts inline per its assets; `coding-flow` does not apply. AUTOMATIONS builds its definition through the flow, and authors its router prompt through the PROMPTING assets.
 8. Prove by execution: one action end-to-end, or environment up from a clean checkout. Written ≠ delivered.
 9. Record `## Harness` in `ARCHITECTURE.md`: kind, entry command, covered areas, target environment, safety constraints. One MoSCoW sentence, no manual. Later additions repeat this process and append.
 
@@ -49,7 +49,7 @@ Harness engineer. Build the execution environment that makes verification possib
 - `## Harness` names an entry command a fresh session runs unaided.
 - An automated test is writable from the trace alone, without re-reading the service source.
 - A trigger ran and the transcript shows the intended file was read, not recalled.
-- A pipeline ran a fixture item through every lane, stopped at the one that waits, and refused a crafted instruction.
+- An automation ran a fixture item through every state, stopped at its human task, and refused a crafted instruction.
 
 </validation_checklist>
 
@@ -63,7 +63,7 @@ Harness engineer. Build the execution environment that makes verification possib
 - Secrets as CLI arguments — shell history, process listings.
 - Declared done after writing, never executed.
 - One green run reported as proof.
-- A pipeline whose only visible output is the end result — no lane a human can intervene in.
+- An automation whose only visible output is the end result — nothing a human can intervene in.
 - Guardrails left inside the agent's own write reach.
 
 </pitfalls>
