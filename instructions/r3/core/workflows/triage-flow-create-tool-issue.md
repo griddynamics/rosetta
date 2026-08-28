@@ -27,7 +27,7 @@ Phase 6 of `triage-flow`, the flow's final phase — runs immediately after phas
 6. Report key, URL, link ID to orchestrator
 </phase_steps>
 
-<resume_check step="6.1" subagent="executor" role="Bounded cross-project issue creator and linker" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
+<resume_check step="6.1" subagent="executor" role="Bounded cross-project issue creator and linker" subagent_required_model="claude-haiku-4-5, gpt-5.6-luna-medium, gemini-3.7-flash-low, composer-2.5">
 
 1. USE SKILL `subagent-directives`.
 2. Read `## Tool Issue` from `<artifacts_dir>/<ticket_key>/<TICKET-KEY>-TRIAGE-FLOW-STATE.md` and branch on exactly two fields:

@@ -25,7 +25,7 @@ Phase 5 of `triage-flow`, and its last judgment-heavy one; phase 6 (`triage-flow
 4. Report outcome to the orchestrator
 </phase_steps>
 
-<produce_assessment step="5.1" subagent="reviewer" role="Bounded triage-assessment synthesizer" subagent_required_model="claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
+<produce_assessment step="5.1" subagent="reviewer" role="Bounded triage-assessment synthesizer" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high">
 
 1. USE SKILL `subagent-directives`.
 2. Read the finalized `<artifacts_dir>/<ticket_key>/<ticket_key>-REQUIREMENTS.md` (all `<req>` units, now `Approved`) and the ticket's `TSSM: Tool` / `TSSM: Project` custom-field values from phase 1's redacted snapshot (carried in flow state since phase 1) — these two fields name the tool and the project this feature is being built for/in, the starting point for step 5.2 below, not an incidental attribute.

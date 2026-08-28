@@ -25,7 +25,7 @@ Phase 2 of `triage-flow`. Mandatory `requirements-engineer`, invoked directly fo
 4. Update flow state and Requirements.md
 </phase_steps>
 
-<idempotency_check step="2.1" subagent="requirements-engineer" role="Requirements elicitation against one existing ticket" subagent_required_model="claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
+<idempotency_check step="2.1" subagent="requirements-engineer" role="Requirements elicitation against one existing ticket" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high">
 
 1. Read `last_agent_comment_id` from `<TICKET-KEY>-TRIAGE-FLOW-STATE.md`'s Idempotency section (absent on tick 1 — treat as "no prior agent comment").
 2. Compare it against the newest comment ID in this tick's redacted snapshot (phase 1's output — `data-collection` already redacted it before intake returned).

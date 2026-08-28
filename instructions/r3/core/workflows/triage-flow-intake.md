@@ -25,7 +25,7 @@ Phase 1 of `triage-flow`. Mandatory `executor`; bounded fetch/eligibility only, 
 4. Return normalized snapshot + reason
 </phase_steps>
 
-<resolve_ticket step="1.1" subagent="executor" role="Bounded ticket-intake and JQL-eligibility operator" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
+<resolve_ticket step="1.1" subagent="executor" role="Bounded ticket-intake and JQL-eligibility operator" subagent_required_model="claude-haiku-4-5, gpt-5.6-luna-medium, gemini-3.7-flash-low, composer-2.5">
 
 1. USE SKILL `subagent-directives`.
 2. **`ticket_key` is required input.** Missing → stop immediately and report; never fall back to open-ended discovery. Validate it against a strict issue-key pattern (`^[A-Z][A-Z0-9]+-\d+$`) before using it anywhere — it is externally supplied and must not be trusted as pre-validated. Mismatch → stop and report the invalid key; do not attempt to interpolate it into the jql.
@@ -39,7 +39,7 @@ Phase 1 of `triage-flow`. Mandatory `executor`; bounded fetch/eligibility only, 
 <fetch_ticket step="1.2" subagent="executor">
 
 1. USE SKILL `data-collection` (issue role) to fetch the ticket — description, status, all comments, up to the binding's cap.
-2. Follow `issue-vendor-binding.md`'s failure paths verbatim on transport/not-found/auth errors; never emit a partial snapshot.
+2. Follow USE SKILL `data-collection`'s failure paths verbatim on transport/not-found/auth errors; never emit a partial snapshot.
 3. `data-collection`'s own step 4 (`<collection>`) always redacts via `sensitive-data` before returning its output — this phase does not run a separate screening step; the snapshot handed to phase 2 (`elicitation`) is already redacted.
 4. When reporting this step's outcome (to the orchestrator, or into the state file), cite redaction evidence by type/count/location only (e.g. "2 PII_EMAIL masked in Assignee/Reporter") — never the raw value, even parenthetically as "originally X". An evidence or traceability request never justifies restating a masked value.
 

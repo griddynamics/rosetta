@@ -1,6 +1,6 @@
 ---
 name: triage-flow
-description: "Workflow for triaging one caller-specified issue-tracker ticket: intake (redacted via data-collection), requirements elicitation via comments, a posted assessment comment, and a linked target-project issue created from the finalized requirements on completion."
+description: "Workflow for triaging one issue-tracker ticket: intake, elicitation, assessment, and linked issue creation."
 alwaysApply: false
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
@@ -44,13 +44,13 @@ Stable input/output contract, unchanged across trigger stages (caller-supplied t
 
 - **Input**: `{ ticket_key: string, reason?: string }`. `ticket_key` is required — the caller (e.g. tools-harness-intake's CI job) always supplies the Jira issue key it was dispatched for; there is no discovery mode where this flow picks a ticket on its own. `reason` is free text describing why the flow woke up (e.g. `"harness-intake dispatch"`, later `"cron tick"` or `"webhook: comment_created"`); when the caller omits it, intake MUST default it to `"manual invocation"` rather than prompting for it. Intake MUST NOT infer a trigger mechanism from `reason`'s content.
 - **Behavior: intake evaluates the config's `jql` exactly once per invocation, scoped to `ticket_key`** — append a key filter (e.g. `AND key = "<ticket_key>"`) to the configured `jql` string, turning it into a pure eligibility/authorization check (status, assignee, project, etc. all still enforced by the rest of the jql) against that one ticket, via the configured Issue Tracker's search capability. Exactly one match → use it. Zero matches → stop and report that the ticket does not match the configured jql (status/assignee/project mismatch) — a specific, expected outcome, not a signal to investigate further. Multiple matches → stop and report all matching keys (should not occur when filtering by key; kept as a defensive guard against a malformed jql). Intake never varies, narrows, or broadens the query, and never autonomously picks among multiple candidates.
-- **Output**: normalized, already-redacted issue snapshot (per `data-collection`'s issue-vendor-binding field map — its own step 4 runs `sensitive-data` before returning; no separate screening phase exists in this flow) plus `reason`, both written into the flow-state file.
+- **Output**: normalized, already-redacted issue snapshot (per USE SKILL `data-collection`'s own field map — its own step 4 runs `sensitive-data` before returning; no separate screening phase exists in this flow) plus `reason`, both written into the flow-state file.
 
 Once webhooks land (out of scope for this build), a webhook payload supplies `ticket_key` directly, exactly as a caller does today — intake's contract and behavior do not change, only where the caller-supplied `ticket_key` originates.
 
 </intake_contract>
 
-<intake phase="1" subagent="executor" role="Bounded ticket-intake and JQL-eligibility operator" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna" must-be-subagent>
+<intake phase="1" subagent="executor" role="Bounded ticket-intake and JQL-eligibility operator" subagent_required_model="claude-haiku-4-5, gpt-5.6-luna-medium, gemini-3.7-flash-low, composer-2.5" must-be-subagent>
 
 - Purpose: resolve the intake contract above into one concrete ticket and its normalized, already-redacted content (fetched via `data-collection`, whose own mandatory step 4 runs `sensitive-data` before returning — no separate screening phase in this flow).
 - Input: `{ ticket_key, reason }`; the config's `jql`, scoped to `ticket_key` (see `<intake_contract>`).
@@ -60,7 +60,7 @@ Once webhooks land (out of scope for this build), a webhook payload supplies `ti
 
 </intake>
 
-<elicitation phase="2" subagent="requirements-engineer" role="Requirements elicitation against one existing ticket" subagent_required_model="claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol" must-be-subagent>
+<elicitation phase="2" subagent="requirements-engineer" role="Requirements elicitation against one existing ticket" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high" must-be-subagent>
 
 - Purpose: run one iteration of requirements-authoring — create on first tick, update on later ticks — against the already-redacted ticket content and any unprocessed comment.
 - Input: redacted ticket snapshot from phase 1; existing `<artifacts_dir>/<TICKET-KEY>/<TICKET-KEY>-REQUIREMENTS.md` if present; idempotency check result (see `<idempotency>`).
@@ -70,7 +70,7 @@ Once webhooks land (out of scope for this build), a webhook payload supplies `ti
 
 </elicitation>
 
-<completion_check phase="3" subagent="executor" role="Bounded requirements-completion evaluator" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna" must-be-subagent>
+<completion_check phase="3" subagent="executor" role="Bounded requirements-completion evaluator" subagent_required_model="claude-haiku-4-5, gpt-5.6-luna-medium, gemini-3.7-flash-low, composer-2.5" must-be-subagent>
 
 - Purpose: evaluate whether Open Questions is empty, and branch — this phase's own evaluation runs BEFORE any Jira write is made this tick, so that whichever write eventually happens (phase 4's comment, or phase 5's assessment comment) is always the tick's last action.
 - Input: current Requirements.md (Open Questions section, `<req>` unit statuses).
@@ -80,7 +80,7 @@ Once webhooks land (out of scope for this build), a webhook payload supplies `ti
 
 </completion_check>
 
-<publish_questions phase="4" subagent="executor" role="Bounded Jira comment publisher" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna" must-be-subagent>
+<publish_questions phase="4" subagent="executor" role="Bounded Jira comment publisher" subagent_required_model="claude-haiku-4-5, gpt-5.6-luna-medium, gemini-3.7-flash-low, composer-2.5" must-be-subagent>
 
 - Purpose: post the current Open Questions as one ticket comment. Only ever reached via phase 3's non-empty branch — never invoked, and never needs to check for itself, when Open Questions is empty.
 - Input: Open Questions list from phase 2.
@@ -90,7 +90,7 @@ Once webhooks land (out of scope for this build), a webhook payload supplies `ti
 
 </publish_questions>
 
-<assess phase="5" subagent="reviewer" role="Bounded triage-assessment synthesizer and completion operator" subagent_required_model="claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol" must-be-subagent>
+<assess phase="5" subagent="reviewer" role="Bounded triage-assessment synthesizer and completion operator" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high" must-be-subagent>
 
 - Purpose: produce the triage assessment (blind spots, potentially affected tools, issue size) for a ticket phase 3 has just routed here (Open Questions empty, `<req>` units flipped to Approved), and post it as one Jira comment — the last write this flow makes on the *source* ticket; phase 6 performs the flow's actual final action. This phase never mutates the ticket's status or assignee.
 - Input: finalized Requirements.md (all `<req>` units now Approved); the ticket's `TSSM: Tool`/`TSSM: Project` custom fields from phase 1's snapshot.
@@ -100,7 +100,7 @@ Once webhooks land (out of scope for this build), a webhook payload supplies `ti
 
 </assess>
 
-<create_tool_issue phase="6" subagent="executor" role="Bounded cross-project issue creator and linker" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna" must-be-subagent>
+<create_tool_issue phase="6" subagent="executor" role="Bounded cross-project issue creator and linker" subagent_required_model="claude-haiku-4-5, gpt-5.6-luna-medium, gemini-3.7-flash-low, composer-2.5" must-be-subagent>
 
 - Purpose: create the corresponding Story in the configured target project (`tool_issue_target` in the deployment config) from the just-triaged ticket, and link it back as an action item — the flow's final action for this ticket. Runs on the same tick as phase 5, immediately after its comment posts. Posts no comment, and never mutates the source ticket's status or assignee.
 - Input: the source ticket's Summary, `TSSM: Tool`/`TSSM: Project`, and Assignee account ID from phase 1's snapshot; the finalized Requirements.md; the state file's `## Tool Issue` section.

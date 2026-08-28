@@ -24,7 +24,7 @@ Phase 4 of `triage-flow`. Mandatory `executor`; the write itself runs unattended
 3. Persist last_agent_comment_id
 </phase_steps>
 
-<compose step="4.1" subagent="executor" role="Bounded Jira comment publisher" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
+<compose step="4.1" subagent="executor" role="Bounded Jira comment publisher" subagent_required_model="claude-haiku-4-5, gpt-5.6-luna-medium, gemini-3.7-flash-low, composer-2.5">
 
 1. USE SKILL `subagent-directives`.
 2. Read Open Questions from phase 2's Requirements.md output — non-empty by construction, since phase 3 (`completion_check`) only routes here on that branch.

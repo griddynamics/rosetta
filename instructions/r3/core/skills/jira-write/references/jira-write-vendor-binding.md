@@ -2,7 +2,7 @@
 
 **Canonical Issue Tracker example: Jira.** The worked key/URL shapes below illustrate Jira. For another Issue Tracker, preserve the role contract and adapt handles/URLs, requests/calls, and terminology to that system.
 
-**Operations below are named by capability, not by a fixed tool name.** Resolve each through the configured Issue Tracker integration: **read current identity**, **add comment**, **transition** (requires **get transitions** first to resolve the target status name to a transition ID), **reassign** (sets the assignee to a caller-supplied account ID), **create issue** (requires **read create field options** first for the target project + issue type), and **link issues** (requires **read available link types** first). This binding is the write-capable counterpart to `data-collection`'s `issue-vendor-binding.md`, which explicitly forbids these write operations in its read-only scope.
+**Operations below are named by capability, not by a fixed tool name.** Resolve each through the configured Issue Tracker integration: **read current identity**, **add comment**, **transition** (requires **get transitions** first to resolve the target status name to a transition ID), **reassign** (sets the assignee to a caller-supplied account ID), **create issue** (requires **read create field options** first for the target project + issue type), and **link issues** (requires **read available link types** first). This binding is the write-capable counterpart to USE SKILL `data-collection`'s read-only issue binding, which explicitly forbids these write operations in its scope.
 
 ---
 

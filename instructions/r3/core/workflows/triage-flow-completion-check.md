@@ -24,7 +24,7 @@ Phase 3 of `triage-flow`. Mandatory `executor` throughout — the judgment-heavy
 3. Non-empty → route to `publish_questions` (phase 4). Empty → flip req units to Approved and route to `assess` (phase 5).
 </phase_steps>
 
-<evaluate step="3.1" subagent="executor" role="Bounded requirements-completion evaluator" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
+<evaluate step="3.1" subagent="executor" role="Bounded requirements-completion evaluator" subagent_required_model="claude-haiku-4-5, gpt-5.6-luna-medium, gemini-3.7-flash-low, composer-2.5">
 
 1. USE SKILL `subagent-directives`.
 2. Read `<artifacts_dir>/<ticket_key>/<ticket_key>-REQUIREMENTS.md`'s Open Questions section and each `<req>` unit's `status`.
