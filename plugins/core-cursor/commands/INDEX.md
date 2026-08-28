@@ -18,5 +18,5 @@ All paths are relative to Rosetta Plugin Path.
 - `commands/security-flow.md`: "Workflow for authorized, evidence-preserving security review and remediation-task preparation."
 - `commands/self-help-flow.md`: "Rosetta self-help: explains capabilities and usage. DEPRECATED."
 - `commands/testgen-flow.md`: "Workflow for generating test cases from requirements (Issue Tracker / Wiki sources), exporting to a Test Management System, etc."
-- `commands/triage-flow.md`: "Workflow for triaging one caller-specified issue-tracker ticket: intake (redacted via data-collection), requirements elicitation via comments, and a posted assessment comment on completion."
+- `commands/triage-flow.md`: "Workflow for triaging one caller-specified issue-tracker ticket: intake (redacted via data-collection), requirements elicitation via comments, a posted assessment comment, and a linked target-project issue created from the finalized requirements on completion."
 - `commands/ui-aqa-flow.md`: "Workflow for automated QA: integration and end-to-end UI test automation, page objects, etc."

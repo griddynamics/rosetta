@@ -1,11 +1,11 @@
 <triage_flow_assess>
 
 <description_and_purpose>
-Produce the triage assessment (blind spots, potentially affected tools, issue size) for a ticket phase 3 has just marked toward completion, and post it as one Jira comment — this flow's final action for the ticket. This phase's assessment logic is relocated from what was previously step 4.3 of APPLY SKILL FILE `phases/triage-flow-completion-check.md` — the assessment *output* it produces (`<TICKET-KEY>-TRIAGE-ASSESSMENT.md`) is unchanged in shape and content. There is no risk-based branching: every ticket reaching this phase gets the same treatment regardless of the levels found.
+Produce the triage assessment (blind spots, potentially affected tools, issue size) for a ticket phase 3 has just marked toward completion, and post it as one Jira comment. Phase 6 (APPLY SKILL FILE `phases/triage-flow-create-tool-issue.md`) then runs on the same tick and performs the flow's final action; this comment is the last write this flow makes on the source ticket itself. This phase's assessment logic is relocated from what was previously step 4.3 of APPLY SKILL FILE `phases/triage-flow-completion-check.md` — the assessment *output* it produces (`<TICKET-KEY>-TRIAGE-ASSESSMENT.md`) is unchanged in shape and content. There is no risk-based branching: every ticket reaching this phase gets the same treatment regardless of the levels found.
 </description_and_purpose>
 
 <workflow_context>
-Phase 5 of `triage-flow`, the flow's final phase. Mandatory `reviewer` — the only judgment-heavy step in this flow, hence its own higher model tier. Runs only immediately after phase 3 (`completion_check`) routed here on its empty-Open-Questions branch this tick — never on an IN_PROGRESS tick, never re-run for a ticket already `COMPLETE` from a prior tick (check `triage-flow-state.md`'s `## Assessment` section first; if `assessment_file` is already recorded for this ticket, do not re-run). This phase never reassigns the ticket or transitions its status — its only Jira write is the one assessment comment.
+Phase 5 of `triage-flow`, and its last judgment-heavy one; phase 6 (APPLY SKILL FILE `phases/triage-flow-create-tool-issue.md`) follows on the same tick and is now the flow's final phase. Runs only immediately after phase 3 (`completion_check`) routed here on its empty-Open-Questions branch this tick — never on an IN_PROGRESS tick, never re-run for a ticket already recorded as assessed from a prior tick (check `<TICKET-KEY>-TRIAGE-FLOW-STATE.md`'s `## Assessment` section first; if `assessment_file` is already recorded for this ticket, do not re-run). This phase never reassigns the ticket or transitions its status — its only Jira write is the one assessment comment; the target-project issue and its link are phase 6's, not this phase's.
 </workflow_context>
 
 <phase_steps>
@@ -29,19 +29,19 @@ Phase 5 of `triage-flow`, the flow's final phase. Mandatory `reviewer` — the o
 
 <compose_and_post_comment step="5.2" subagent="reviewer">
 
-1. Compose the assessment comment body: the three overall levels/size from step 5.1, stated plainly — no framing that implies escalation, urgency, or a required next action tied to the levels found; just the results. This phase's comment is the flow's terminal write for this ticket, so state that plainly too (e.g. that requirements and assessment artifacts are available at the ticket's `artifacts_dir` path for downstream review).
+1. Compose the assessment comment body: the three overall levels/size from step 5.1, stated plainly — no framing that implies escalation, urgency, or a required next action tied to the levels found; just the results. This comment is the last thing this flow writes on the source ticket, so state that plainly (requirements and assessment artifacts are available at the ticket's `artifacts_dir` path for downstream review). Do not name or promise the target-project issue phase 6 creates — it does not exist when this comment is composed, and citing a key that may never be created is worse than saying nothing.
 2. USE SKILL `jira-write` (post comment) with the composed body.
 
 </compose_and_post_comment>
 
 <update_state step="5.3" subagent="reviewer">
 
-1. Report to the orchestrator: `assessment_file` path, the three levels/size, `assessment_comment_id` (from step 5.2's post), and that flow status is now `COMPLETE`. This subagent never opens or writes `triage-flow-state.md` directly — the orchestrator performs the actual read-full-file-then-append write.
+1. Report to the orchestrator: `assessment_file` path, the three levels/size, `assessment_comment_id` (from step 5.2's post), and that phase 5 is done; flow status stays `IN_PROGRESS` until phase 6 records both `tool_issue_key` and `link_id`. This subagent never opens or writes `<TICKET-KEY>-TRIAGE-FLOW-STATE.md` directly — the orchestrator performs the actual read-full-file-then-append write.
 
 </update_state>
 
 <validation_checklist>
-- This step ran exactly once per ticket reaching `COMPLETE` — never on an IN_PROGRESS tick, never duplicated on a later tick for the same already-resolved ticket.
+- This step ran exactly once per ticket that reached the empty-Open-Questions branch — never on an IN_PROGRESS tick, never duplicated on a later tick for the same already-assessed ticket.
 - The assessment file's three sections are each present and independently readable, even when a block's answer is "no gaps found" / "no integration effect" / a small size — a thin result is still a written result, never an omitted section.
 - No reassignment or transition was made — this phase's only Jira write is the one assessment comment.
 - The comment was posted exactly once, and its body states results plainly without escalation/urgency framing tied to the levels found.

@@ -41,7 +41,7 @@ Phase 4 of `triage-flow`. Mandatory `executor`; the write itself runs unattended
 
 <update_state step="4.3" subagent="executor">
 
-1. Report to the orchestrator: the captured comment ID (for `last_agent_comment_id`), `jira-write`'s resolved identity (from its "read current identity" step, not an assumed value, for `resolved_acting_identity`), and that flow status remains IN_PROGRESS for this tick. This subagent never opens or writes `triage-flow-state.md` directly — the orchestrator performs the actual read-full-file-then-append write.
+1. Report to the orchestrator: the captured comment ID (for `last_agent_comment_id`), `jira-write`'s resolved identity (from its "read current identity" step, not an assumed value, for `resolved_acting_identity`), and that flow status remains IN_PROGRESS for this tick. This subagent never opens or writes `<TICKET-KEY>-TRIAGE-FLOW-STATE.md` directly — the orchestrator performs the actual read-full-file-then-append write.
 
 </update_state>
 

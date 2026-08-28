@@ -27,7 +27,7 @@ Phase 2 of `triage-flow`. Mandatory `requirements-engineer`, invoked directly fo
 
 <idempotency_check step="2.1" subagent="requirements-engineer" role="Requirements elicitation against one existing ticket" subagent_required_model="claude-opus-5">
 
-1. Read `last_agent_comment_id` from `triage-flow-state.md`'s Idempotency section (absent on tick 1 — treat as "no prior agent comment").
+1. Read `last_agent_comment_id` from `<TICKET-KEY>-TRIAGE-FLOW-STATE.md`'s Idempotency section (absent on tick 1 — treat as "no prior agent comment").
 2. Compare it against the newest comment ID in this tick's redacted snapshot (phase 1's output — `data-collection` already redacted it before intake returned).
 3. Equal → nothing new since the agent's own last post. Report this to the orchestrator as a no-op (for the Poll Tick / Event Log) and hand control straight to `completion_check` (phase 3) with the current Requirements.md unchanged — do NOT invoke `requirements-authoring` this tick.
 4. Different (or `last_agent_comment_id` absent) → a genuine new requester reply (or first-ever intake) exists; proceed to step 2.2.
@@ -47,7 +47,7 @@ Phase 2 of `triage-flow`. Mandatory `requirements-engineer`, invoked directly fo
 
 <update_state step="2.3" subagent="requirements-engineer">
 
-1. Report to the orchestrator: iteration number, Open Questions count, per-`<req>` Draft/Approved tally. This subagent never opens or writes `triage-flow-state.md` directly — the orchestrator performs the actual read-full-file-then-append write.
+1. Report to the orchestrator: iteration number, Open Questions count, per-`<req>` Draft/Approved tally. This subagent never opens or writes `<TICKET-KEY>-TRIAGE-FLOW-STATE.md` directly — the orchestrator performs the actual read-full-file-then-append write.
 2. Do NOT report a `last_agent_comment_id` value here — that field is only ever set after phase 4 (`publish_questions`) successfully posts a comment.
 
 </update_state>

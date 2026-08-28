@@ -22,7 +22,7 @@ Phase 1 of `triage-flow`. Mandatory `executor`; bounded fetch/eligibility only, 
 3. Read `jql` from `agents/jira-triage.config.json` and append a key filter scoped to the validated `ticket_key` (e.g. `AND key = "<ticket_key>"`), then run the resulting query via the configured Issue Tracker's search capability — this turns `jql`'s existing status/assignee/project clauses into a pure eligibility/authorization check against that one ticket, not a discovery mechanism. If `reason` wasn't supplied, default it to `"manual invocation"` (never prompt for it, never overwrite a supplied value).
 4. Exactly one match → proceed with that ticket. **Zero matches → stop immediately, report that `<ticket_key>` does not match the configured jql's other clauses (status/assignee/project mismatch — distinguish this from a misconfigured jql if the mismatch looks structural), and end the tick there.** Multiple matches → stop and report all matching keys; never pick automatically (defensive guard — should not occur when filtering by key).
 5. **This step runs the scoped `jql` exactly once and acts only on its result.** It is not a diagnostic tool: on zero matches, do NOT narrow, broaden, or vary the query (dropping clauses, trying other statuses, querying the project alone, etc.) to investigate why nothing matched, and do NOT browse other tickets/statuses "just to check." If the `jql` itself looks misconfigured, say so in the stop-report as a suggestion — do not go verify that suspicion with more queries.
-6. Check for an existing `<artifacts_dir>/<ticket_key>/triage-flow-state.md` (`artifacts_dir` from `agents/jira-triage.config.json`, default `agents/TEMP`). If present, load it (this is a resumed tick, not a fresh one) rather than treating this as tick 1.
+6. Check for an existing `<artifacts_dir>/<ticket_key>/<TICKET-KEY>-TRIAGE-FLOW-STATE.md` (`artifacts_dir` from `agents/jira-triage.config.json`, default `agents/TEMP`). If present, load it (this is a resumed tick, not a fresh one) rather than treating this as tick 1.
 
 </resolve_ticket>
 
@@ -37,7 +37,7 @@ Phase 1 of `triage-flow`. Mandatory `executor`; bounded fetch/eligibility only, 
 
 <update_state step="1.3" subagent="executor">
 
-1. Report to the orchestrator: `ticket_key`, `reason`, this tick's timestamp, and Phase 1 completion, for the orchestrator to record in the Poll Tick / Event Log. This subagent never opens or writes `triage-flow-state.md` directly — the orchestrator performs the actual read-full-file-then-append write, creating the file if absent per the shape in `triage-flow.md`'s `<state_and_resumption>`, or updating it otherwise.
+1. Report to the orchestrator: `ticket_key`, `reason`, this tick's timestamp, and Phase 1 completion, for the orchestrator to record in the Poll Tick / Event Log. This subagent never opens or writes `<TICKET-KEY>-TRIAGE-FLOW-STATE.md` directly — the orchestrator performs the actual read-full-file-then-append write, creating the file if absent per the shape in `triage-flow.md`'s `<state_and_resumption>`, or updating it otherwise.
 2. Return the normalized issue snapshot + `reason` to the orchestrator.
 
 </update_state>

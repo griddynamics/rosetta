@@ -1,6 +1,6 @@
 ---
 name: triage-flow
-description: "Workflow for triaging one caller-specified issue-tracker ticket: intake (redacted via data-collection), requirements elicitation via comments, and a posted assessment comment on completion."
+description: "Workflow for triaging one caller-specified issue-tracker ticket: intake (redacted via data-collection), requirements elicitation via comments, a posted assessment comment, and a linked target-project issue created from the finalized requirements on completion."
 alwaysApply: false
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
@@ -10,7 +10,7 @@ baseSchema: docs/schemas/workflow.md
 
 <description_and_purpose>
 
-Turn a triggered wake-up (invoked today by a caller — e.g. tools-harness-intake's CI job — for one specific ticket; a cron tick or webhook event later) into a repeatable ticket-triage cycle: fetch the ticket (redacted by `data-collection`'s own mandatory step), run requirements elicitation through comment round-trips, and on completion post the assessment as a comment — without a human answering an interactive prompt each tick, and without this flow mutating the ticket's status or assignee. This build: caller-supplied `ticket_key` only, no scheduler, no write-confirmation gate — both explicitly deferred, see `<out_of_scope>`.
+Turn a triggered wake-up (invoked today by a caller — e.g. tools-harness-intake's CI job — for one specific ticket; a cron tick or webhook event later) into a repeatable ticket-triage cycle: fetch the ticket (redacted by `data-collection`'s own mandatory step), run requirements elicitation through comment round-trips, on completion post the assessment as a comment, and then create the corresponding Story in the configured target project from the finalized requirements, linked back to the source ticket as an action item — without a human answering an interactive prompt each tick, and without this flow mutating the source ticket's status or assignee. This build: caller-supplied `ticket_key` only, no scheduler, no write-confirmation gate — both explicitly deferred, see `<out_of_scope>`.
 
 </description_and_purpose>
 
@@ -20,17 +20,17 @@ Turn a triggered wake-up (invoked today by a caller — e.g. tools-harness-intak
 
 1. All Rosetta prep steps MUST be FULLY completed.
 2. MUST USE SKILL `load-project-context`, `orchestration`, `hitl`.
-3. Read the deployment config file (`agents/jira-triage.config.json` in the target repo) for: `jql`, `orchestrator_model_policy`, `artifacts_dir`. Missing config file → stop and report; never invent these values. `artifacts_dir` is the base directory for this flow's own generated artifacts (flow state + Requirements.md) — it is caller-controlled (e.g. a caller may point it at an already-checked-out directory such as `knowledge`), default `agents/TEMP` when absent from an older config, but the shipped config template MUST declare it explicitly.
+3. Read the deployment config file (`agents/jira-triage.config.json` in the target repo) for: `jql`, `orchestrator_model_policy`, `artifacts_dir`, `tool_issue_target` (`project_key`, `issue_type`, `carry_fields`, `link_type`, `link_inward` — phase 6's target). Missing config file, or a missing `tool_issue_target` block, → stop and report; never invent these values. `artifacts_dir` is the base directory for this flow's own generated artifacts (flow state + Requirements.md) — it is caller-controlled (e.g. a caller may point it at an already-checked-out directory such as `knowledge`), default `agents/TEMP` when absent from an older config, but the shipped config template MUST declare it explicitly.
 4. Check the active orchestrator model against `orchestrator_model_policy.required_tier` (this build: `opus`, a deliberate narrowing of `requirements-authoring-flow.md`'s own broader "Fable/Opus/GPT-5.5+ class" rule down to a specific choice for this deployment). If `enforce: true` and the active model doesn't match → DEMAND USER SWITCH MODEL; do not silently proceed or downgrade.
 5. MUST ALWAYS use todo tasks ledger. Phases run sequentially per invocation; re-invocation resumes from state, it does not restart phase 1 unconditionally — see `<state_and_resumption>`.
-6. Workflow state MUST be saved to `<artifacts_dir>/<TICKET-KEY>/triage-flow-state.md`, and phase 2's Requirements.md MUST be saved alongside it in the same ticket-scoped folder at `<artifacts_dir>/<TICKET-KEY>/<TICKET-KEY>-REQUIREMENTS.md` — keeping every artifact this flow generates out of the target repo's real `docs/` tree. Every phase updates the state file before the next starts. Section shape is defined in `<state_and_resumption>` below (this is a runtime-artifact convention, not a shipped template).
+6. Workflow state MUST be saved to `<artifacts_dir>/<TICKET-KEY>/<TICKET-KEY>-TRIAGE-FLOW-STATE.md`, and phase 2's Requirements.md MUST be saved alongside it in the same ticket-scoped folder at `<artifacts_dir>/<TICKET-KEY>/<TICKET-KEY>-REQUIREMENTS.md` — keeping every artifact this flow generates out of the target repo's real `docs/` tree. Every phase updates the state file before the next starts. Section shape is defined in `<state_and_resumption>` below (this is a runtime-artifact convention, not a shipped template).
 
 </prerequisites>
 
 <subagent_policy required="true" inline_execution="prohibited">
 
 - Orchestrator owns phase transitions, dispatch, and the flow-state file.
-- No subagent writes `triage-flow-state.md` directly, regardless of what any phase file's own step wording appears to instruct. Every phase-file "update_state"/report step hands values to the orchestrator; the orchestrator performs the actual read-full-file-then-append write. This overrides any contrary phrasing anywhere in `triage-flow-*.md`.
+- No subagent writes `<TICKET-KEY>-TRIAGE-FLOW-STATE.md` directly, regardless of what any phase file's own step wording appears to instruct. Every phase-file "update_state"/report step hands values to the orchestrator; the orchestrator performs the actual read-full-file-then-append write. This overrides any contrary phrasing anywhere in `triage-flow-*.md`.
 - Phase files are assigned-subagent-only; orchestrator MUST NOT load, read, or execute them directly.
 - `executor` is never a gateway for full agents.
 - If a required subagent invocation is unavailable, stop and report the unmet prerequisite.
@@ -92,13 +92,23 @@ Once webhooks land (out of scope for this build), a webhook payload supplies `ti
 
 <assess phase="5" subagent="reviewer" role="Bounded triage-assessment synthesizer and completion operator" subagent_required_model="claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol" must-be-subagent>
 
-- Purpose: produce the triage assessment (blind spots, potentially affected tools, issue size) for a ticket phase 3 has just routed here (Open Questions empty, `<req>` units flipped to Approved), and post it as one Jira comment — the flow's final action for this ticket. This phase never mutates the ticket's status or assignee.
+- Purpose: produce the triage assessment (blind spots, potentially affected tools, issue size) for a ticket phase 3 has just routed here (Open Questions empty, `<req>` units flipped to Approved), and post it as one Jira comment — the last write this flow makes on the *source* ticket; phase 6 performs the flow's actual final action. This phase never mutates the ticket's status or assignee.
 - Input: finalized Requirements.md (all `<req>` units now Approved); the ticket's `TSSM: Tool`/`TSSM: Project` custom fields from phase 1's snapshot.
-- Output: `<TICKET-KEY>-TRIAGE-ASSESSMENT.md` written under `artifacts_dir`; one assessment comment posted via `jira-write` (`assessment_comment_id` captured); flow status set to `COMPLETE`.
+- Output: `<TICKET-KEY>-TRIAGE-ASSESSMENT.md` written under `artifacts_dir`; one assessment comment posted via `jira-write` (`assessment_comment_id` captured); flow status stays `IN_PROGRESS` until phase 6 records both `tool_issue_key` and `link_id`.
 - INVOKE SUBAGENT `reviewer` to APPLY PHASE `triage-flow-assess.md` + produce the three assessment blocks and post the comment.
 - Control: the three assessment blocks (`blind_spots_risk_level`, `affected_tools_impact_level`, `issue_size`) are reported as-is in the comment — none of them gates a different action or branch; there is no risk-based branching in this build. No ticket reassignment, no status transition, ever. The human-in-the-loop gate for this flow lives entirely in the downstream consumer of its output artifacts (e.g. harness-intake's GitHub PR review), not in Jira ticket state.
 
 </assess>
+
+<create_tool_issue phase="6" subagent="executor" role="Bounded cross-project issue creator and linker" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna" must-be-subagent>
+
+- Purpose: create the corresponding Story in the configured target project (`tool_issue_target` in the deployment config) from the just-triaged ticket, and link it back as an action item — the flow's final action for this ticket. Runs on the same tick as phase 5, immediately after its comment posts. Posts no comment, and never mutates the source ticket's status or assignee.
+- Input: the source ticket's Summary, `TSSM: Tool`/`TSSM: Project`, and Assignee account ID from phase 1's snapshot; the finalized Requirements.md; the state file's `## Tool Issue` section.
+- Output: `tool_issue_key`, `tool_issue_url`, `tool_issue_created_at`, `link_id` recorded in `## Tool Issue`; any omitted fields recorded as gaps; flow status set to `COMPLETE` once both key and link are recorded.
+- INVOKE SUBAGENT `executor` to APPLY PHASE `triage-flow-create-tool-issue.md` + USE SKILL `jira-write` (create issue, then link issues — two separate calls, never one combined operation).
+- Control: `POC-SCOPE-OVERRIDE:` no human confirmation before these writes (see `jira-write`'s `<dangerous_actions_gate>`). Two-state resumption: `tool_issue_key` absent → create then link; present with `link_id` absent → link only, never create; both present → skip the phase entirely. **This phase's failure report is state-bearing** — when it reports a created key alongside a link failure, the orchestrator MUST append that key to `## Tool Issue` before ending the tick. It is the only phase here whose *failed* report carries state that must be persisted, and dropping it strands an issue that nothing in this build can delete.
+
+</create_tool_issue>
 
 </workflow_phases>
 
@@ -110,7 +120,7 @@ Checked at the entry of phase 2 (`triage-flow-elicitation.md`), never by comment
 
 <state_and_resumption>
 
-`<artifacts_dir>/<TICKET-KEY>/triage-flow-state.md` sections (runtime convention, modeled on `agents/init-workspace-flow-state.md`; `artifacts_dir` comes from `agents/jira-triage.config.json`, default `agents/TEMP`). The same ticket-scoped folder also holds `<TICKET-KEY>-REQUIREMENTS.md` (phase 2's output) — both are this flow's own generated artifacts, never written into the target repo's real requirements tree:
+`<artifacts_dir>/<TICKET-KEY>/<TICKET-KEY>-TRIAGE-FLOW-STATE.md` sections (runtime convention, modeled on `agents/init-workspace-flow-state.md`; `artifacts_dir` comes from `agents/jira-triage.config.json`, default `agents/TEMP`). The same ticket-scoped folder also holds `<TICKET-KEY>-REQUIREMENTS.md` (phase 2's output) — both are this flow's own generated artifacts, never written into the target repo's real requirements tree:
 
 ```
 ## State
@@ -128,6 +138,10 @@ Checked at the entry of phase 2 (`triage-flow-elicitation.md`), never by comment
 - assessment_file (path to `<TICKET-KEY>-TRIAGE-ASSESSMENT.md`, written by phase 5, once per ticket reaching COMPLETE)
 - blind_spots_risk_level, affected_tools_impact_level, issue_size
 - assessment_comment_id (from phase 5's comment post — distinct from last_agent_comment_id, never written into it)
+## Tool Issue
+- tool_issue_key, tool_issue_url, tool_issue_created_at (written by phase 6 the moment the create returns, before the link is attempted)
+- link_id (written by phase 6 once the link write confirms; absent is a valid state — see below)
+- field_gaps (fields omitted from the create and why, e.g. `TSSM: Project — option not in the target project's field context`)
 ## Identity
 - resolved_acting_identity (from `jira-write`'s "read current identity", captured at the most recent write — never an assumed value)
 ## Approval Rule (this build)
@@ -137,6 +151,10 @@ Checked at the entry of phase 2 (`triage-flow-elicitation.md`), never by comment
 ```
 
 Each invocation re-reads this file if it exists (same `ticket_key`) and resumes at the phase implied by its state, rather than restarting phase 1 unconditionally.
+
+**`## Tool Issue` is the one section here that can be validly half-written.** Every other section is written once, whole, by the phase that owns it. This one is written twice by phase 6 — key/URL/created_at when the create returns, `link_id` when the link confirms — precisely so a failure between the two is a resumable state instead of a lost issue. `tool_issue_key` present with `link_id` absent is not corruption and MUST NOT be "repaired" by clearing the section: the next invocation reads it as created-but-unlinked and completes only the link. Clearing it — or letting a failed phase-6 report through without persisting the key — causes a second, permanently undeletable issue on the next tick.
+
+**Resume routing.** When `## Assessment` already records an `assessment_file` and `## Tool Issue` is missing `tool_issue_key` or `link_id`, the invocation resumes directly at phase 6; the orchestrator skips phases 2 through 5 rather than relying on their own guards. Phase 2's idempotency check compares the newest comment ID against `last_agent_comment_id`, which phase 5's assessment comment deliberately does not update — without this routing rule a resume tick reads the flow's own assessment comment as a new requester reply and re-opens elicitation on an already-finalized ticket. This is a real interaction that phase 6 makes reachable for the first time: before phase 6 existed there was never a legitimate reason to re-tick a ticket after phase 5 ran, so this rule was never needed until now.
 
 **This file is append/edit-in-place only, never regenerated from scratch.** Every write reads the file's current full content first, then adds this tick's row(s) or updates the specific field named by the writing step — every row from every prior tick in `Poll Tick / Event Log` and `Resource Usage`, and every prior entry elsewhere, carries forward unchanged. A write that reproduces the file with only the current tick's data, even unintentionally, is a data-loss bug in that step.
 
@@ -148,21 +166,27 @@ Deferred for this build, seams only, do not implement:
 
 - Real OS cron / Jira webhook trigger — `<intake_contract>`'s `{ticket_key, reason?}` shape already makes both pure trigger-layer swaps (a webhook payload would populate `ticket_key` the same way a caller does today).
 - Sub-hourly polling cadence.
-- A risk-assessment gate of any kind: phase 5 (`assess`) reports `blind_spots_risk_level`, `affected_tools_impact_level`, and `issue_size` for the reader's information only — none of them branches this flow's behavior or triggers a Jira write beyond the one assessment comment. Any future gating on these values is downstream of this flow (e.g. in the consuming PR review), never added back into this flow's own phases.
+- A risk-assessment gate of any kind: phase 5 (`assess`) reports `blind_spots_risk_level`, `affected_tools_impact_level`, and `issue_size` for the reader's information only — none of them branches this flow's behavior or triggers a Jira write beyond phase 5's assessment comment and phase 6's issue creation and link. Any future gating on these values is downstream of this flow (e.g. in the consuming PR review), never added back into this flow's own phases.
 - Service-account credential swap — `jira-write`'s `<identity_note>` already keeps write identity decoupled from any assumed account; swapping to a service account means reconnecting the Issue Tracker integration under its credentials and updating the `jql` string's `assignee` clause to that account's ID, nothing else.
 - Any changes to `tools-harness-intake` (workflow wiring, its own config, the PR step) — this flow's contract changes are designed to support that caller, but wiring it up is separate follow-up work.
+- Any post-creation management of the target-project issue — transitions, estimates, labels, sprint or epic assignment, or edits after phase 6 creates it. This flow creates it, links it, and never touches it again.
+- A comment on the source ticket announcing the created issue. The issue link is the announcement; a second write would add a second idempotency anchor for no reader benefit.
 
 </out_of_scope>
 
 <validation_checklist>
 
-- Every phase updated `triage-flow-state.md` before the next started.
+- Every phase updated `<TICKET-KEY>-TRIAGE-FLOW-STATE.md` before the next started.
 - Phase 2 never ran on a tick where the idempotency check found nothing new.
-- Phase 4/5 writes each went through `jira-write`'s content-level gate (human-confirmation intentionally skipped per the override).
+- Phase 4/5/6 writes each went through `jira-write`'s content-level gate (human-confirmation intentionally skipped per the override).
 - Phase 1's `data-collection` fetch always redacted before returning — no unredacted ticket content ever reached phase 2.
-- Phase 5's assessment ran exactly once per ticket reaching COMPLETE, never on an IN_PROGRESS tick, and posted its comment with `assessment_comment_id` recorded — never overwriting `last_agent_comment_id`.
-- No phase ever reassigned the ticket or transitioned its status — the flow's only Jira writes are comments (phase 4's Open Questions comment, phase 5's assessment comment).
+- Phase 5's assessment ran exactly once per ticket, never on an IN_PROGRESS tick, and posted its comment with `assessment_comment_id` recorded — never overwriting `last_agent_comment_id`, and never setting flow status to COMPLETE on its own.
+- No phase ever reassigned the ticket or transitioned its status — the flow's only writes on the source ticket are comments (phase 4's Open Questions comment, phase 5's assessment comment) and phase 6's one action-item link.
 - Intake (phase 1) never ran the configured `jql` unscoped — every invocation filters by the caller-supplied `ticket_key`.
+- Phase 6 created at most one target-project issue per source ticket across all ticks — a tick that found `tool_issue_key` already recorded never called create.
+- Every phase-6 tick that created an issue left `tool_issue_key` in the state file, including ticks whose link write failed.
+- A resume tick entering case B ran phase 6 only — phases 2-5 were skipped by the resume-routing rule, not re-run.
+- The flow reached `COMPLETE` only after both `tool_issue_key` and `link_id` were recorded; phase 5's assessment comment alone no longer means complete.
 
 </validation_checklist>
 

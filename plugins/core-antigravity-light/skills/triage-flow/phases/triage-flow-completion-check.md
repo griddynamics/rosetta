@@ -26,13 +26,13 @@ Phase 3 of `triage-flow`. Mandatory `executor` throughout — the judgment-heavy
 <complete step="3.2" subagent="executor">
 
 1. `POC-SCOPE-OVERRIDE:` flip both `<req>` units from `Draft` to `Approved` in Requirements.md — this build treats "Open Questions empty" alone as sufficient, in place of `hitl`'s normal explicit affirmative-sentence approval. This is a deliberate, flagged POC-scope simplification, not a rediscovered Rosetta rule.
-2. Hand control to `assess` (phase 5, APPLY SKILL FILE `phases/triage-flow-assess.md`) — the flow's final phase.
+2. Hand control to `assess` (phase 5, APPLY SKILL FILE `phases/triage-flow-assess.md`), which is followed on the same tick by `create_tool_issue` (phase 6) — the flow's final phase.
 
 </complete>
 
 <update_state step="3.3" subagent="executor">
 
-1. Report to the orchestrator: on the non-empty branch, the "Next Tick Should" note; on the empty branch, the `<req>` unit flip and that flow status should move toward `COMPLETE` (pending phase 5's gate). This subagent never opens or writes `triage-flow-state.md` directly — the orchestrator performs the actual read-full-file-then-append write.
+1. Report to the orchestrator: on the non-empty branch, the "Next Tick Should" note; on the empty branch, the `<req>` unit flip and that flow status should move toward `COMPLETE` (pending phases 5 and 6). This subagent never opens or writes `<TICKET-KEY>-TRIAGE-FLOW-STATE.md` directly — the orchestrator performs the actual read-full-file-then-append write.
 
 </update_state>
 

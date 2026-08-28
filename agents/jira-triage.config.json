@@ -10,5 +10,13 @@
   "confirmation_gate_override": {
     "writes_require_human_confirmation": false,
     "note": "POC-SCOPE-OVERRIDE: initial POC build, manual invocation only. Set true to restore hitl/dangerous-actions default human-approval gate."
+  },
+  "tool_issue_target": {
+    "project_key": "TOOL",
+    "issue_type": "Story",
+    "carry_fields": ["TSSM: Tool", "TSSM: Project"],
+    "link_type": "Action item",
+    "link_inward": "new_issue",
+    "note": "Phase 6 target. Field and link-type names are resolved to IDs at write time via jira-write's read-before-write ops; never record IDs here. link_inward=new_issue means the created TOOL ticket is the inward issue, rendering '<new TOOL ticket> is action item from <source ticket>'."
   }
 }
