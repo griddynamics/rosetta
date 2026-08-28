@@ -1,0 +1,22 @@
+{
+  "jql": "project = \"Tools Support\" and type = Feature and status = \"Tools Integration Review\" and assignee = 712020:2cde2baf-4cd6-44be-8340-611be1bbc119",
+  "artifacts_dir": "agents/TEMP",
+  "orchestrator_model_policy": {
+    "required_tier": "opus",
+    "enforce": true,
+    "on_violation": "DEMAND_USER_SWITCH_MODEL",
+    "note": "User-confirmed: Opus required for this build."
+  },
+  "confirmation_gate_override": {
+    "writes_require_human_confirmation": false,
+    "note": "POC-SCOPE-OVERRIDE: initial POC build, manual invocation only. Set true to restore hitl/dangerous-actions default human-approval gate."
+  },
+  "tool_issue_target": {
+    "project_key": "TOOL",
+    "issue_type": "Story",
+    "carry_fields": ["TSSM: Tool", "TSSM: Project"],
+    "link_type": "Action item",
+    "link_inward": "new_issue",
+    "note": "Phase 6 target. Field and link-type names are resolved to IDs at write time via jira-write's read-before-write ops; never record IDs here. link_inward=new_issue means the created TOOL ticket is the inward issue, rendering '<new TOOL ticket> is action item from <source ticket>'."
+  }
+}

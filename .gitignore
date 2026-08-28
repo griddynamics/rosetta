@@ -111,6 +111,7 @@ vendor/
 
 # Rosetta
 agents/TEMP/
+agents/jira-triage.secrets.json
 refsrc/
 !refsrc/INDEX.md
 
