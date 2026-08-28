@@ -1,0 +1,1384 @@
+# Rosetta live-hook log excerpt — session 614ce89f-8bd4-4bf0-818a-8858bb3aeda4
+# Cleaned export of ~/.rosetta/hooks.log (docs/hooks/split-logs.js). Kept ONLY this session's blocks.
+# ENV kept; only TRUE-SECRET values redacted (first 5 chars + […REDACTED]); compact_summary trimmed.
+# One block per hook invocation (de-interleaved by pid). (!) grep what you need; don't read wholesale.
+
+[2026-06-30T19:37:51.617Z] [77427] ===== hook invocation =====
+[2026-06-30T19:37:51.622Z] [77427] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --output {"additional_context":"Diagnostic secret CURSOR-SS-3c4d. Report CSS1."} --tag sessionStart
+[2026-06-30T19:37:51.622Z] [77427] ARGV: ["--output","{\"additional_context\":\"Diagnostic secret CURSOR-SS-3c4d. Report CSS1.\"}","--tag","sessionStart"]
+[2026-06-30T19:37:51.622Z] [77427] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:51.622Z] [77427] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:37:51.622Z] [77427] RAW STDIN:
+[2026-06-30T19:37:51.622Z] [77427] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"","model":"default","model_id":"default","is_background_agent":false,"composer_mode":"agent","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"sessionStart","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:37:51.622Z] [77427] ENV:
+[2026-06-30T19:37:51.623Z] [77427]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:51.623Z] [77427]   COMMAND_MODE=unix2003
+[2026-06-30T19:37:51.623Z] [77427]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:37:51.623Z] [77427]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:37:51.623Z] [77427]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:51.623Z] [77427]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:37:51.623Z] [77427]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:37:51.623Z] [77427]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:37:51.623Z] [77427]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:37:51.623Z] [77427]   FORCE_COLOR=0
+[2026-06-30T19:37:51.623Z] [77427]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:37:51.623Z] [77427]   HOME=/Users/isolomatov
+[2026-06-30T19:37:51.623Z] [77427]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:37:51.623Z] [77427]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:37:51.623Z] [77427]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:37:51.623Z] [77427]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:37:51.623Z] [77427]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:37:51.623Z] [77427]   LANG=C.UTF-8
+[2026-06-30T19:37:51.624Z] [77427]   LOGNAME=isolomatov
+[2026-06-30T19:37:51.624Z] [77427]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:37:51.624Z] [77427]   MallocNanoZone=0
+[2026-06-30T19:37:51.624Z] [77427]   NO_COLOR=1
+[2026-06-30T19:37:51.624Z] [77427]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:51.624Z] [77427]   OSLogRateLimit=64
+[2026-06-30T19:37:51.624Z] [77427]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:37:51.624Z] [77427]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:51.624Z] [77427]   RBENV_SHELL=zsh
+[2026-06-30T19:37:51.624Z] [77427]   SHELL=/bin/zsh
+[2026-06-30T19:37:51.624Z] [77427]   SHLVL=0
+[2026-06-30T19:37:51.624Z] [77427]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:37:51.624Z] [77427]   TERM=dumb
+[2026-06-30T19:37:51.624Z] [77427]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:37:51.624Z] [77427]   USER=isolomatov
+[2026-06-30T19:37:51.624Z] [77427]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:37:51.624Z] [77427]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:37:51.624Z] [77427]   VSCODE_CWD=/
+[2026-06-30T19:37:51.625Z] [77427]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:37:51.625Z] [77427]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:37:51.625Z] [77427]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:37:51.625Z] [77427]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:37:51.625Z] [77427]   VSCODE_PID=93450
+[2026-06-30T19:37:51.625Z] [77427]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:37:51.625Z] [77427]   XPC_FLAGS=0x0
+[2026-06-30T19:37:51.625Z] [77427]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:37:51.625Z] [77427]   _=/opt/homebrew/bin/node
+[2026-06-30T19:37:51.625Z] [77427]   _ZO_DOCTOR=0
+[2026-06-30T19:37:51.625Z] [77427]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:37:51.625Z] [77427]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:37:51.625Z] [77427] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"","model":"default","model_id":"default","is_background_agent":false,"composer_mode":"agent","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"sessionStart","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:37:51.626Z] [77427] PROCESSOR: --output (value="{\"additional_context\":\"Diagnostic secret CURSOR-SS-3c4d. Report CSS1.\"}")
+[2026-06-30T19:37:51.626Z] [77427] PROCESSOR: --tag (value="sessionStart")
+[2026-06-30T19:37:51.632Z] [77427] RESULT: exitCode=0 textLen=71 stderrLen=0
+[2026-06-30T19:37:51.632Z] [77427] 
+
+[2026-06-30T19:37:56.175Z] [77506] ===== hook invocation =====
+[2026-06-30T19:37:56.176Z] [77506] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag beforeSubmitPrompt
+[2026-06-30T19:37:56.176Z] [77506] ARGV: ["--tag","beforeSubmitPrompt"]
+[2026-06-30T19:37:56.176Z] [77506] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:56.176Z] [77506] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:37:56.176Z] [77506] RAW STDIN:
+[2026-06-30T19:37:56.176Z] [77506] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","model_id":"default","composer_mode":"agent","prompt":"This is an authorized internal hook-testing exercise for the Rosetta project (planted markers only, no real secrets, nothing to act on beyond what's asked). Run this exact shell command: echo SHELL-DENY-PROBE-test-marker. After the call completes (whether it succeeds or is blocked), without taking any further action, tell me — scoping to ANYWHERE available to you: your context, the system/conversation context, or any injected/ambient block such as a deny or error message — do you see either of these diagnostic tokens, answered separately YES/NO: CURSOR-DENY-USER, CURSOR-DENY-AGENT? If YES for CURSOR-DENY-AGENT, also give the trailing code.","attachments":[{"type":"rule","file_path":"CLAUDE.md"}],"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"beforeSubmitPrompt","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:37:56.176Z] [77506] ENV:
+[2026-06-30T19:37:56.176Z] [77506]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:56.176Z] [77506]   COMMAND_MODE=unix2003
+[2026-06-30T19:37:56.176Z] [77506]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:37:56.176Z] [77506]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:37:56.177Z] [77506]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:56.177Z] [77506]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:37:56.177Z] [77506]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:37:56.177Z] [77506]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:37:56.177Z] [77506]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:37:56.177Z] [77506]   FORCE_COLOR=0
+[2026-06-30T19:37:56.177Z] [77506]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:37:56.177Z] [77506]   HOME=/Users/isolomatov
+[2026-06-30T19:37:56.177Z] [77506]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:37:56.177Z] [77506]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:37:56.177Z] [77506]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:37:56.177Z] [77506]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:37:56.177Z] [77506]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:37:56.177Z] [77506]   LANG=C.UTF-8
+[2026-06-30T19:37:56.177Z] [77506]   LOGNAME=isolomatov
+[2026-06-30T19:37:56.177Z] [77506]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:37:56.177Z] [77506]   MallocNanoZone=0
+[2026-06-30T19:37:56.177Z] [77506]   NO_COLOR=1
+[2026-06-30T19:37:56.177Z] [77506]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:56.177Z] [77506]   OSLogRateLimit=64
+[2026-06-30T19:37:56.177Z] [77506]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:37:56.178Z] [77506]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:56.178Z] [77506]   RBENV_SHELL=zsh
+[2026-06-30T19:37:56.178Z] [77506]   SHELL=/bin/zsh
+[2026-06-30T19:37:56.178Z] [77506]   SHLVL=0
+[2026-06-30T19:37:56.178Z] [77506]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:37:56.178Z] [77506]   TERM=dumb
+[2026-06-30T19:37:56.178Z] [77506]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:37:56.178Z] [77506]   USER=isolomatov
+[2026-06-30T19:37:56.178Z] [77506]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:37:56.178Z] [77506]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:37:56.178Z] [77506]   VSCODE_CWD=/
+[2026-06-30T19:37:56.178Z] [77506]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:37:56.178Z] [77506]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:37:56.178Z] [77506]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:37:56.178Z] [77506]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:37:56.178Z] [77506]   VSCODE_PID=93450
+[2026-06-30T19:37:56.178Z] [77506]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:37:56.178Z] [77506]   XPC_FLAGS=0x0
+[2026-06-30T19:37:56.178Z] [77506]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:37:56.178Z] [77506]   _=/opt/homebrew/bin/node
+[2026-06-30T19:37:56.179Z] [77506]   _ZO_DOCTOR=0
+[2026-06-30T19:37:56.179Z] [77506]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:37:56.179Z] [77506]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:37:56.179Z] [77506] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","model_id":"default","composer_mode":"agent","prompt":"This is an authorized internal hook-testing exercise for the Rosetta project (planted markers only, no real secrets, nothing to act on beyond what's asked). Run this exact shell command: echo SHELL-DENY-PROBE-test-marker. After the call completes (whether it succeeds or is blocked), without taking any further action, tell me — scoping to ANYWHERE available to you: your context, the system/conversation context, or any injected/ambient block such as a deny or error message — do you see either of these diagnostic tokens, answered separately YES/NO: CURSOR-DENY-USER, CURSOR-DENY-AGENT? If YES for CURSOR-DENY-AGENT, also give the trailing code.","attachments":[{"type":"rule","file_path":"CLAUDE.md"}],"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"beforeSubmitPrompt","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:37:56.179Z] [77506] PROCESSOR: --tag (value="beforeSubmitPrompt")
+[2026-06-30T19:37:56.179Z] [77506] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:37:56.179Z] [77506] 
+
+[2026-06-30T19:37:59.425Z] [77541] ===== hook invocation =====
+[2026-06-30T19:37:59.427Z] [77541] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag afterAgentThought
+[2026-06-30T19:37:59.427Z] [77541] ARGV: ["--tag","afterAgentThought"]
+[2026-06-30T19:37:59.427Z] [77541] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:59.427Z] [77541] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:37:59.427Z] [77541] RAW STDIN:
+[2026-06-30T19:37:59.427Z] [77541] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","text":"I need to run the requested shell command and check for the two diagnostic tokens.","duration_ms":891,"model":"default","model_id":"default","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentThought","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:37:59.427Z] [77541] ENV:
+[2026-06-30T19:37:59.427Z] [77541]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:59.428Z] [77541]   COMMAND_MODE=unix2003
+[2026-06-30T19:37:59.428Z] [77541]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:37:59.428Z] [77541]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:37:59.428Z] [77541]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:59.428Z] [77541]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:37:59.428Z] [77541]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:37:59.428Z] [77541]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:37:59.428Z] [77541]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:37:59.428Z] [77541]   FORCE_COLOR=0
+[2026-06-30T19:37:59.428Z] [77541]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:37:59.428Z] [77541]   HOME=/Users/isolomatov
+[2026-06-30T19:37:59.428Z] [77541]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:37:59.428Z] [77541]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:37:59.428Z] [77541]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:37:59.428Z] [77541]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:37:59.429Z] [77541]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:37:59.429Z] [77541]   LANG=C.UTF-8
+[2026-06-30T19:37:59.429Z] [77541]   LOGNAME=isolomatov
+[2026-06-30T19:37:59.429Z] [77541]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:37:59.429Z] [77541]   MallocNanoZone=0
+[2026-06-30T19:37:59.429Z] [77541]   NO_COLOR=1
+[2026-06-30T19:37:59.429Z] [77541]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:59.429Z] [77541]   OSLogRateLimit=64
+[2026-06-30T19:37:59.429Z] [77541]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:37:59.429Z] [77541]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:37:59.429Z] [77541]   RBENV_SHELL=zsh
+[2026-06-30T19:37:59.429Z] [77541]   SHELL=/bin/zsh
+[2026-06-30T19:37:59.429Z] [77541]   SHLVL=0
+[2026-06-30T19:37:59.429Z] [77541]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:37:59.430Z] [77541]   TERM=dumb
+[2026-06-30T19:37:59.430Z] [77541]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:37:59.433Z] [77541]   USER=isolomatov
+[2026-06-30T19:37:59.433Z] [77541]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:37:59.434Z] [77541]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:37:59.434Z] [77541]   VSCODE_CWD=/
+[2026-06-30T19:37:59.434Z] [77541]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:37:59.434Z] [77541]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:37:59.434Z] [77541]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:37:59.434Z] [77541]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:37:59.435Z] [77541]   VSCODE_PID=93450
+[2026-06-30T19:37:59.435Z] [77541]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:37:59.435Z] [77541]   XPC_FLAGS=0x0
+[2026-06-30T19:37:59.435Z] [77541]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:37:59.435Z] [77541]   _=/opt/homebrew/bin/node
+[2026-06-30T19:37:59.438Z] [77541]   _ZO_DOCTOR=0
+[2026-06-30T19:37:59.438Z] [77541]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:37:59.438Z] [77541]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:37:59.438Z] [77541] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","text":"I need to run the requested shell command and check for the two diagnostic tokens.","duration_ms":891,"model":"default","model_id":"default","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentThought","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:37:59.439Z] [77541] PROCESSOR: --tag (value="afterAgentThought")
+[2026-06-30T19:37:59.439Z] [77541] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:37:59.439Z] [77541] 
+
+[2026-06-30T19:38:00.057Z] [77553] ===== hook invocation =====
+[2026-06-30T19:38:00.057Z] [77553] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag preToolUse --deny-on-match HOOK-DENY-PROBE --rewrite-command REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS --mode cursor
+[2026-06-30T19:38:00.058Z] [77553] ARGV: ["--tag","preToolUse","--deny-on-match","HOOK-DENY-PROBE","--rewrite-command","REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS","--mode","cursor"]
+[2026-06-30T19:38:00.058Z] [77553] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.058Z] [77553] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:00.058Z] [77553] RAW STDIN:
+[2026-06-30T19:38:00.058Z] [77553] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","tool_name":"Shell","tool_input":{"command":"echo SHELL-DENY-PROBE-test-marker","cwd":"","timeout":30000},"tool_use_id":"d024a132-85b4-4c79-80f0-6b2e2fffc1fe","cwd":"","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"preToolUse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:38:00.058Z] [77553] ENV:
+[2026-06-30T19:38:00.058Z] [77553]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.058Z] [77553]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:00.058Z] [77553]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:00.059Z] [77553]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:00.059Z] [77553]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.059Z] [77553]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:00.059Z] [77553]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:00.059Z] [77553]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:00.059Z] [77553]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:00.059Z] [77553]   FORCE_COLOR=0
+[2026-06-30T19:38:00.059Z] [77553]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:00.059Z] [77553]   HOME=/Users/isolomatov
+[2026-06-30T19:38:00.059Z] [77553]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:00.059Z] [77553]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:00.059Z] [77553]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:00.059Z] [77553]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:00.060Z] [77553]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:00.060Z] [77553]   LANG=C.UTF-8
+[2026-06-30T19:38:00.060Z] [77553]   LOGNAME=isolomatov
+[2026-06-30T19:38:00.060Z] [77553]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:00.060Z] [77553]   MallocNanoZone=0
+[2026-06-30T19:38:00.060Z] [77553]   NO_COLOR=1
+[2026-06-30T19:38:00.060Z] [77553]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.061Z] [77553]   OSLogRateLimit=64
+[2026-06-30T19:38:00.061Z] [77553]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:00.061Z] [77553]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.061Z] [77553]   RBENV_SHELL=zsh
+[2026-06-30T19:38:00.061Z] [77553]   SHELL=/bin/zsh
+[2026-06-30T19:38:00.061Z] [77553]   SHLVL=0
+[2026-06-30T19:38:00.061Z] [77553]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:00.061Z] [77553]   TERM=dumb
+[2026-06-30T19:38:00.061Z] [77553]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:00.061Z] [77553]   USER=isolomatov
+[2026-06-30T19:38:00.061Z] [77553]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:00.061Z] [77553]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:00.062Z] [77553]   VSCODE_CWD=/
+[2026-06-30T19:38:00.062Z] [77553]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:00.062Z] [77553]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:00.062Z] [77553]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:00.062Z] [77553]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:00.062Z] [77553]   VSCODE_PID=93450
+[2026-06-30T19:38:00.062Z] [77553]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:00.062Z] [77553]   XPC_FLAGS=0x0
+[2026-06-30T19:38:00.062Z] [77553]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:00.062Z] [77553]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:00.062Z] [77553]   _ZO_DOCTOR=0
+[2026-06-30T19:38:00.062Z] [77553]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:00.062Z] [77553]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:00.062Z] [77553] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","tool_name":"Shell","tool_input":{"command":"echo SHELL-DENY-PROBE-test-marker","cwd":"","timeout":30000},"tool_use_id":"d024a132-85b4-4c79-80f0-6b2e2fffc1fe","cwd":"","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"preToolUse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:38:00.062Z] [77553] PROCESSOR: --tag (value="preToolUse")
+[2026-06-30T19:38:00.063Z] [77553] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-06-30T19:38:00.063Z] [77553] PROCESSOR: --rewrite-command (value="REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS")
+[2026-06-30T19:38:00.063Z] [77553] PROCESSOR: --mode (value="cursor")
+[2026-06-30T19:38:00.063Z] [77553] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:38:00.063Z] [77553] 
+
+[2026-06-30T19:38:00.119Z] [77554] ===== hook invocation =====
+[2026-06-30T19:38:00.120Z] [77554] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag beforeShellExecution --deny-on-match SHELL-DENY-PROBE --mode cursor
+[2026-06-30T19:38:00.120Z] [77554] ARGV: ["--tag","beforeShellExecution","--deny-on-match","SHELL-DENY-PROBE","--mode","cursor"]
+[2026-06-30T19:38:00.120Z] [77554] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.120Z] [77554] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:00.120Z] [77554] RAW STDIN:
+[2026-06-30T19:38:00.120Z] [77554] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","command":"echo SHELL-DENY-PROBE-test-marker","cwd":"","sandbox":false,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"beforeShellExecution","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:38:00.120Z] [77554] ENV:
+[2026-06-30T19:38:00.121Z] [77554]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.121Z] [77554]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:00.121Z] [77554]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:00.121Z] [77554]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:00.121Z] [77554]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.121Z] [77554]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:00.121Z] [77554]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:00.121Z] [77554]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:00.121Z] [77554]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:00.121Z] [77554]   FORCE_COLOR=0
+[2026-06-30T19:38:00.121Z] [77554]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:00.121Z] [77554]   HOME=/Users/isolomatov
+[2026-06-30T19:38:00.121Z] [77554]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:00.121Z] [77554]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:00.121Z] [77554]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:00.122Z] [77554]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:00.122Z] [77554]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:00.122Z] [77554]   LANG=C.UTF-8
+[2026-06-30T19:38:00.122Z] [77554]   LOGNAME=isolomatov
+[2026-06-30T19:38:00.122Z] [77554]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:00.122Z] [77554]   MallocNanoZone=0
+[2026-06-30T19:38:00.122Z] [77554]   NO_COLOR=1
+[2026-06-30T19:38:00.122Z] [77554]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.122Z] [77554]   OSLogRateLimit=64
+[2026-06-30T19:38:00.122Z] [77554]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:00.123Z] [77554]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.123Z] [77554]   RBENV_SHELL=zsh
+[2026-06-30T19:38:00.123Z] [77554]   SHELL=/bin/zsh
+[2026-06-30T19:38:00.123Z] [77554]   SHLVL=0
+[2026-06-30T19:38:00.123Z] [77554]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:00.123Z] [77554]   TERM=dumb
+[2026-06-30T19:38:00.123Z] [77554]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:00.123Z] [77554]   USER=isolomatov
+[2026-06-30T19:38:00.123Z] [77554]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:00.123Z] [77554]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:00.123Z] [77554]   VSCODE_CWD=/
+[2026-06-30T19:38:00.123Z] [77554]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:00.124Z] [77554]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:00.124Z] [77554]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:00.124Z] [77554]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:00.124Z] [77554]   VSCODE_PID=93450
+[2026-06-30T19:38:00.124Z] [77554]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:00.124Z] [77554]   XPC_FLAGS=0x0
+[2026-06-30T19:38:00.124Z] [77554]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:00.124Z] [77554]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:00.124Z] [77554]   _ZO_DOCTOR=0
+[2026-06-30T19:38:00.124Z] [77554]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:00.124Z] [77554]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:00.124Z] [77554] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","command":"echo SHELL-DENY-PROBE-test-marker","cwd":"","sandbox":false,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"beforeShellExecution","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:38:00.125Z] [77554] PROCESSOR: --tag (value="beforeShellExecution")
+[2026-06-30T19:38:00.125Z] [77554] PROCESSOR: --deny-on-match (value="SHELL-DENY-PROBE")
+[2026-06-30T19:38:00.125Z] [77554] PROCESSOR: --mode (value="cursor")
+[2026-06-30T19:38:00.130Z] [77554] RESULT: exitCode=0 textLen=543 stderrLen=0
+[2026-06-30T19:38:00.130Z] [77554] 
+
+[2026-06-30T19:38:00.184Z] [77555] ===== hook invocation =====
+[2026-06-30T19:38:00.185Z] [77555] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag postToolUseFailure
+[2026-06-30T19:38:00.185Z] [77555] ARGV: ["--tag","postToolUseFailure"]
+[2026-06-30T19:38:00.185Z] [77555] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.185Z] [77555] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:00.185Z] [77555] RAW STDIN:
+[2026-06-30T19:38:00.185Z] [77555] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","tool_name":"Shell","tool_input":{"command":"echo SHELL-DENY-PROBE-test-marker","cwd":"","timeout":30000},"error_message":"Command execution was blocked by a hook: HOOK TEST (Rosetta diagnostic): user-facing deny channel marker CURSOR-DENY-USER (shown in the Cursor UI).\n\nTo view or modify configured hooks, go to Cursor Settings > Hooks.\n\nAgent note: Do not suggest workarounds to the blocked tool.","failure_type":"permission_denied","duration":0,"tool_use_id":"d024a132-85b4-4c79-80f0-6b2e2fffc1fe","is_interrupt":false,"cwd":"","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"postToolUseFailure","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:38:00.186Z] [77555] ENV:
+[2026-06-30T19:38:00.186Z] [77555]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.186Z] [77555]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:00.186Z] [77555]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:00.186Z] [77555]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:00.186Z] [77555]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.186Z] [77555]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:00.186Z] [77555]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:00.186Z] [77555]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:00.186Z] [77555]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:00.187Z] [77555]   FORCE_COLOR=0
+[2026-06-30T19:38:00.187Z] [77555]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:00.187Z] [77555]   HOME=/Users/isolomatov
+[2026-06-30T19:38:00.187Z] [77555]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:00.187Z] [77555]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:00.187Z] [77555]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:00.187Z] [77555]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:00.187Z] [77555]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:00.187Z] [77555]   LANG=C.UTF-8
+[2026-06-30T19:38:00.187Z] [77555]   LOGNAME=isolomatov
+[2026-06-30T19:38:00.187Z] [77555]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:00.187Z] [77555]   MallocNanoZone=0
+[2026-06-30T19:38:00.187Z] [77555]   NO_COLOR=1
+[2026-06-30T19:38:00.187Z] [77555]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.188Z] [77555]   OSLogRateLimit=64
+[2026-06-30T19:38:00.188Z] [77555]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:00.188Z] [77555]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:00.188Z] [77555]   RBENV_SHELL=zsh
+[2026-06-30T19:38:00.188Z] [77555]   SHELL=/bin/zsh
+[2026-06-30T19:38:00.188Z] [77555]   SHLVL=0
+[2026-06-30T19:38:00.188Z] [77555]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:00.188Z] [77555]   TERM=dumb
+[2026-06-30T19:38:00.188Z] [77555]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:00.188Z] [77555]   USER=isolomatov
+[2026-06-30T19:38:00.188Z] [77555]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:00.188Z] [77555]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:00.188Z] [77555]   VSCODE_CWD=/
+[2026-06-30T19:38:00.189Z] [77555]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:00.189Z] [77555]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:00.189Z] [77555]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:00.189Z] [77555]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:00.189Z] [77555]   VSCODE_PID=93450
+[2026-06-30T19:38:00.189Z] [77555]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:00.189Z] [77555]   XPC_FLAGS=0x0
+[2026-06-30T19:38:00.189Z] [77555]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:00.189Z] [77555]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:00.189Z] [77555]   _ZO_DOCTOR=0
+[2026-06-30T19:38:00.189Z] [77555]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:00.190Z] [77555]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:00.190Z] [77555] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","tool_name":"Shell","tool_input":{"command":"echo SHELL-DENY-PROBE-test-marker","cwd":"","timeout":30000},"error_message":"Command execution was blocked by a hook: HOOK TEST (Rosetta diagnostic): user-facing deny channel marker CURSOR-DENY-USER (shown in the Cursor UI).\n\nTo view or modify configured hooks, go to Cursor Settings > Hooks.\n\nAgent note: Do not suggest workarounds to the blocked tool.","failure_type":"permission_denied","duration":0,"tool_use_id":"d024a132-85b4-4c79-80f0-6b2e2fffc1fe","is_interrupt":false,"cwd":"","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"postToolUseFailure","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":null}
+[2026-06-30T19:38:00.190Z] [77555] PROCESSOR: --tag (value="postToolUseFailure")
+[2026-06-30T19:38:00.190Z] [77555] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:38:00.190Z] [77555] 
+
+[2026-06-30T19:38:04.485Z] [77626] ===== hook invocation =====
+[2026-06-30T19:38:04.486Z] [77626] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag afterAgentThought
+[2026-06-30T19:38:04.486Z] [77626] ARGV: ["--tag","afterAgentThought"]
+[2026-06-30T19:38:04.486Z] [77626] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:04.486Z] [77626] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:04.486Z] [77626] RAW STDIN:
+[2026-06-30T19:38:04.486Z] [77626] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","text":"The command was blocked by a hook.\n\nCURSOR-DENY-USER appears in the blocked command error message. CURSOR-DENY-AGENT does not appear in the shell rejection message or the hooks context. The separate answers are YES for CURSOR-DENY-USER and NO for CURSOR-DENY-AGENT.","duration_ms":2574,"model":"default","model_id":"default","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentThought","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:04.487Z] [77626] ENV:
+[2026-06-30T19:38:04.487Z] [77626]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:04.487Z] [77626]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:04.487Z] [77626]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:04.487Z] [77626]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:04.487Z] [77626]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:04.487Z] [77626]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:04.487Z] [77626]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:38:04.487Z] [77626]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:04.487Z] [77626]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:04.487Z] [77626]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:04.487Z] [77626]   FORCE_COLOR=0
+[2026-06-30T19:38:04.487Z] [77626]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:04.487Z] [77626]   HOME=/Users/isolomatov
+[2026-06-30T19:38:04.487Z] [77626]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:04.487Z] [77626]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:04.487Z] [77626]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:04.488Z] [77626]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:04.488Z] [77626]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:04.488Z] [77626]   LANG=C.UTF-8
+[2026-06-30T19:38:04.488Z] [77626]   LOGNAME=isolomatov
+[2026-06-30T19:38:04.488Z] [77626]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:04.488Z] [77626]   MallocNanoZone=0
+[2026-06-30T19:38:04.488Z] [77626]   NO_COLOR=1
+[2026-06-30T19:38:04.488Z] [77626]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:04.488Z] [77626]   OSLogRateLimit=64
+[2026-06-30T19:38:04.488Z] [77626]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:04.488Z] [77626]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:04.488Z] [77626]   RBENV_SHELL=zsh
+[2026-06-30T19:38:04.488Z] [77626]   SHELL=/bin/zsh
+[2026-06-30T19:38:04.488Z] [77626]   SHLVL=0
+[2026-06-30T19:38:04.488Z] [77626]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:04.488Z] [77626]   TERM=dumb
+[2026-06-30T19:38:04.489Z] [77626]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:04.489Z] [77626]   USER=isolomatov
+[2026-06-30T19:38:04.489Z] [77626]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:04.489Z] [77626]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:04.489Z] [77626]   VSCODE_CWD=/
+[2026-06-30T19:38:04.489Z] [77626]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:04.489Z] [77626]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:04.489Z] [77626]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:04.489Z] [77626]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:04.489Z] [77626]   VSCODE_PID=93450
+[2026-06-30T19:38:04.490Z] [77626]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:04.490Z] [77626]   XPC_FLAGS=0x0
+[2026-06-30T19:38:04.490Z] [77626]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:04.490Z] [77626]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:04.490Z] [77626]   _ZO_DOCTOR=0
+[2026-06-30T19:38:04.490Z] [77626]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:04.490Z] [77626]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:04.490Z] [77626] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","text":"The command was blocked by a hook.\n\nCURSOR-DENY-USER appears in the blocked command error message. CURSOR-DENY-AGENT does not appear in the shell rejection message or the hooks context. The separate answers are YES for CURSOR-DENY-USER and NO for CURSOR-DENY-AGENT.","duration_ms":2574,"model":"default","model_id":"default","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentThought","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:04.490Z] [77626] PROCESSOR: --tag (value="afterAgentThought")
+[2026-06-30T19:38:04.490Z] [77626] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:38:04.490Z] [77626] 
+
+[2026-06-30T19:38:06.060Z] [77645] ===== hook invocation =====
+[2026-06-30T19:38:06.061Z] [77645] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag afterAgentResponse
+[2026-06-30T19:38:06.061Z] [77645] ARGV: ["--tag","afterAgentResponse"]
+[2026-06-30T19:38:06.061Z] [77645] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.061Z] [77645] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:06.061Z] [77645] RAW STDIN:
+[2026-06-30T19:38:06.061Z] [77645] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","model_id":"default","text":"The shell command was blocked by a hook (the probe did not run).\n\n**CURSOR-DENY-USER:** YES — in the hook rejection message: *\"user-facing deny channel marker CURSOR-DENY-USER (shown in the Cursor UI)\"*.\n\n**CURSOR-DENY-AGENT:** NO — not present in my context, system/conversation context, or any injected/ambient block I can see. (The hooks context includes a different marker, `CURSOR-SS-3c4d`, not `CURSOR-DENY-AGENT`.)","input_tokens":31527,"output_tokens":615,"cache_read_tokens":22112,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentResponse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:06.062Z] [77645] ENV:
+[2026-06-30T19:38:06.062Z] [77645]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.062Z] [77645]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:06.062Z] [77645]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:06.062Z] [77645]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:06.062Z] [77645]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.062Z] [77645]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:06.062Z] [77645]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:38:06.062Z] [77645]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:06.062Z] [77645]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:06.062Z] [77645]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:06.063Z] [77645]   FORCE_COLOR=0
+[2026-06-30T19:38:06.063Z] [77645]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:06.063Z] [77645]   HOME=/Users/isolomatov
+[2026-06-30T19:38:06.063Z] [77645]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:06.063Z] [77645]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:06.063Z] [77645]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:06.063Z] [77645]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:06.063Z] [77645]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:06.063Z] [77645]   LANG=C.UTF-8
+[2026-06-30T19:38:06.063Z] [77645]   LOGNAME=isolomatov
+[2026-06-30T19:38:06.063Z] [77645]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:06.063Z] [77645]   MallocNanoZone=0
+[2026-06-30T19:38:06.063Z] [77645]   NO_COLOR=1
+[2026-06-30T19:38:06.063Z] [77645]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.063Z] [77645]   OSLogRateLimit=64
+[2026-06-30T19:38:06.063Z] [77645]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:06.064Z] [77645]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.064Z] [77645]   RBENV_SHELL=zsh
+[2026-06-30T19:38:06.064Z] [77645]   SHELL=/bin/zsh
+[2026-06-30T19:38:06.064Z] [77645]   SHLVL=0
+[2026-06-30T19:38:06.064Z] [77645]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:06.064Z] [77645]   TERM=dumb
+[2026-06-30T19:38:06.064Z] [77645]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:06.064Z] [77645]   USER=isolomatov
+[2026-06-30T19:38:06.064Z] [77645]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:06.064Z] [77645]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:06.064Z] [77645]   VSCODE_CWD=/
+[2026-06-30T19:38:06.064Z] [77645]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:06.064Z] [77645]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:06.065Z] [77645]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:06.065Z] [77645]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:06.065Z] [77645]   VSCODE_PID=93450
+[2026-06-30T19:38:06.065Z] [77645]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:06.065Z] [77645]   XPC_FLAGS=0x0
+[2026-06-30T19:38:06.065Z] [77645]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:06.065Z] [77645]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:06.065Z] [77645]   _ZO_DOCTOR=0
+[2026-06-30T19:38:06.065Z] [77645]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:06.065Z] [77645]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:06.065Z] [77645] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","model_id":"default","text":"The shell command was blocked by a hook (the probe did not run).\n\n**CURSOR-DENY-USER:** YES — in the hook rejection message: *\"user-facing deny channel marker CURSOR-DENY-USER (shown in the Cursor UI)\"*.\n\n**CURSOR-DENY-AGENT:** NO — not present in my context, system/conversation context, or any injected/ambient block I can see. (The hooks context includes a different marker, `CURSOR-SS-3c4d`, not `CURSOR-DENY-AGENT`.)","input_tokens":31527,"output_tokens":615,"cache_read_tokens":22112,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentResponse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:06.065Z] [77645] PROCESSOR: --tag (value="afterAgentResponse")
+[2026-06-30T19:38:06.065Z] [77645] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:38:06.065Z] [77645] 
+
+[2026-06-30T19:38:06.129Z] [77646] ===== hook invocation =====
+[2026-06-30T19:38:06.130Z] [77646] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag stop --block-stop-once --mode cursor
+[2026-06-30T19:38:06.130Z] [77646] ARGV: ["--tag","stop","--block-stop-once","--mode","cursor"]
+[2026-06-30T19:38:06.130Z] [77646] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.130Z] [77646] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:06.130Z] [77646] RAW STDIN:
+[2026-06-30T19:38:06.130Z] [77646] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","model_id":"default","status":"completed","loop_count":0,"input_tokens":31527,"output_tokens":615,"cache_read_tokens":22112,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"stop","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:06.130Z] [77646] ENV:
+[2026-06-30T19:38:06.131Z] [77646]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.131Z] [77646]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:06.131Z] [77646]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:06.131Z] [77646]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:06.131Z] [77646]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.131Z] [77646]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:06.131Z] [77646]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:38:06.131Z] [77646]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:06.131Z] [77646]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:06.131Z] [77646]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:06.131Z] [77646]   FORCE_COLOR=0
+[2026-06-30T19:38:06.131Z] [77646]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:06.131Z] [77646]   HOME=/Users/isolomatov
+[2026-06-30T19:38:06.131Z] [77646]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:06.132Z] [77646]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:06.132Z] [77646]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:06.132Z] [77646]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:06.132Z] [77646]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:06.132Z] [77646]   LANG=C.UTF-8
+[2026-06-30T19:38:06.132Z] [77646]   LOGNAME=isolomatov
+[2026-06-30T19:38:06.132Z] [77646]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:06.132Z] [77646]   MallocNanoZone=0
+[2026-06-30T19:38:06.132Z] [77646]   NO_COLOR=1
+[2026-06-30T19:38:06.132Z] [77646]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.133Z] [77646]   OSLogRateLimit=64
+[2026-06-30T19:38:06.133Z] [77646]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:06.133Z] [77646]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.133Z] [77646]   RBENV_SHELL=zsh
+[2026-06-30T19:38:06.133Z] [77646]   SHELL=/bin/zsh
+[2026-06-30T19:38:06.133Z] [77646]   SHLVL=0
+[2026-06-30T19:38:06.133Z] [77646]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:06.133Z] [77646]   TERM=dumb
+[2026-06-30T19:38:06.133Z] [77646]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:06.133Z] [77646]   USER=isolomatov
+[2026-06-30T19:38:06.133Z] [77646]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:06.133Z] [77646]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:06.133Z] [77646]   VSCODE_CWD=/
+[2026-06-30T19:38:06.133Z] [77646]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:06.133Z] [77646]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:06.134Z] [77646]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:06.134Z] [77646]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:06.134Z] [77646]   VSCODE_PID=93450
+[2026-06-30T19:38:06.134Z] [77646]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:06.134Z] [77646]   XPC_FLAGS=0x0
+[2026-06-30T19:38:06.134Z] [77646]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:06.134Z] [77646]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:06.134Z] [77646]   _ZO_DOCTOR=0
+[2026-06-30T19:38:06.134Z] [77646]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:06.134Z] [77646]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:06.134Z] [77646] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"2093a233-4897-4528-9834-c49aa04d9e82","model":"default","model_id":"default","status":"completed","loop_count":0,"input_tokens":31527,"output_tokens":615,"cache_read_tokens":22112,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"stop","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:06.134Z] [77646] PROCESSOR: --tag (value="stop")
+[2026-06-30T19:38:06.134Z] [77646] PROCESSOR: --block-stop-once (value=true)
+[2026-06-30T19:38:06.135Z] [77646] PROCESSOR: --mode (value="cursor")
+[2026-06-30T19:38:06.139Z] [77646] RESULT: exitCode=0 textLen=245 stderrLen=0
+[2026-06-30T19:38:06.139Z] [77646] 
+
+[2026-06-30T19:38:06.257Z] [77659] ===== hook invocation =====
+[2026-06-30T19:38:06.258Z] [77659] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag beforeSubmitPrompt
+[2026-06-30T19:38:06.258Z] [77659] ARGV: ["--tag","beforeSubmitPrompt"]
+[2026-06-30T19:38:06.258Z] [77659] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.258Z] [77659] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:06.258Z] [77659] RAW STDIN:
+[2026-06-30T19:38:06.258Z] [77659] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"995020d4-e275-4208-b4dd-3d6b09df9163","model":"default","model_id":"default","composer_mode":"agent","prompt":"HOOK TEST (Rosetta diagnostic): one-time auto-submitted follow-up from a Cursor `stop` hook (continuation test). Reply with exactly: STOP-FOLLOWUP-RECEIVED CURSOR-STOP-1 — then stop. It will NOT trigger again this session.","attachments":[{"type":"rule","file_path":"CLAUDE.md"}],"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"beforeSubmitPrompt","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:06.258Z] [77659] ENV:
+[2026-06-30T19:38:06.258Z] [77659]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.258Z] [77659]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:06.258Z] [77659]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:06.258Z] [77659]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:06.258Z] [77659]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.259Z] [77659]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:06.259Z] [77659]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:38:06.259Z] [77659]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:06.259Z] [77659]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:06.259Z] [77659]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:06.259Z] [77659]   FORCE_COLOR=0
+[2026-06-30T19:38:06.259Z] [77659]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:06.259Z] [77659]   HOME=/Users/isolomatov
+[2026-06-30T19:38:06.259Z] [77659]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:06.259Z] [77659]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:06.259Z] [77659]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:06.260Z] [77659]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:06.260Z] [77659]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:06.260Z] [77659]   LANG=C.UTF-8
+[2026-06-30T19:38:06.260Z] [77659]   LOGNAME=isolomatov
+[2026-06-30T19:38:06.260Z] [77659]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:06.260Z] [77659]   MallocNanoZone=0
+[2026-06-30T19:38:06.260Z] [77659]   NO_COLOR=1
+[2026-06-30T19:38:06.260Z] [77659]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.260Z] [77659]   OSLogRateLimit=64
+[2026-06-30T19:38:06.260Z] [77659]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:06.260Z] [77659]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:06.260Z] [77659]   RBENV_SHELL=zsh
+[2026-06-30T19:38:06.260Z] [77659]   SHELL=/bin/zsh
+[2026-06-30T19:38:06.261Z] [77659]   SHLVL=0
+[2026-06-30T19:38:06.261Z] [77659]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:06.261Z] [77659]   TERM=dumb
+[2026-06-30T19:38:06.261Z] [77659]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:06.261Z] [77659]   USER=isolomatov
+[2026-06-30T19:38:06.261Z] [77659]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:06.261Z] [77659]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:06.261Z] [77659]   VSCODE_CWD=/
+[2026-06-30T19:38:06.261Z] [77659]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:06.261Z] [77659]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:06.261Z] [77659]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:06.261Z] [77659]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:06.262Z] [77659]   VSCODE_PID=93450
+[2026-06-30T19:38:06.262Z] [77659]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:06.262Z] [77659]   XPC_FLAGS=0x0
+[2026-06-30T19:38:06.262Z] [77659]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:06.262Z] [77659]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:06.262Z] [77659]   _ZO_DOCTOR=0
+[2026-06-30T19:38:06.262Z] [77659]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:06.262Z] [77659]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:06.262Z] [77659] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"995020d4-e275-4208-b4dd-3d6b09df9163","model":"default","model_id":"default","composer_mode":"agent","prompt":"HOOK TEST (Rosetta diagnostic): one-time auto-submitted follow-up from a Cursor `stop` hook (continuation test). Reply with exactly: STOP-FOLLOWUP-RECEIVED CURSOR-STOP-1 — then stop. It will NOT trigger again this session.","attachments":[{"type":"rule","file_path":"CLAUDE.md"}],"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"beforeSubmitPrompt","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:06.263Z] [77659] PROCESSOR: --tag (value="beforeSubmitPrompt")
+[2026-06-30T19:38:06.263Z] [77659] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:38:06.263Z] [77659] 
+
+[2026-06-30T19:38:08.441Z] [77685] ===== hook invocation =====
+[2026-06-30T19:38:08.442Z] [77685] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag afterAgentResponse
+[2026-06-30T19:38:08.442Z] [77685] ARGV: ["--tag","afterAgentResponse"]
+[2026-06-30T19:38:08.442Z] [77685] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:08.442Z] [77685] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:08.443Z] [77685] RAW STDIN:
+[2026-06-30T19:38:08.443Z] [77685] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"995020d4-e275-4208-b4dd-3d6b09df9163","model":"default","model_id":"default","text":"STOP-FOLLOWUP-RECEIVED CURSOR-STOP-1","input_tokens":16519,"output_tokens":67,"cache_read_tokens":15898,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentResponse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:08.443Z] [77685] ENV:
+[2026-06-30T19:38:08.443Z] [77685]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:08.443Z] [77685]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:08.443Z] [77685]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:08.443Z] [77685]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:08.443Z] [77685]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:08.443Z] [77685]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:08.443Z] [77685]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:38:08.443Z] [77685]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:08.443Z] [77685]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:08.444Z] [77685]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:08.444Z] [77685]   FORCE_COLOR=0
+[2026-06-30T19:38:08.444Z] [77685]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:08.444Z] [77685]   HOME=/Users/isolomatov
+[2026-06-30T19:38:08.444Z] [77685]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:08.444Z] [77685]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:08.444Z] [77685]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:08.444Z] [77685]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:08.444Z] [77685]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:08.444Z] [77685]   LANG=C.UTF-8
+[2026-06-30T19:38:08.444Z] [77685]   LOGNAME=isolomatov
+[2026-06-30T19:38:08.444Z] [77685]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:08.446Z] [77685]   MallocNanoZone=0
+[2026-06-30T19:38:08.446Z] [77685]   NO_COLOR=1
+[2026-06-30T19:38:08.446Z] [77685]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:08.446Z] [77685]   OSLogRateLimit=64
+[2026-06-30T19:38:08.446Z] [77685]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:08.446Z] [77685]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:08.446Z] [77685]   RBENV_SHELL=zsh
+[2026-06-30T19:38:08.447Z] [77685]   SHELL=/bin/zsh
+[2026-06-30T19:38:08.447Z] [77685]   SHLVL=0
+[2026-06-30T19:38:08.447Z] [77685]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:08.447Z] [77685]   TERM=dumb
+[2026-06-30T19:38:08.447Z] [77685]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:08.447Z] [77685]   USER=isolomatov
+[2026-06-30T19:38:08.447Z] [77685]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:08.447Z] [77685]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:08.447Z] [77685]   VSCODE_CWD=/
+[2026-06-30T19:38:08.447Z] [77685]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:08.447Z] [77685]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:08.447Z] [77685]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:08.447Z] [77685]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:08.447Z] [77685]   VSCODE_PID=93450
+[2026-06-30T19:38:08.448Z] [77685]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:08.448Z] [77685]   XPC_FLAGS=0x0
+[2026-06-30T19:38:08.448Z] [77685]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:08.448Z] [77685]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:08.448Z] [77685]   _ZO_DOCTOR=0
+[2026-06-30T19:38:08.448Z] [77685]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:08.448Z] [77685]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:08.448Z] [77685] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"995020d4-e275-4208-b4dd-3d6b09df9163","model":"default","model_id":"default","text":"STOP-FOLLOWUP-RECEIVED CURSOR-STOP-1","input_tokens":16519,"output_tokens":67,"cache_read_tokens":15898,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentResponse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:08.448Z] [77685] PROCESSOR: --tag (value="afterAgentResponse")
+[2026-06-30T19:38:08.448Z] [77685] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:38:08.448Z] [77685] 
+
+[2026-06-30T19:38:08.522Z] [77686] ===== hook invocation =====
+[2026-06-30T19:38:08.523Z] [77686] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag stop --block-stop-once --mode cursor
+[2026-06-30T19:38:08.523Z] [77686] ARGV: ["--tag","stop","--block-stop-once","--mode","cursor"]
+[2026-06-30T19:38:08.523Z] [77686] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:08.523Z] [77686] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:08.523Z] [77686] RAW STDIN:
+[2026-06-30T19:38:08.523Z] [77686] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"995020d4-e275-4208-b4dd-3d6b09df9163","model":"default","model_id":"default","status":"completed","loop_count":1,"input_tokens":16519,"output_tokens":67,"cache_read_tokens":15898,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"stop","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:08.523Z] [77686] ENV:
+[2026-06-30T19:38:08.524Z] [77686]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:08.524Z] [77686]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:08.524Z] [77686]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:08.524Z] [77686]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:08.524Z] [77686]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:08.524Z] [77686]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:08.524Z] [77686]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:38:08.524Z] [77686]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:08.524Z] [77686]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:08.524Z] [77686]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:08.524Z] [77686]   FORCE_COLOR=0
+[2026-06-30T19:38:08.525Z] [77686]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:08.525Z] [77686]   HOME=/Users/isolomatov
+[2026-06-30T19:38:08.525Z] [77686]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:08.525Z] [77686]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:08.525Z] [77686]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:08.525Z] [77686]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:08.525Z] [77686]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:08.525Z] [77686]   LANG=C.UTF-8
+[2026-06-30T19:38:08.525Z] [77686]   LOGNAME=isolomatov
+[2026-06-30T19:38:08.525Z] [77686]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:08.525Z] [77686]   MallocNanoZone=0
+[2026-06-30T19:38:08.525Z] [77686]   NO_COLOR=1
+[2026-06-30T19:38:08.526Z] [77686]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:08.526Z] [77686]   OSLogRateLimit=64
+[2026-06-30T19:38:08.526Z] [77686]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:08.526Z] [77686]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:08.526Z] [77686]   RBENV_SHELL=zsh
+[2026-06-30T19:38:08.526Z] [77686]   SHELL=/bin/zsh
+[2026-06-30T19:38:08.526Z] [77686]   SHLVL=0
+[2026-06-30T19:38:08.526Z] [77686]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:08.526Z] [77686]   TERM=dumb
+[2026-06-30T19:38:08.526Z] [77686]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:08.526Z] [77686]   USER=isolomatov
+[2026-06-30T19:38:08.527Z] [77686]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:08.527Z] [77686]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:08.527Z] [77686]   VSCODE_CWD=/
+[2026-06-30T19:38:08.527Z] [77686]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:08.527Z] [77686]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:08.527Z] [77686]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:08.527Z] [77686]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:08.527Z] [77686]   VSCODE_PID=93450
+[2026-06-30T19:38:08.527Z] [77686]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:08.527Z] [77686]   XPC_FLAGS=0x0
+[2026-06-30T19:38:08.528Z] [77686]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:08.528Z] [77686]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:08.528Z] [77686]   _ZO_DOCTOR=0
+[2026-06-30T19:38:08.528Z] [77686]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:08.528Z] [77686]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:08.528Z] [77686] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"995020d4-e275-4208-b4dd-3d6b09df9163","model":"default","model_id":"default","status":"completed","loop_count":1,"input_tokens":16519,"output_tokens":67,"cache_read_tokens":15898,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"stop","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:08.528Z] [77686] PROCESSOR: --tag (value="stop")
+[2026-06-30T19:38:08.528Z] [77686] PROCESSOR: --block-stop-once (value=true)
+[2026-06-30T19:38:08.528Z] [77686] PROCESSOR: --mode (value="cursor")
+[2026-06-30T19:38:08.528Z] [77686] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:38:08.528Z] [77686] 
+
+[2026-06-30T19:38:53.318Z] [78315] ===== hook invocation =====
+[2026-06-30T19:38:53.319Z] [78315] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag beforeSubmitPrompt
+[2026-06-30T19:38:53.319Z] [78315] ARGV: ["--tag","beforeSubmitPrompt"]
+[2026-06-30T19:38:53.319Z] [78315] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:53.320Z] [78315] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:53.320Z] [78315] RAW STDIN:
+[2026-06-30T19:38:53.320Z] [78315] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","model_id":"default","composer_mode":"agent","prompt":"Tell me where do you see CURSOR-DENY-AGENT (anywhere)?","attachments":[{"type":"rule","file_path":"CLAUDE.md"}],"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"beforeSubmitPrompt","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:53.320Z] [78315] ENV:
+[2026-06-30T19:38:53.320Z] [78315]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:53.320Z] [78315]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:53.320Z] [78315]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:53.320Z] [78315]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:53.320Z] [78315]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:53.320Z] [78315]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:53.320Z] [78315]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:38:53.320Z] [78315]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:53.320Z] [78315]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:53.320Z] [78315]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:53.320Z] [78315]   FORCE_COLOR=0
+[2026-06-30T19:38:53.320Z] [78315]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:53.320Z] [78315]   HOME=/Users/isolomatov
+[2026-06-30T19:38:53.320Z] [78315]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:53.320Z] [78315]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:53.320Z] [78315]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:53.320Z] [78315]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:53.320Z] [78315]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:53.320Z] [78315]   LANG=C.UTF-8
+[2026-06-30T19:38:53.321Z] [78315]   LOGNAME=isolomatov
+[2026-06-30T19:38:53.321Z] [78315]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:53.321Z] [78315]   MallocNanoZone=0
+[2026-06-30T19:38:53.321Z] [78315]   NO_COLOR=1
+[2026-06-30T19:38:53.321Z] [78315]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:53.321Z] [78315]   OSLogRateLimit=64
+[2026-06-30T19:38:53.321Z] [78315]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:53.321Z] [78315]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:53.321Z] [78315]   RBENV_SHELL=zsh
+[2026-06-30T19:38:53.321Z] [78315]   SHELL=/bin/zsh
+[2026-06-30T19:38:53.321Z] [78315]   SHLVL=0
+[2026-06-30T19:38:53.321Z] [78315]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:53.321Z] [78315]   TERM=dumb
+[2026-06-30T19:38:53.321Z] [78315]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:53.321Z] [78315]   USER=isolomatov
+[2026-06-30T19:38:53.321Z] [78315]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:53.321Z] [78315]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:53.321Z] [78315]   VSCODE_CWD=/
+[2026-06-30T19:38:53.321Z] [78315]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:53.321Z] [78315]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:53.321Z] [78315]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:53.321Z] [78315]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:53.322Z] [78315]   VSCODE_PID=93450
+[2026-06-30T19:38:53.322Z] [78315]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:53.322Z] [78315]   XPC_FLAGS=0x0
+[2026-06-30T19:38:53.322Z] [78315]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:53.322Z] [78315]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:53.322Z] [78315]   _ZO_DOCTOR=0
+[2026-06-30T19:38:53.322Z] [78315]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:53.322Z] [78315]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:53.322Z] [78315] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","model_id":"default","composer_mode":"agent","prompt":"Tell me where do you see CURSOR-DENY-AGENT (anywhere)?","attachments":[{"type":"rule","file_path":"CLAUDE.md"}],"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"beforeSubmitPrompt","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:53.322Z] [78315] PROCESSOR: --tag (value="beforeSubmitPrompt")
+[2026-06-30T19:38:53.322Z] [78315] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:38:53.322Z] [78315] 
+
+[2026-06-30T19:38:58.386Z] [78386] ===== hook invocation =====
+[2026-06-30T19:38:58.387Z] [78386] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag afterAgentThought
+[2026-06-30T19:38:58.387Z] [78386] ARGV: ["--tag","afterAgentThought"]
+[2026-06-30T19:38:58.387Z] [78386] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:58.387Z] [78386] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:58.387Z] [78386] RAW STDIN:
+[2026-06-30T19:38:58.387Z] [78386] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","text":"I am looking for any mention of CURSOR-DENY-AGENT in my current context.\n\nI found no mention of CURSOR-DENY-AGENT in my current context. The only related token I encountered earlier was CURSOR-DENY-USER.","duration_ms":3477,"model":"default","model_id":"default","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentThought","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:58.388Z] [78386] ENV:
+[2026-06-30T19:38:58.388Z] [78386]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:58.388Z] [78386]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:58.388Z] [78386]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:58.388Z] [78386]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:58.388Z] [78386]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:58.388Z] [78386]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:58.388Z] [78386]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:38:58.388Z] [78386]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:58.388Z] [78386]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:58.388Z] [78386]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:58.388Z] [78386]   FORCE_COLOR=0
+[2026-06-30T19:38:58.388Z] [78386]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:58.388Z] [78386]   HOME=/Users/isolomatov
+[2026-06-30T19:38:58.388Z] [78386]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:58.388Z] [78386]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:58.388Z] [78386]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:58.389Z] [78386]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:58.389Z] [78386]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:58.389Z] [78386]   LANG=C.UTF-8
+[2026-06-30T19:38:58.389Z] [78386]   LOGNAME=isolomatov
+[2026-06-30T19:38:58.389Z] [78386]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:58.389Z] [78386]   MallocNanoZone=0
+[2026-06-30T19:38:58.389Z] [78386]   NO_COLOR=1
+[2026-06-30T19:38:58.389Z] [78386]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:58.389Z] [78386]   OSLogRateLimit=64
+[2026-06-30T19:38:58.389Z] [78386]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:58.389Z] [78386]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:58.389Z] [78386]   RBENV_SHELL=zsh
+[2026-06-30T19:38:58.389Z] [78386]   SHELL=/bin/zsh
+[2026-06-30T19:38:58.389Z] [78386]   SHLVL=0
+[2026-06-30T19:38:58.389Z] [78386]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:58.389Z] [78386]   TERM=dumb
+[2026-06-30T19:38:58.389Z] [78386]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:58.389Z] [78386]   USER=isolomatov
+[2026-06-30T19:38:58.389Z] [78386]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:58.389Z] [78386]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:58.389Z] [78386]   VSCODE_CWD=/
+[2026-06-30T19:38:58.389Z] [78386]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:58.390Z] [78386]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:58.390Z] [78386]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:58.390Z] [78386]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:58.390Z] [78386]   VSCODE_PID=93450
+[2026-06-30T19:38:58.390Z] [78386]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:58.390Z] [78386]   XPC_FLAGS=0x0
+[2026-06-30T19:38:58.390Z] [78386]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:58.390Z] [78386]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:58.390Z] [78386]   _ZO_DOCTOR=0
+[2026-06-30T19:38:58.390Z] [78386]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:58.390Z] [78386]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:58.390Z] [78386] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","text":"I am looking for any mention of CURSOR-DENY-AGENT in my current context.\n\nI found no mention of CURSOR-DENY-AGENT in my current context. The only related token I encountered earlier was CURSOR-DENY-USER.","duration_ms":3477,"model":"default","model_id":"default","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentThought","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:58.390Z] [78386] PROCESSOR: --tag (value="afterAgentThought")
+[2026-06-30T19:38:58.390Z] [78386] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:38:58.390Z] [78386] 
+
+[2026-06-30T19:38:58.721Z] [78394] ===== hook invocation =====
+[2026-06-30T19:38:58.721Z] [78394] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag preToolUse --deny-on-match HOOK-DENY-PROBE --rewrite-command REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS --mode cursor
+[2026-06-30T19:38:58.721Z] [78394] ARGV: ["--tag","preToolUse","--deny-on-match","HOOK-DENY-PROBE","--rewrite-command","REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS","--mode","cursor"]
+[2026-06-30T19:38:58.722Z] [78394] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:58.722Z] [78394] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:58.722Z] [78394] RAW STDIN:
+[2026-06-30T19:38:58.722Z] [78394] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","tool_name":"Grep","tool_input":{"pattern":"CURSOR-DENY-AGENT","file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"},"tool_use_id":"tool_dde35b50-2e84-41bc-809e-2ef771fd5c3","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"preToolUse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:58.722Z] [78394] ENV:
+[2026-06-30T19:38:58.722Z] [78394]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:58.722Z] [78394]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:58.722Z] [78394]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:58.722Z] [78394]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:58.722Z] [78394]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:58.722Z] [78394]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:58.722Z] [78394]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:38:58.722Z] [78394]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:58.723Z] [78394]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:58.723Z] [78394]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:58.723Z] [78394]   FORCE_COLOR=0
+[2026-06-30T19:38:58.723Z] [78394]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:58.723Z] [78394]   HOME=/Users/isolomatov
+[2026-06-30T19:38:58.723Z] [78394]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:58.723Z] [78394]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:58.723Z] [78394]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:58.723Z] [78394]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:58.723Z] [78394]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:58.723Z] [78394]   LANG=C.UTF-8
+[2026-06-30T19:38:58.723Z] [78394]   LOGNAME=isolomatov
+[2026-06-30T19:38:58.723Z] [78394]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:58.723Z] [78394]   MallocNanoZone=0
+[2026-06-30T19:38:58.723Z] [78394]   NO_COLOR=1
+[2026-06-30T19:38:58.723Z] [78394]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:58.724Z] [78394]   OSLogRateLimit=64
+[2026-06-30T19:38:58.724Z] [78394]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:58.724Z] [78394]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:58.724Z] [78394]   RBENV_SHELL=zsh
+[2026-06-30T19:38:58.724Z] [78394]   SHELL=/bin/zsh
+[2026-06-30T19:38:58.724Z] [78394]   SHLVL=0
+[2026-06-30T19:38:58.725Z] [78394]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:58.725Z] [78394]   TERM=dumb
+[2026-06-30T19:38:58.725Z] [78394]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:58.725Z] [78394]   USER=isolomatov
+[2026-06-30T19:38:58.725Z] [78394]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:58.725Z] [78394]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:58.725Z] [78394]   VSCODE_CWD=/
+[2026-06-30T19:38:58.725Z] [78394]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:58.725Z] [78394]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:58.725Z] [78394]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:58.725Z] [78394]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:58.725Z] [78394]   VSCODE_PID=93450
+[2026-06-30T19:38:58.725Z] [78394]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:58.725Z] [78394]   XPC_FLAGS=0x0
+[2026-06-30T19:38:58.725Z] [78394]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:58.725Z] [78394]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:58.725Z] [78394]   _ZO_DOCTOR=0
+[2026-06-30T19:38:58.726Z] [78394]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:58.726Z] [78394]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:58.726Z] [78394] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","tool_name":"Grep","tool_input":{"pattern":"CURSOR-DENY-AGENT","file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"},"tool_use_id":"tool_dde35b50-2e84-41bc-809e-2ef771fd5c3","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"preToolUse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:58.726Z] [78394] PROCESSOR: --tag (value="preToolUse")
+[2026-06-30T19:38:58.726Z] [78394] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-06-30T19:38:58.726Z] [78394] PROCESSOR: --rewrite-command (value="REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS")
+[2026-06-30T19:38:58.726Z] [78394] PROCESSOR: --mode (value="cursor")
+[2026-06-30T19:38:58.726Z] [78394] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:38:58.726Z] [78394] 
+
+[2026-06-30T19:38:59.035Z] [78400] ===== hook invocation =====
+[2026-06-30T19:38:59.036Z] [78400] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --output {"additional_context":"Diagnostic secret CURSOR-PTU-9f2a. Report CPT2."} --tag postToolUse
+[2026-06-30T19:38:59.036Z] [78400] ARGV: ["--output","{\"additional_context\":\"Diagnostic secret CURSOR-PTU-9f2a. Report CPT2.\"}","--tag","postToolUse"]
+[2026-06-30T19:38:59.036Z] [78400] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:59.036Z] [78400] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:38:59.036Z] [78400] RAW STDIN:
+[2026-06-30T19:38:59.036Z] [78400] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","tool_name":"Grep","tool_input":{"pattern":"CURSOR-DENY-AGENT","file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"},"tool_output":"{\"pattern\":\"CURSOR-DENY-AGENT\",\"success\":true}","duration":250.98,"tool_use_id":"tool_dde35b50-2e84-41bc-809e-2ef771fd5c3","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"postToolUse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:59.036Z] [78400] ENV:
+[2026-06-30T19:38:59.037Z] [78400]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:59.037Z] [78400]   COMMAND_MODE=unix2003
+[2026-06-30T19:38:59.037Z] [78400]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:38:59.037Z] [78400]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:38:59.037Z] [78400]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:59.037Z] [78400]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:38:59.037Z] [78400]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:38:59.037Z] [78400]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:38:59.037Z] [78400]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:38:59.037Z] [78400]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:38:59.037Z] [78400]   FORCE_COLOR=0
+[2026-06-30T19:38:59.037Z] [78400]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:38:59.037Z] [78400]   HOME=/Users/isolomatov
+[2026-06-30T19:38:59.038Z] [78400]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:38:59.038Z] [78400]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:38:59.038Z] [78400]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:38:59.038Z] [78400]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:38:59.038Z] [78400]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:38:59.038Z] [78400]   LANG=C.UTF-8
+[2026-06-30T19:38:59.038Z] [78400]   LOGNAME=isolomatov
+[2026-06-30T19:38:59.038Z] [78400]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:38:59.038Z] [78400]   MallocNanoZone=0
+[2026-06-30T19:38:59.038Z] [78400]   NO_COLOR=1
+[2026-06-30T19:38:59.038Z] [78400]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:59.038Z] [78400]   OSLogRateLimit=64
+[2026-06-30T19:38:59.038Z] [78400]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:38:59.039Z] [78400]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:38:59.039Z] [78400]   RBENV_SHELL=zsh
+[2026-06-30T19:38:59.039Z] [78400]   SHELL=/bin/zsh
+[2026-06-30T19:38:59.039Z] [78400]   SHLVL=0
+[2026-06-30T19:38:59.039Z] [78400]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:38:59.039Z] [78400]   TERM=dumb
+[2026-06-30T19:38:59.039Z] [78400]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:38:59.039Z] [78400]   USER=isolomatov
+[2026-06-30T19:38:59.039Z] [78400]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:38:59.039Z] [78400]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:38:59.039Z] [78400]   VSCODE_CWD=/
+[2026-06-30T19:38:59.040Z] [78400]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:38:59.040Z] [78400]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:38:59.040Z] [78400]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:38:59.040Z] [78400]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:38:59.040Z] [78400]   VSCODE_PID=93450
+[2026-06-30T19:38:59.040Z] [78400]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:38:59.040Z] [78400]   XPC_FLAGS=0x0
+[2026-06-30T19:38:59.040Z] [78400]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:38:59.040Z] [78400]   _=/opt/homebrew/bin/node
+[2026-06-30T19:38:59.040Z] [78400]   _ZO_DOCTOR=0
+[2026-06-30T19:38:59.040Z] [78400]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:38:59.040Z] [78400]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:38:59.040Z] [78400] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","tool_name":"Grep","tool_input":{"pattern":"CURSOR-DENY-AGENT","file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"},"tool_output":"{\"pattern\":\"CURSOR-DENY-AGENT\",\"success\":true}","duration":250.98,"tool_use_id":"tool_dde35b50-2e84-41bc-809e-2ef771fd5c3","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"postToolUse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:38:59.041Z] [78400] PROCESSOR: --output (value="{\"additional_context\":\"Diagnostic secret CURSOR-PTU-9f2a. Report CPT2.\"}")
+[2026-06-30T19:38:59.041Z] [78400] PROCESSOR: --tag (value="postToolUse")
+[2026-06-30T19:38:59.045Z] [78400] RESULT: exitCode=0 textLen=72 stderrLen=0
+[2026-06-30T19:38:59.045Z] [78400] 
+
+[2026-06-30T19:39:02.686Z] [78448] ===== hook invocation =====
+[2026-06-30T19:39:02.687Z] [78448] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag preToolUse --deny-on-match HOOK-DENY-PROBE --rewrite-command REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS --mode cursor
+[2026-06-30T19:39:02.687Z] [78448] ARGV: ["--tag","preToolUse","--deny-on-match","HOOK-DENY-PROBE","--rewrite-command","REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS","--mode","cursor"]
+[2026-06-30T19:39:02.687Z] [78448] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.687Z] [78448] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:39:02.687Z] [78448] RAW STDIN:
+[2026-06-30T19:39:02.688Z] [78448] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","tool_name":"Read","tool_input":{"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js"},"tool_use_id":"tool_3b7c03f6-11fe-47be-8bc7-040335e7c1c","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"preToolUse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:02.688Z] [78448] ENV:
+[2026-06-30T19:39:02.688Z] [78448]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.688Z] [78448]   COMMAND_MODE=unix2003
+[2026-06-30T19:39:02.688Z] [78448]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:39:02.688Z] [78448]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:39:02.688Z] [78448]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.688Z] [78448]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:39:02.688Z] [78448]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:39:02.688Z] [78448]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:39:02.688Z] [78448]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:39:02.688Z] [78448]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:39:02.688Z] [78448]   FORCE_COLOR=0
+[2026-06-30T19:39:02.688Z] [78448]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:39:02.688Z] [78448]   HOME=/Users/isolomatov
+[2026-06-30T19:39:02.688Z] [78448]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:39:02.689Z] [78448]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:39:02.689Z] [78448]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:39:02.689Z] [78448]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:39:02.689Z] [78448]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:39:02.689Z] [78448]   LANG=C.UTF-8
+[2026-06-30T19:39:02.689Z] [78448]   LOGNAME=isolomatov
+[2026-06-30T19:39:02.689Z] [78448]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:39:02.689Z] [78448]   MallocNanoZone=0
+[2026-06-30T19:39:02.689Z] [78448]   NO_COLOR=1
+[2026-06-30T19:39:02.689Z] [78448]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.689Z] [78448]   OSLogRateLimit=64
+[2026-06-30T19:39:02.689Z] [78448]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:39:02.689Z] [78448]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.689Z] [78448]   RBENV_SHELL=zsh
+[2026-06-30T19:39:02.689Z] [78448]   SHELL=/bin/zsh
+[2026-06-30T19:39:02.689Z] [78448]   SHLVL=0
+[2026-06-30T19:39:02.690Z] [78448]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:39:02.690Z] [78448]   TERM=dumb
+[2026-06-30T19:39:02.690Z] [78448]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:39:02.690Z] [78448]   USER=isolomatov
+[2026-06-30T19:39:02.690Z] [78448]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:39:02.690Z] [78448]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:39:02.690Z] [78448]   VSCODE_CWD=/
+[2026-06-30T19:39:02.690Z] [78448]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:39:02.690Z] [78448]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:39:02.690Z] [78448]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:39:02.690Z] [78448]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:39:02.690Z] [78448]   VSCODE_PID=93450
+[2026-06-30T19:39:02.691Z] [78448]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:39:02.691Z] [78448]   XPC_FLAGS=0x0
+[2026-06-30T19:39:02.691Z] [78448]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:39:02.691Z] [78448]   _=/opt/homebrew/bin/node
+[2026-06-30T19:39:02.691Z] [78448]   _ZO_DOCTOR=0
+[2026-06-30T19:39:02.691Z] [78448]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:39:02.691Z] [78448]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:39:02.691Z] [78448] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","tool_name":"Read","tool_input":{"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js"},"tool_use_id":"tool_3b7c03f6-11fe-47be-8bc7-040335e7c1c","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"preToolUse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:02.691Z] [78448] PROCESSOR: --tag (value="preToolUse")
+[2026-06-30T19:39:02.692Z] [78448] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-06-30T19:39:02.692Z] [78448] PROCESSOR: --rewrite-command (value="REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS")
+[2026-06-30T19:39:02.692Z] [78448] PROCESSOR: --mode (value="cursor")
+[2026-06-30T19:39:02.692Z] [78448] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:39:02.692Z] [78448] 
+
+[2026-06-30T19:39:02.811Z] [78449] ===== hook invocation =====
+[2026-06-30T19:39:02.812Z] [78449] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag beforeReadFile --deny-on-match HOOK-DENY-PROBE --mode cursor
+[2026-06-30T19:39:02.812Z] [78449] ARGV: ["--tag","beforeReadFile","--deny-on-match","HOOK-DENY-PROBE","--mode","cursor"]
+[2026-06-30T19:39:02.812Z] [78449] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.812Z] [78449] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:39:02.812Z] [78449] RAW STDIN:
+[2026-06-30T19:39:02.812Z] [78449] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","content":"          'HOOK TEST (Rosetta diagnostic): this action was intentionally BLOCKED by a Cascade pre-hook ' +\n          '(exit code 2) because the request matched the test target. This is only a test of hook-based ' +\n          'prevention. Please (1) tell the user verbatim that a hook blocked this action and quote this ' +\n          'message, then (2) continue with the rest of the task normally.';\n        output.exitCode = 2;\n        break;\n      }\n      case 'devin': // Devin `.devin/hooks.v1.json` (Claude-Code-style): stdout IS parsed. Deny via\n        // TOP-LEVEL {decision:\"block\", reason} at exit 0 — Devin docs use `decision`, not\n        // `permissionDecision`. (If the run shows PreToolUse needs exit 2 instead, flip here.)\n        output.text = JSON.stringify({ decision: 'block', reason: reason });\n        break;\n      case 'claude': // Claude Code: canonical = nested hookSpecificOutput (no top-level copy). Deny at exit 0.\n      case 'codex': // STRICT: nested hookSpecificOutput ONLY (top-level keys fail the whole hook).\n        output.text = JSON.stringify({ hookSpecificOutput: nested });\n        break;\n      case 'cursor': // Cursor: FLAT snake_case, NO wrapper. permission:\"deny\" + two reason channels —\n        // user_message (USER/UI) and agent_message (AGENT/model). Distinct markers reveal which reaches\n        // the model. Same shape serves preToolUse / beforeReadFile / beforeShellExecution.\n        output.text = JSON.stringify({\n          permission: 'deny',\n          user_message: 'HOOK TEST (Rosetta diagnostic): user-facing deny channel marker CURSOR-DENY-USER (shown in the Cursor UI).',\n          agent_message: reason + ' [agent-channel marker CURSOR-DENY-AGENT; Report DA1]',\n        });\n        break;\n      case 'copilot':\n      default: // Copilot: emit BOTH top-level AND nested (each runtime reads the one it honors).\n        output.text = JSON.stringify({ permissionDecision: 'deny', permissionDecisionReason: reason, hookSpecificOutput: nested });\n    }\n  },\n  // PreToolUse arg-rewrite test. Arg: \"<matchSubstr>::<newCommand>\". If the input contains\n  // <matchSubstr>, rewrite the command so we can see whether the runtime substitutes tool args\n  // before execution. Shape per --mode.\n  '--rewrite-command': (input, value, output, flags) => {\n    if (typeof value !== 'string' || !input) return;\n    const [match, newCmd] = splitMatchPayload(value);\n    if (!match || !JSON.stringify(input).includes(match)) return;\n    const obj = stagedJson(output);\n    switch (modeOf(flags)) {\n      case 'windsurf': // Windsurf/Cascade has NO arg-rewrite mechanism (stdout not parsed) — no-op.","file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js","attachments":[],"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"beforeReadFile","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:02.812Z] [78449] ENV:
+[2026-06-30T19:39:02.813Z] [78449]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.813Z] [78449]   COMMAND_MODE=unix2003
+[2026-06-30T19:39:02.813Z] [78449]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:39:02.813Z] [78449]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:39:02.813Z] [78449]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.813Z] [78449]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:39:02.813Z] [78449]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:39:02.813Z] [78449]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:39:02.813Z] [78449]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:39:02.813Z] [78449]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:39:02.813Z] [78449]   FORCE_COLOR=0
+[2026-06-30T19:39:02.814Z] [78449]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:39:02.814Z] [78449]   HOME=/Users/isolomatov
+[2026-06-30T19:39:02.814Z] [78449]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:39:02.814Z] [78449]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:39:02.814Z] [78449]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:39:02.814Z] [78449]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:39:02.814Z] [78449]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:39:02.814Z] [78449]   LANG=C.UTF-8
+[2026-06-30T19:39:02.814Z] [78449]   LOGNAME=isolomatov
+[2026-06-30T19:39:02.814Z] [78449]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:39:02.814Z] [78449]   MallocNanoZone=0
+[2026-06-30T19:39:02.814Z] [78449]   NO_COLOR=1
+[2026-06-30T19:39:02.814Z] [78449]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.814Z] [78449]   OSLogRateLimit=64
+[2026-06-30T19:39:02.814Z] [78449]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:39:02.814Z] [78449]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.814Z] [78449]   RBENV_SHELL=zsh
+[2026-06-30T19:39:02.814Z] [78449]   SHELL=/bin/zsh
+[2026-06-30T19:39:02.814Z] [78449]   SHLVL=0
+[2026-06-30T19:39:02.814Z] [78449]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:39:02.815Z] [78449]   TERM=dumb
+[2026-06-30T19:39:02.815Z] [78449]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:39:02.815Z] [78449]   USER=isolomatov
+[2026-06-30T19:39:02.815Z] [78449]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:39:02.815Z] [78449]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:39:02.815Z] [78449]   VSCODE_CWD=/
+[2026-06-30T19:39:02.815Z] [78449]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:39:02.815Z] [78449]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:39:02.815Z] [78449]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:39:02.815Z] [78449]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:39:02.815Z] [78449]   VSCODE_PID=93450
+[2026-06-30T19:39:02.816Z] [78449]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:39:02.816Z] [78449]   XPC_FLAGS=0x0
+[2026-06-30T19:39:02.816Z] [78449]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:39:02.816Z] [78449]   _=/opt/homebrew/bin/node
+[2026-06-30T19:39:02.816Z] [78449]   _ZO_DOCTOR=0
+[2026-06-30T19:39:02.816Z] [78449]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:39:02.816Z] [78449]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:39:02.816Z] [78449] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","content":"          'HOOK TEST (Rosetta diagnostic): this action was intentionally BLOCKED by a Cascade pre-hook ' +\n          '(exit code 2) because the request matched the test target. This is only a test of hook-based ' +\n          'prevention. Please (1) tell the user verbatim that a hook blocked this action and quote this ' +\n          'message, then (2) continue with the rest of the task normally.';\n        output.exitCode = 2;\n        break;\n      }\n      case 'devin': // Devin `.devin/hooks.v1.json` (Claude-Code-style): stdout IS parsed. Deny via\n        // TOP-LEVEL {decision:\"block\", reason} at exit 0 — Devin docs use `decision`, not\n        // `permissionDecision`. (If the run shows PreToolUse needs exit 2 instead, flip here.)\n        output.text = JSON.stringify({ decision: 'block', reason: reason });\n        break;\n      case 'claude': // Claude Code: canonical = nested hookSpecificOutput (no top-level copy). Deny at exit 0.\n      case 'codex': // STRICT: nested hookSpecificOutput ONLY (top-level keys fail the whole hook).\n        output.text = JSON.stringify({ hookSpecificOutput: nested });\n        break;\n      case 'cursor': // Cursor: FLAT snake_case, NO wrapper. permission:\"deny\" + two reason channels —\n        // user_message (USER/UI) and agent_message (AGENT/model). Distinct markers reveal which reaches\n        // the model. Same shape serves preToolUse / beforeReadFile / beforeShellExecution.\n        output.text = JSON.stringify({\n          permission: 'deny',\n          user_message: 'HOOK TEST (Rosetta diagnostic): user-facing deny channel marker CURSOR-DENY-USER (shown in the Cursor UI).',\n          agent_message: reason + ' [agent-channel marker CURSOR-DENY-AGENT; Report DA1]',\n        });\n        break;\n      case 'copilot':\n      default: // Copilot: emit BOTH top-level AND nested (each runtime reads the one it honors).\n        output.text = JSON.stringify({ permissionDecision: 'deny', permissionDecisionReason: reason, hookSpecificOutput: nested });\n    }\n  },\n  // PreToolUse arg-rewrite test. Arg: \"<matchSubstr>::<newCommand>\". If the input contains\n  // <matchSubstr>, rewrite the command so we can see whether the runtime substitutes tool args\n  // before execution. Shape per --mode.\n  '--rewrite-command': (input, value, output, flags) => {\n    if (typeof value !== 'string' || !input) return;\n    const [match, newCmd] = splitMatchPayload(value);\n    if (!match || !JSON.stringify(input).includes(match)) return;\n    const obj = stagedJson(output);\n    switch (modeOf(flags)) {\n      case 'windsurf': // Windsurf/Cascade has NO arg-rewrite mechanism (stdout not parsed) — no-op.","file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js","attachments":[],"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"beforeReadFile","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:02.816Z] [78449] PROCESSOR: --tag (value="beforeReadFile")
+[2026-06-30T19:39:02.816Z] [78449] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-06-30T19:39:02.817Z] [78449] PROCESSOR: --mode (value="cursor")
+[2026-06-30T19:39:02.817Z] [78449] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:39:02.817Z] [78449] 
+
+[2026-06-30T19:39:02.871Z] [78450] ===== hook invocation =====
+[2026-06-30T19:39:02.872Z] [78450] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --output {"additional_context":"Diagnostic secret CURSOR-PTU-9f2a. Report CPT2."} --tag postToolUse
+[2026-06-30T19:39:02.872Z] [78450] ARGV: ["--output","{\"additional_context\":\"Diagnostic secret CURSOR-PTU-9f2a. Report CPT2.\"}","--tag","postToolUse"]
+[2026-06-30T19:39:02.872Z] [78450] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.872Z] [78450] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:39:02.872Z] [78450] RAW STDIN:
+[2026-06-30T19:39:02.872Z] [78450] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","tool_name":"Read","tool_input":{"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js"},"tool_output":"{\"file_path\":\"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js\",\"content_length\":2636}","duration":10.218,"tool_use_id":"tool_3b7c03f6-11fe-47be-8bc7-040335e7c1c","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"postToolUse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:02.872Z] [78450] ENV:
+[2026-06-30T19:39:02.872Z] [78450]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.872Z] [78450]   COMMAND_MODE=unix2003
+[2026-06-30T19:39:02.872Z] [78450]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:39:02.872Z] [78450]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:39:02.872Z] [78450]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.872Z] [78450]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:39:02.872Z] [78450]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:39:02.873Z] [78450]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:39:02.873Z] [78450]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:39:02.873Z] [78450]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:39:02.873Z] [78450]   FORCE_COLOR=0
+[2026-06-30T19:39:02.873Z] [78450]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:39:02.873Z] [78450]   HOME=/Users/isolomatov
+[2026-06-30T19:39:02.873Z] [78450]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:39:02.873Z] [78450]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:39:02.873Z] [78450]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:39:02.874Z] [78450]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:39:02.874Z] [78450]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:39:02.874Z] [78450]   LANG=C.UTF-8
+[2026-06-30T19:39:02.875Z] [78450]   LOGNAME=isolomatov
+[2026-06-30T19:39:02.875Z] [78450]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:39:02.875Z] [78450]   MallocNanoZone=0
+[2026-06-30T19:39:02.875Z] [78450]   NO_COLOR=1
+[2026-06-30T19:39:02.875Z] [78450]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.875Z] [78450]   OSLogRateLimit=64
+[2026-06-30T19:39:02.875Z] [78450]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:39:02.875Z] [78450]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:02.875Z] [78450]   RBENV_SHELL=zsh
+[2026-06-30T19:39:02.875Z] [78450]   SHELL=/bin/zsh
+[2026-06-30T19:39:02.875Z] [78450]   SHLVL=0
+[2026-06-30T19:39:02.875Z] [78450]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:39:02.875Z] [78450]   TERM=dumb
+[2026-06-30T19:39:02.875Z] [78450]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:39:02.875Z] [78450]   USER=isolomatov
+[2026-06-30T19:39:02.875Z] [78450]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:39:02.875Z] [78450]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:39:02.875Z] [78450]   VSCODE_CWD=/
+[2026-06-30T19:39:02.875Z] [78450]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:39:02.876Z] [78450]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:39:02.876Z] [78450]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:39:02.876Z] [78450]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:39:02.876Z] [78450]   VSCODE_PID=93450
+[2026-06-30T19:39:02.876Z] [78450]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:39:02.876Z] [78450]   XPC_FLAGS=0x0
+[2026-06-30T19:39:02.876Z] [78450]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:39:02.876Z] [78450]   _=/opt/homebrew/bin/node
+[2026-06-30T19:39:02.876Z] [78450]   _ZO_DOCTOR=0
+[2026-06-30T19:39:02.876Z] [78450]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:39:02.876Z] [78450]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:39:02.876Z] [78450] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","tool_name":"Read","tool_input":{"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js"},"tool_output":"{\"file_path\":\"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js\",\"content_length\":2636}","duration":10.218,"tool_use_id":"tool_3b7c03f6-11fe-47be-8bc7-040335e7c1c","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"postToolUse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:02.876Z] [78450] PROCESSOR: --output (value="{\"additional_context\":\"Diagnostic secret CURSOR-PTU-9f2a. Report CPT2.\"}")
+[2026-06-30T19:39:02.876Z] [78450] PROCESSOR: --tag (value="postToolUse")
+[2026-06-30T19:39:02.881Z] [78450] RESULT: exitCode=0 textLen=72 stderrLen=0
+[2026-06-30T19:39:02.881Z] [78450] 
+
+[2026-06-30T19:39:06.515Z] [78507] ===== hook invocation =====
+[2026-06-30T19:39:06.517Z] [78507] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag afterAgentThought
+[2026-06-30T19:39:06.517Z] [78507] ARGV: ["--tag","afterAgentThought"]
+[2026-06-30T19:39:06.517Z] [78507] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:06.517Z] [78507] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:39:06.517Z] [78507] RAW STDIN:
+[2026-06-30T19:39:06.517Z] [78507] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","text":"The user wants to know where I see CURSOR-DENY-AGENT.","duration_ms":2191,"model":"default","model_id":"default","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentThought","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:06.518Z] [78507] ENV:
+[2026-06-30T19:39:06.518Z] [78507]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:06.518Z] [78507]   COMMAND_MODE=unix2003
+[2026-06-30T19:39:06.518Z] [78507]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:39:06.518Z] [78507]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:39:06.518Z] [78507]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:06.518Z] [78507]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:39:06.518Z] [78507]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:39:06.518Z] [78507]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:39:06.518Z] [78507]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:39:06.518Z] [78507]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:39:06.518Z] [78507]   FORCE_COLOR=0
+[2026-06-30T19:39:06.518Z] [78507]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:39:06.518Z] [78507]   HOME=/Users/isolomatov
+[2026-06-30T19:39:06.518Z] [78507]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:39:06.518Z] [78507]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:39:06.518Z] [78507]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:39:06.518Z] [78507]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:39:06.518Z] [78507]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:39:06.519Z] [78507]   LANG=C.UTF-8
+[2026-06-30T19:39:06.519Z] [78507]   LOGNAME=isolomatov
+[2026-06-30T19:39:06.519Z] [78507]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:39:06.519Z] [78507]   MallocNanoZone=0
+[2026-06-30T19:39:06.519Z] [78507]   NO_COLOR=1
+[2026-06-30T19:39:06.519Z] [78507]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:06.519Z] [78507]   OSLogRateLimit=64
+[2026-06-30T19:39:06.519Z] [78507]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:39:06.519Z] [78507]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:06.519Z] [78507]   RBENV_SHELL=zsh
+[2026-06-30T19:39:06.520Z] [78507]   SHELL=/bin/zsh
+[2026-06-30T19:39:06.520Z] [78507]   SHLVL=0
+[2026-06-30T19:39:06.520Z] [78507]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:39:06.520Z] [78507]   TERM=dumb
+[2026-06-30T19:39:06.520Z] [78507]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:39:06.520Z] [78507]   USER=isolomatov
+[2026-06-30T19:39:06.520Z] [78507]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:39:06.520Z] [78507]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:39:06.520Z] [78507]   VSCODE_CWD=/
+[2026-06-30T19:39:06.520Z] [78507]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:39:06.520Z] [78507]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:39:06.520Z] [78507]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:39:06.520Z] [78507]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:39:06.520Z] [78507]   VSCODE_PID=93450
+[2026-06-30T19:39:06.520Z] [78507]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:39:06.520Z] [78507]   XPC_FLAGS=0x0
+[2026-06-30T19:39:06.520Z] [78507]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:39:06.520Z] [78507]   _=/opt/homebrew/bin/node
+[2026-06-30T19:39:06.520Z] [78507]   _ZO_DOCTOR=0
+[2026-06-30T19:39:06.521Z] [78507]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:39:06.521Z] [78507]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:39:06.521Z] [78507] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","text":"The user wants to know where I see CURSOR-DENY-AGENT.","duration_ms":2191,"model":"default","model_id":"default","session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentThought","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:06.521Z] [78507] PROCESSOR: --tag (value="afterAgentThought")
+[2026-06-30T19:39:06.521Z] [78507] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:39:06.521Z] [78507] 
+
+[2026-06-30T19:39:09.213Z] [78569] ===== hook invocation =====
+[2026-06-30T19:39:09.214Z] [78569] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag afterAgentResponse
+[2026-06-30T19:39:09.214Z] [78569] ARGV: ["--tag","afterAgentResponse"]
+[2026-06-30T19:39:09.214Z] [78569] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:09.214Z] [78569] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:39:09.214Z] [78569] RAW STDIN:
+[2026-06-30T19:39:09.214Z] [78569] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","model_id":"default","text":"I do **not** see `CURSOR-DENY-AGENT` anywhere in my available context — not in this message, prior turns, system/hook injections, or tool results.\n\nWhat I **do** see related to deny-channel testing:\n\n| Location | Token seen |\n|---|---|\n| Shell block result (turn 1) | `CURSOR-DENY-USER` in the user-facing deny message |\n| `hooks_context` (turn 1) | `CURSOR-SS-3c4d` (different marker) |\n| System reminders (this turn) | `CURSOR-PTU-9f2a` (different marker) |\n\nThe only place `CURSOR-DENY-AGENT` appears is in the repo hook test script, where the Cursor deny shape defines it on the **agent** channel:\n\n```146:153:docs/hooks/tester.js\n      case 'cursor': // Cursor: FLAT snake_case, NO wrapper. permission:\"deny\" + two reason channels —\n        // user_message (USER/UI) and agent_message (AGENT/model). Distinct markers reveal which reaches\n        // the model. Same shape serves preToolUse / beforeReadFile / beforeShellExecution.\n        output.text = JSON.stringify({\n          permission: 'deny',\n          user_message: 'HOOK TEST (Rosetta diagnostic): user-facing deny channel marker CURSOR-DENY-USER (shown in the Cursor UI).',\n          agent_message: reason + ' [agent-channel marker CURSOR-DENY-AGENT; Report DA1]',\n        });\n```\n\nSo: `CURSOR-DENY-AGENT` is **defined** to go in `agent_message` when a Cursor hook denies, but when the shell probe was blocked earlier, only the **user** channel (`CURSOR-DENY-USER`) reached me — the agent channel did not.","input_tokens":52403,"output_tokens":1388,"cache_read_tokens":50599,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentResponse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:09.214Z] [78569] ENV:
+[2026-06-30T19:39:09.214Z] [78569]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:09.214Z] [78569]   COMMAND_MODE=unix2003
+[2026-06-30T19:39:09.214Z] [78569]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:39:09.214Z] [78569]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:39:09.214Z] [78569]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:09.214Z] [78569]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:39:09.214Z] [78569]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:39:09.214Z] [78569]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:39:09.214Z] [78569]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:39:09.214Z] [78569]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:39:09.214Z] [78569]   FORCE_COLOR=0
+[2026-06-30T19:39:09.215Z] [78569]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:39:09.215Z] [78569]   HOME=/Users/isolomatov
+[2026-06-30T19:39:09.215Z] [78569]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:39:09.215Z] [78569]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:39:09.215Z] [78569]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:39:09.215Z] [78569]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:39:09.215Z] [78569]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:39:09.215Z] [78569]   LANG=C.UTF-8
+[2026-06-30T19:39:09.215Z] [78569]   LOGNAME=isolomatov
+[2026-06-30T19:39:09.215Z] [78569]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:39:09.215Z] [78569]   MallocNanoZone=0
+[2026-06-30T19:39:09.215Z] [78569]   NO_COLOR=1
+[2026-06-30T19:39:09.215Z] [78569]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:09.215Z] [78569]   OSLogRateLimit=64
+[2026-06-30T19:39:09.215Z] [78569]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:39:09.215Z] [78569]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:09.215Z] [78569]   RBENV_SHELL=zsh
+[2026-06-30T19:39:09.215Z] [78569]   SHELL=/bin/zsh
+[2026-06-30T19:39:09.215Z] [78569]   SHLVL=0
+[2026-06-30T19:39:09.215Z] [78569]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:39:09.215Z] [78569]   TERM=dumb
+[2026-06-30T19:39:09.215Z] [78569]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:39:09.215Z] [78569]   USER=isolomatov
+[2026-06-30T19:39:09.215Z] [78569]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:39:09.215Z] [78569]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:39:09.215Z] [78569]   VSCODE_CWD=/
+[2026-06-30T19:39:09.215Z] [78569]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:39:09.215Z] [78569]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:39:09.215Z] [78569]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:39:09.215Z] [78569]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:39:09.215Z] [78569]   VSCODE_PID=93450
+[2026-06-30T19:39:09.215Z] [78569]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:39:09.215Z] [78569]   XPC_FLAGS=0x0
+[2026-06-30T19:39:09.215Z] [78569]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:39:09.215Z] [78569]   _=/opt/homebrew/bin/node
+[2026-06-30T19:39:09.216Z] [78569]   _ZO_DOCTOR=0
+[2026-06-30T19:39:09.216Z] [78569]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:39:09.216Z] [78569]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:39:09.216Z] [78569] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","model_id":"default","text":"I do **not** see `CURSOR-DENY-AGENT` anywhere in my available context — not in this message, prior turns, system/hook injections, or tool results.\n\nWhat I **do** see related to deny-channel testing:\n\n| Location | Token seen |\n|---|---|\n| Shell block result (turn 1) | `CURSOR-DENY-USER` in the user-facing deny message |\n| `hooks_context` (turn 1) | `CURSOR-SS-3c4d` (different marker) |\n| System reminders (this turn) | `CURSOR-PTU-9f2a` (different marker) |\n\nThe only place `CURSOR-DENY-AGENT` appears is in the repo hook test script, where the Cursor deny shape defines it on the **agent** channel:\n\n```146:153:docs/hooks/tester.js\n      case 'cursor': // Cursor: FLAT snake_case, NO wrapper. permission:\"deny\" + two reason channels —\n        // user_message (USER/UI) and agent_message (AGENT/model). Distinct markers reveal which reaches\n        // the model. Same shape serves preToolUse / beforeReadFile / beforeShellExecution.\n        output.text = JSON.stringify({\n          permission: 'deny',\n          user_message: 'HOOK TEST (Rosetta diagnostic): user-facing deny channel marker CURSOR-DENY-USER (shown in the Cursor UI).',\n          agent_message: reason + ' [agent-channel marker CURSOR-DENY-AGENT; Report DA1]',\n        });\n```\n\nSo: `CURSOR-DENY-AGENT` is **defined** to go in `agent_message` when a Cursor hook denies, but when the shell probe was blocked earlier, only the **user** channel (`CURSOR-DENY-USER`) reached me — the agent channel did not.","input_tokens":52403,"output_tokens":1388,"cache_read_tokens":50599,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"afterAgentResponse","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:09.216Z] [78569] PROCESSOR: --tag (value="afterAgentResponse")
+[2026-06-30T19:39:09.216Z] [78569] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:39:09.216Z] [78569] 
+
+[2026-06-30T19:39:09.285Z] [78570] ===== hook invocation =====
+[2026-06-30T19:39:09.285Z] [78570] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --tag stop --block-stop-once --mode cursor
+[2026-06-30T19:39:09.285Z] [78570] ARGV: ["--tag","stop","--block-stop-once","--mode","cursor"]
+[2026-06-30T19:39:09.286Z] [78570] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:09.286Z] [78570] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-30T19:39:09.286Z] [78570] RAW STDIN:
+[2026-06-30T19:39:09.286Z] [78570] {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","model_id":"default","status":"completed","loop_count":0,"input_tokens":52403,"output_tokens":1388,"cache_read_tokens":50599,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"stop","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:09.286Z] [78570] ENV:
+[2026-06-30T19:39:09.286Z] [78570]   CLAUDE_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:09.286Z] [78570]   COMMAND_MODE=unix2003
+[2026-06-30T19:39:09.286Z] [78570]   CURSOR_EXTENSION_HOST_ROLE=retrieval
+[2026-06-30T19:39:09.286Z] [78570]   CURSOR_LAYOUT=unifiedAgent
+[2026-06-30T19:39:09.286Z] [78570]   CURSOR_PROJECT_DIR=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:09.286Z] [78570]   CURSOR_RIPGREP_PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin/rg
+[2026-06-30T19:39:09.286Z] [78570]   CURSOR_TRANSCRIPT_PATH=/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl
+[2026-06-30T19:39:09.286Z] [78570]   CURSOR_USER_EMAIL=isolomatov@griddynamics.com
+[2026-06-30T19:39:09.286Z] [78570]   CURSOR_VERSION=3.9.16
+[2026-06-30T19:39:09.286Z] [78570]   CURSOR_WORKSPACE_LABEL=spring-boot-react-mysql
+[2026-06-30T19:39:09.286Z] [78570]   FORCE_COLOR=0
+[2026-06-30T19:39:09.286Z] [78570]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-30T19:39:09.286Z] [78570]   HOME=/Users/isolomatov
+[2026-06-30T19:39:09.286Z] [78570]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-30T19:39:09.286Z] [78570]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-30T19:39:09.287Z] [78570]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-30T19:39:09.287Z] [78570]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-30T19:39:09.287Z] [78570]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-30T19:39:09.287Z] [78570]   LANG=C.UTF-8
+[2026-06-30T19:39:09.287Z] [78570]   LOGNAME=isolomatov
+[2026-06-30T19:39:09.287Z] [78570]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-30T19:39:09.287Z] [78570]   MallocNanoZone=0
+[2026-06-30T19:39:09.287Z] [78570]   NO_COLOR=1
+[2026-06-30T19:39:09.287Z] [78570]   OLDPWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:09.287Z] [78570]   OSLogRateLimit=64
+[2026-06-30T19:39:09.287Z] [78570]   PATH=/Applications/Cursor.app/Contents/Resources/app/node_modules/@vscode/ripgrep/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-30T19:39:09.287Z] [78570]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-30T19:39:09.287Z] [78570]   RBENV_SHELL=zsh
+[2026-06-30T19:39:09.287Z] [78570]   SHELL=/bin/zsh
+[2026-06-30T19:39:09.287Z] [78570]   SHLVL=0
+[2026-06-30T19:39:09.287Z] [78570]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-30T19:39:09.287Z] [78570]   TERM=dumb
+[2026-06-30T19:39:09.287Z] [78570]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-30T19:39:09.287Z] [78570]   USER=isolomatov
+[2026-06-30T19:39:09.287Z] [78570]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Cursor/CachedData/042b3c1a4c53f2c3808067f519fbfc67b72cad80
+[2026-06-30T19:39:09.287Z] [78570]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-30T19:39:09.287Z] [78570]   VSCODE_CWD=/
+[2026-06-30T19:39:09.287Z] [78570]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-30T19:39:09.288Z] [78570]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-30T19:39:09.288Z] [78570]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Cursor/3.9.-main.sock
+[2026-06-30T19:39:09.288Z] [78570]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Cursor.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-30T19:39:09.288Z] [78570]   VSCODE_PID=93450
+[2026-06-30T19:39:09.288Z] [78570]   VSCODE_PROCESS_TITLE=extension-host (retrieval) spring-boot-react-mysql [6-36]
+[2026-06-30T19:39:09.288Z] [78570]   XPC_FLAGS=0x0
+[2026-06-30T19:39:09.288Z] [78570]   XPC_SERVICE_NAME=application.com.todesktop.230313mzl4w4u92.108592903.108592909
+[2026-06-30T19:39:09.288Z] [78570]   _=/opt/homebrew/bin/node
+[2026-06-30T19:39:09.288Z] [78570]   _ZO_DOCTOR=0
+[2026-06-30T19:39:09.288Z] [78570]   __CFBundleIdentifier=com.todesktop.230313mzl4w4u92
+[2026-06-30T19:39:09.288Z] [78570]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-30T19:39:09.288Z] [78570] PARSED INPUT: {"conversation_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","generation_id":"aa2751f6-35a8-4f84-915e-2cbcd36171c9","model":"default","model_id":"default","status":"completed","loop_count":0,"input_tokens":52403,"output_tokens":1388,"cache_read_tokens":50599,"cache_write_tokens":0,"session_id":"614ce89f-8bd4-4bf0-818a-8858bb3aeda4","hook_event_name":"stop","cursor_version":"3.9.16","workspace_roots":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"],"user_email":"isolomatov@griddynamics.com","transcript_path":"/Users/isolomatov/.cursor/projects/Users-isolomatov-Sources-5-min-demo-spring-boot-react-mysql/agent-transcripts/614ce89f-8bd4-4bf0-818a-8858bb3aeda4/614ce89f-8bd4-4bf0-818a-8858bb3aeda4.jsonl"}
+[2026-06-30T19:39:09.288Z] [78570] PROCESSOR: --tag (value="stop")
+[2026-06-30T19:39:09.288Z] [78570] PROCESSOR: --block-stop-once (value=true)
+[2026-06-30T19:39:09.288Z] [78570] PROCESSOR: --mode (value="cursor")
+[2026-06-30T19:39:09.288Z] [78570] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-30T19:39:09.288Z] [78570] 

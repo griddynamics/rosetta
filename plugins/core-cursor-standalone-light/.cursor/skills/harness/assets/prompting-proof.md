@@ -1,6 +1,6 @@
 <harness_prompting_proof>
 
-Execute the authored skill or subagent and assert what it actually did.
+Execute the authored skill or subagent in its target coding agent and assert what it did.
 
 <setup>
 

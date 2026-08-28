@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --output '{\"additionalContext\":\"Diagnostic secret CAMELTOP-7a1f. Report CT9.\",\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Diagnostic secret CAMELNEST-2b8c. Report CN4.\"}}' --tag sessionStart",
+        "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --output '{\"additionalContext\":\"Diagnostic secret CAMELTOP-7a1f. Report CT9.\",\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Diagnostic secret CAMELNEST-2b8c. Report CN4.\"}}' --tag sessionStart",
+        "cwd": ".",
+        "timeoutSec": 30
+      }
+    ],
+    "SessionStart": [
+      {
+        "type": "command",
+        "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --output '{\"additionalContext\":\"Diagnostic secret PASCALTOP-5d3e. Report PT2.\",\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Diagnostic secret PASCALNEST-9f6a. Report PN7.\"}}' --tag SessionStart",
+        "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --output '{\"additionalContext\":\"Diagnostic secret PASCALTOP-5d3e. Report PT2.\",\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Diagnostic secret PASCALNEST-9f6a. Report PN7.\"}}' --tag SessionStart",
+        "cwd": ".",
+        "timeoutSec": 30
+      }
+    ],
+    "preToolUse": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag preToolUse --deny-on-match HOOK-DENY-PROBE --rewrite-command 'REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS'", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag preToolUse --deny-on-match HOOK-DENY-PROBE --rewrite-command 'REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS'", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "PreToolUse": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag PreToolUse --deny-on-match HOOK-DENY-PROBE --rewrite-command 'REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS'", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag PreToolUse --deny-on-match HOOK-DENY-PROBE --rewrite-command 'REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS'", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "postToolUse": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --output '{\"systemMessage\":\"PostToolUse systemMessage marker PTU-SYSMSG-CAMEL.\",\"additionalContext\":\"PostToolUse top-level additionalContext marker PTU-TOPLEVEL-CAMEL.\",\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"PostToolUse nested additionalContext marker PTU-NESTED-CAMEL.\"}}' --tag postToolUse --copilot-rewrite-result 'REWRITE_RESULT_POST::POSTTOOLUSE-HOOK-REWROTE-RESULT'", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --output '{\"systemMessage\":\"PostToolUse systemMessage marker PTU-SYSMSG-CAMEL.\",\"additionalContext\":\"PostToolUse top-level additionalContext marker PTU-TOPLEVEL-CAMEL.\",\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"PostToolUse nested additionalContext marker PTU-NESTED-CAMEL.\"}}' --tag postToolUse --copilot-rewrite-result 'REWRITE_RESULT_POST::POSTTOOLUSE-HOOK-REWROTE-RESULT'", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "PostToolUse": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --output '{\"systemMessage\":\"PostToolUse systemMessage marker PTU-SYSMSG-PASCAL.\",\"additionalContext\":\"PostToolUse top-level additionalContext marker PTU-TOPLEVEL-PASCAL.\",\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"PostToolUse nested additionalContext marker PTU-NESTED-PASCAL.\"}}' --tag PostToolUse --copilot-rewrite-result 'REWRITE_RESULT_POST::POSTTOOLUSE-HOOK-REWROTE-RESULT'", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --output '{\"systemMessage\":\"PostToolUse systemMessage marker PTU-SYSMSG-PASCAL.\",\"additionalContext\":\"PostToolUse top-level additionalContext marker PTU-TOPLEVEL-PASCAL.\",\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"PostToolUse nested additionalContext marker PTU-NESTED-PASCAL.\"}}' --tag PostToolUse --copilot-rewrite-result 'REWRITE_RESULT_POST::POSTTOOLUSE-HOOK-REWROTE-RESULT'", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "agentStop": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag agentStop --block-stop-once", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag agentStop --block-stop-once", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "Stop": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag Stop --block-stop-once", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag Stop --block-stop-once", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "subagentStop": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag subagentStop", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag subagentStop", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "SubagentStop": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag SubagentStop", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag SubagentStop", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "sessionEnd": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag sessionEnd", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag sessionEnd", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "PreCompact": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag PreCompact", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag PreCompact", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "preCompact": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag preCompact", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag preCompact", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "PostCompact": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag PostCompact", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag PostCompact", "cwd": ".", "timeoutSec": 30 }
+    ],
+    "postCompact": [
+      { "type": "command", "bash": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag postCompact", "powershell": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag postCompact", "cwd": ".", "timeoutSec": 30 }
+    ]
+  }
+}

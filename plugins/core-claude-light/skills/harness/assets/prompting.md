@@ -1,7 +1,9 @@
 <harness_prompting>
 
-Reusable apparatus that makes an agent do a job in this repo, reliably, every session.
-Assembled from blocks. Built when a gap is hit, one gap at a time. Never a suite up front.
+Skills and subagents for AI coding agents — Claude Code, Codex, Cursor, Copilot, Windsurf,
+Antigravity, Devin. Reusable apparatus that makes one do a job in this repo, reliably,
+every session. Assembled from blocks. Built when a gap is hit, one gap at a time.
+Never a suite up front.
 
 A skill is a contract: when I run, what I read, what I do, what I refuse, what done means.
 
@@ -41,7 +43,7 @@ Pick what the gap needs. Skip the rest. Most gaps need four or five.
   - Large input → a file, critical requirements first.
   - Keep what the user stated apart from what you inferred.
 - target agent
-  - Skills, subagents, and rules differ per coding agent: format, location, frontmatter, features.
+  - Format, location, frontmatter, and available features differ per coding agent.
   - Authoring for a specific one → APPLY SKILL FILE `references/configure/<tool>.md`.
   - Agent-agnostic by default. Polyfill a missing feature, never assume it.
 - context consumption
