@@ -22,15 +22,15 @@ One dedicated, flow-owned skill + one thin slash-callable workflow — the shape
 
 ```
 instructions/r3/core/skills/tools-triage/
-  SKILL.md                            role, when_to_use, operating rules, reference router, pitfalls   (~130 lines)
-  README.md                           per repo convention (qa-knowledge, security, prompt-authoring)
-  references/                         (authored as 6 references + 3 assets, then consolidated to 3)
-    tt-intake-and-state.md            input contract + redaction + state semantics + state skeleton
-    tt-elicitation-and-assessment.md  elicitation iteration + completion rule + rubrics + assessment skeleton
-    tt-writes-and-tool-issue.md       artifact contract + op JSON shapes + target-project binding
+  SKILL.md                            role, when_to_use, cross-stage rules, section map,
+                                      and the three stage sections inline   (646 lines)
+  README.md                           per repo convention; maintainer doc, never loaded at runtime
+
+  Authored as 6 references + 3 assets, consolidated to 3 references, then inlined
+  into SKILL.md as three stage sections — no references/, no assets/.
 
 instructions/r3/core/workflows/
-  tools-triage-flow.md                thin orchestration, 6 inline phase blocks                        (~110 lines)
+  tools-triage-flow.md                thin orchestration, 6 inline phase blocks                        (149 lines)
   triage-flow-{6 phases}.md           DELETED
 ```
 

@@ -4,19 +4,20 @@
 
 One row per normative statement in the 7 source files (`triage-flow.md` + 6 `triage-flow-*.md`), per PLAN §S0. `landed` is filled by S6 by locating each statement in its destination file. **A row that cannot be located is a behavior change — fix it, never annotate it away.**
 
-Destination keys: `WF` = `workflows/tools-triage-flow.md` · `SKILL` = `skills/tools-triage/SKILL.md`. The remaining keys were authored as six `references/` files plus three `assets/`, then **consolidated into three reference files** (see `HANDOFF.md` §Consolidation) — each key now resolves to a named section inside one of them:
+Destination keys: `WF` = `workflows/tools-triage-flow.md` · every other key = a named section inside `skills/tools-triage/SKILL.md`. The skill was authored as 6 `references/` + 3 `assets/` files, consolidated to 3 references, then consolidated again into a **single-file skill** (see `HANDOFF.md` §Consolidation) — each key resolves to a section:
 
-| key | file | section |
-|---|---|---|
-| `INTAKE` | `references/tt-intake-and-state.md` | `<intake_contract>` |
-| `STATE` | `references/tt-intake-and-state.md` | `<state_and_idempotency>` |
-| `A-STATE` | `references/tt-intake-and-state.md` | `<flow_state_template>` |
-| `ELIC` | `references/tt-elicitation-and-assessment.md` | `<elicitation_and_completion>` |
-| `ASSESS` | `references/tt-elicitation-and-assessment.md` | `<assessment_rubrics>` |
-| `A-ASSESS` | `references/tt-elicitation-and-assessment.md` | `<assessment_template>` |
-| `WRITE` | `references/tt-writes-and-tool-issue.md` | `<write_artifacts>` |
-| `A-ARTIFACT` | `references/tt-writes-and-tool-issue.md` | `<write_artifact_templates>` |
-| `TOOLISSUE` | `references/tt-writes-and-tool-issue.md` | `<tool_issue_binding>` |
+| key | section in `SKILL.md` |
+|---|---|
+| `SKILL` | `<core_concepts>` (cross-stage invariants, stage flow, section map) |
+| `INTAKE` | `<intake_and_state>` › `<intake_contract>` |
+| `STATE` | `<intake_and_state>` › `<state_and_idempotency>` |
+| `A-STATE` | `<intake_and_state>` › `<flow_state_template>` |
+| `ELIC` | `<elicitation_and_assessment>` › `<elicitation_and_completion>` |
+| `ASSESS` | `<elicitation_and_assessment>` › `<assessment_rubrics>` |
+| `A-ASSESS` | `<elicitation_and_assessment>` › `<assessment_template>` |
+| `WRITE` | `<writes_and_tool_issue>` › `<write_artifacts>` |
+| `A-ARTIFACT` | `<writes_and_tool_issue>` › `<write_artifact_templates>` |
+| `TOOLISSUE` | `<writes_and_tool_issue>` › `<tool_issue_binding>` |
 
 Sources are recoverable after S5's deletion via `git show HEAD:instructions/r3/core/workflows/<file>`.
 
@@ -214,7 +215,7 @@ Sources are recoverable after S5's deletion via `git show HEAD:instructions/r3/c
 - **`POC-SCOPE-OVERRIDE` accounting** (the one check SPECS §FR-4 stated as a count match, and the honest result differs): HEAD carried 14 occurrences across 12 lines in 5 files; the instruction files now carry 8 (plus 3 in `README.md`, a maintainer doc never loaded at runtime). **Both distinct overrides survive with full framing** — the completion rule substituting for `hitl`'s explicit approval sentence (`tt-elicitation-and-completion.md`, plus the workflow's phase-3 control line and the "marker remains intact and legible" checkpoint), and the compose gate skipping `dangerous-actions` step 5 (`tt-write-artifacts.md`'s `<gate>`, stated once as the contract of record, plus the workflow's phase-4 and phase-6 control lines), together with the state file's `writes_require_human_confirmation = false` record. The six dropped occurrences were per-phase restatements of the compose override in the four now-deleted phase files. This is a deliberate DRY consolidation, not a rule change: `tt-assessment-rubrics.md` and `tt-tool-issue-binding.md` each route their compose through `APPLY SKILL FILE references/tt-write-artifacts.md` (`APPLY` = load + fully execute), so the framing still reaches whoever composes. Recorded here rather than smoothed over, because the count check as written in SPECS fails.
 - **Deliberate deviation from PLAN §S5 item 1**: the plan had each workflow phase block carry a `READ SKILL FILE` pointer to its reference. That violates the closed alias grammar — `READ|APPLY SKILL FILE` never carries a skill name, and only a skill's own files may use it; any other artifact expresses intent and lets the skill route (`references/pa-rosetta.md` rule 8, and the skill-folder isolation rule in `coding-agents-prompt-authoring`'s `<core_concepts>`). The workflow therefore names the skill and the topic per phase, and `SKILL.md`'s routing list dispatches to the right reference. Verified: zero `SKILL FILE`, `references/`, or `assets/` strings in `workflows/triage-flow.md`.
 - **Boundary exception, kept deliberately**: `tt-intake-contract.md` contains the literal error string `triage-flow/intake: ticket_details missing or empty`. It names the flow, but as an externally-observable error identifier carried verbatim from the source — rewording it would be a behavior change, which this refactor forbids.
-- **Post-consolidation re-verification**: the needle sweep was re-run after the 9-file → 3-file merge and after the `tools-triage` rename, resolving each destination key to its new section. 90 needles, zero misses, no dangling in-file section pointers, `POC-SCOPE-OVERRIDE` occurrences unchanged at 8.
+- **Re-verification after each restructure**: the needle sweep was re-run after the `tools-triage` rename, after the 9-file → 3-reference merge, and again after the merge into a single-file skill — each time resolving every destination key to its new section. 90 needles, zero misses on every pass; no dangling in-file section pointers; XML tags balanced with the expected top-level section order; `POC-SCOPE-OVERRIDE` occurrences unchanged at 8 throughout.
 - **Registry gap found and closed**: `triage-flow` was never registered in `docs/definitions/workflows.md` (a pre-existing omission on this branch). Added, alongside `ticket-triage` in `docs/definitions/skills.md`.
 
 ## Unassigned / escalated

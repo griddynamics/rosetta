@@ -19,7 +19,7 @@ Behavior-neutral refactor per `triage-flow-skill-extraction-SPECS.md`. All six p
 
 ## What landed
 
-- **New skill `instructions/r3/core/skills/tools-triage/`** (5 files after consolidation, 685 lines): `SKILL.md` (83 lines — role, cross-stage invariants, stage flow, routing list), `README.md` (maintainer doc per the `<skill_authoring>` spec), 6 `references/tt-*.md` (449 lines: intake contract · elicitation and completion · write artifacts · assessment rubrics · tool-issue binding · state and idempotency), 3 `assets/tt-*` (state skeleton, assessment skeleton, the three op JSON shapes).
+- **New skill `instructions/r3/core/skills/tools-triage/`** (2 files after both consolidations, 690 lines): `SKILL.md` (83 lines — role, cross-stage invariants, stage flow, routing list), `README.md` (maintainer doc per the `<skill_authoring>` spec), 6 `references/tt-*.md` (449 lines: intake contract · elicitation and completion · write artifacts · assessment rubrics · tool-issue binding · state and idempotency), 3 `assets/tt-*` (state skeleton, assessment skeleton, the three op JSON shapes).
 - **`instructions/r3/core/workflows/tools-triage-flow.md` rewritten thin** (from `triage-flow.md`): 216 → 149 lines. Keeps frontmatter, a short purpose, prerequisites, `<subagent_policy>`, six phase blocks with their `subagent`/`role`/`subagent_required_model`/`must-be-subagent` attributes token-for-token, `<out_of_scope>`, a sequencing-and-evidence `<validation_checklist>`, and `<pitfalls>`. No contract, rubric, constant, state shape, or op JSON remains in it.
 - **Six `triage-flow-*.md` phase files deleted** (`git rm`). Recoverable via `git show HEAD:instructions/r3/core/workflows/<file>`.
 - **`agents/IMPLEMENTATION.md`** entry rewritten to the new layout.
@@ -57,6 +57,17 @@ Chosen fix: consolidate the authored surface from 12 files to **6**, keeping pro
 - `SKILL.md`'s routing list went 6 entries → 3, and its `<templates>` section was dropped since the shapes now live inside the references. `README.md`'s routing map and invariants updated to match.
 - Net effect: authored 12 → 6 files; skill lines 826 → 685 (the merge also removed ~140 lines of per-file headers and duplicated pointers); generated `plugins/**` 93 → 42 files; PR total 116 → ~62.
 - Re-verified: 90 needles, zero misses; `POC-SCOPE-OVERRIDE` occurrences unchanged at 8; plugins regenerated clean (7 targets, exit 0) with zero stale `tt-*` or `assets/` artifacts left behind.
+
+## Second consolidation — single-file skill (at the user's request)
+
+After the 12 → 6 consolidation the user chose the smaller option still on the table: **3 authored files**. The three reference files were inlined into `SKILL.md` as three stage sections, and `references/` was removed.
+
+- `SKILL.md` is now 646 lines: `<role>` → `<when_to_use_skill>` → `<core_concepts>` (five cross-stage invariants, stage flow, section map) → `<intake_and_state>` → `<elicitation_and_assessment>` → `<writes_and_tool_issue>` → `<validation_checklist>` → `<pitfalls>`. Every former file is a named section, and every former nested section kept its own tag, checklist, and pitfalls.
+- `APPLY SKILL FILE` pointers became in-file section pointers (`` `<write_artifacts>` below ``, `` `<state_and_idempotency>` above ``). No `SKILL FILE` alias remains in the skill — there are no sub-files to address.
+- `README.md` rewritten for the single-file shape: the routing list is now a section map, the `tt-*` filename invariant is replaced by "section tags are the routing surface", and the load cost is stated plainly.
+- **Authored surface: 3 files** — `workflows/tools-triage-flow.md` (149), `skills/tools-triage/SKILL.md` (646), `skills/tools-triage/README.md` (44, maintainer doc, never loaded at runtime). Generated `plugins/**` drops to 21 files. PR total ≈ 68 → ≈ 37.
+- **The trade, stated honestly**: activating the skill now loads all 646 lines — no partial loading. `README.md` records the reversal path (split the stage sections back into `references/`, turn the section map into a routing list) if the file grows much further.
+- Re-verified: 90 needles zero misses; XML tags balanced with the expected top-level order; no dangling in-file pointers; `POC-SCOPE-OVERRIDE` occurrences unchanged at 8; plugins regenerated clean (7 targets, exit 0) with no stale `references/` or `assets/` left behind.
 
 ## Active blockers
 None.
