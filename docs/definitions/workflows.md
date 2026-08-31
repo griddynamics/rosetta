@@ -16,6 +16,7 @@
 - security-flow
 - requirements-authoring-flow
 - testgen-flow
+- tools-triage-flow
 
 ## User-enabled features referenced by workflows
 
