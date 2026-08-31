@@ -24,17 +24,10 @@ One dedicated, flow-owned skill + one thin slash-callable workflow — the shape
 instructions/r3/core/skills/tools-triage/
   SKILL.md                            role, when_to_use, operating rules, reference router, pitfalls   (~130 lines)
   README.md                           per repo convention (qa-knowledge, security, prompt-authoring)
-  references/
-    tt-intake-contract.md             input shape, validation, redaction, resume detection
-    tt-elicitation-and-completion.md  elicitation-iteration policy + completion/approval rule + routing
-    tt-write-artifacts.md             artifact composition contract: ops, NNN, gate framing, no-identity
-    tt-assessment-rubrics.md          blind spots / affected tools / issue size rubrics and levels
-    tt-tool-issue-binding.md          target-project constants, description rules, resume cases A/B/C
-    tt-state-and-idempotency.md       state-file semantics, hash mechanism, resource-usage rows
-  assets/
-    tt-flow-state-template.md         `<TICKET-KEY>-TRIAGE-FLOW-STATE.md` skeleton
-    tt-assessment-template.md         `<TICKET-KEY>-TRIAGE-ASSESSMENT.md` skeleton
-    tt-write-artifact-templates.md    the three op JSON shapes verbatim
+  references/                         (authored as 6 references + 3 assets, then consolidated to 3)
+    tt-intake-and-state.md            input contract + redaction + state semantics + state skeleton
+    tt-elicitation-and-assessment.md  elicitation iteration + completion rule + rubrics + assessment skeleton
+    tt-writes-and-tool-issue.md       artifact contract + op JSON shapes + target-project binding
 
 instructions/r3/core/workflows/
   tools-triage-flow.md                thin orchestration, 6 inline phase blocks                        (~110 lines)

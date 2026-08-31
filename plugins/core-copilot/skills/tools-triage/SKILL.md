@@ -41,12 +41,9 @@ Stage logical flow: `intake -> elicitation -> completion_check -> (publish_quest
 
 Based on the stage at hand, load and apply:
 
-- APPLY SKILL FILE `references/tt-intake-contract.md` to take the invocation input, validate it, and redact the ticket text before anything downstream sees it
-- APPLY SKILL FILE `references/tt-elicitation-and-completion.md` to run one requirements-elicitation iteration and to decide whether open questions remain
-- APPLY SKILL FILE `references/tt-write-artifacts.md` to compose any write request — a comment, an issue, or a link — including sequence numbering and the pre-compose gate
-- APPLY SKILL FILE `references/tt-assessment-rubrics.md` to produce the triage assessment: blind spots, potentially affected tools, issue size
-- APPLY SKILL FILE `references/tt-tool-issue-binding.md` to compose the target-project issue and its link back to the source ticket
-- READ SKILL FILE `references/tt-state-and-idempotency.md` for state-file shape and semantics, the change-detection mechanism, and resume routing — needed by every stage
+- APPLY SKILL FILE `references/tt-intake-and-state.md` to take the invocation input, validate and redact it, and for the state file's semantics, shape, change detection, and resume routing — the state half is needed by every stage
+- APPLY SKILL FILE `references/tt-elicitation-and-assessment.md` to run one requirements-elicitation iteration, decide whether open questions remain, and produce the triage assessment (blind spots, potentially affected tools, issue size) with its output shape
+- APPLY SKILL FILE `references/tt-writes-and-tool-issue.md` to compose any write request — a comment, the target-project issue, or its link — including the pre-compose gate, sequence numbering, the JSON shapes, and the create-then-link stage
 
 </core_concepts>
 
@@ -71,13 +68,5 @@ Based on the stage at hand, load and apply:
 - Escalating tone because a rubric returned a high level. The levels are reported; they gate nothing here.
 
 </pitfalls>
-
-<templates>
-
-- READ SKILL FILE `assets/tt-flow-state-template.md`
-- READ SKILL FILE `assets/tt-assessment-template.md`
-- READ SKILL FILE `assets/tt-write-artifact-templates.md`
-
-</templates>
 
 </tools-triage>

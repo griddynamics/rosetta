@@ -19,7 +19,7 @@ Behavior-neutral refactor per `triage-flow-skill-extraction-SPECS.md`. All six p
 
 ## What landed
 
-- **New skill `instructions/r3/core/skills/tools-triage/`** (11 files, ~530 lines): `SKILL.md` (83 lines — role, cross-stage invariants, stage flow, routing list), `README.md` (maintainer doc per the `<skill_authoring>` spec), 6 `references/tt-*.md` (449 lines: intake contract · elicitation and completion · write artifacts · assessment rubrics · tool-issue binding · state and idempotency), 3 `assets/tt-*` (state skeleton, assessment skeleton, the three op JSON shapes).
+- **New skill `instructions/r3/core/skills/tools-triage/`** (5 files after consolidation, 685 lines): `SKILL.md` (83 lines — role, cross-stage invariants, stage flow, routing list), `README.md` (maintainer doc per the `<skill_authoring>` spec), 6 `references/tt-*.md` (449 lines: intake contract · elicitation and completion · write artifacts · assessment rubrics · tool-issue binding · state and idempotency), 3 `assets/tt-*` (state skeleton, assessment skeleton, the three op JSON shapes).
 - **`instructions/r3/core/workflows/tools-triage-flow.md` rewritten thin** (from `triage-flow.md`): 216 → 149 lines. Keeps frontmatter, a short purpose, prerequisites, `<subagent_policy>`, six phase blocks with their `subagent`/`role`/`subagent_required_model`/`must-be-subagent` attributes token-for-token, `<out_of_scope>`, a sequencing-and-evidence `<validation_checklist>`, and `<pitfalls>`. No contract, rubric, constant, state shape, or op JSON remains in it.
 - **Six `triage-flow-*.md` phase files deleted** (`git rm`). Recoverable via `git show HEAD:instructions/r3/core/workflows/<file>`.
 - **`agents/IMPLEMENTATION.md`** entry rewritten to the new layout.
@@ -42,6 +42,21 @@ Behavior-neutral refactor per `triage-flow-skill-extraction-SPECS.md`. All six p
 - **`user-invocable: false`** — background knowledge, hidden from the `/` menu, still model-invocable via `USE SKILL`. `argument-hint` is therefore invalid and absent.
 - **The workflow does not deep-link into the skill.** PLAN §S5 had it carry `READ SKILL FILE` pointers; the closed alias grammar forbids that outside a skill's own files. The workflow names the skill plus the topic per phase, and `SKILL.md`'s routing list dispatches. Deviation recorded in `content-map-verification.md` §S6.
 - **`POC-SCOPE-OVERRIDE` occurrences dropped 14 → 8** in instruction files. Both distinct overrides survive with full framing; the drops were per-phase restatements of the compose override, now stated once as the contract of record. Full accounting in `content-map-verification.md` §S6 — SPECS §FR-4's count-match check fails as written, and the reason is recorded rather than smoothed over.
+
+## Consolidation (post-rename, at the user's request)
+
+The user challenged the PR's file count — "116 files changed why is it so I need 1 workflow?" — a fair question. The breakdown: 93 files were generated `plugins/**` output (the same set copied into 7 agent targets), 12 were authored, 8 plan docs, 3 registry/index lines. So the count was driven by the generator, not by authoring sprawl — but 12 authored files for one flow was still more than needed, and the honest number was that runtime-loaded lines had gone *up* 668 → 779 (+17%) even though the workflow itself shrank 216 → 149.
+
+Chosen fix: consolidate the authored surface from 12 files to **6**, keeping progressive disclosure where it pays.
+
+- The 3 `assets/` files were folded into the reference that owns each, and the `assets/` folder removed. The 6 references were merged into **3** by natural grouping, each original file becoming a named section so nothing lost its identity:
+  - `tt-intake-and-state.md` — `<intake_contract>` · `<state_and_idempotency>` · `<flow_state_template>`
+  - `tt-elicitation-and-assessment.md` — `<elicitation_and_completion>` · `<assessment_rubrics>` · `<assessment_template>`
+  - `tt-writes-and-tool-issue.md` — `<write_artifacts>` · `<write_artifact_templates>` · `<tool_issue_binding>`
+- Cross-references that used to point at another file now point at a section in the same file (`` `<write_artifacts>` above ``, `` `<flow_state_template>` at the end of this file ``). Verified: no dangling section pointer, and no `SKILL FILE` reference to a file that no longer exists.
+- `SKILL.md`'s routing list went 6 entries → 3, and its `<templates>` section was dropped since the shapes now live inside the references. `README.md`'s routing map and invariants updated to match.
+- Net effect: authored 12 → 6 files; skill lines 826 → 685 (the merge also removed ~140 lines of per-file headers and duplicated pointers); generated `plugins/**` 93 → 42 files; PR total 116 → ~62.
+- Re-verified: 90 needles, zero misses; `POC-SCOPE-OVERRIDE` occurrences unchanged at 8; plugins regenerated clean (7 targets, exit 0) with zero stale `tt-*` or `assets/` artifacts left behind.
 
 ## Active blockers
 None.
