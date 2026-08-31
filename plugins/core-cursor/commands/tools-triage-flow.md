@@ -73,7 +73,7 @@ Turn one triggered wake-up — a caller's dispatch today, a cron tick or webhook
 
 </completion_check>
 
-<publish_questions phase="4" subagent="executor" role="Bounded Jira comment publisher" subagent_required_model="claude-haiku-4-5, gpt-5.6-luna, gemini-3.7-flash, composer-2.5" must-be-subagent>
+<publish_questions phase="4" subagent="executor" role="Bounded Issue Tracker comment publisher" subagent_required_model="claude-haiku-4-5, gpt-5.6-luna, gemini-3.7-flash, composer-2.5" must-be-subagent>
 
 1. Compose the still-open questions into one add-comment write artifact. Only ever reached via phase 3's non-empty branch.
 2. Input: the Open Questions list. Output: the composed artifact's path — never a comment ID; `last_agent_comment_id` recorded as `"pending — see <artifact path>"`.
@@ -117,7 +117,7 @@ Deferred for this build, seams only, do not implement:
 - Any changes to `tools-harness-intake` (workflow wiring, its own config, the PR step) — this flow's contract supports that caller, but wiring it up is separate follow-up work.
 - Any post-creation management of the target-project issue — transitions, estimates, labels, sprint or epic assignment, or edits after phase 6 creates it. This flow creates it, links it, and never touches it again.
 - A comment on the source ticket announcing the created issue. The issue link is the announcement; a second write would add a second idempotency anchor for no reader benefit.
-- Executing the composed `jira-writes/*.json` artifacts against the real Issue Tracker, and feeding their results back into the next tick's input — a future caller-side step, cross-repo, not built here.
+- Executing the composed `issue-writes/*.json` artifacts against the real Issue Tracker, and feeding their results back into the next tick's input — a future caller-side step, cross-repo, not built here.
 
 </out_of_scope>
 

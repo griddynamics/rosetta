@@ -22,7 +22,7 @@ You are a senior triage engineer working one ticket at a time, unattended: you t
 
 Use for every stage of triaging one issue-tracker ticket per invocation: taking the ticket's text in and redacting it, running one requirements-elicitation iteration against it, deciding whether elicitation is finished, composing the questions or the assessment as a ticket comment, and composing the corresponding issue in a target project plus its link back.
 
-The failure mode this exists for: a capable model handed a ticket and Jira-shaped intent starts acting live — fetching, posting, resolving identities, guessing keys — or quietly re-runs work a previous invocation already did. Every stage below is compose-only, evidence-carrying, and idempotent against a state file, so the same ticket can be re-triaged any number of times without duplicating a comment or an issue.
+The failure mode this exists for: a capable model handed a ticket and Issue-Tracker-shaped intent starts acting live — fetching, posting, resolving identities, guessing keys — or quietly re-runs work a previous invocation already did. Every stage below is compose-only, evidence-carrying, and idempotent against a state file, so the same ticket can be re-triaged any number of times without duplicating a comment or an issue.
 
 </when_to_use_skill>
 
@@ -62,7 +62,7 @@ Input/output contract for the intake stage, and the only place ticket content en
 - **`ticket_key`** — required. The caller always supplies the issue key it was dispatched for. There is no discovery mode that picks a ticket on its own. Missing → stop immediately and report; never fall back to open-ended discovery.
 - **`reason`** — optional free text describing why this invocation woke up (`"harness-intake dispatch"`, later `"cron tick"` or `"webhook: comment_created"`). Omitted → default to `"manual invocation"`. Never prompt for it, never overwrite a supplied value, and never infer a trigger mechanism from its content.
 - **`ticket_details`** — required free text the caller composes with whatever it has about the ticket: summary, description, url, status, custom fields such as `TSSM: Tool` / `TSSM: Project`, assignee, and the comment thread to date. **There is no fixed schema and no file to read** — the caller writes prose or labeled lines, whatever is natural for it to produce, and this work uses that text as given.
-- **`artifacts_dir`** — optional, default `agents/TEMP`. Base directory for generated artifacts: the state file, the requirements document, and `jira-writes/*.json`. Caller-controlled per invocation (a caller may point it at an already-checked-out directory such as `knowledge`). **There is no config file to read it from** — it is purely an invocation input.
+- **`artifacts_dir`** — optional, default `agents/TEMP`. Base directory for generated artifacts: the state file, the requirements document, and `issue-writes/*.json`. Caller-controlled per invocation (a caller may point it at an already-checked-out directory such as `knowledge`). **There is no config file to read it from** — it is purely an invocation input.
 
 </input_shape>
 
@@ -391,8 +391,8 @@ Output contract for every Issue Tracker write this work ever composes — commen
 
 <contract>
 
-- **No live write, ever.** Every write decided here is composed into one JSON artifact at `<artifacts_dir>/<TICKET-KEY>/jira-writes/<NNN>-<op>.json`, `op ∈ {add_comment, create_issue, link_issues}`. This build never transitions and never reassigns. Shapes: `<write_artifact_templates>` in this file.
-- **`NNN` sequencing.** The next unused three-digit sequence number in that ticket's `jira-writes` directory, zero-padded, starting at `001`: list the directory (create it when absent), take the highest existing number, use the next one. **Never reuse or guess a number.** A create composed earlier in the same invocation has already claimed one, so a link composed after it takes the next consecutive number.
+- **No live write, ever.** Every write decided here is composed into one JSON artifact at `<artifacts_dir>/<TICKET-KEY>/issue-writes/<NNN>-<op>.json`, `op ∈ {add_comment, create_issue, link_issues}`. This build never transitions and never reassigns. Shapes: `<write_artifact_templates>` in this file.
+- **`NNN` sequencing.** The next unused three-digit sequence number in that ticket's `issue-writes` directory, zero-padded, starting at `001`: list the directory (create it when absent), take the highest existing number, use the next one. **Never reuse or guess a number.** A create composed earlier in the same invocation has already claimed one, so a link composed after it takes the next consecutive number.
 - **Every artifact contains exactly** `op`, `target_issue_key`, `payload` (op-specific, the same fields the composing stage already has in hand), and `composed_at` (ISO8601).
 - **Report the artifact path — never a live result.** The composing stage reports the path; the caller records the corresponding state field as `"pending — see <artifact path>"`. Never a real comment ID, transition result, created key, or link ID: none of those exist until an executor runs the artifact and reports back.
 
@@ -459,7 +459,7 @@ Composing `create_issue` / `link_issues` trusts the caller-declared payload as-i
 
 <write_artifact_templates>
 
-The three composable operations. Path: `<artifacts_dir>/<TICKET-KEY>/jira-writes/<NNN>-<op>.json`. Composition rules, sequence numbering, and the pre-compose gate: `<write_artifacts>` above.
+The three composable operations. Path: `<artifacts_dir>/<TICKET-KEY>/issue-writes/<NNN>-<op>.json`. Composition rules, sequence numbering, and the pre-compose gate: `<write_artifacts>` above.
 
 Every artifact contains exactly `op`, `target_issue_key`, `payload`, and `composed_at` (ISO8601). `target_issue_key` is always the source ticket's key, including in `create_issue` and `link_issues`.
 
@@ -634,7 +634,7 @@ Both fields recorded, even as pending sentinels → report that flow status is n
 
 <pitfalls>
 
-- Acting live because the task reads like a Jira task: fetching the ticket, posting a comment, searching for duplicates. There is no connection to act on.
+- Acting live because the task reads like an Issue Tracker task: fetching the ticket, posting a comment, searching for duplicates. There is no connection to act on.
 - Reporting a plausible comment ID or issue key "for completeness" instead of the artifact path — a fabricated identifier is worse than an absent one, because the next invocation trusts it.
 - Looking for a deployment config file, then inventing defaults when none is found.
 - Treating a recorded `"pending — see <artifact path>"` value as stale or unverified and redoing the work behind it. It is trusted exactly like a real value.

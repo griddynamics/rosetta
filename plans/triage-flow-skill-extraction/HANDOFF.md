@@ -69,6 +69,16 @@ After the 12 → 6 consolidation the user chose the smaller option still on the 
 - **The trade, stated honestly**: activating the skill now loads all 646 lines — no partial loading. `README.md` records the reversal path (split the stage sections back into `references/`, turn the section map into a routing list) if the file grows much further.
 - Re-verified: 90 needles zero misses; XML tags balanced with the expected top-level order; no dangling in-file pointers; `POC-SCOPE-OVERRIDE` occurrences unchanged at 8; plugins regenerated clean (7 targets, exit 0) with no stale `references/` or `assets/` left behind.
 
+## Vendor-neutral pass (at the user's request)
+
+"Can we replace Jira with issue tracker?" — 11 occurrences existed in the shipped artifacts, in three classes:
+
+- **Prose (4)** — reworded to Issue Tracker: `Jira-shaped intent` in `SKILL.md` and `README.md`, "reads like a Jira task" in `SKILL.md`'s pitfalls, and phase 4's `role="Bounded Jira comment publisher"` in the workflow. That role attribute is one of the phase attributes otherwise held token-for-token (inventory row W-39) — changed deliberately here, not by drift.
+- **The artifact directory (6)** — renamed **`jira-writes/` → `issue-writes/`** across `SKILL.md`, the workflow, `README.md`, and `agents/IMPLEMENTATION.md`. The delivered path is `<artifacts_dir>/<TICKET-KEY>/issue-writes/<NNN>-<op>.json`. Cheap now because the executor that reads these artifacts is unbuilt, cross-repo work; once it exists this path is a contract. **Open item I could not verify from this repo: if `tools-harness-intake` already references `jira-writes/`, it needs the same rename.**
+- **One kept deliberately (1)** — the pitfall naming `agents/jira-triage.config.json`, a config file deleted earlier in this branch. It is a historical identifier, not a vendor claim, and the warning works because it names the exact file an agent primed on the old design would look for.
+
+The op names inside the artifacts (`add_comment`, `create_issue`, `link_issues`), `target_issue_key`, and the state-file field names were already vendor-neutral. The target constants (`TOOL`, `Story`, `Action item`, `TSSM: Tool`/`TSSM: Project`) stay — they are the deployment's real values, not vendor terminology.
+
 ## Active blockers
 None.
 
