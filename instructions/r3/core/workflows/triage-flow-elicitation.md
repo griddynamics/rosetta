@@ -28,7 +28,7 @@ Phase 2 of `triage-flow`. Mandatory `requirements-engineer`, invoked directly fo
 <idempotency_check step="2.1" subagent="requirements-engineer" role="Requirements elicitation against one existing ticket" subagent_required_model="claude-opus-5, gpt-5.6-sol-high, gemini-3.7-flash-high">
 
 1. Read `last_agent_comment_id` from `<TICKET-KEY>-TRIAGE-FLOW-STATE.md`'s Idempotency section (absent on tick 1 — treat as "no prior agent comment").
-2. Compare it against the newest comment ID in this tick's redacted snapshot (phase 1's output — `data-collection` already redacted it before intake returned).
+2. Compare it against the newest comment ID in this tick's redacted snapshot (phase 1's output — phase 1 already redacted it directly via `sensitive-data` before intake returned).
 3. Equal → nothing new since the agent's own last post. Report this to the orchestrator as a no-op (for the Poll Tick / Event Log) and hand control straight to `completion_check` (phase 3) with the current Requirements.md unchanged — do NOT invoke `requirements-authoring` this tick.
 4. Different (or `last_agent_comment_id` absent) → a genuine new requester reply (or first-ever intake) exists; proceed to step 2.2.
 5. Never compare by comment author. This exact rule was validated against a real production bug: author-based detection produces a false "new reply" or false "no-op" whenever the agent and a human share one Jira identity.
@@ -62,7 +62,7 @@ Phase 2 of `triage-flow`. Mandatory `requirements-engineer`, invoked directly fo
 <pitfalls>
 - Comparing comment author instead of comment ID — this is the exact bug the POC found and fixed.
 - Running `requirements-authoring-flow.md`'s full 9 phases instead of invoking the skill directly.
-- Re-running `sensitive-data` here — phase 1's `data-collection` fetch already redacted this content; do not duplicate the screening.
+- Re-running `sensitive-data` here — phase 1 already redacted this content directly; do not duplicate the screening.
 </pitfalls>
 
 </triage_flow_elicitation>
