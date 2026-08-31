@@ -18,4 +18,5 @@ All paths are relative to Rosetta Plugin Path.
 - `prompts/security-flow.prompt.md`: "Workflow for authorized, evidence-preserving security review and remediation-task preparation."
 - `prompts/self-help-flow.prompt.md`: "Rosetta self-help: explains capabilities and usage. DEPRECATED."
 - `prompts/testgen-flow.prompt.md`: "Workflow for generating test cases from requirements (Issue Tracker / Wiki sources), exporting to a Test Management System, etc."
+- `prompts/tools-triage-flow.prompt.md`: "Workflow for triaging one issue-tracker ticket: intake, elicitation, assessment, and linked issue creation."
 - `prompts/ui-aqa-flow.prompt.md`: "Workflow for automated QA: integration and end-to-end UI test automation, page objects, etc."
