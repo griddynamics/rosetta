@@ -8,7 +8,7 @@ Without it an agent has no way to run or observe its work, so "done" silently de
 
 ## When to engage
 
-Model-invocable, no `disable-model-invocation`. Auto-activates on the description's keywords when something must be run, observed, or validated and the means do not exist. Actor: orchestrator/top-agent — it gates with HITL and hands off. Prereqs in `<core_concepts>`: Rosetta prep steps complete, `USE SKILL hitl`, `orchestration`, `load-project-context`. Scope is what the agent runs to work and to verify, locally and unattended. Unit-test frameworks, production tooling and load testing are out.
+Model-invocable, no `disable-model-invocation`. Auto-activates on the description's keywords when something must be run, observed, validated, or stopped from being done by hand again, and the means do not exist. Actor: orchestrator/top-agent — it gates with HITL and hands off. Prereqs in `<core_concepts>`: Rosetta prep steps complete, `USE SKILL hitl`, `orchestration`, `load-project-context`. Scope is what the agent runs to work and to verify, locally and unattended. Unit-test frameworks, production tooling and load testing are out.
 
 ## How it works
 
@@ -25,6 +25,8 @@ Model-invocable, no `disable-model-invocation`. Auto-activates on the descriptio
 `references/configure/*.md` carries per-coding-agent formats, locations, and feature support; the `target agent` block routes to it. `scripts/tester.js` is the universal hook probe.
 
 PROMPTING and HOOKS both target **AI coding agents** — Claude Code, Codex, Cursor, Copilot, Windsurf, Antigravity, Devin — not prompts or callbacks in general.
+
+Customizing what the plugin already ships is routed per artifact, because repository prompts override the plugin and the user must see one, not two: a skill, subagent, workflow or command is copied down and customized via PROMPTING; a rule is never copied, a new one is written; a hook is disabled by the user and recreated in the repository; a small fix goes terse into `CONTEXT.md`, `ARCHITECTURE.md`, or `AGENTS.md`/`CLAUDE.md`. Placement is per coding agent, so it routes through `references/configure/`.
 
 Kinds compose. ACTIONS, ENVIRONMENT, HOOKS and AUTOMATIONS hand implementation to `coding-flow`. PROMPTING authors text and scripts inline — step 7 says so explicitly, because that flow's reviewer and validator phases duplicate the harden and prove steps the prompting assets already own. An automation's router prompt is itself authored through the PROMPTING assets.
 
@@ -44,23 +46,21 @@ Hooks:
 
 - `"Prompts persuade. Hooks enforce."` — the whole reason the kind exists; a rule is advice, a hook is a gate.
 - `"A post-execution event cannot block. The tool already ran."` — and user-facing text and model-facing text are different fields, so the wrong one reaches nobody.
-- `"One agent has no structured-output channel at all and blocks by writing to stderr and exiting 2."` — the wire contract differs per agent, which is why a hook proved on one is not proved on the rest.
-- `"Never read one whole — they are megabytes."` — live-run logs ship as grep targets, with the marker set named in the asset; `tester.js` dumps every environment variable, secrets included.
+- `"One agent has no structured-output channel at all and blocks by writing to stderr and exiting 2."` — the wire contract differs per agent, so a hook proved on one is not proved on the rest. The live-run logs ship as grep targets, never whole reads; `tester.js` dumps every environment variable, secrets included.
 
 Automations:
 
 - `"Terminal state is never the input state."` — re-processing becomes structurally impossible rather than merely discouraged, and a flow whose only visible output is the end result has nothing to intervene in.
-- `"The claim into the working state is the concurrency lock."` and nothing loads from a working state, so a crashed run parks visibly instead of looping.
-- `"Trigger is a doorbell."` — ignore the payload, load the whole state; dropped events strand nothing. Moving an item into an input state is the authorization.
+- `"The claim into the working state is the concurrency lock."` and nothing loads from a working state, so a crashed run parks visibly instead of looping. `"Trigger is a doorbell"` — dropped events strand nothing.
+- `"'Internal' is not private."` — an internal repository is public to the whole organization; the actor being internal or external changes nothing, only the damage does.
 - `"Guardrails must live outside the agent's write reach. Branch protection is the mitigation. The prompt asking nicely is not."`
-- `"'Internal' is not private."` — an internal repository is public to the whole organization, contractors included; the actor being internal or external changes nothing, only the damage does.
 
-Across all four: `"Written but unexecuted = not delivered."`
+Across all five: `"Written but unexecuted = not delivered."` and `"the user sees one, not two"` — the rule that decides every customization route.
 
 ## Invariants — do not change
 
 - Frontmatter `name: harness` must equal the folder name and matches the registry entry in `docs/definitions/skills.md` (plain list, `- harness`).
-- Frontmatter `description` is the ONLY surface visible before the skill loads — it carries every activation trigger and must stay short and keyword-dense. `SKILL.md` deliberately has no `<when_to_use_skill>` for that reason (same omission as `orchestration`); do not add one back as a trigger list.
+- Frontmatter `description` is the ONLY surface visible before the skill loads — it carries every activation trigger and must stay short and keyword-dense. It names `pipelines` although the kind is AUTOMATIONS, and `faster` although no kind is named that: both are routing keywords for how people actually ask, not taxonomy. `SKILL.md` deliberately has no `<when_to_use_skill>` for that reason (same omission as `orchestration`); do not add one back as a trigger list.
 - Asset filenames are referenced by exact path from `<process>` step 4; renaming any breaks the router.
 - The `## Harness` section name in the target repo's `ARCHITECTURE.md` is written by `SKILL.md` step 9 alone. The assets deliberately carry no `<registration>` block — do not reintroduce one, it would fork the definition.
 - Step 7's per-kind clauses are load-bearing: without the PROMPTING exemption and the AUTOMATIONS split (definition through the flow, router prompt through the prompting assets) the router contradicts itself for two of its four kinds.
