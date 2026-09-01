@@ -2,15 +2,15 @@
 
 ## Folder index generation
 
-<req id="FR-GEN-0001" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-GEN-0001" type="FR" level="System" ticketId="315" classification="technical">
   <title>Generate folder index</title>
   <statement>Where a target declares generated indexes for a folder, the `pluginGenerateIndexes()` processor (FR-ARCH-0047) shall produce an `INDEX.md` `VirtualFile` in that folder listing each document with its description, built from the final post-`fileRename()` target paths (FR-ARCH-0038) so the listing already carries correct paths and requires no reference rewriting.</statement>
   <rationale>Agents use the index as a table of contents to discover available rules and workflows. The index is a generated artifact with its own pipeline stage, not an out-of-band write; generating it against final paths means it never lists a pre-rename path that would need fixing.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a folder of documents When: indexed Then: `INDEX.md` lists each non-index document with `folder/filename` and its description.</criteria>
@@ -18,17 +18,18 @@
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
+  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
-<req id="FR-GEN-0002" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-GEN-0002" type="FR" level="System" ticketId="315" classification="technical">
   <title>Description source and fallback</title>
   <statement>The generator shall take each index entry's description from the document's frontmatter description field, falling back to a title derived from the filename when absent.</statement>
   <rationale>Descriptions let agents understand a document's purpose from the index alone.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a document with a frontmatter description When: indexed Then: that description is used.</criteria>
@@ -36,17 +37,18 @@
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
+  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
-<req id="FR-GEN-0003" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-GEN-0003" type="FR" level="System" ticketId="315" classification="technical">
   <title>Tag-filtered index membership</title>
   <statement>Where an index requires a tag, the generator shall include a document when that tag is an exact member of the document's parsed frontmatter tag set (exact matching, FR-ARCH-0037).</statement>
   <rationale>The workflow index must list only workflow entry documents, excluding per-phase files. Exact membership prevents a required tag `workflow` from spuriously matching a tag like `workflow-helper`.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a workflows folder containing entry and phase files When: indexed with required tag `workflow` Then: only entry files appear.</criteria>
@@ -55,60 +57,82 @@
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
   <depends>FR-ARCH-0037</depends>
+  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
-<req id="FR-GEN-0004" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-GEN-0004" type="FR" level="System" ticketId="315" classification="technical">
   <title>Index heading normalization</title>
   <statement>The generator shall title a generated index by a canonical display name, mapping workflow-equivalent folder names (`commands`, `prompts`) to the same display name as `workflows`.</statement>
   <rationale>The workflow index must read identically regardless of the IDE-specific physical folder name.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: folder `commands` or `prompts` When: indexed Then: the heading reads `# Rosetta Workflows Index`.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
+  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
 ## Template rendering
 
-<req id="FR-GEN-0010" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-GEN-0010" type="FR" level="System" ticketId="315" classification="technical">
   <title>Render Handlebars templates</title>
-  <statement>Where a target declares templates, the `pluginRenderTemplates()` processor (FR-ARCH-0048) shall render each Handlebars template `VirtualFile` to its sibling output `VirtualFile` with the template suffix removed, using a context of release variables plus per-target bootstrap payload values.</statement>
+  <statement>Where a target declares templates, the `pluginRenderTemplates()` processor (FR-ARCH-0048) shall render each Handlebars template `VirtualFile` to its sibling output `VirtualFile` with the template suffix removed, using a context of release variables, the per-target bootstrap payload value, and the pre-serialized hook configuration the assembler publishes (FR-GEN-0011); the set's bootstrap flag and hook list reach the output through that assembled value rather than as template variables (FR-SET-0070, DATA-CFG-0007). Where the set declares an empty hook list with its bootstrap flag unset, the render shall produce no hook configuration file at all rather than an empty one. Suppression by the effective deterministic-hooks value alone shall not remove the file, a target whose layout contributes no bootstrap block emitting a valid but entry-less configuration instead (see notes).</statement>
   <rationale>Hook configuration is generated from templates parameterized by release and per-target bootstrap content. Rendering is a distinct pipeline stage, not an out-of-band step.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `hooks/hooks.json.tmpl` When: rendered Then: `hooks/hooks.json` is produced.</criteria>
+    <criteria>Given: `hooks/hooks.json.tmpl` and a set declaring a bootstrap flag or a non-empty hook list When: rendered Then: `hooks/hooks.json` is produced.</criteria>
+    <criteria>Given: a set with an unset bootstrap flag and an empty hook list When: rendered Then: no `hooks.json` and no `hooks/` folder are produced.</criteria>
+    <criteria>Given: a set declaring hooks, rendered for a target whose layout contributes no bootstrap block with the effective deterministic-hooks value false When: rendered Then: a valid but entry-less `hooks.json` is produced, keeping any IDE manifest reference to it resolvable.</criteria>
+    <criteria>Given: the render context When: inspected Then: it carries exactly the release name, the effective deterministic-hooks value, the bootstrap payload value and the assembled hook-configuration value, every key a template may reference being plumbed explicitly so strict rendering cannot meet an unknown one.</criteria>
     <criteria>Given: a declared template that is missing When: rendering Then: a warning is emitted and the run continues.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented against the corrected text: pluginRenderTemplates
+  (src/rosettify-plugins/src/plugin-processors/plugin-render-templates.ts) renders each .tmpl frame to its
+  sibling with the suffix removed under Handlebars strict: true, never emits the .tmpl frame itself, and
+  warns-and-continues on a missing template or render error - verified, zero .tmpl files reach the output
+  tree. emitsHooksJson (plugin-assemble-hooks-json.ts) suppresses both hooks.json and the hooks/ folder
+  for a set declaring an empty hook list with bootstrap unset: verified on a real --release r3 build, all
+  four add-on sets (advanced, qe, search, modernization) ship zero hooks.json and zero hooks/ directories
+  across every IDE target. The render context in generate.ts is baseTemplateContext = { release,
+  deterministic_hooks, bootstrap_hooks, hooks_json }, every key plumbed explicitly so strict rendering
+  cannot meet an unknown one. CORRECTED in this pass: the statement and AC4 previously described the
+  context as carrying the set's bootstrap flag and ordered hook list, and AC3 required the file to
+  disappear whenever the effective deterministic-hooks value suppressed the declared hooks. Both described
+  the pre-assembler design; the entry-less file is pre-existing behaviour recorded in the notes below
+  rather than a defect this change introduced.</implementationNotes>
+  <notes>A target whose `HOOK_LAYOUTS` bootstrap slot is `null` or `empty` — Cursor, Cursor-standalone, Copilot-standalone and Antigravity — emits a valid but ENTRY-LESS `hooks.json` when the effective deterministic-hooks value (FR-CLI-0012) suppresses the hooks its set declares. This predates #315: the pre-change golden tree shipped the same 12 files (`core-cursor{,-light}` and `core-cursor-standalone{,-light}` at 37 bytes, `core-copilot-standalone*` at 60, `core-antigravity{,-light}` at 68), and the current tree ships the equivalent set, the byte counts differing only because the assembler emits compact JSON where the template carried whitespace. Suppressing the file is DEFERRED: an IDE manifest references it — Cursor's `plugin.json` declares `"hooks": "./hooks/hooks.json"` — so removing it requires per-IDE verification that a dangling manifest reference does not break plugin load, which cannot be tested here. The narrower guarantee that a set declaring no hooks with `bootstrap: false` ships neither a `hooks/` folder nor a `hooks.json` is unaffected and verified.</notes>
 </req>
 
-<req id="FR-GEN-0011" type="FR" level="System" ticketId="" classification="technical">
-  <title>Raw injection and release conditionals</title>
-  <statement>The generator shall inject bootstrap payload values into templates without escaping (raw), and shall support release-driven conditional blocks keyed on release variables, such that rendered configuration is valid for both the deterministic-hooks and non-deterministic-hooks releases.</statement>
-  <rationale>Bootstrap payloads are pre-escaped JSON fragments; advisory hook blocks appear only for deterministic-hook releases.</rationale>
+<req id="FR-GEN-0011" type="FR" level="System" ticketId="315" classification="technical">
+  <title>Assembled hook configuration and raw injection</title>
+  <statement>The hook configuration document shall be assembled in generator code and injected into its template as one pre-serialized value, not composed by template control flow. The `pluginAssembleHooksJson()` processor shall build the complete document from the building set's declared hook list and bootstrap flag (FR-SET-0070) resolved against that target's `HOOK_LAYOUTS` bindings, serialize it with `JSON.stringify`, and publish it as the single `hooks_json` template value; the template shall then insert that value raw (unescaped). A hook-configuration template shall carry exactly one raw-injection placeholder and no control flow: no conditional block, no iteration, and no literal hook entry. Bootstrap payload values shall likewise be injected raw, as pre-escaped JSON fragments. Rendering shall be strict, so a placeholder the context does not plumb shall throw rather than render empty. The rendered configuration shall be valid JSON for every combination of an effective deterministic-hooks value, a bootstrap flag, and a hook list of any length including zero — a property that follows from serializing a built object rather than from template authoring discipline.</statement>
+  <rationale>Six near-duplicate templates previously relied on a trailing-comma idiom to stay valid JSON while conditionally emitting hook entries, which made malformed output a one-character authoring mistake. Serializing a built object makes malformed output structurally impossible and collapses those templates to a single shared line, so adding a set or an IDE changes data rather than template text. The placeholder is retained rather than writing the file directly because rendering stays the one uniform stage that turns preserved `.tmpl` frames into output, and strict rendering keeps an unplumbed variable loud instead of silently empty.</rationale>
   <source>Documentation</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: a raw-injection placeholder When: rendered Then: the JSON fragment is inserted verbatim.</criteria>
-    <criteria>Given: a `deterministic_hooks` conditional block When: rendered for r2 Then: the result is valid JSON without advisory blocks; for r3 Then: advisory blocks are present and the result is valid JSON.</criteria>
+    <criteria>Given: a raw-injection placeholder When: rendered Then: the JSON fragment is inserted verbatim, unescaped.</criteria>
+    <criteria>Given: any shipped hook-configuration template When: inspected Then: it carries a single raw placeholder and contains no conditional block, no iteration and no literal hook entry.</criteria>
+    <criteria>Given: sets declaring hook lists of differing length rendered from the same template When: compared Then: each result carries exactly its own entries, produced by the assembler rather than by template iteration or literals.</criteria>
+    <criteria>Given: any combination of an effective deterministic-hooks value, a bootstrap flag and a hook list of any length including zero When: rendered Then: the result is valid JSON.</criteria>
+    <criteria>Given: a placeholder the render context does not plumb When: rendered Then: rendering throws rather than emitting an empty value.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
-  <notes>Re-implementation must use a Handlebars engine whose triple-stache raw-injection and `{{#if}}` semantics match (Node `handlebars`).</notes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/plugin-processors/plugin-assemble-hooks-json.ts buildHooksDocument builds the document from spec.hookModules, spec.bootstrap and the target's HOOK_LAYOUTS bindings, and pluginAssembleHooksJson publishes JSON.stringify(doc, null, 2) under HOOKS_JSON_KEY; emitsHooksJson drops the frame entirely when a set would render an empty configuration. src/rosettify-plugins/src/plugin-processors/plugin-render-templates.ts renders with Handlebars strict: true and never emits the .tmpl frame. Verified: all 7 shipped hooks.json.tmpl files are the single line {{{hooks_json}}}, with zero occurrences of {{#if}} or {{#each}} in any of them; across the generated tree 90 hooks.json files all parse as valid JSON, with per-file entry counts of 0, 1, 3, 8, 10, 12, 15 and 18 — proving content varies by set and IDE while the template is identical; and zero .tmpl files leak into output. CORRECTED in this pass: this unit previously required the template to iterate the declared hook list and to support conditional blocks, a design that was superseded by the assembler before it shipped.</implementationNotes>
+  <notes>The assembler is the reason validity is structural rather than editorial. `HOOK_LAYOUTS` (src/rosettify-plugins/src/spec/hook-layouts.ts) owns the per-IDE event and matcher shape, so one declared hook list serves all seven targets.</notes>
 </req>

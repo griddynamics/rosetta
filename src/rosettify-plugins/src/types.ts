@@ -1,6 +1,7 @@
 // FR-ARCH-0001/0002/0003/0030/0036/0039 — all PascalCase domain types, camelCase processor factories
 
 import type { Writable } from 'stream';
+import type { HookLayout } from './spec/hook-layouts.js';
 
 export type DirectiveToken = string;
 
@@ -51,7 +52,18 @@ export interface SpecEntry {
   target: string;
   exclude: string[];
   processors: FileProcessor[];
-  verbatim?: boolean; // when true, frames produced from this entry skip pluginRewriteReferences (TODO-2)
+  verbatim?: boolean; // when true, EVERY frame from this entry skips pluginRewriteReferences (TODO-2)
+  /**
+   * Path prefixes within this entry whose frames are verbatim even though the entry as a whole is
+   * not. Reference rewriting is otherwise all-or-nothing per SpecEntry, which cannot express
+   * "this one subtree is a byte-identical copy of something that is not rewritten".
+   *
+   * `skills/harness/references/configure/**` is exactly that case: those files are a verbatim copy
+   * of the (now removed) `configure/` tree, which was never reference-rewritten — so rewriting the
+   * copy silently made the two diverge. Matched as a path prefix against the frame's VFS
+   * sourcePath, which is stable regardless of any later rename.
+   */
+  verbatimPaths?: string[];
 }
 
 export interface IndexDecl {
@@ -65,6 +77,16 @@ export interface InjectionDecl {
   hostFramePath: string;   // plugin-relative path of the host frame (after renames)
   anchor: string;          // exact anchor string in the file (line prefix match)
   sections: InjectionSection[];
+  /**
+   * Instruction folder that must be present in the VFS for this injection to apply.
+   *
+   * Plugin sets are sparse: only the sets layering `core/` ship a `rules/` folder, so the
+   * standalone plugin-files-mode host document simply does not exist in an add-on set like `qe`.
+   * Without this, a legitimately absent host produced a HARD error for four of the six sets.
+   * A declaration whose folder IS shipped keeps the hard error when its host is missing — that
+   * still means something genuinely broke.
+   */
+  requires?: string;
 }
 
 export interface InjectionSection {
@@ -111,8 +133,22 @@ export const MODEL_DROP: unique symbol = Symbol('MODEL_DROP');
 
 // FR-ARCH-0001, DATA-CFG-0002
 export interface PluginSpec {
-  name: string;                // e.g. "core-claude"
-  destination: string;         // output folder name == name
+  /**
+   * The BARE IDE identity — `claude`, `cursor-standalone`, ... — and NOT the output folder.
+   * This is the closed, load-time identity that `spec/target-names.ts` enumerates, that
+   * `vfs/directives.ts` builds its `target-`/`ide-` token allow-list from at module load, and that
+   * `spec/profiles.ts` validates modelOverrides keys against. Six plugin sets share these same
+   * seven identities; what distinguishes their output is `destination`, not this.
+   */
+  name: string;
+  /**
+   * The plugin SET this spec belongs to (`rosetta`, `core`, `qe`, ...). Evaluated by
+   * `set-<name>-only` filename directives and used for error attribution, so a failure names the
+   * set rather than an IDE that six sets have in common.
+   */
+  set: string;
+  /** Output folder name: `<set>-<ide><variantSuffix>`. Distinct from `name` by design. */
+  destination: string;
   baseSubfolder: string;       // "" | ".cursor" | ".github" | ".agents"-style root
   preservedSource: string;     // src/rosettify-plugins/plugins/<parent>/ (FR-SEED-0001/0002)
   modelVocabulary: ModelVocabulary;
@@ -137,8 +173,9 @@ export interface PluginSpec {
   mirrors?: Array<{ from: string; to: string }>;
   /**
    * Bundle source target name for hook bundle sync.
-   * Standalone targets reference their parent target's bundles (e.g. 'core-cursor').
-   * Main targets use their own name (default: spec.name).
+   * Bundle directory name under <hooksSource>/dist/bundles/ — the bare IDE FAMILY id
+   * (e.g. 'cursor'), matching src/hooks/scripts/build-bundles.mjs. Standalone targets therefore
+   * resolve to their parent IDE's bundles. Defaults to spec.name when unset.
    * F-F-adjacent fix: eliminates spec.name branching in pluginSyncBundles. DATA-CFG-0002.
    */
   bundleSource?: string;
@@ -147,6 +184,34 @@ export interface PluginSpec {
    * Replaces the hardcoded resolveHookFolder switch. DATA-CFG-0002.
    */
   hookFolder: string;
+  /**
+   * Bundle modules this set ships, already expanded with support modules (DATA-CFG-0007).
+   * Empty ⇒ pluginSyncBundles copies nothing and creates no hook folder.
+   */
+  hookModules: string[];
+  /**
+   * This target's hooks.json layout (DATA-CFG-0008), or null when the spec emits no hooks.json
+   * at all — a set with no hook modules and no bootstrap.
+   */
+  hookLayout: HookLayout | null;
+  /** Whether this set registers the session-start bootstrap payload (DATA-CFG-0007). */
+  bootstrap: boolean;
+  /** Set-driven manifest name/description, before variant suffixing (DATA-CFG-0007). */
+  manifest: { name: string; description: string };
+  /**
+   * Manifest fields emitted only when the set actually ships the folder they point at
+   * (DATA-CFG-0007). `requires` is an instruction-folder name matched against the VFS, or the
+   * literal `hooks` meaning "this spec emits a hooks.json". Sparse sets — `search` ships zero
+   * workflows, `advanced` zero skills, four sets no hooks — would otherwise advertise folders
+   * that do not exist in their output.
+   */
+  manifestConditionalFields: ManifestConditionalField[];
+}
+
+export interface ManifestConditionalField {
+  field: string;
+  requires: string;
+  value: unknown;
 }
 
 // FR-HOOK-0009 — one entry in the bootstrap manifest ordered list
@@ -191,12 +256,19 @@ export interface ResolvedSources {
   // FR-CLI-0033 — <source>/src/rosettify-plugins/profiles (or --profileSource override), resolved
   // from --source exactly as pluginsSource/hooksSource/instructionsSource above.
   profileSource: string;
+  // DATA-CFG-0007 — <source>/src/rosettify-plugins/plugins.json (or --config override), resolved
+  // from --source exactly as profileSource above.
+  configPath: string;
 }
 
 export interface GenerateOptions {
   sources: ResolvedSources;
   release: string;
-  domain: string;
+  /**
+   * FOLDER FILTER over plugin sets: only sets whose `folders` are ALL named here are built.
+   * `undefined` (the default) builds every set available for the release — the 49-folder run.
+   */
+  domain?: string;
   dryRun: boolean;
   verbose: boolean;
   deterministicHooks?: boolean; // FR-CLI-0012 — per-run override; undefined → false (fixed default, not the release descriptor value)

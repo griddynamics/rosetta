@@ -114,7 +114,7 @@ Both branches authenticate with **the same `BIFROST_API_KEY`**, on different rou
 | GitHub token | `github_token` input | `GH_TOKEN` step env (no input exists) |
 | Actor gate bypass | `allowed_non_write_users: "*"` | `allow-users: "*"` |
 | Model | `--model opus` / `sonnet` | `model: gpt-5.6-sol` / `gpt-5.6-terra` |
-| Rosetta instructions | `plugin_marketplaces` + `plugins` inputs | `.github/actions/codex-setup` extracts the `core-codex` release asset into the workspace |
+| Rosetta instructions | `plugin_marketplaces` + `plugins` inputs | `.github/actions/codex-setup` extracts the `rosetta-codex` release asset into the workspace |
 | Tool boundary | `--allowedTools` / `--disallowedTools` | permission profile + execpolicy deny-list (see below) |
 | Hook trust | n/a | managed hooks in `/etc/codex/requirements.toml` |
 | Trace | `claude-execution-output.json` | rollout JSONL under `$CODEX_HOME/sessions` |
@@ -144,7 +144,7 @@ Python with named arguments.
 ### Model tiers
 
 The two branches run matched tiers, not arbitrary models. The ladder is not invented
-here — it is the pairing `instructions/r3/core/agents/*.md` already uses, position by
+here — it is the pairing `instructions/r3/advanced/agents/*.md` already uses, position by
 position in each agent's `model:` candidate list:
 
 | Claude | Codex | Seen in |

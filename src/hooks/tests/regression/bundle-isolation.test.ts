@@ -16,20 +16,20 @@ const HOOK_FILES  = [
 
 // For each plugin, list IDE names that must NOT appear as string literals in its bundles.
 const FOREIGN: Record<string, string[]> = {
-  'core-copilot':     ['cursor', 'windsurf', 'codex', 'claude-code', 'antigravity'],
-  'core-cursor':      ['copilot', 'windsurf', 'codex', 'antigravity'],
-  'core-claude':      ['copilot', 'cursor', 'windsurf', 'codex', 'antigravity'],
-  'core-codex':       ['copilot', 'cursor', 'windsurf', 'antigravity'],
-  'core-antigravity': ['copilot', 'cursor', 'windsurf', 'codex', 'claude-code'],
+  'copilot':     ['cursor', 'windsurf', 'codex', 'claude-code', 'antigravity'],
+  'cursor':      ['copilot', 'windsurf', 'codex', 'antigravity'],
+  'claude':      ['copilot', 'cursor', 'windsurf', 'codex', 'antigravity'],
+  'codex':       ['copilot', 'cursor', 'windsurf', 'antigravity'],
+  'antigravity': ['copilot', 'cursor', 'windsurf', 'codex', 'claude-code'],
 };
 
 // Allowed occurrences: plugin → hookFile → IDE name → max allowed count.
 // loose-files.js legitimately contains "copilot" in `whenIde: ["copilot"]` throttle config —
 // that's a runtime check, not a bundled adapter.
 const ALLOWED_COUNT: Record<string, Record<string, Record<string, number>>> = {
-  'core-cursor':  { 'loose-files.js': { copilot: 1 } },
-  'core-claude':  { 'loose-files.js': { copilot: 1 } },
-  'core-codex':   { 'loose-files.js': { copilot: 1 } },
+  'cursor':  { 'loose-files.js': { copilot: 1 } },
+  'claude':  { 'loose-files.js': { copilot: 1 } },
+  'codex':   { 'loose-files.js': { copilot: 1 } },
 };
 
 describe('bundle isolation', () => {
@@ -57,17 +57,17 @@ describe('bundle isolation', () => {
 
   // Antigravity has no non-blocking delivery channel — the advise-only hooks MUST NOT be bundled
   // for it (docs/hooks/antigravity.md; build-bundles.mjs excludeHooks). The supported hooks MUST be.
-  describe('core-antigravity — unsupported advise hooks excluded', () => {
+  describe('antigravity — unsupported advise hooks excluded', () => {
     const UNSUPPORTED = ['lint-format-advisory.js', 'md-file-advisory.js', 'loose-files.js'];
     const SUPPORTED   = ['dangerous-actions.js', 'read-once.js', 'read-once-shared.js', 'read-once-reset.js', 'codemap-refresh.js'];
     for (const f of UNSUPPORTED) {
       test(`does NOT bundle ${f} (no advise channel on Antigravity)`, () => {
-        expect(existsSync(path.join(BUNDLES_DIR, 'core-antigravity', f))).toBe(false);
+        expect(existsSync(path.join(BUNDLES_DIR, 'antigravity', f))).toBe(false);
       });
     }
     for (const f of SUPPORTED) {
       test(`DOES bundle ${f}`, () => {
-        expect(existsSync(path.join(BUNDLES_DIR, 'core-antigravity', f))).toBe(true);
+        expect(existsSync(path.join(BUNDLES_DIR, 'antigravity', f))).toBe(true);
       });
     }
   });

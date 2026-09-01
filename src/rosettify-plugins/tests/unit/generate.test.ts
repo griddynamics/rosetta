@@ -4,7 +4,9 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { generate } from '../../src/index.js';
+import { generate, sweepOrphanDestinations } from '../../src/generate.js';
+import { loadPluginCatalog } from '../../src/spec/plugin-sets.js';
+import type { PluginCatalog } from '../../src/spec/plugin-sets.js';
 import type { ResolvedSources } from '../../src/types.js';
 
 // generate() writes user-facing error messages (unknown release, unresolved sources)
@@ -50,7 +52,7 @@ function buildFakeRepo(): string {
 
   const pluginsRoot = path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins');
   fs.mkdirSync(pluginsRoot, { recursive: true });
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex', 'core-antigravity']) {
+  for (const target of ['template-claude', 'template-cursor', 'template-copilot', 'template-codex', 'template-antigravity']) {
     const src = path.join(SAMPLE_PLUGINS_DIR, target);
     if (fs.existsSync(src)) {
       const dest = path.join(pluginsRoot, target);
@@ -59,9 +61,15 @@ function buildFakeRepo(): string {
     }
   }
 
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex', 'core-antigravity']) {
-    fs.mkdirSync(path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', target), { recursive: true });
+  for (const ide of ['claude', 'cursor', 'copilot', 'codex', 'antigravity']) {
+    fs.mkdirSync(path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', ide), { recursive: true });
   }
+
+  // DATA-CFG-0007: every run loads a plugin-set catalog at pre-flight.
+  fs.copyFileSync(
+    path.join(FIXTURES_DIR, 'sample-plugins.json'),
+    path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins.json'),
+  );
 
   fs.mkdirSync(path.join(tmpRepo, '.git'), { recursive: true });
   return tmpRepo;
@@ -74,6 +82,8 @@ function buildSources(repoRoot: string, outputDir: string): ResolvedSources {
     pluginsSource: path.join(repoRoot, 'src', 'rosettify-plugins', 'plugins'),
     hooksSource: path.join(repoRoot, 'src', 'hooks'),
     outputDir,
+    profileSource: path.join(repoRoot, 'src', 'rosettify-plugins', 'profiles'),
+    configPath: path.join(repoRoot, 'src', 'rosettify-plugins', 'plugins.json'),
   };
 }
 
@@ -266,5 +276,287 @@ describe('generate() — error coverage', () => {
     } finally {
       fs.rmSync(r3Repo, { recursive: true, force: true });
     }
+  });
+});
+
+// DATA-CFG-0007 — the orphan sweep. pluginCleanup only wipes destinations it is about to write,
+// so renaming core-<ide> to rosetta-<ide> would otherwise leave the superseded folders in the
+// output tree forever and users would keep installing a plugin the generator stopped producing.
+describe('sweepOrphanDestinations', () => {
+  const catalog = {
+    targets: ['claude'],
+    hookSupportModules: {},
+    sets: [{
+      name: 'rosetta',
+      folders: ['core'],
+      template: 'template',
+      releases: ['r3'],
+      requires: [],
+      bootstrap: true,
+      hooks: [],
+      manifest: { name: 'rosetta', description: 'R.' },
+      variants: [
+        { profile: null, destinationSuffix: '', manifestNameSuffix: '', manifestDescriptionSuffix: '' },
+        { profile: 'lightweight', destinationSuffix: '-light', manifestNameSuffix: '', manifestDescriptionSuffix: '' },
+      ],
+    }],
+  };
+
+  function withOutputDir(fn: (outputDir: string, loaded: PluginCatalog) => void): void {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sweep-'));
+    try {
+      const configPath = path.join(tmp, 'plugins.json');
+      fs.writeFileSync(configPath, JSON.stringify(catalog));
+      const outputDir = path.join(tmp, 'out');
+      fs.mkdirSync(outputDir, { recursive: true });
+      fn(outputDir, loadPluginCatalog(configPath));
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  }
+
+  function seed(outputDir: string): void {
+    for (const d of ['rosetta-claude', 'rosetta-claude-light', 'core-claude', 'core-claude-light']) {
+      fs.mkdirSync(path.join(outputDir, d), { recursive: true });
+      fs.writeFileSync(path.join(outputDir, d, 'marker.txt'), 'x');
+    }
+    fs.writeFileSync(path.join(outputDir, 'README.md'), 'a loose file, not a plugin');
+  }
+
+  it('removes only the folders the catalog no longer declares', () => {
+    withOutputDir((outputDir, loaded) => {
+      seed(outputDir);
+      const removed = sweepOrphanDestinations(loaded, outputDir, false);
+
+      expect(removed.sort()).toEqual(['core-claude', 'core-claude-light']);
+      expect(fs.existsSync(path.join(outputDir, 'rosetta-claude'))).toBe(true);
+      expect(fs.existsSync(path.join(outputDir, 'rosetta-claude-light'))).toBe(true);
+      expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(false);
+    });
+  });
+
+  it('leaves loose files in the output root alone — only directories are swept', () => {
+    withOutputDir((outputDir, loaded) => {
+      seed(outputDir);
+      sweepOrphanDestinations(loaded, outputDir, false);
+      expect(fs.existsSync(path.join(outputDir, 'README.md'))).toBe(true);
+    });
+  });
+
+  it('removes nothing in dry-run, while still reporting what it would remove', () => {
+    withOutputDir((outputDir, loaded) => {
+      seed(outputDir);
+      const removed = sweepOrphanDestinations(loaded, outputDir, true);
+
+      expect(removed.sort()).toEqual(['core-claude', 'core-claude-light']);
+      expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(true);
+    });
+  });
+
+  it('is a no-op when the output directory does not exist yet', () => {
+    withOutputDir((outputDir, loaded) => {
+      fs.rmSync(outputDir, { recursive: true, force: true });
+      expect(sweepOrphanDestinations(loaded, outputDir, false)).toEqual([]);
+    });
+  });
+});
+
+// DATA-CFG-0007 — set expansion, --domain as a folder filter, and pre-flight abort semantics,
+// exercised against the disjoint multi-folder r3 fixture tree.
+describe('generate() — plugin sets end to end', () => {
+  function buildMultiSetRepo(): string {
+    const tmpRepo = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-sets-'));
+
+    for (const folder of ['core', 'qe', 'search']) {
+      const dest = path.join(tmpRepo, 'instructions', 'r3', folder);
+      fs.mkdirSync(dest, { recursive: true });
+      copyDirSync(path.join(SAMPLE_INSTRUCTIONS_DIR, 'r3', folder), dest);
+    }
+
+    const pluginsRoot = path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins');
+    fs.mkdirSync(pluginsRoot, { recursive: true });
+    for (const target of ['template-claude', 'template-codex']) {
+      const dest = path.join(pluginsRoot, target);
+      fs.mkdirSync(dest, { recursive: true });
+      copyDirSync(path.join(SAMPLE_PLUGINS_DIR, target), dest);
+    }
+
+    fs.mkdirSync(path.join(tmpRepo, 'src', 'rosettify-plugins', 'profiles'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpRepo, 'src', 'rosettify-plugins', 'profiles', 'lightweight.json'), '{}',
+    );
+    fs.copyFileSync(
+      path.join(FIXTURES_DIR, 'sample-plugins-multiset.json'),
+      path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins.json'),
+    );
+    return tmpRepo;
+  }
+
+  let repo: string;
+  beforeAll(() => { repo = buildMultiSetRepo(); });
+  afterAll(() => { if (repo) fs.rmSync(repo, { recursive: true, force: true }); });
+
+  const sourcesFor = (outputDir: string, configPath?: string): ResolvedSources => ({
+    ...buildSources(repo, outputDir),
+    profileSource: path.join(repo, 'src', 'rosettify-plugins', 'profiles'),
+    configPath: configPath ?? path.join(repo, 'src', 'rosettify-plugins', 'plugins.json'),
+  });
+
+  it('ONE invocation expands sets x variants x targets — 4 set-variants x 2 targets = 8', async () => {
+    const outputDir = path.join(repo, 'out-all');
+    const code = await generate({
+      sources: sourcesFor(outputDir), release: 'r3', dryRun: false, verbose: false,
+    });
+
+    expect(code).toBe(0);
+    expect(fs.readdirSync(outputDir).sort()).toEqual([
+      'qe-claude', 'qe-codex',
+      'rosetta-claude', 'rosetta-claude-light',
+      'rosetta-codex', 'rosetta-codex-light',
+      'search-claude', 'search-codex',
+    ]);
+  });
+
+  it('--domain is a folder filter over sets: `qe` builds only qe-*', async () => {
+    const outputDir = path.join(repo, 'out-qe');
+    const code = await generate({
+      sources: sourcesFor(outputDir), release: 'r3', domain: 'qe', dryRun: false, verbose: false,
+    });
+
+    expect(code).toBe(0);
+    // The `rosetta` set layers core+qe+search, so naming only `qe` excludes it.
+    expect(fs.readdirSync(outputDir).sort()).toEqual(['qe-claude', 'qe-codex']);
+  });
+
+  it('a sparse set ships no hooks folder and no hooks.json', async () => {
+    const outputDir = path.join(repo, 'out-sparse');
+    await generate({ sources: sourcesFor(outputDir), release: 'r3', dryRun: false, verbose: false });
+
+    // `search` declares no hooks and no bootstrap.
+    expect(fs.existsSync(path.join(outputDir, 'search-claude', 'hooks'))).toBe(false);
+    // ...while `rosetta` does ship them.
+    expect(fs.existsSync(path.join(outputDir, 'rosetta-claude', 'hooks', 'hooks.json'))).toBe(true);
+  });
+
+  it('a sparse set does not advertise folders it does not ship', async () => {
+    const outputDir = path.join(repo, 'out-manifest');
+    await generate({ sources: sourcesFor(outputDir), release: 'r3', dryRun: false, verbose: false });
+
+    const search = JSON.parse(fs.readFileSync(
+      path.join(outputDir, 'search-claude', '.claude-plugin', 'plugin.json'), 'utf-8',
+    ));
+    const rosetta = JSON.parse(fs.readFileSync(
+      path.join(outputDir, 'rosetta-claude', '.claude-plugin', 'plugin.json'), 'utf-8',
+    ));
+
+    // `search` ships zero workflows, so it declares no commands folder; `rosetta` does.
+    expect(search).not.toHaveProperty('commands');
+    expect(rosetta.commands).toBe('./workflows/');
+    // Manifest identity is set-driven, and the variant suffix is applied once.
+    expect(search.name).toBe('rosetta-search');
+  });
+
+  it('the variant, not --profile, drives the suffix: only rosetta has a -light twin', async () => {
+    const outputDir = path.join(repo, 'out-variant');
+    await generate({ sources: sourcesFor(outputDir), release: 'r3', dryRun: false, verbose: false });
+
+    const light = JSON.parse(fs.readFileSync(
+      path.join(outputDir, 'rosetta-claude-light', '.claude-plugin', 'plugin.json'), 'utf-8',
+    ));
+    expect(light.name).toBe('rosetta-light');
+    expect(light.description).toContain('(light)');
+    expect(fs.existsSync(path.join(outputDir, 'qe-claude-light'))).toBe(false);
+  });
+
+  it('sweeps output folders the catalog no longer declares', async () => {
+    const outputDir = path.join(repo, 'out-sweep');
+    fs.mkdirSync(path.join(outputDir, 'core-claude'), { recursive: true });
+    fs.writeFileSync(path.join(outputDir, 'core-claude', 'stale.txt'), 'x');
+
+    await generate({ sources: sourcesFor(outputDir), release: 'r3', dryRun: false, verbose: false });
+
+    expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(false);
+    expect(fs.existsSync(path.join(outputDir, 'rosetta-claude'))).toBe(true);
+  });
+
+  it('an invalid catalog aborts BEFORE anything is written, naming the file', async () => {
+    const outputDir = path.join(repo, 'out-badcatalog');
+    const badConfig = path.join(repo, 'bad-plugins.json');
+    fs.writeFileSync(badConfig, JSON.stringify({ ...JSON.parse(
+      fs.readFileSync(path.join(repo, 'src', 'rosettify-plugins', 'plugins.json'), 'utf-8'),
+    ), unknownField: true }));
+
+    let stderr = '';
+    const orig = process.stderr.write.bind(process.stderr);
+    (process.stderr as NodeJS.WriteStream).write = ((c: string) => { stderr += c; return true; }) as typeof process.stderr.write;
+    let code: number;
+    try {
+      code = await generate({
+        sources: sourcesFor(outputDir, badConfig), release: 'r3', dryRun: false, verbose: false,
+      });
+    } finally {
+      (process.stderr as NodeJS.WriteStream).write = orig;
+    }
+
+    expect(code).toBe(1);
+    expect(stderr).toContain(badConfig);
+    expect(stderr).toContain('unknownField');
+    expect(fs.existsSync(outputDir)).toBe(false);
+  });
+
+  it('a missing catalog aborts non-zero, naming the path it looked for', async () => {
+    const outputDir = path.join(repo, 'out-nocatalog');
+    const code = await silencingStderr(() => generate({
+      sources: sourcesFor(outputDir, path.join(repo, 'absent.json')),
+      release: 'r3', dryRun: false, verbose: false,
+    }));
+
+    expect(code).toBe(1);
+    expect(fs.existsSync(outputDir)).toBe(false);
+  });
+
+  it('a set naming a template with no folder for a target aborts before any write', async () => {
+    const outputDir = path.join(repo, 'out-notemplate');
+    const badConfig = path.join(repo, 'bad-template.json');
+    const catalog = JSON.parse(
+      fs.readFileSync(path.join(repo, 'src', 'rosettify-plugins', 'plugins.json'), 'utf-8'),
+    );
+    catalog.sets[0].template = 'no-such-template';
+    fs.writeFileSync(badConfig, JSON.stringify(catalog));
+
+    let stderr = '';
+    const orig = process.stderr.write.bind(process.stderr);
+    (process.stderr as NodeJS.WriteStream).write = ((c: string) => { stderr += c; return true; }) as typeof process.stderr.write;
+    let code: number;
+    try {
+      code = await generate({
+        sources: sourcesFor(outputDir, badConfig), release: 'r3', dryRun: false, verbose: false,
+      });
+    } finally {
+      (process.stderr as NodeJS.WriteStream).write = orig;
+    }
+
+    expect(code).toBe(1);
+    expect(stderr).toContain(badConfig);
+    expect(stderr).toContain('no-such-template');
+    // Pre-flight: not even the sets whose templates DO exist were written.
+    expect(fs.existsSync(outputDir)).toBe(false);
+  });
+
+  it('a set naming an instruction folder that does not exist aborts, never silently skips', async () => {
+    const outputDir = path.join(repo, 'out-nofolder');
+    const badConfig = path.join(repo, 'bad-folder.json');
+    const catalog = JSON.parse(
+      fs.readFileSync(path.join(repo, 'src', 'rosettify-plugins', 'plugins.json'), 'utf-8'),
+    );
+    catalog.sets[1].folders = ['typo-folder'];
+    fs.writeFileSync(badConfig, JSON.stringify(catalog));
+
+    const code = await silencingStderr(() => generate({
+      sources: sourcesFor(outputDir, badConfig), release: 'r3', dryRun: false, verbose: false,
+    }));
+
+    expect(code).toBe(1);
+    expect(fs.existsSync(outputDir)).toBe(false);
   });
 });

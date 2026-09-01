@@ -58,5 +58,5 @@ Prerequisites: documentation search tools (DeepWiki, Context7).
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/research-flow.md`](../../instructions/r3/core/workflows/research-flow.md)
+- Workflow: [`instructions/r3/advanced/workflows/research-flow.md`](../../instructions/r3/advanced/workflows/research-flow.md)
 - Skills: [`research`](../../instructions/r3/core/skills/research/SKILL.md), [`reasoning`](../../instructions/r3/core/skills/reasoning/SKILL.md)

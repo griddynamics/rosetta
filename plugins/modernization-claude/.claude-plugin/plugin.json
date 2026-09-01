@@ -1,0 +1,23 @@
+{
+  "name": "modernization",
+  "description": "Rosetta Modernization - conversion, upgrade, and re-architecture workflows. Requires Rosetta Core and Advanced.",
+  "version": "3.1.13",
+  "author": {
+    "name": "Grid Dynamics",
+    "email": "rosetta-support@griddynamics.com"
+  },
+  "homepage": "https://griddynamics.github.io/rosetta/",
+  "repository": "https://github.com/griddynamics/rosetta",
+  "license": "Apache-2.0",
+  "keywords": [
+    "rosetta",
+    "ai-agents",
+    "workflows",
+    "instructions",
+    "guardrails",
+    "planning",
+    "coding",
+    "knowledge-base"
+  ],
+  "commands": "./workflows/"
+}

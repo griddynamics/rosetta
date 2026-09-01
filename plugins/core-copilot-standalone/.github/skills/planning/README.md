@@ -9,7 +9,7 @@ Without it, a plan restates docs, narrates process the executor already knows, o
 - Human work breakdown: `USE SKILL backlog`, mode `work-breakdown`.
 - Skip: small or trivial request → do nothing.
 - One session: merge into `plans/<FEATURE>/<FEATURE>-PLAN.md` and `plans/<FEATURE>/HANDOFF.md`.
-- No `<when_to_use_skill>` block. Frontmatter has no `agent`. Callers still `USE SKILL planning` from `agents/architect.agent.md`, `agents/planner.agent.md`, `prompts/coding-flow.prompt.md`, `prompts/adhoc-flow.prompt.md`.
+- No `<when_to_use_skill>` block. Frontmatter has no `agent`. Callers still `USE SKILL planning` from `agents/architect.md`, `agents/planner.md`, `prompts/coding-flow.md`, `prompts/adhoc-flow.md`.
 
 ## How it works
 `role` → `target` (session-file graph for a later coding agent) → `core_concepts` (human/skip/one-session gates; six hard rules for session files; decomposition; plan-index must-contain; handoff; finish checks) → `output` (four path patterns).
@@ -32,8 +32,8 @@ No assets. Human-WBS content lives in `skills/backlog/assets/work-breakdown.md` 
 - Output paths: `plans/<FEATURE>/<FEATURE>-PLAN.md`, `<NN>-plan-<slug>.md`, `HANDOFF.md`, `<NN>-handoff.md`. Two `output` lines are missing a closing backtick in SKILL.md.
 - Index contract: read-first list, one-line governing rules with authority pointers, where findings land, file-ownership, per-phase table `# | Session | Depends on | Parallel with`, unlisted = sequential, parallelism only when sessions share no files, alone-sessions flagged.
 - The human-work-breakdown line routes to `USE SKILL backlog` so callers asking `planning` for a human WBS reach the owner of that method. Naming a skill by concept is allowed; naming another skill's files is not. Do not delete the route.
-- Callers still speak WBS / size-scaled plans (`agents/planner.agent.md`, `prompts/adhoc-flow.prompt.md` "plan-wbs"). Edit those with this skill, not instead of it.
+- Callers still speak WBS / size-scaled plans (`agents/planner.md`, `prompts/adhoc-flow.md` "plan-wbs"). Edit those with this skill, not instead of it.
 - `tech-specs` still pairs WHAT/HOW with `planning`; this SKILL.md does not restate that pair.
 
 ## Editing guide
-Safe: `role`/`target` wording, trap examples, checklist example items. Care: skip/human/one-session gates, session skeleton headings, line budgets, `plans/<FEATURE>/` path contract, index table columns, human-branch asset names. New session-graph rules go in SKILL.md. Human WBS schema now belongs to `skills/backlog/assets/work-breakdown.md`; do not re-add it here. `plugins/**` is generated. Referenced by: `agents/architect.agent.md`, `agents/planner.agent.md`, `prompts/coding-flow.prompt.md`, `prompts/adhoc-flow.prompt.md`, `skills/tech-specs/SKILL.md`, `skills/coding/SKILL.md`, `docs/definitions/skills.md`.
+Safe: `role`/`target` wording, trap examples, checklist example items. Care: skip/human/one-session gates, session skeleton headings, line budgets, `plans/<FEATURE>/` path contract, index table columns, human-branch asset names. New session-graph rules go in SKILL.md. Human WBS schema now belongs to `skills/backlog/assets/work-breakdown.md`; do not re-add it here. `plugins/**` is generated. Referenced by: `agents/architect.md`, `agents/planner.md`, `prompts/coding-flow.md`, `prompts/adhoc-flow.md`, `skills/tech-specs/SKILL.md`, `skills/coding/SKILL.md`, `docs/definitions/skills.md`.

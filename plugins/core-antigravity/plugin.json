@@ -1,6 +1,6 @@
 {
+  "name": "core",
+  "description": "Rosetta Core - foundation instruction set, rules, skills, and guardrails.",
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
-  "name": "rosetta",
-  "description": "Rosetta for Antigravity - Software Engineering Accelerator instruction set, rules, workflows, and guardrails.",
   "version": "3.1.13"
 }

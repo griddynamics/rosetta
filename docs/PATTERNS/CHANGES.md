@@ -20,7 +20,7 @@ Mode: upgrade. All patterns created from scratch (no prior PATTERNS/ folder exis
 | `tag-based-retrieval.md` | Tag-Based Retrieval | `src/rosetta-cli/rosetta_cli/services/document_data.py`, `src/rosetta-mcp-server/services/query_builder.py` |
 | `document-bundling.md` | Document Bundling | `src/rosetta-mcp-server/services/bundler.py` |
 | `vfs-resource-paths.md` | VFS Resource Paths | `src/rosetta-cli/rosetta_cli/services/document_data.py`, `src/rosetta-mcp-server/tools/resources.py` |
-| `layered-instruction-architecture.md` | Layered Instruction Architecture | `instructions/r2/core/`, `instructions/r2/grid/` |
+| `domain-set-architecture.md` (was `layered-instruction-architecture.md`) | Domain Set Architecture | `instructions/r2/core/`, `instructions/r2/grid/` |
 | `md5-change-detection.md` | MD5 Change Detection | `src/rosetta-cli/rosetta_cli/services/document_data.py` |
 | `dual-backend-store.md` | Dual-Backend Store | `src/rosetta-mcp-server/rosetta_mcp/server.py`, `src/rosetta-mcp-server/rosetta_mcp/auth/oauth.py` |
 | `ttl-cache-pattern.md` | TTL Cache | `src/rosetta-mcp-server/clients/doc_cache.py`, `src/rosetta-mcp-server/server.py` |

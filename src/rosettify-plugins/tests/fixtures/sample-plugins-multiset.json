@@ -1,0 +1,47 @@
+{
+  "$schema-note": "Fixture catalog with three sets over the disjoint r3 fixture tree: a full 'rosetta' set layering all three folders, plus two single-folder add-on sets. 'search' ships zero workflows, exercising the sparse-manifest path.",
+  "targets": ["claude", "codex"],
+  "hookSupportModules": { "read-once": ["read-once-reset", "read-once-shared"] },
+  "sets": [
+    {
+      "name": "rosetta",
+      "folders": ["core", "qe", "search"],
+      "template": "template",
+      "releases": ["r3"],
+      "requires": [],
+      "bootstrap": true,
+      "hooks": ["dangerous-actions", "read-once"],
+      "manifest": { "name": "rosetta", "description": "Everything." },
+      "variants": [
+        { "profile": null, "destinationSuffix": "", "manifestNameSuffix": "", "manifestDescriptionSuffix": "" },
+        { "profile": "lightweight", "destinationSuffix": "-light", "manifestNameSuffix": "-light", "manifestDescriptionSuffix": " (light)" }
+      ]
+    },
+    {
+      "name": "qe",
+      "folders": ["qe"],
+      "template": "template",
+      "releases": ["r3"],
+      "requires": [],
+      "bootstrap": false,
+      "hooks": [],
+      "manifest": { "name": "rosetta-qe", "description": "QE only." },
+      "variants": [
+        { "profile": null, "destinationSuffix": "", "manifestNameSuffix": "", "manifestDescriptionSuffix": "" }
+      ]
+    },
+    {
+      "name": "search",
+      "folders": ["search"],
+      "template": "template",
+      "releases": ["r3"],
+      "requires": [],
+      "bootstrap": false,
+      "hooks": [],
+      "manifest": { "name": "rosetta-search", "description": "Search only." },
+      "variants": [
+        { "profile": null, "destinationSuffix": "", "manifestNameSuffix": "", "manifestDescriptionSuffix": "" }
+      ]
+    }
+  ]
+}

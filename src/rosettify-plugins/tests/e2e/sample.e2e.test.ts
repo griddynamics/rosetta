@@ -29,7 +29,8 @@ const FIXTURES_DIR = path.join(__dirname, '..', 'fixtures');
 const SAMPLE_INSTRUCTIONS_DIR = path.join(FIXTURES_DIR, 'sample-instructions');
 const SAMPLE_PLUGINS_DIR = path.join(FIXTURES_DIR, 'sample-plugins');
 
-// The seven targets in buildAllSpecs declaration order, so a discovered target set compares stably.
+// The seven output folders the fixture catalog's `core` set produces, in declaration order, so a
+// discovered folder set compares stably. These are DESTINATIONS (`<set>-<ide>`), not spec names.
 const ALL_TARGETS = [
   'core-claude',
   'core-cursor',
@@ -71,19 +72,33 @@ function buildFakeRepo(): string {
   // Copy sample plugin preserved sources
   const pluginsRoot = path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins');
   fs.mkdirSync(pluginsRoot, { recursive: true });
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex', 'core-antigravity']) {
-    const src = path.join(SAMPLE_PLUGINS_DIR, target);
+  // Preserved sources are TEMPLATE families now (`template-<ide>`), shared by every set.
+  for (const template of [
+    'template-claude', 'template-cursor', 'template-copilot', 'template-codex', 'template-antigravity',
+  ]) {
+    const src = path.join(SAMPLE_PLUGINS_DIR, template);
     if (fs.existsSync(src)) {
-      const dest = path.join(pluginsRoot, target);
+      const dest = path.join(pluginsRoot, template);
       fs.mkdirSync(dest, { recursive: true });
       copyDirSync(src, dest);
     }
   }
 
-  // Create r2 bundle dirs (empty — no .js for r2 needed, r2 doesn't copy bundles)
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex', 'core-antigravity']) {
-    fs.mkdirSync(path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', target), { recursive: true });
+  // Create r2 bundle dirs (empty — no .js for r2 needed, r2 doesn't copy bundles).
+  // Bundle dirs are keyed by bare IDE id (src/hooks/scripts/build-bundles.mjs).
+  for (const ide of ['claude', 'cursor', 'copilot', 'codex', 'antigravity']) {
+    fs.mkdirSync(path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', ide), { recursive: true });
   }
+
+  // DATA-CFG-0007: every run loads a plugin-set catalog at pre-flight.
+  fs.mkdirSync(path.join(tmpRepo, 'src', 'rosettify-plugins', 'profiles'), { recursive: true });
+  fs.writeFileSync(
+    path.join(tmpRepo, 'src', 'rosettify-plugins', 'profiles', 'lightweight.json'), '{}',
+  );
+  fs.copyFileSync(
+    path.join(FIXTURES_DIR, 'sample-plugins.json'),
+    path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins.json'),
+  );
 
   // Mark it as a git repo so CLI can detect the root
   fs.mkdirSync(path.join(tmpRepo, '.git'), { recursive: true });
@@ -114,6 +129,8 @@ function buildSources(repoRoot: string, outputDir: string): ResolvedSources {
     pluginsSource: path.join(repoRoot, 'src', 'rosettify-plugins', 'plugins'),
     hooksSource: path.join(repoRoot, 'src', 'hooks'),
     outputDir,
+    profileSource: path.join(repoRoot, 'src', 'rosettify-plugins', 'profiles'),
+    configPath: path.join(repoRoot, 'src', 'rosettify-plugins', 'plugins.json'),
   };
 }
 
@@ -196,21 +213,15 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     expect(fs.existsSync(shellSchemasDir)).toBe(false);
   });
 
-  it('core-claude: workflows INDEX includes only workflow-tagged files', () => {
-    const indexPath = path.join(outputDir, 'core-claude', 'workflows', 'INDEX.md');
-    expect(fs.existsSync(indexPath)).toBe(true);
-    const content = fs.readFileSync(indexPath, 'utf-8');
-    expect(content).toContain('coding-flow.md'); // has workflow tag
-    expect(content).not.toContain('planning-phase.md'); // no workflow tag
-    expect(content).not.toContain('helper-util.md'); // workflow-helper tag — excluded
-  });
-
-  it('core-claude: rules INDEX exists with correct heading', () => {
-    const indexPath = path.join(outputDir, 'core-claude', 'rules', 'INDEX.md');
-    expect(fs.existsSync(indexPath)).toBe(true);
-    const content = fs.readFileSync(indexPath, 'utf-8');
-    expect(content).toContain('# Rosetta Rules Index');
-    expect(content).toContain('All paths are relative to Rosetta Plugin Path.');
+  // D6: every set declares `indexes: []`, so no INDEX.md is generated for any target.
+  // pluginGenerateIndexes is retained but dormant — it keeps its own unit tests
+  // (tests/unit/plugin-processors/plugin-generate-indexes.test.ts).
+  it('no INDEX.md is generated in any output folder (D6)', () => {
+    for (const target of ALL_TARGETS) {
+      const indexes = listFilesRecursive(path.join(outputDir, target))
+        .filter((f) => f.endsWith('INDEX.md'));
+      expect(indexes, `${target} must contain no generated index`).toEqual([]);
+    }
   });
 
   it('core-cursor: rules use .mdc extension', () => {
@@ -412,7 +423,9 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     const manifestPath = path.join(outputDir, 'core-cursor-standalone', 'plugin.json');
     expect(fs.existsSync(manifestPath)).toBe(true);
     const data = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-    expect(data.name).toBe('core-cursor-standalone');
+    // The standalone manifest name is composed from the SET manifest name, not the folder:
+    // `<set manifest name>-standalone` (+ the variant's name suffix, empty here).
+    expect(data.name).toBe('rosetta-core-standalone');
     expect(data.version).toBe('2.0.40');
   });
 
@@ -421,12 +434,15 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     expect(fs.existsSync(manifestPath)).toBe(true);
     const raw = fs.readFileSync(manifestPath, 'utf-8');
     // Exact format: 2-space indent, trailing newline, name before version
-    expect(raw).toMatch(/^\{\n  "name": "core-copilot-standalone",\n  "version": "[^"]+"\n\}\n$/);
+    expect(raw).toMatch(/^\{\n  "name": "rosetta-core-standalone",\n  "version": "[^"]+"\n\}\n$/);
   });
 
-  it('binary file: templates/sample-icon.png copied through unchanged (G-4)', () => {
-    // FR-ARCH-0040: binary files are read as Buffer and emitted verbatim
-    const pngPath = path.join(outputDir, 'core-claude', 'templates', 'sample-icon.png');
+  it('binary file: skills/sample-icon.png copied through unchanged (G-4)', () => {
+    // FR-ARCH-0040: binary files are read as Buffer and emitted verbatim.
+    // Carried by skills/ rather than templates/: the templates SpecEntry was removed (the whole
+    // templates/ tree is templates/shell-schemas/**, which TEMPLATES_EXCLUDES already filtered,
+    // so that entry could only ever emit nothing).
+    const pngPath = path.join(outputDir, 'core-claude', 'skills', 'sample-icon.png');
     expect(fs.existsSync(pngPath), 'sample-icon.png must be present in output').toBe(true);
     // Verify PNG signature bytes (binary passthrough)
     const bytes = fs.readFileSync(pngPath);
@@ -564,6 +580,9 @@ describe('Sample E2E — bundling (core+acme domains)', () => {
     await generate({
       sources: buildSources(bundleRepo, bundleOutputDir),
       release: 'r2',
+      // --domain is a FOLDER FILTER over sets now, not a layering list: naming core+acme selects
+      // the `acme` set, which is the set that LAYERS those two folders (and `core`, which layers
+      // only core/). The layering itself is declared in plugins.json, not on the command line.
       domain: 'core,acme',
       dryRun: false,
       verbose: false,
@@ -576,7 +595,7 @@ describe('Sample E2E — bundling (core+acme domains)', () => {
 
   it('bundled file (same path in core+acme) contains both contents', () => {
     // rules/coding-best-practices.md exists in both core and acme
-    const filePath = path.join(bundleOutputDir, 'core-claude', 'rules', 'coding-best-practices.md');
+    const filePath = path.join(bundleOutputDir, 'acme-claude', 'rules', 'coding-best-practices.md');
     expect(fs.existsSync(filePath)).toBe(true);
     const content = fs.readFileSync(filePath, 'utf-8');
     // Core content comes first
@@ -588,12 +607,12 @@ describe('Sample E2E — bundling (core+acme domains)', () => {
   });
 
   it('acme-only file appears in output', () => {
-    const filePath = path.join(bundleOutputDir, 'core-claude', 'rules', 'acme-policy.md');
+    const filePath = path.join(bundleOutputDir, 'acme-claude', 'rules', 'acme-policy.md');
     expect(fs.existsSync(filePath)).toBe(true);
   });
 
   it('workflow bundling: coding-flow contains both core and acme content', () => {
-    const filePath = path.join(bundleOutputDir, 'core-claude', 'workflows', 'coding-flow.md');
+    const filePath = path.join(bundleOutputDir, 'acme-claude', 'workflows', 'coding-flow.md');
     expect(fs.existsSync(filePath)).toBe(true);
     const content = fs.readFileSync(filePath, 'utf-8');
     // Core content
@@ -605,7 +624,7 @@ describe('Sample E2E — bundling (core+acme domains)', () => {
   it('overwrite directive: acme bootstrap-guardrails~overwrite~ prunes core content (FR-ARCH-0024, G-4)', () => {
     // The acme overlay has bootstrap-guardrails~overwrite~.md which prunes the core version.
     // Result: only acme content appears; core "Always follow core Rosetta policy" is gone.
-    const filePath = path.join(bundleOutputDir, 'core-claude', 'rules', 'bootstrap-guardrails.md');
+    const filePath = path.join(bundleOutputDir, 'acme-claude', 'rules', 'bootstrap-guardrails.md');
     expect(fs.existsSync(filePath), 'bootstrap-guardrails.md must be present (from overwriting acme)').toBe(true);
     const content = fs.readFileSync(filePath, 'utf-8');
     // Acme overwrite content must be present
@@ -712,9 +731,9 @@ describe('Sample E2E — an unrecognized filename directive aborts the run (FR-A
   };
 
   it('a misspelled target token aborts with a non-zero exit and writes no output', async () => {
-    const { code, files, stderr } = await runWithExtraRule('probe~core-clade-only~.md');
+    const { code, files, stderr } = await runWithExtraRule('probe~target-clade-only~.md');
     expect(code).not.toBe(0);
-    expect(stderr).toContain('Unknown filename directive "core-clade-only"');
+    expect(stderr).toContain('Unknown filename directive "target-clade-only"');
     expect(files).toEqual([]);
   }, 60000);
 
@@ -726,14 +745,15 @@ describe('Sample E2E — an unrecognized filename directive aborts the run (FR-A
   }, 60000);
 
   it('the rejection message names every accepted form, so the failure carries its own fix', async () => {
-    const { stderr } = await runWithExtraRule('probe~core-clade-only~.md');
-    expect(stderr).toContain('core-claude-only');
-    expect(stderr).toContain('copilot-only');
+    const { stderr } = await runWithExtraRule('probe~target-clade-only~.md');
+    expect(stderr).toContain('target-claude-only');
+    expect(stderr).toContain('ide-copilot-only');
+    expect(stderr).toContain('set-<name>-only');
     expect(stderr).toContain('profile-<name>-only');
   }, 60000);
 
   it('a valid family token does NOT abort, proving the guard rejects typos and not the feature', async () => {
-    const { code, stderr } = await runWithExtraRule('probe~antigravity-only~.md');
+    const { code, stderr } = await runWithExtraRule('probe~ide-antigravity-only~.md');
     expect(stderr).not.toContain('Unknown filename directive');
     expect(code).toBe(0);
   }, 60000);

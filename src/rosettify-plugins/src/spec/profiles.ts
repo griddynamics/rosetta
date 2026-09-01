@@ -1,7 +1,16 @@
-// FR-PROF-0001, FR-PROF-0010, DATA-CFG-0006 — profile descriptor: destination/manifest suffixing
-// and per-target model-vocabulary overrides. Mirrors spec/releases.ts in shape and idiom: a
-// keyed-lookup module with a throw-on-unknown loader, except here the descriptor comes from a
-// per-run JSON file rather than a static in-module record.
+// FR-PROF-0001, FR-PROF-0010, DATA-CFG-0006 — profile descriptor: per-target model-vocabulary
+// overrides. Mirrors spec/releases.ts in shape and idiom: a keyed-lookup module with a
+// throw-on-unknown loader, except here the descriptor comes from a per-run JSON file rather than a
+// static in-module record.
+//
+// Destination and manifest suffixing USED to live here as destinationSuffix / pluginNameSuffix /
+// pluginDescriptionSuffix. Those moved onto the plugin-set VARIANT in plugins.json: a suffix is a
+// property of "which flavour of this set am I emitting", not of "which models does this build
+// prefer", and the same profile is now activated by variants that suffix differently (the `rosetta`
+// set's lightweight variant suffixes `-light`; every other set's lightweight variant suffixes
+// nothing). A profile descriptor is therefore allowed to be completely empty — `{}` is valid, and
+// the shipped `lightweight` profile is exactly that. Its one remaining job in that state is to make
+// `profile-lightweight-only` filename directives resolve.
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -20,7 +29,7 @@ import type { TargetName } from './target-names.js';
  * neither direction cycles.
  */
 
-// FR-PROF-0001.AC6, DATA-CFG-0006.AC3 — core-claude's closed inner key-space (mirrors
+// FR-PROF-0001.AC6, DATA-CFG-0006.AC3 — claude's closed inner key-space (mirrors
 // CLAUDE_CODE_MAP's family keying in spec/model-maps.ts).
 const CLAUDE_INNER_KEYS = ['opus', 'sonnet', 'haiku'] as const;
 type ClaudeInnerKey = (typeof CLAUDE_INNER_KEYS)[number];
@@ -31,28 +40,20 @@ function isClaudeInnerKey(value: string): value is ClaudeInnerKey {
 
 // DATA-CFG-0006.AC5 — a standalone target with no block of its own inherits its parent's block.
 const STANDALONE_PARENT: Partial<Record<TargetName, TargetName>> = {
-  'core-cursor-standalone': 'core-cursor',
-  'core-copilot-standalone': 'core-copilot',
+  'cursor-standalone': 'cursor',
+  'copilot-standalone': 'copilot',
 };
 
-// The four, and only four, top-level fields a profile descriptor may declare (FR-PROF-0001.AC7,
-// DATA-CFG-0006.AC9).
-const DESCRIPTOR_FIELDS = [
-  'destinationSuffix',
-  'pluginNameSuffix',
-  'pluginDescriptionSuffix',
-  'modelOverrides',
-] as const;
+// The one, and only one, top-level field a profile descriptor may declare (FR-PROF-0001.AC7,
+// DATA-CFG-0006.AC9). An empty descriptor `{}` declares none of them and is valid.
+const DESCRIPTOR_FIELDS = ['modelOverrides'] as const;
 
 // DATA-CFG-0006 — profile descriptor shape.
 export interface ProfileDescriptor {
-  destinationSuffix: string;
-  pluginNameSuffix: string;
-  pluginDescriptionSuffix: string;
   /**
    * Outer key = target name (one of the seven TargetName values); inner key-space = that
-   * target's own vocabulary keying (closed {opus,sonnet,haiku} set for core-claude, exact source
-   * model tokens for core-cursor/core-copilot/core-codex and their standalones). Partial, not
+   * target's own vocabulary keying (closed {opus,sonnet,haiku} set for claude, exact source
+   * model tokens for cursor/copilot/codex and their standalones). Partial, not
    * Record<TargetName, ...>: a real profile declares blocks only for the targets it overrides
    * — a total Record would force every descriptor literal, including every test fixture, to name
    * all seven keys, which does not match how profiles are actually authored. The shipped
@@ -83,10 +84,10 @@ function fail(message: string): never {
  * Resolves `<profileSource>/<name>.json`, parses it, and fully validates its structure before
  * returning. Throws ProfileValidationError on the first violation encountered — file missing,
  * unparseable JSON, a non-object root, an unrecognized top-level field (V7), an unknown
- * modelOverrides outer key (V1), a core-antigravity block (V2), a modelOverrides entry that is not
- * itself an object (V6), a non-string inner value within an entry (V6), a core-claude inner key
- * outside {opus,sonnet,haiku} (V3), or a non-string destinationSuffix/pluginNameSuffix/
- * pluginDescriptionSuffix. Does NOT check whether an inner key matches any model token in the
+ * modelOverrides outer key (V1), an `antigravity` block (V2), a modelOverrides entry that is not
+ * itself an object (V6), a non-string inner value within an entry (V6), or a `claude` inner key
+ * outside {opus,sonnet,haiku} (V3). An empty descriptor `{}` declares nothing and is valid — that
+ * is the shipped `lightweight` profile. Does NOT check whether an inner key matches any model token in the
  * instruction source (V5) — that is deliberately deferred to resolveEffectiveVocabulary(), and does
  * NOT apply standalone inheritance (V4) — also resolution-time, not load-time (FR-PROF-0010.AC3-5).
  */
@@ -115,7 +116,8 @@ export function loadProfile(profileSource: string, name: string): ProfileDescrip
     if (!(DESCRIPTOR_FIELDS as readonly string[]).includes(key)) {
       fail(
         `Unrecognized profile field "${key}". A profile descriptor defines exactly: ` +
-          `destinationSuffix, pluginNameSuffix, pluginDescriptionSuffix, modelOverrides.`,
+          `modelOverrides. Destination and manifest suffixes are declared on a plugin-set ` +
+          `variant in plugins.json, not on a profile.`,
       );
     }
   }
@@ -142,9 +144,9 @@ export function loadProfile(profileSource: string, name: string): ProfileDescrip
           `${TARGET_NAME_LIST.join(', ')}.`,
       );
     }
-    if (outerKey === 'core-antigravity') {
+    if (outerKey === 'antigravity') {
       fail(
-        `Profile modelOverrides cannot include "core-antigravity": that target has no model ` +
+        `Profile modelOverrides cannot include "antigravity": that target has no model ` +
           `vocabulary to override.`,
       );
     }
@@ -170,11 +172,11 @@ export function loadProfile(profileSource: string, name: string): ProfileDescrip
       }
     }
 
-    if (outerKey === 'core-claude') {
+    if (outerKey === 'claude') {
       for (const innerKey of Object.keys(block)) {
         if (!isClaudeInnerKey(innerKey)) {
           fail(
-            `Unknown core-claude model key "${innerKey}" in modelOverrides. Accepted keys are: ` +
+            `Unknown claude model key "${innerKey}" in modelOverrides. Accepted keys are: ` +
               `${CLAUDE_INNER_KEYS.join(', ')}.`,
           );
         }
@@ -184,24 +186,7 @@ export function loadProfile(profileSource: string, name: string): ProfileDescrip
     modelOverrides[outerKey] = block as Record<string, string>;
   }
 
-  return {
-    destinationSuffix: readSuffixField(root, 'destinationSuffix'),
-    pluginNameSuffix: readSuffixField(root, 'pluginNameSuffix'),
-    pluginDescriptionSuffix: readSuffixField(root, 'pluginDescriptionSuffix'),
-    modelOverrides,
-  };
-}
-
-// Suffix fields corrupt a folder name (destinationSuffix) or a manifest (pluginNameSuffix,
-// pluginDescriptionSuffix) if a non-string value (number, object, array) is silently coerced or
-// defaulted away instead of rejected. Absent is fine (defaults to ''); present-but-wrong-type fails.
-function readSuffixField(root: Record<string, unknown>, field: string): string {
-  const value = root[field];
-  if (value === undefined) return '';
-  if (typeof value !== 'string') {
-    fail(`Profile field "${field}" must be a string.`);
-  }
-  return value;
+  return { modelOverrides };
 }
 
 /**

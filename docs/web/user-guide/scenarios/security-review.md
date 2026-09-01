@@ -84,6 +84,6 @@ With your storage approval, sanitized artifacts under `docs/security/<run-id>/`:
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/security-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/security-flow.md?plain=1) (plus the `security-flow-*.md` phase files)
+- Workflow: [`instructions/r3/advanced/workflows/security-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/advanced/workflows/security-flow.md?plain=1) (plus the `security-flow-*.md` phase files)
 - Skills: [`security`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/security/SKILL.md?plain=1), [`sensitive-data`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/sensitive-data/SKILL.md?plain=1), [`risk-assessment`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/risk-assessment/SKILL.md?plain=1)
 

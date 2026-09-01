@@ -20,7 +20,9 @@ function makePluginFrame(
 ): PluginProcessingFrame {
   return {
     spec: {
-      name: 'core-copilot',
+      name: 'copilot',
+      set: 'core',
+      destination: 'core-copilot',
       includeBootstrapRules: true,
       includeIndexEntries: extra?.includeIndexEntries ?? false,
       bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],

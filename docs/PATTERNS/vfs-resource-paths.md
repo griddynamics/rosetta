@@ -4,7 +4,7 @@ A virtual file system (VFS) path is the canonical identifier for an instruction 
 
 ## Problem Solved
 
-Physical paths (`instructions/r3/core/skills/planning/SKILL.md`) change when releases or org folders change. VFS paths (`skills/planning/SKILL.md`) are stable and used in every agent alias, MCP tool call, and `rosetta://{path}` resource URI.
+Physical paths (`instructions/r3/core/skills/planning/SKILL.md`) change when a release rolls or a document moves between domain sets. VFS paths (`skills/planning/SKILL.md`) are stable and used in every agent alias, MCP tool call, and `rosetta://{path}` resource URI.
 
 ## When to Use
 
@@ -15,16 +15,16 @@ Physical paths (`instructions/r3/core/skills/planning/SKILL.md`) change when rel
 ## Path Computation
 
 ```
-instructions/r3/core/skills/planning/SKILL.md
-  physical path parts: [instructions, r3, core, skills, planning, SKILL.md]
+instructions/r3/qe/skills/qa-knowledge/SKILL.md
+  physical path parts: [instructions, r3, qe, skills, qa-knowledge, SKILL.md]
   release = "r3"  (first part matching /^r\d+/)
-  org     = "core" (part after release, for r2+)
-  rest    = [skills, planning, SKILL.md]
-  resource_path = "skills/planning/SKILL.md"  ← strip release + org
+  domain  = "qe" (part after release, for r2+; always a domain set)
+  rest    = [skills, qa-knowledge, SKILL.md]
+  resource_path = "skills/qa-knowledge/SKILL.md"  ← strip release + domain
 
 instructions/r1/agents/coding.md
   release = "r1"
-  org     = None (r1 has no org prefix)
+  domain  = None (r1 has no domain prefix)
   resource_path = "coding.md"  ← strip up to and including release
 ```
 
@@ -38,7 +38,7 @@ The MCP `read_instruction_resource` tool resolves this via `InstructionDocCache`
 
 ## Bundling at Same VFS Path
 
-Multiple documents (core + org overlay) sharing the same VFS path are bundled together in one response. The `INSTRUCTION_ROOT_FILTER` env var controls which layers are included.
+Documents sharing the same VFS path are bundled together in one response. Because the domain segment is stripped, filenames must be unique across the whole tree and a single-domain deployment normally has one document per path. The `INSTRUCTION_ROOT_FILTER` env var is meant to select which domain sets are served; the server parses it and does not apply it today.
 
 ## Occurrences
 

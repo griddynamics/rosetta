@@ -1,7 +1,7 @@
 {
-  "name": "rosetta",
+  "name": "core",
+  "description": "Rosetta Core - foundation instruction set, rules, skills, and guardrails.",
   "version": "3.1.13",
-  "description": "Rosetta for Codex - Software Engineering Accelerator instruction set, workflows, and guardrails.",
   "author": {
     "name": "Grid Dynamics",
     "email": "rosetta-support@griddynamics.com",
@@ -21,7 +21,6 @@
     "coding",
     "knowledge-base"
   ],
-  "skills": "./.agents/skills/",
   "interface": {
     "displayName": "Rosetta",
     "shortDescription": "Rosetta core skills and bundled local references for Codex.",
@@ -39,5 +38,6 @@
       "$api-aqa-flow Implement automation for the API test cases in suite ..., ..."
     ],
     "brandColor": "#0F766E"
-  }
+  },
+  "skills": "./.agents/skills/"
 }

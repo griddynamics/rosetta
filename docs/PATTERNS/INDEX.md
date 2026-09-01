@@ -8,9 +8,9 @@ Coding and architectural patterns extracted from the Rosetta workspace. Each fil
 |---|---|---|
 | Shell Proxy | `shell-proxy-pattern.md` | Thin local stubs delegating to KB via ACQUIRE, solving IDE native-feature vs. freshness tension |
 | Tag-Based Retrieval | `tag-based-retrieval.md` | Auto-generated hierarchical tags from folder path enable precise ACQUIRE-by-tag without search ambiguity |
-| Document Bundling | `document-bundling.md` | Multiple documents at same VFS path merged into one XML response for layered core+org delivery |
+| Document Bundling | `document-bundling.md` | Multiple documents at the same VFS path merged into one XML response |
 | VFS Resource Paths | `vfs-resource-paths.md` | Canonical stable path computed by stripping release and org prefix from physical file path |
-| Layered Instruction Architecture | `layered-instruction-architecture.md` | Release-versioned, org-namespaced instruction layers bundled at serve time for org-specific overrides |
+| Domain Set Architecture | `domain-set-architecture.md` | Release-versioned, subject-scoped instruction folders, one installable plugin each, selected rather than merged |
 
 ## Data and Storage
 

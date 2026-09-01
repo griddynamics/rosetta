@@ -74,6 +74,6 @@ Small scope → `docs/<feature>/analysis.md`. Large scope → `docs/<feature>/mo
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/code-analysis-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/code-analysis-flow.md?plain=1)
+- Workflow: [`instructions/r3/advanced/workflows/code-analysis-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/advanced/workflows/code-analysis-flow.md?plain=1)
 - Skills: [`reverse-engineering`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/reverse-engineering/SKILL.md?plain=1), [`large-workspace-handling`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/large-workspace-handling/SKILL.md?plain=1)
 

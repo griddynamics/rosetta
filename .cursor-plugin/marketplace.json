@@ -11,13 +11,38 @@
   "plugins": [
     {
       "name": "rosetta",
-      "source": "plugins/core-cursor",
+      "source": "plugins/rosetta-cursor",
       "description": "Rosetta for Cursor - Software Engineering Accelerator instruction set, workflows, and guardrails."
     },
     {
       "name": "rosetta-light",
-      "source": "plugins/core-cursor-light",
+      "source": "plugins/rosetta-cursor-light",
       "description": "Rosetta for Cursor - Software Engineering Accelerator instruction set, workflows, and guardrails. (lightweight profile: simpler workflows, smaller models)"
+    },
+    {
+      "name": "core",
+      "source": "plugins/core-cursor",
+      "description": "Rosetta for Cursor - core set: composable skills, always-on rules, bootstrap and guardrail hooks; required by every other Rosetta plugin."
+    },
+    {
+      "name": "advanced",
+      "source": "plugins/advanced-cursor",
+      "description": "Rosetta for Cursor - advanced set: subagents, workflows, and orchestration automation. Requires the `core` plugin."
+    },
+    {
+      "name": "qe",
+      "source": "plugins/qe-cursor",
+      "description": "Rosetta for Cursor - qe set: test automation and test generation. Requires the `core` and `advanced` plugins."
+    },
+    {
+      "name": "search",
+      "source": "plugins/search-cursor",
+      "description": "Rosetta for Cursor - search set: Solr and search engineering. Requires the `core` and `advanced` plugins."
+    },
+    {
+      "name": "modernization",
+      "source": "plugins/modernization-cursor",
+      "description": "Rosetta for Cursor - modernization set: conversion, modernization, and re-architecture. Requires the `core` and `advanced` plugins."
     }
   ]
 }

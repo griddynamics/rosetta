@@ -1,0 +1,29 @@
+{
+  "name": "rosetta-light",
+  "description": "Rosetta - Software Engineering Accelerator instruction set, workflows, agents, skills, and guardrails. (lightweight: simpler workflows, smaller models)",
+  "version": "3.1.13",
+  "author": {
+    "name": "Grid Dynamics",
+    "email": "rosetta-support@griddynamics.com"
+  },
+  "homepage": "https://griddynamics.github.io/rosetta/",
+  "repository": "https://github.com/griddynamics/rosetta",
+  "license": "Apache-2.0",
+  "keywords": [
+    "rosetta",
+    "ai-agents",
+    "workflows",
+    "instructions",
+    "guardrails",
+    "planning",
+    "coding",
+    "knowledge-base"
+  ],
+  "category": "productivity",
+  "rules": [
+    "./rules/bootstrap-alwayson.mdc",
+    "./rules/plugin-files-mode.mdc",
+    "./rules/speckit-integration-policy.mdc"
+  ],
+  "hooks": "./hooks/hooks.json"
+}

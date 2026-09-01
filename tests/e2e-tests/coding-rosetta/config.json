@@ -4,7 +4,7 @@
   "repeats": 1,
   "provision": {
     "plugins": [
-      { "name": "rosetta", "path": "../../../plugins/core-claude" }
+      { "name": "rosetta", "path": "../../../plugins/rosetta-claude" }
     ]
   },
   "evaluators": [
@@ -26,7 +26,7 @@
     },
     {
       "use": "hook-transcript-check",
-      "pluginManifest": "../../../plugins/core-claude/hooks/hooks.json"
+      "pluginManifest": "../../../plugins/rosetta-claude/hooks/hooks.json"
     },
     {
       "use": "llm-judge",

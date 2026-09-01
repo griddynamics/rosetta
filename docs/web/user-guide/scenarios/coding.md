@@ -94,6 +94,6 @@ The agent won't slide past these gates on a vague reply; give a clear confirmati
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/coding-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/coding-flow.md?plain=1)
+- Workflow: [`instructions/r3/advanced/workflows/coding-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/advanced/workflows/coding-flow.md?plain=1)
 - Skills: [`coding`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/coding/SKILL.md?plain=1), [`planning`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/planning/SKILL.md?plain=1), [`tech-specs`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/tech-specs/SKILL.md?plain=1), [`testing`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/testing/SKILL.md?plain=1), [`hitl`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/hitl/SKILL.md?plain=1)
 

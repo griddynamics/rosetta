@@ -13,18 +13,24 @@ export function pluginInjectSections(
 ): PluginProcessingFrame {
   if (p.spec.injections.length === 0) return p;
 
-  const { spec, frames } = p;
+  const { spec, frames, vfs } = p;
   let errors = [...p.errors];
   let changed = false;
 
   const updatedFrames = [...frames] as FileProcessingFrame[];
 
+  const shipsFolder = (folder: string): boolean =>
+    vfs.some((vf) => vf.path === folder || vf.path.startsWith(folder + '/'));
+
   for (const injection of spec.injections) {
+    // A declaration scoped to a folder this set does not ship does not apply at all.
+    if (injection.requires !== undefined && !shipsFolder(injection.requires)) continue;
+
     const hostIdx = updatedFrames.findIndex((f) => f.target === injection.hostFramePath);
 
     if (hostIdx < 0) {
       errors.push({
-        target: spec.name,
+        target: spec.destination,
         file: injection.hostFramePath,
         message: `Inject: host frame not found: ${injection.hostFramePath}`,
         kind: 'hard',
@@ -35,7 +41,7 @@ export function pluginInjectSections(
     const hostFrame = updatedFrames[hostIdx];
     if (hostFrame.isBinary || hostFrame.target_contents === null) {
       errors.push({
-        target: spec.name,
+        target: spec.destination,
         file: injection.hostFramePath,
         message: `Inject: host frame is binary or empty: ${injection.hostFramePath}`,
         kind: 'hard',

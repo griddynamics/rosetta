@@ -48,7 +48,7 @@ When a workflow and a skill overlap, it recommends the **workflow** — that's t
 
 ## A note on the command
 
-`/help-flow` is the current command. You may see `/self-help-flow` referenced in older material — it's the deprecated alias and still works, but prefer `/help-flow`.
+`/help-flow` is the command. Older material sometimes mentions `/self-help-flow`; that alias is gone.
 
 There's also `/aqa-flow`, a small **router** for test automation: give it any testing request and it dispatches to [UI](/rosetta/user-guide/scenarios/automate-ui-tests/), [API](/rosetta/user-guide/scenarios/automate-api-tests/), or [test-case generation](/rosetta/user-guide/scenarios/generate-test-cases/) — handy when you're not sure which of the three you need.
 
@@ -63,5 +63,5 @@ The full menu is the [Scenarios index](/rosetta/user-guide/#scenarios-at-a-glanc
 ## Sources
 
 - Workflow: [`instructions/r3/core/workflows/help-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/help-flow.md?plain=1)
-- Router: [`aqa-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/aqa-flow.md?plain=1)
+- Router: [`aqa-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/aqa-flow.md?plain=1)
 

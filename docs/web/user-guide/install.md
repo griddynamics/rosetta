@@ -17,6 +17,10 @@ Installing Rosetta means adding a **plugin** to your IDE. The plugin bundles eve
 - **Choose a medium model.** Use **Sonnet 5 (medium)**, **GPT-5.6-terra-medium**, **gemini-3.7-flash-high**, or newer. Avoid "Auto" selection — it tends to downgrade mid-task and waste tokens. More on this in [Tips → Choosing a model](/rosetta/user-guide/tips/#choosing-a-model).
 - **Avoid conflicting plugins.** JUXT, Superpowers, GSD, and AI-DevKit can clash with Rosetta. Use only the one you're most comfortable with.
 
+## Which plugin
+
+Rosetta ships as seven plugins. `rosetta` has everything and is what this guide installs (`rosetta-light` is the same content on smaller models). The other five (`core`, `advanced`, `qe`, `search`, `modernization`) are domain slices for people who want a smaller footprint. Install the combo or the slices, never both, or you get everything twice. Details in [PLUGINS.md](/rosetta/docs/plugins/#which-plugin-do-i-install).
+
 ## Install for your IDE
 
 Pick your tool below.
@@ -40,7 +44,7 @@ That's it. Marketplace plugins update themselves over time.
 
 **Standalone (no marketplace):**
 
-1. Download `core-cursor-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-cursor-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract the contents into your repository.
 3. Confirm the file `.cursor/agents/architect.md` exists, and that there's no nested `.cursor/.cursor` folder.
 
@@ -54,7 +58,7 @@ That's it. Marketplace plugins update themselves over time.
 
 **Standalone (fallback):**
 
-1. Download `core-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract into your repository. If `.github/copilot-instructions.md` already exists, merge — put Rosetta's content first, then your original content.
 3. Confirm `.github/agents/architect.agent.md` exists, and that there's no nested `.github/.github` folder.
 
@@ -64,7 +68,7 @@ That's it. Marketplace plugins update themselves over time.
 
 *(As of August 2026, Codex plugins do not support subagents. In Codex, invoke a workflow as `$coding-flow` rather than `/coding-flow`.)*
 
-1. Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract into your repository.
 3. Enable hooks:
 
@@ -76,10 +80,10 @@ That's it. Marketplace plugins update themselves over time.
 
 One plugin serves Antigravity 2.0, the CLI, and the IDE.
 
-1. Download `core-antigravity-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-antigravity-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Create the folder `.agents/plugins/rosetta/` at your workspace root.
 3. Extract the archive contents into it.
-4. Confirm `.agents/plugins/rosetta/plugin.json` exists, and that there's no nested `core-antigravity` folder inside.
+4. Confirm `.agents/plugins/rosetta/plugin.json` exists, and that there's no nested `rosetta-antigravity` folder inside.
 
 To enable it for *all* workspaces instead of just one, extract into `~/.gemini/config/plugins/rosetta/` instead.
 

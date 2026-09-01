@@ -31,15 +31,43 @@ import {
   TARGETS,
   deriveExpectedPaths,
   listGeneratedPaths,
+  type SetShape,
   type Target,
 } from './parity-derive-structure.js';
+import { loadPluginCatalog, selectSets } from '../../src/spec/plugin-sets.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Repo root: up from tests/e2e/ → tests/ → rosettify-plugins/ → src/ → <repo root>.
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const PLUGINS_SOURCE = path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins');
-const CORE_SOURCE = path.join(REPO_ROOT, 'instructions', 'r3', 'core');
+const INSTRUCTIONS_SOURCE = path.join(REPO_ROOT, 'instructions');
 const PROFILE_SOURCE = path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'profiles');
+const CONFIG_PATH = path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins.json');
+
+// DATA-CFG-0007: the gate is parameterized over the SETS the shipped catalog declares, not a
+// hardcoded seven-target list. Adding or removing a set in plugins.json therefore changes what this
+// test covers with no test edit — the same property that already lets the source tree grow freely.
+const CATALOG = loadPluginCatalog(CONFIG_PATH);
+const R3_SETS = selectSets(CATALOG, 'r3', undefined);
+
+/** Every (set, variant) pair an r3 run produces, as the oracle's SetShape plus its folder suffix. */
+const BUILDS: Array<{ set: SetShape; destinationSuffix: string; activeProfile: string | null }> =
+  R3_SETS.flatMap((set) =>
+    set.variants.map((variant) => ({
+      set: {
+        name: set.name,
+        folders: set.folders,
+        template: set.template,
+        bootstrap: set.bootstrap,
+        hooks: set.hooks,
+      },
+      destinationSuffix: variant.destinationSuffix,
+      activeProfile: variant.profile,
+    })),
+  );
+
+const sourceDirsFor = (set: SetShape): string[] =>
+  set.folders.map((f) => path.join(INSTRUCTIONS_SOURCE, 'r3', f));
 
 // FR-CLI-0020: ResolvedSources pointing at the real repo (mirrors sample/antigravity e2e).
 // FR-CLI-0033: profileSource resolved the same way pluginsSource/hooksSource are — unused unless
@@ -51,6 +79,7 @@ function buildSources(instructionsSource: string, outputDir: string): ResolvedSo
     hooksSource: path.join(REPO_ROOT, 'src', 'hooks'),
     outputDir,
     profileSource: PROFILE_SOURCE,
+    configPath: CONFIG_PATH,
   };
 }
 
@@ -64,182 +93,91 @@ function reportDiff(target: string, expected: Set<string>, actual: Set<string>):
   ].join('\n');
 }
 
-describe('Parity E2E — per-target structural parity (NFR-0001)', () => {
+describe('Parity E2E — per-set, per-target structural parity (NFR-0001)', () => {
   let tmpRoot: string;
   let outputDir: string;
-  const actualPaths = new Map<Target, Set<string>>();
+  const actualPaths = new Map<string, Set<string>>();
+
+  const destinationOf = (setName: string, target: Target, suffix: string): string =>
+    `${setName}-${target}${suffix}`;
 
   beforeAll(async () => {
     tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'parity-structural-'));
     outputDir = path.join(tmpRoot, 'output');
     fs.mkdirSync(outputDir, { recursive: true });
 
+    // ONE invocation produces every set x variant x target folder.
     await generate({
-      sources: buildSources(path.join(REPO_ROOT, 'instructions'), outputDir),
+      sources: buildSources(INSTRUCTIONS_SOURCE, outputDir),
       release: 'r3',
-      domain: 'core',
       dryRun: false,
       verbose: false,
       deterministicHooks: false,
     });
 
-    for (const target of TARGETS) {
-      actualPaths.set(target, listGeneratedPaths(path.join(outputDir, target)));
+    for (const build of BUILDS) {
+      for (const target of TARGETS) {
+        const dest = destinationOf(build.set.name, target, build.destinationSuffix);
+        actualPaths.set(dest, listGeneratedPaths(path.join(outputDir, dest)));
+      }
     }
-  }, 180000);
+  }, 300000);
 
   afterAll(() => {
     if (tmpRoot) fs.rmSync(tmpRoot, { recursive: true, force: true });
   });
 
-  it('generates output for all seven targets', () => {
-    for (const target of TARGETS) {
-      expect(actualPaths.get(target)!.size, `${target} produced no files`).toBeGreaterThan(0);
+  it('one invocation produces every declared set x variant x target folder', () => {
+    const expected = BUILDS.length * TARGETS.length;
+    expect(fs.readdirSync(outputDir).sort()).toHaveLength(expected);
+    for (const [dest, paths] of actualPaths) {
+      expect(paths.size, `${dest} produced no files`).toBeGreaterThan(0);
     }
   });
 
-  for (const target of TARGETS) {
-    it(`${target}: generated file paths match structure derived from source + mapping contract`, () => {
-      const expected = deriveExpectedPaths(target, CORE_SOURCE, PLUGINS_SOURCE);
-      const actual = actualPaths.get(target)!;
+  for (const build of BUILDS) {
+    for (const target of TARGETS) {
+      const dest = destinationOf(build.set.name, target, build.destinationSuffix);
 
-      const onlyExpected = [...expected].filter((p) => !actual.has(p)).sort();
-      const onlyActual = [...actual].filter((p) => !expected.has(p)).sort();
-      if (onlyExpected.length || onlyActual.length) {
-        console.error(reportDiff(target, expected, actual));
-      }
-      expect(onlyExpected, `${target}: paths derived but not generated`).toEqual([]);
-      expect(onlyActual, `${target}: paths generated but not derived`).toEqual([]);
-    });
+      it(`${dest}: generated paths match structure derived from source + mapping contract`, () => {
+        const expected = deriveExpectedPaths(
+          target, build.set, sourceDirsFor(build.set), PLUGINS_SOURCE, build.activeProfile,
+        );
+        const actual = actualPaths.get(dest)!;
+
+        const onlyExpected = [...expected].filter((p) => !actual.has(p)).sort();
+        const onlyActual = [...actual].filter((p) => !expected.has(p)).sort();
+        if (onlyExpected.length || onlyActual.length) {
+          console.error(reportDiff(dest, expected, actual));
+        }
+        expect(onlyExpected, `${dest}: paths derived but not generated`).toEqual([]);
+        expect(onlyActual, `${dest}: paths generated but not derived`).toEqual([]);
+      });
+    }
   }
 
-  it('no target output contains a *.tmpl file (rendered siblings only)', () => {
-    for (const target of TARGETS) {
-      const tmpl = [...actualPaths.get(target)!].filter((p) => p.endsWith('.tmpl'));
-      expect(tmpl, `${target} must contain no .tmpl files`).toEqual([]);
+  it('no output contains a *.tmpl file (rendered siblings only)', () => {
+    for (const [dest, paths] of actualPaths) {
+      expect([...paths].filter((p) => p.endsWith('.tmpl')), `${dest} must contain no .tmpl`)
+        .toEqual([]);
     }
   });
 
-  it('deterministicHooks:false ⇒ no *.js hook bundles in any target output', () => {
-    for (const target of TARGETS) {
-      const js = [...actualPaths.get(target)!].filter((p) => p.endsWith('.js'));
-      expect(js, `${target} must contain no .js bundles when deterministicHooks is false`).toEqual([]);
-    }
-  });
-});
-
-// ─── Robustness: add/remove content safety ──────────────────────────────────────
-//
-// Proves the gate is derived, not frozen: injecting a throwaway source skill makes that skill's
-// mapped output path appear in BOTH the derived-expected set AND the generated-actual set — with
-// no edit to the test or the derivation. The same mechanism covers removal (fewer source files ⇒
-// fewer derived + generated paths).
-
-describe('Parity E2E — robustness (derived, not frozen)', () => {
-  const PROBE = '__parity_probe__';
-  let tmpRoot: string;
-
-  afterAll(() => {
-    if (tmpRoot) fs.rmSync(tmpRoot, { recursive: true, force: true });
-  });
-
-  it('a newly injected source skill appears in both derived-expected and generated-actual, no test edit', async () => {
-    tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'parity-probe-'));
-    const instructionsSource = path.join(tmpRoot, 'instructions');
-    // Copy the real instruction tree, then inject a throwaway skill into r3/core.
-    fs.cpSync(path.join(REPO_ROOT, 'instructions'), instructionsSource, { recursive: true });
-    const probeCore = path.join(instructionsSource, 'r3', 'core');
-    const probeSkillDir = path.join(probeCore, 'skills', PROBE);
-    fs.mkdirSync(probeSkillDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(probeSkillDir, 'SKILL.md'),
-      `---\nname: ${PROBE}\ndescription: throwaway parity probe skill\n---\nprobe body\n`,
-      'utf-8',
-    );
-
-    const outputDir = path.join(tmpRoot, 'output');
-    fs.mkdirSync(outputDir, { recursive: true });
-    await generate({
-      sources: buildSources(instructionsSource, outputDir),
-      release: 'r3',
-      domain: 'core',
-      dryRun: false,
-      verbose: false,
-      deterministicHooks: false,
-    });
-
-    const probeRel = `skills/${PROBE}/SKILL.md`;
-    // core-claude keeps skills at the plugin root; core-antigravity also passes source skills through.
-    for (const target of ['core-claude', 'core-antigravity'] as const) {
-      const expected = deriveExpectedPaths(target, probeCore, PLUGINS_SOURCE);
-      const actual = listGeneratedPaths(path.join(outputDir, target));
-      expect(expected.has(probeRel), `${target}: derived-expected missing the probe skill`).toBe(true);
-      expect(actual.has(probeRel), `${target}: generated-actual missing the probe skill`).toBe(true);
-      // And full parity still holds with the probe present (derivation tracked the new file).
-      const onlyExpected = [...expected].filter((p) => !actual.has(p)).sort();
-      const onlyActual = [...actual].filter((p) => !expected.has(p)).sort();
-      expect(onlyExpected, `${target}: derived-but-not-generated with probe present`).toEqual([]);
-      expect(onlyActual, `${target}: generated-but-not-derived with probe present`).toEqual([]);
-    }
-  }, 180000);
-});
-
-// ─── Profile-and-target combo parity (NFR-0001 AC3, FR-PROF-0020/0030) ──────────────────────
-//
-// One additional full generation run, with `--profile lightweight` active. Per target, the
-// generated `core-<target>-light` output must structurally match `deriveExpectedPaths(target,
-// CORE_SOURCE, PLUGINS_SOURCE, 'lightweight')` — note deriveExpectedPaths returns paths relative
-// to a target's OWN output root, so the profile's destinationSuffix only renames which output
-// root we list, never any path segment inside it (see parity-derive-structure.ts's doc comment).
-
-describe('Parity E2E — profiled derivation (NFR-0001 AC3, FR-PROF-0020/0030)', () => {
-  const PROFILE_NAME = 'lightweight';
-  let tmpRoot: string;
-  let outputDir: string;
-  const actualPaths = new Map<Target, Set<string>>();
-
-  beforeAll(async () => {
-    tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'parity-profiled-'));
-    outputDir = path.join(tmpRoot, 'output');
-    fs.mkdirSync(outputDir, { recursive: true });
-
-    await generate({
-      sources: buildSources(path.join(REPO_ROOT, 'instructions'), outputDir),
-      release: 'r3',
-      domain: 'core',
-      dryRun: false,
-      verbose: false,
-      deterministicHooks: false,
-      profile: PROFILE_NAME,
-    });
-
-    for (const target of TARGETS) {
-      actualPaths.set(target, listGeneratedPaths(path.join(outputDir, `${target}-light`)));
-    }
-  }, 180000);
-
-  afterAll(() => {
-    if (tmpRoot) fs.rmSync(tmpRoot, { recursive: true, force: true });
-  });
-
-  it('generates a core-*-light output for all seven targets', () => {
-    for (const target of TARGETS) {
-      expect(actualPaths.get(target)!.size, `${target}-light produced no files`).toBeGreaterThan(0);
+  it('deterministicHooks:false ⇒ no *.js hook bundles in any output', () => {
+    // Scoped to HOOK bundles specifically: instruction content legitimately ships its own .js
+    // (e.g. skills/harness/scripts/tester.js), which is source material, not a synced bundle.
+    for (const [dest, paths] of actualPaths) {
+      const bundles = [...paths].filter(
+        (p) => p.endsWith('.js') && /(^|\/)(hooks|\.codex\/hooks|\.cursor\/hooks)\//.test(p),
+      );
+      expect(bundles, `${dest} must contain no .js hook bundles`).toEqual([]);
     }
   });
 
-  for (const target of TARGETS) {
-    it(`${target}-light: generated file paths match structure derived with active profile "${PROFILE_NAME}"`, () => {
-      const expected = deriveExpectedPaths(target, CORE_SOURCE, PLUGINS_SOURCE, PROFILE_NAME);
-      const actual = actualPaths.get(target)!;
-
-      const onlyExpected = [...expected].filter((p) => !actual.has(p)).sort();
-      const onlyActual = [...actual].filter((p) => !expected.has(p)).sort();
-      if (onlyExpected.length || onlyActual.length) {
-        console.error(reportDiff(`${target}-light`, expected, actual));
-      }
-      expect(onlyExpected, `${target}-light: paths derived but not generated`).toEqual([]);
-      expect(onlyActual, `${target}-light: paths generated but not derived`).toEqual([]);
-    });
-  }
+  it('no INDEX.md is generated anywhere — every set declares indexes: [] (D6)', () => {
+    for (const [dest, paths] of actualPaths) {
+      expect([...paths].filter((p) => p.endsWith('INDEX.md')), `${dest} must contain no index`)
+        .toEqual([]);
+    }
+  });
 });

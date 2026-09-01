@@ -1,0 +1,6 @@
+{
+  "name": "qe",
+  "description": "Rosetta QE - test automation and quality-engineering workflows. Requires Rosetta Core and Advanced.",
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "version": "3.1.13"
+}

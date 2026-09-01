@@ -62,5 +62,5 @@ Any of the dedicated scenarios if your task actually fits one — they're more t
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/adhoc-flow.md`](../../instructions/r3/core/workflows/adhoc-flow.md)
+- Workflow: [`instructions/r3/advanced/workflows/adhoc-flow.md`](../../instructions/r3/advanced/workflows/adhoc-flow.md)
 - Skills: [`orchestration`](../../instructions/r3/core/skills/orchestration/SKILL.md), [`reasoning`](../../instructions/r3/core/skills/reasoning/SKILL.md), [`hitl`](../../instructions/r3/core/skills/hitl/SKILL.md)

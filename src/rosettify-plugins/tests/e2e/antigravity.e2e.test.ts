@@ -33,6 +33,8 @@ function buildSources(outputDir: string): ResolvedSources {
     pluginsSource: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins'),
     hooksSource: path.join(REPO_ROOT, 'src', 'hooks'),
     outputDir,
+    profileSource: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'profiles'),
+    configPath: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins.json'),
   };
 }
 
@@ -66,7 +68,10 @@ let outFalse: string; // deterministicHooks: false (matches pre_commit.py / comm
 let tmpTrue: string;
 let outTrue: string; // deterministicHooks: true (hook-content-only assertions)
 
-describe('Antigravity E2E — real instructions/r3/core', () => {
+// DATA-CFG-0007: asserts against the `rosetta` set, which layers ALL five instruction folders.
+// The content this file exercises (agents/, modernization-flow, the research skill) is spread
+// across core/, advanced/ and modernization/, so the single-folder `core` set no longer carries it.
+describe('Antigravity E2E — the rosetta set over real instructions/r3', () => {
   beforeAll(async () => {
     tmpFalse = fs.mkdtempSync(path.join(os.tmpdir(), 'ag-e2e-false-'));
     outFalse = path.join(tmpFalse, 'output');
@@ -74,7 +79,6 @@ describe('Antigravity E2E — real instructions/r3/core', () => {
     await generate({
       sources: buildSources(outFalse),
       release: 'r3',
-      domain: 'core',
       dryRun: false,
       verbose: false,
       deterministicHooks: false,
@@ -86,7 +90,6 @@ describe('Antigravity E2E — real instructions/r3/core', () => {
     await generate({
       sources: buildSources(outTrue),
       release: 'r3',
-      domain: 'core',
       dryRun: false,
       verbose: false,
       deterministicHooks: true,
@@ -98,14 +101,16 @@ describe('Antigravity E2E — real instructions/r3/core', () => {
     if (tmpTrue) fs.rmSync(tmpTrue, { recursive: true, force: true });
   });
 
-  const ag = () => path.join(outFalse, 'core-antigravity');
+  const ag = () => path.join(outFalse, 'rosetta-antigravity');
 
   describe('structure', () => {
-    it('plugin.json + hooks.json at root; rules/, skills/, agents/, configure/ present; no workflows/; no dot-config folder; no .tmpl anywhere', () => {
+    it('plugin.json + hooks.json at root; rules/, skills/, agents/ present; no workflows/; no dot-config folder; no .tmpl anywhere', () => {
       const root = ag();
       expect(fs.existsSync(path.join(root, 'plugin.json'))).toBe(true);
       expect(fs.existsSync(path.join(root, 'hooks.json'))).toBe(true);
-      for (const dir of ['rules', 'skills', 'agents', 'configure']) {
+      // configure/ is gone from the instruction set — those guides now ship inside
+      // skills/harness/references/configure/.
+      for (const dir of ['rules', 'skills', 'agents']) {
         expect(fs.existsSync(path.join(root, dir)), `missing ${dir}/`).toBe(true);
       }
       expect(fs.existsSync(path.join(root, 'workflows'))).toBe(false);
@@ -220,7 +225,7 @@ describe('Antigravity E2E — real instructions/r3/core', () => {
   });
 
   describe('subagent_required_model rewrite (FR-COPY-0082)', () => {
-    it('every subagent_required_model in core-antigravity output is "inherit"', () => {
+    it('every subagent_required_model in rosetta-antigravity output is "inherit"', () => {
       const allFiles = listFilesRecursive(ag()).filter((f) => f.endsWith('.md'));
       let found = 0;
       for (const file of allFiles) {
@@ -231,11 +236,11 @@ describe('Antigravity E2E — real instructions/r3/core', () => {
           expect(m, `${file}: unexpected non-inherit value ${m}`).toBe('subagent_required_model="inherit"');
         }
       }
-      expect(found, 'expected at least one subagent_required_model occurrence in core-antigravity output').toBeGreaterThan(0);
+      expect(found, 'expected at least one subagent_required_model occurrence in rosetta-antigravity output').toBeGreaterThan(0);
     });
 
-    it('core-claude output (Antigravity-only scope) still has NON-inherit subagent_required_model values', () => {
-      const claudeRoot = path.join(outFalse, 'core-claude');
+    it('rosetta-claude output (Antigravity-only scope) still has NON-inherit subagent_required_model values', () => {
+      const claudeRoot = path.join(outFalse, 'rosetta-claude');
       const allFiles = listFilesRecursive(claudeRoot).filter((f) => f.endsWith('.md'));
       let nonInheritFound = false;
       for (const file of allFiles) {
@@ -245,7 +250,7 @@ describe('Antigravity E2E — real instructions/r3/core', () => {
           break;
         }
       }
-      expect(nonInheritFound, 'core-claude should retain non-inherit subagent_required_model values (Antigravity-only rewrite)').toBe(true);
+      expect(nonInheritFound, 'rosetta-claude should retain non-inherit subagent_required_model values (Antigravity-only rewrite)').toBe(true);
     });
   });
 
@@ -259,12 +264,14 @@ describe('Antigravity E2E — real instructions/r3/core', () => {
       expect(data.rosetta.PreToolUse).toBeUndefined();
       expect(raw).not.toContain('bootstrap');
 
-      const files = listFilesRecursive(ag());
-      expect(files.some((f) => f.endsWith('.js'))).toBe(false);
+      // Scoped to the HOOK folder: instruction content legitimately ships its own .js
+      // (skills/harness/scripts/tester.js), which is source material, not a synced bundle.
+      const bundles = listFilesRecursive(path.join(ag(), 'hooks')).filter((f) => f.endsWith('.js'));
+      expect(bundles).toEqual([]);
     });
 
     it('deterministic-hooks true: PreToolUse dangerous-actions matcher is exactly "run_command|mcp__.*" (bash+MCP only, no file-write tools); no bootstrap payload', () => {
-      const hooksPathTrue = path.join(outTrue, 'core-antigravity', 'hooks.json');
+      const hooksPathTrue = path.join(outTrue, 'rosetta-antigravity', 'hooks.json');
       expect(fs.existsSync(hooksPathTrue)).toBe(true);
       const raw = fs.readFileSync(hooksPathTrue, 'utf-8');
       const data = JSON.parse(raw);

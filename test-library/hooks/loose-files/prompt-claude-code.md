@@ -17,7 +17,7 @@ A test passes when the observed outcome (fired/silent) matches the expected one.
 
 ## Prerequisites
 
-- You are in a **test project** (not the rosetta repository) with a committed `package.json` at the root and the `core-claude` plugin installed.
+- You are in a **test project** (not the rosetta repository) with a committed `package.json` at the root and the `rosetta-claude` plugin installed.
 - The file `.claude/hooks/loose-files.js` exists. Check with Bash: `test -f .claude/hooks/loose-files.js && echo OK` — if `OK` is missing, **stop and report**.
 - `git status --porcelain package.json` is empty (no uncommitted changes to `package.json`). Check with Bash: `git status --porcelain package.json` — if the output is non-empty, **stop and report**.
 

@@ -1,5 +1,6 @@
 {
   "name": "rosetta",
+  "version": "3.1.13",
   "interface": {
     "displayName": "Rosetta"
   },
@@ -8,7 +9,7 @@
       "name": "rosetta",
       "source": {
         "source": "local",
-        "path": "./plugins/core-codex"
+        "path": "./plugins/rosetta-codex"
       },
       "policy": {
         "installation": "AVAILABLE",
@@ -20,7 +21,67 @@
       "name": "rosetta-light",
       "source": {
         "source": "local",
-        "path": "./plugins/core-codex-light"
+        "path": "./plugins/rosetta-codex-light"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "core",
+      "source": {
+        "source": "local",
+        "path": "./plugins/core-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "advanced",
+      "source": {
+        "source": "local",
+        "path": "./plugins/advanced-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "qe",
+      "source": {
+        "source": "local",
+        "path": "./plugins/qe-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "search",
+      "source": {
+        "source": "local",
+        "path": "./plugins/search-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "modernization",
+      "source": {
+        "source": "local",
+        "path": "./plugins/modernization-codex"
       },
       "policy": {
         "installation": "AVAILABLE",

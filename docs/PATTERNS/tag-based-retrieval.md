@@ -17,10 +17,10 @@ Keyword search is slow and ambiguous for known instruction documents. Tag lookup
 During `rosetta-cli publish`, `DocumentData.from_file()` extracts three tag families from the file path:
 
 ```
-instructions/r3/core/skills/planning/SKILL.md
-  → individual parts: [instructions, r3, core, skills, planning, SKILL.md]
-  → two-part:  skills/planning/SKILL.md, planning/SKILL.md
-  → three-part: core/skills/planning/SKILL.md
+instructions/r3/qe/skills/qa-knowledge/SKILL.md
+  → individual parts: [instructions, r3, qe, skills, qa-knowledge, SKILL.md]
+  → two-part:  skills/qa-knowledge/SKILL.md, qa-knowledge/SKILL.md
+  → three-part: qe/skills/qa-knowledge/SKILL.md
   → frontmatter tags merged in (deduplicated, case-insensitive)
 ```
 

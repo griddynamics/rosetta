@@ -122,7 +122,7 @@ describe('normalize — Copilot', () => {
 // ---------------------------------------------------------------------------
 // VS Code + Copilot CLI's PascalCase fire both send this snake_case shape
 // (hook_event_name, session_id, tool_name, tool_input object) — OI-3.
-// Calling copilot.normalize() directly here mirrors what the shipped core-copilot bundle
+// Calling copilot.normalize() directly here mirrors what the shipped copilot bundle
 // does (entrypoints/adapter-copilot.ts always routes through the copilot adapter now —
 // see the routing-bug finding in hooks-verify.md).
 describe('normalize — Copilot VS Code / snake_case shape (OI-3)', () => {

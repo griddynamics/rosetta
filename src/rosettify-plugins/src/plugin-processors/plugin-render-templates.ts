@@ -42,9 +42,13 @@ export function pluginRenderTemplates(
     const outputTarget = frame.target.slice(0, -5); // remove .tmpl
 
     try {
+      // strict: true — an unknown {{var}} THROWS instead of rendering empty. The template context
+      // used to carry exactly three keys and render non-strict, so a typo'd or unplumbed variable
+      // silently produced malformed JSON with no error anywhere. Every key a template may use is
+      // now plumbed explicitly in generate(); anything else is a defect and fails loudly.
       const compiled = Handlebars.compile(templateStr, {
         noEscape: false,  // HTML-escape {{}} but not {{{ }}}
-        strict: false,
+        strict: true,
       });
 
       const rendered = compiled(templateContext);
@@ -63,7 +67,7 @@ export function pluginRenderTemplates(
       // Missing template or render error → warn+continue (FR-GEN-0010)
       // .tmpl frame already dropped above; no rendered sibling is emitted either.
       const msg = err instanceof Error ? err.message : String(err);
-      renderErrors.push({ target: p.spec.name, file: outputTarget, message: `Template render error: ${msg}`, kind: 'soft' });
+      renderErrors.push({ target: p.spec.destination, file: outputTarget, message: `Template render error: ${msg}`, kind: 'soft' });
     }
   }
 

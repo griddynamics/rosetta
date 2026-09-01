@@ -34,13 +34,13 @@ fork/clone → branch → edit → validate → push → PR
      - Refactor an old prompt into the new format using local instructions:
 
        ```
-       MUST FULLY EXECUTE `instructions/r3/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
+       MUST FULLY EXECUTE `instructions/r3/advanced/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
        ```
 
      - Author a new prompt using local instructions:
 
        ```
-       MUST FULLY EXECUTE `instructions/r3/core/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       MUST FULLY EXECUTE `instructions/r3/advanced/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
        ```
 
      - Author a new prompt via Rosetta MCP:
@@ -93,8 +93,12 @@ rosetta/
 ├── instructions/         ← Prompts: skills, agents, workflows, rules, templates
 │   ├── r2/               ← Previous release (supported; backports only)
 │   └── r3/               ← Current release
-│       ├── core/         ← Rosetta instruction source
-│       └── <org>/        ← Optional organization extensions (e.g., acme/)
+│       ├── core/         ← Composable skills, rules, workflows, templates
+│       ├── advanced/     ← Subagents and orchestrated workflows
+│       ├── qe/           ← Test automation and test generation
+│       ├── search/       ← Solr and search engineering
+│       ├── modernization/ ← Conversion and re-architecture workflows
+│       └──                 (every top-level folder here is a domain set)
 ├── src/rosetta-mcp-server/       ← Rosetta MCP server (PyPI: rosetta-mcp)
 │   ├── rosetta_mcp/          ← Server source code
 │   ├── tests/            ← Unit tests (pytest)
@@ -296,7 +300,7 @@ Run this after any Python code change.
 ### Git pre-commit hook
 
 The repository ships a native Git pre-commit hook shim in `.githooks/pre-commit`.
-It runs the Python entrypoint at `scripts/pre_commit.py`, which first regenerates all plugin payloads (via `npx -y rosettify-plugins@latest`) and then executes type validation.
+It runs the Python entrypoint at `scripts/pre_commit.py`, which first regenerates all plugin payloads (a single `npx -y rosettify-plugins@latest` call that reads `src/rosettify-plugins/plugins.json` and emits every `<set>-<ide>` folder in one pass) and then executes type validation.
 
 Use the root repo virtualenv for hook execution:
 
@@ -418,13 +422,15 @@ uvx rosetta-cli@latest list-dataset --dataset aia-r3 --env dev
 
 ## Where to Change What
 
+Instruction sources live in five sibling domain sets under `instructions/r3/` (`core`, `advanced`, `qe`, `search`, `modernization`). Every top-level folder under a release is one of these, and none of them overrides another. Pick the set by subject, not by importance. See [Instruction Structure](docs/ARCHITECTURE.md#instruction-structure).
+
 | Change type            | Location                                              | Validation                               |
 | ---------------------- | ----------------------------------------------------- | ---------------------------------------- |
-| New/modified skill     | `instructions/r3/core/skills/<name>/SKILL.md`         | Publish, test via MCP                    |
-| New/modified agent     | `instructions/r3/core/agents/<name>.md`               | Publish, test via MCP                    |
-| New/modified workflow  | `instructions/r3/core/workflows/<name>.md`            | Publish, test via MCP                    |
-| New/modified rule      | `instructions/r3/core/rules/<name>.md`                | Publish, test via MCP                    |
-| Organization extension | `instructions/r3/<org>/` (same type structure)        | Publish, test via MCP                    |
+| New/modified skill     | `instructions/r3/<set>/skills/<name>/SKILL.md`. `core` for general engineering, `qe` for testing, `search` for Solr | Publish, test via MCP |
+| New/modified agent     | `instructions/r3/advanced/agents/<name>.md`. `advanced` is the only set with agents | Publish, test via MCP   |
+| New/modified workflow  | `instructions/r3/<set>/workflows/<name>.md`. `core` for workspace setup and help, `advanced` for orchestrated flows, `qe` for test automation, `modernization` for conversions | Publish, test via MCP |
+| New/modified rule      | `instructions/r3/core/rules/<name>.md`. `core` is the only set with rules | Publish, test via MCP  |
+| New domain             | `instructions/r3/<domain>/` plus a `plugins.json` entry | Publish, test via MCP                  |
 | MCP tool or prompt     | `src/rosetta-mcp-server/rosetta_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, src/validate-types.sh |
 | CLI command            | `src/rosetta-cli/rosetta_cli/commands/`               | pytest, dry-run, publish to dev          |
 | Website                | `docs/web/`                                           | Local Jekyll build                       |
@@ -487,9 +493,14 @@ instructions/r3/
 │   ├── skills/
 │   │   └── skill-name/
 │   │       └── SKILL.md
-│   ├── agents/
 │   ├── rules/
-│   └── configure/
+│   └── templates/
+├── advanced/
+│   ├── agents/
+│   └── workflows/
+├── qe/
+├── search/
+└── modernization/
 ```
 
 #### Naming conventions
@@ -505,7 +516,7 @@ Key changes:
 - Workflow files get `-flow` suffix
 - Phase files include descriptive name instead of just a number
 - Skills are extracted into their own folder with a `SKILL.md` entry point
-- Scope moved from `agents/instructions/{core,advanced,common}/r1/` to `instructions/r3/core/`
+- Scope moved from `agents/instructions/{core,advanced,common}/r1/` to the domain sets under `instructions/r3/`
 
 ### Step 2: Add YAML frontmatter
 
@@ -562,7 +573,7 @@ AI-assisted only; manual is not practical for this step.
 
 Execute the following prompt to extract reusable skills from workflow phases:
 
-> MUST FULLY EXECUTE `instructions/r3/core/workflows/coding-agents-prompting-flow.md` to refactor skills out of full Rosetta workflow with phases `[workflow_file]` as R3 prompt family.
+> MUST FULLY EXECUTE `instructions/r3/advanced/workflows/coding-agents-prompting-flow.md` to refactor skills out of full Rosetta workflow with phases `[workflow_file]` as R3 prompt family.
 
 #### Acceptance criteria
 
@@ -580,17 +591,17 @@ Replace markdown sections in workflow and phase files with XML tags (`<context>`
 
 | File type | Schema | Example |
 |---|---|---|
-| Workflow | `docs/schemas/workflow.md` | `instructions/r3/core/workflows/coding-flow.md` |
-| Phase | `docs/schemas/phase.md` | `instructions/r3/core/workflows/testgen-flow-data-collection.md` |
+| Workflow | `docs/schemas/workflow.md` | `instructions/r3/advanced/workflows/coding-flow.md` |
+| Phase | `docs/schemas/phase.md` | `instructions/r3/qe/workflows/testgen-flow-data-collection.md` |
 | Skill | `docs/schemas/skill.md` | `instructions/r3/core/skills/coding-agents-prompt-authoring/SKILL.md` |
 
 #### AI-assisted prompt for workflows
 
-> There's an example of the format `instructions/r3/core/workflows/coding-flow.md`. There's a schema for workflows `docs/schemas/workflow.md`. Please use it for reformatting `[workflow_file]`.
+> There's an example of the format `instructions/r3/advanced/workflows/coding-flow.md`. There's a schema for workflows `docs/schemas/workflow.md`. Please use it for reformatting `[workflow_file]`.
 
 #### AI-assisted prompt for phases
 
-> There's an example of the format `instructions/r3/core/workflows/testgen-flow-data-collection.md`. There's a schema for phases `docs/schemas/phase.md`. Please use it for reformatting `[phase_file]`.
+> There's an example of the format `instructions/r3/qe/workflows/testgen-flow-data-collection.md`. There's a schema for phases `docs/schemas/phase.md`. Please use it for reformatting `[phase_file]`.
 
 #### AI-assisted prompt for skills
 

@@ -489,7 +489,7 @@ your-project/
     │   ├── review.md
     │   ├── test.md
     │   └── deploy.md
-    ├── prompts/
+    ├── workflows/
     │   ├── setup.md
     │   └── deploy.md
     └── skills/

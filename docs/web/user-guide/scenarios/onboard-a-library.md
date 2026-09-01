@@ -63,6 +63,6 @@ Prerequisites: repomix (MCP or CLI).
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/external-lib-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/external-lib-flow.md?plain=1)
+- Workflow: [`instructions/r3/advanced/workflows/external-lib-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/advanced/workflows/external-lib-flow.md?plain=1)
 - Skills: [`reverse-engineering`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/reverse-engineering/SKILL.md?plain=1)
 

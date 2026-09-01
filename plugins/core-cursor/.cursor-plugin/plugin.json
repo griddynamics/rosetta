@@ -1,6 +1,6 @@
 {
-  "name": "rosetta",
-  "description": "Rosetta for Cursor - Software Engineering Accelerator instruction set, workflows, and guardrails.",
+  "name": "core",
+  "description": "Rosetta Core - foundation instruction set, rules, skills, and guardrails.",
   "version": "3.1.13",
   "author": {
     "name": "Grid Dynamics",

@@ -1,0 +1,43 @@
+{
+  "name": "modernization",
+  "description": "Rosetta Modernization - conversion, upgrade, and re-architecture workflows. Requires Rosetta Core and Advanced.",
+  "version": "3.1.13",
+  "author": {
+    "name": "Grid Dynamics",
+    "email": "rosetta-support@griddynamics.com",
+    "url": "https://griddynamics.github.io/rosetta/"
+  },
+  "homepage": "https://griddynamics.github.io/rosetta/",
+  "repository": "https://github.com/griddynamics/rosetta",
+  "license": "Apache-2.0",
+  "keywords": [
+    "rosetta",
+    "codex",
+    "ai-agents",
+    "workflows",
+    "instructions",
+    "guardrails",
+    "planning",
+    "coding",
+    "knowledge-base"
+  ],
+  "interface": {
+    "displayName": "Rosetta",
+    "shortDescription": "Rosetta core skills and bundled local references for Codex.",
+    "longDescription": "Rosetta 3 for Codex. Includes reusable skills and bundled local rules and workflow references generated from the Rosetta instruction set.",
+    "developerName": "Grid Dynamics",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Initialize this repository using the respective Rosetta workflow",
+      "$coding-flow Implement side bar on the home page, ...",
+      "$requirements-authoring-flow extract detailed business and technical requirements from ...",
+      "$api-aqa-flow Implement automation for the API test cases in suite ..., ..."
+    ],
+    "brandColor": "#0F766E"
+  },
+  "skills": "./.agents/skills/"
+}

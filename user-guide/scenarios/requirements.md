@@ -68,5 +68,5 @@ A state file under `agents/TEMP/<feature>/`, then the deliverables under `docs/R
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/requirements-authoring-flow.md`](../../instructions/r3/core/workflows/requirements-authoring-flow.md)
+- Workflow: [`instructions/r3/advanced/workflows/requirements-authoring-flow.md`](../../instructions/r3/advanced/workflows/requirements-authoring-flow.md)
 - Skills: [`requirements-authoring`](../../instructions/r3/core/skills/requirements-authoring/SKILL.md), [`reverse-engineering`](../../instructions/r3/core/skills/reverse-engineering/SKILL.md), [`hitl`](../../instructions/r3/core/skills/hitl/SKILL.md)

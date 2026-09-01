@@ -18,9 +18,9 @@ Codex is OpenAI's AI-powered terminal-based coding CLI assistant. Supports custo
 - `.codex/hooks.json` - Lifecycle hooks
 - `.agents/skills/` - Agent skills (SKILL.md directories)
 - `.agents/plugins/` - Plugins (bundled skills, MCP servers, apps)
-- `.agents/rules/` - Agent rules/prompts/commands *.md files(not standard - our decision)
+- `.agents/rules/` - Agent rules/workflows/commands *.md files(not standard - our decision)
 
-Because regular *.md rules/prompts/commands are not supported directly, we should copy *.md files to `.agents/rules/` as-is and then we reference them in `AGENTS.md` using INDEX style (template: "- `.agents/rules/file.md`: [Description from frontmatter verbatim, or description of why/when to use it inferred from the content] [Glob: if glob pattern used in frontmatter]").
+Because regular *.md rules/workflows/commands are not supported directly, we should copy *.md files to `.agents/rules/` as-is and then we reference them in `AGENTS.md` using INDEX style (template: "- `.agents/rules/file.md`: [Description from frontmatter verbatim, or description of why/when to use it inferred from the content] [Glob: if glob pattern used in frontmatter]").
 
 ---
 

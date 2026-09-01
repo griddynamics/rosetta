@@ -4,28 +4,33 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 ## Specification contract
 
-<req id="FR-ARCH-0001" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-ARCH-0001" type="FR" level="System" ticketId="315" classification="technical">
   <title>Uniform spec contract, values externalized</title>
   <statement>The generator shall define one specification contract used identically for every target — a `PluginSpec` — and shall store the concrete per-target values in a separate data module (`plugin-specs.ts`).</statement>
   <rationale>One contract + externalized data keeps every target generated the same way and additions data-only.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: the seven targets When: inspected Then: each is described by a single named spec type (one shared `PluginSpec` interface) of identical shape, differing only in values held in `plugin-specs.ts`.</criteria>
+    <criteria>Given: every IDE target When: inspected Then: each is described by a single named spec type (one shared `PluginSpec` interface) of identical shape, differing only in values held in `plugin-specs.ts`.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: PluginSpec (src/rosettify-plugins/src/types.ts) is the single shared contract every target
+  builder returns, and the per-target values are externalized as data - src/rosettify-plugins/plugins.json
+  for the set/target catalog, loaded by loadPluginCatalog (src/rosettify-plugins/src/spec/plugin-sets.ts),
+  plus buildSpecsForSet and TARGET_BUILDERS in src/rosettify-plugins/src/spec/targets.ts. NOTE: the text
+  names a module plugin-specs.ts that does not exist anywhere in the tree; the externalized data lives in
+  plugins.json and spec/targets.ts instead. Naming drift only, no behavioural gap.</implementationNotes>
   <depends>FR-CLI-0040, DATA-CFG-0002</depends>
 </req>
 
 <req id="FR-ARCH-0002" type="FR" level="System" ticketId="" classification="technical">
   <title>SpecEntry and PluginSpec shape</title>
   <statement>Each `SpecEntry` shall declare `{source: glob, target: path, exclude: string[], processors: FileProcessor[]}` — a VFS-relative source glob, a target folder/path, a list of VFS paths to exclude from emission, and an ordered `FileProcessor` pipeline. A `PluginTarget`'s `PluginSpec` shall hold an ordered list of `SpecEntry`s, an ordered `PluginProcessor` pipeline, and the per-target descriptor values (identity, output location and base subfolder, preserved-file seed source, model vocabulary, bootstrap manifest, hook configuration, and index and injection declarations). A file's destination folder is the `SpecEntry` `target` (e.g. `workflows`→`commands`); a filename/suffix change is `fileRename()` within that entry's processors; a source file that must not ship is named in `exclude` (no source rename — the source files remain unchanged for MCP and instruction references). Per-case file behavior (e.g. model normalization, hook entry-shape emission) is selected by which `FileProcessor`s a `SpecEntry`/`PluginSpec` composes, not by an identity-discriminant field on the spec (FR-ARCH-0005).</statement>
-  <rationale>Processing is expressed as source→target mappings (folder placement) with an explicit per-file processor chain, while whole-plugin steps and descriptor data live on the `PluginSpec`. `exclude` is data on the entry, so an overlay domain can own its own omissions and no source file has to be renamed.</rationale>
+  <rationale>Processing is expressed as source→target mappings (folder placement) with an explicit per-file processor chain, while whole-plugin steps and descriptor data live on the `PluginSpec`. `exclude` is data on the entry, so each set folder can own its own omissions and no source file has to be renamed.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -203,47 +208,58 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 ## Filename directives
 
-<req id="FR-ARCH-0020" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-ARCH-0020" type="FR" level="System" ticketId="315" classification="technical">
   <title>Directive-bearing filenames</title>
-  <statement>The generator shall recognize a `FilenameDirective` in a source filename of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence contributes no token — and shall map the `SourceFile` to the VFS path `name.ext` (the `FilenameDirective` removed).</statement>
+  <statement>The generator shall recognize a `FilenameDirective` in a source filename of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence contributes no token — and shall map the `SourceFile` to the VFS path `name.ext` (the `FilenameDirective` removed). Every selector token shall be namespaced by its own prefix — `target-<id>-only`, `ide-<family>-only`, `set-<id>-only`, `profile-<name>-only` — so no selector kind can be read as another.</statement>
   <rationale>Per-file behavior is declared in the filename; the output name is the clean base name.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-08-18</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `bootstrap-core-policy~1a~core-claude-only~overwrite~.md` When: mapped Then: VFS path is `rules/bootstrap-core-policy.md` with order `1a` and conditions `{core-claude-only, overwrite}`.</criteria>
+    <criteria>Given: `bootstrap-core-policy~1a~target-claude-only~overwrite~.md` When: mapped Then: VFS path is `rules/bootstrap-core-policy.md` with order `1a` and conditions `{target-claude-only, overwrite}`.</criteria>
     <criteria>Given: a filename with no tilde-fenced directive segment When: mapped Then: it maps to its plain name with default order and no conditions.</criteria>
     <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: mapped Then: the clean name is `bootstrap-guardrails.md` and conditions are `{overwrite}`; the closing tilde fence contributes no token.</criteria>
-    <criteria>Given: `bootstrap-core-policy~core-claude-only~overwrite~.md` When: mapped Then: conditions are `{core-claude-only, overwrite}`; a target-only token compares against the target `name`, whose values are `core-claude`, `core-cursor`, `core-copilot`, `core-codex`, `core-cursor-standalone`, `core-copilot-standalone`, `core-antigravity` (so the correct form is `core-claude-only`, not `claude-only`).</criteria>
+    <criteria>Given: `bootstrap-core-policy~target-claude-only~overwrite~.md` When: mapped Then: conditions are `{target-claude-only, overwrite}`; a `target-<id>-only` token compares its `<id>` against the target `name`, whose values are `claude`, `cursor`, `copilot`, `codex`, `cursor-standalone`, `copilot-standalone`, `antigravity` (so the correct form is `target-claude-only`, not `claude-only` and not `core-claude-only`).</criteria>
     <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: mapped Then: the clean name is `coding-flow.md` and conditions are `{profile-lightweight-only, overwrite}`; the profile token's selection semantics are governed by FR-PROF-0030.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>ToBeModified</implementation>
+  <implementationNotes>ToBeModified: the tilde grammar, the four namespaced token families (target-<id>-only,
+  ide-<family>-only, set-<id>-only, profile-<name>-only) and clean-name stripping are all implemented in
+  parseDirectives (src/rosettify-plugins/src/vfs/directives.ts). The OrderToken in the first criterion did
+  NOT ship: parseDirectives throws 'Unknown filename directive "1a"' on a ~1a~ token, ParsedFilename
+  carries no order field, and VFS ordering instead comes from the layer array index set in
+  src/rosettify-plugins/src/vfs/build-vfs.ts, unrelated to any filename token. Either drop the order-token
+  grammar from this unit or implement it.</implementationNotes>
 </req>
 
-<req id="FR-ARCH-0021" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-ARCH-0021" type="FR" level="System" ticketId="315" classification="technical">
   <title>Directive grammar and validation</title>
-  <statement>The generator shall parse a `FilenameDirective` of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence contributes no token — as an ordered token list where an optional `OrderToken`, if present, appears first and the remaining `DirectiveToken`s appear in any order; it shall reject the `SourceFile` with an error if any `DirectiveToken` is unknown or if any appears more than once.</statement>
+  <statement>The generator shall parse a `FilenameDirective` of the form `name~token[~token...]~.ext` — tokens separated by tildes, opened by a tilde after the base stem and closed by a trailing tilde before the extension; the closing fence contributes no token — as an ordered token list where an optional `OrderToken`, if present, appears first and the remaining `DirectiveToken`s appear in any order; it shall reject the `SourceFile` with an error if any `DirectiveToken` is unknown or if any appears more than once. A token lacking one of the recognized namespace prefixes is unknown, whatever else it resembles.</statement>
   <rationale>Strict validation prevents silent misconfiguration.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-08-18</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `policy~1a~overwrite~core-claude-only~.md` When: parsed Then: it is accepted.</criteria>
+    <criteria>Given: `policy~1a~overwrite~target-claude-only~.md` When: parsed Then: it is accepted.</criteria>
     <criteria>Given: a duplicate token or an unknown token When: parsed Then: it errors naming the file and token.</criteria>
     <criteria>Given: an order token not in first position When: parsed Then: it errors.</criteria>
     <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: parsed Then: the token set is `{overwrite}` and the closing tilde fence contributes no token.</criteria>
-    <criteria>Given: `bootstrap-core-policy~core-claude-only~overwrite~.md` When: parsed Then: the token set is `{core-claude-only, overwrite}`; the target-only token compares against the target `name` (e.g. `core-claude`), so `core-claude-only` is correct and `claude-only` matches no target.</criteria>
+    <criteria>Given: `bootstrap-core-policy~target-claude-only~overwrite~.md` When: parsed Then: the token set is `{target-claude-only, overwrite}`; the `target-<id>-only` token compares its `<id>` against the target `name` (e.g. `claude`), while `ide-claude-only` matches every target of the Claude family (FR-ARCH-0023) and a bare `claude-only` carries no namespace prefix and is rejected.</criteria>
     <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: parsed Then: the token set is `{profile-lightweight-only, overwrite}`; the profile token's selection semantics are governed by FR-PROF-0030.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>ToBeModified</implementation>
+  <implementationNotes>ToBeModified: token-set derivation for the known directives matches the spec exactly. Two criteria fail.
+  The OrderToken grammar does not exist at all, so the order-token-first acceptance and the
+  order-token-misplacement rejection are both unimplementable as written (see FR-ARCH-0020).
+  Duplicate-token rejection is also absent: parseDirectives (src/rosettify-plugins/src/vfs/directives.ts)
+  collects conditions into a Set, so a doubled token is silently de-duplicated instead of raising the
+  error this unit requires; no duplicate check exists in the parser.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0022" type="FR" level="System" ticketId="" classification="technical">
@@ -263,23 +279,30 @@ Architecture requirements: the configuration-driven generation model — uniform
   <implementationNotes>NotStarted: `SourceFile.order` is populated in src/rosettify-plugins/src/vfs/build-vfs.ts as the layer array index (`order: ${i}`), not from a filename token, and no code reads it. No filename order token is parsed, consumed, or tested — no `OrderToken` reference exists in src or tests. Current ordering comes from the layer order plus the stable lexicographic filename sort in src/rosettify-plugins/src/vfs/source-resolver.ts, which is exactly this requirement's own documented fallback ("plain filename order when absent"); present output is therefore correct for every current input, since no source file uses an order token.</implementationNotes>
 </req>
 
-<req id="FR-ARCH-0023" type="FR" level="System" ticketId="" classification="technical">
-  <title>TargetOnlyToken scoping</title>
-  <statement>Where a `SourceFile` declares a `TargetOnlyToken` (`<target>-only`), the generator shall include that `SourceFile` only when generating a matching `PluginTarget`, accepting both an IDE-family key (expanding to all that IDE's `PluginTarget`s) and an exact `PluginTarget` name.</statement>
-  <rationale>Some content applies only to one IDE or one specific variant.</rationale>
+<req id="FR-ARCH-0023" type="FR" level="System" ticketId="315" classification="technical">
+  <title>TargetOnlyToken and IdeOnlyToken scoping</title>
+  <statement>The generator shall recognize two distinct IDE-scoping token kinds and shall not treat either as the other. Where a `SourceFile` declares a `TargetOnlyToken` (`target-<id>-only`), it shall include that `SourceFile` only when generating the `PluginTarget` whose `name` equals `<id>` exactly. Where a `SourceFile` declares an `IdeOnlyToken` (`ide-<family>-only`), it shall include that `SourceFile` for every `PluginTarget` of that IDE family, families being derived from the target names by stripping any `-standalone` suffix so no second list is maintained. Neither kind shall be affected by which plugin set is building; set scoping is a separate token kind (FR-ARCH-0025). A `SourceFile` declaring several scoping tokens participates where any one of them matches.</statement>
+  <rationale>Overloading one token kind with both an exact name and a family key made the two indistinguishable by shape, so a typo in either fell through to the other's matching rule and silently dropped the document. Explicit prefixes make the intended reach readable in the filename and make an unrecognized token a hard failure (FR-ARCH-0060). Deriving families from the target names keeps adding an IDE a one-place change.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-08-19</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `copilot-only` When: generating Then: the file participates for `core-copilot` and `core-copilot-standalone` only.</criteria>
-    <criteria>Given: `core-copilot-standalone-only` When: generating Then: the file participates for that exact target only.</criteria>
+    <criteria>Given: `ide-copilot-only` When: generating Then: the file participates for `copilot` and `copilot-standalone` only.</criteria>
+    <criteria>Given: `target-copilot-standalone-only` When: generating Then: the file participates for that exact target only.</criteria>
+    <criteria>Given: `target-copilot-only` When: generating Then: the file participates for `copilot` alone and NOT for `copilot-standalone`.</criteria>
     <criteria>Given: a `PluginTarget` not matched When: generating Then: the `SourceFile` is absent from that `PluginTarget`'s VFS contribution.</criteria>
+    <criteria>Given: `ide-claude-only` and two plugin sets building for `claude` When: generating Then: the file participates in both sets, since an IDE token carries no set scoping.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/target-names.ts TARGET_FAMILIES and TARGET_FAMILY_KEYS (families derived from the target names by stripping the `core-` prefix and any `-standalone` suffix, so no second list is maintained); src/rosettify-plugins/src/vfs/directives.ts matchesTarget (an exact target name matches that target alone, a family key matches every target of that IDE) and KNOWN_DIRECTIVES (family tokens accepted by the allow-list, FR-ARCH-0060). Tests: tests/unit/vfs/directives.test.ts.</implementationNotes>
+  <implementationNotes>Implemented: matchesTarget (src/rosettify-plugins/src/vfs/directives.ts) separates the exact target
+  token, matched against the bare PluginSpec.name, from ide-<family>-only, resolved through
+  TARGET_FAMILIES/TARGET_FAMILY_KEYS in src/rosettify-plugins/src/spec/target-names.ts by stripping the
+  -standalone suffix. The ^core- strip is gone from family derivation. Verified by direct execution:
+  ide-copilot-only matches copilot and copilot-standalone but not claude; target-copilot-only matches
+  copilot alone; an IDE token is unaffected by which set is building.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0024" type="FR" level="System" ticketId="" classification="technical">
@@ -297,6 +320,47 @@ Architecture requirements: the configuration-driven generation model — uniform
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
+</req>
+
+<req id="FR-ARCH-0025" type="FR" level="System"
+     ticketId="315" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
+     depends="FR-ARCH-0020, FR-ARCH-0021, FR-ARCH-0023, FR-SET-0001"
+     implementation="Implemented">
+  <title>SetOnlyToken filename directive</title>
+  <statement>The FilenameDirective grammar shall recognize a namespaced token kind `set-<id>-only`,
+  distinct from `target-<id>-only`, `ide-<family>-only` and `profile-<name>-only`. A `SourceFile`
+  carrying `set-<id>-only` shall be included only while the plugin set whose id is `<id>` is being
+  built, and shall be excluded from every other set regardless of IDE target or active profile. Set
+  filtering shall occur in the same pipeline step as target and profile filtering, before overwrite
+  truncation, so an `overwrite` token does not bypass set exclusion. The `<id>` shall be validated by
+  shape only — a non-empty name — and shall not be resolved against the declared sets, so VFS parsing
+  stays independent of the plugin-set configuration.</statement>
+  <rationale>Plugin identity is two-dimensional once one run builds several sets, and the existing
+  tokens address only the IDE dimension: without a set-scoped kind, a document meant for one set has
+  no way to say so except by living in that set's folder, which forbids a shared document that varies
+  by set. Shape-only validation mirrors `profile-<name>-only` for the same reason — resolving the id
+  would make filename parsing depend on the configuration file, and would reject a valid
+  `--domain`-filtered run that legitimately builds none of the sets a file names.</rationale>
+  <evidence>src/rosettify-plugins/src/vfs/directives.ts matchesTarget and matchesProfile (the per-kind filters this kind joins); src/rosettify-plugins/src/file-processors/file-apply-overrides.ts fileApplyOverrides (target and profile filters precede overwrite truncation)</evidence>
+  <acceptance>
+    <criteria id="FR-ARCH-0025.AC1" ears="state" while="the `qe` set is being built" system="the generator" shall="include `policy~set-qe-only~.md` at VFS path `rules/policy.md`"/>
+    <criteria id="FR-ARCH-0025.AC2" ears="unwanted" if="a set other than `qe` is being built" system="the generator" shall="exclude every file carrying `set-qe-only`, whatever the IDE target or active profile"/>
+    <criteria id="FR-ARCH-0025.AC3" ears="ubiquitous" system="the generator" shall="treat `set-<id>-only` as a token kind distinct from `target-<id>-only`, `ide-<family>-only` and `profile-<name>-only`"/>
+    <criteria id="FR-ARCH-0025.AC4" ears="event" when="a file carries both `set-<id>-only` and `overwrite` and that set is not being built" system="the generator" shall="exclude the file before overwrite truncation, so it does not supersede the base document"/>
+    <criteria id="FR-ARCH-0025.AC5" ears="unwanted" if="the token is `set-only`, carrying an empty id" system="the generator" shall="reject the filename as an unrecognized directive (FR-ARCH-0060)"/>
+    <criteria id="FR-ARCH-0025.AC6" ears="ubiquitous" system="the generator" shall="accept `set-<id>-only` without consulting the plugin-set configuration, so a set name naming no declared set parses successfully and simply matches nothing"/>
+  </acceptance>
+  <implementationNotes>Implemented: set-<id>-only is a distinct namespace in KNOWN_DIRECTIVES/SET_ONLY_PATTERN and is matched
+  by the set- branch of matchesTarget against the building set
+  (src/rosettify-plugins/src/vfs/directives.ts). Validation is shape-only, so an unknown set name parses
+  without a config lookup while a bare set-only is rejected.
+  src/rosettify-plugins/src/file-processors/file-apply-overrides.ts runs the matchesTarget/matchesProfile
+  filter strictly before overwrite truncation, so a set-scoped exclusion cannot be bypassed by an
+  overwrite directive.</implementationNotes>
+  <notes></notes>
 </req>
 
 ## Processing model: frames and tiers
@@ -666,15 +730,15 @@ Architecture requirements: the configuration-driven generation model — uniform
   <depends>FR-ARCH-0002, FR-ARCH-0032</depends>
 </req>
 
-<req id="FR-ARCH-0049" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-ARCH-0049" type="FR" level="System" ticketId="315" classification="technical">
   <title>pluginRewriteReferences() processor</title>
   <statement>The `pluginRewriteReferences()` processor shall update the path references each document carries to other instruction files so they match those files' final locations for the target, changing content only and leaving target paths to `fileRename()`/`SpecEntry`. It shall derive its lookup by reading the already-produced `frames` — the set of (source VFS path → final target path) pairs, one per frame whose path changed (including frames whose `target_contents` is `null`, dropped during processing, but whose path changed, so references to them still resolve) — together with the folder-level pairs (`<from>/`→`<to>/`) read from the `SpecEntry` `source→target` folder mappings. A folder-level pair shall be emitted ONLY when that folder's mapping is a pure folder relocation — that is, when every in-scope frame originating in the source folder lands directly in the target folder as a single path segment (an extension-only rename such as `.md`→`.mdc` still qualifies). When a mapping instead RESTRUCTURES document paths, so that a source document lands at a deeper path within the target folder (for example `workflows/<name>.md` → `skills/<name>/SKILL.md`), no folder-level pair shall be emitted for that source folder; only the exact per-document pairs shall apply. A bare folder token carries no document identity, so rewriting it under a restructuring mapping would produce a path that does not exist and would also corrupt prose and glob mentions that merely contain the token. (Files named in a `SpecEntry`'s `exclude` are never materialized as frames; they do not move, so no reference rewriting is needed toward them.) For each pair (frame-derived or folder-level) it shall replace the source path with the final path wherever the source appears as a complete, boundary-delimited path reference (exact matching, FR-ARCH-0037), applied longest-from-string first. Correcting a prose or glob-documentation string that names a restructuring mapping's source form (e.g. `` WORKFLOW/COMMAND `workflows/*.md` ``) is NOT this processor's job — that is `pluginReplaceLiterals()` (FR-ARCH-0058), a separate composed processor with plain-substring semantics.</statement>
   <rationale>In-body reference updating is a distinct content concern and is its own `PluginProcessor`, because it needs the whole-plugin view (every file's final path). Reading the lookup from the `frames` means `fileRename()`/`SpecEntry` remain the only place renames are decided — references are observed, never recomputed — answering "where do the pairs come from" with no duplicated logic. Exact, complete-token matching keeps the update confined to genuine path references.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-07-28</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a body reference `workflows/coding-flow.md` and a `workflows`→`commands` move When: run Then: it reads `commands/coding-flow.md` and the document's target path is unchanged.</criteria>
@@ -686,21 +750,29 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: the `frames` When: the lookup is assembled Then: it is read from the frames (`sourcePath → targetPath`) plus the entries' folder pairs, not recomputed from rename rules.</criteria>
     <criteria>Given: a path reference preceded by a dot-directory segment such as `.windsurf/workflows/` or `.cursor/rules/` When: run Then: the reference is NOT rewritten — dot-directory-prefixed paths are IDE-native filesystem documentation, not Rosetta instruction cross-references (FR-ARCH-0037).</criteria>
     <criteria>Given: a SpecEntry with `verbatim: true` When: `pluginRewriteReferences` runs Then: all frames produced by that entry are returned unchanged regardless of rename pairs in effect.</criteria>
+    <criteria>Given: the per-IDE configuration guides under `skills/harness/references/configure/`, which document other IDEs' on-disk layouts When: `pluginRewriteReferences` runs for any target Then: they are emitted byte-identical to their source, so a Cursor build does not rewrite `workflows/` to `commands/` inside a document describing Claude Code's layout.</criteria>
+    <criteria>Given: frames contributed by two folders of one set that a single SpecEntry maps to one target folder When: the folder-level pair is considered Then: the pure-relocation discriminant is evaluated over all of that entry's in-scope frames together, so a mapping stays a pure relocation only if every contributing folder's frames land one segment deep.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/plugin-processors/plugin-rewrite-references.ts. Frame-lookup-driven; no recomputed rename rules. Ghost-frame handling included. `buildRenamePairs` now calls `isPureFolderRelocation(srcFolder, pluginRelTarget)` before emitting a folder-level pair: every in-scope frame originating directly in the source folder must land as exactly one path segment under the target folder. Depth is the discriminant, not basename equality, so extension-only renames such as `.md`→`.mdc` still qualify while `workflows/&lt;n&gt;.md`→`skills/&lt;n&gt;/SKILL.md` does not. Derived purely from frame/spec data — no folder, target, or filename literals and no identity branching (FR-ARCH-0004, FR-ARCH-0005). Tests: `tests/unit/plugin-processors/plugin-rewrite-references.test.ts`, 14 added cases including an explicit depth-versus-basename discriminant test and regression guards using the two real corruption strings verbatim. This fixed two corruptions already shipping in `core-antigravity` output — `` WORKFLOW/COMMAND `skills/*.md` `` in the bootstrap lead document and `(skills/agents/skills/rules)` in `post-mortem/SKILL.md`. `rewritePathToken` uses two combined negative lookbehinds: (1) `(?<!\.[A-Za-z][A-Za-z0-9_-]*/)` blocks dot-directory-prefixed IDE paths; (2) `(?<![A-Za-z0-9_-])` is the existing word-boundary guard. Verbatim frames (configure entries) are skipped at line 30 as a belt-and-suspenders guard. The correction for the `` WORKFLOW/COMMAND `workflows/*.md` `` glob-doc string under the Codex/Antigravity restructuring mapping is NOT handled here: an earlier iteration added a `PluginSpec.literalRewritePairs` field folded into this processor's lookup, but that put prose-substitution data on the wrong abstraction (`PluginSpec` gained a field only two of seven specs used) and gave it the wrong semantics (boundary/regex path-token matching, when the target is plain prose). It was reverted in favor of a standalone `pluginReplaceLiterals()` processor (FR-ARCH-0058), composed only into the Codex/Antigravity pipelines.</implementationNotes>
-  <depends>FR-ARCH-0039, FR-ARCH-0037, FR-ARCH-0054</depends>
+  <implementationNotes>Implemented: pluginRewriteReferences and buildRenamePairs
+  (src/rosettify-plugins/src/plugin-processors/plugin-rewrite-references.ts) build the rename lookup
+  purely from frames, including ghost frames with null content but a changed path, plus the SpecEntry
+  folder pairs, gated by isPureFolderRelocation on a depth discriminant rather than a basename.
+  rewritePathToken's negative lookbehinds block dot-directory-prefixed paths and enforce word boundaries;
+  verbatim frames are skipped. Tests: tests/unit/plugin-processors/plugin-rewrite-references.test.ts
+  (22/22).</implementationNotes>
+  <depends>FR-ARCH-0039, FR-ARCH-0037, FR-ARCH-0054, FR-SET-0020</depends>
 </req>
 
-<req id="FR-ARCH-0058" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-ARCH-0058" type="FR" level="System" ticketId="315" classification="technical">
   <title>pluginReplaceLiterals() processor</title>
   <statement>The `pluginReplaceLiterals(pairs)` processor factory shall accept, as data supplied at composition time, an ordered list of `(from, to)` literal string pairs and return a `PluginProcessor` that, for each non-binary, non-null-content, non-`verbatim` frame's `target_contents`, replaces every exact occurrence of each pair's `from` string with its `to` string, applying plain substring substitution — no regular expressions, no complete-token boundary rules, no path-separator or dot-directory guards, and no escaping of `from` beyond exact literal matching. A pair whose `from` equals its `to`, or whose `from` is the empty string, shall be a no-op. The returned processor shall be composed into a target's pipeline only by the specs that need it (FR-ARCH-0004, FR-ARCH-0005) — never selected inside a shared processor by an identity branch on target/IDE — and, within `buildPipeline`, shall run after `pluginGenerateIndexes()` and before the bootstrap assembler, so that assembled hook payloads (which read document bodies from `frames`) inherit the substitution.</statement>
-  <rationale>`pluginRewriteReferences()` (FR-ARCH-0049) intentionally matches only complete, boundary-delimited path tokens, because it is correcting genuine cross-references to files that moved; a restructuring mapping (e.g. `workflows/<name>.md` → `skills/<name>/SKILL.md`) deliberately emits no folder-level pair, so a prose or glob-documentation string that merely names the mapping's source form (e.g. `` WORKFLOW/COMMAND `workflows/*.md` ``) is left stale by design, since it is not a path reference and per-document exact pairs do not match it. Bolting that correction onto `pluginRewriteReferences()` — as an earlier iteration did via an optional `PluginSpec.literalRewritePairs` field folded into its lookup — put a prose-substitution concern on the wrong abstraction and under the wrong matching semantics (boundary/regex), and added a field to `PluginSpec` used by only two of the seven specs. Prose correction needs exact, unconditional substring substitution: no boundary rules, because the target is documentation text describing a glob pattern, not a filesystem path. A small, separately named, separately composed processor keeps this concern isolated, keeps `PluginSpec` free of a field most specs never populate, and keeps `pluginRewriteReferences()`'s semantics uncomplicated by a second, incompatible matching mode.</rationale>
+  <rationale>`pluginRewriteReferences()` (FR-ARCH-0049) intentionally matches only complete, boundary-delimited path tokens, because it is correcting genuine cross-references to files that moved; a restructuring mapping (e.g. `workflows/<name>.md` → `skills/<name>/SKILL.md`) deliberately emits no folder-level pair, so a prose or glob-documentation string that merely names the mapping's source form (e.g. `` WORKFLOW/COMMAND `workflows/*.md` ``) is left stale by design, since it is not a path reference and per-document exact pairs do not match it. Bolting that correction onto `pluginRewriteReferences()` — as an earlier iteration did via an optional `PluginSpec.literalRewritePairs` field folded into its lookup — put a prose-substitution concern on the wrong abstraction and under the wrong matching semantics (boundary/regex), and added a field to `PluginSpec` used by only two specs of the whole inventory. Prose correction needs exact, unconditional substring substitution: no boundary rules, because the target is documentation text describing a glob pattern, not a filesystem path. A small, separately named, separately composed processor keeps this concern isolated, keeps `PluginSpec` free of a field most specs never populate, and keeps `pluginRewriteReferences()`'s semantics uncomplicated by a second, incompatible matching mode.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-07-28</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: `pluginReplaceLiterals([['WORKFLOW/COMMAND \`workflows/*.md\`', 'WORKFLOW/COMMAND \`skills/*-flow/SKILL.md\`']])` and a frame whose content contains that exact literal When: run Then: the literal is replaced with the declared replacement.</criteria>
@@ -709,10 +781,17 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: `pairs` is an empty array When: run Then: the input `PluginProcessingFrame` is returned unchanged (same object).</criteria>
     <criteria>Given: a pair whose `from === to` When: run Then: no substitution occurs for that pair.</criteria>
     <criteria>Given: a binary frame, a frame whose `target_contents` is `null`, or a frame with `verbatim: true` When: run Then: that frame is returned unchanged, even if its content would otherwise match a pair.</criteria>
-    <criteria>Given: `buildAllSpecs()` output When: inspected Then: `core-codex` and `core-antigravity` pipelines contain a processor named `pluginReplaceLiteralsProcessor`; `core-claude`, `core-cursor`, `core-copilot`, `core-cursor-standalone`, and `core-copilot-standalone` do not.</criteria>
+    <criteria>Given: the built specs When: inspected Then: the `codex` and `antigravity` pipelines contain a processor named `pluginReplaceLiteralsProcessor`; the `claude`, `cursor`, `copilot`, `cursor-standalone`, and `copilot-standalone` pipelines do not.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/plugin-processors/plugin-replace-literals.ts: `pluginReplaceLiterals(pairs)` factory returning the named `pluginReplaceLiteralsProcessor`; plain `content.split(from).join(to)` substitution per pair; skips binary, null-content, and `verbatim` frames; immutable via `updatePluginFrame`. Composed in src/rosettify-plugins/src/spec/targets.ts via `buildPipeline`'s `extraAfterIndexes` parameter (runs after `pluginGenerateIndexes`, before the bootstrap assembler): Codex passes `[pluginReplaceLiterals([WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR])]`; Antigravity appends the same call after `pluginAntigravityReduceFrontmatter, pluginAntigravitySubagentModel`. `WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR = ['WORKFLOW/COMMAND \`workflows/*.md\`', 'WORKFLOW/COMMAND \`skills/*-flow/SKILL.md\`']`, unchanged from the reverted `PluginSpec.literalRewritePairs` iteration. Replaces the previously-reverted `PluginSpec.literalRewritePairs` field and the corresponding step 3 of `buildRenamePairs` in `plugin-rewrite-references.ts` (see FR-ARCH-0049's implementationNotes). Tests: src/rosettify-plugins/tests/unit/plugin-processors/plugin-replace-literals.test.ts (pair application, multi-pair, empty-pairs no-op, long-vs-bare-literal negative case, idempotency, binary/null/verbatim skip, non-mutation, from===to no-op, and two tests proving the deliberate absence of `pluginRewriteReferences()`'s boundary/dot-directory guards) plus a composition test against real `buildAllSpecs()` output asserting `pluginReplaceLiteralsProcessor` is present only on `core-codex`/`core-antigravity`.</implementationNotes>
+  <implementationNotes>Implemented: pluginReplaceLiterals
+  (src/rosettify-plugins/src/plugin-processors/plugin-replace-literals.ts) applies plain substring
+  substitution with no boundary or regex rules, skips binary/null/verbatim frames, and no-ops on an empty
+  pair list. It is composed only in the codex and antigravity builders via buildPipeline's
+  extraAfterIndexes in src/rosettify-plugins/src/spec/targets.ts, confirmed absent from the other five
+  targets by the composition test. Also carries the requiredIn/driftGuard options that hard-error when a
+  keyed literal goes stale against its host document. Tests:
+  tests/unit/plugin-processors/plugin-replace-literals.test.ts.</implementationNotes>
   <depends>FR-ARCH-0049, FR-ARCH-0004, FR-ARCH-0005, FR-ARCH-0047</depends>
 </req>
 
@@ -792,27 +871,32 @@ Architecture requirements: the configuration-driven generation model — uniform
   <implementationNotes>plugin-process-spec-entries.ts: replaced dead existingByTarget Map with an allFrames conflict detector; hard GenError emitted on target collision with full attribution.</implementationNotes>
 </req>
 
-<req id="FR-ARCH-0057" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-ARCH-0057" type="FR" level="System" ticketId="315" classification="technical">
   <title>Model vocabulary scope, upgrade rules, and Codex effort-omission rule</title>
   <statement>The built-in Cursor and Copilot model vocabulary maps (CURSOR_GPT_MAP, COPILOT_GPT_MAP) shall cover only GPT 5.3 and above; no entry whose key starts with `gpt-4`, `o3`, or `o4` shall be present in a built-in map. This restriction is scoped to the built-in maps only: a profile's per-target model-override block may name model ids the built-in maps exclude, because a profile exists to serve a client whose available models differ. The following upgrade rules shall be applied during normalization: every opus token — `claude-opus-4-6`, `claude-opus-4-7`, `claude-opus-4-8`, and any `claude-4.7-opus*` or `claude-4.8-opus*` token — shall map to `claude-opus-5`; `gpt-5.5` (all effort variants) shall map to `gpt-5.6-sol`; `gpt-5.4`, `gpt-5.3`, and `gpt-5.3-codex` (all effort variants) shall map to `gpt-5.6-terra`; `gpt-5.4-mini` shall map to `gpt-5.6-luna`; every `gemini-*` token shall map to `gemini-3.7-flash`; and `grok-4.5` shall map to `grok-4.6`. The governing invariant is version-independent: a built-in map shall RETAIN a key for every model token the instruction set has authored, including superseded ones, and each such key shall resolve to the current model of that token's own cost tier. Where a superseded Gemini token is carried forward into authored source, its reasoning-effort suffix shall be assigned by tier: a Gemini Pro token takes `-high`; a superseded Flash token (`gemini-3-flash`, `gemini-3.5-flash`, `gemini-3-flash-preview`) takes `-low`; every other Gemini token takes `-medium`. The vocabulary maps resolve any of these to the IDE-native Gemini id, which carries no effort suffix — the suffix is authored guidance read by the agent, not a mapped value. Keys are therefore never removed as a model ages — only their values move forward — and each superseded GPT family upgrades to its own successor so distinct cost tiers stay distinct rather than being conflated. When a Codex normalization encounters a GPT token with no trailing effort suffix, the generator shall write only `model: <id>` and shall not write a `model_reasoning_effort` field; no default effort value is substituted.</statement>
   <rationale>Stale or over-broad maps produce silent model downgrades or wrong IDE-specific IDs. Restricting Cursor/Copilot GPT maps to 5.3+ and encoding explicit upgrade rules prevents unintentional degradation. Retaining a superseded key rather than deleting it is what makes an older or third-party instruction layer keep resolving to a usable model instead of silently emitting a model the IDE no longer offers; enumerating specific versions as permanently exempt from upgrade would instead pin the maps to whichever generation was current when the rule was written. `gpt-5.4` and `gpt-5.5` belong to different cost tiers and so resolve to different successors (`gpt-5.6-terra` and `gpt-5.6-sol`), never to a single shared one. Requiring an explicit effort suffix in source is a content authoring contract; the generator must not silently substitute a default. The built-in-map restriction is scoped to the built-in maps and does not extend to profile override blocks, which exist precisely to name models a standard client would not use.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-08-19</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a Cursor or Copilot SpecEntry normalizes a file whose frontmatter first token is `claude-opus-4-7` When: normalized Then: the output model field is `claude-opus-5`.</criteria>
     <criteria>Given: a Cursor or Copilot SpecEntry normalizes a file whose frontmatter first token is `gpt-5.3-high` When: normalized Then: the output model field is `gpt-5.6-terra`.</criteria>
     <criteria>Given: a Codex SpecEntry normalizes a file whose frontmatter first token is `gpt-5.4` (no effort suffix) When: normalized Then: the output contains `model: gpt-5.6-terra` and does not contain `model_reasoning_effort`.</criteria>
     <criteria>Given: the built-in CURSOR_GPT_MAP or COPILOT_GPT_MAP is inspected When: inspected Then: no entry key starts with `gpt-4`, `o3`, or `o4`.</criteria>
-    <criteria>Given: a profile `core-cursor` override block naming `gpt-4o` When: the profile is applied Then: the id is accepted and used, and the built-in-map restriction is not treated as violated.</criteria>
+    <criteria>Given: a profile `cursor` override block naming `gpt-4o` When: the profile is applied Then: the id is accepted and used, and the built-in-map restriction is not treated as violated.</criteria>
     <criteria>Given: the built-in Cursor, Copilot and Codex maps are inspected When: inspected Then: every GPT 5.3, 5.4, 5.4-mini and 5.5 token, in each of its effort variants, is present as a key and resolves to its tier's current successor — `gpt-5.6-sol` for the 5.5 family, `gpt-5.6-terra` for the 5.4 and 5.3 families, `gpt-5.6-luna` for the mini family.</criteria>
   </acceptance>
   <depends>FR-ARCH-0046, FR-COPY-0022</depends>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/spec/model-maps.ts: CURSOR_GPT_MAP and COPILOT_GPT_MAP cover GPT 5.3+ only; CURSOR_CLAUDE_MAP and COPILOT_CLAUDE_MAP map every opus variant (opus-4-6, opus-4-7, opus-4-8) to claude-opus-5; normalizeCodex() returns effort: undefined when no suffix present and the Codex emitter writes only the model field in that case. The profile-override carve-out is realized by exhaustive block replacement in src/rosettify-plugins/src/spec/profiles.ts (resolveEffectiveVocabulary): a per-target block becomes the whole effective vocabulary, so the GPT-5.3-and-above restriction constrains only the built-in maps and a profile may name ids they exclude.</implementationNotes>
+  <implementationNotes>Implemented: CURSOR_GPT_MAP, COPILOT_GPT_MAP and CODEX_GPT_MAP
+  (src/rosettify-plugins/src/spec/model-maps.ts) carry no gpt-4, o3 or o4 keys, and every stated upgrade
+  rule is present. normalizeCodex emits no reasoning-effort value when the source token carries no effort
+  suffix, via splitCodexEffort. The profile-override carve-out through resolveEffectiveVocabulary
+  (src/rosettify-plugins/src/spec/profiles.ts) is unaffected by the built-in restriction. Tests:
+  tests/unit/spec/model-maps.test.ts (75/75).</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0059" type="FR" level="System"
@@ -897,25 +981,32 @@ Architecture requirements: the configuration-driven generation model — uniform
   <depends>FR-CLI-0051, NFR-0010</depends>
 </req>
 
-<req id="FR-ARCH-0060" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-ARCH-0060" type="FR" level="System" ticketId="315" classification="technical">
   <title>Unrecognized FilenameDirective token rejection</title>
-  <statement>The generator shall reject a source filename that carries a directive token it does not recognize, aborting the run with a message naming the offending token, the filename it appeared in, and the accepted tokens. A token is recognized when it is `overwrite`, when it is a target-only token — either `<target>-only` for one of the seven target names (DATA-CFG-0003) or `<family>-only` for one of the IDE-family keys those names derive, which expands to every target of that IDE (FR-ARCH-0023) — or when it matches the profile-only shape `profile-<name>-only` with a non-empty `<name>` (FR-PROF-0030). The closing tilde fence contributes no token and is therefore never subject to this check. A profile-only token's `<name>` shall not be resolved against the profiles that exist: a file scoped to an inactive profile is excluded by profile matching, and an unknown `--profile` value is rejected at pre-flight, so filename parsing shall not depend on the profile source directory.</statement>
-  <rationale>An unrecognized token used to be kept in the condition set and then silently misread: a mistyped target token such as `core-clade-only` still ends with `-only`, so target matching excluded the file from EVERY target and the document vanished from all seven plugins with no diagnostic. Failing the run loudly is the only outcome that surfaces a typo, and naming the accepted set turns the failure into its own fix. The profile-only kind is recognized by shape rather than enumerated because its `<name>` is chosen per profile and cannot be listed in advance; requiring a non-empty name keeps `profile-only` itself a rejected typo. Resolving the name here would make VFS parsing depend on the profile directory, which it otherwise knows nothing about, and would reject a perfectly valid unprofiled build of a repository that carries profile-scoped files.</rationale>
+  <statement>The generator shall reject a source filename that carries a directive token it does not recognize, aborting the run with a message naming the offending token, the filename it appeared in, and the accepted tokens. A token is recognized when it is `overwrite`; when it is `target-<id>-only` for one of the IDE target names (DATA-CFG-0003); when it is `ide-<family>-only` for one of the IDE-family keys those names derive, which expands to every target of that IDE (FR-ARCH-0023); when it matches the set-only shape `set-<id>-only` with a non-empty `<id>` (FR-ARCH-0025); or when it matches the profile-only shape `profile-<name>-only` with a non-empty `<name>` (FR-PROF-0030). A bare `<name>-only` token carrying no namespace prefix is not recognized. The closing tilde fence contributes no token and is therefore never subject to this check. Neither a profile-only token's `<name>` nor a set-only token's `<id>` shall be resolved against the profiles or sets that exist: a file scoped to an inactive profile or an unbuilt set is excluded by the corresponding filter, so filename parsing shall depend on neither the profile source directory nor the plugin-set configuration.</statement>
+  <rationale>An unrecognized token used to be kept in the condition set and then silently misread: a mistyped target token such as `target-clade-only` still ends with `-only`, so target matching excluded the file from EVERY target and the document vanished from every plugin with no diagnostic. Failing the run loudly is the only outcome that surfaces a typo, and naming the accepted set turns the failure into its own fix. The profile-only and set-only kinds are recognized by shape rather than enumerated because their names are chosen per profile and per configuration and cannot be listed in advance; requiring a non-empty name keeps `profile-only` and `set-only` themselves rejected typos. Resolving either name here would make VFS parsing depend on inputs it otherwise knows nothing about, and would reject a perfectly valid build of a repository that carries files scoped to a profile or set this run does not build.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-08-19</changed>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `policy~clade-only.md` When: parsed Then: the run aborts with a message naming `clade-only`, the filename, and the accepted tokens.</criteria>
+    <criteria>Given: `policy~clade-only.md` When: parsed Then: the run aborts with a message naming `clade-only`, the filename, and the accepted tokens, because the token carries no namespace prefix.</criteria>
     <criteria>Given: `file~overwrite~.md` When: parsed Then: the token set is `{overwrite}` and the closing fence raises no rejection.</criteria>
     <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: parsed Then: both tokens are accepted, with no profile source consulted.</criteria>
     <criteria>Given: `file~profile-only.md` When: parsed Then: the run aborts, because a profile-only token requires a non-empty name.</criteria>
-    <criteria>Given: `rule~copilot-only~.md` When: parsed Then: the token is accepted, because an IDE-family key is a valid target-only token (FR-ARCH-0023).</criteria>
+    <criteria>Given: `rule~ide-copilot-only~.md` When: parsed Then: the token is accepted, because an IDE-family key is a valid `ide-<family>-only` token (FR-ARCH-0023).</criteria>
+    <criteria>Given: `rule~set-qe-only~.md` When: parsed Then: the token is accepted, with no plugin-set configuration consulted.</criteria>
+    <criteria>Given: `rule~set-only~.md` When: parsed Then: the run aborts, because a set-only token requires a non-empty id.</criteria>
     <criteria>Given: a repository carrying profile-scoped files and a build with no active profile When: generated Then: the run completes, and each profile-scoped file is excluded by profile matching rather than rejected as an unknown directive.</criteria>
   </acceptance>
-  <depends>FR-ARCH-0020, FR-ARCH-0021, FR-PROF-0030, DATA-CFG-0003</depends>
+  <depends>FR-ARCH-0020, FR-ARCH-0021, FR-ARCH-0023, FR-ARCH-0025, FR-PROF-0030, DATA-CFG-0003</depends>
   <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: src/rosettify-plugins/src/vfs/directives.ts (KNOWN_DIRECTIVES built from TARGET_NAME_LIST, PROFILE_ONLY_PATTERN for the profile-only shape, isKnownDirective, and the throw in parseDirectives which also drops the trailing empty segment first); src/rosettify-plugins/src/spec/target-names.ts (TARGET_NAMES and the derived TARGET_NAME_LIST). Tests: tests/unit/vfs/directives.test.ts.</implementationNotes>
+  <implementationNotes>Implemented: isKnownDirective with KNOWN_DIRECTIVES, SET_ONLY_PATTERN and PROFILE_ONLY_PATTERN
+  (src/rosettify-plugins/src/vfs/directives.ts) rejects any token lacking a recognized namespace prefix,
+  naming the offending token, the filename and the full allowed list. Verified by direct execution: a
+  misspelled clade-only is rejected; set-qe-only and ide-copilot-only are accepted without consulting any
+  plugin-set or IDE-family configuration, keeping validation shape-only; matchesProfile excludes
+  profile-scoped files rather than erroring when no profile is active.</implementationNotes>
 </req>

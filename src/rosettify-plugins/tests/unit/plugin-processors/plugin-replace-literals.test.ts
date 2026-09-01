@@ -7,7 +7,7 @@ import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { pluginReplaceLiterals } from '../../../src/plugin-processors/plugin-replace-literals.js';
-import { buildAllSpecs } from '../../../src/spec/targets.js';
+import { buildTestSpecs } from '../../helpers/build-specs.js';
 import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec, ReleaseDescriptor } from '../../../src/types.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -195,13 +195,13 @@ describe('pluginReplaceLiterals', () => {
 
 // FR-ARCH-0058, FR-ARCH-0004/0005 — composed only into the pipelines of the specs that need it
 // (Codex, Antigravity), never selected by a runtime identity branch inside a shared processor.
-// Verified directly against the real buildAllSpecs() pipeline composition.
+// Verified directly against the real buildTestSpecs() pipeline composition.
 describe('pluginReplaceLiteralsProcessor composition (FR-ARCH-0058)', () => {
   const RELEASE: ReleaseDescriptor = { name: 'r1', deterministicHooks: false, displayName: 'R1' };
 
-  it('core-codex and core-antigravity pipelines contain pluginReplaceLiteralsProcessor; other specs do not', () => {
+  it('the codex and antigravity pipelines contain pluginReplaceLiteralsProcessor; other specs do not', () => {
     const outputDir = os.tmpdir();
-    const specs = buildAllSpecs({
+    const specs = buildTestSpecs({
       pluginsSource: REAL_PLUGINS_ROOT,
       hooksSource: path.join(outputDir, '__no-hooks-source__'),
       outputDir,
@@ -217,15 +217,15 @@ describe('pluginReplaceLiteralsProcessor composition (FR-ARCH-0058)', () => {
       return (spec!.pluginProcessors ?? []).some((fn) => fn.name === 'pluginReplaceLiteralsProcessor');
     };
 
-    expect(hasProcessor('core-codex')).toBe(true);
-    expect(hasProcessor('core-antigravity')).toBe(true);
+    expect(hasProcessor('codex')).toBe(true);
+    expect(hasProcessor('antigravity')).toBe(true);
 
     for (const name of [
-      'core-claude',
-      'core-cursor',
-      'core-copilot',
-      'core-cursor-standalone',
-      'core-copilot-standalone',
+      'claude',
+      'cursor',
+      'copilot',
+      'cursor-standalone',
+      'copilot-standalone',
     ]) {
       expect(hasProcessor(name)).toBe(false);
     }

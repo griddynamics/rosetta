@@ -67,5 +67,5 @@ Small scope → `docs/<feature>/analysis.md`. Large scope → `docs/<feature>/mo
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/code-analysis-flow.md`](../../instructions/r3/core/workflows/code-analysis-flow.md)
+- Workflow: [`instructions/r3/advanced/workflows/code-analysis-flow.md`](../../instructions/r3/advanced/workflows/code-analysis-flow.md)
 - Skills: [`reverse-engineering`](../../instructions/r3/core/skills/reverse-engineering/SKILL.md), [`large-workspace-handling`](../../instructions/r3/core/skills/large-workspace-handling/SKILL.md)
