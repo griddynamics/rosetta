@@ -1,14 +1,14 @@
 # harness
 
-Turns "I wrote it" into "I ran it": designs the executable apparatus — callable actions, an isolated environment, the skills, subagents and hooks themselves, or the automation that runs them unattended — that lets a coding agent actually exercise what it changed.
+Turns "I wrote it" into "I ran it", and work done by hand once into work the agent does every time: designs the executable apparatus — callable actions, an isolated environment, the skills, subagents and hooks themselves, or the automation that runs them unattended — that lets a coding agent actually exercise what it changed.
 
 ## Why it exists
 
-Without it an agent has no way to run or observe its work, so "done" silently degrades to "compiles and unit tests pass." Left to plain judgment a model will wrap one command per API endpoint, mock every external dependency because that feels safe, dump raw logs that flood context, author a skill it never once triggers, and wire an unattended agent that executes whatever an issue body tells it to. This skill forces classify → discover → HITL-approve a specification → build → prove by execution → record an inventory.
+Without it an agent has no way to run or observe its work, so "done" silently degrades to "compiles and unit tests pass." Left to plain judgment a model will wrap one command per API endpoint, mock every external dependency because that feels safe, dump raw logs that flood context, author a skill it never once triggers, and wire an unattended agent that executes whatever an issue body tells it to. This skill forces classify → discover → HITL-approve a specification → build → prove by execution → record an inventory. Encoded once, so it is faster; proved every time, so it is better.
 
 ## When to engage
 
-Model-invocable, no `disable-model-invocation`. Auto-activates on the description's keywords when something must be run, observed, or validated and the means do not exist. Actor: orchestrator/top-agent — it gates with HITL and hands off. Prereqs in `<core_concepts>`: Rosetta prep steps complete, `USE SKILL hitl`, `orchestration`, `load-project-context`. Scope is pre-PR local verification plus the unattended apparatus around it; production tooling and load testing are out.
+Model-invocable, no `disable-model-invocation`. Auto-activates on the description's keywords when something must be run, observed, or validated and the means do not exist. Actor: orchestrator/top-agent — it gates with HITL and hands off. Prereqs in `<core_concepts>`: Rosetta prep steps complete, `USE SKILL hitl`, `orchestration`, `load-project-context`. Scope is what the agent runs to work and to verify, locally and unattended. Unit-test frameworks, production tooling and load testing are out.
 
 ## How it works
 

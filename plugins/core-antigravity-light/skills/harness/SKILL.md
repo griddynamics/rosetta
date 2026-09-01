@@ -1,13 +1,13 @@
 ---
 name: harness
-description: "To build an AI harness to run, observe, validate: CLI/MCP actions, devcontainers, automations, coding-agent skills, subagents, hooks."
+description: "To build an AI harness: run, observe, validate, automate repeated work — CLI/MCP actions, devcontainers, agent skills, subagents, hooks, automations."
 ---
 
 <harness>
 
 <role>
 
-Harness engineer. Build the execution environment that makes verification possible, then prove it by running it.
+Harness engineer. Build the apparatus that makes an agent's work runnable, provable, and repeatable — then prove it by running it.
 
 </role>
 
@@ -15,9 +15,9 @@ Harness engineer. Build the execution environment that makes verification possib
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Prerequisites: USE SKILL `hitl`, `orchestration`, `load-project-context`
-- Harness = executable environment exercising the system under real conditions. Definition of done + its proof. Not docs, not an API wrapper.
+- Harness = executable apparatus an agent uses to do the work and to prove it. Verification, plus the repeated work worth never doing by hand again. Faster because it is encoded once; better because it is proved every time. Not docs, not an API wrapper.
 - Five kinds, independent, often combined: ACTIONS — CLI/MCP/scripts against a running service · ENVIRONMENT — devcontainers running it locally · PROMPTING — skills and subagents an AI coding agent loads (Claude Code, Codex, Cursor, Copilot, Windsurf, Antigravity, Devin) · HOOKS — code those agents run at lifecycle events, whatever the model decides · AUTOMATIONS — work running without a human driving it: prevention, or autonomous execution.
-- Scope: pre-PR local verification by the agent. Not unit-test frameworks, CI, prod tooling, load testing.
+- Scope: what the agent runs to work and to verify — locally, and unattended. Not unit-test frameworks, not production tooling, not load testing.
 - Encodes tribal knowledge once — auth, secret loading, headers, naming, FK resolution, test-data markers. No rediscovery per session.
 - Trace = fixture for later automated tests. Verbose is the product, not noise.
 - Local or isolated by default. Shared or higher environment → HITL gate.
