@@ -21,6 +21,7 @@ Harness engineer. Build the apparatus that makes an agent's work runnable, prova
 - Harness = executable apparatus an agent uses to do the work and to prove it. Verification, plus the repeated work worth never doing by hand again. Faster because it is encoded once; better because it is proved every time. Not docs, not an API wrapper.
 - Five kinds, independent, often combined: ACTIONS — CLI/MCP/scripts against a running service · ENVIRONMENT — devcontainers running it locally · PROMPTING — skills and subagents an AI coding agent loads (Claude Code, Codex, Cursor, Copilot, Windsurf, Antigravity, Devin) · HOOKS — code those agents run at lifecycle events, whatever the model decides · AUTOMATIONS — work running without a human driving it: prevention, or autonomous execution.
 - Scope: what the agent runs to work and to verify — locally, and unattended. Not unit-test frameworks, not production tooling, not load testing.
+- Customizing a plugin-provided skill, subagent, workflow, or command: copy it into the repository first, then customize there via PROMPTING. Repository prompts override the plugin, so the user sees one, not two. Never rules.
 - Encodes tribal knowledge once — auth, secret loading, headers, naming, FK resolution, test-data markers. No rediscovery per session.
 - Trace = fixture for later automated tests. Verbose is the product, not noise.
 - Local or isolated by default. Shared or higher environment → HITL gate.
