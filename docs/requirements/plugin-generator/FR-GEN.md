@@ -16,8 +16,16 @@
     <criteria>Given: a folder of documents When: indexed Then: `INDEX.md` lists each non-index document with `folder/filename` and its description.</criteria>
     <criteria>Given: a folder with no qualifying documents When: indexed Then: no index file is written.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented as a retained, deliberately unused capability: pluginGenerateIndexes
+  (src/rosettify-plugins/src/plugin-processors/plugin-generate-indexes.ts) builds an INDEX.md VirtualFile
+  per IndexDecl from the final post-fileRename target paths, is composed into the pipeline by
+  buildPipeline in src/rosettify-plugins/src/spec/targets.ts, and is covered by
+  tests/unit/plugin-processors/plugin-generate-indexes.test.ts. No plugin set declares an index - indexes
+  is empty on every spec and src/rosettify-plugins/plugins.json carries no index key - so no INDEX.md
+  reaches any output, verified as zero INDEX.md files across a real --release r3 build of all 49 folders.
+  Retained capability, not dead code: an index is generated per plugin and would misrepresent a
+  multi-plugin install, so the sets declare none while the capability stays ready to be declared again.</implementationNotes>
   <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
@@ -35,8 +43,13 @@
     <criteria>Given: a document with a frontmatter description When: indexed Then: that description is used.</criteria>
     <criteria>Given: a document without one When: indexed Then: a title-cased name derived from the filename stem is used.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented as a retained, deliberately unused capability: the description resolution and filename-stem
+  fallback live in pluginGenerateIndexes
+  (src/rosettify-plugins/src/plugin-processors/plugin-generate-indexes.ts) with the title derivation in
+  src/rosettify-plugins/src/serialize/markdown-index.ts, covered by
+  tests/unit/plugin-processors/plugin-generate-indexes.test.ts. No set declares an index, so no INDEX.md
+  reaches any output (zero across all 49 generated folders). See FR-GEN-0001 for the dormancy rationale.</implementationNotes>
   <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
@@ -54,8 +67,13 @@
     <criteria>Given: a workflows folder containing entry and phase files When: indexed with required tag `workflow` Then: only entry files appear.</criteria>
     <criteria>Given: a document tagged `workflow-helper` and required tag `workflow` When: membership is tested Then: it is excluded (exact membership, not substring).</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented as a retained, deliberately unused capability: exact tag-set membership is applied by
+  pluginGenerateIndexes (src/rosettify-plugins/src/plugin-processors/plugin-generate-indexes.ts) against
+  the parsed frontmatter tag set per FR-ARCH-0037, so a required tag workflow does not match
+  workflow-helper; covered by tests/unit/plugin-processors/plugin-generate-indexes.test.ts. No set
+  declares an index, so the filter never runs in a shipped build. See FR-GEN-0001 for the dormancy
+  rationale.</implementationNotes>
   <depends>FR-ARCH-0037</depends>
   <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
@@ -73,8 +91,12 @@
   <acceptance>
     <criteria>Given: folder `commands` or `prompts` When: indexed Then: the heading reads `# Rosetta Workflows Index`.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented as a retained, deliberately unused capability: canonical heading derivation, mapping the
+  workflow-equivalent folder names commands and prompts onto one display name, lives in
+  src/rosettify-plugins/src/serialize/markdown-index.ts and is applied by pluginGenerateIndexes; covered
+  by tests/unit/plugin-processors/plugin-generate-indexes.test.ts. No set declares an index, so no heading
+  is ever emitted in a shipped build. See FR-GEN-0001 for the dormancy rationale.</implementationNotes>
   <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
@@ -134,5 +156,6 @@
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>Implemented: src/rosettify-plugins/src/plugin-processors/plugin-assemble-hooks-json.ts buildHooksDocument builds the document from spec.hookModules, spec.bootstrap and the target's HOOK_LAYOUTS bindings, and pluginAssembleHooksJson publishes JSON.stringify(doc, null, 2) under HOOKS_JSON_KEY; emitsHooksJson drops the frame entirely when a set would render an empty configuration. src/rosettify-plugins/src/plugin-processors/plugin-render-templates.ts renders with Handlebars strict: true and never emits the .tmpl frame. Verified: all 7 shipped hooks.json.tmpl files are the single line {{{hooks_json}}}, with zero occurrences of {{#if}} or {{#each}} in any of them; across the generated tree 90 hooks.json files all parse as valid JSON, with per-file entry counts of 0, 1, 3, 8, 10, 12, 15 and 18 — proving content varies by set and IDE while the template is identical; and zero .tmpl files leak into output. CORRECTED in this pass: this unit previously required the template to iterate the declared hook list and to support conditional blocks, a design that was superseded by the assembler before it shipped.</implementationNotes>
+  <depends>DATA-CFG-0008</depends>
   <notes>The assembler is the reason validity is structural rather than editorial. `HOOK_LAYOUTS` (src/rosettify-plugins/src/spec/hook-layouts.ts) owns the per-IDE event and matcher shape, so one declared hook list serves all seven targets.</notes>
 </req>

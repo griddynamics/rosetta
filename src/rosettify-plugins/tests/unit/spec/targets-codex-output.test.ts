@@ -242,10 +242,13 @@ describe('core-codex — generated output shape (FR-VAR-0041, FR-VAR-0042, FR-ST
   // FR-ARCH-0058 — pluginReplaceLiterals correction on the WORKFLOW/COMMAND
   // glob-doc string, keyed on the long form so a bare `workflows/*.md` token elsewhere is
   // untouched.
-  it('rewrites the WORKFLOW/COMMAND glob-doc string to the skills-flow form, leaving a bare workflows/*.md token elsewhere unchanged', () => {
+  // INT-IDE-0002: Codex documents every unit path ROOT-relative — it is the one target whose
+  // content spans two roots (`.agents/` for instructions, `.codex/agents/` for TOML subagents),
+  // so a plugin-root-relative list could not name the subagents at all.
+  it('rewrites the WORKFLOW/COMMAND glob-doc string to the ROOT-relative skills-flow form, leaving a bare workflows/*.md token elsewhere unchanged', () => {
     const ruleDoc = path.join(targetRoot, '.agents', 'rules', 'sample-rule.md');
     const content = fs.readFileSync(ruleDoc, 'utf-8');
-    expect(content).toContain('WORKFLOW/COMMAND `skills/*-flow/SKILL.md`');
+    expect(content).toContain('WORKFLOW/COMMAND `.agents/skills/*-flow/SKILL.md`');
     expect(content).not.toContain('WORKFLOW/COMMAND `workflows/*.md`');
     // Bare, unrelated mention of the same literal token survives untouched.
     expect(content).toContain('unrelated glob `workflows/*.md`');

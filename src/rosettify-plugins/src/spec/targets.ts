@@ -35,7 +35,7 @@ import { pluginCopy } from '../plugin-processors/plugin-copy.js';
 import { pluginProcessSpecEntries } from '../plugin-processors/plugin-process-spec-entries.js';
 import { pluginRewriteReferences } from '../plugin-processors/plugin-rewrite-references.js';
 import { pluginGenerateIndexes } from '../plugin-processors/plugin-generate-indexes.js';
-import { pluginInjectSections } from '../plugin-processors/plugin-inject-sections.js';
+import { pluginEmitDistributionRoot } from '../plugin-processors/plugin-emit-distribution-root.js';
 import { pluginAssembleClaudeBootstrap } from '../plugin-processors/plugin-assemble-claude-bootstrap.js';
 import { pluginAssembleCursorBootstrap } from '../plugin-processors/plugin-assemble-cursor-bootstrap.js';
 import { pluginAssembleCopilotBootstrap } from '../plugin-processors/plugin-assemble-copilot-bootstrap.js';
@@ -77,9 +77,95 @@ const VERBATIM_SKILL_PATHS = ['skills/harness/references/configure'];
 // folder-level pair for that restructuring mapping (a bare `workflows/` token carries no document
 // identity there), so the `WORKFLOW/COMMAND \`workflows/*.md\`` glob-doc string in
 // plugin-files-mode.md is left stale unless rewritten explicitly.
+// Antigravity only. Codex performs the same workflows->skills restructuring but expresses the
+// result ROOT-relative (see CODEX_ROOT_RELATIVE_GLOBS below), so it no longer shares this pair.
 const WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR: readonly [string, string] = [
   'WORKFLOW/COMMAND `workflows/*.md`',
   'WORKFLOW/COMMAND `skills/*-flow/SKILL.md`',
+];
+
+/**
+ * INT-IDE-0002, FR-ARCH-0058 — Codex documents EVERY unit path relative to the REPOSITORY ROOT,
+ * not to a plugin root.
+ *
+ * Codex is the only target whose content genuinely spans two roots: instructions land under
+ * `.agents/` (its baseSubfolder) while subagents land under `.codex/agents/` as TOML, outside that
+ * namespace entirely. A plugin-root-relative list therefore cannot name the subagents at all —
+ * `agents/*.md` resolved to `.agents/agents/`, which does not exist.
+ *
+ * Correcting only that one entry would leave the list mixing two frames of reference with nothing
+ * signalling the switch, so all four are made root-relative together. `configure/codex.md` (the
+ * authority under INT-IDE-0002, mirrored at skills/harness/references/configure/codex.md) writes
+ * every path this way for the same reason. Consistency WITHIN Codex beats consistency across
+ * targets here, because Codex is the one target that really is different.
+ *
+ * KEYS ARE THE ORIGINAL SOURCE STRINGS for all four — verified against generated output rather
+ * than assumed. Three are plugin-root no-ops (`rules/`, `skills/` and the out-of-namespace
+ * `agents/` all reach this point unrewritten), and the workflow entry keys on the original because
+ * the workflows->skills restructuring emits no folder pair at all (FR-ARCH-0049). Each pair gets
+ * its OWN pluginReplaceLiterals call so it carries its own drift guard: batched into one call, a
+ * single drifted key would be masked by the other three still matching.
+ */
+const CODEX_ROOT_RELATIVE_GLOBS: ReadonlyArray<{
+  pair: readonly [string, string];
+  driftGuard: string;
+}> = [
+  { pair: ['RULE `rules/*.md`', 'RULE `.agents/rules/*.md`'], driftGuard: 'RULE `' },
+  {
+    pair: ['SKILL `skills/*/SKILL.md`', 'SKILL `.agents/skills/*/SKILL.md`'],
+    driftGuard: 'SKILL `',
+  },
+  {
+    pair: ['AGENT/SUBAGENT `agents/*.md`', 'AGENT/SUBAGENT `.codex/agents/*.toml`'],
+    driftGuard: 'AGENT/SUBAGENT `',
+  },
+  {
+    pair: [
+      'WORKFLOW/COMMAND `workflows/*.md`',
+      'WORKFLOW/COMMAND `.agents/skills/*-flow/SKILL.md`',
+    ],
+    driftGuard: 'WORKFLOW/COMMAND',
+  },
+];
+
+/**
+ * FR-ARCH-0058 — Copilot-standalone renames every workflow to `*.prompt.md`, but FR-ARCH-0049's
+ * folder-level pair only relocates the FOLDER (`workflows/` -> `prompts/`); the `*.md` suffix in a
+ * glob string survives untouched. The rule therefore documented `prompts/*.md` while the emitted
+ * files are `adhoc-flow.prompt.md`, so the documented path matched nothing on disk.
+ *
+ * NOTE THE KEY IS THE POST-REWRITE STRING. pluginReplaceLiterals is composed into
+ * `extraAfterIndexes`, which runs AFTER pluginRewriteReferences, so by the time this pair is
+ * applied the source's `workflows/*.md` has already become `prompts/*.md`. That is the opposite of
+ * the Codex/Antigravity pair above, whose restructuring mapping emits no folder pair at all, so
+ * those still see the original `workflows/*.md`.
+ */
+const COPILOT_STANDALONE_PROMPT_GLOB_LITERAL_PAIR: readonly [string, string] = [
+  'WORKFLOW/COMMAND `prompts/*.md`',
+  'WORKFLOW/COMMAND `prompts/*.prompt.md`',
+];
+
+/**
+ * FR-ARCH-0058 — the same defect class as the prompt glob above, for the two remaining unit kinds
+ * whose files are renamed: Cursor rewrites `rules/*.md` to `*.mdc`, and Copilot rewrites
+ * `agents/*.md` to `*.agent.md`. In both cases the always-loaded rule documented a filename
+ * pattern that matches nothing on disk in that plugin.
+ *
+ * NOTE THESE KEYS ARE THE ORIGINAL SOURCE STRINGS, unlike the prompt pair above. FR-ARCH-0049
+ * emits a folder-level pair only when the folder actually moves; here the plugin-root-relative
+ * folder is unchanged (`rules/` -> `rules/`, `agents/` -> `agents/` — the standalones' baseSubfolder
+ * is stripped before comparison), so the pair is a no-op and no rewrite reaches these globs. Only
+ * the file EXTENSION changed, which a folder pair never expresses. Verified against generated
+ * output per target rather than assumed symmetric with the prompt case.
+ */
+const CURSOR_RULE_GLOB_LITERAL_PAIR: readonly [string, string] = [
+  'RULE `rules/*.md`',
+  'RULE `rules/*.mdc`',
+];
+
+const COPILOT_AGENT_GLOB_LITERAL_PAIR: readonly [string, string] = [
+  'AGENT/SUBAGENT `agents/*.md`',
+  'AGENT/SUBAGENT `agents/*.agent.md`',
 ];
 
 // Base processors shared across all text file entries
@@ -263,6 +349,11 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
     ],
     pluginProcessors: c.buildPipeline(pluginAssembleCursorBootstrap, [
       pluginNormalizeSubagentRequiredModel(cursorSubagentModelTokenMapper),
+      // FR-ARCH-0058: rules are emitted as *.mdc; correct the documented glob.
+      pluginReplaceLiterals([CURSOR_RULE_GLOB_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'RULE `',
+      }),
     ]),
   }),
 
@@ -296,6 +387,11 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
     ],
     pluginProcessors: c.buildPipeline(pluginAssembleCopilotBootstrap, [
       pluginNormalizeSubagentRequiredModel(copilotSubagentModelTokenMapper),
+      // FR-ARCH-0058: agents are emitted as *.agent.md; correct the documented glob.
+      pluginReplaceLiterals([COPILOT_AGENT_GLOB_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'AGENT/SUBAGENT `',
+      }),
     ]),
   }),
 
@@ -344,10 +440,9 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
       },
     ],
     pluginProcessors: c.buildPipeline(pluginAssembleCodexBootstrap, [
-      pluginReplaceLiterals([WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR], {
-        requiredIn: 'plugin-files-mode',
-        driftGuard: 'WORKFLOW/COMMAND',
-      }),
+      // INT-IDE-0002: rewrite all four enumerated globs to their root-relative form.
+      ...CODEX_ROOT_RELATIVE_GLOBS.map(({ pair, driftGuard }) =>
+        pluginReplaceLiterals([pair], { requiredIn: 'plugin-files-mode', driftGuard })),
       pluginNormalizeSubagentRequiredModel(codexSubagentModelTokenMapper),
     ]),
   }),
@@ -359,14 +454,6 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
     pluginRootPath: '.cursor',
     hookFolder: '.cursor/hooks',
     manifestConditionalFields: [],
-    injections: [
-      {
-        hostFramePath: '.cursor/rules/plugin-files-mode.mdc',
-        anchor: '# PREP STEP 1:',
-        requires: 'rules',
-        sections: [{ kind: 'literal', text: CURSOR_STANDALONE_INJECTION_TEXT }],
-      },
-    ],
     // `<base>-standalone<suffix>`, mirroring the destination's `<set>-<ide><suffix>` ordering —
     // not `<base><suffix>-standalone`, which would read "rosetta-light-standalone".
     manifestOverride: {
@@ -406,6 +493,15 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
     ],
     pluginProcessors: c.buildPipeline(pluginAssembleCursorBootstrap, [
       pluginNormalizeSubagentRequiredModel(cursorSubagentModelTokenMapper),
+      // FR-ARCH-0058: same *.mdc rule rename as the marketplace Cursor target.
+      pluginReplaceLiterals([CURSOR_RULE_GLOB_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'RULE `',
+      }),
+      // FR-VAR-0072: composed ONLY here and on copilot-standalone — the two distributions that
+      // extract into a user repo. Runs before the bootstrap assembler, so the hook payload reads
+      // the declaration along with the rest of the document body.
+      pluginEmitDistributionRoot({ root: '.cursor', workflowFolder: 'commands' }),
     ]),
   }),
 
@@ -417,14 +513,6 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
     pluginRootPath: '.github',
     hookFolder: '.github/hooks',
     manifestConditionalFields: [],
-    injections: [
-      {
-        hostFramePath: '.github/instructions/plugin-files-mode.instructions.md',
-        anchor: '# PREP STEP 1:',
-        requires: 'rules',
-        sections: [{ kind: 'literal', text: COPILOT_STANDALONE_INJECTION_TEXT }],
-      },
-    ],
     manifestOverride: {
       name: `${c.manifestBaseName}-standalone${c.manifestNameSuffix}`, version: 'parent',
     },
@@ -488,6 +576,24 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
     ],
     pluginProcessors: c.buildPipeline(pluginAssembleCopilotBootstrap, [
       pluginNormalizeSubagentRequiredModel(copilotSubagentModelTokenMapper),
+      // FR-ARCH-0058: correct the workflow glob the folder-level rewrite left as `prompts/*.md`.
+      // Must run BEFORE pluginEmitDistributionRoot, which appends its own (already correct)
+      // `prompts/*.prompt.md` to the same document — otherwise the driftGuard would match that
+      // new sentence and mask a genuinely stale enumerated glob.
+      pluginReplaceLiterals([COPILOT_STANDALONE_PROMPT_GLOB_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'WORKFLOW/COMMAND',
+      }),
+      // FR-ARCH-0058: same *.agent.md rename as the marketplace Copilot target. A SEPARATE call
+      // rather than a second pair in the one above, so each correction carries its own drift
+      // guard — with both pairs in one call, one drifting key would be masked by the other still
+      // matching, and the guard would stay silent.
+      pluginReplaceLiterals([COPILOT_AGENT_GLOB_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'AGENT/SUBAGENT `',
+      }),
+      // FR-VAR-0072: see the cursor-standalone sibling above.
+      pluginEmitDistributionRoot({ root: '.github', workflowFolder: 'prompts' }),
     ]),
   }),
 
@@ -539,19 +645,11 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
   }),
 };
 
-// The leading \n adds the blank line separator after the bullets section; the trailing \n\n adds a
-// blank line before the section end-tag.
-const CURSOR_STANDALONE_INJECTION_TEXT =
-  `\nRosetta plugin root: ".cursor". You MUST FOLLOW ALL bootstrap* and plugin* instructions and execute every prep step in order. After prep steps, you MUST select a workflow and execute it. All workflows (commands) are stored in ".cursor/commands/<workflowtag>.md". Example ".cursor/commands/coding-flow.md".\n\n`;
-
-const COPILOT_STANDALONE_INJECTION_TEXT =
-  `\nRosetta plugin root: ".github". You MUST FOLLOW ALL bootstrap* and plugin* instructions and execute every prep step in order. After prep steps, you MUST select a workflow and execute it. All workflows (commands) are stored in ".github/prompts/<workflowtag>.prompt.md". Example ".github/prompts/coding-flow.prompt.md".\n\n`;
-
 /**
  * The fields every target spec shares. `name` is the bare IDE identity; `destination` carries the
  * set and variant. D6: `indexes` is empty and `includeIndexEntries` false on every set — the three
- * index code paths (pluginGenerateIndexes, pluginInjectSections, bootstrap/payload) are retained
- * but dormant, and all three are fail-soft, so an empty declaration simply produces no indexes.
+ * remaining index code paths (pluginGenerateIndexes, bootstrap/payload) are retained but dormant,
+ * and both are fail-soft, so an empty declaration simply produces no indexes.
  */
 function base(
   c: TargetCommon,
@@ -571,7 +669,6 @@ function base(
     bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
     includeIndexEntries: false,
     indexes: [],
-    injections: [],
     hookModules: modulesForTarget(layout, c.hookModules, c.hookSupportModules),
     hookLayout: layout,
     bootstrap: c.set.bootstrap,
@@ -642,7 +739,6 @@ function buildPipeline(
     pluginRewriteReferences,
     pluginGenerateIndexes,
     ...extraAfterIndexes,
-    pluginInjectSections,
     bootstrapAssembler,
     // DATA-CFG-0008: assemble hooks.json from set data + layout, after the bootstrap payload
     // exists and before the template that carries it is rendered.

@@ -10,7 +10,7 @@
  *
  * Sequence (per target):
  *   generate() → pluginCleanup → pluginCopy → pluginProcessSpecEntries
- *     → pluginRewriteReferences → pluginGenerateIndexes → pluginInjectSections
+ *     → pluginRewriteReferences → pluginGenerateIndexes
  *     → pluginAssembleBootstrap → pluginRenderTemplates → pluginMirrorFiles
  *     → pluginSyncBundles → pluginWrite
  */

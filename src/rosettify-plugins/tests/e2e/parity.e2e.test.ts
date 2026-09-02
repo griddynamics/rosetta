@@ -174,6 +174,165 @@ describe('Parity E2E — per-set, per-target structural parity (NFR-0001)', () =
     }
   });
 
+  // FR-VAR-0072 — the regression that was missing. The predecessor injection was DECLARED
+  // correctly and simply never fired (it matched a `# PREP STEP 1:` anchor absent from the real
+  // rule), so only an assertion on GENERATED OUTPUT catches this class of failure.
+  describe('standalone distributions declare their extraction root', () => {
+    const hostFor: Record<string, { path: string; root: string; workflows: string }> = {
+      'cursor-standalone': {
+        path: path.join('.cursor', 'rules', 'plugin-files-mode.mdc'),
+        root: '.cursor',
+        workflows: 'commands',
+      },
+      'copilot-standalone': {
+        path: path.join('.github', 'instructions', 'plugin-files-mode.instructions.md'),
+        root: '.github',
+        workflows: 'prompts',
+      },
+    };
+
+    // Only sets that actually ship a rules/ folder carry the host document.
+    const buildsWithRules = BUILDS.filter((b) => b.set.folders.includes('core'));
+
+    for (const build of buildsWithRules) {
+      for (const [target, expected] of Object.entries(hostFor)) {
+        const dest = destinationOf(build.set.name, target as Target, build.destinationSuffix);
+
+        it(`${dest}: plugin-files-mode states root ${expected.root} and ${expected.workflows}/`, () => {
+          const file = path.join(outputDir, dest, expected.path);
+          expect(fs.existsSync(file), `${file} must exist`).toBe(true);
+          const content = fs.readFileSync(file, 'utf-8');
+
+          expect(content).toContain(`Rosetta plugin root: \`${expected.root}\``);
+          expect(content).toContain(`relative to \`${expected.root}/\``);
+          expect(content).toContain(`\`${expected.workflows}/`);
+          // Inside the block, so it is part of the always-loaded rule body.
+          expect(content.indexOf('STANDALONE DISTRIBUTION'))
+            .toBeLessThan(content.indexOf('</rosetta:plugin_files_mode>'));
+        });
+      }
+    }
+
+    // FR-ARCH-0058 — the enumerated glob and the appended declaration must AGREE. Both live in
+    // the same always-loaded block, so a contradiction is worse than either statement alone: a
+    // reader has no way to tell which is right.
+    it('copilot-standalone documents the real *.prompt.md workflow glob, with no contradiction', () => {
+      for (const build of buildsWithRules) {
+        const dest = destinationOf(build.set.name, 'copilot-standalone' as Target, build.destinationSuffix);
+        const file = path.join(outputDir, dest, hostFor['copilot-standalone'].path);
+        const content = fs.readFileSync(file, 'utf-8');
+
+        // The enumerated glob was left as `prompts/*.md` by the folder-level rewrite, which
+        // matches none of the emitted `adhoc-flow.prompt.md` files.
+        expect(content, `${dest} enumerated glob`).toContain('WORKFLOW/COMMAND `prompts/*.prompt.md`');
+        expect(content, `${dest} stale glob must be gone`)
+          .not.toContain('WORKFLOW/COMMAND `prompts/*.md`');
+
+        // And a real emitted workflow actually has that extension.
+        const prompts = [...actualPaths.get(dest)!].filter((f) => f.includes('/prompts/'));
+        expect(prompts.length, `${dest} ships prompts`).toBeGreaterThan(0);
+        expect(prompts.every((f) => f.endsWith('.prompt.md')), `${dest} prompt extensions`).toBe(true);
+      }
+    });
+
+    it('marketplace targets carry NO standalone declaration', () => {
+      for (const build of buildsWithRules) {
+        for (const target of ['claude', 'cursor', 'copilot'] as Target[]) {
+          const dest = destinationOf(build.set.name, target, build.destinationSuffix);
+          const files = [...actualPaths.get(dest)!].filter((f) => f.includes('plugin-files-mode'));
+          for (const rel of files) {
+            const content = fs.readFileSync(path.join(outputDir, dest, rel), 'utf-8');
+            expect(content, `${dest}/${rel}`).not.toContain('STANDALONE DISTRIBUTION');
+          }
+        }
+      }
+    });
+  });
+
+  // FR-ARCH-0058 — EVERY documented unit glob must match real files on disk.
+  //
+  // plugin-files-mode enumerates where each unit kind lives, and it loads every session. A
+  // folder-level rewrite (FR-ARCH-0049) relocates the FOLDER but leaves the `*.md` suffix inside a
+  // glob string, so any target that RENAMES its files (`*.mdc`, `*.agent.md`, `*.prompt.md`) used
+  // to document a pattern matching nothing. Five such globs were corrected with literal pairs;
+  // this sweep is the gate that keeps the whole matrix honest rather than re-checking five spots.
+  describe('every documented unit glob resolves to real files', () => {
+    // The prefix each target's enumerated globs are relative to. Codex writes its list
+    // ROOT-relative (INT-IDE-0002), so its globs already carry `.agents/` / `.codex/` and resolve
+    // from the output root — hence '' rather than '.agents'.
+    const PLUGIN_ROOT: Record<string, string> = {
+      claude: '', cursor: '', copilot: '', antigravity: '', codex: '',
+      'cursor-standalone': '.cursor', 'copilot-standalone': '.github',
+    };
+    const KINDS = ['RULE', 'SKILL', 'AGENT/SUBAGENT', 'WORKFLOW/COMMAND'];
+
+    // No exceptions remain: every documented glob on every target resolves to real files.
+    // Codex's four globs are ROOT-relative (INT-IDE-0002) — it is the one target whose content
+    // spans two roots (`.agents/` for instructions, `.codex/agents/` for TOML subagents) — and the
+    // sweep resolves them from the output root rather than a plugin root for that reason.
+    const KNOWN_MISMATCHES = new Set<string>();
+
+    it('matches actual on-disk extensions for all seven targets', () => {
+      const found: string[] = [];
+
+      for (const target of TARGETS) {
+        const dest = destinationOf('rosetta', target, '');
+        const paths = actualPaths.get(dest)!;
+        const rel = [...paths].find((f) => f.split('/').pop()!.startsWith('plugin-files-mode'));
+        expect(rel, `${dest}: no plugin-files-mode document`).toBeDefined();
+
+        const text = fs.readFileSync(path.join(outputDir, dest, rel!), 'utf-8');
+        // Only the enumerated list — `USE SKILL \`load-project-context\`` earlier in the document
+        // is a skill NAME, not a path glob.
+        const anchor = text.indexOf('relative to the plugin that OWNS that unit:');
+        expect(anchor, `${dest}: enumeration not found`).toBeGreaterThanOrEqual(0);
+        const enumeration = text.slice(anchor);
+
+        const root = PLUGIN_ROOT[target];
+        const prefix = root ? `${root}/` : '';
+
+        for (const kind of KINDS) {
+          const m = new RegExp(`${kind.replace('/', '\\/')} \`([^\`]*)\``).exec(enumeration);
+          if (!m) continue;
+          const globText = m[1];
+          const key = `${target}:${kind}`;
+
+          // `<folder>/*<ext>` — every file directly in that folder must carry <ext>. The folder
+          // may itself be nested (Codex's root-relative `.agents/rules/*.md`).
+          const simple = /^(.+)\/\*(\..+)$/.exec(globText);
+          if (simple) {
+            const [, folder, ext] = simple;
+            const inFolder = [...paths].filter((f) => {
+              const p2 = f.startsWith(prefix) ? f.slice(prefix.length) : null;
+              return p2 !== null && p2.startsWith(`${folder}/`) && !p2.slice(folder.length + 1).includes('/');
+            });
+            const ok = inFolder.length > 0 && inFolder.every((f) => f.endsWith(ext));
+            if (!ok) found.push(key);
+            continue;
+          }
+
+          // `<folder>/*<suffix>/<leaf>` — at least one subfolder must provide the leaf.
+          const nested = /^(.+)\/\*([^/]*)\/(.+)$/.exec(globText);
+          if (nested) {
+            const [, folder, suffix, leaf] = nested;
+            const ok = [...paths].some((f) => {
+              const p2 = f.startsWith(prefix) ? f.slice(prefix.length) : null;
+              if (p2 === null || !p2.startsWith(`${folder}/`) || !p2.endsWith(`/${leaf}`)) return false;
+              const sub = p2.slice(folder.length + 1, p2.length - leaf.length - 1);
+              return !sub.includes('/') && sub.endsWith(suffix);
+            });
+            if (!ok) found.push(key);
+            continue;
+          }
+
+          found.push(key); // unrecognised glob shape — treat as a failure, not a skip
+        }
+      }
+
+      expect(found.sort()).toEqual([...KNOWN_MISMATCHES].sort());
+    });
+  });
+
   it('no INDEX.md is generated anywhere — every set declares indexes: [] (D6)', () => {
     for (const [dest, paths] of actualPaths) {
       expect([...paths].filter((p) => p.endsWith('INDEX.md')), `${dest} must contain no index`)

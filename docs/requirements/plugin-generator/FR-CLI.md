@@ -171,7 +171,7 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
      source="User" priority="Must" verification="Test"
      status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
      depends="FR-CLI-0020"
-     implementation="ToBeModified">
+     implementation="Implemented">
   <title>Plugin-set configuration path override</title>
   <statement>The generator shall accept a `--config <path>` argument that replaces the default plugin-set configuration location `<source>/src/rosettify-plugins/plugins.json`, resolving a relative value against `<source>` in exactly the manner `--pluginsSource` and `--profileSource` resolve theirs (FR-CLI-0020, FR-CLI-0033) and using an absolute value verbatim. The argument names one file, never a directory, and never more than one. Whether the resolved file exists, parses, and is structurally valid is FR-SET-0010, the single owner of the abort-on-bad-configuration outcome; this unit fixes only where the file is looked for.</statement>
   <rationale>Resolving against `<source>` rather than the process working directory keeps every input root moving together under one `--source` override, so building a checkout elsewhere stays a one-flag operation. Restricting the value to a single file mirrors `--profile` refusing path-like values: an argument with two meanings is the failure mode both rules exist to prevent.</rationale>
@@ -183,15 +183,16 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
     <criteria id="FR-CLI-0034.AC5" ears="unwanted" if="the `--config` value names a directory rather than a file" system="the generator" shall="report usage and exit non-zero without generating output"/>
     <criteria id="FR-CLI-0034.AC6" ears="unwanted" if="the resolved configuration file is missing or cannot be parsed" system="the generator" shall="defer to FR-SET-0010 for the abort behavior"/>
   </acceptance>
-  <implementationNotes>ToBeModified: --config is wired in src/rosettify-plugins/src/cli.ts with defaultConfigPath as the
-  no-argument default, and an absolute value is used verbatim. AC2 fails: a relative --config value is NOT
-  joined against <source> - cli.ts passes opts.config through to loadPluginCatalog verbatim, so it
-  resolves against the process working directory instead. Verified empirically: --config ci/plugins.json
-  with --source pointing at the repo looked for ci/plugins.json under the cwd and failed. Note this
-  matches the existing behaviour of --pluginsSource, --profileSource, --instructionsSource and --output,
-  none of which join a relative override to <source>, so the unit's premise that they do is itself
-  questionable. AC5 is also weak: passing a directory surfaces a raw EISDIR rather than a usage-style
-  rejection, though the exit status is non-zero.</implementationNotes>
+  <implementationNotes>Implemented: resolveConfigPath in src/rosettify-plugins/src/spec/plugin-sets.ts is `override ===
+  undefined ? defaultConfigPath(sourceRoot) : path.resolve(sourceRoot, override)`, wired at the single
+  call site in src/rosettify-plugins/src/cli.ts. Verified by direct execution against a scratch source
+  root: no override resolves to <source>/src/rosettify-plugins/plugins.json (AC1, AC4), `ci/plugins.json`
+  resolves to <source>/ci/plugins.json (AC2), and an absolute value is used verbatim (AC3). AC6 defers to
+  FR-SET-0010, which aborts naming the resolved path. The relative-resolution defect recorded here
+  previously has been fixed at source. AC5 PARTIAL: a --config value naming a directory exits 1 and writes
+  no output, but surfaces a raw `EISDIR: illegal operation on a directory` under the loader's prefix
+  rather than the usage report the criterion words; the required outcome holds and only the diagnostic
+  form differs.</implementationNotes>
   <notes></notes>
 </req>
 

@@ -3,7 +3,7 @@
 // returned processor is composed only into the pipelines of the specs that need it — never
 // selected by an identity branch inside a shared processor (FR-ARCH-0004, FR-ARCH-0005).
 
-import { updatePluginFrame } from '../frames.js';
+import { updatePluginFrame, baseDocName } from '../frames.js';
 import type {
   FileProcessingFrame, GenError, PluginProcessingFrame, PluginProcessor,
 } from '../types.js';
@@ -76,7 +76,7 @@ export function pluginReplaceLiterals(
       if (frame.isBinary || frame.target_contents === null || frame.verbatim) return frame;
 
       const original = frame.target_contents as string;
-      const isHost = options.requiredIn !== undefined && frameStem(frame) === options.requiredIn;
+      const isHost = options.requiredIn !== undefined && baseDocName(frame) === options.requiredIn;
       if (isHost && options.driftGuard !== undefined && original.includes(options.driftGuard)) {
         hostCarriesPassage = true;
       }
@@ -119,8 +119,3 @@ export function pluginReplaceLiterals(
   };
 }
 
-/** Filename stem of a frame's target path, extension stripped. */
-function frameStem(frame: FileProcessingFrame): string {
-  const name = frame.target.split('/').pop() ?? '';
-  return name.replace(/\.[^.]+$/, '');
-}

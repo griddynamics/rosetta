@@ -67,8 +67,8 @@
 
 <req id="FR-HOOK-0004" type="FR" level="System" ticketId="315" classification="technical">
   <title>Bootstrap payload carries no index entries (delivery is template-driven)</title>
-  <statement>A bootstrap payload shall carry the bodies of bootstrap rule documents only and shall never carry a folder-index document, in any target. Bootstrap-rule delivery shall not be gated by a per-target inclusion flag either: the payload is assembled uniformly, and whether it reaches the agent (via hooks) or is omitted is decided by the plugin's preserved templates/rules (FR-VAR-0070), not a generator field. The descriptor shall carry neither a bootstrap-rule inclusion flag nor an index-entry inclusion flag.</statement>
-  <rationale>An index lists one plugin's own documents, so a payload entry built from it would advertise a table of contents that is wrong the moment a second Rosetta plugin is installed beside it — the failure the index removal exists to prevent. Dropping `includeIndexEntries` follows the same reasoning that retired `includeBootstrapRules`: a descriptor flag whose only remaining value is the disabling one is the target name relabeled (FR-ARCH-0005).</rationale>
+  <statement>A bootstrap payload shall carry the bodies of bootstrap rule documents only and shall never carry a folder-index document, in any target. The descriptor shall carry no bootstrap-rule inclusion flag, the payload being assembled uniformly for every target; what decides whether that payload reaches the agent is outside this unit and is owned solely by FR-VAR-0070. It shall retain an index-entry inclusion flag as a RETAINED CAPABILITY: the field exists, defaults to disabled, and no plugin set enables it, so no index entry reaches any payload in any shipped plugin. The requirement is that the capability be present and unused, not that it be deleted.</statement>
+  <rationale>An index lists one plugin's own documents, so a payload entry built from it would advertise a table of contents that is wrong the moment a second Rosetta plugin is installed beside it — the failure the index removal exists to prevent. `includeBootstrapRules` was retired because a descriptor flag whose only remaining value is the disabling one is the target name relabeled (FR-ARCH-0005). `includeIndexEntries` is deliberately kept instead of retired: index generation itself is a retained capability (FR-GEN-0001..0004), so the flag that gates index entries in the payload is kept beside it, pinned disabled. Keeping the pair together means re-enabling indexes is a declaration change rather than a re-implementation.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -77,44 +77,48 @@
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: any plugin When: the payload is assembled Then: no entry derives from a folder-index document.</criteria>
-    <criteria>Given: any plugin When: bootstrap-rule delivery is determined Then: it follows the preserved templates/rules (placeholder present or not, FR-VAR-0070), not a per-target bootstrap-rule inclusion flag.</criteria>
-    <criteria>Given: the descriptor When: inspected Then: it carries neither an `includeBootstrapRules` nor an `includeIndexEntries` field.</criteria>
+    <criteria>Given: the payload assembly When: inspected Then: it is uniform across targets and gated by no per-target bootstrap-rule inclusion flag.</criteria>
+    <criteria>Given: the descriptor When: inspected Then: it carries no `includeBootstrapRules` field, and carries `includeIndexEntries` set to the disabling value on every spec.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: AC3 is false against the shipped tree. It requires the descriptor to carry neither an
-  includeBootstrapRules nor an includeIndexEntries field. includeBootstrapRules is indeed gone, but
-  includeIndexEntries SURVIVES: it is declared on PluginSpec in src/rosettify-plugins/src/types.ts,
-  hardwired to false for every spec in src/rosettify-plugins/src/spec/targets.ts, and still read in
-  src/rosettify-plugins/src/bootstrap/payload.ts to skip __-prefixed manifest entries. The observable
-  behaviour matches the unit - no payload carries an index entry - but the structural removal this unit
-  mandates did not happen; the field was kept and pinned false. This is an incomplete refactor, not a
-  design change: either finish the removal or amend AC3.</implementationNotes>
-  <depends>FR-VAR-0070, FR-GEN-0001</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented against the corrected text: no payload entry derives from a folder-index document - verified
+  on a real --release r3 build, zero INDEX.md files anywhere in the generated tree and zero references to
+  the __rules_index__/__workflows_index__ basenames in any output. includeBootstrapRules is absent from
+  the entire tree, delivery being decided by the preserved templates/rules per FR-VAR-0070.
+  includeIndexEntries is RETAINED as a capability: declared on PluginSpec in
+  src/rosettify-plugins/src/types.ts, set to false for every spec in
+  src/rosettify-plugins/src/spec/targets.ts, and honoured in
+  src/rosettify-plugins/src/bootstrap/payload.ts, which skips every __-prefixed manifest entry while the
+  flag is unset. CORRECTED in this pass: the unit previously demanded the field be absent. Per the owner's
+  ruling the capability is kept and left unused, alongside the retained index generation of
+  FR-GEN-0001..0004, so re-enabling indexes is a declaration change rather than a re-implementation.</implementationNotes>
+  <depends>FR-GEN-0001</depends>
 </req>
 
 <req id="FR-HOOK-0005" type="FR" level="System" ticketId="" classification="technical">
   <title>Per-IDE entry shape and escaping</title>
-  <statement>The generator shall emit each bootstrap entry in the target IDE's hook schema as documented in that IDE's guide (INT-IDE-0002), applying the escaping required for that IDE's command interpreter so the embedded content is transported intact. The per-IDE entry shape shall be produced by a case-specific entry-building unit composed into that target's pipeline (selected by composition) and reusing shared low-level escaping and JSON helpers; it shall not be selected by branching on an identity-discriminant such as `hookEntryShape` (FR-ARCH-0005).</statement>
+  <statement>The generator shall emit each bootstrap entry in the target IDE's hook schema as documented in that IDE's guide (INT-IDE-0002), applying the escaping required for that IDE's command interpreter so the embedded content is transported intact. This unit governs the entry OBJECT's own form and its escaping only; where that entry is placed — the event key, any matcher, the grouping and the file envelope — is the target's hook layout (DATA-CFG-0008) and is not restated here. The per-IDE entry shape shall be produced by a case-specific entry-building unit composed into that target's pipeline (selected by composition) and reusing shared low-level escaping and JSON helpers; it shall not be selected by branching on an identity-discriminant such as `hookEntryShape` (FR-ARCH-0005). The per-target table that holds each entry builder, its bindings, its bootstrap slot and its envelope is DATA-CFG-0008; this unit governs whether what that table produces CONFORMS to the IDE's documented schema and is escaped correctly, not how the table is structured.</statement>
   <rationale>Each IDE expects a different hook schema and quoting; the exact schema is owned by the IDE guide, not duplicated here. Because the shapes differ by IDE, each is a case-specific entry builder composed per target rather than a switch on an identity-discriminant (FR-ARCH-0005).</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Draft</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-30</changed>
+  <changed>2026-09-02</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: any target When: assembled Then: each entry conforms to that IDE's session-start hook schema per its guide, with content transported intact.</criteria>
     <criteria>Given: a target whose command interpreter requires it When: assembled Then: entries carry the interpreter-specific command form(s) with correct escaping.</criteria>
-    <criteria>Given: claude When: assembled Then: each entry = `{"type":"command","command":"printf '%s' '<json>'","once":true}` under `SessionStart[0]` with `matcher:"startup"`.</criteria>
-    <criteria>Given: codex When: assembled Then: each entry = `{"type":"command","command":"printf '%s' '<json>'","statusMessage":"Loading Rosetta bootstrap","timeout":30}` (no `once`) under `SessionStart[0]` with `matcher:"startup|resume"`.</criteria>
-    <criteria>Given: copilot When: assembled Then: each entry = `{"type":"command","bash":"printf '%s' '<json>'","powershell":"Write-Output '<json>'"}` under lowercase `sessionStart` (no matcher, `version:1`).</criteria>
+    <criteria>Given: claude When: assembled Then: each entry = `{"type":"command","command":"printf '%s' '<json>'","once":true}`, the payload single-quoted for a POSIX shell.</criteria>
+    <criteria>Given: codex When: assembled Then: each entry = `{"type":"command","command":"printf '%s' '<json>'","statusMessage":"Loading Rosetta bootstrap","timeout":30}`, carrying no `once` member.</criteria>
+    <criteria>Given: copilot When: assembled Then: each entry = `{"type":"command","bash":"printf '%s' '<json>'","powershell":"Write-Output '<json>'"}`, carrying both interpreter forms with their own escaping.</criteria>
     <criteria>Given: copilot's embedded JSON payload When: inspected Then: it is `{"additionalContext":"<body>","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"<body>"}}` — additionalContext at BOTH top-level (honored by Copilot CLI) AND nested in hookSpecificOutput (honored by VS Code); neither placement alone reaches both runtimes (docs/hooks/copilot.md).</criteria>
-    <criteria>Given: entries within a payload When: serialized Then: they are joined by `, ` (comma-space) and inserted raw into the template's `{{{bootstrap_hooks}}}` placeholder.</criteria>
+    <criteria>Given: entries within a payload When: serialized Then: they are joined by `, ` (comma-space) and published as the shared `bootstrap_hooks` context value, which the assembler parses back into an array before embedding it structurally (FR-GEN-0011).</criteria>
     <criteria>Given: the entry-building code When: inspected Then: each IDE's entry shape comes from a case-specific unit composed per spec plus shared low-level helpers, with no branch on an identity-discriminant such as `hookEntryShape` (FR-ARCH-0005).</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>src/rosettify-plugins/src/bootstrap/payload.ts (buildClaudeBootstrapEntry, buildCodexBootstrapEntry, buildCopilotBootstrapEntry, buildCursorBootstrapEntry exported; hookEntryShape switch deleted); src/rosettify-plugins/src/escaping/json-string.ts (buildCursorHookPayloadJson, buildCopilotHookPayloadJson added — the latter emits the merged top-level+nested shape); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (per-IDE assemblers compose their own entry builder). Template context key: bootstrap_hooks (one shared key). Join separator: `, `.</implementationNotes>
-  <depends>INT-IDE-0002, FR-ARCH-0005</depends>
+  <notes>STATUS IS DELIBERATE: this unit is `Draft` while `implementation` is `Implemented` — it shipped ahead of approval. That is a real signal, not an oversight to tidy away. It carries `ticketId=""`, so it falls outside the #315 delta and outside the blanket approval covering it; nothing authorises approving it here. An approver name is recorded from an earlier review, which is why the pair looks inconsistent at a glance. Leave both values as they are until the unit is approved on its own merits.</notes>
+  <depends>INT-IDE-0002, FR-ARCH-0005, DATA-CFG-0008</depends>
 </req>
 
 <req id="FR-HOOK-0007" type="FR" level="System" ticketId="315" classification="technical">
@@ -135,7 +139,7 @@
     <criteria>Given: the `claude` plugin-root entry When: inspected Then: command = `printf '%s' "{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Rosetta Plugin Path: ${CLAUDE_PLUGIN_ROOT}\"}}"` with `"once": true`.</criteria>
     <criteria>Given: the `codex` plugin-root entry When: inspected Then: it is a workspace-root probe resolving to `$workspace_root/.agents` with `statusMessage`+`timeout`; the `copilot` one is an agentPlugins-base probe (`commands/coding-flow.md`) resolving to `$root` with bash+powershell.</criteria>
     <criteria>Given: the `copilot` plugin-root entry When: inspected Then: its embedded JSON is `{"additionalContext":"Rosetta Plugin Path: <root>","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Rosetta Plugin Path: <root>"}}` — same merged top-level+nested requirement as FR-HOOK-0005's doc entries (docs/hooks/copilot.md).</criteria>
-    <criteria>Given: `cursor` When: assembled Then: a plugin-root path entry is generated and included in the bootstrap payload; whether it is injected into output is decided by whether the cursor template includes the `{{{bootstrap_hooks}}}` placeholder.</criteria>
+    <criteria>Given: `cursor` When: assembled Then: a plugin-root path entry is generated and included in the bootstrap payload, and is not injected into output because the cursor layout declares no bootstrap slot (DATA-CFG-0008, FR-VAR-0070).</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>Implemented: the plugin-root entry is appended last for every session-hook target, with the per-IDE
@@ -175,7 +179,7 @@
 
 <req id="FR-HOOK-0009" type="FR" level="System" ticketId="315" classification="technical">
   <title>Explicit, deterministic bootstrap-file order</title>
-  <statement>The generator shall assemble bootstrap context from an explicit ordered bootstrap-file manifest, and that order shall be significant and stable: it determines the sequence of entries in the emitted payload. The `plugin-files-mode` document shall lead the manifest, followed by the `bootstrap-*` rule documents. The manifest shall contain no index document (FR-HOOK-0004). The order shall not depend on filesystem enumeration. No entry shall carry a per-entry lead designation: since the bootstrap prefix was removed (FR-HOOK-0003, Deprecated), no behavior distinguishes the first entry from the rest, and every entry's body is treated identically — including the leading-newline strip applied uniformly to all of them.</statement>
+  <statement>The generator shall assemble bootstrap context from an explicit ordered bootstrap-file manifest, and that order shall be significant and stable: it determines the sequence of entries in the emitted payload. The `plugin-files-mode` document shall lead the manifest, followed by the `bootstrap-*` rule documents. The manifest shall retain its two index-document entries as a dormant capability, gated by the index-entry inclusion flag that no spec enables, so no index document reaches any payload (FR-HOOK-0004, FR-GEN-0001). The order shall not depend on filesystem enumeration. No entry shall carry a per-entry lead designation: since the bootstrap prefix was removed (FR-HOOK-0003, Deprecated), no behavior distinguishes the first entry from the rest, and every entry's body is treated identically — including the leading-newline strip applied uniformly to all of them.</statement>
   <rationale>The agent must receive bootstrap context in a deliberate sequence (mode first, then policies). The original relied on the position of the first match in an in-code list (`_BOOTSTRAP_FILES`); the fragility that made this matter (QF-1) was that reordering silently moved the bootstrap prefix. With the prefix gone there is nothing position-sensitive left to protect, so the explicit `isLead` flag was removed rather than kept as a field no behavior reads. Manifest order remains a required contract for payload sequence and determinism.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -188,16 +192,17 @@
     <criteria>Given: two runs over the same inputs When: compared Then: the entry order is identical and independent of directory listing order.</criteria>
     <criteria>Given: the assembled payload When: inspected Then: no entry is treated differently by virtue of its position, and no manifest entry carries a lead-designation flag.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: everything except one clause verified true - BOOTSTRAP_MANIFEST_ORDER
-  (src/rosettify-plugins/src/spec/bootstrap-manifest.ts) leads with plugin-files-mode, the order is an
-  explicit in-code array rather than filesystem enumeration, isLead is absent from the entire tree, and
-  src/rosettify-plugins/src/bootstrap/payload.ts applies the leading-newline strip uniformly with no lead
-  concept. The false clause is 'The manifest shall contain no index document': BOOTSTRAP_MANIFEST_ORDER
-  still lists __rules_index__ and __workflows_index__ as its last two entries, annotated 'included when
-  includeIndexEntries is true'. They are skipped at runtime because that flag is pinned false
-  (FR-HOOK-0004), never removed from the manifest. Same incomplete refactor as FR-HOOK-0004; resolve both
-  together.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented against the corrected text: BOOTSTRAP_MANIFEST_ORDER
+  (src/rosettify-plugins/src/spec/bootstrap-manifest.ts) is an explicit in-code array, not filesystem
+  enumeration, and leads with plugin-files-mode followed by the bootstrap-* rule documents;
+  src/rosettify-plugins/src/bootstrap/payload.ts walks it in order and applies the leading-newline strip
+  uniformly, holding no lead concept; isLead is absent from the entire tree, as is any per-entry lead
+  designation on BootstrapEntryRef. The manifest retains __rules_index__ and __workflows_index__ as its
+  last two entries, a dormant capability gated by includeIndexEntries which no spec enables - verified, no
+  index document reaches any payload. CORRECTED in this pass: the statement previously required the
+  manifest to contain no index document; per the owner's ruling the entries are kept and left unused
+  rather than deleted.</implementationNotes>
   <depends>NFR-0002</depends>
 </req>
 
@@ -249,7 +254,6 @@
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
-  <depends>AC-3</depends>
 </req>
 
 <req id="FR-HOOK-0022" type="FR" level="System" ticketId="315" classification="technical">

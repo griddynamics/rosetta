@@ -21,34 +21,31 @@ variant × IDE target) pair.
      implementation="Implemented">
   <title>Plugin-set configuration resolution</title>
   <statement>The generator shall read the plugin sets it builds from a single JSON configuration
-  document, resolved from the `--config <path>` value where supplied and otherwise from
-  `<source>/src/rosettify-plugins/plugins.json`, with a relative `--config` value resolved against
-  `<source>` exactly as `--profileSource` and `--pluginsSource` resolve theirs (FR-CLI-0034). The
+  document whose location FR-CLI-0034 resolves; this unit states no resolution rule of its own. The
   resolved document shall be the sole declaration of the IDE target inventory, of which sets exist,
   and of each set's folders, variants, preserved-file template, manifest fields, `requires` list,
   bootstrap flag and hook list. No set identity, folder composition, or target inventory shall be held
-  in generator control flow. This unit governs where the document is found and what it is
-  authoritative for; well-formedness is DATA-CFG-0007 and rejecting a malformed one is
-  FR-SET-0010.</statement>
+  in generator control flow. This unit governs what the resolved document is authoritative
+  for; where it is found is FR-CLI-0034, well-formedness is DATA-CFG-0007, and rejecting a malformed
+  one is FR-SET-0010.</statement>
   <rationale>One document per run collapses today's two invocations into one, and a package-relative
   default lets `npx -y rosettify-plugins@latest` build a repository holding no configuration of its own.
   Resolving `--config` off `<source>` rather than the process working directory keeps every input root
   moving together under one `--source` override.</rationale>
   <evidence>src/rosettify-plugins/src/spec/targets.ts buildAllSpecs (the target inventory and every target's folder composition are function-local literals here today, which is what this document replaces); src/rosettify-plugins/src/spec/profiles.ts loadProfile (the descriptor-resolution shape this mirrors)</evidence>
   <acceptance>
-    <criteria id="FR-SET-0001.AC1" ears="event" when="no `--config` value is supplied" system="the generator" shall="resolve the configuration to `<source>/src/rosettify-plugins/plugins.json`"/>
-    <criteria id="FR-SET-0001.AC2" ears="event" when="`--config ci/plugins.json` is supplied" system="the generator" shall="resolve it against `<source>`, reading `<source>/ci/plugins.json` rather than a path relative to the process working directory"/>
     <criteria id="FR-SET-0001.AC3" ears="ubiquitous" system="the generator" shall="take the set inventory from the resolved document alone, consulting no built-in set list"/>
     <criteria id="FR-SET-0001.AC4" ears="ubiquitous" system="the generator" shall="take the IDE target inventory from the resolved document alone (DATA-CFG-0003)"/>
     <criteria id="FR-SET-0001.AC5" ears="event" when="a set is added to the resolved document and nothing else changes" system="the generator" shall="build that set with no change to generator control flow"/>
   </acceptance>
-  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/plugin-sets.ts loadPluginCatalog resolves and parses the
-  catalog; defaultConfigPath derives <source>/src/rosettify-plugins/plugins.json as the no-argument
-  default. src/rosettify-plugins/plugins.json declares the 7-entry targets inventory, hookSupportModules,
-  and 6 sets (rosetta, core, advanced, qe, search, modernization), each carrying
-  folders/template/releases/requires/bootstrap/hooks/manifest/variants.
-  src/rosettify-plugins/src/spec/targets.ts buildSpecsForSet consults no built-in set list. NOTE: the
-  shipped set-identity field is name, not the id this unit's text uses.</implementationNotes>
+  <implementationNotes>Implemented: src/rosettify-plugins/plugins.json is the sole declaration of the 7-entry targets
+  inventory, hookSupportModules and 6 sets (rosetta, core, advanced, qe, search, modernization), each
+  carrying folders/template/releases/requires/bootstrap/hooks/manifest/variants; loadPluginCatalog in
+  src/rosettify-plugins/src/spec/plugin-sets.ts parses it and buildSpecsForSet in
+  src/rosettify-plugins/src/spec/targets.ts consults no built-in set list, so adding a set changes no
+  control flow. Where the document is found is FR-CLI-0034 and is deliberately not restated here - the
+  resolution rule and its two criteria were removed from this unit on 2026-09-02, having drifted to a
+  status opposite to their owner's.</implementationNotes>
   <notes></notes>
 </req>
 
@@ -63,15 +60,13 @@ variant × IDE target) pair.
      implementation="Implemented">
   <title>Fail-fast plugin-set configuration validation</title>
   <statement>The generator shall fully validate the resolved plugin-set configuration before writing
-  any output. Validation covers: the file exists and parses as JSON; every declared IDE target is a
-  known target identity (DATA-CFG-0003); every set carries a `name` that is a non-empty lowercase
-  identifier and unique across the whole document; every set's `folders` list is non-empty and names only
-  folders present under the resolved instruction source; every set's preserved-file template has a
-  folder for each MAIN IDE target being built, a standalone target seeding from its parent's folder
-  instead (DATA-CFG-0005, FR-SEED-0002); no two variants of one set declare the same destination
-  suffix; every `requires` entry names a set the same document declares; and no set carries a
-  top-level field the plugin-set descriptor does not define (DATA-CFG-0007). Any violation aborts the run with a non-zero
-  status and no output written. Validation does not check that a set resolves to a non-empty file
+  any output. Validation covers two classes. First, document well-formedness exactly as
+  DATA-CFG-0007 defines it, including the IDE target identities of DATA-CFG-0003 — this unit adds no
+  well-formedness rule of its own and restates none. Second, the environment checks that only a real
+  run can make: every folder a set's `folders` list names exists under the resolved instruction
+  source, and every set's preserved-file template has a folder for each MAIN IDE target being built,
+  a standalone target seeding from its parent's folder instead (DATA-CFG-0005, FR-SEED-0002). Any
+  violation of either class aborts the run with a non-zero status and no output written. Validation does not check that a set resolves to a non-empty file
   set after layering — an empty set is a legitimate configuration — and does not check that a
   required set is installed alongside, which no IDE enforces (FR-SET-0050).</statement>
   <rationale>Failing before the first pipeline runs keeps a malformed configuration from
@@ -82,15 +77,10 @@ variant × IDE target) pair.
   <acceptance>
     <criteria id="FR-SET-0010.AC1" ears="unwanted" if="the resolved configuration file does not exist" system="the generator" shall="abort with a non-zero status naming the resolved absolute path, before writing any output"/>
     <criteria id="FR-SET-0010.AC2" ears="unwanted" if="the configuration file is not parseable as JSON" system="the generator" shall="abort with a non-zero status naming the file, before writing any output"/>
-    <criteria id="FR-SET-0010.AC3" ears="unwanted" if="two sets declare the name `qe`, whatever releases they name" system="the generator" shall="abort before any output, naming the duplicated set name"/>
     <criteria id="FR-SET-0010.AC4" ears="unwanted" if="a set declares `folders: [aqa]` and `instructions/r3/aqa/` does not exist" system="the generator" shall="abort before any output, naming the set and the missing folder"/>
     <criteria id="FR-SET-0010.AC5" ears="unwanted" if="a set names template `template` and `<preservedFilesSource>/template-codex/` is absent while `codex` is among the targets being built" system="the generator" shall="abort before any output, naming the set, the template and the missing folder"/>
-    <criteria id="FR-SET-0010.AC10" ears="unwanted" if="the declared IDE target inventory names `windsurf`, which is not a known target identity" system="the generator" shall="abort before any output, naming the unknown target and listing the accepted identities"/>
     <criteria id="FR-SET-0010.AC11" ears="optional" where="`cursor-standalone` is among the targets being built" system="the generator" shall="require no `<preservedFilesSource>/<template>-cursor-standalone/` folder, checking its parent's `<template>-cursor` folder instead"/>
-    <criteria id="FR-SET-0010.AC6" ears="unwanted" if="two variants of one set both declare the destination suffix `-light`" system="the generator" shall="abort before any output, naming the set and the duplicated suffix"/>
-    <criteria id="FR-SET-0010.AC7" ears="unwanted" if="a `requires` entry names `aqa` and no set with that name is declared" system="the generator" shall="abort before any output, naming the requiring set and the unknown reference"/>
-    <criteria id="FR-SET-0010.AC8" ears="unwanted" if="a set carries a top-level field the descriptor does not define" system="the generator" shall="abort before any output, naming the unrecognized field"/>
-    <criteria id="FR-SET-0010.AC9" ears="ubiquitous" system="the generator" shall="complete configuration validation at pre-flight, before the first plugin pipeline runs, so any violation leaves the output directory untouched"/>
+    <criteria id="FR-SET-0010.AC9" ears="ubiquitous" system="the generator" shall="complete both validation classes at pre-flight, before the first plugin pipeline runs, so any violation — a DATA-CFG-0007 well-formedness breach or an environment check — aborts with a non-zero status and leaves the output directory untouched"/>
   </acceptance>
   <implementationNotes>Implemented: src/rosettify-plugins/src/spec/plugin-sets.ts loadPluginCatalog plus the closed field
   allow-lists CATALOG_FIELDS, SET_FIELDS, VARIANT_FIELDS and MANIFEST_FIELDS, enforced by
@@ -149,8 +139,8 @@ variant × IDE target) pair.
      depends="FR-SET-0001, DATA-CFG-0007"
      implementation="Implemented">
   <title>Per-set build variants</title>
-  <statement>Each set shall declare one or more build variants and the generator shall build every
-  declared variant of every set available for the selected release. A variant names the profile it builds with — one profile name or
+  <statement>Each set shall declare one or more build variants; that every declared variant
+  is built in one invocation is FR-SET-0060. A variant names the profile it builds with — one profile name or
   none — and carries the destination, plugin-name and plugin-description suffixes that distinguish
   its output from that set's other variants. Those three suffixes belong to the variant and shall be
   read from nowhere else; a profile descriptor carries none of them (FR-PROF-0020, FR-PROF-0021). A
@@ -270,12 +260,9 @@ variant × IDE target) pair.
   configuration declares for the selected release, reduced further only by the `--domain` folder
   filter (FR-CLI-0030). A set whose `releases` list omits the selected release shall not be built and
   shall not be reported as an error. No second
-  invocation shall be required to obtain a variant, a profile, or a set. Pairs shall be mutually
-  independent: no pair is derived from another pair's output and no ordering between pairs is
-  required (FR-CLI-0040). A recoverable error in one pair shall not abort the run — every remaining
-  pair is still attempted and the process exit status reflects whether any error occurred
-  (FR-CLI-0041). A pre-flight configuration or profile violation is not a recoverable error and stops
-  the run before any pair is attempted (FR-SET-0010).</statement>
+  invocation shall be required to obtain a variant, a profile, or a set. Pair independence is
+  FR-CLI-0040, per-pair error recovery and exit status are FR-CLI-0041, and pre-flight abort is
+  FR-SET-0010; none of those rules is restated here.</statement>
   <rationale>Two invocations — one plain, one `--profile lightweight` — are what the variant model
   replaces; leaving the second in place lets the builds diverge in release, hook posture or output root
   with nothing checking they agree. Explicit pair independence makes the matrix safe to grow: 49 pairs
@@ -284,8 +271,6 @@ variant × IDE target) pair.
   <acceptance>
     <criteria id="FR-SET-0060.AC1" ears="event" when="the configuration declares sets `rosetta` (two variants), `core`, `advanced`, `qe`, `search` and `modernization` (one variant each) over 7 IDE targets" system="the generator" shall="write 49 output folders in one run — 14 under `rosetta-*` and 7 under each of the other five set names"/>
     <criteria id="FR-SET-0060.AC2" ears="ubiquitous" system="the generator" shall="require no second invocation to produce a set's lightweight variant"/>
-    <criteria id="FR-SET-0060.AC3" ears="unwanted" if="one pair raises a recoverable error" system="the generator" shall="attempt every remaining pair and exit with a non-zero status"/>
-    <criteria id="FR-SET-0060.AC4" ears="ubiquitous" system="the generator" shall="derive no pair's output from another pair's output and require no ordering between pairs"/>
     <criteria id="FR-SET-0060.AC5" ears="event" when="`--domain qe` is supplied" system="the generator" shall="build the `qe` set's pairs only and write nothing for any other set (FR-CLI-0030)"/>
     <criteria id="FR-SET-0060.AC6" ears="event" when="`--release r2` is selected and only the set with id `core` declares `r2`" system="the generator" shall="build that set's two variants across the IDE targets and write nothing for any set available only to `r3`"/>
   </acceptance>
@@ -304,7 +289,7 @@ variant × IDE target) pair.
      source="User"
      priority="Must" verification="Test"
      status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
-     depends="FR-SET-0001, DATA-CFG-0007, FR-CLI-0012"
+     depends="FR-SET-0001, DATA-CFG-0007, DATA-CFG-0008, FR-CLI-0012"
      implementation="Implemented">
   <title>Per-set bootstrap flag and hook list</title>
   <statement>Each set shall declare a bootstrap flag and a hook list, and that declaration shall be the

@@ -140,12 +140,11 @@ about which plugin set is being built (DATA-CFG-0003, FR-SET-0040).
      depends="DATA-CFG-0006, DATA-CFG-0007, FR-SET-0030, FR-SET-0040"
      implementation="Implemented">
   <title>Destination naming derives from the set, never from a profile</title>
-  <statement>An output folder's name shall derive from the building set and its variant alone —
-  `<set-name>-<ide-target>` plus the variant's destination suffix (FR-SET-0040) — and a profile shall
-  contribute nothing to it. A profile descriptor shall carry no destination suffix, and the active
-  profile's name shall appear in no output folder name. `spec.name` shall likewise stay free of both
-  the set name and any suffix, so every `target-<id>-only` directive keeps matching whatever profile is
-  active. Manifest identity strings are out of scope of this unit.</statement>
+  <statement>A profile shall contribute nothing to an output folder's name. A profile
+  descriptor shall carry no destination suffix, and the active profile's name shall appear in no
+  output folder name and in no `spec.name`. How a folder name is actually composed, and what
+  `spec.name` carries, are FR-SET-0040 and are not restated here; manifest identity strings are out of
+  scope of this unit.</statement>
   <rationale>One profile now serves variants that must land at different folder names — `-light` for
   the combo set and no suffix for the split sets — so a suffix carried by the profile cannot express
   both, and a profile that named folders would force a second near-identical descriptor per suffix.
@@ -153,10 +152,8 @@ about which plugin set is being built (DATA-CFG-0003, FR-SET-0040).
   matches every target-scoped directive.</rationale>
   <evidence>src/rosettify-plugins/src/file-processors/file-apply-overrides.ts fileApplyOverrides (compares a target token against ctx.spec.name); src/rosettify-plugins/src/spec/targets.ts buildAllSpecs (each spec carries name and destination as separate fields)</evidence>
   <acceptance>
-    <criteria id="FR-PROF-0020.AC1" ears="event" when="set `rosetta` builds its variant naming profile `lightweight` with destination suffix `-light`" system="the generator" shall="write `rosetta-claude-light`, taking `-light` from the variant and nothing from the profile"/>
-    <criteria id="FR-PROF-0020.AC2" ears="event" when="set `qe` builds its only variant, which names profile `lightweight` and declares an empty destination suffix" system="the generator" shall="write `qe-claude`, with the profile name appearing nowhere in the folder name"/>
     <criteria id="FR-PROF-0020.AC3" ears="unwanted" if="a profile descriptor declares `destinationSuffix`" system="the generator" shall="treat the descriptor as invalid and abort before any output (FR-PROF-0001)"/>
-    <criteria id="FR-PROF-0020.AC4" ears="ubiquitous" system="the generator" shall="leave `spec.name` the bare IDE identity, such as `claude`, under every profile"/>
+    <criteria id="FR-PROF-0020.AC4" ears="ubiquitous" system="the generator" shall="leave `spec.name` unaffected by which profile is active"/>
     <criteria id="FR-PROF-0020.AC5" ears="ubiquitous" system="the generator" shall="write every profiled output into the same output directory as every unprofiled one, not a separate tree"/>
   </acceptance>
   <implementationNotes>Implemented: buildSpecsForSet (src/rosettify-plugins/src/spec/targets.ts) composes destination from

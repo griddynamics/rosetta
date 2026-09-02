@@ -126,7 +126,7 @@ Processor catalog:
   fileNormalizeClaudeModels, fileNormalizeCursorModels, fileNormalizeCopilotModels, fileNormalizeCodexModels,
   fileRename, fileCodexAgentFormat, fileWorkflowToSkill, fileAntigravityReduceFrontmatter
   pluginCleanup, pluginCopy, pluginProcessSpecEntries, pluginRewriteReferences,
-  pluginGenerateIndexes, pluginInjectSections,
+  pluginGenerateIndexes, pluginEmitDistributionRoot,
   pluginAssembleClaudeBootstrap, pluginAssembleCursorBootstrap, pluginAssembleCopilotBootstrap, pluginAssembleCodexBootstrap, pluginAssembleAntigravityBootstrap,
   pluginAssembleHooksJson,
   pluginAntigravitySubagentModel,

@@ -391,7 +391,6 @@ These transforms apply to the `antigravity` target only; every other IDE target 
   in src/rosettify-plugins/src/serialize/frontmatter.ts, which preserves layout and throws on a
   block-scalar name or description. Composed only in the antigravity pluginProcessors list; rules are not
   reduced.</implementationNotes>
-  <depends>FR-VAR-0081</depends>
 </req>
 
 <req id="FR-COPY-0082" type="FR" level="System" ticketId="138, 315" classification="technical">

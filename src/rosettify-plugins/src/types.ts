@@ -73,28 +73,6 @@ export interface IndexDecl {
   heading: 'rules' | 'workflows'; // determines heading text (FR-GEN-0004)
 }
 
-export interface InjectionDecl {
-  hostFramePath: string;   // plugin-relative path of the host frame (after renames)
-  anchor: string;          // exact anchor string in the file (line prefix match)
-  sections: InjectionSection[];
-  /**
-   * Instruction folder that must be present in the VFS for this injection to apply.
-   *
-   * Plugin sets are sparse: only the sets layering `core/` ship a `rules/` folder, so the
-   * standalone plugin-files-mode host document simply does not exist in an add-on set like `qe`.
-   * Without this, a legitimately absent host produced a HARD error for four of the six sets.
-   * A declaration whose folder IS shipped keeps the hard error when its host is missing — that
-   * still means something genuinely broke.
-   */
-  requires?: string;
-}
-
-export interface InjectionSection {
-  kind: 'literal' | 'index' | 'plugin-root';
-  text?: string;           // for literal sections
-  indexFolder?: string;    // for index sections — which index to inject
-}
-
 // DATA-CFG-0001
 export interface ReleaseDescriptor {
   name: string;            // e.g. "r2"
@@ -156,7 +134,6 @@ export interface PluginSpec {
   includeIndexEntries: boolean;   // FR-HOOK-0004
   pluginRootPath: string;         // reported to agent (FR-HOOK-0007)
   indexes: IndexDecl[];
-  injections: InjectionDecl[];
   specEntries: SpecEntry[];
   pluginProcessors: PluginProcessor[];
   manifestOverride?: { name: string; version: 'parent' }; // standalones (FR-VAR-0060)

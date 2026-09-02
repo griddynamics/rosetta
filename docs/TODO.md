@@ -99,51 +99,8 @@ are dropped from Copilot's `subagent_required_model` lists. That records only th
 finding that Copilot lacks the models. Resolve by confirming what Copilot calls them and adding the
 entries, or by recording a sourced decision that Copilot does not offer them.
 
-## BUG: Standalone plugins ship no plugin-root instructions
-
-**Status:** Proposed
-
-**What:** `pluginInjectSections` skips silently when its `# PREP STEP 1:` anchor is absent. The anchor exists in `src/rosettify-plugins/tests/fixtures/.../rules/plugin-files-mode.md` but NOT in the real `instructions/r3/core/rules/plugin-files-mode.md`, and never has. So every generated `*-cursor-standalone` and `*-copilot-standalone` carries no plugin-root instructions while the tests stay green. Pre-existing, confirmed identical before and after #315. Fix the anchor or make a missing anchor a hard error; a fixture must not carry content the real source lacks.
-
-## REVIEW: Retire the READ TEMPLATE alias for plugin mode
-
-**Status:** Proposed
-
-**What:** `workflows/init-workspace-flow-shells.md` does `READ TEMPLATE` on `skill-shell.md`, `agent-shell.md`, `workflow-shell.md`, but `TEMPLATES_EXCLUDES` filters all of `templates/shell-schemas/**` from every plugin. The alias has never resolved in plugin mode. It still has live mappings in `mcp-files-mode.md` and `local-files-mode.md`, so decide per mode rather than deleting outright.
-
-## REVIEW: Finish the includeIndexEntries removal
-
-**Status:** Proposed
-
-**What:** `FR-HOOK-0004` requires the plugin descriptor carry no `includeIndexEntries`, and `FR-HOOK-0009` requires the bootstrap manifest contain no index document. Both survive: the field is still in `types.ts`, pinned false in `targets.ts`, read in `payload.ts`; `BOOTSTRAP_MANIFEST_ORDER` still lists `__rules_index__`/`__workflows_index__`. Behaviour is correct (no index reaches any output), structure is not. Finish the removal or amend both units.
-
 ## REVIEW: Move speckit-integration-policy into arrange-workspace-flow
 
 **Status:** Proposed
 
 **What:** Owner-requested follow-up from #315. The rule ships in `core/rules/` and each tool's rules mechanism picks it up; Claude plugins have no rules mechanism so it is pseudo-dormant there. Folding it into `arrange-workspace-flow` was the stated intent.
-
-## REVIEW: Normalize the two requirement <req> schemas
-
-**Status:** Proposed
-
-**What:** `docs/requirements/plugin-generator/` mixes attribute-form (`implementation="X"`) and node-form (`<implementation>X</implementation>`) units — 15 vs 131 at last count. Any tooling that greps `implementation="` silently sees ~16% of the corpus, which has already caused one miscount during a status pass. Normalize before the next audit.
-
-## REVIEW: DATA-CFG-0008 is cited by code but does not exist
-
-**Status:** Proposed
-
-**What:** `src/rosettify-plugins/src/plugin-processors/plugin-assemble-hooks-json.ts` cites `DATA-CFG-0008` in its header. The requirement set defines only `DATA-CFG-0001..0007`. Author the unit or correct the citation.
-
-## REVIEW: Pre-existing depends cycles in plugin-generator requirements
-
-**Status:** Proposed
-
-**What:** Four cycles remain: `FR-VAR-0070<->FR-HOOK-0004`, `FR-COPY-0081<->FR-VAR-0081`, `FR-VAR-0080<->FR-VAR-0081`, `FR-VAR-0082<->FR-VAR-0083`. Also `FR-HOOK-0021` declares `depends=AC-3`, an ASSUMPTIONS id rather than a `<req>` id. Predates #315.
-
-## REVIEW: Suppress empty hooks.json for bootstrap-less targets
-
-**Status:** Proposed
-
-**What:** Targets whose `HOOK_LAYOUTS` bootstrap slot is `null` or `empty` (cursor, cursor-standalone, copilot-standalone, antigravity) emit a valid but entry-less `hooks.json` when deterministic hooks are off — e.g. `{"version":1,"hooks":{}}`. Predates #315; the pre-split tree shipped 12 such files. Suppressing them is blocked on verifying per IDE that a dangling `"hooks": "./hooks/hooks.json"` reference in `plugin.json` does not break plugin load. Fix the manifest reference and the file together, or not at all.
-

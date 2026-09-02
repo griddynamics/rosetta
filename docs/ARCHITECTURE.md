@@ -93,7 +93,7 @@ Instructions never call MCP tools directly. Rosetta defines command aliases that
 | `INVOKE SUBAGENT <name> to APPLY PHASE <file>.md`                  | Spawn the subagent and have it execute the phase under its assigned identity                         |
 | `INVOKE SUBAGENT <name>` / `READ SUBAGENT <name>`                  | Spawn subagent / load its definition only                                                            |
 | `READ RULE <file>.md` / `APPLY RULE <file>.md`                     | Load / load+execute a rule                                                                           |
-| `READ TEMPLATE <file>.md`                                          | Load a template                                                                                      |
+| `READ TEMPLATE <file>.md`                                          | Load a template. **MCP and local mode only** — `templates/` ships in no plugin, so this alias resolves nothing in plugin mode |
 | `LIST <path>`                                                      | Enumerate immediate children of a KB folder                                                          |
 | `ACQUIRE <path> FROM KB`                                           | MCP-only, generated shells: `query_instructions(tags="<path>")`                                      |
 | `/rosetta`                                                         | Engage only the Rosetta flow                                                                         |

@@ -8,28 +8,28 @@ The generator assembles the bootstrap context values uniformly for every target 
 
 <req id="FR-VAR-0070" type="FR" level="System" ticketId="" classification="technical">
   <title>Uniform bootstrap assembly; delivery owned by preserved templates/rules</title>
-  <statement>The generator shall assemble and expose the bootstrap context values uniformly for every target, and shall size-check every assembled entry (NFR-0004), regardless of how the target ultimately delivers bootstrap. The generator shall not hold a per-target "delivery strategy" field nor decide between hooks, rules, and instructions: a target delivers bootstrap via session-start hooks if and only if its preserved hook template injects the `{{{bootstrap_hooks}}}` placeholder, and otherwise delivers the same content via its natively auto-loaded rule/instruction files. A target whose preserved templates inject the placeholder and whose rules also auto-load the same bootstrap content would double-deliver; preventing that is a property the preserved templates/rules must satisfy, owned by the template/rule author per the IDE guide, not enforced by a generator strategy flag.</statement>
+  <statement>The generator shall assemble and expose the bootstrap context values uniformly for every target, and shall size-check every assembled entry (NFR-0004), regardless of how the target ultimately delivers bootstrap. The generator shall not hold a per-target "delivery strategy" field nor branch on a delivery mechanism. A target shall deliver bootstrap via session-start hooks if and only if BOTH the building set declares its bootstrap flag AND that target's hook layout declares a bootstrap slot whose payload discriminant is `inject`; a target whose layout declares no such slot shall deliver the same content via its natively auto-loaded rule/instruction files instead. Which targets carry which slot is data (DATA-CFG-0008) and the set's flag is its own declaration (FR-SET-0070), so the decision is a conjunction of two declared values rather than a rule encoded in generator control flow. A target that both receives the payload through hooks and auto-loads the same bootstrap content in its rules would double-deliver; preventing that remains a property of the preserved templates/rules, owned by the template/rule author per the IDE guide.</statement>
   <rationale>Generation stays uniform and content-agnostic (NFR-0006, FR-ARCH-0004): the generator produces values, the IDE-config author's preserved templates/rules decide delivery. This avoids encoding consumption policy in the engine and matches each IDE's documented capability.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Draft</status>
   <approved_by></approved_by>
-  <changed>2026-06-11</changed>
+  <changed>2026-09-02</changed>
   <verification>Inspection</verification>
   <acceptance>
     <criteria>Given: any target When: generated Then: its bootstrap entries are assembled and size-checked, independent of delivery mechanism.</criteria>
-    <criteria>Given: a target whose preserved hook template omits the `{{{bootstrap_hooks}}}` placeholder When: generated Then: its hooks carry no bootstrap payload and the same content is delivered by its auto-loaded rules/instructions.</criteria>
+    <criteria>Given: a target whose hook layout declares no bootstrap slot When: generated Then: its hooks carry no bootstrap payload and the same content is delivered by its auto-loaded rules/instructions.</criteria>
     <criteria>Given: the generator When: inspected Then: it holds no per-target bootstrap-delivery-strategy field and does not branch on a delivery mechanism.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (all 4 IDEs always assemble full bootstrap); templateContext['bootstrap_hooks'] (one key, no per-IDE suffix); plugins/core-claude/hooks/hooks.json.tmpl, plugins/core-codex/.codex-plugin/hooks.json.tmpl, plugins/core-copilot/.github/plugin/hooks.json.tmpl (placeholder renamed from bootstrap_hooks_<ide> to bootstrap_hooks); cursor template has no placeholder — payload assembled but not injected.</implementationNotes>
-  <depends>INT-IDE-0002, FR-HOOK-0001, FR-HOOK-0004, FR-ARCH-0004</depends>
+  <implementationNotes>Implemented: the four per-IDE assemblers src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts always assemble and size-check the full payload regardless of delivery, writing the one shared templateContext key `bootstrap_hooks`. The delivery decision is emitsHooksJson in src/rosettify-plugins/src/plugin-processors/plugin-assemble-hooks-json.ts, `bootstrap` conjoined with `layout.bootstrap?.payload === 'inject'` — the set's flag conjoined with the target's HOOK_LAYOUTS slot. No delivery-strategy field exists on PluginSpec and no processor branches on a delivery mechanism. CORRECTED on 2026-09-02: this unit previously keyed delivery to the presence of a `{{{bootstrap_hooks}}}` placeholder in the preserved hook template. All seven templates under src/rosettify-plugins/plugins/ are now the single line `{{{hooks_json}}}` and none carries that placeholder, so the old wording asserted that no target delivers bootstrap via hooks — false for claude, codex and copilot, whose layouts declare an `inject` slot.</implementationNotes>
+  <depends>INT-IDE-0002, FR-HOOK-0001, FR-HOOK-0004, FR-ARCH-0004, DATA-CFG-0008</depends>
 </req>
 
 <req id="FR-VAR-0071" type="FR" level="System" ticketId="" classification="technical">
   <title>Two hook-template forms for in-repo distributions</title>
   <statement>A target that has a separate in-repo (standalone) distribution shall provide both a marketplace-form and a standalone-form hook template, so each distribution references hooks by paths valid in its runtime location.</statement>
-  <rationale>Marketplace install and in-repo extraction resolve hook paths from different roots; one template form cannot serve both.</rationale>
+  <rationale>Marketplace install and in-repo extraction resolve hook paths from different roots, so the two distributions need separate hook configuration FILES at different locations. The two template frames are now byte-identical single-placeholder files: the difference between the forms lives in the assembled document, whose entry commands carry each form's own hook path (DATA-CFG-0008), not in the template text. Two frames are still required because each distribution needs its own output file.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -41,34 +41,30 @@ The generator assembles the bootstrap context values uniformly for every target 
     <criteria>Given: a target with no separate in-repo distribution When: generated Then: a single hook-template form suffices.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/spec/targets.ts (cursor and copilot specs carry both hook template forms). Tied to FR-VAR-0070 bootstrap delivery rework.</implementationNotes>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/targets.ts gives the cursor and copilot specs both hook template frames, and src/rosettify-plugins/src/spec/hook-layouts.ts carries a distinct entry builder per form — cursorEntry('hooks') against cursorEntry('.cursor/hooks'), and copilotPluginEntry against the .github form — so each rendered file resolves hook paths from its own root. Both .tmpl frames are the single line {{{hooks_json}}}; the per-form difference is in the assembled document, not the template.</implementationNotes>
 </req>
 
 <req id="FR-VAR-0072" type="FR" level="System" ticketId="315" classification="technical">
-  <title>Standalone index/instruction injection rationale</title>
-  <statement>Where a standalone target delivers bootstrap through native rules or auto-loaded instructions, the generator shall ensure the plugin-root instructions are present in that natively-loaded file, inserted via the `pluginInjectSections()` processor (FR-ARCH-0051). No index section shall be injected: a folder index lists one plugin's own documents and would be wrong beside a second installed Rosetta plugin (FR-HOOK-0004, FR-GEN-0001 dormant).</statement>
-  <rationale>A standalone carries no session-start hook to convey the plugin-root path, so that information must travel in the rule/instruction file the IDE auto-loads. The insertion is an explicit content-only processor, not an in-place edit bolted onto a derivation pass. The workflow catalog is no longer conveyed at all, because no set generates one.</rationale>
+  <title>Standalone distributions declare their extraction root</title>
+  <statement>Where a target's output is extracted into the user's own repository rather than installed as a marketplace plugin, the generated distribution shall declare its extraction root inside the rule document that IDE auto-loads every session. The declaration shall state the root, that the agent's working directory is the repository root and not that root, and that every Rosetta unit path in the document is therefore relative to it. It shall also state that a path which is NOT a Rosetta unit — a target-repo workspace file such as `agents/IMPLEMENTATION.md` — stays at the repository root. Where the building set ships workflows the declaration shall say where they live, using the file extension that distribution actually emits; where the set ships none it shall say nothing about workflows rather than advertise an absent folder. Every such distribution whose set ships the always-on rule folder shall carry the declaration, and there shall be no condition under which such a build silently produces one without it. An add-on set that ships no rule folder carries no declaration, having no auto-loaded document to place it in; it relies on the set it requires (FR-SET-0050) being extracted alongside. No folder index shall be declared: an index lists one plugin's own documents and would be wrong beside a second installed Rosetta plugin (FR-GEN-0001, retained but declared by no set). How the declaration is produced and where it is placed is FR-ARCH-0051.</statement>
+  <rationale>A standalone carries no session-start hook, so the plugin-root fact has to travel in the file the IDE loads anyway. Mass path rewriting was rejected as the alternative: `agents/` is ambiguous, naming both plugin content that moves under the root — `agents/architect.md` — and target-repo workspace files that must stay at the repository root, such as `agents/IMPLEMENTATION.md`, `agents/user-instructions/` and the `*-flow-state.md` files. A folder-level rewrite pair cannot tell those apart and would corrupt the workspace files, which is precisely the hazard FR-ARCH-0049 documents. One declared root moves the resolution into the agent's reading of the document instead, leaving every emitted path untouched. The declaration is required unconditionally because the mechanism this replaces was allowed to skip when it could not find its anchor, and so never reached a shipped standalone at all.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-09-02</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: Cursor-standalone When: generated Then: the plugin-root instructions appear in the auto-loaded rule file and no index section is injected.</criteria>
-    <criteria>Given: Copilot-standalone When: generated Then: the plugin-root instructions appear in the auto-loaded instructions file and no index section is injected.</criteria>
+    <criteria>Given: Cursor-standalone When: generated Then: its auto-loaded rule document declares the extraction root `.cursor` and states that the working directory is the repository root.</criteria>
+    <criteria>Given: Copilot-standalone When: generated Then: its auto-loaded instructions document declares the extraction root `.github` and states that the working directory is the repository root.</criteria>
+    <criteria>Given: a standalone distribution of a set that ships workflows When: generated Then: the declaration names the workflow location with the extension that distribution emits.</criteria>
+    <criteria>Given: a standalone distribution of a set that ships no workflows When: generated Then: the declaration names no workflow location.</criteria>
+    <criteria>Given: a standalone distribution of a set that ships the always-on rule folder When: generated Then: the declaration is present, and no folder index is declared.</criteria>
+    <criteria>Given: a standalone distribution of an add-on set that ships no rule folder When: generated Then: no declaration is emitted and the run reports no error.</criteria>
+    <criteria>Given: the declaration When: read Then: it distinguishes Rosetta unit paths, which are relative to the root, from target-repo workspace paths, which are not.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the index half of this unit is correctly implemented - the kind:'index' injection sections
-  are gone from the cursor-standalone and copilot-standalone declarations and no index section is injected
-  anywhere (FR-GEN-0001 dormant). The plugin-root half FAILS against the real r3 content.
-  pluginInjectSections (src/rosettify-plugins/src/plugin-processors/plugin-inject-sections.ts) skips
-  injection when its anchor '# PREP STEP 1:' is absent from the host frame, by design.
-  instructions/r3/core/rules/plugin-files-mode.md carries no such anchor, so generating cursor-standalone
-  and copilot-standalone from the real source produces plugin-files-mode.mdc and
-  plugin-files-mode.instructions.md with NO injected plugin-root text. The unit tests pass only because
-  tests/fixtures/sample-instructions/r3/core/rules/plugin-files-mode.md DOES contain the anchor; no e2e
-  test exercises this against the real instructions/r3 tree. The fixture is masking a real gap.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: buildRootDeclaration in src/rosettify-plugins/src/plugin-processors/plugin-emit-distribution-root.ts composes the text — root, repository-root working directory, the relative-path rule, the `agents/IMPLEMENTATION.md` workspace carve-out, and an optional workflow clause that deriveWorkflowGlob omits when the set emits no workflow frames. The pluginEmitDistributionRoot factory is composed into exactly the two standalone specs in src/rosettify-plugins/src/spec/targets.ts. No index section is declared anywhere, index generation being retained but unused (FR-GEN-0001). CORRECTED on 2026-09-02: this unit previously required insertion via pluginInjectSections at a `# PREP STEP 1:` anchor. That module is deleted. The anchor was absent from instructions/r3/core/rules/plugin-files-mode.md, so the injection silently skipped and NO shipped standalone ever carried the text, while unit tests passed against a fixture that did contain the anchor. The replacement has no anchor and no skip path.</implementationNotes>
   <depends>FR-VAR-0070, FR-ARCH-0051</depends>
 </req>
 
@@ -261,7 +257,7 @@ All content under `.cursor/`; bootstrap delivered via **native Cursor rules** (`
 
 <req id="FR-VAR-0050" type="FR" level="System" ticketId="315" classification="technical">
   <title>Cursor standalone output</title>
-  <statement>The Cursor-standalone variant shall be generated from the instruction source by the same uniform pipeline as every other target (not derived from the `cursor` target's output), with Cursor adaptations laid out entirely under `.cursor/`: a standalone-form hook configuration, the commands index and plugin-root instructions injected (via `pluginInjectSections()`) into the plugin-files-mode rule, no plugin-marketplace-only templates or config (simply not emitted — no cleanup pass), and a generated plugin manifest.</statement>
+  <statement>The Cursor-standalone variant shall be generated from the instruction source by the same uniform pipeline as every other target (not derived from the `cursor` target's output), with Cursor adaptations laid out entirely under `.cursor/`: a standalone-form hook configuration, a declared extraction root (FR-VAR-0072), no plugin-marketplace-only templates or config (simply not emitted — no cleanup pass), and a generated plugin manifest.</statement>
   <rationale>In-repo extraction needs IDE-rooted paths and rule-delivered bootstrap. Generating directly from source — rather than deriving from the main plugin — removes the coupling AC-1 identifies as the root of repeated standalone defects (and the `.cursor/.cursor/` self-nesting guard, QF-4).</rationale>
   <source>Sources</source>
   <priority>Must</priority>
@@ -274,14 +270,16 @@ All content under `.cursor/`; bootstrap delivered via **native Cursor rules** (`
     <criteria>Given: the Cursor-standalone target generated in isolation When: complete Then: its output is complete and correct.</criteria>
     <criteria>Given: the generation design When: inspected Then: the standalone is produced from the instruction source, not by reading the `cursor` target's output.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the structural criteria hold - generated cursor-standalone sits entirely under .cursor/
-  with a top-level .cursor/hooks.json, no .cursor-plugin folder, and a generated plugin.json manifest
-  built from source rather than derived from the cursor target. The statement's injection clause fails
-  exactly as in FR-VAR-0072: .cursor/rules/plugin-files-mode.mdc in real generated output carries no
-  injected plugin-root text, because pluginInjectSections finds no '# PREP STEP 1:' anchor in
-  instructions/r3/core/rules/plugin-files-mode.md and skips silently by design.</implementationNotes>
-  <depends>FR-CLI-0040, FR-SEED-0002, FR-VAR-0070, FR-VAR-0072, FR-ARCH-0051</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: verified on a real --release r3 build. rosetta-cursor-standalone sits entirely under
+  .cursor/ with a top-level .cursor/hooks.json, no .cursor-plugin folder, and a plugin.json manifest
+  generated from source rather than derived from the cursor target - buildSpecsForSet composes the
+  standalone spec from the instruction VFS like every other target. Its extraction root is declared per
+  FR-VAR-0072: .cursor/rules/plugin-files-mode.mdc now carries `STANDALONE DISTRIBUTION - Rosetta plugin
+  root: `.cursor`` with the workflow clause `commands/*.md`. CORRECTED on 2026-09-02: the statement
+  previously named pluginInjectSections, a module now deleted, whose anchor never matched the real r3
+  source so the text never reached this distribution.</implementationNotes>
+  <depends>FR-CLI-0040, FR-SEED-0002, FR-VAR-0070, FR-VAR-0072</depends>
 </req>
 
 ## Copilot standalone (`copilot-standalone`) — in-repo extraction
@@ -290,8 +288,8 @@ All content under `.github/`; bootstrap delivered via **auto-loaded instructions
 
 <req id="FR-VAR-0051" type="FR" level="System" ticketId="315" classification="technical">
   <title>Copilot standalone output</title>
-  <statement>The Copilot-standalone variant shall be generated from the instruction source by the same uniform pipeline as every other target (not derived from the `copilot` target's output), with Copilot adaptations laid out entirely under `.github/`: bootstrap rules relocated (via a relocation `SpecEntry` `target` and `fileRename()`) to auto-loaded instruction files, workflow content under `prompts` with `*.prompt.md` names, nested standalone hook configuration, regenerated indexes, plugin instructions injected (via `pluginInjectSections()`), no plugin-marketplace-only config (simply not emitted — no cleanup pass), and a generated plugin manifest.</statement>
-  <rationale>Copilot in-repo extraction auto-loads instructions and expects `prompts/*.prompt.md`. Generating directly from source removes the derive-from-main coupling (AC-1); relocation is `fileRename()` and injection is `pluginInjectSections()`, not pre/post-cleanup passes.</rationale>
+  <statement>The Copilot-standalone variant shall be generated from the instruction source by the same uniform pipeline as every other target (not derived from the `copilot` target's output), with Copilot adaptations laid out entirely under `.github/`: bootstrap rules relocated (via a relocation `SpecEntry` `target` and `fileRename()`) to auto-loaded instruction files, workflow content under `prompts` with `*.prompt.md` names, nested standalone hook configuration, a declared extraction root (FR-VAR-0072), no plugin-marketplace-only config (simply not emitted — no cleanup pass), and a generated plugin manifest.</statement>
+  <rationale>Copilot in-repo extraction auto-loads instructions and expects `prompts/*.prompt.md`. Generating directly from source removes the derive-from-main coupling (AC-1); relocation is a `SpecEntry` `target` plus `fileRename()`, and the extraction root is declared by a composed processor, neither being a pre/post-cleanup pass.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -303,15 +301,18 @@ All content under `.github/`; bootstrap delivered via **auto-loaded instructions
     <criteria>Given: the Copilot-standalone target generated in isolation When: complete Then: its output is complete and correct.</criteria>
     <criteria>Given: the generation design When: inspected Then: the standalone is produced from the instruction source, not by reading the `copilot` target's output.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the structural criteria hold - bootstrap rules relocate to
-  .github/instructions/*.instructions.md, the nested .github/hooks/hooks.json standalone configuration
-  carries an empty sessionStart, and the generated plugin.json manifest is produced from source. The
-  statement's injection clause fails exactly as in FR-VAR-0072 and FR-VAR-0050:
-  .github/instructions/plugin-files-mode.instructions.md in real generated output carries no injected
-  plugin-root text, because the '# PREP STEP 1:' anchor is absent from the real r3 source and
-  pluginInjectSections skips silently.</implementationNotes>
-  <depends>FR-CLI-0040, FR-SEED-0002, FR-VAR-0070, FR-VAR-0072, FR-ARCH-0043, FR-ARCH-0051</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: verified on a real --release r3 build. rosetta-copilot-standalone sits under .github/ with
+  bootstrap rules relocated to .github/instructions/*.instructions.md by a SpecEntry target plus
+  fileRename, workflows at prompts/*.prompt.md, a nested .github/hooks/hooks.json standalone
+  configuration, and a plugin.json manifest generated from source. Its extraction root is declared per
+  FR-VAR-0072: .github/instructions/plugin-files-mode.instructions.md carries `STANDALONE DISTRIBUTION -
+  Rosetta plugin root: `.github`` with the workflow clause `prompts/*.prompt.md`, the compound extension
+  derived from the emitted frames rather than configured. Host matching succeeds despite the
+  .instructions.md rename because baseDocName takes the basename to its first dot. CORRECTED on
+  2026-09-02: the statement previously named pluginInjectSections and regenerated indexes, neither of
+  which exists now.</implementationNotes>
+  <depends>FR-CLI-0040, FR-SEED-0002, FR-VAR-0070, FR-VAR-0072, FR-ARCH-0043</depends>
 </req>
 
 ## All standalones
@@ -379,7 +380,7 @@ One combined plugin serves all three Antigravity products (Antigravity, Antigrav
   <implementationNotes>Implemented: verified on generated core-antigravity - skills/<name>/SKILL.md with a phases/ subfolder
   exists, no workflows, configure or templates folder appears anywhere in antigravity output, and rules
   frontmatter such as trigger: always_on is preserved unchanged.</implementationNotes>
-  <depends>FR-VAR-0080, FR-COPY-0080, FR-COPY-0081</depends>
+  <depends>FR-COPY-0080, FR-COPY-0081</depends>
 </req>
 
 <req id="FR-VAR-0082" type="FR" level="System" ticketId="138" classification="technical">
@@ -431,6 +432,6 @@ One combined plugin serves all three Antigravity products (Antigravity, Antigrav
   TEMPLATE references the declared hooks and that it omits a bootstrap placeholder - selection and
   omission are both decided by the assembler and HOOK_LAYOUTS, the template being the single line
   {{{hooks_json}}}.</implementationNotes>
-  <depends>FR-VAR-0082, INT-IDE-0002, FR-SET-0070, FR-HOOK-0020</depends>
-  <notes>Grounded facts (per `docs/hooks/antigravity.md`): `SessionStart` is not a valid Antigravity event (its analog is `PreInvocation @ invocationNum:0`); `PostToolUse` output is `{}` (ignored) — the reason the advisory hooks are excluded; bootstrap rides the always-on rule (FR-VAR-0082), not the PreInvocation hook. The exclusion applies to the sets built for this target only; the same hook names remain available to other targets.</notes>
+  <depends>INT-IDE-0002, FR-SET-0070, FR-HOOK-0020</depends>
+  <notes>Grounded facts (per `docs/hooks/antigravity.md`): `SessionStart` is not a valid Antigravity event (its analog is `PreInvocation @ invocationNum:0`); `PostToolUse` output is `{}` (ignored) — the reason the advisory hooks are excluded; bootstrap rides the always-on rule rather than the PreInvocation hook, per this target's null bootstrap slot (DATA-CFG-0008). The exclusion applies to the sets built for this target only; the same hook names remain available to other targets.</notes>
 </req>

@@ -9,6 +9,7 @@ Generates shell config files so subsequent sessions can load context and invoke 
 - Input: state.mode, state.plugin_active, IDEs
 - Output: shell configs, bootstrap rule, load-project-context shell
 - Prerequisite: Phase 1 complete, state.mode set
+- `READ TEMPLATE` resolves in MCP and local mode only — `templates/` ships in no plugin. In plugin mode, write the shell from the LIST output and the schema in the frontmatter instead of loading a template
 - This is simple mechanical AND systematic phase (do not overthink)
 </workflow_context>
 
