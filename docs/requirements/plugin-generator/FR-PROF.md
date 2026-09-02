@@ -105,9 +105,9 @@ about which plugin set is being built (DATA-CFG-0003, FR-SET-0040).
   opus/sonnet/haiku family match, Cursor and Copilot take the first candidate token, and Codex scans
   for the first `gpt-` prefixed candidate. Only the map consulted after a candidate is selected
   changes under a profile. A selected candidate whose token is absent from the effective map is
-  ignored as if it did not exist and the scan continues to the next candidate. This drop-the-line rule
-  governs the profiled path only — a target with an active per-target override block: when no
-  candidate survives mapping under that block, the frontmatter `model:` line is dropped. A target with
+  ignored as if it did not exist and the scan continues to the next candidate. Where a target has an active per-target override block and no candidate
+  survives mapping under that block, the generator shall drop the frontmatter `model:` line. This
+  drop-the-line rule is owned here and governs the profiled path only. A target with
   no override block (the unprofiled path) retains its built-in no-survivor behavior as specified by
   FR-COPY-0020, FR-COPY-0021, and FR-COPY-0022 — Claude `inherit`, Cursor and Copilot raw
   pass-through of the unmapped token, and Codex model fields stripped. This scoping is what keeps

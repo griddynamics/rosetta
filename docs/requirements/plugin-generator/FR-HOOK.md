@@ -66,7 +66,7 @@
 </req>
 
 <req id="FR-HOOK-0004" type="FR" level="System" ticketId="315" classification="technical">
-  <title>Bootstrap payload carries no index entries (delivery is template-driven)</title>
+  <title>Bootstrap payload carries no index entries</title>
   <statement>A bootstrap payload shall carry the bodies of bootstrap rule documents only and shall never carry a folder-index document, in any target. The descriptor shall carry no bootstrap-rule inclusion flag, the payload being assembled uniformly for every target; what decides whether that payload reaches the agent is outside this unit and is owned solely by FR-VAR-0070. It shall retain an index-entry inclusion flag as a RETAINED CAPABILITY: the field exists, defaults to disabled, and no plugin set enables it, so no index entry reaches any payload in any shipped plugin. The requirement is that the capability be present and unused, not that it be deleted.</statement>
   <rationale>An index lists one plugin's own documents, so a payload entry built from it would advertise a table of contents that is wrong the moment a second Rosetta plugin is installed beside it — the failure the index removal exists to prevent. `includeBootstrapRules` was retired because a descriptor flag whose only remaining value is the disabling one is the target name relabeled (FR-ARCH-0005). `includeIndexEntries` is deliberately kept instead of retired: index generation itself is a retained capability (FR-GEN-0001..0004), so the flag that gates index entries in the payload is kept beside it, pinned disabled. Keeping the pair together means re-enabling indexes is a declaration change rather than a re-implementation.</rationale>
   <source>Sources</source>
@@ -84,14 +84,12 @@
   <implementationNotes>Implemented against the corrected text: no payload entry derives from a folder-index document - verified
   on a real --release r3 build, zero INDEX.md files anywhere in the generated tree and zero references to
   the __rules_index__/__workflows_index__ basenames in any output. includeBootstrapRules is absent from
-  the entire tree, delivery being decided by the preserved templates/rules per FR-VAR-0070.
+  the entire tree.
   includeIndexEntries is RETAINED as a capability: declared on PluginSpec in
   src/rosettify-plugins/src/types.ts, set to false for every spec in
   src/rosettify-plugins/src/spec/targets.ts, and honoured in
   src/rosettify-plugins/src/bootstrap/payload.ts, which skips every __-prefixed manifest entry while the
-  flag is unset. CORRECTED in this pass: the unit previously demanded the field be absent. Per the owner's
-  ruling the capability is kept and left unused, alongside the retained index generation of
-  FR-GEN-0001..0004, so re-enabling indexes is a declaration change rather than a re-implementation.</implementationNotes>
+  flag is unset.</implementationNotes>
   <depends>FR-GEN-0001</depends>
 </req>
 
@@ -117,7 +115,7 @@
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>src/rosettify-plugins/src/bootstrap/payload.ts (buildClaudeBootstrapEntry, buildCodexBootstrapEntry, buildCopilotBootstrapEntry, buildCursorBootstrapEntry exported; hookEntryShape switch deleted); src/rosettify-plugins/src/escaping/json-string.ts (buildCursorHookPayloadJson, buildCopilotHookPayloadJson added — the latter emits the merged top-level+nested shape); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (per-IDE assemblers compose their own entry builder). Template context key: bootstrap_hooks (one shared key). Join separator: `, `.</implementationNotes>
-  <notes>STATUS IS DELIBERATE: this unit is `Draft` while `implementation` is `Implemented` — it shipped ahead of approval. That is a real signal, not an oversight to tidy away. It carries `ticketId=""`, so it falls outside the #315 delta and outside the blanket approval covering it; nothing authorises approving it here. An approver name is recorded from an earlier review, which is why the pair looks inconsistent at a glance. Leave both values as they are until the unit is approved on its own merits.</notes>
+  <notes>Approval status and implementation status are independent here: this unit shipped before it was approved, and its `Draft` predates the #315 delta that would otherwise carry approval.</notes>
   <depends>INT-IDE-0002, FR-ARCH-0005, DATA-CFG-0008</depends>
 </req>
 
@@ -179,7 +177,7 @@
 
 <req id="FR-HOOK-0009" type="FR" level="System" ticketId="315" classification="technical">
   <title>Explicit, deterministic bootstrap-file order</title>
-  <statement>The generator shall assemble bootstrap context from an explicit ordered bootstrap-file manifest, and that order shall be significant and stable: it determines the sequence of entries in the emitted payload. The `plugin-files-mode` document shall lead the manifest, followed by the `bootstrap-*` rule documents. The manifest shall retain its two index-document entries as a dormant capability, gated by the index-entry inclusion flag that no spec enables, so no index document reaches any payload (FR-HOOK-0004, FR-GEN-0001). The order shall not depend on filesystem enumeration. No entry shall carry a per-entry lead designation: since the bootstrap prefix was removed (FR-HOOK-0003, Deprecated), no behavior distinguishes the first entry from the rest, and every entry's body is treated identically — including the leading-newline strip applied uniformly to all of them.</statement>
+  <statement>The generator shall assemble bootstrap context from an explicit ordered bootstrap-file manifest, and that order shall be significant and stable: it determines the sequence of entries in the emitted payload. The `plugin-files-mode` document shall lead the manifest, followed by the `bootstrap-*` rule documents. The manifest shall retain its two index-document entries; whether they contribute to a payload is FR-HOOK-0004 and is not restated here. The order shall not depend on filesystem enumeration. No entry shall carry a per-entry lead designation: since the bootstrap prefix was removed (FR-HOOK-0003, Deprecated), no behavior distinguishes the first entry from the rest, and every entry's body is treated identically — including the leading-newline strip applied uniformly to all of them.</statement>
   <rationale>The agent must receive bootstrap context in a deliberate sequence (mode first, then policies). The original relied on the position of the first match in an in-code list (`_BOOTSTRAP_FILES`); the fragility that made this matter (QF-1) was that reordering silently moved the bootstrap prefix. With the prefix gone there is nothing position-sensitive left to protect, so the explicit `isLead` flag was removed rather than kept as a field no behavior reads. Manifest order remains a required contract for payload sequence and determinism.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -200,9 +198,7 @@
   uniformly, holding no lead concept; isLead is absent from the entire tree, as is any per-entry lead
   designation on BootstrapEntryRef. The manifest retains __rules_index__ and __workflows_index__ as its
   last two entries, a dormant capability gated by includeIndexEntries which no spec enables - verified, no
-  index document reaches any payload. CORRECTED in this pass: the statement previously required the
-  manifest to contain no index document; per the owner's ruling the entries are kept and left unused
-  rather than deleted.</implementationNotes>
+  index document reaches any payload.</implementationNotes>
   <depends>NFR-0002</depends>
 </req>
 

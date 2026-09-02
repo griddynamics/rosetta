@@ -146,7 +146,7 @@ variant × IDE target) pair.
   read from nowhere else; a profile descriptor carries none of them (FR-PROF-0020, FR-PROF-0021). A
   set declaring one variant with empty suffixes produces exactly one plugin per IDE target, whatever
   profile that variant names. No two variants of one set may declare the same destination suffix.
-  This unit governs what a variant is and that every one is built; a `--profile` override of the
+  This unit governs what a variant is; a `--profile` override of the
   named profile is FR-CLI-0032.</statement>
   <rationale>Suffixes move to the variant because one `lightweight` profile must yield `-light` for the
   combo set and no suffix for the split sets; a suffix on the descriptor cannot express both, and a
@@ -293,14 +293,17 @@ variant × IDE target) pair.
      implementation="Implemented">
   <title>Per-set bootstrap flag and hook list</title>
   <statement>Each set shall declare a bootstrap flag and a hook list, and that declaration shall be the
-  sole determinant of the set's hook footprint: a rendered `hooks.json` shall carry a session-start
-  bootstrap block only where the flag is set, and shall carry exactly the hook entries the list names
-  and no others. A set that declares an empty hook list with its bootstrap flag unset shall
+  sole determinant of which hook modules the set REQUESTS: no plugin of that set shall carry a hook
+  entry its list does not name, and a set whose flag is unset shall request no session-start
+  bootstrap block anywhere. Which of the requested modules a given target actually binds, and
+  whether a bootstrap block is emitted for it at all, is that target's layout (DATA-CFG-0008). A
+  set's footprint is therefore NOT uniform across its targets: `claude` receives a bootstrap block
+  while `cursor`, whose layout declares no bootstrap slot, does not. A set that declares an empty hook list with its bootstrap flag unset shall
   produce neither a `hooks/` folder nor a `hooks.json`. Suppression by the effective
   deterministic-hooks value (FR-CLI-0012) shall not by itself remove the file: where a target's
   layout contributes no bootstrap block, the emitted configuration is valid but entry-less, which is
-  pre-existing behaviour this unit records rather than forbids (see notes). The declaration is per set, not per IDE target, so every IDE target of one set carries
-  the same footprint expressed in that IDE's own shape. Which bundle files a declared hook drags in is
+  pre-existing behaviour this unit records rather than forbids (see notes). The declaration is made once per set, not per IDE target, so every target of one set
+  starts from the same requested module list before its layout narrows it. Which bundle files a declared hook drags in is
   FR-HOOK-0020 and FR-HOOK-0022; how the declaration is assembled into the emitted configuration is
   FR-GEN-0011.</statement>
   <rationale>A shared preserved template cannot serve four sets while a static `hooks.json.tmpl` renders
@@ -316,7 +319,7 @@ variant × IDE target) pair.
     <criteria id="FR-SET-0070.AC7" ears="event" when="a set declaring hooks is built for a target whose layout contributes no bootstrap block, with the effective deterministic-hooks value false" system="the generator" shall="emit a valid but entry-less `hooks.json`, keeping any IDE manifest reference to it resolvable"/>
     <criteria id="FR-SET-0070.AC4" ears="ubiquitous" system="the generator" shall="emit no hook entry that the building set's declared list does not name"/>
     <criteria id="FR-SET-0070.AC5" ears="state" while="the effective deterministic-hooks value is false" system="the generator" shall="emit no entry from any set's declared hook list, leaving only the session-start bootstrap block where the flag is set"/>
-    <criteria id="FR-SET-0070.AC6" ears="ubiquitous" system="the generator" shall="apply one set's declaration identically to every IDE target of that set"/>
+    <criteria id="FR-SET-0070.AC6" ears="ubiquitous" system="the generator" shall="present one set's declared module list identically to every IDE target of that set, each target's layout then binding the subset it supports"/>
   </acceptance>
   <implementationNotes>Implemented against the corrected text: PluginSpec.hookModules, hookLayout and bootstrap
   (src/rosettify-plugins/src/types.ts) carry the set's declaration; resolveHookModules
@@ -328,8 +331,6 @@ variant × IDE target) pair.
   bootstrap unset - verified on a real --release r3 build: advanced, qe, search and modernization ship
   zero hooks.json and zero hooks/ directories across all seven IDE targets, while rosetta and core ship
   theirs. At the default deterministic-hooks=false (FR-CLI-0012) no entry from any declared list is
-  emitted, which AC5 requires. CORRECTED in this pass: the statement and AC7 previously required the file
-  to disappear whenever deterministic-hooks suppression emptied it; that clause was never met by any
-  shipped build and is now recorded as deferred pre-existing behaviour in the notes below.</implementationNotes>
+  emitted, which AC5 requires.</implementationNotes>
   <notes>A target whose `HOOK_LAYOUTS` bootstrap slot is `null` or `empty` — Cursor, Cursor-standalone, Copilot-standalone and Antigravity — emits a valid but ENTRY-LESS `hooks.json` when the effective deterministic-hooks value (FR-CLI-0012) suppresses the hooks its set declares. This predates #315: the pre-change golden tree shipped the same 12 files (`core-cursor{,-light}` and `core-cursor-standalone{,-light}` at 37 bytes, `core-copilot-standalone*` at 60, `core-antigravity{,-light}` at 68), and the current tree ships the equivalent set, the byte counts differing only because the assembler emits compact JSON where the template carried whitespace. Suppressing the file is DEFERRED: an IDE manifest references it — Cursor's `plugin.json` declares `"hooks": "./hooks/hooks.json"` — so removing it requires per-IDE verification that a dangling manifest reference does not break plugin load, which cannot be tested here. The narrower guarantee that a set declaring no hooks with `bootstrap: false` ships neither a `hooks/` folder nor a `hooks.json` is unaffected and verified.</notes>
 </req>

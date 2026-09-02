@@ -6,23 +6,23 @@ Per-target requirements: required output structure, **why each target is shaped 
 
 The generator assembles the bootstrap context values uniformly for every target (FR-HOOK-0001) and exposes them to template rendering as the `bootstrap_hooks` template context value. **Whether and how those values reach the agent is decided by the target's preserved templates and rule/instruction files, not by the generator.** A hook template that references `{{{bootstrap_hooks}}}` delivers bootstrap via session-start hooks; a template that omits the placeholder delivers nothing through hooks, and the target instead relies on natively auto-loaded rules/instructions (`alwaysApply`/`applyTo: "**"`) that already carry the same bootstrap bodies. The generator does not classify or choose a delivery mechanism — it always assembles the values and always size-checks them (NFR-0004); the preserved templates own the consumption decision. See the authoritative per-IDE guides (REFERENCES.md, INT-IDE-0002) for each IDE's capability.
 
-<req id="FR-VAR-0070" type="FR" level="System" ticketId="" classification="technical">
-  <title>Uniform bootstrap assembly; delivery owned by preserved templates/rules</title>
+<req id="FR-VAR-0070" type="FR" level="System" ticketId="315" classification="technical">
+  <title>Uniform bootstrap assembly; delivery decided by set flag and target layout</title>
   <statement>The generator shall assemble and expose the bootstrap context values uniformly for every target, and shall size-check every assembled entry (NFR-0004), regardless of how the target ultimately delivers bootstrap. The generator shall not hold a per-target "delivery strategy" field nor branch on a delivery mechanism. A target shall deliver bootstrap via session-start hooks if and only if BOTH the building set declares its bootstrap flag AND that target's hook layout declares a bootstrap slot whose payload discriminant is `inject`; a target whose layout declares no such slot shall deliver the same content via its natively auto-loaded rule/instruction files instead. Which targets carry which slot is data (DATA-CFG-0008) and the set's flag is its own declaration (FR-SET-0070), so the decision is a conjunction of two declared values rather than a rule encoded in generator control flow. A target that both receives the payload through hooks and auto-loads the same bootstrap content in its rules would double-deliver; preventing that remains a property of the preserved templates/rules, owned by the template/rule author per the IDE guide.</statement>
-  <rationale>Generation stays uniform and content-agnostic (NFR-0006, FR-ARCH-0004): the generator produces values, the IDE-config author's preserved templates/rules decide delivery. This avoids encoding consumption policy in the engine and matches each IDE's documented capability.</rationale>
+  <rationale>Generation stays uniform and content-agnostic (NFR-0006, FR-ARCH-0004): the generator assembles the same payload for every target and two declared values decide whether it is delivered through hooks — the set's own bootstrap flag and the target's layout slot. Both are data, so the engine encodes no consumption policy and no delivery-strategy branch, and each IDE's documented capability is expressed by its layout entry rather than by a rule in control flow.</rationale>
   <source>User</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
   <changed>2026-09-02</changed>
   <verification>Inspection</verification>
   <acceptance>
     <criteria>Given: any target When: generated Then: its bootstrap entries are assembled and size-checked, independent of delivery mechanism.</criteria>
-    <criteria>Given: a target whose hook layout declares no bootstrap slot When: generated Then: its hooks carry no bootstrap payload and the same content is delivered by its auto-loaded rules/instructions.</criteria>
+    <criteria>Given: a target whose hook layout declares no bootstrap slot, or declares one that never carries a payload When: generated Then: its hooks carry no bootstrap payload and the same content is delivered by its auto-loaded rules/instructions.</criteria>
     <criteria>Given: the generator When: inspected Then: it holds no per-target bootstrap-delivery-strategy field and does not branch on a delivery mechanism.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: the four per-IDE assemblers src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts always assemble and size-check the full payload regardless of delivery, writing the one shared templateContext key `bootstrap_hooks`. The delivery decision is emitsHooksJson in src/rosettify-plugins/src/plugin-processors/plugin-assemble-hooks-json.ts, `bootstrap` conjoined with `layout.bootstrap?.payload === 'inject'` — the set's flag conjoined with the target's HOOK_LAYOUTS slot. No delivery-strategy field exists on PluginSpec and no processor branches on a delivery mechanism. CORRECTED on 2026-09-02: this unit previously keyed delivery to the presence of a `{{{bootstrap_hooks}}}` placeholder in the preserved hook template. All seven templates under src/rosettify-plugins/plugins/ are now the single line `{{{hooks_json}}}` and none carries that placeholder, so the old wording asserted that no target delivers bootstrap via hooks — false for claude, codex and copilot, whose layouts declare an `inject` slot.</implementationNotes>
+  <implementationNotes>Implemented: the four per-IDE assemblers src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts always assemble and size-check the full payload regardless of delivery, writing the one shared templateContext key `bootstrap_hooks`. The delivery decision is the bootstrap branch of buildHooksDocument in src/rosettify-plugins/src/plugin-processors/plugin-assemble-hooks-json.ts: a payload is injected only where the layout declares a bootstrap slot whose discriminant is `inject` and the set's bootstrap flag is set. The same conjunction appears in emitsHooksJson only as its no-modules fallback, that function returning true whenever the set requests any hook module. No delivery-strategy field exists on PluginSpec and no processor branches on a delivery mechanism.</implementationNotes>
   <depends>INT-IDE-0002, FR-HOOK-0001, FR-HOOK-0004, FR-ARCH-0004, DATA-CFG-0008</depends>
 </req>
 
@@ -64,7 +64,7 @@ The generator assembles the bootstrap context values uniformly for every target 
     <criteria>Given: the declaration When: read Then: it distinguishes Rosetta unit paths, which are relative to the root, from target-repo workspace paths, which are not.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: buildRootDeclaration in src/rosettify-plugins/src/plugin-processors/plugin-emit-distribution-root.ts composes the text — root, repository-root working directory, the relative-path rule, the `agents/IMPLEMENTATION.md` workspace carve-out, and an optional workflow clause that deriveWorkflowGlob omits when the set emits no workflow frames. The pluginEmitDistributionRoot factory is composed into exactly the two standalone specs in src/rosettify-plugins/src/spec/targets.ts. No index section is declared anywhere, index generation being retained but unused (FR-GEN-0001). CORRECTED on 2026-09-02: this unit previously required insertion via pluginInjectSections at a `# PREP STEP 1:` anchor. That module is deleted. The anchor was absent from instructions/r3/core/rules/plugin-files-mode.md, so the injection silently skipped and NO shipped standalone ever carried the text, while unit tests passed against a fixture that did contain the anchor. The replacement has no anchor and no skip path.</implementationNotes>
+  <implementationNotes>Implemented: buildRootDeclaration in src/rosettify-plugins/src/plugin-processors/plugin-emit-distribution-root.ts composes the text — root, repository-root working directory, the relative-path rule, the `agents/IMPLEMENTATION.md` workspace carve-out, and an optional workflow clause that deriveWorkflowGlob omits when the set emits no workflow frames. The pluginEmitDistributionRoot factory is composed into exactly the two standalone specs in src/rosettify-plugins/src/spec/targets.ts. No index section is declared anywhere, index generation being retained but unused (FR-GEN-0001).</implementationNotes>
   <depends>FR-VAR-0070, FR-ARCH-0051</depends>
 </req>
 
@@ -276,9 +276,7 @@ All content under `.cursor/`; bootstrap delivered via **native Cursor rules** (`
   generated from source rather than derived from the cursor target - buildSpecsForSet composes the
   standalone spec from the instruction VFS like every other target. Its extraction root is declared per
   FR-VAR-0072: .cursor/rules/plugin-files-mode.mdc now carries `STANDALONE DISTRIBUTION - Rosetta plugin
-  root: `.cursor`` with the workflow clause `commands/*.md`. CORRECTED on 2026-09-02: the statement
-  previously named pluginInjectSections, a module now deleted, whose anchor never matched the real r3
-  source so the text never reached this distribution.</implementationNotes>
+  root: `.cursor`` with the workflow clause `commands/*.md`.</implementationNotes>
   <depends>FR-CLI-0040, FR-SEED-0002, FR-VAR-0070, FR-VAR-0072</depends>
 </req>
 
@@ -309,9 +307,7 @@ All content under `.github/`; bootstrap delivered via **auto-loaded instructions
   FR-VAR-0072: .github/instructions/plugin-files-mode.instructions.md carries `STANDALONE DISTRIBUTION -
   Rosetta plugin root: `.github`` with the workflow clause `prompts/*.prompt.md`, the compound extension
   derived from the emitted frames rather than configured. Host matching succeeds despite the
-  .instructions.md rename because baseDocName takes the basename to its first dot. CORRECTED on
-  2026-09-02: the statement previously named pluginInjectSections and regenerated indexes, neither of
-  which exists now.</implementationNotes>
+  .instructions.md rename because baseDocName takes the basename to its first dot.</implementationNotes>
   <depends>FR-CLI-0040, FR-SEED-0002, FR-VAR-0070, FR-VAR-0072, FR-ARCH-0043</depends>
 </req>
 
@@ -386,7 +382,7 @@ One combined plugin serves all three Antigravity products (Antigravity, Antigrav
 <req id="FR-VAR-0082" type="FR" level="System" ticketId="138" classification="technical">
   <title>Antigravity bootstrap via always-on rule</title>
   <statement>The Antigravity variant shall deliver the bootstrap context through the source's natively auto-loaded bootstrap rule — authored with `trigger: always_on` (e.g. `bootstrap-alwayson.md`, `plugin-files-mode.md`) — and shall not deliver bootstrap through a session-start hook. The generator shall preserve that authored activation (it does not set triggers), assemble and size-check the bootstrap values uniformly (FR-VAR-0070), and omit the bootstrap placeholder from the Antigravity hook template.</statement>
-  <rationale>Antigravity has no session-start hook mechanism; its hooks are tool-event hooks. Delivery via a `trigger: always_on` rule is verified across the three products; it is the auto-loaded surface that carries bootstrap (Antigravity's `SessionStart`-analog, `PreInvocation`, is reserved for other hooks, not bootstrap). This is consistent with the FR-VAR-0070 principle that delivery is owned by the preserved templates/rules, not a generator strategy flag.</rationale>
+  <rationale>Antigravity has no session-start hook mechanism; its hooks are tool-event hooks. Delivery via a `trigger: always_on` rule is verified across the three products; it is the auto-loaded surface that carries bootstrap (Antigravity's `SessionStart`-analog, `PreInvocation`, is reserved for other hooks, not bootstrap). This is consistent with FR-VAR-0070: this target's layout declares no bootstrap slot, so no payload is delivered through hooks, not a generator strategy flag.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -428,10 +424,7 @@ One combined plugin serves all three Antigravity products (Antigravity, Antigrav
   HOOK_LAYOUTS.antigravity binds only dangerous-actions and read-once and modulesForTarget
   (src/rosettify-plugins/src/spec/targets.ts) intersects the set's list with what the layout binds; and
   plugin-assemble-hooks-json.ts contains no occurrence of the target name, so the exclusion is layout data
-  with no identity branch in control flow. CORRECTED in this pass: the statement previously said the
-  TEMPLATE references the declared hooks and that it omits a bootstrap placeholder - selection and
-  omission are both decided by the assembler and HOOK_LAYOUTS, the template being the single line
-  {{{hooks_json}}}.</implementationNotes>
+  with no identity branch in control flow.</implementationNotes>
   <depends>INT-IDE-0002, FR-SET-0070, FR-HOOK-0020</depends>
   <notes>Grounded facts (per `docs/hooks/antigravity.md`): `SessionStart` is not a valid Antigravity event (its analog is `PreInvocation @ invocationNum:0`); `PostToolUse` output is `{}` (ignored) — the reason the advisory hooks are excluded; bootstrap rides the always-on rule rather than the PreInvocation hook, per this target's null bootstrap slot (DATA-CFG-0008). The exclusion applies to the sets built for this target only; the same hook names remain available to other targets.</notes>
 </req>

@@ -131,8 +131,7 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   folder exists under <instructionsSource>/<release>/, so a nonexistent domain value falls through to the
   generic 'No plugin sets to build' message in generate.ts, which never names the missing instruction
   folder. Verified empirically with --domain zzz-nonexistent-domain: exit 1, but the message does not name
-  the folder as this unit requires. ORG-LAYER: the notes were corrected in this pass - org content is now
-  its own declared set, not an overlay layer.</implementationNotes>
+  the folder as this unit requires.</implementationNotes>
   <depends>DATA-CFG-0001, DATA-CFG-0007, FR-SET-0020</depends>
   <notes>Organization content is declared as its own plugin set in the configuration rather than passed on the command line; org-overlay layering is retired entirely, so the argument no longer introduces a layer the configuration does not declare.</notes>
 </req>
