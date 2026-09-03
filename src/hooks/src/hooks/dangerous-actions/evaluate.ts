@@ -117,6 +117,10 @@ export function hasAIReviewedMarker(
       return v.some(item => {
         if (typeof item === 'string') return MARKER_RE.test(item);
         if (item && typeof item === 'object') {
+          if (toolName === 'MultiEdit') {
+            const newString = (item as Record<string, unknown>).new_string;
+            return typeof newString === 'string' && MARKER_RE.test(newString);
+          }
           return Object.values(item as Record<string, unknown>)
             .some(inner => typeof inner === 'string' && MARKER_RE.test(inner));
         }
