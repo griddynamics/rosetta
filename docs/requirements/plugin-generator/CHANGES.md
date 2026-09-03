@@ -514,3 +514,27 @@ ARCHITECTURE.md plugin section updated: "Claude Code uses short names (`sonnet`,
 **Change:** The 10,000-char check measured the JSON-wrapped/escaped payload (a Claude-shaped proxy), giving Copilot's merged-emit entries a false pass. Now measures the raw content directly — IDE-shape-independent.
 
 **Status:** `Draft` (implementation changed; pending re-approval).
+
+### RECONCILIATION-14 — hook-configuration content has no oracle
+
+**Files:** `NFR.md`, `INDEX.md`, `TRACE.md`
+
+**Change:** `NFR-0001` compares output file PATHS only and says so deliberately; the equivalence
+check compounded it by listing `hooks.json` among its permitted-difference classes. Between them,
+a hook-configuration document that changed SHAPE while keeping its path was invisible to every
+gate — which is how `<set>-copilot/hooks/hooks.json` went from the 60-byte standalone form to a
+byte-identical copy of the 24443-byte plugin form during #315 with all gates green. Added
+`NFR-0012` (hook-configuration content parity) as the content-shape complement to `NFR-0001`: it
+asserts the RELATIONSHIPS between the documents a target emits — declared path set, required
+identity (codex mirror pair, copilot alternate-name copy), required distinctness (copilot's two
+forms; cursor's two forms where the deterministic-hooks value makes them distinguishable), form
+markers, and JSON validity — plus a recorded content digest per document. Relationships rather
+than frozen bytes, so the gate stays valid as the bootstrap payload legitimately moves with the
+instruction source. `NFR-0001` notes and the `INDEX.md` summary now name where content is covered;
+`TRACE.md` traces `NFR-0012` to G7 alongside `NFR-0001`.
+
+**Status:** `Draft` (the capability was owner-approved — `follow.md` OWNER'S ASKS item 12 — but
+this unit's text is new and awaits review). Implemented as
+`plans/issue-315-plugin-sets/verify/ac_hooks_content.py`, validated in both directions: ALL PASS
+(28 assertions) against the pre-#315 golden snapshot, 12 failures against the tree carrying the
+regression.

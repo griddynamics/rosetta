@@ -71,6 +71,7 @@ Criteria owned by units another file authors are marked `(other file)`; their `.
 | G7 | FR-PROF-0021 | (other file — FR-PROF.md) | Test |
 | G7 | FR-PROF-0040 | (other file — FR-PROF.md) | Test |
 | G7 | NFR-0001 | (other file — NFR.md) | Test |
+| G7 | NFR-0012 | (other file — NFR.md) | Test |
 | G8 | FR-SET-0060 | .AC1, .AC2, .AC3, .AC4, .AC5 | Test |
 | G8 | FR-SET-0030 | .AC1, .AC2, .AC5 | Test |
 | G8 | FR-CLI-0030 | (other file — FR-CLI.md) | Test |

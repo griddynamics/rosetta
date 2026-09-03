@@ -25,7 +25,47 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
   bundles when deterministic hooks are off. The oracle in tests/e2e/parity-derive-structure.ts
   (deriveExpectedPaths) imports no generator code and is directive- and profile-aware, so it independently
   predicts the expected path set.</implementationNotes>
-  <notes>Redefined from the former byte-for-byte parity stance: the previous generator (the byte-identity reference) was removed in r2, its snapshot baselines were gitignored and are no longer produced, so a content-diff oracle can no longer run. Parity is now structural (path/layout) per plugin; content is covered by the sample and Antigravity E2E suites and the unit tests.</notes>
+  <notes>Redefined from the former byte-for-byte parity stance: the previous generator (the byte-identity reference) was removed in r2, its snapshot baselines were gitignored and are no longer produced, so a content-diff oracle can no longer run. Parity is now structural (path/layout) per plugin; content is covered by the sample and Antigravity E2E suites and the unit tests. One content-shape case is NOT covered by those and has its own unit: where a target emits two hook-configuration documents that occupy fixed, different paths and differ only in content, this path-only oracle is blind to their collapse — see NFR-0012, which asserts the relationships between those documents rather than freezing their bytes.</notes>
+</req>
+
+<req id="NFR-0012" type="NFR" level="System" ticketId="315" classification="technical">
+  <title>Hook-configuration content parity</title>
+  <statement>Where one (set variant × IDE target) pair emits more than one `hooks.json` document, the generator shall preserve the declared relationship between those documents, and that relationship shall be verified over document CONTENT rather than over paths alone (NFR-0001 covers paths and explicitly does not compare content). For each pair the verification shall assert: the exact set of `hooks.json` paths that target emits; that documents declared byte-identical are byte-identical — the `codex` mirror pair (`.codex-plugin/hooks.json` ↔ `.codex/hooks.json`) and the `copilot` alternate-name copy (`hooks.json` ↔ `.github/plugin/hooks.json`, FR-VAR-0030); that documents declared to be different FORMS are not byte-identical — `copilot`'s plugin form against its standalone-form staging document (FR-VAR-0030), and `cursor`'s two forms where the effective deterministic-hooks value makes them distinguishable; that each document carries its own form's addressing and no other's, a standalone form carrying neither the marketplace plugin-root probe nor a non-empty session-start array; and that every emitted document parses as JSON. The verification shall additionally record a content digest per emitted document, so that a change in any hook configuration's content is surfaced for classification rather than passing silently. Documents under `**/skills/harness/references/hooks/**` are verification probe harnesses, not shipping configuration, and are excluded.</statement>
+  <rationale>A paths-only oracle cannot see a document that changes SHAPE while keeping its path, and the two distinct hook-configuration forms a target emits are exactly such a case: they occupy fixed, different paths and differ only in content. This was not hypothetical — under #315 `<set>-copilot/hooks/hooks.json` changed from the 60-byte standalone form to a byte-identical copy of the 24443-byte plugin form, and every acceptance gate passed, because NFR-0001 compares paths and the equivalence check listed `hooks.json` among its permitted-difference classes. Asserting the RELATIONSHIPS between the documents, rather than freezing their bytes, keeps the gate valid as the bootstrap payload legitimately changes with the instruction source — the same self-updating property NFR-0001 has, applied to content shape. The digest is recorded rather than pinned for the same reason: it makes a content change visible for classification without failing a build whose content was supposed to move.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Draft</status>
+  <approved_by></approved_by>
+  <changed>2026-09-03</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: any (set variant × IDE target) pair that emits hook configuration When: its output is inspected Then: the set of emitted `hooks.json` paths equals the set that target declares, with no additional and no missing document.</criteria>
+    <criteria>Given: the `codex` target When: generated Then: `.codex-plugin/hooks.json` and `.codex/hooks.json` are byte-identical.</criteria>
+    <criteria>Given: the `copilot` target When: generated Then: `hooks.json` and `.github/plugin/hooks.json` are byte-identical, and `hooks/hooks.json` is NOT byte-identical to either.</criteria>
+    <criteria>Given: a standalone-form hook document When: inspected Then: it carries no marketplace plugin-root probe, and its session-start key is present and empty.</criteria>
+    <criteria>Given: a plugin-form hook document When: inspected Then: it does not address hook bundles by the in-repo extraction path.</criteria>
+    <criteria>Given: the `cursor` target generated with the effective deterministic-hooks value true When: its two forms are compared Then: they are not byte-identical; with that value false both legitimately reduce to the same entry-less document and no distinctness is asserted.</criteria>
+    <criteria>Given: any emitted hook configuration document When: parsed Then: it is valid JSON.</criteria>
+    <criteria>Given: any emitted hook configuration document When: the gate runs Then: a content digest for it is reported.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: plans/issue-315-plugin-sets/verify/ac_hooks_content.py, driven by a per-target
+  declaration of the emitted path set and the identity, distinctness and form-marker relations between
+  those paths. Takes --tree (default plugins/) and --posture, since the cursor distinctness criterion
+  only applies at deterministic-hooks true. Validated in both directions rather than by synthetic
+  mutation: ALL PASS (28 assertions) against the pre-#315 output preserved at agents/TEMP/315-golden,
+  and 12 failures against the tree carrying the #315 regression, each naming the collapse across
+  core-copilot, rosetta-copilot and rosetta-copilot-light.</implementationNotes>
+  <depends>NFR-0001, FR-VAR-0030, FR-VAR-0071, FR-SET-0070</depends>
+  <notes>Two scopes exist deliberately. The relational assertions (path set, identity, distinctness,
+  form markers, JSON validity) need no baseline and can run anywhere, including CI. The golden
+  cross-check that compares copilot's standalone-staging document byte-for-byte against
+  agents/TEMP/315-golden additionally requires that snapshot, which is SCM-excluded and therefore
+  local-only; it is skipped when absent rather than failing. NFR-0001's note that "a content-diff
+  oracle can no longer run" holds for the removed byte-identity reference it describes, but not for
+  this relational check, which derives its expectations from the per-target contract rather than from
+  a frozen snapshot. The capability was owner-approved (follow.md, OWNER'S ASKS item 12); this unit's
+  text is new and awaits review, hence Draft.</notes>
 </req>
 
 <req id="NFR-0002" type="NFR" level="System" ticketId="" classification="technical">
