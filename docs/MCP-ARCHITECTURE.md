@@ -50,7 +50,7 @@ Covers: the full MCP pipeline (Instructions Repo → CLI → RAGFlow → `rosett
               │  Instructions Repo  │
               │  /instructions/r3/  │
               │                     │
-              │  core/ · advanced/  │
+              │  core/ · workflows/ │
               │  qe/ · search/      │
               │  modernization/     │
               │  skills · agents    │
@@ -134,7 +134,7 @@ The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instr
 - **Tags:** all folder names + filename + composite pairs/triples (`core/skills`, `r3/qe/workflows`, etc.). These are what the typed load aliases query against.
 - **Frontmatter:** parsed from file content, saved as metadata. Exposed later in `<rosetta:file>` attributes so agents see document structure without loading full content.
 - **Resource path:** `skills/planning/SKILL.md` (domain-set prefix stripped). This is the VFS path used everywhere in MCP.
-- **Domain** (the set folder under the release: `core`, `advanced`, `qe`, `search`, `modernization`), **release** (`r3`), **collection** (`aia-r3`): derived from folder structure.
+- **Domain** (the set folder under the release: `core`, `workflows`, `qe`, `search`, `modernization`), **release** (`r3`), **collection** (`aia-r3`): derived from folder structure.
 - **Title:** `[r3][core][skills][planning] SKILL.md` (tag-in-title format).
 
 **Environment:** `.env.dev` (dev RAGFlow) or `.env.prod` (production). Switch with `cp .env.dev .env`.
@@ -252,13 +252,13 @@ Documents sorted by `sort_order` (default: 1000000), then by name.
 
 ### Instruction root filter
 
-`INSTRUCTION_ROOT_FILTER` is a comma-separated list of domain sets. Its purpose is to restrict what a deployment serves, for example `CORE,ADVANCED` for a deployment that wants the general engineering library without the QE, search, and modernization content.
+`INSTRUCTION_ROOT_FILTER` is a comma-separated list of domain sets. Its purpose is to restrict what a deployment serves, for example `CORE,WORKFLOWS` for a deployment that wants the general engineering library without the QE, search, and modernization content.
 
 Two things to know before you set it.
 
 **It is not applied today.** The server parses the variable into `Config.root_filter` (`src/rosetta-mcp-server/rosetta_mcp/config.py:283,325,343`) and nothing reads it afterwards. Setting it changes nothing about what MCP returns.
 
-**Roots are domain sets.** `instructions/r3/` holds five of them: `core`, `advanced`, `qe`, `search`, `modernization`. Once the filter is wired up, `INSTRUCTION_ROOT_FILTER=CORE` would serve the `core` set alone, roughly a fifth of Rosetta, with no subagents and no orchestrated workflows. A filter value has to name every domain you want.
+**Roots are domain sets.** `instructions/r3/` holds five of them: `core`, `workflows`, `qe`, `search`, `modernization`. Once the filter is wired up, `INSTRUCTION_ROOT_FILTER=CORE` would serve the `core` set alone, roughly a fifth of Rosetta, with no subagents and no orchestrated workflows. A filter value has to name every domain you want.
 
 Plugin mode has no runtime Bundler. The generator selects domain sets at build time instead, via `--domain` and the `plugins.json` catalog. See [ARCHITECTURE.md — Instruction Structure](ARCHITECTURE.md#instruction-structure).
 

@@ -124,7 +124,7 @@
   warns-and-continues on a missing template or render error - verified, zero .tmpl files reach the output
   tree. emitsHooksJson (plugin-assemble-hooks-json.ts) suppresses both hooks.json and the hooks/ folder
   for a set declaring an empty hook list with bootstrap unset: verified on a real --release r3 build, all
-  four add-on sets (advanced, qe, search, modernization) ship zero hooks.json and zero hooks/ directories
+  four add-on sets (workflows, qe, search, modernization) ship zero hooks.json and zero hooks/ directories
   across every IDE target. The render context in generate.ts is baseTemplateContext = { release,
   deterministic_hooks, bootstrap_hooks, hooks_json }, every key plumbed explicitly so strict rendering
   cannot meet an unknown one.</implementationNotes>

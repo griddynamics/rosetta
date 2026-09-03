@@ -21,7 +21,7 @@ An earlier design used org-namespaced overlay folders (`grid/`, `acme/`) that sh
 instructions/
   r3/
     core/            ← skills, rules, templates, bootstrap (filter key: CORE)
-    advanced/        ← agents, orchestrated workflows
+    workflows/       ← agents, orchestrated workflows
     qe/              ← test automation
     search/          ← Solr
     modernization/   ← conversion workflows
@@ -41,7 +41,7 @@ CLI always publishes the entire `/instructions` folder (`--force` for full repub
 
 ## Occurrences
 
-- `instructions/r3/{core,advanced,qe,search,modernization}/` — the five sets
+- `instructions/r3/{core,workflows,qe,search,modernization}/` — the five sets
 - `src/rosettify-plugins/plugins.json` — the catalog mapping sets to plugins
 - `src/rosettify-plugins/src/cli.ts` — `--domain`, a folder filter over sets
 - `src/rosetta-mcp-server/rosetta_mcp/config.py` — `INSTRUCTION_ROOT_FILTER` env var, parsed and not yet read anywhere

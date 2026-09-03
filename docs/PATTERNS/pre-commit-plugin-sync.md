@@ -27,7 +27,7 @@ IDE plugin trees are derived artifacts, not source. Manual sync is error-prone a
 One invocation reads `src/rosettify-plugins/plugins.json` and expands sets, variants, and IDE targets into 49 plugin trees under `plugins/`, named `<set>-<ide>`:
 
 - `plugins/rosetta-<ide>` and `plugins/rosetta-<ide>-light` — the combo set, all five subject folders
-- `plugins/core-<ide>`, `advanced-<ide>`, `qe-<ide>`, `search-<ide>`, `modernization-<ide>` — one domain set each
+- `plugins/core-<ide>`, `workflows-<ide>`, `qe-<ide>`, `search-<ide>`, `modernization-<ide>` — one domain set each
 
 The seven IDE targets are `claude`, `cursor`, `copilot`, `codex`, `cursor-standalone`, `copilot-standalone`, `antigravity`. `plugins.json` is validated before anything is written, so a malformed catalog aborts the run rather than emitting a partial tree.
 

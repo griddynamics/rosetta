@@ -120,7 +120,7 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   <acceptance>
     <criteria>Given: no domain argument When: invoked Then: every set the configuration declares is built.</criteria>
     <criteria>Given: `--domain qe` When: invoked Then: only the `qe` set is built and nothing is written for any other set.</criteria>
-    <criteria>Given: `--domain core,advanced` and sets `core` (`folders: [core]`), `advanced` (`folders: [advanced]`) and `rosetta` (`folders: [core, advanced, qe, search, modernization]`) When: invoked Then: `core` and `advanced` are built and `rosetta` is not, because not all of its folders are named.</criteria>
+    <criteria>Given: `--domain core,workflows` and sets `core` (`folders: [core]`), `workflows` (`folders: [workflows]`) and `rosetta` (`folders: [core, workflows, qe, search, modernization]`) When: invoked Then: `core` and `workflows` are built and `rosetta` is not, because not all of its folders are named.</criteria>
     <criteria>Given: `--domain qe` When: the `qe` set is built Then: its folder composition and layering order are exactly its declared `folders`, unaffected by the filter.</criteria>
     <criteria>Given: `--domain acme` and no `instructions/<release>/acme/` folder When: invoked Then: the missing folder is reported and the run exits non-zero without generating output.</criteria>
   </acceptance>
@@ -147,9 +147,9 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   <changed>2026-09-01</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `--domain advanced,core` and a set declaring `folders: [core, advanced]` When: matched Then: the set is built; argument order is immaterial.</criteria>
-    <criteria>Given: `--domain core` and a set declaring `folders: [core, advanced]` When: matched Then: the set is not built.</criteria>
-    <criteria>Given: `--domain core,advanced,qe,search,modernization` When: matched Then: every declared set is built, the combo `rosetta` set included.</criteria>
+    <criteria>Given: `--domain workflows,core` and a set declaring `folders: [core, workflows]` When: matched Then: the set is built; argument order is immaterial.</criteria>
+    <criteria>Given: `--domain core` and a set declaring `folders: [core, workflows]` When: matched Then: the set is not built.</criteria>
+    <criteria>Given: `--domain core,workflows,qe,search,modernization` When: matched Then: every declared set is built, the combo `rosetta` set included.</criteria>
     <criteria>Given: `--domain search,qe` where `qe` is used only by sets the filter does not otherwise match When: matched Then: the unused value is ignored rather than reported as an error.</criteria>
     <criteria>Given: a filter whose named folders exist but match no declared set When: the run completes Then: no plugin output is written, the empty selection is reported, and exit status is zero.</criteria>
   </acceptance>

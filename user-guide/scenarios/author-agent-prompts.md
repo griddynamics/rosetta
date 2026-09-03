@@ -65,5 +65,5 @@ Analysis artifacts in the plan folder (`prompt-brief.md`, `open-questions.md`, `
 
 ## Sources
 
-- Workflow: [`instructions/r3/advanced/workflows/coding-agents-prompting-flow.md`](../../instructions/r3/advanced/workflows/coding-agents-prompting-flow.md)
+- Workflow: [`instructions/r3/workflows/workflows/coding-agents-prompting-flow.md`](../../instructions/r3/workflows/workflows/coding-agents-prompting-flow.md)
 - Skill: [`coding-agents-prompt-authoring`](../../instructions/r3/core/skills/coding-agents-prompt-authoring/SKILL.md)

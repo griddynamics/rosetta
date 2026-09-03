@@ -42,10 +42,10 @@
       "category": "Productivity"
     },
     {
-      "name": "advanced",
+      "name": "workflows",
       "source": {
         "source": "local",
-        "path": "./plugins/advanced-codex"
+        "path": "./plugins/workflows-codex"
       },
       "policy": {
         "installation": "AVAILABLE",

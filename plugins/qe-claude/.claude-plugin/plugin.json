@@ -1,6 +1,6 @@
 {
   "name": "qe",
-  "description": "Rosetta QE - test automation and quality-engineering workflows. Requires Rosetta Core and Advanced.",
+  "description": "Rosetta QE - test automation and quality-engineering workflows. Requires Rosetta Core and Workflows.",
   "version": "3.1.13",
   "author": {
     "name": "Grid Dynamics",

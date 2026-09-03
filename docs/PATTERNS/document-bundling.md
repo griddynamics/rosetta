@@ -41,4 +41,4 @@ Documents sorted by `sort_order` metadata (default `1000000`), then by name. A p
 - `src/rosetta-mcp-server/rosetta_mcp/services/bundler.py` — `Bundler` class
 - `src/rosetta-mcp-server/rosetta_mcp/tools/instructions.py` — threshold decision
 - `src/rosetta-mcp-server/rosetta_mcp/tools/resources.py` — VFS resource reads
-- `instructions/r3/{core,advanced,qe,search,modernization}/` — the domain sets that supply bundled content
+- `instructions/r3/{core,workflows,qe,search,modernization}/` — the domain sets that supply bundled content

@@ -20,7 +20,7 @@ The files a plugin keeps but never generates — the IDE manifest, hook template
     <criteria>Given: an empty output directory for one plugin When: it is generated Then: every preserved file from `<preservedFilesSource>/<template>-<ide>/` is present at its output-relative path and the generated content is present on top.</criteria>
     <criteria>Given: the seeding step When: it runs Then: it completes before any instruction-derived content is written for that target.</criteria>
     <criteria>Given: a clean environment with only the instruction source and the preserved-file source present When: the generator runs Then: each plugin output is complete with no pre-existing files required in the output tree.</criteria>
-    <criteria>Given: the `advanced`, `qe`, `search` and `modernization` sets, all naming the `template` template When: each is generated for `claude` Then: all four seed from `<preservedFilesSource>/template-claude/`.</criteria>
+    <criteria>Given: the `workflows`, `qe`, `search` and `modernization` sets, all naming the `template` template When: each is generated for `claude` Then: all four seed from `<preservedFilesSource>/template-claude/`.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>Implemented: pluginCopy (src/rosettify-plugins/src/plugin-processors/plugin-copy.ts) resolves each

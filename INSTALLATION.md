@@ -35,7 +35,7 @@ Rosetta publishes plugins for supported IDEs. Each plugin installs the full Rose
 - **Marketplace** — managed install from a plugin marketplace. Easier; preferred when available.
 - **Standalone** — manual zip extraction into your repo. For agents without a marketplace path, or environments that block external marketplaces.
 
-Rosetta ships as seven plugins: the combo `rosetta`, its lightweight twin `rosetta-light`, and the five domain sets they bundle (`core`, `advanced`, `qe`, `search`, `modernization`). The steps below install `rosetta`, which is what most people want. Install the combo or the split plugins, never both. See [PLUGINS.md](PLUGINS.md#which-plugin-do-i-install) for the choice and for what each set contains.
+Rosetta ships as seven plugins: the combo `rosetta`, its lightweight twin `rosetta-light`, and the five domain sets they bundle (`core`, `workflows`, `qe`, `search`, `modernization`). The steps below install `rosetta`, which is what most people want. Install the combo or the split plugins, never both. See [PLUGINS.md](PLUGINS.md#which-plugin-do-i-install) for the choice and for what each set contains.
 
 <details>
 <summary><b>Claude Code</b></summary>
@@ -538,7 +538,7 @@ Required for STDIO transport. Optional otherwise.
 | `ROSETTA_API_KEY`         | (empty)                    | API key for Rosetta Server access. **Required.**                                                                                                            |
 | `ROSETTA_USER_EMAIL`      | `rosetta@example.com`      | User identity for authorization checks                                                                                                                      |
 | `ROSETTA_MODE`            | `HARD`                     | `HARD` adds more content to context with stricter requirements. `SOFT` is lighter and allows more agent independence, better when mcp-files-mode.md is also used |
-| `INSTRUCTION_ROOT_FILTER` | (empty)                    | Comma-separated domain-set filter (`core`, `advanced`, `qe`, `search`, `modernization`). Parsed but not applied by the server today. See [MCP Architecture](docs/MCP-ARCHITECTURE.md#instruction-root-filter) before setting it. |
+| `INSTRUCTION_ROOT_FILTER` | (empty)                    | Comma-separated domain-set filter (`core`, `workflows`, `qe`, `search`, `modernization`). Parsed but not applied by the server today. See [MCP Architecture](docs/MCP-ARCHITECTURE.md#instruction-root-filter) before setting it. |
 | `ROSETTA_DEBUG`               | disabled                   | Enable debug logs (`1`, `true`, `yes`, `on`); legacy alias `IMS_DEBUG` still honored                                                                                                                |
 | `POSTHOG_API_KEY`         | (disabled)                 | Your PostHog project API key. Opt-in usage analytics — set to enable, omit or set to `DISABLED` to disable                                                  |
 | `POSTHOG_HOST`            | `https://eu.i.posthog.com` | Your PostHog instance URL, e.g. `https://posthog.internal.company.com`                                                                                      |

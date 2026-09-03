@@ -1,6 +1,6 @@
 {
   "name": "search",
-  "description": "Rosetta Search - Solr schema, query, and semantic-search skills. Requires Rosetta Core and Advanced.",
+  "description": "Rosetta Search - Solr schema, query, and semantic-search skills. Requires Rosetta Core and Workflows.",
   "version": "3.1.13",
   "author": {
     "name": "Grid Dynamics",

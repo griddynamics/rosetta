@@ -18,7 +18,7 @@
   "sets": [
     {
       "name": "rosetta",
-      "folders": ["core", "advanced", "qe", "search", "modernization"],
+      "folders": ["core", "workflows", "qe", "search", "modernization"],
       "template": "template",
       "releases": ["r3"],
       "requires": [],
@@ -79,16 +79,16 @@
       ]
     },
     {
-      "name": "advanced",
-      "folders": ["advanced"],
+      "name": "workflows",
+      "folders": ["workflows"],
       "template": "template",
       "releases": ["r3"],
       "requires": ["core"],
       "bootstrap": false,
       "hooks": [],
       "manifest": {
-        "name": "advanced",
-        "description": "Rosetta Advanced - orchestration workflows and specialist subagents. Requires Rosetta Core."
+        "name": "workflows",
+        "description": "Rosetta Workflows - orchestration workflows and specialist subagents. Requires Rosetta Core."
       },
       "variants": [
         {
@@ -104,12 +104,12 @@
       "folders": ["qe"],
       "template": "template",
       "releases": ["r3"],
-      "requires": ["core", "advanced"],
+      "requires": ["core", "workflows"],
       "bootstrap": false,
       "hooks": [],
       "manifest": {
         "name": "qe",
-        "description": "Rosetta QE - test automation and quality-engineering workflows. Requires Rosetta Core and Advanced."
+        "description": "Rosetta QE - test automation and quality-engineering workflows. Requires Rosetta Core and Workflows."
       },
       "variants": [
         {
@@ -125,12 +125,12 @@
       "folders": ["search"],
       "template": "template",
       "releases": ["r3"],
-      "requires": ["core", "advanced"],
+      "requires": ["core", "workflows"],
       "bootstrap": false,
       "hooks": [],
       "manifest": {
         "name": "search",
-        "description": "Rosetta Search - Solr schema, query, and semantic-search skills. Requires Rosetta Core and Advanced."
+        "description": "Rosetta Search - Solr schema, query, and semantic-search skills. Requires Rosetta Core and Workflows."
       },
       "variants": [
         {
@@ -146,12 +146,12 @@
       "folders": ["modernization"],
       "template": "template",
       "releases": ["r3"],
-      "requires": ["core", "advanced"],
+      "requires": ["core", "workflows"],
       "bootstrap": false,
       "hooks": [],
       "manifest": {
         "name": "modernization",
-        "description": "Rosetta Modernization - conversion, upgrade, and re-architecture workflows. Requires Rosetta Core and Advanced."
+        "description": "Rosetta Modernization - conversion, upgrade, and re-architecture workflows. Requires Rosetta Core and Workflows."
       },
       "variants": [
         {

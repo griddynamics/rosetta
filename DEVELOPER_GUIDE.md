@@ -34,13 +34,13 @@ fork/clone → branch → edit → validate → push → PR
      - Refactor an old prompt into the new format using local instructions:
 
        ```
-       MUST FULLY EXECUTE `instructions/r3/advanced/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
+       MUST FULLY EXECUTE `instructions/r3/workflows/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
        ```
 
      - Author a new prompt using local instructions:
 
        ```
-       MUST FULLY EXECUTE `instructions/r3/advanced/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       MUST FULLY EXECUTE `instructions/r3/workflows/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
        ```
 
      - Author a new prompt via Rosetta MCP:
@@ -94,7 +94,7 @@ rosetta/
 │   ├── r2/               ← Previous release (supported; backports only)
 │   └── r3/               ← Current release
 │       ├── core/         ← Composable skills, rules, workflows, templates
-│       ├── advanced/     ← Subagents and orchestrated workflows
+│       ├── workflows/    ← Subagents and orchestrated workflows
 │       ├── qe/           ← Test automation and test generation
 │       ├── search/       ← Solr and search engineering
 │       ├── modernization/ ← Conversion and re-architecture workflows
@@ -422,13 +422,13 @@ uvx rosetta-cli@latest list-dataset --dataset aia-r3 --env dev
 
 ## Where to Change What
 
-Instruction sources live in five sibling domain sets under `instructions/r3/` (`core`, `advanced`, `qe`, `search`, `modernization`). Every top-level folder under a release is one of these, and none of them overrides another. Pick the set by subject, not by importance. See [Instruction Structure](docs/ARCHITECTURE.md#instruction-structure).
+Instruction sources live in five sibling domain sets under `instructions/r3/` (`core`, `workflows`, `qe`, `search`, `modernization`). Every top-level folder under a release is one of these, and none of them overrides another. Pick the set by subject, not by importance. See [Instruction Structure](docs/ARCHITECTURE.md#instruction-structure).
 
 | Change type            | Location                                              | Validation                               |
 | ---------------------- | ----------------------------------------------------- | ---------------------------------------- |
 | New/modified skill     | `instructions/r3/<set>/skills/<name>/SKILL.md`. `core` for general engineering, `qe` for testing, `search` for Solr | Publish, test via MCP |
-| New/modified agent     | `instructions/r3/advanced/agents/<name>.md`. `advanced` is the only set with agents | Publish, test via MCP   |
-| New/modified workflow  | `instructions/r3/<set>/workflows/<name>.md`. `core` for workspace setup and help, `advanced` for orchestrated flows, `qe` for test automation, `modernization` for conversions | Publish, test via MCP |
+| New/modified agent     | `instructions/r3/workflows/agents/<name>.md`. `workflows` is the only set with agents | Publish, test via MCP   |
+| New/modified workflow  | `instructions/r3/<set>/workflows/<name>.md`. `core` for workspace setup and help, `workflows` for orchestrated flows, `qe` for test automation, `modernization` for conversions | Publish, test via MCP |
 | New/modified rule      | `instructions/r3/core/rules/<name>.md`. `core` is the only set with rules | Publish, test via MCP  |
 | New domain             | `instructions/r3/<domain>/` plus a `plugins.json` entry | Publish, test via MCP                  |
 | MCP tool or prompt     | `src/rosetta-mcp-server/rosetta_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, src/validate-types.sh |
@@ -495,7 +495,7 @@ instructions/r3/
 │   │       └── SKILL.md
 │   ├── rules/
 │   └── templates/
-├── advanced/
+├── workflows/
 │   ├── agents/
 │   └── workflows/
 ├── qe/
@@ -573,7 +573,7 @@ AI-assisted only; manual is not practical for this step.
 
 Execute the following prompt to extract reusable skills from workflow phases:
 
-> MUST FULLY EXECUTE `instructions/r3/advanced/workflows/coding-agents-prompting-flow.md` to refactor skills out of full Rosetta workflow with phases `[workflow_file]` as R3 prompt family.
+> MUST FULLY EXECUTE `instructions/r3/workflows/workflows/coding-agents-prompting-flow.md` to refactor skills out of full Rosetta workflow with phases `[workflow_file]` as R3 prompt family.
 
 #### Acceptance criteria
 
@@ -591,13 +591,13 @@ Replace markdown sections in workflow and phase files with XML tags (`<context>`
 
 | File type | Schema | Example |
 |---|---|---|
-| Workflow | `docs/schemas/workflow.md` | `instructions/r3/advanced/workflows/coding-flow.md` |
+| Workflow | `docs/schemas/workflow.md` | `instructions/r3/workflows/workflows/coding-flow.md` |
 | Phase | `docs/schemas/phase.md` | `instructions/r3/qe/workflows/testgen-flow-data-collection.md` |
 | Skill | `docs/schemas/skill.md` | `instructions/r3/core/skills/coding-agents-prompt-authoring/SKILL.md` |
 
 #### AI-assisted prompt for workflows
 
-> There's an example of the format `instructions/r3/advanced/workflows/coding-flow.md`. There's a schema for workflows `docs/schemas/workflow.md`. Please use it for reformatting `[workflow_file]`.
+> There's an example of the format `instructions/r3/workflows/workflows/coding-flow.md`. There's a schema for workflows `docs/schemas/workflow.md`. Please use it for reformatting `[workflow_file]`.
 
 #### AI-assisted prompt for phases
 

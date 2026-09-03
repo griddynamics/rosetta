@@ -70,7 +70,7 @@ let outTrue: string; // deterministicHooks: true (hook-content-only assertions)
 
 // DATA-CFG-0007: asserts against the `rosetta` set, which layers ALL five instruction folders.
 // The content this file exercises (agents/, modernization-flow, the research skill) is spread
-// across core/, advanced/ and modernization/, so the single-folder `core` set no longer carries it.
+// across core/, workflows/ and modernization/, so the single-folder `core` set no longer carries it.
 describe('Antigravity E2E — the rosetta set over real instructions/r3', () => {
   beforeAll(async () => {
     tmpFalse = fs.mkdtempSync(path.join(os.tmpdir(), 'ag-e2e-false-'));

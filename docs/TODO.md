@@ -57,7 +57,7 @@ and leave the log messages plain.
 
 ## TODO: instructions — lightweight agent documents duplicate their base counterparts
 
-`instructions/r3/advanced/agents/<agent>~profile-lightweight-only~overwrite~.md` (ten files) are full
+`instructions/r3/workflows/agents/<agent>~profile-lightweight-only~overwrite~.md` (ten files) are full
 copies of the ten base agent documents differing in exactly one line: the `model:` candidate list.
 A FilenameDirective override replaces a whole document, so there is no partial-override mechanism
 today; a base agent edit must be mirrored by hand into its light twin or the two silently diverge.

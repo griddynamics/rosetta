@@ -1,0 +1,6 @@
+{
+  "name": "workflows",
+  "description": "Rosetta Workflows - orchestration workflows and specialist subagents. Requires Rosetta Core.",
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "version": "3.1.13"
+}

@@ -1,6 +1,6 @@
 {
-  "name": "advanced",
-  "description": "Rosetta Advanced - orchestration workflows and specialist subagents. Requires Rosetta Core.",
+  "name": "workflows",
+  "description": "Rosetta Workflows - orchestration workflows and specialist subagents. Requires Rosetta Core.",
   "version": "3.1.13",
   "author": {
     "name": "Grid Dynamics",

@@ -20,12 +20,12 @@ When presenting capabilities to users, always show concrete slash command exampl
 
 QUICKSTART REFERENCE PATTERN — use this exact style for all examples shown to users:
 ```
-/coding-flow Implement side bar on the home page, ...   (requires the `advanced` plugin)
-/coding-flow Identify and implement fix, ...   (requires the `advanced` plugin)
-/coding-flow Improve unit tests coverage to 85% for ...   (requires the `advanced` plugin)
-/requirements-authoring-flow Extract detailed business and technical requirements from ... using subagents.   (requires the `advanced` plugin)
+/coding-flow Implement side bar on the home page, ...   (requires the `workflows` plugin)
+/coding-flow Identify and implement fix, ...   (requires the `workflows` plugin)
+/coding-flow Improve unit tests coverage to 85% for ...   (requires the `workflows` plugin)
+/requirements-authoring-flow Extract detailed business and technical requirements from ... using subagents.   (requires the `workflows` plugin)
 /modernization-flow Perform modernization phase 1 to reuse library refsrc/... using subagents.   (requires the `modernization` plugin)
-/research-flow Investigate OAuth 2.0 implementation options for our stack   (requires the `advanced` plugin)
+/research-flow Investigate OAuth 2.0 implementation options for our stack   (requires the `workflows` plugin)
 /ui-aqa-flow Create UI test automation for the checkout flow   (requires the `qe` plugin)
 /api-aqa-flow Automate backend API tests for TC-1234 with Swagger: https://api.example.com/swagger.json   (requires the `qe` plugin)
 ```

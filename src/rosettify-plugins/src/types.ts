@@ -179,7 +179,7 @@ export interface PluginSpec {
    * Manifest fields emitted only when the set actually ships the folder they point at
    * (DATA-CFG-0007). `requires` is an instruction-folder name matched against the VFS, or the
    * literal `hooks` meaning "this spec emits a hooks.json". Sparse sets — `search` ships zero
-   * workflows, `advanced` zero skills, four sets no hooks — would otherwise advertise folders
+   * workflows, `workflows` zero skills, four sets no hooks — would otherwise advertise folders
    * that do not exist in their output.
    */
   manifestConditionalFields: ManifestConditionalField[];

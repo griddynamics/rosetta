@@ -14,7 +14,7 @@ Installing Rosetta means adding a **plugin** to your IDE. The plugin bundles eve
 
 ## Which plugin
 
-Rosetta ships as seven plugins. `rosetta` has everything and is what this guide installs (`rosetta-light` is the same content on smaller models). The other five (`core`, `advanced`, `qe`, `search`, `modernization`) are domain slices for people who want a smaller footprint. Install the combo or the slices, never both, or you get everything twice. Details in [PLUGINS.md](../PLUGINS.md#which-plugin-do-i-install).
+Rosetta ships as seven plugins. `rosetta` has everything and is what this guide installs (`rosetta-light` is the same content on smaller models). The other five (`core`, `workflows`, `qe`, `search`, `modernization`) are domain slices for people who want a smaller footprint. Install the combo or the slices, never both, or you get everything twice. Details in [PLUGINS.md](../PLUGINS.md#which-plugin-do-i-install).
 
 ## Install for your IDE
 

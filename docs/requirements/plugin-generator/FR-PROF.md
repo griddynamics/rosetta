@@ -199,7 +199,7 @@ about which plugin set is being built (DATA-CFG-0003, FR-SET-0040).
   profile descriptor defines exactly: modelOverrides', while a bare modelOverrides descriptor is accepted.
   The earlier rosetta- prefix contradiction was a real defect in plugins.json and has since been fixed at
   source.</implementationNotes>
-  <notes>Marketplace plugin names carry no prefix: `rosetta`, `rosetta-light`, `core`, `advanced`, `qe`, `search`, `modernization`.</notes>
+  <notes>Marketplace plugin names carry no prefix: `rosetta`, `rosetta-light`, `core`, `workflows`, `qe`, `search`, `modernization`.</notes>
 </req>
 
 ## Profile-scoped filename directive

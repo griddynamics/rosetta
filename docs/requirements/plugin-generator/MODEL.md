@@ -186,7 +186,7 @@ Reference valid profile:
     <criteria id="DATA-CFG-0007.AC2" ears="unwanted" if="a set descriptor omits `template`, `releases` or `bootstrap`" system="the generator" shall="treat the configuration as invalid, naming the set and the missing field"/>
     <criteria id="DATA-CFG-0007.AC3" ears="event" when="a set descriptor omits `requires` and `hooks`" system="the generator" shall="read an empty `requires` list and an empty hook list"/>
     <criteria id="DATA-CFG-0007.AC4" ears="ubiquitous" system="the generator" shall="read each `hooks` entry as a bare hook module name, such as `dangerous-actions`, resolving its event and matcher from that target's `HOOK_LAYOUTS` bindings rather than from the descriptor"/>
-    <criteria id="DATA-CFG-0007.AC5" ears="ubiquitous" system="the generator" shall="read `manifest.name` as the set's base marketplace plugin name — `rosetta`, `core`, `advanced`, `qe`, `search`, `modernization` — independently of the output folder name, the variant's `manifestNameSuffix` producing the shipped name (so `rosetta` plus `-light` gives `rosetta-light`)"/>
+    <criteria id="DATA-CFG-0007.AC5" ears="ubiquitous" system="the generator" shall="read `manifest.name` as the set's base marketplace plugin name — `rosetta`, `core`, `workflows`, `qe`, `search`, `modernization` — independently of the output folder name, the variant's `manifestNameSuffix` producing the shipped name (so `rosetta` plus `-light` gives `rosetta-light`)"/>
     <criteria id="DATA-CFG-0007.AC6" ears="event" when="a set declares `releases: [r2]`" system="the generator" shall="build it only when release `r2` is selected"/>
     <criteria id="DATA-CFG-0007.AC7" ears="unwanted" if="two set descriptors declare the same `name`, whatever releases they name" system="the generator" shall="treat the configuration as invalid, naming the duplicated set name"/>
     <criteria id="DATA-CFG-0007.AC8" ears="unwanted" if="a set descriptor carries a top-level field the descriptor does not define, such as `indexes`" system="the generator" shall="treat the configuration as invalid"/>
@@ -201,7 +201,7 @@ Reference valid profile:
   "hookSupportModules": { "read-once": ["read-once-reset", "read-once-shared"] },
   "sets": [
     { "name": "rosetta",
-      "folders": ["core", "advanced", "qe", "search", "modernization"],
+      "folders": ["core", "workflows", "qe", "search", "modernization"],
       "template": "template",
       "releases": ["r3"],
       "requires": [],
@@ -223,18 +223,18 @@ Reference valid profile:
                 "md-file-advisory", "codemap-refresh", "lint-format-advisory"],
       "manifest": { "name": "core", "description": "Rosetta Core - foundation instruction set, rules, skills, and guardrails." },
       "variants": [{ "profile": "lightweight" }] },
-    { "name": "advanced",
-      "folders": ["advanced"],
+    { "name": "workflows",
+      "folders": ["workflows"],
       "template": "template",
       "releases": ["r3"],
       "requires": ["core"],
       "bootstrap": false,
-      "manifest": { "name": "advanced", "description": "Rosetta Advanced - orchestration workflows and specialist subagents. Requires Rosetta Core." },
+      "manifest": { "name": "workflows", "description": "Rosetta Workflows - orchestration workflows and specialist subagents. Requires Rosetta Core." },
       "variants": [{ "profile": "lightweight" }] },
     { "name": "qe",
       "folders": ["qe"], "template": "template", "releases": ["r3"],
-      "requires": ["core", "advanced"], "bootstrap": false,
-      "manifest": { "name": "qe", "description": "Rosetta QE - test automation and quality-engineering workflows. Requires Rosetta Core and Advanced." },
+      "requires": ["core", "workflows"], "bootstrap": false,
+      "manifest": { "name": "qe", "description": "Rosetta QE - test automation and quality-engineering workflows. Requires Rosetta Core and Workflows." },
       "variants": [{ "profile": "lightweight" }] }
   ]
 }

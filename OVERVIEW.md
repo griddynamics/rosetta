@@ -48,7 +48,7 @@ These terms are defined here and referenced everywhere else.
 | **Subagent**       | Delegated specialist with fresh context and its own system prompt. Alias: **Agent**. Examples: orchestrator, planner, executor, and others. |
 | **Template**       | Parameterized prompt with variables and validated placeholders.                                                                             |
 | **Release**        | Versioned instruction set (r1, r2, r3). R3 is the final numbered release; updates land incrementally within it.                             |
-| **Domain set**     | A subject-scoped slice of the instruction library: `core`, `advanced`, `qe`, `search`, `modernization`. Every top-level folder under a release is one. Sets are siblings and each ships as its own plugin. |
+| **Domain set**     | A subject-scoped slice of the instruction library: `core`, `workflows`, `qe`, `search`, `modernization`. Every top-level folder under a release is one. Sets are siblings and each ships as its own plugin. |
 | **Guardrails**     | Safety measures: scope limits, data protection, transparency rules, approval gates, risk assessment.                                        |
 | **HITL**           | Human-in-the-loop. Approval gates at critical decision points (specs, plans, risky actions).                                                |
 | **Meta-prompting** | Rosetta consults the AI agent on what should be done and how using meta-prompts.                                                            |
@@ -96,7 +96,7 @@ Read more about the [bootstrap flow](docs/ARCHITECTURE.md#bootstrap-flow) in the
 Every top-level folder under `instructions/<release>/` is a domain set. There is one kind of folder and one axis.
 
 - **`core`** — composable skills, the always-on rules, bootstrap, templates. No subagents, deliberately.
-- **`advanced`** — subagents and the orchestrated workflows that spawn them.
+- **`workflows`** — subagents and the orchestrated workflows that spawn them.
 - **`qe`** — test automation and test generation.
 - **`search`** — Solr and search engineering.
 - **`modernization`** — conversion, upgrade, re-architecture.

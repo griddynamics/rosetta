@@ -103,7 +103,7 @@ To properly set up an entire workspace, refer to [CONFIGURATION.md](CONFIGURATIO
 
 ### Automated QA
 
-**REQUIRES**: the `rosetta` plugin, or `qe` on top of `core` and `advanced`.
+**REQUIRES**: the `rosetta` plugin, or `qe` on top of `core` and `workflows`.
 
 **WHAT**: Helps user go from a test case in Test Management System to a working test in the automation framework. Give it a test case, it gathers what it needs from your code and ticket system (for example, Jira) and AQA implements the automated test, asks questions when it sees contradictions, and helps fix the test until it passes.
 
@@ -121,7 +121,7 @@ To properly set up an entire workspace, refer to [CONFIGURATION.md](CONFIGURATIO
 
 ### Modernization
 
-**REQUIRES**: the `rosetta` plugin, or `modernization` on top of `core` and `advanced`.
+**REQUIRES**: the `rosetta` plugin, or `modernization` on top of `core` and `workflows`.
 
 **FIRST**: Document modernization goals in CONTEXT.md, document target services technical aspects in ARCHITECTURE.md, document where source code should be created, keep refsrc populated with reference code source (old code, new code, reusable libraries, configuration and documentation files, and similar).
 

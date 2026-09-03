@@ -20,7 +20,7 @@ import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec, Vfs } from
  * license, keywords, ...). Identity (`name`, `description`) is set-driven and already carries the
  * variant's suffixes, and the folder-advertising fields are conditional: a set that ships no
  * workflows must not declare a commands folder, and a set that ships no hooks must not point at a
- * hooks.json. Sparse sets are the norm now — search ships zero workflows, advanced zero skills,
+ * hooks.json. Sparse sets are the norm now — search ships zero workflows, workflows zero skills,
  * four sets no hooks — so emitting these unconditionally would advertise folders that do not exist.
  */
 export interface ManifestOverlay {

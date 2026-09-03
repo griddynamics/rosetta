@@ -25,20 +25,20 @@ Rosetta ships as seven plugins. Five of them are domain sets; the other two bund
 | `rosetta` | Everything. Skills, rules, subagents, and all workflows. | nothing |
 | `rosetta-light` | Everything, lightweight profile (simpler workflows, smaller models). | nothing |
 | `core` | Composable skills, always-on rules, bootstrap, guardrail hooks. No subagents. | nothing |
-| `advanced` | Subagents and the orchestrated workflows that spawn them. | `core` |
-| `qe` | Test automation and test generation. | `core`, `advanced` |
-| `search` | Solr and search engineering. | `core`, `advanced` |
-| `modernization` | Conversion, upgrade, and re-architecture workflows. | `core`, `advanced` |
+| `workflows` | Subagents and the orchestrated workflows that spawn them. | `core` |
+| `qe` | Test automation and test generation. | `core`, `workflows` |
+| `search` | Solr and search engineering. | `core`, `workflows` |
+| `modernization` | Conversion, upgrade, and re-architecture workflows. | `core`, `workflows` |
 
 **Most people want `rosetta`.** It is the whole product in one install, and it is what the rest of this page assumes.
 
 Install the split plugins instead when you want a smaller footprint or only one domain. Two things to know before you do.
 
-`core` on its own is deliberately incomplete. It carries no subagents at all, so `skills/orchestration` has nothing to spawn and the routing skills have very little to route to. `core` plus `advanced` is the smallest setup that behaves like Rosetta.
+`core` on its own is deliberately incomplete. It carries no subagents at all, so `skills/orchestration` has nothing to spawn and the routing skills have very little to route to. `core` plus `workflows` is the smallest setup that behaves like Rosetta.
 
-Install the combo **or** the split, never both. Installing `rosetta` alongside `core` and `advanced` puts every skill, agent, and workflow into your session twice under two namespaces. Nothing stops you; nothing warns you either.
+Install the combo **or** the split, never both. Installing `rosetta` alongside `core` and `workflows` puts every skill, agent, and workflow into your session twice under two namespaces. Nothing stops you; nothing warns you either.
 
-The five split plugins are themselves lightweight builds, so `core` plus `advanced` lands closer to `rosetta-light` than to `rosetta`.
+The five split plugins are themselves lightweight builds, so `core` plus `workflows` lands closer to `rosetta-light` than to `rosetta`.
 
 ## Step 1: Install Plugin
 
@@ -58,8 +58,8 @@ For the split plugins instead, install each by name from the same marketplace:
 
 ```sh
 claude plugin install core@rosetta
-claude plugin install advanced@rosetta
-claude plugin install qe@rosetta        # optional, needs core + advanced
+claude plugin install workflows@rosetta
+claude plugin install qe@rosetta        # optional, needs core + workflows
 ```
 </details>
 

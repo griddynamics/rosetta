@@ -77,7 +77,7 @@ pyproject.toml README.md
 
 ## instructions/ — prompt library (published to RAGFlow)
 
-Five sibling domain sets live under `instructions/r3/`: `core`, `advanced`, `qe`, `search`, `modernization`. Every top-level folder under a release is one of these. They partition the library by subject and none overrides another.
+Five sibling domain sets live under `instructions/r3/`: `core`, `workflows`, `qe`, `search`, `modernization`. Every top-level folder under a release is one of these. They partition the library by subject and none overrides another.
 
 ### instructions/r3/core/ — composable components, rules, bootstrap (current release)
 
@@ -110,15 +110,15 @@ local-files-mode.md mcp-files-mode.md plugin-files-mode.md speckit-integration-p
 
 shell-schemas/ (workflow-shell.md agent-shell.md skill-shell.md)
 
-### instructions/r3/advanced/ — subagents and orchestrated workflows
+### instructions/r3/workflows/ — subagents and orchestrated workflows
 
-#### instructions/r3/advanced/agents/ — 10 agents (20 files)
+#### instructions/r3/workflows/agents/ — 10 agents (20 files)
 
 architect.md discoverer.md engineer.md executor.md planner.md
 prompt-engineer.md requirements-engineer.md researcher.md reviewer.md validator.md
 (each has a `~profile-lightweight-only~overwrite~.md` twin, hence 20 files)
 
-#### instructions/r3/advanced/workflows/ — 17 files (18 with the light twin), 9 entry-point flows
+#### instructions/r3/workflows/workflows/ — 17 files (18 with the light twin), 9 entry-point flows
 
 adhoc-flow.md code-analysis-flow.md coding-agents-prompting-flow.md coding-flow.md
 coding-light-flow.md external-lib-flow.md requirements-authoring-flow.md research-flow.md
@@ -177,7 +177,7 @@ agents/ hooks/ rules/ skills/ workflows/ (folder names vary per IDE; Cursor uses
 
 hooks/ rules/ skills/ workflows/ — no agents
 
-### plugins/advanced-<ide>/, qe-<ide>/, search-<ide>/, modernization-<ide>/ — one set each
+### plugins/workflows-<ide>/, qe-<ide>/, search-<ide>/, modernization-<ide>/ — one set each
 
 These carry content, not wiring. Bootstrap and the advisory hooks ship only in the
 `rosetta`, `rosetta-light`, and `core` plugins. No plugin contains an `INDEX.md`.

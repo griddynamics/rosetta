@@ -51,7 +51,7 @@ A **set** is a named bundle of instruction folders shipped as one installable pl
       "folders": ["qe"],               // instruction folders layered into this set's VFS
       "template": "template",          // preserved files at plugins/<template>-<ide>/
       "releases": ["r3"],              // which releases this set is available for
-      "requires": ["core", "advanced"],// other sets a user must also install
+      "requires": ["core", "workflows"],// other sets a user must also install
       "bootstrap": false,              // registers the session-start bootstrap payload?
       "hooks": [],                     // hook modules shipped (empty + no bootstrap = no hooks/)
       "manifest": { "name": "rosetta-qe", "description": "…" },

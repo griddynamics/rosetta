@@ -74,19 +74,19 @@ Guide user through workspace arrangement: layout, reference code, business/techn
 
    **WHAT**: Majority of tasks are actually coding tasks, including unit tests. Just ask exactly what is required.
 
-   "/coding-flow Implement left navigation sidebar on the home page, ..."   (requires the `advanced` plugin)
+   "/coding-flow Implement left navigation sidebar on the home page, ..."   (requires the `workflows` plugin)
 
-   "/coding-flow Identify and implement fix, ..."   (requires the `advanced` plugin)
+   "/coding-flow Identify and implement fix, ..."   (requires the `workflows` plugin)
 
-   "/coding-flow Improve unit tests coverage to 85% for ..."   (requires the `advanced` plugin)
+   "/coding-flow Improve unit tests coverage to 85% for ..."   (requires the `workflows` plugin)
 
    # Business and Technical Requirements
 
    **WHY**: Requirements - is the source of truth for code and tests. Going requirements first is the most effective. In brownfield start with extracting.
 
-   "/requirements-authoring-flow extract detailed business and technical requirements from community of ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."   (requires the `advanced` plugin)
+   "/requirements-authoring-flow extract detailed business and technical requirements from community of ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."   (requires the `workflows` plugin)
 
-   "/requirements-authoring-flow extract high-level business and technical requirements at end-point level for controllers according to glob ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."   (requires the `advanced` plugin)
+   "/requirements-authoring-flow extract high-level business and technical requirements at end-point level for controllers according to glob ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."   (requires the `workflows` plugin)
 
    # Modernization
 
@@ -98,7 +98,7 @@ Guide user through workspace arrangement: layout, reference code, business/techn
 
    "/modernization-flow Perform modernization phase 2 to analyze service module ... using subagents. Target microservice name is ... ."   (requires the `modernization` plugin)
 
-   "/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must USE FLOW `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."   (requires the `modernization` and `advanced` plugins)
+   "/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must USE FLOW `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."   (requires the `modernization` and `workflows` plugins)
    ```
 </next_steps>
 

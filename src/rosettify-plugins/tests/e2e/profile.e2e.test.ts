@@ -10,7 +10,7 @@
  * attributable to the variant alone.
  *
  * The `rosetta` set is used throughout because the agent and workflow documents these assertions
- * read (architect, discoverer, reviewer, engineer, coding-flow) live in `advanced/`, which only the
+ * read (architect, discoverer, reviewer, engineer, coding-flow) live in `workflows/`, which only the
  * multi-folder `rosetta` set layers.
  *
  * Where parity.e2e.test.ts proves the profiled output has the right SHAPE (path-set parity),

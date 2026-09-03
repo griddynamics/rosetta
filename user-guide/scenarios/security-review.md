@@ -77,5 +77,5 @@ With your storage approval, sanitized artifacts under `docs/security/<run-id>/`:
 
 ## Sources
 
-- Workflow: [`instructions/r3/advanced/workflows/security-flow.md`](../../instructions/r3/advanced/workflows/security-flow.md) (plus the `security-flow-*.md` phase files)
+- Workflow: [`instructions/r3/workflows/workflows/security-flow.md`](../../instructions/r3/workflows/workflows/security-flow.md) (plus the `security-flow-*.md` phase files)
 - Skills: [`security`](../../instructions/r3/core/skills/security/SKILL.md), [`sensitive-data`](../../instructions/r3/core/skills/sensitive-data/SKILL.md), [`risk-assessment`](../../instructions/r3/core/skills/risk-assessment/SKILL.md)

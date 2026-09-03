@@ -53,7 +53,7 @@ Plugins are the primary delivery mode: instructions are generated once and shipp
               │  Instructions Repo  │
               │  /instructions/r3/  │
               │                     │
-              │  core/ · advanced/  │
+              │  core/ · workflows/ │
               │  qe/ · search/      │
               │  modernization/     │
               └─────────────────────┘
@@ -176,7 +176,7 @@ Validated with `npm run typecheck`, `npm run test` (vitest, 90% line + branch co
 
 Instructions live in `/instructions/r3/` in the instructions repository. Every top-level folder under a release is a **domain set**: a slice of the instruction library scoped to one subject. There is no second kind of folder. Sets are siblings, none overrides another, and each one ships as its own installable plugin. `--domain` selects which sets a build includes.
 
-Five sets exist today: `core`, `advanced`, `qe`, `search`, `modernization`.
+Five sets exist today: `core`, `workflows`, `qe`, `search`, `modernization`.
 
 ```
 /instructions/r3/
@@ -194,7 +194,7 @@ Five sets exist today: `core`, `advanced`, `qe`, `search`, `modernization`.
 │   │   └── <name>.md
 │   └── templates/
 │
-├── advanced/              ← Subagents and the orchestrated workflows that spawn them
+├── workflows/             ← Subagents and the orchestrated workflows that spawn them
 │   ├── agents/
 │   │   └── <name>.md
 │   └── workflows/
@@ -217,12 +217,12 @@ A new domain is a new sibling folder here plus an entry in `src/rosettify-plugin
 | Set | Skills | Workflows | Rules | Agents |
 | --- | ------ | --------- | ----- | ------ |
 | `core` | 36 | 17 | 5 | 0 |
-| `advanced` | 0 | 17 | 0 | 10 |
+| `workflows` | 0 | 17 | 0 | 10 |
 | `qe` | 2 | 27 | 0 | 0 |
 | `search` | 4 | 0 | 0 | 0 |
 | `modernization` | 0 | 9 | 0 | 0 |
 
-**`core` is deliberately not a complete solution.** It holds every composable skill, the always-on rules, and the bootstrap and guardrail hooks, but zero subagents. A core-only install therefore ships `skills/orchestration` and `skills/rosetta` with nothing to spawn and very little to route to. That is the intended shape, not a defect. Pair `core` with `advanced` to get a working setup, or install the combo `rosetta` plugin which contains all five sets.
+**`core` is deliberately not a complete solution.** It holds every composable skill, the always-on rules, and the bootstrap and guardrail hooks, but zero subagents. A core-only install therefore ships `skills/orchestration` and `skills/rosetta` with nothing to spawn and very little to route to. That is the intended shape, not a defect. Pair `core` with `workflows` to get a working setup, or install the combo `rosetta` plugin which contains all five sets.
 
 **Customization is by domain, not by overlay.** A team that needs its own instructions adds a domain set and builds it. There is no mechanism for shadowing a file inside someone else's folder, and none is planned. Filenames stay globally unique across the whole tree, so no two files share a VFS resource path and the MCP Bundler (see [MCP-ARCHITECTURE.md — Bundler](MCP-ARCHITECTURE.md#bundler)) normally has one document to return. `INSTRUCTION_ROOT_FILTER` is intended to select which domain sets MCP serves; see [MCP-ARCHITECTURE.md](MCP-ARCHITECTURE.md#instruction-root-filter) before setting it.
 
@@ -317,10 +317,10 @@ Plugin folders are named `<set>-<ide>`. `plugins.json` declares six *plugin* set
 | `rosetta-<ide>` | All five domain sets. The full plugin. | nothing |
 | `rosetta-<ide>-light` | All five sets, lightweight profile (simpler workflows, smaller models) | nothing |
 | `core-<ide>` | The `core` set only | nothing |
-| `advanced-<ide>` | The `advanced` set only | `core` |
-| `qe-<ide>` | The `qe` set only | `core`, `advanced` |
-| `search-<ide>` | The `search` set only | `core`, `advanced` |
-| `modernization-<ide>` | The `modernization` set only | `core`, `advanced` |
+| `workflows-<ide>` | The `workflows` set only | `core` |
+| `qe-<ide>` | The `qe` set only | `core`, `workflows` |
+| `search-<ide>` | The `search` set only | `core`, `workflows` |
+| `modernization-<ide>` | The `modernization` set only | `core`, `workflows` |
 
 `core-<ide>` is the core set, not the full plugin. The full plugin is `rosetta-<ide>`.
 
@@ -338,7 +338,7 @@ The seven IDE targets and how each is delivered:
 
 Bootstrap and the advisory hooks ship in `rosetta-<ide>`, `rosetta-<ide>-light`, and `core-<ide>` only. The domain plugins carry content, not wiring, which is why they list `core` as a requirement.
 
-Only the combo set has a distinct `-light` build. The five single-set plugins are themselves built with the `lightweight` profile under their plain names, so `core` plus `advanced` gives you the lightweight subagents and the lightweight `coding-flow`, matching `rosetta-<ide>-light` rather than `rosetta-<ide>`.
+Only the combo set has a distinct `-light` build. The five single-set plugins are themselves built with the `lightweight` profile under their plain names, so `core` plus `workflows` gives you the lightweight subagents and the lightweight `coding-flow`, matching `rosetta-<ide>-light` rather than `rosetta-<ide>`.
 
 All plugins are generated from the **release-selected** source tree (`instructions/<release>/`, domain folders selected per plugin by `src/rosettify-plugins/plugins.json`) by the plugin generator (`rosettify-plugins`, `npx -y rosettify-plugins@latest`). **Requirements-first:** spec-before-code from `docs/requirements/plugin-generator/` (authoritative FRs/NFRs; code follows). The release is chosen by `--release` (default **r3**, matching rosetta-mcp's `DEFAULT_VERSION`); each release descriptor carries its hook posture (r2: SessionStart bootstrap only; r3: deterministic advisory hooks by default), overridable per run with `--deterministic-hooks true|false` (e.g. `--release r3 --deterministic-hooks false` builds r3 without advisory hooks); when omitted, the release's default applies. **Shipped plugins are built with `false`** (FR-CLI-0012): advisory hooks run before and after every tool call, adding per-call overhead, so they are opt-in and enabled progressively. One generator invocation expands sets, variants, and targets into every output folder; `plugins.json` is loaded and validated before anything is written, so a malformed catalog aborts the run. The generator builds main plugins then derives standalone variants. `.tmpl` files are Handlebars templates rendered by the generator.
 
@@ -424,7 +424,7 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 | `rosetta-cursor-standalone`     | `.cursor/hooks.json` (top of extracted subfolder)                                                | standalone-form | `node .cursor/hooks/<file>.js`                     |
 | `rosetta-copilot-standalone`    | `.github/hooks/hooks.json` (nested inside extracted subfolder)                                   | standalone-form | `node ".github/hooks/<file>.js"`                   |
 
-The `core-<ide>` plugins carry the same hook set in the same locations; the domain plugins (`advanced`, `qe`, `search`, `modernization`) ship no hooks at all.
+The `core-<ide>` plugins carry the same hook set in the same locations; the domain plugins (`workflows`, `qe`, `search`, `modernization`) ship no hooks at all.
 
 Cursor and Copilot are the only plugins that need two distinct templates because they have distinct standalone distributions. Templates: cursor — `hooks/hooks.json.tmpl` (plugin) + `hooks.json.tmpl` at root (standalone); copilot — `.github/plugin/hooks.json.tmpl` (plugin) + `hooks/hooks.json.tmpl` (standalone). Both are rendered during sync; the standalone generator's bulk-copy lands each at the right path inside the standalone subfolder.
 
@@ -451,7 +451,7 @@ Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages. Or
 Where contributors add or change things:
 
 - **New skill:** Add `instructions/r3/<set>/skills/<name>/SKILL.md`, picking the set by subject (`core` for general engineering, `qe` for testing, `search` for Solr). Backport to `r2` only for fixes.
-- **New agent:** Add `instructions/r3/advanced/agents/<name>.md`. `advanced` is the only set that carries agents.
+- **New agent:** Add `instructions/r3/workflows/agents/<name>.md`. `workflows` is the only set that carries agents.
 - **New workflow:** Add `instructions/r3/<set>/workflows/<name>.md` and its phase files, in the set that owns the subject.
 - **New rule:** Add `instructions/r3/core/rules/<name>.md`. `core` is the only set that carries rules.
 - **New domain:** Create `instructions/r3/<domain>/` with the same type structure, add an entry to `src/rosettify-plugins/plugins.json` naming the folders it bundles and the sets it requires, then add the plugin to the four marketplace manifests.

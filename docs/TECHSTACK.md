@@ -71,7 +71,7 @@ Tech stack of all modules in this Rosetta repository.
 | `<set>-copilot-standalone` | Copilot, project-root form; everything under `.github/` |
 | `<set>-codex` | Codex; `.codex-plugin/plugin.json`, agents as `.codex/agents/*.toml` |
 | `<set>-antigravity` | Antigravity; `plugin.json` at root, no model vocabulary |
-| Sets | `rosetta` (all five domain folders, the full plugin), `core`, `advanced`, `qe`, `search`, `modernization` |
+| Sets | `rosetta` (all five domain folders, the full plugin), `core`, `workflows`, `qe`, `search`, `modernization` |
 | Profile variants | the `rosetta` set also builds `rosetta-*-light`; the five split sets are lightweight-profile builds under their plain names |
 | Generator | `npx -y rosettify-plugins@latest`, run twice by `scripts/pre_commit.py` (standard, then `--profile lightweight`) |
 

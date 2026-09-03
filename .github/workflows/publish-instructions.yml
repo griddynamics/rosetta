@@ -120,7 +120,7 @@ jobs:
 
           ARCHIVES=""
           # One archive per generated plugin folder: <set>-<ide>[-light] for every set
-          # (rosetta, core, advanced, qe, search, modernization) and standalone variants
+          # (rosetta, core, workflows, qe, search, modernization) and standalone variants
           # (rosetta-cursor-standalone, rosetta-copilot-standalone).
           for plugin_dir in plugins/*/; do
             folder=$(basename "$plugin_dir")

@@ -144,7 +144,7 @@ Python with named arguments.
 ### Model tiers
 
 The two branches run matched tiers, not arbitrary models. The ladder is not invented
-here — it is the pairing `instructions/r3/advanced/agents/*.md` already uses, position by
+here — it is the pairing `instructions/r3/workflows/agents/*.md` already uses, position by
 position in each agent's `model:` candidate list:
 
 | Claude | Codex | Seen in |
