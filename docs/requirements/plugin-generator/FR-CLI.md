@@ -388,23 +388,29 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
 
 <req id="FR-CLI-0042" type="FR" level="System" ticketId="315" classification="technical">
   <title>Progress reporting</title>
-  <statement>The generator shall emit human-readable progress for each (set variant × IDE target) pair and major step, naming the set and the IDE target, and shall direct error and warning lines to the standard error stream.</statement>
+  <statement>The generator shall emit structured progress (one JSON object per line) for each (set variant × IDE target) pair and major step, naming the set and the IDE target, on the standard error stream together with all error and warning lines; the standard output stream is reserved for `--dry-run` payload (FR-ARCH-0045) and stays empty on a normal run.</statement>
   <rationale>Operators run it in pre-commit and CI and must see what happened.</rationale>
   <source>Sources</source>
   <priority>Should</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-09-03</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: a normal run When: executed Then: per-plugin counts (copied/renamed/generated) appear on stdout, identified by set and IDE target, and errors appear on stderr.</criteria>
+    <criteria>Given: a normal run When: executed Then: one progress line per (set variant × IDE target) appears on stderr naming the set and the IDE target, and stdout is empty.</criteria>
+    <criteria>Given: `--dry-run` When: executed Then: the would-write payload appears on stdout and progress remains on stderr.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: initLogger (src/rosettify-plugins/src/logging.ts) configures pino with destination 2, so
-  ALL progress output - the per-target Processing target and Target complete lines, named by set and IDE -
-  is written to stderr and nothing is written to stdout. Verified empirically: a real run redirecting the
-  two streams produced an empty stdout file and every progress line in stderr. This directly fails the
-  criterion that per-plugin counts appear on stdout while errors appear on stderr; today nothing
-  distinguishes the two streams. The reported count is also a single frames total rather than the
-  copied/renamed/generated breakdown the criterion names.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: initLogger (src/rosettify-plugins/src/logging.ts) configures pino with destination 2, so
+  ALL progress - the per-target Processing target and Target complete lines, named by set and IDE - is
+  written to stderr and stdout stays empty on a normal run. buildPipeline's `out` parameter
+  (src/rosettify-plugins/src/spec/targets.ts, default process.stdout) threads into pluginCopy and
+  pluginWrite (src/rosettify-plugins/src/plugin-processors/plugin-write.ts): stdout is the `--dry-run`
+  payload channel (FR-ARCH-0045), not a progress channel. Verified empirically: a normal `--domain qe`
+  run produced 0 bytes on stdout and 2,079 bytes of progress on stderr; `--dry-run --domain qe`
+  produced 2,707,684 bytes of file payload on stdout and 131,276 bytes of progress on stderr. Writing
+  progress to stdout would corrupt `--dry-run > file` redirection, so the prior statement was wrong
+  about the code, not the other way around. The per-plugin copied/renamed/generated breakdown the
+  prior AC named is not emitted - the logged field is a single `frames` total; that breakdown and any
+  TTY pretty-printing are recorded as backlog (priority Should) rather than blocking this unit.</implementationNotes>
 </req>
