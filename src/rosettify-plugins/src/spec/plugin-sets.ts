@@ -284,10 +284,21 @@ export function selectSets(
 ): PluginSetDecl[] {
   const forRelease = catalog.sets.filter((s) => s.releases.includes(release));
 
-  if (domain === undefined || domain.trim() === '') return forRelease;
+  const tokens = parseDomainTokens(domain);
+  if (tokens.length === 0) return forRelease;
 
-  const allowed = new Set(domain.split(',').map((d) => d.trim()).filter(Boolean));
+  const allowed = new Set(tokens);
   return forRelease.filter((s) => s.folders.every((f) => allowed.has(f)));
+}
+
+/**
+ * FR-CLI-0030/0031: the raw `--domain` value split into its comma-separated instruction-folder
+ * tokens — trimmed, and blanks dropped. Shared by `selectSets` (the folder filter over sets) and
+ * `generate()` (which checks each token names a real instruction folder before selecting).
+ */
+export function parseDomainTokens(domain: string | undefined): string[] {
+  if (domain === undefined) return [];
+  return domain.split(',').map((d) => d.trim()).filter(Boolean);
 }
 
 /**

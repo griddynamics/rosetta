@@ -14,6 +14,7 @@ import {
   selectSets,
   allDeclaredDestinations,
   resolveHookModules,
+  parseDomainTokens,
 } from './spec/plugin-sets.js';
 import type { PluginCatalog, PluginSetDecl, SetVariant } from './spec/plugin-sets.js';
 import { buildSpecsForSet } from './spec/targets.js';
@@ -60,15 +61,40 @@ export async function generate(options: GenerateOptions): Promise<number> {
     return 1;
   }
 
-  const sets = selectSets(catalog, releaseName, domain);
-  if (sets.length === 0) {
+  // FR-CLI-0030: a --domain token must name a real instruction folder for this release — before
+  // any set selection happens, so a typo is reported precisely rather than falling through to the
+  // generic "no plugin sets to build" message with the missing folder never named.
+  const domainTokens = parseDomainTokens(domain);
+  const missingFolders = domainTokens
+    .map((token) => ({ token, dir: path.resolve(instructionsSource, releaseName, token) }))
+    .filter(({ dir }) => !fs.existsSync(dir));
+  if (missingFolders.length > 0) {
     process.stderr.write(
-      `No plugin sets to build for release "${releaseName}"` +
-        (domain ? ` and domain "${domain}"` : '') +
-        `. Declared sets in ${configPath}: ` +
-        `${catalog.sets.map((s) => `${s.name} (${s.releases.join('/')})`).join(', ')}.\n`,
+      `Unknown instruction folder(s) for release "${releaseName}": ` +
+        `${missingFolders.map((m) => m.token).join(', ')} ` +
+        `(looked for ${missingFolders.map((m) => m.dir).join(', ')}).\n`,
     );
     return 1;
+  }
+
+  const sets = selectSets(catalog, releaseName, domain);
+  if (sets.length === 0) {
+    const declared = catalog.sets.map((s) => `${s.name} (${s.releases.join('/')})`).join(', ');
+    // FR-CLI-0031: an empty selection is a legitimate outcome when a domain filter was supplied
+    // (exit 0, nothing written) — distinct from an unconfigured release resolving to nothing
+    // (exit 1, unchanged wording), which is a misconfiguration rather than a filter outcome.
+    if (domain === undefined) {
+      process.stderr.write(
+        `No plugin sets to build for release "${releaseName}". Declared sets in ${configPath}: ` +
+          `${declared}.\n`,
+      );
+      return 1;
+    }
+    process.stderr.write(
+      `Domain filter "${domain}" matched no plugin set for release "${releaseName}". ` +
+        `Declared sets: ${declared}. Nothing was generated.\n`,
+    );
+    return 0;
   }
 
   // FR-CLI-0012: effective deterministic-hooks value — CLI override when supplied, otherwise a

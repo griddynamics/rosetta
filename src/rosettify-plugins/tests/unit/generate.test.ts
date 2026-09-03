@@ -110,7 +110,7 @@ describe('generate() — error coverage', () => {
     expect(code).toBe(1);
   });
 
-  it('missing instruction directory → returns exit code 1 (FR-CLI-0031)', async () => {
+  it('missing instruction directory → returns exit code 1 (buildVfs throws, not the domain filter)', async () => {
     // instructionsSource with no release/domain dirs → buildVfs throws
     const emptyRepo = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-empty-'));
     fs.mkdirSync(path.join(emptyRepo, '.git'), { recursive: true });
@@ -540,6 +540,91 @@ describe('generate() — plugin sets end to end', () => {
     expect(stderr).toContain(badConfig);
     expect(stderr).toContain('no-such-template');
     // Pre-flight: not even the sets whose templates DO exist were written.
+    expect(fs.existsSync(outputDir)).toBe(false);
+  });
+
+  it('an unknown --domain token names the missing instruction folder (FR-CLI-0030)', async () => {
+    const outputDir = path.join(repo, 'out-baddomain');
+    let stderr = '';
+    const orig = process.stderr.write.bind(process.stderr);
+    (process.stderr as NodeJS.WriteStream).write = ((c: string) => { stderr += c; return true; }) as typeof process.stderr.write;
+    let code: number;
+    try {
+      code = await generate({
+        sources: sourcesFor(outputDir), release: 'r3', domain: 'zzz', dryRun: false, verbose: false,
+      });
+    } finally {
+      (process.stderr as NodeJS.WriteStream).write = orig;
+    }
+
+    expect(code).toBe(1);
+    expect(stderr).toContain(path.join(repo, 'instructions', 'r3', 'zzz'));
+    expect(fs.existsSync(outputDir)).toBe(false);
+  });
+
+  it('a domain filter matching no declared set exits 0 and writes nothing (FR-CLI-0031)', async () => {
+    const outputDir = path.join(repo, 'out-emptydomain');
+    const emptyDomainConfig = path.join(repo, 'empty-domain-plugins.json');
+    fs.writeFileSync(emptyDomainConfig, JSON.stringify({
+      targets: ['claude'],
+      hookSupportModules: {},
+      sets: [
+        {
+          name: 'core', folders: ['core'], template: 'template', releases: ['r3'],
+          requires: [], bootstrap: false, hooks: [],
+          manifest: { name: 'core', description: 'Core.' },
+          variants: [{ profile: null, destinationSuffix: '', manifestNameSuffix: '', manifestDescriptionSuffix: '' }],
+        },
+        {
+          name: 'workflows', folders: ['workflows'], template: 'template', releases: ['r3'],
+          requires: [], bootstrap: false, hooks: [],
+          manifest: { name: 'workflows', description: 'Workflows.' },
+          variants: [{ profile: null, destinationSuffix: '', manifestNameSuffix: '', manifestDescriptionSuffix: '' }],
+        },
+      ],
+    }));
+
+    let stderr = '';
+    const orig = process.stderr.write.bind(process.stderr);
+    (process.stderr as NodeJS.WriteStream).write = ((c: string) => { stderr += c; return true; }) as typeof process.stderr.write;
+    let code: number;
+    try {
+      // `qe` names a real instruction folder in this fixture tree (FR-CLI-0030 passes), but
+      // neither declared set (`core`, `workflows`) lists it among its `folders`, so the filter
+      // matches nothing — a legitimate empty selection, distinct from FR-CLI-0030's abort.
+      code = await generate({
+        sources: sourcesFor(outputDir, emptyDomainConfig), release: 'r3', domain: 'qe', dryRun: false, verbose: false,
+      });
+    } finally {
+      (process.stderr as NodeJS.WriteStream).write = orig;
+    }
+
+    expect(code).toBe(0);
+    expect(stderr).toContain('Domain filter "qe" matched no plugin set');
+    expect(fs.existsSync(outputDir)).toBe(false);
+  });
+
+  it('an unconfigured release with no --domain still exits 1 (misconfiguration, not a filter outcome)', async () => {
+    const outputDir = path.join(repo, 'out-norelease-domain');
+    const noReleaseConfig = path.join(repo, 'no-release-plugins.json');
+    fs.writeFileSync(noReleaseConfig, JSON.stringify({
+      targets: ['claude'],
+      hookSupportModules: {},
+      sets: [
+        {
+          name: 'core', folders: ['core'], template: 'template', releases: ['r2'],
+          requires: [], bootstrap: false, hooks: [],
+          manifest: { name: 'core', description: 'Core.' },
+          variants: [{ profile: null, destinationSuffix: '', manifestNameSuffix: '', manifestDescriptionSuffix: '' }],
+        },
+      ],
+    }));
+
+    const code = await silencingStderr(() => generate({
+      sources: sourcesFor(outputDir, noReleaseConfig), release: 'r3', dryRun: false, verbose: false,
+    }));
+
+    expect(code).toBe(1);
     expect(fs.existsSync(outputDir)).toBe(false);
   });
 
