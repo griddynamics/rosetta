@@ -110,15 +110,25 @@ jobs:
       #     permission profile (read-only filesystem, network for `gh`) plus what
       #     SELF_AUTOMATION_PROJECTS_TOKEN itself can do. That is coarser than the
       #     Claude branch's `gh`-subcommand allow-list.
-      #   - No subagents: the Codex plugin has no Agent tool, so an analysis run is
-      #     single-threaded where the Claude run fans out.
-      #   - `model` is deliberately unset so Codex uses its own default; pin it once
-      #     the model identifiers Bifrost exposes on `/openai/v1` are confirmed.
+      #   - Subagents DO run here: run 33664134418 fanned out to four of them
+      #     (five rollout files, 124 commands, inter-agent records between them).
+      #     An earlier comment claimed otherwise; the trace parser was simply
+      #     blind to those rollouts and reported them as empty.
+      #   - `model`/`effort` are set below to the Codex tier paired with the Claude
+      #     branch's `--model opus --effort high`; see "Model tiers" in the doc.
       # GH_TOKEN is passed as step env because Codex has no `github_token` input; the
       # action's own steps and `codex exec` both inherit it.
       - name: Run Codex
         if: env.ROSETTA_AGENT == 'codex'
-        uses: openai/codex-action@v1
+      # Pinned to v1.11 deliberately. `@v1` resolves to v1.12, which introduced BOTH
+      # of the failures seen here: #160 (drop-sudo chmods /run sockets to 0700, killing
+      # systemd-resolved, so the runner loses DNS and dies 52-65 minutes in -- every
+      # long Codex run in this repo did exactly that) and #150 (the Linux run never
+      # returns after the turn completes). `restrictRootServiceSocket` is absent from
+      # src/dropSudo.ts in v1.11 and earlier. Pinning keeps `safety-strategy` at its
+      # secure `drop-sudo` default rather than trading the sudo revocation away.
+      # Revisit when both are fixed upstream; v1.11 accepts every input used here.
+        uses: openai/codex-action@v1.11
         env:
           GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
         with:
@@ -136,7 +146,22 @@ jobs:
           model: gpt-5.6-sol
           effort: high
           output-file: ${{ runner.temp }}/codex-final-message.md
-          prompt: "MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-analysis.md"
+          prompt: |
+            Environment: `.agents/`, `.codex/`, and `.codex-plugin/` hold the Rosetta instruction
+            set -- tooling CI extracted into this workspace, not repository content. Read those
+            paths from the working tree (`cat`, `sed`); never through git (`git show`, `git log`,
+            `git diff`).
+
+            MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-analysis.md
+
+      # `openai/codex-action` leaves its responses proxy and `codex exec` tree running
+      # after the step reports success, and a runner cannot finalise a job while those
+      # hold the step's output pipe. Every Codex run that did real work hung because of
+      # it -- triage was cancelled at the job cap, analysis sat until GitHub declared
+      # the runner lost at ~62 minutes. See .github/scripts/reap_agent_processes.sh.
+      - name: Reap leftover agent processes
+        if: always()
+        run: .github/scripts/reap_agent_processes.sh
 
       # The trace is a full tool transcript published as a downloadable artifact,
       # outside Actions log masking. Redact credentials before it leaves the runner.

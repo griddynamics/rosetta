@@ -1,5 +1,11 @@
 # Rosetta Repo Analysis — GitHub Issue Automation
 
+> **HEADLESS RECOVERY**: no human can respond during this run. Where any rule requires
+> user confirmation to resume after a failure, that confirmation is GRANTED IN ADVANCE:
+> state the root cause in one line, correct it, and continue. Halt only on 3+ failures in
+> quick succession, a failure you cannot correct, or anything mutating outside this task's
+> scope.
+
 > **AUTONOMOUS PIPELINE**: MUST NOT ask the user any questions directly.
 > Instead, post questions as GitHub issue comments.
 > Since this is a long-running process: ask all questions upfront, reason through

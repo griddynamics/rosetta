@@ -22,15 +22,15 @@ name: Validate Prompts
 # - Creates a PR comment with all issues by severity
 
 on:
-  # The pull_request_target trigger below is disabled on purpose and temporarily:
-  # the agent run costs more per PR than the current CI budget allows. It is not
-  # broken. Run it by hand via workflow_dispatch until the budget is restored.
-  #pull_request_target:
-  #  types: [opened, synchronize, reopened, ready_for_review]
-  #  paths:
-  #    - "instructions/r*/**"
-  #    - ".github/workflows/validate-prompts.yml"
-  #    - ".github/prompts/prompt-comparison.md"
+  # Re-enabled: the agent run costs more per PR than plain CI, so the `paths` filter
+  # below is what keeps it affordable -- it fires only when the prompts themselves,
+  # or this pipeline, change. Comment it out again if the budget tightens.
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "instructions/r*/**"
+      - ".github/workflows/validate-prompts.yml"
+      - ".github/prompts/prompt-comparison.md"
   workflow_dispatch:
     inputs:
       agent:
@@ -219,6 +219,11 @@ jobs:
             printf 'Output file: %s\n' "$ALL_RESULTS_FILE"
             printf 'Diff file: %s\n' "$DIFF_FILE"
             printf 'PR content path: pr\n'
+            printf '\n'
+            printf 'Environment: `.agents/`, `.codex/`, and `.codex-plugin/` hold the Rosetta\n'
+            printf 'instruction set -- tooling CI extracted into this workspace, not repository\n'
+            printf 'content. Read those paths from the working tree (`cat`, `sed`); never through\n'
+            printf 'git (`git show`, `git log`, `git diff`).\n'
           } >> "$CODEX_PROMPT_FILE"
           echo "::notice::Codex prompt assembled: $(wc -l < "$CODEX_PROMPT_FILE") lines"
 
@@ -234,7 +239,15 @@ jobs:
       - name: Validate prompts (Codex)
         id: run-validation-codex
         if: steps.changed-files.outputs.count > 0 && env.ROSETTA_AGENT == 'codex'
-        uses: openai/codex-action@v1
+      # Pinned to v1.11 deliberately. `@v1` resolves to v1.12, which introduced BOTH
+      # of the failures seen here: #160 (drop-sudo chmods /run sockets to 0700, killing
+      # systemd-resolved, so the runner loses DNS and dies 52-65 minutes in -- every
+      # long Codex run in this repo did exactly that) and #150 (the Linux run never
+      # returns after the turn completes). `restrictRootServiceSocket` is absent from
+      # src/dropSudo.ts in v1.11 and earlier. Pinning keeps `safety-strategy` at its
+      # secure `drop-sudo` default rather than trading the sudo revocation away.
+      # Revisit when both are fixed upstream; v1.11 accepts every input used here.
+        uses: openai/codex-action@v1.11
         with:
           allow-users: "*"
           allow-bots: "true"
@@ -253,6 +266,50 @@ jobs:
           effort: high
           prompt-file: ${{ env.CODEX_PROMPT_FILE }}
           output-file: ${{ runner.temp }}/codex-final-message.md
+
+      # `openai/codex-action` leaves its responses proxy and `codex exec` tree running
+      # after the step reports success, and a runner cannot finalise a job while those
+      # hold the step's output pipe. Every Codex run that did real work hung because of
+      # it -- triage was cancelled at the job cap, analysis sat until GitHub declared
+      # the runner lost at ~62 minutes. See .github/scripts/reap_agent_processes.sh.
+      - name: Reap leftover agent processes
+        if: always()
+        run: .github/scripts/reap_agent_processes.sh
+
+      # This pipeline was the only one of the five publishing no execution trace, so a
+      # run could be audited for its REPORT but never for its BEHAVIOUR -- what the
+      # agent actually ran, what the sandbox refused, whether it reached past its
+      # brief. Green steps are not evidence of that. The trace is a full tool
+      # transcript published outside Actions log masking, so credentials are redacted
+      # before it leaves the runner.
+      - name: Scrub credentials from execution trace
+        if: always()
+        env:
+          SCRUB_VALUES: |
+            ${{ secrets.GITHUB_TOKEN }}
+            ${{ secrets.BIFROST_API_KEY }}
+        run: |
+          python3 .github/scripts/scrub_trace.py \
+            /home/runner/work/_temp/claude-execution-output.json \
+            "${{ steps.codex.outputs.sessions-dir }}"
+
+      - name: Upload Claude execution trace
+        if: always() && env.ROSETTA_AGENT == 'claude'
+        uses: actions/upload-artifact@v6
+        with:
+          name: claude-execution-trace
+          path: /home/runner/work/_temp/claude-execution-output.json
+          retention-days: 3
+          if-no-files-found: warn
+
+      - name: Upload Codex execution trace
+        if: always() && env.ROSETTA_AGENT == 'codex'
+        uses: actions/upload-artifact@v6
+        with:
+          name: codex-execution-trace
+          path: ${{ steps.codex.outputs.sessions-dir }}
+          retention-days: 3
+          if-no-files-found: warn
 
       - name: Check validation result
         id: validate

@@ -54,7 +54,7 @@ Classify once, state the chosen mode, then run it end to end.
 <orchestration>
 
 - USE SKILL `orchestration` for every dispatch. USE SKILL `hitl` for every gate. USE SKILL `questioning` to shape Q&A.
-- One story, one context. Run the whole mode here by default.
+- Bounded stories, one context. Run the whole mode here by default. Disjoint areas in parallel.
 - Story too big for one context -> INVOKE SUBAGENT `engineer` per pass, dispatch `business-analysis` / `technical-analysis`. A focused concern uses `technical-analysis` scoped to that one concern.
 - Write-back is never dispatched — it holds the approval gate.
 - Parallel dispatches must not share a write target.

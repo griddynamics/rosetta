@@ -7,10 +7,11 @@ two questions:
   1. did the run mutate anything?  -- checked here
   2. did the main agent background a subagent and abandon it?  -- NOT checked
 
-Check 2 has no Codex analogue: the Codex plugin has no subagent mechanism, so
-there is nothing to background and nothing to strand. The Codex path therefore
-carries less post-run verification than the Claude path by construction, not by
-omission.
+Check 2 is not implemented for Codex. It was long assumed to have no analogue --
+"the plugin has no subagents" -- but run 33664134418 fanned out to four of them, each
+with its own rollout file. Whether a Codex subagent can be BACKGROUNDED and stranded
+the way a Claude one can is untested, so this remains a real gap rather than an
+inapplicable check.
 
 Check 1 is skipped with --allow-no-op, for the same reason as in `check_trace.py`:
 board-driven pipelines are pulled by board state that guarantees work exists, so
@@ -22,6 +23,7 @@ Only `response_item.function_call` records for a shell tool are inspected; the
 mutating-command vocabulary is shared with `check_trace.py` so both branches are
 held to the same definition of "did real work".
 """
+import re
 import json
 import os
 import sys
@@ -72,13 +74,29 @@ def json_objects(text):
             if depth:
                 depth -= 1
                 if depth == 0:
-                    try:
-                        obj = json.loads(text[start:i + 1])
-                    except ValueError:
-                        continue
+                    obj = _loads_lenient(text[start:i + 1])
                     if isinstance(obj, dict):
                         found.append(obj)
     return found
+
+
+# The wrapper is JavaScript, not JSON, and object literals there carry BARE keys:
+# `tools.exec_command({cmd:"...", workdir:"..."})`. `json.loads` rejects those, and
+# because the failure was silent the gate reported "0 tool calls" for rollouts holding
+# 26 of them -- under-counting mutations, which is the one direction this check must
+# never fail in. Quote bare keys and retry.
+_BARE_KEY = re.compile(r'([{,]\s*)([A-Za-z_$][A-Za-z0-9_$]*)(\s*:)')
+
+
+def _loads_lenient(span):
+    try:
+        return json.loads(span)
+    except ValueError:
+        pass
+    try:
+        return json.loads(_BARE_KEY.sub(r'\1"\2"\3', span))
+    except ValueError:
+        return None
 
 
 def split_chained(command):
@@ -124,6 +142,28 @@ def split_chained(command):
         i += 1
     parts.append("".join(buf))
     return [p.strip() for p in parts if p.strip()]
+
+
+# The multi-line commands -- which is to say the interesting ones -- are written as
+# JavaScript TEMPLATE LITERALS, not JSON strings:
+#
+#     tools.exec_command({
+#         cmd: `gh issue create --title "..." \
+#                 --body "..."`,
+#         workdir: "..."})
+#
+# No amount of key-quoting makes that parse as JSON, so the balanced-brace scan skips
+# the whole object. That is how run 33666950023 was reported as having executed no
+# mutations while it was creating issues #350-#357. Pull the backtick spans out
+# directly; for a "did this run mutate anything" gate the raw text is all that is
+# needed, and over-reading a `${...}` placeholder can only cost a false finding, never
+# a false pass.
+_TEMPLATE_CMD = re.compile(r'\b(?:cmd|command)\s*:\s*`([^`]*)`', re.S)
+
+
+def template_literal_commands(text):
+    """Shell commands carried by a JS template literal `cmd:` value."""
+    return [m.group(1) for m in _TEMPLATE_CMD.finditer(text)]
 
 
 def commands_from_args(args):
@@ -187,6 +227,7 @@ def commands(path):
                 if isinstance(src, str):
                     for obj in json_objects(src):
                         out += commands_from_args(obj)
+                    out += template_literal_commands(src)
     return out
 
 

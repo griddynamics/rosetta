@@ -1,5 +1,11 @@
 # Rosetta GitHub Triage Agent
 
+> **HEADLESS RECOVERY**: no human can respond during this run. Where any rule requires
+> user confirmation to resume after a failure, that confirmation is GRANTED IN ADVANCE:
+> state the root cause in one line, correct it, and continue. Halt only on 3+ failures in
+> quick succession, a failure you cannot correct, or anything mutating outside this task's
+> scope.
+
 > **AUTONOMOUS PIPELINE**: MUST NOT ask the user any questions directly.
 > All decisions are made autonomously. Post findings as GitHub comments or issues only.
 > Run fully end-to-end without any human interaction or confirmation.

@@ -238,13 +238,35 @@ jobs:
       # stays at the action's `drop-sudo` default, which revokes the runner's sudo
       # before Codex starts -- a protection the Claude branch does not have.
       #
-      # No subagents on Codex: the plugin has no Agent tool, so the coding flow runs
-      # single-threaded here.
+      # Subagents: the Codex plugin does fan out (observed on repo-analysis run
+      # 33664134418 -- four parallel subagents). Unverified for this pipeline.
       - name: Implement (Codex) — issue #${{ matrix.issue_number }}
         if: env.ROSETTA_AGENT == 'codex'
-        uses: openai/codex-action@v1
+      # Pinned to v1.11 deliberately. `@v1` resolves to v1.12, which introduced BOTH
+      # of the failures seen here: #160 (drop-sudo chmods /run sockets to 0700, killing
+      # systemd-resolved, so the runner loses DNS and dies 52-65 minutes in -- every
+      # long Codex run in this repo did exactly that) and #150 (the Linux run never
+      # returns after the turn completes). `restrictRootServiceSocket` is absent from
+      # src/dropSudo.ts in v1.11 and earlier. Pinning keeps `safety-strategy` at its
+      # secure `drop-sudo` default rather than trading the sudo revocation away.
+      # Revisit when both are fixed upstream; v1.11 accepts every input used here.
+        uses: openai/codex-action@v1.11
         env:
           GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          # `rosetta-workspace-net` grants write to the workspace and nothing else, so
+          # every tool that caches outside it fails with EROFS. On run 33683672006 npm
+          # hit `EROFS: read-only file system, open '/home/runner/.npm/_cacache/tmp/...'`
+          # and the agent improvised `npm_config_cache=/tmp/...` mid-run to get past it.
+          # It worked, but the same install also emitted TAR_ENTRY_ERROR warnings, so
+          # the recovery is not clean -- and a build the agent has to rescue by hand is
+          # a build whose test results cannot be trusted. Point the cache somewhere
+          # writable up front instead of leaving it to improvisation.
+          npm_config_cache: /tmp/rosetta-npm-cache
+          # Same class of failure: the runner's step-summary file is outside the
+          # workspace, so anything writing $GITHUB_STEP_SUMMARY inside the agent's
+          # sandbox errors. Redirect it rather than have tools fail on a side effect
+          # nobody reads -- the job's own summary steps run outside this sandbox.
+          GITHUB_STEP_SUMMARY: /tmp/rosetta-agent-step-summary
         with:
           openai-api-key: ${{ secrets.BIFROST_API_KEY }}
           # Uncomment to pin the CLI if a floating `latest` ever regresses the beta
@@ -267,7 +289,21 @@ jobs:
             Status field ID: ${{ needs.load-stories.outputs.status_field_id }}
             Status option IDs (JSON, name -> id): ${{ needs.load-stories.outputs.status_option_ids }}
 
+            Environment: `.agents/`, `.codex/`, and `.codex-plugin/` hold the Rosetta instruction
+            set -- tooling CI extracted into this workspace, not repository content. Read those
+            paths from the working tree (`cat`, `sed`); never through git (`git show`, `git log`,
+            `git diff`).
+
             MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-implement-code.md
+
+      # `openai/codex-action` leaves its responses proxy and `codex exec` tree running
+      # after the step reports success, and a runner cannot finalise a job while those
+      # hold the step's output pipe. Every Codex run that did real work hung because of
+      # it -- triage was cancelled at the job cap, analysis sat until GitHub declared
+      # the runner lost at ~62 minutes. See .github/scripts/reap_agent_processes.sh.
+      - name: Reap leftover agent processes
+        if: always()
+        run: .github/scripts/reap_agent_processes.sh
 
       # The trace is a full tool transcript published as a downloadable artifact,
       # outside Actions log masking. Redact credentials before it leaves the runner.
