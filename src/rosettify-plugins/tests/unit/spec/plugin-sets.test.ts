@@ -40,7 +40,7 @@ const VALID = {
       requires: ['core'],
       bootstrap: false,
       hooks: [],
-      manifest: { name: 'rosetta-qe', description: 'QE.' },
+      manifest: { name: 'rosetta-qe', description: 'QE. Requires Core.' },
       variants: [{ profile: 'lightweight', destinationSuffix: '', manifestNameSuffix: '', manifestDescriptionSuffix: '' }],
     },
   ],
@@ -102,6 +102,9 @@ describe('loadPluginCatalog — every violation aborts and names the file', () =
     })],
     ['a requires naming an undeclared set', mutate((c) => { c.sets[1].requires = ['nope']; })],
     ['a set requiring itself', mutate((c) => { c.sets[1].requires = ['qe']; })],
+    ['a requires entry the manifest.description does not mention (FR-SET-0050)', mutate((c) => {
+      c.sets[1].manifest.description = 'QE.'; // omits "core", which sets[1].requires names
+    })],
     ['an unknown IDE target', mutate((c) => { c.targets.push('windsurf'); })],
     ['a duplicate target', mutate((c) => { c.targets.push('claude'); })],
     ['an empty sets array', mutate((c) => { c.sets = []; })],
@@ -130,6 +133,52 @@ describe('loadPluginCatalog — every violation aborts and names the file', () =
     try { loadPluginCatalog(missing); } catch (e) { err = e as Error; }
     expect(err).toBeInstanceOf(PluginCatalogError);
     expect(err!.message).toContain(missing);
+  });
+
+  // FR-SET-0050: `requires` is validated against the set's own manifest.description, never
+  // derived — a `requires` edit that forgets the description is caught at catalog load.
+  it('names both the requiring set and the missing entry when the description omits it', () => {
+    const c = mutate((x) => { x.sets[1].manifest.description = 'QE.'; });
+    withCatalog(c, (p) => {
+      let err: Error | undefined;
+      try { loadPluginCatalog(p); } catch (e) { err = e as Error; }
+      expect(err).toBeInstanceOf(PluginCatalogError);
+      expect(err!.message).toContain('"qe"');
+      expect(err!.message).toContain('"core"');
+      expect(err!.message).toContain('does not mention it');
+    });
+  });
+
+  it('does not use \\b, which would treat "-" as a word boundary: a hyphenated set name is not a false negative inside a longer hyphenated word', () => {
+    const c = mutate((x) => {
+      x.sets[1].name = 'read-once';
+      x.sets[1].requires = [];
+      x.sets.push({
+        name: 'downstream',
+        folders: ['downstream'],
+        template: 'template',
+        releases: ['r3'],
+        requires: ['read-once'],
+        bootstrap: false,
+        hooks: [],
+        // "read-once-shared" contains "read-once" as a substring but not as a whole token —
+        // \b would treat the hyphen as a boundary and wrongly accept this.
+        manifest: { name: 'downstream', description: 'Uses read-once-shared internals.' },
+        variants: [{ profile: null, destinationSuffix: '', manifestNameSuffix: '', manifestDescriptionSuffix: '' }],
+      });
+    });
+    withCatalog(c, (p) => {
+      let err: Error | undefined;
+      try { loadPluginCatalog(p); } catch (e) { err = e as Error; }
+      expect(err, 'expected the catalog to be rejected').toBeInstanceOf(PluginCatalogError);
+      expect(err!.message).toContain('"downstream"');
+      expect(err!.message).toContain('"read-once"');
+    });
+  });
+
+  it('the shipped plugins.json still loads (requires ⇒ description invariant holds for real content)', () => {
+    const catalog = loadPluginCatalog(REPO_CONFIG);
+    expect(catalog.sets.length).toBeGreaterThan(0);
   });
 });
 

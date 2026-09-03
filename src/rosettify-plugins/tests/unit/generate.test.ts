@@ -645,3 +645,40 @@ describe('generate() — plugin sets end to end', () => {
     expect(fs.existsSync(outputDir)).toBe(false);
   });
 });
+
+// FR-SET-0050: `requires` is validated against the manifest description, never derived into it.
+// This is the output-shape assertion the prior audit lacked — checking the REAL shipped catalog's
+// generated manifest actually carries the authored "Requires ..." prose, not just that the
+// (unrelated) fixture catalogs load.
+describe('generate() — real catalog: requires is reflected in the shipped manifest prose', () => {
+  const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
+
+  it('a built qe-* manifest description names both sets it requires', async () => {
+    const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-real-catalog-'));
+    try {
+      const code = await generate({
+        sources: {
+          instructionsSource: path.join(REPO_ROOT, 'instructions'),
+          pluginsSource: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins'),
+          hooksSource: path.join(REPO_ROOT, 'src', 'hooks'),
+          outputDir,
+          profileSource: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'profiles'),
+          configPath: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins.json'),
+        },
+        release: 'r3',
+        domain: 'qe',
+        dryRun: false,
+        verbose: false,
+        deterministicHooks: false,
+      });
+      expect(code).toBe(0);
+      const manifest = JSON.parse(fs.readFileSync(
+        path.join(outputDir, 'qe-claude', '.claude-plugin', 'plugin.json'), 'utf-8',
+      ));
+      expect(manifest.description).toContain('Core');
+      expect(manifest.description).toContain('Workflows');
+    } finally {
+      fs.rmSync(outputDir, { recursive: true, force: true });
+    }
+  });
+});

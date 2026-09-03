@@ -157,6 +157,15 @@ function readSets(value: unknown, file: string): PluginSetDecl[] {
 
   // A `requires` pointing at a set that does not exist is a typo that would otherwise only ever
   // surface as misleading text in a shipped manifest.
+  //
+  // FR-SET-0050: `requires` is install-time metadata whose only delivery is the manifest
+  // description — the generator never composes the "Requires X and Y" sentence itself (the
+  // authored prose reads better than anything generated, and deriving it would give one fact two
+  // sources). So the description is validated, not derived: a `requires` entry that the set's own
+  // BASE description (never the variant-suffixed composite) fails to name is a catalog error,
+  // caught at the exact moment the `requires` edit is made rather than shipping silently wrong
+  // prose. The lookaround avoids `\b`, which treats `-` as a word boundary and would let a set
+  // named `read-once` match inside "read-once-shared".
   for (const set of sets) {
     for (const req of set.requires) {
       if (!names.includes(req)) {
@@ -166,6 +175,18 @@ function readSets(value: unknown, file: string): PluginSetDecl[] {
         );
       }
       if (req === set.name) fail(`${file}: plugin set "${set.name}" cannot require itself.`);
+
+      const mentionsReq = new RegExp(`(?<![a-z0-9-])${req}(?![a-z0-9-])`, 'i').test(
+        set.manifest.description,
+      );
+      if (!mentionsReq) {
+        fail(
+          `${file}: plugin set "${set.name}" requires "${req}", but its manifest.description ` +
+            `does not mention it. \`requires\` is install-time metadata whose only delivery is ` +
+            `the description — add it there, or drop the requires entry. Description: ` +
+            `"${set.manifest.description}".`,
+        );
+      }
     }
   }
 
