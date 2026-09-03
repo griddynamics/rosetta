@@ -102,27 +102,27 @@ The files a plugin keeps but never generates — the IDE manifest, hook template
 
 <req id="FR-COPY-0011" type="FR" level="System" ticketId="315" classification="technical">
   <title>Exclude designated source files</title>
-  <statement>The generator shall not emit source files matched by a `SpecEntry`'s `exclude` list (an array of VFS paths or path globs, e.g. `<folder>/<subfolder>/**`) into the target — `pluginProcessSpecEntries()` creates no frame for them (FR-ARCH-0054). The excluded set is the legacy MCP-mode rules `rules/bootstrap.md` and `rules/local-files-mode.md`. Authoring-only material that belongs to no plugin set — `templates/shell-schemas/` among it — needs no exclusion at all, because no `SpecEntry` reaches it (DATA-CFG-0002). Exclusion is data on the entry and requires no source rename — the source files remain unchanged because MCP and other instructions still reference them.</statement>
+  <statement>The generator shall not emit source files matched by a `SpecEntry`'s `exclude` list (an array of VFS paths or path globs, e.g. `<folder>/<subfolder>/**`) into the target — `pluginProcessSpecEntries()` creates no frame for them (FR-ARCH-0054). The excluded set is the three mode-selection rules no plugin ships: `rules/bootstrap.md` (r2 MCP mode), `rules/mcp-files-mode.md` (r3 MCP mode) and `rules/local-files-mode.md`. A target's own `SpecEntry` may extend this list — `copilot-standalone` additionally excludes `rules/speckit-integration-policy.md` from its instructions entry. Authoring-only material that belongs to no plugin set — `templates/shell-schemas/` among it — needs no exclusion at all, because no `SpecEntry` reaches it (DATA-CFG-0002). Exclusion is data on the entry and requires no source rename — the source files remain unchanged because MCP and other instructions still reference them.</statement>
   <rationale>Certain files are delivered via hooks, are legacy, or are authoring-only schemas (authoring-only schemas describe frontmatter fields for authors and are not needed by any IDE plugin), but the source files cannot be renamed or removed because MCP serves them and instruction text references them. A data `exclude` list (supporting whole-folder globs) omits them at generation without touching the source.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Draft</status>
   <approved_by></approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `rules/bootstrap.md` or `rules/local-files-mode.md` listed in `exclude` When: generated Then: it is absent from the target and the source file is unchanged.</criteria>
+    <criteria>Given: `rules/bootstrap.md`, `rules/mcp-files-mode.md` or `rules/local-files-mode.md` listed in `exclude` When: generated Then: it is absent from the target and the source file is unchanged.</criteria>
     <criteria>Given: a folder glob such as `<folder>/<subfolder>/**` in `exclude` When: any plugin is generated Then: no file under that path appears in its output and the source files are unchanged.</criteria>
     <criteria>Given: a set folder adding a path to `exclude` When: generated Then: that path is omitted for that target.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the templates SpecEntry is confirmed removed and folder-glob exclusion is implemented
-  (isExcluded in plugin-process-spec-entries.ts treats a trailing /** as a folder prefix). The statement
-  is still ahead of the code in one respect: it names an exhaustive excluded set of two files,
-  rules/bootstrap.md and rules/local-files-mode.md, but the shipped RULES_EXCLUDES in
-  src/rosettify-plugins/src/spec/targets.ts excludes THREE - rules/bootstrap.md, rules/mcp-files-mode.md
-  and rules/local-files-mode.md. instructions/r3/core/rules/mcp-files-mode.md is a real, currently-shipped
-  exclusion the statement omits. Status remains Draft; approval is independent of this.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: RULES_EXCLUDES (src/rosettify-plugins/src/spec/targets.ts) ships exactly the three
+  entries the statement now names - rules/bootstrap.md, rules/mcp-files-mode.md and
+  rules/local-files-mode.md; isExcluded (src/rosettify-plugins/src/plugin-processors/plugin-process-spec-entries.ts)
+  treats a trailing /** as a folder-prefix match. The prior ToBeModified verdict was against the
+  code: the statement's excluded set (two files) was stale, not the implementation, which already
+  shipped and excludes instructions/r3/core/rules/mcp-files-mode.md. Status remains Draft; approval
+  is independent of this.</implementationNotes>
   <depends>FR-ARCH-0002, FR-ARCH-0054</depends>
 </req>
 
