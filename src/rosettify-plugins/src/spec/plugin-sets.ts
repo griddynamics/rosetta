@@ -57,14 +57,14 @@ export interface PluginCatalog {
 }
 
 const CATALOG_FIELDS = ['$schema-note', 'targets', 'hookSupportModules', 'sets'] as const;
-const SET_FIELDS = [
+export const SET_FIELDS = [
   'name', 'folders', 'template', 'releases', 'requires',
   'bootstrap', 'hooks', 'manifest', 'variants',
 ] as const;
-const VARIANT_FIELDS = [
+export const VARIANT_FIELDS = [
   'profile', 'destinationSuffix', 'manifestNameSuffix', 'manifestDescriptionSuffix',
 ] as const;
-const MANIFEST_FIELDS = ['name', 'description'] as const;
+export const MANIFEST_FIELDS = ['name', 'description'] as const;
 
 /**
  * Thrown for any catalog violation. Every message names the offending file so a user reading only

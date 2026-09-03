@@ -8,7 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { initLogger } from './logging.js';
 import { generate } from './generate.js';
-import { resolveConfigPath } from './spec/plugin-sets.js';
+import { resolveConfigPath, SET_FIELDS, VARIANT_FIELDS, MANIFEST_FIELDS } from './spec/plugin-sets.js';
 import type { GenerateOptions, ResolvedSources } from './types.js';
 
 // FR-CLI-0012: explicit boolean only; anything else is a usage error (exit ≠ 0)
@@ -81,6 +81,12 @@ Plugin sets (--config, --domain):
                        release. '--domain qe' therefore builds only the qe-* plugins.
     --config <path>   Override where the catalog is read from. A relative path resolves
                        against --source, not the current directory.
+
+  A set descriptor in plugins.json carries exactly these fields:
+    ${SET_FIELDS.join(', ')}
+  A variant carries: ${VARIANT_FIELDS.join(', ')}
+  A manifest carries: ${MANIFEST_FIELDS.join(', ')}
+  Any other field is rejected when the catalog loads.
 
   Set availability is per release: instructions/r2 holds only core/, so r2 resolves to the one
   set built from it. A set naming an instruction folder or a template folder that does not

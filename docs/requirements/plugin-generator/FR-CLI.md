@@ -322,7 +322,7 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-09-03</changed>
   <verification>Inspection</verification>
   <acceptance>
     <criteria>Given: help is requested When: shown Then: it lists each command/argument with its purpose.</criteria>
@@ -330,12 +330,14 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
     <criteria>Given: help is requested When: shown Then: it additionally documents the `--profile` and `--profileSource` options, the profile descriptor field `modelOverrides`, and the filename-directive token forms `target-<id>-only`, `ide-<family>-only`, `set-<id>-only` and `profile-<name>-only`, emitting no internal requirement identifiers.</criteria>
     <criteria>Given: help is requested When: shown Then: it additionally documents the `--config` option, the plugin-set descriptor fields (`name`, `folders`, `variants`, `template`, `releases`, `manifest`, `requires`, `bootstrap`, `hooks`), and the `--domain` folder filter over sets.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the help text in src/rosettify-plugins/src/cli.ts covers the profile mechanism and all
-  four -only token forms and mentions --config and --domain. It fails the final criterion: the plugin-set
-  descriptor field names are never enumerated in the help output. The criterion's own field list is also
-  wrong - the set-identity field is name, not id, per SET_FIELDS in
-  src/rosettify-plugins/src/spec/plugin-sets.ts.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: the help text in src/rosettify-plugins/src/cli.ts covers the profile mechanism and all
+  four -only token forms, documents --config and --domain, and now interpolates SET_FIELDS,
+  VARIANT_FIELDS and MANIFEST_FIELDS (exported from src/rosettify-plugins/src/spec/plugin-sets.ts)
+  into the "Plugin sets" help block rather than hand-typing a second field list — the same
+  drift trap FR-SET-0050 closes for the manifest description. Verified by spawning `--help` as a
+  subprocess and asserting all nine SET_FIELDS names plus the VARIANT_FIELDS and MANIFEST_FIELDS
+  names appear in stdout.</implementationNotes>
   <depends>FR-ARCH-0020, FR-ARCH-0024, FR-ARCH-0042, FR-ARCH-0001, FR-CLI-0032, FR-CLI-0033, FR-CLI-0034, DATA-CFG-0006, DATA-CFG-0007</depends>
 </req>
 
