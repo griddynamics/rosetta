@@ -127,8 +127,8 @@
   four add-on sets (workflows, qe, search, modernization) ship zero hooks.json and zero hooks/ directories
   across every IDE target. The render context in generate.ts becomes { release,
   deterministic_hooks, bootstrap_hooks, destination }, every key plumbed explicitly so strict rendering
-  cannot meet an unknown one; the hooks_json key leaves it with the assembler (FR-GEN-0011). At the time
-  this text was written the shipped context still carried hooks_json and not destination.</implementationNotes>
+  cannot meet an unknown one; the hooks_json key left it with the assembler (FR-GEN-0011). Verified:
+  generate.ts now plumbs destination into the per-spec render context.</implementationNotes>
   <notes>The entry-less `hooks.json` some targets emit, and why suppressing it is deferred, are recorded on FR-SET-0070. Status moved Approved to Draft: the render context loses the assembled hook-configuration value and gains the spec's output folder name, which changes what this unit's second criterion asserts, and awaits re-approval.</notes>
 </req>
 
@@ -151,16 +151,18 @@
     <criteria>Given: a template referencing a variable the context does not plumb When: rendered Then: rendering throws rather than producing empty text.</criteria>
   </acceptance>
   <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: supersedes the assembled-document form, which is still the shipped
-  behaviour at the time this text was written. Target state: the seven literal hooks.json.tmpl files
-  are restored under src/rosettify-plugins/plugins/template-&lt;ide&gt;/ at the paths git ref 492b6a78~1
-  held them; plugin-assemble-hooks-json.ts and spec/hook-layouts.ts are removed;
-  plugin-render-templates.ts gains the post-render JSON.parse check as a hard error. The Copilot
-  plugin-form template is the only one carrying a generator-supplied value beyond the release
-  conditional and the bootstrap payload: the spec's own output folder name at the fourteen sites where
-  its install-location probes name that folder, plumbed from PluginSpec.destination in generate.ts —
-  without it a non-default set's Copilot plugin would probe another set's directory. Nine documents are
-  emitted from seven templates plus two mirrors (FR-VAR-0030, FR-VAR-0031).</implementationNotes>
+  <implementationNotes>ToBeModified: the literal-template half has landed, the post-render validation
+  half has not. Landed: the seven literal hooks.json.tmpl files are restored under
+  src/rosettify-plugins/plugins/template-&lt;ide&gt;/ at the paths git ref 492b6a78~1 held them, each
+  carrying its own document's structure; plugin-assemble-hooks-json.ts is deleted and the per-set
+  frame-drop folded into pluginCopy; PluginSpec.hookLayout is gone. The Copilot plugin-form template is
+  the only one carrying a generator-supplied value beyond the release conditional and the bootstrap
+  payload: the spec's own output folder name at the fourteen sites where its install-location probes
+  name that folder (verified: 14 occurrences), plumbed from spec.destination into the render context in
+  generate.ts — without it a non-default set's Copilot plugin would probe another set's directory. Nine
+  documents are emitted from seven templates plus two mirrors (FR-VAR-0030, FR-VAR-0031). OUTSTANDING:
+  the post-render JSON.parse hard error in plugin-render-templates.ts, and the deletion of the residual
+  spec/hook-layouts.ts, which no longer has an importer.</implementationNotes>
   <depends>FR-GEN-0010, FR-ARCH-0048, FR-VAR-0071, FR-VAR-0031, NFR-0012</depends>
   <notes>Validity is a checked property of the rendered text, not a structural consequence of
   serializing a built object. Post-render parsing is strictly the stronger of the two: it also catches a

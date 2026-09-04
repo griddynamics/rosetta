@@ -52,8 +52,8 @@ The generator assembles the bootstrap context values uniformly for every target 
     <criteria>Given: a target with no separate in-repo distribution When: generated Then: a single hook-template form suffices.</criteria>
     <criteria>Given: a target providing both forms When: generated Then: the standalone-form document carries no marketplace install-location probe and an empty session-start array, and the marketplace-form document carries neither the in-repo extraction path nor the standalone form's addressing.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: src/rosettify-plugins/src/spec/targets.ts already gives the cursor and copilot specs both hook template frames, and standaloneTemplates re-points the standalone-form file at the standalone build's output path. What is outstanding is the CONTENT: at the time this text was written both .tmpl frames of each pair were the same single-placeholder file, so the two forms rendered byte-identical. The per-form difference returns to the two template files (FR-GEN-0011), which is where it lived before the layout table was introduced.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/targets.ts gives the cursor and copilot specs both hook template frames, and standaloneTemplates re-points the standalone-form file at the standalone build's output path. The per-form difference is back in the template text, which is where it lived before the layout table was introduced: template-copilot/hooks/hooks.json.tmpl carries a literal `"sessionStart": []` and plain `.github/hooks/` addressing while template-copilot/.github/plugin/hooks.json.tmpl carries the install-location probes and the bootstrap placeholder; template-cursor/hooks.json.tmpl carries `.cursor/hooks/` addressing while template-cursor/hooks/hooks.json.tmpl carries `hooks/`. Two files cannot collapse into one document, which is the property this unit now asserts.</implementationNotes>
   <notes>Status moved Approved to Draft and verification Inspection to Test: the unit now asserts a CONTENT property between the two forms, not merely that two template files exist, and that property is testable. Awaits re-approval.</notes>
 </req>
 
@@ -170,8 +170,12 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
   templates satisfy (FR-GEN-0011, FR-VAR-0071); it is not a text defect and must not be closed by editing
   it. The genuinely empty sessionStart form for the separate copilot-standalone target lives at
   .github/hooks/hooks.json and is unaffected. Verified by
-  plans/issue-315-plugin-sets/verify/ac_hooks_content.py (NFR-0012), which fails on this document today
-  and passes against the pre-#315 snapshot. Status remains Draft; approval is independent of this.</implementationNotes>
+  plans/issue-315-plugin-sets/verify/ac_hooks_content.py (NFR-0012), which failed on this document and
+  passed against the pre-#315 snapshot. UPDATE: the standalone-form template that AC4 describes has since
+  been restored — template-copilot/hooks/hooks.json.tmpl now carries the literal empty session-start
+  array — so the source of the defect is fixed. This unit stays ToBeModified until the generated tree is
+  rebuilt and ac_hooks_content.py passes over it, because its criteria are assertions about generated
+  OUTPUT, not about the template. Status remains Draft; approval is independent of this.</implementationNotes>
   <depends>FR-COPY-0031, FR-COPY-0033, FR-HOOK-0005, FR-VAR-0071</depends>
 </req>
 
@@ -438,7 +442,7 @@ One combined plugin serves all three Antigravity products (Antigravity, Antigrav
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>Implemented against the corrected text: the preserved plugins/template-antigravity/hooks.json.tmpl
-  renders to a real hooks.json with no .tmpl remaining in output; the assembled document carries no
+  renders to a real hooks.json with no .tmpl remaining in output; the rendered document carries no
   bootstrap payload because the Antigravity template carries no bootstrap placeholder
   (src/rosettify-plugins/plugins/template-antigravity/hooks.json.tmpl), and it conforms to the Antigravity envelope shape
   {rosetta:{enabled,PreInvocation,...}}; the advisory modules lint-format-advisory, md-file-advisory,

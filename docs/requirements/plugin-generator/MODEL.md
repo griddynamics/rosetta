@@ -283,5 +283,9 @@ Reference valid profile:
   pass. Implementation is `ToBeRemoved` rather than `Removed` because the code carrying the table —
   src/rosettify-plugins/src/spec/hook-layouts.ts, PluginSpec.hookLayout and
   plugin-assemble-hooks-json.ts — is still present at the time this record was written; it flips to
-  `Removed` when that deletion lands.</implementationNotes>
+  `Removed` when that deletion lands. UPDATE: PluginSpec.hookLayout and
+  plugin-assemble-hooks-json.ts are now gone, and HOOKS_PSEUDO_FOLDER — the one symbol from that module
+  worth keeping, since it names a pseudo-folder rather than a document shape — has been relocated to
+  src/rosettify-plugins/src/spec/hooks.ts. The hook-layouts.ts file itself survives with no importer and
+  is the last thing awaiting deletion.</implementationNotes>
 </req>
