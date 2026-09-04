@@ -538,3 +538,83 @@ this unit's text is new and awaits review). Implemented as
 `plans/issue-315-plugin-sets/verify/ac_hooks_content.py`, validated in both directions: ALL PASS
 (28 assertions) against the pre-#315 golden snapshot, 12 failures against the tree carrying the
 regression.
+
+### RECONCILIATION-15 — hook document structure returns to literal per-IDE templates
+
+**Files:** `MODEL.md`, `FR-GEN.md`, `FR-VAR.md`, `FR-HOOK.md`, `FR-SET.md`, `FR-ARCH.md`,
+`GLOSSARY.md`, `REFERENCES.md`, `NFR.md`, `ASSUMPTIONS.md`, `STRUCTURES.md`, `TRACE.md`,
+`docs/ARCHITECTURE.md`
+
+**Source:** `plans/issue-315-plugin-sets/hooks-architecture.md` (design, owner-settled D23/D25),
+`plans/issue-315-plugin-sets/remediation-spec.md` §6/§7.
+
+**Change:** `DATA-CFG-0008` held hook document shape as a table keyed on bare IDE target identity —
+seven entries, fixed as the whole inventory by its own AC1 — while the generator emits NINE distinct
+documents, Copilot and Cursor each owning both a plugin form and a standalone form. A structure that
+cannot address the document it describes can only produce one document per target, so the two forms
+collapsed: `<set>-copilot/hooks/hooks.json` went from the 60-byte standalone form to a byte-identical
+copy of the 24443-byte plugin form, and `<set>-cursor/hooks.json` took plugin-form addressing where
+standalone-form addressing was required.
+
+- **`DATA-CFG-0008`** deprecated under the `FR-HOOK-0003` precedent — record kept, reason in
+  `implementationNotes`, `implementation: ToBeRemoved` until the code deletion lands.
+- **`FR-GEN-0011`** rewritten from assemble-then-serialize to render-then-validate. Its old text
+  ("exactly one raw-injection placeholder and no control flow ... no literal hook entry") mandated the
+  one-liner templates that made the collapse possible. Each emitted document now comes from its own
+  literal template, its path in the preserved tree being its identity; post-render `JSON.parse` is a
+  HARD error, strictly stronger than the old justification because it also catches a malformed raw
+  bootstrap injection, which serializing a built object cannot see.
+- **`FR-GEN-0010`** loses the assembled-value clause; render context becomes release variables, the
+  bootstrap payload and the spec's output folder name. **`FR-ARCH-0048`** gains both.
+- **`FR-VAR-0071`** rationale asserted the defect as design; rewritten, plus a criterion asserting the
+  two forms differ in content. **`FR-VAR-0030`** AC4 is correct and currently failing — left untouched
+  by design, so it is not closed by editing the criterion. **`FR-VAR-0030`/`0031`** now name the
+  mechanism that exists (declarative post-render mirror pair) rather than `SpecEntry`/`fileRename()`.
+- **`FR-HOOK-0007`** probe guard moves from `commands/coding-flow.md`, absent from every `core`-based
+  Copilot plugin after the set split and therefore a permanent no-op there, to
+  `.github/plugin/plugin.json`. New criterion generalizes the rule.
+- **`FR-SET-0070`** AC1/AC2 named per-set hook subsets no declared set has ever carried; restated over
+  the two configurations `plugins.json` declares.
+- **`FR-VAR-0070`** restates the delivery conjunction against the template placeholder rather than the
+  table slot, and its new `<notes>` record three by-design consequences so they are not re-raised as
+  defects: Copilot's camelCase `sessionStart` and `preCompact` registration, and Cursor's absent
+  placeholder. In each case the same bootstrap bodies arrive through auto-loaded rules/instructions, and
+  registering the second key would double-deliver.
+- Collateral: `DATA-CFG-0002`, `DATA-CFG-0005`, `DATA-CFG-0007`, `FR-ARCH-0039`, `FR-HOOK-0005`,
+  `FR-VAR-0020`, `FR-VAR-0082`, `FR-VAR-0083`, `INT-IDE-0002`, `NFR-0007`, `GLOSSARY` PluginProcessor
+  term, `STRUCTURES.md`, `ASSUMPTIONS.md` OQ-4 (which claimed hook JSON was covered by the paths-only
+  parity rule; it is not, and now points at `NFR-0012`), and `docs/ARCHITECTURE.md`, whose preserved-file
+  paragraph called Copilot's `hooks/hooks.json.tmpl` the plugin form, contradicting its own hook-forms
+  table nine paragraphs later.
+
+`STRUCTURES.md` needed almost nothing: it was never updated by the refactor and already described this
+architecture, which is independent corroboration from the committed structure spec rather than from the
+git baseline.
+
+**Status:** `Approved` → `Draft` on `FR-GEN-0011`, `FR-GEN-0010`, `FR-VAR-0071`, `FR-HOOK-0007` and
+`FR-SET-0070` — each changed an obligation or a criterion. `FR-VAR-0070`, `DATA-CFG-0002`,
+`DATA-CFG-0007`, `NFR-0007` and `INT-IDE-0002` keep `Approved`: only the mechanism a reference names
+moved, no obligation changed. `FR-VAR-0030`/`0031` were already `Draft`. `NFR-0012` is unchanged and
+stays `Draft`; promoting it to `Approved` is recommended but is the owner's call, not this pass's.
+
+### RECONCILIATION-16 — FR-HOOK-0022 closed as already-implemented; FR-SET-0050 enforces rather than composes
+
+**Files:** `FR-HOOK.md`, `FR-SET.md`
+
+**Source:** `plans/issue-315-plugin-sets/remediation-spec.md` §6, §7.
+
+**Change:** `FR-HOOK-0022`'s `ToBeModified` note described the pre-fix state and contradicted both the
+code and a passing test file. `sweepUndeclaredBundles` is called unconditionally by `pluginSyncBundles`,
+outside the deterministic-hooks copy branch, so AC2 holds on both branches. Notes rewritten to cite the
+helper and the four named sweep tests, and to record that `pluginCleanup` wipes the destination folder
+first — so in the CLI pipeline the sweep is defence-in-depth for direct library callers, and cross-run
+survival of a hand-added file is not a property of that pipeline. No code change; flipped to
+`Implemented`, status stays `Approved`.
+
+`FR-SET-0050`'s duty moves from composing the manifest description to enforcing an authored one:
+`readSets` refuses a catalog whose `manifest.description` omits a set its `requires` list names. Added
+AC5 for the abort. Generated prose reads worse than the authored wording and would give one fact two
+sources, so the invariant is enforced at the moment of the edit rather than satisfied by derivation.
+
+**Status:** `FR-SET-0050` `Approved` → `Draft` (refusing to load a catalog is a new obligation).
+`FR-HOOK-0022` stays `Approved`.

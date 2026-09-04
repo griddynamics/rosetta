@@ -158,13 +158,13 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
 
 <req id="NFR-0007" type="NFR" level="System" ticketId="" classification="technical">
   <title>Modular, single-responsibility structure</title>
-  <statement>The re-implementation shall separate concerns into distinct, reusable units across two processor tiers: the pure single-responsibility `FileProcessor` set (`fileRead`, `fileApplyOverrides`, `fileBundle`, per-vocabulary model-normalization processors, `fileRename`, `fileCodexAgentFormat`) where `fileRename` changes only the path; the pure `PluginProcessor` set (`pluginCleanup`, `pluginCopy`, `pluginProcessSpecEntries`, `pluginRewriteReferences`, `pluginGenerateIndexes`, `pluginEmitDistributionRoot`, `pluginAssembleHooksJson`, `pluginRenderTemplates`, `pluginWrite`) where `pluginRewriteReferences` changes only content; plus source resolution/merge, per-IDE escaping, hook-bundle sync, and per-target descriptors — such that each IDE adaptation is data plus processor composition, not bespoke procedure.</statement>
+  <statement>The re-implementation shall separate concerns into distinct, reusable units across two processor tiers: the pure single-responsibility `FileProcessor` set (`fileRead`, `fileApplyOverrides`, `fileBundle`, per-vocabulary model-normalization processors, `fileRename`, `fileCodexAgentFormat`) where `fileRename` changes only the path; the pure `PluginProcessor` set (`pluginCleanup`, `pluginCopy`, `pluginProcessSpecEntries`, `pluginRewriteReferences`, `pluginGenerateIndexes`, `pluginEmitDistributionRoot`, `pluginRenderTemplates`, `pluginWrite`) where `pluginRewriteReferences` changes only content; plus source resolution/merge, per-IDE escaping, hook-bundle sync, and per-target descriptors — such that each IDE adaptation is data plus processor composition, not bespoke procedure.</statement>
   <rationale>Maintainability: separable single-responsibility concerns enable reuse and isolated testing. The original's one-module mix of filesystem mechanics, escaping, model maps, and orchestration (QF-6) is exactly what this decomposition removes.</rationale>
   <source>User</source>
   <priority>Should</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-09</changed>
+  <changed>2026-09-03</changed>
   <verification>Inspection</verification>
   <acceptance>
     <criteria>Given: the re-implementation When: inspected Then: filesystem mechanics, IDE-specific escaping, model maps, and orchestration reside in separate units.</criteria>

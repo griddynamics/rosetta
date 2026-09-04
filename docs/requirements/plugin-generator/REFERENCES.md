@@ -58,7 +58,8 @@ The generator produces targets for a subset of these IDEs — `claude`, `cursor`
   <implementation>Implemented</implementation>
   <implementationNotes>Implemented: the same guide directory, instructions/r3/core/skills/harness/references/configure/, is
   confirmed present and is the authoritative reference this unit points at. Spot-checked that the cursor
-  guide's hook documentation matches shipped behaviour, HOOK_LAYOUTS.cursor.bootstrap being null.
+  guide's hook documentation matches shipped behaviour, neither Cursor hook template carrying a
+  bootstrap placeholder.
   Verification is Inspection; no contrary evidence found.</implementationNotes>
   <depends>INT-IDE-0001</depends>
 </req>

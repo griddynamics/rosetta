@@ -132,8 +132,8 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
   commands and rules/*.md to *.mdc, uses the Cursor vocabulary, preserves .cursor-plugin and emits no
   index. pluginRewriteReferences rewrites literal workflows/x.md document references to commands/x.md,
   except inside the verbatim harness configure references which intentionally describe other IDEs. Both
-  the plugin-form and the standalone-form hook templates render; HOOK_LAYOUTS.cursor.bootstrap is null, so
-  the cursor payload is generated but never injected into either form - the deliberately preserved
+  the plugin-form and the standalone-form hook templates render; neither carries a bootstrap placeholder,
+  so the cursor payload is generated but never injected into either form - the deliberately preserved
   asymmetry of FR-VAR-0070.</implementationNotes>
   <depends>FR-COPY-0030, FR-COPY-0031, FR-COPY-0032, FR-GEN-0004, FR-VAR-0071, FR-VAR-0070, FR-HOOK-0005</depends>
 </req>
@@ -404,7 +404,7 @@ One combined plugin serves all three Antigravity products (Antigravity, Antigrav
 <req id="FR-VAR-0082" type="FR" level="System" ticketId="138" classification="technical">
   <title>Antigravity bootstrap via always-on rule</title>
   <statement>The Antigravity variant shall deliver the bootstrap context through the source's natively auto-loaded bootstrap rule — authored with `trigger: always_on` (e.g. `bootstrap-alwayson.md`, `plugin-files-mode.md`) — and shall not deliver bootstrap through a session-start hook. The generator shall preserve that authored activation (it does not set triggers), assemble and size-check the bootstrap values uniformly (FR-VAR-0070), and omit the bootstrap placeholder from the Antigravity hook template.</statement>
-  <rationale>Antigravity has no session-start hook mechanism; its hooks are tool-event hooks. Delivery via a `trigger: always_on` rule is verified across the three products; it is the auto-loaded surface that carries bootstrap (Antigravity's `SessionStart`-analog, `PreInvocation`, is reserved for other hooks, not bootstrap). This is consistent with FR-VAR-0070: this target's layout declares no bootstrap slot, so no payload is delivered through hooks, not a generator strategy flag.</rationale>
+  <rationale>Antigravity has no session-start hook mechanism; its hooks are tool-event hooks. Delivery via a `trigger: always_on` rule is verified across the three products; it is the auto-loaded surface that carries bootstrap (Antigravity's `SessionStart`-analog, `PreInvocation`, is reserved for other hooks, not bootstrap). This is consistent with FR-VAR-0070: this target's hook template carries no bootstrap placeholder, so no payload is delivered through hooks, not a generator strategy flag.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -423,7 +423,7 @@ One combined plugin serves all three Antigravity products (Antigravity, Antigrav
 <req id="FR-VAR-0083" type="FR" level="System" ticketId="138, 315" classification="technical">
   <title>Antigravity hook template and advisory-hook exclusion</title>
   <statement>The Antigravity variant shall render its hook configuration from a preserved `hooks.json.tmpl` authored to the Antigravity hooks specification (PreInvocation event), and that rendered configuration shall not inject the bootstrap payload. Which hooks it carries shall be decided by the building set's declared hook list (FR-SET-0070) and by nothing target-specific: an advisory PostToolUse hook whose output Antigravity discards shall be excluded by omitting it from the hook list declared for the sets built for this target, not by a rule that names this target. The generator shall place, and the assembled hook configuration shall carry, exactly the hooks that list names (FR-HOOK-0020, FR-GEN-0011).</statement>
-  <rationale>The hook template is retained for tool-event hook use and for the uniform render step, but bootstrap is delivered by the always-on rule (FR-VAR-0082), so this target's `HOOK_LAYOUTS` entry declares a null bootstrap slot and the assembled document carries no payload — mirroring the Cursor asymmetry in FR-VAR-0070. Antigravity ignores hook output on PostToolUse (its protocol discards it), so an advisory hook such as `lint-format`, `md-file` or `loose-files` would consume runtime with no effect there. Expressing that exclusion as a declared hook list rather than a target-named rule is what keeps it out of generator control flow (FR-ARCH-0005): the same mechanism that gives each set its own hooks gives this target its own, with no identity branch. The precise PreInvocation schema is owned by the Antigravity hooks guide `docs/hooks/antigravity.md`, with a reference config at `docs/hooks/antigravity/hooks.json`, per INT-IDE-0002.</rationale>
+  <rationale>The hook template is retained for tool-event hook use and for the uniform render step, but bootstrap is delivered by the always-on rule (FR-VAR-0082), so this target's hook template carries no bootstrap placeholder and the rendered document carries no payload — mirroring the Cursor asymmetry in FR-VAR-0070. Antigravity ignores hook output on PostToolUse (its protocol discards it), so an advisory hook such as `lint-format`, `md-file` or `loose-files` would consume runtime with no effect there. Expressing that exclusion as a declared hook list rather than a target-named rule is what keeps it out of generator control flow (FR-ARCH-0005): the same mechanism that gives each set its own hooks gives this target its own, with no identity branch. The precise PreInvocation schema is owned by the Antigravity hooks guide `docs/hooks/antigravity.md`, with a reference config at `docs/hooks/antigravity/hooks.json`, per INT-IDE-0002.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -439,14 +439,14 @@ One combined plugin serves all three Antigravity products (Antigravity, Antigrav
   <implementation>Implemented</implementation>
   <implementationNotes>Implemented against the corrected text: the preserved plugins/template-antigravity/hooks.json.tmpl
   renders to a real hooks.json with no .tmpl remaining in output; the assembled document carries no
-  bootstrap payload because HOOK_LAYOUTS.antigravity declares bootstrap: null
-  (src/rosettify-plugins/src/spec/hook-layouts.ts), and it conforms to the Antigravity envelope shape
+  bootstrap payload because the Antigravity template carries no bootstrap placeholder
+  (src/rosettify-plugins/plugins/template-antigravity/hooks.json.tmpl), and it conforms to the Antigravity envelope shape
   {rosetta:{enabled,PreInvocation,...}}; the advisory modules lint-format-advisory, md-file-advisory,
   loose-files and codemap-refresh appear in neither the configuration nor the shipped bundles, because
-  HOOK_LAYOUTS.antigravity binds only dangerous-actions and read-once and modulesForTarget
-  (src/rosettify-plugins/src/spec/targets.ts) intersects the set's list with what the layout binds; and
-  plugin-assemble-hooks-json.ts contains no occurrence of the target name, so the exclusion is layout data
-  with no identity branch in control flow.</implementationNotes>
+  the Antigravity template invokes only dangerous-actions and read-once and modulesForTarget
+  (src/rosettify-plugins/src/spec/targets.ts) narrows the set's list to the modules that target's
+  templates actually invoke, which is what decides which bundles ship; no processor names the target, so
+  the exclusion is declared data with no identity branch in control flow.</implementationNotes>
   <depends>INT-IDE-0002, FR-SET-0070, FR-HOOK-0020</depends>
   <notes>Grounded facts (per `docs/hooks/antigravity.md`): `SessionStart` is not a valid Antigravity event (its analog is `PreInvocation @ invocationNum:0`); `PostToolUse` output is `{}` (ignored) — the reason the advisory hooks are excluded; bootstrap rides the always-on rule rather than the PreInvocation hook, the Antigravity hook template carrying no bootstrap placeholder (FR-GEN-0011). The exclusion applies to the sets built for this target only; the same hook names remain available to other targets.</notes>
 </req>

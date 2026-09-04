@@ -93,12 +93,13 @@ Criteria owned by units another file authors are marked `(other file)`; their `.
 | G10 | DATA-CFG-0005 | (other file — MODEL.md) | Inspection |
 | G10 | FR-SEED-0001 | (other file — FR-COPY.md) | Test |
 | G10 | FR-SEED-0002 | (other file — FR-COPY.md) | Test |
-| G11 | FR-SET-0070 | .AC1, .AC2, .AC3, .AC4, .AC5, .AC6 | Test |
+| G11 | FR-SET-0070 | .AC1, .AC2, .AC3, .AC4, .AC5, .AC6, .AC7 | Test |
 | G11 | FR-HOOK-0001 | (other file — FR-HOOK.md) | Test |
 | G11 | FR-HOOK-0020 | (other file — FR-HOOK.md) | Test |
 | G11 | FR-HOOK-0022 | (other file — FR-HOOK.md) | Test |
 | G11 | FR-GEN-0010 | (other file — FR-GEN.md) | Test |
 | G11 | FR-GEN-0011 | (other file — FR-GEN.md) | Test |
+| G11 | FR-VAR-0071 | (other file — FR-VAR.md) | Test |
 | G11 | FR-VAR-0083 | (other file — FR-VAR.md) | Inspection |
 | G12 | FR-HOOK-0004 | (other file — FR-HOOK.md) | Test |
 | G12 | FR-HOOK-0007 | (other file — FR-HOOK.md) | Test |
@@ -110,6 +111,7 @@ Criteria owned by units another file authors are marked `(other file)`; their `.
 | G12 | FR-VAR-0010 | (other file — FR-VAR.md) | Test |
 | G12 | FR-VAR-0020 | (other file — FR-VAR.md) | Test |
 | G12 | FR-VAR-0030 | (other file — FR-VAR.md) | Test |
+| G12 | FR-VAR-0031 | (other file — FR-VAR.md) | Test |
 | G12 | FR-VAR-0041 | (other file — FR-VAR.md) | Test |
 | G12 | FR-VAR-0072 | (other file — FR-VAR.md) | Test |
 | G12 | FR-VAR-0080 | (other file — FR-VAR.md) | Test |
@@ -169,8 +171,12 @@ Criteria owned by units another file authors are marked `(other file)`; their `.
   FR-SET-0050 (G6) · FR-SET-0060 (G8) · FR-SET-0070 (G11) ·
   FR-STRUCT-0010 (G6) · FR-STRUCT-0020 (G6) · FR-STRUCT-0030 (G6) ·
   FR-VAR-0010 (G12) · FR-VAR-0020 (G12) · FR-VAR-0030 (G12) ·
+  FR-VAR-0031 (G12) · FR-VAR-0071 (G11) ·
   FR-VAR-0041 (G12) · FR-VAR-0042 (G13) · FR-VAR-0050 (G13) ·
   FR-VAR-0051 (G13) · FR-VAR-0072 (G12) · FR-VAR-0080 (G12) ·
   FR-VAR-0081 (G14) · FR-VAR-0083 (G11) · INT-IDE-0001 (G14) ·
   INT-IDE-0002 (G14) · INT-IDE-0003 (G6,G14) · NFR-0001 (G7).
-- No orphan goal, no orphan unit. 14 goals, 81 distinct units, 115 goal-to-unit links.
+- No orphan goal, no orphan unit. 14 goals, 83 distinct units, 117 goal-to-unit links.
+- `DATA-CFG-0008` (per-target hook-layout descriptor) was retired on 2026-09-03 and carries no row: it
+  traced no goal of its own, the goal it served (G11) being traced through `FR-GEN-0011`, `FR-SET-0070`
+  and `FR-VAR-0071`, which now own the hook-document-structure contract.

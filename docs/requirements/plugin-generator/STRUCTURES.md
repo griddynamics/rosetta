@@ -24,7 +24,8 @@ Generalized, compressed example of each IDE target's output tree, with provenanc
   rules/*.mdc                     [G] ← source rules, .md→.mdc
   agents/*.md ; skills/           [G] ← source (model→Cursor map)
   hooks/hooks.json.tmpl           [P] plugin-form template
-  hooks.json.tmpl                 [P] standalone-form template (root; consumed by cursor-standalone)
+  hooks.json.tmpl                 [P] standalone-form template (root; consumed by cursor-standalone,
+                                      and rendered into this tree too as `hooks.json` below)
   hooks/hooks.json + hooks/*.js   [G] ← rendered + the set's declared bundles from src/hooks/dist
 ```
 
@@ -47,7 +48,7 @@ Three `hooks.json` files are produced at distinct paths. `hooks.json` (root) and
   skills/                         [G] ← source
 ```
 
-Note: `hooks.json` (root) and `.github/plugin/hooks.json` are produced as an alternate-name duplication (`SpecEntry`, FR-COPY-0033, FR-VAR-0031), not as a `fileRename()`. Both files are present in the output simultaneously.
+Note: `hooks.json` (root) and `.github/plugin/hooks.json` are produced as an alternate-name duplication — a declarative post-render mirror pair declared on the spec and applied by a generic mirror processor (FR-COPY-0033, FR-VAR-0031) — not as a `fileRename()`. Both files are present in the output simultaneously.
 
 ## codex — marketplace (bootstrap: session-start hooks)
 ```
