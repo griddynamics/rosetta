@@ -223,13 +223,19 @@ export async function generate(options: GenerateOptions): Promise<number> {
       release: releaseName,
       deterministic_hooks: release.deterministicHooks,
       bootstrap_hooks: '',
-      hooks_json: '',
     };
 
     for (const spec of build.specs) {
       logger.info({ target: spec.destination, set: spec.set, ide: spec.name }, 'Processing target');
 
-      const frame = createPluginFrame(spec, build.vfs, { ...baseTemplateContext });
+      // destination: the spec's output folder name. Only the Copilot plugin-form template
+      // references it (its 14 fixed install-location probes), but strict rendering only throws
+      // on a MISSING variable, never an extra one, so plumbing it uniformly for every spec has no
+      // cost and avoids a per-target-field-nobody-else-reads pattern (OQ-2).
+      const frame = createPluginFrame(spec, build.vfs, {
+        ...baseTemplateContext,
+        destination: spec.destination,
+      });
       let currentFrame: PluginProcessingFrame = frame;
 
       try {

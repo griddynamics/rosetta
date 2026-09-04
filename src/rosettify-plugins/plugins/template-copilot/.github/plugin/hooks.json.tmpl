@@ -7,7 +7,7 @@
       {
         "type": "command",
         "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/{{destination}}\"; if [ -f \"$root/hooks/read-once-reset.js\" ]; then node \"$root/hooks/read-once-reset.js\"; break; fi; done",
-        "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\{{destination}}\"; if (Test-Path \"$root\\hooks\\read-once-reset.js\") { node \"$root\\hooks\\read-once-reset.js\" }"
+        "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\\{{destination}}\"; if (Test-Path \"$root\\hooks\\read-once-reset.js\") { node \"$root\\hooks\\read-once-reset.js\" }"
       }
     ],
     "PreToolUse": [
@@ -17,7 +17,7 @@
           {
             "type": "command",
             "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/{{destination}}\"; if [ -f \"$root/hooks/dangerous-actions.js\" ]; then node \"$root/hooks/dangerous-actions.js\"; break; fi; done",
-            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\{{destination}}\"; if (Test-Path \"$root\\hooks\\dangerous-actions.js\") { node \"$root\\hooks\\dangerous-actions.js\" }"
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\\{{destination}}\"; if (Test-Path \"$root\\hooks\\dangerous-actions.js\") { node \"$root\\hooks\\dangerous-actions.js\" }"
           }
         ]
       },
@@ -27,7 +27,7 @@
           {
             "type": "command",
             "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/{{destination}}\"; if [ -f \"$root/hooks/read-once.js\" ]; then node \"$root/hooks/read-once.js\"; break; fi; done",
-            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\{{destination}}\"; if (Test-Path \"$root\\hooks\\read-once.js\") { node \"$root\\hooks\\read-once.js\" }"
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\\{{destination}}\"; if (Test-Path \"$root\\hooks\\read-once.js\") { node \"$root\\hooks\\read-once.js\" }"
           }
         ]
       }
@@ -39,12 +39,12 @@
           {
             "type": "command",
             "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/{{destination}}\"; if [ -f \"$root/hooks/loose-files.js\" ]; then node \"$root/hooks/loose-files.js\"; break; fi; done",
-            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\{{destination}}\"; if (Test-Path \"$root\\hooks\\loose-files.js\") { node \"$root\\hooks\\loose-files.js\" }"
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\\{{destination}}\"; if (Test-Path \"$root\\hooks\\loose-files.js\") { node \"$root\\hooks\\loose-files.js\" }"
           },
           {
             "type": "command",
             "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/{{destination}}\"; if [ -f \"$root/hooks/md-file-advisory.js\" ]; then node \"$root/hooks/md-file-advisory.js\"; break; fi; done",
-            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\{{destination}}\"; if (Test-Path \"$root\\hooks\\md-file-advisory.js\") { node \"$root\\hooks\\md-file-advisory.js\" }"
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\\{{destination}}\"; if (Test-Path \"$root\\hooks\\md-file-advisory.js\") { node \"$root\\hooks\\md-file-advisory.js\" }"
           }
         ]
       },
@@ -54,7 +54,7 @@
           {
             "type": "command",
             "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/{{destination}}\"; if [ -f \"$root/hooks/codemap-refresh.js\" ]; then node \"$root/hooks/codemap-refresh.js\"; break; fi; done",
-            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\{{destination}}\"; if (Test-Path \"$root\\hooks\\codemap-refresh.js\") { node \"$root\\hooks\\codemap-refresh.js\" }"
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\\{{destination}}\"; if (Test-Path \"$root\\hooks\\codemap-refresh.js\") { node \"$root\\hooks\\codemap-refresh.js\" }"
           }
         ]
       },
@@ -64,7 +64,7 @@
           {
             "type": "command",
             "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/{{destination}}\"; if [ -f \"$root/hooks/lint-format-advisory.js\" ]; then node \"$root/hooks/lint-format-advisory.js\"; break; fi; done",
-            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\{{destination}}\"; if (Test-Path \"$root\\hooks\\lint-format-advisory.js\") { node \"$root\\hooks\\lint-format-advisory.js\" }"
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\\{{destination}}\"; if (Test-Path \"$root\\hooks\\lint-format-advisory.js\") { node \"$root\\hooks\\lint-format-advisory.js\" }"
           }
         ]
       }
