@@ -930,9 +930,9 @@ Architecture requirements: the configuration-driven generation model — uniform
   <rationale>Template rendering depends on the assembled bootstrap payload (carried on the frame's `templateContext`), so it is a `PluginProcessor` and an explicit pipeline stage rather than an out-of-band step. Validation belongs here for the same reason: this is the stage that produces the final text, and it is the only point at which a raw injection and the literal structure around it exist together.</rationale>
   <source>User</source>
   <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <status>Draft</status>
+  <approved_by></approved_by>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a template frame and a render context When: rendered Then: the output frame content is the rendered result and the template suffix is removed from its path.</criteria>
@@ -941,6 +941,7 @@ Architecture requirements: the configuration-driven generation model — uniform
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
+  <notes>Status moved Approved to Draft on 2026-09-03: the processor gained a post-render JSON validation obligation and a criterion for it, and the render context gained the spec's output folder name. Awaits re-approval.</notes>
   <depends>FR-GEN-0010, FR-GEN-0011, FR-ARCH-0055</depends>
 </req>
 

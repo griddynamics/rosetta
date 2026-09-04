@@ -247,7 +247,7 @@ Reference valid profile:
      source="User" priority="Must" verification="Inspection"
      status="Deprecated" approved_by="isolomatov-gd" changed="2026-09-03"
      depends="DATA-CFG-0003, DATA-CFG-0007"
-     implementation="ToBeRemoved">
+     implementation="Removed">
   <title>Per-target hook-layout descriptor</title>
   <statement>The shape of a target's emitted `hooks.json` shall be held as data in a per-target hook-layout table, one entry per IDE target identity (DATA-CFG-0003). Each layout shall carry four members: `entry`, a function building one entry object from a hook module name and the spec's output folder name; `bindings`, the ordered list of event-to-module bindings, each naming an `event`, an optional `matcher`, the `modules` bound there in emission order, and an optional `flat` marker; `bootstrap`, the slot the assembled session-start payload occupies, or `null` where the target takes none; and `envelope`, the function wrapping the assembled events map in that target's file shape. A `bootstrap` slot shall carry a `payload` discriminant of either `inject`, meaning write the assembled payload here when the set declares bootstrap, or `empty`, meaning always write a literal empty array and never a payload. A binding marked `flat` shall place its entries directly in the event array; an unmarked binding shall group them as a single `{ matcher, hooks: [...] }` object. The set decides WHICH hooks a plugin ships (FR-SET-0070) and the layout decides WHAT SHAPE they take, so one set declaration serves every target and no target identity is branched on in generator control flow (FR-ARCH-0005). Where a spec's layout is `null` the plugin emits no `hooks.json` at all. This unit fixes the STRUCTURE of the table only. Whether an emitted entry conforms to its IDE's documented hook schema, and the per-interpreter escaping that transport requires, is FR-HOOK-0005; assembling and serializing the document from the table is FR-GEN-0011.</statement>
   <rationale>Six near-duplicate `hooks.json.tmpl` files previously encoded each IDE's envelope, matcher grouping and command form in template text, so a new IDE meant a new template and a new set meant editing every one. Making the shape a table entry reduces both to a data edit and lets one assembler serve all seven targets. The `entry` member is a function rather than a string template because Copilot's commands embed the plugin's own output folder name and Claude's embed a runtime variable, which no static shape expresses. `payload: 'empty'` is a distinct discriminant rather than an absent slot because Copilot's standalone form requires the event key to be PRESENT and empty — omitting the key and emitting an empty array are different documents to that IDE. `flat` is per binding rather than per layout because Copilot groups its tool events but not its `preCompact`. Holding the shape in a target-keyed map satisfies FR-ARCH-0005 rather than straining it: that unit admits a value or a map as the data form, and forbids a PROCESSOR branching on identity. The layout is resolved once at composition time onto `PluginSpec.hookLayout`, so the assembler reads a value and contains no identity conditional.</rationale>
@@ -283,9 +283,9 @@ Reference valid profile:
   pass. Implementation is `ToBeRemoved` rather than `Removed` because the code carrying the table —
   src/rosettify-plugins/src/spec/hook-layouts.ts, PluginSpec.hookLayout and
   plugin-assemble-hooks-json.ts — is still present at the time this record was written; it flips to
-  `Removed` when that deletion lands. UPDATE: PluginSpec.hookLayout and
-  plugin-assemble-hooks-json.ts are now gone, and HOOKS_PSEUDO_FOLDER — the one symbol from that module
-  worth keeping, since it names a pseudo-folder rather than a document shape — has been relocated to
-  src/rosettify-plugins/src/spec/hooks.ts. The hook-layouts.ts file itself survives with no importer and
-  is the last thing awaiting deletion.</implementationNotes>
+  `Removed` when that deletion lands. UPDATE 2026-09-03: it has. PluginSpec.hookLayout,
+  plugin-assemble-hooks-json.ts and spec/hook-layouts.ts are all deleted, and HOOKS_PSEUDO_FOLDER — the
+  one symbol from that module worth keeping, since it names a pseudo-folder rather than a document
+  shape — is relocated to src/rosettify-plugins/src/spec/hooks.ts. No HOOK_LAYOUTS reference remains in
+  the source tree.</implementationNotes>
 </req>

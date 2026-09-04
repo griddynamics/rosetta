@@ -150,9 +150,8 @@
     <criteria>Given: a template that renders to malformed JSON When: the generator runs Then: it raises a hard error naming the target and the output file, and emits no document for it.</criteria>
     <criteria>Given: a template referencing a variable the context does not plumb When: rendered Then: rendering throws rather than producing empty text.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the literal-template half has landed, the post-render validation
-  half has not. Landed: the seven literal hooks.json.tmpl files are restored under
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: the seven literal hooks.json.tmpl files are restored under
   src/rosettify-plugins/plugins/template-&lt;ide&gt;/ at the paths git ref 492b6a78~1 held them, each
   carrying its own document's structure; plugin-assemble-hooks-json.ts is deleted and the per-set
   frame-drop folded into pluginCopy; PluginSpec.hookLayout is gone. The Copilot plugin-form template is
@@ -160,10 +159,10 @@
   payload: the spec's own output folder name at the fourteen sites where its install-location probes
   name that folder (verified: 14 occurrences), plumbed from spec.destination into the render context in
   generate.ts — without it a non-default set's Copilot plugin would probe another set's directory. Nine
-  documents are emitted from seven templates plus two mirrors (FR-VAR-0030, FR-VAR-0031). OUTSTANDING:
-  the post-render JSON.parse hard error in plugin-render-templates.ts, and the deletion of the residual
-  spec/hook-layouts.ts, which no longer has an importer.</implementationNotes>
-  <depends>FR-GEN-0010, FR-ARCH-0048, FR-VAR-0071, FR-VAR-0031, NFR-0012</depends>
+  documents are emitted from seven templates plus two mirrors (FR-VAR-0030, FR-VAR-0031).
+  plugin-render-templates.ts JSON.parse's every rendered document whose output path denotes JSON and
+  raises a hard error naming the target and the file on failure. spec/hook-layouts.ts is deleted.</implementationNotes>
+  <depends>FR-GEN-0010</depends>
   <notes>Validity is a checked property of the rendered text, not a structural consequence of
   serializing a built object. Post-render parsing is strictly the stronger of the two: it also catches a
   malformed raw bootstrap injection, which serializing a built object cannot see, because that fragment

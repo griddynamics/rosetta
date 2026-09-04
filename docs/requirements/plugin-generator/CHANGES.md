@@ -591,11 +591,20 @@ standalone-form addressing was required.
 architecture, which is independent corroboration from the committed structure spec rather than from the
 git baseline.
 
-**Status:** `Approved` → `Draft` on `FR-GEN-0011`, `FR-GEN-0010`, `FR-VAR-0071`, `FR-HOOK-0007` and
-`FR-SET-0070` — each changed an obligation or a criterion. `FR-VAR-0070`, `DATA-CFG-0002`,
-`DATA-CFG-0007`, `NFR-0007` and `INT-IDE-0002` keep `Approved`: only the mechanism a reference names
-moved, no obligation changed. `FR-VAR-0030`/`0031` were already `Draft`. `NFR-0012` is unchanged and
+**Status:** `Approved` → `Draft` on `FR-GEN-0011`, `FR-GEN-0010`, `FR-VAR-0071`, `FR-HOOK-0007`,
+`FR-SET-0070` and `FR-ARCH-0048` — each changed an obligation or a criterion. `FR-VAR-0070`,
+`DATA-CFG-0002`, `DATA-CFG-0005`, `DATA-CFG-0007`, `FR-ARCH-0039`, `FR-HOOK-0005`, `FR-VAR-0020`,
+`FR-VAR-0082`, `FR-VAR-0083`, `NFR-0007` and `INT-IDE-0002` keep `Approved`: only the mechanism a
+reference names moved, no obligation changed, which follows the same rule the `advanced`→`workflows`
+pass used for restatements. `FR-VAR-0030`/`0031` were already `Draft`. `NFR-0012` is unchanged and
 stays `Draft`; promoting it to `Approved` is recommended but is the owner's call, not this pass's.
+
+**Implementation status** tracks the tree, not the plan. `DATA-CFG-0008` is `Removed` (hook-layouts.ts,
+plugin-assemble-hooks-json.ts and PluginSpec.hookLayout are all deleted); `FR-GEN-0011`, `FR-VAR-0071`
+and `FR-VAR-0031` are `Implemented`. `FR-VAR-0030` stays `ToBeModified` although the template that
+caused its AC4 failure is fixed, because its criteria assert properties of generated OUTPUT and the
+tree has not been rebuilt against `ac_hooks_content.py`. `FR-HOOK-0007` stays `ToBeModified`: the
+corrected probe guard is a criterion change the generator has not yet followed (migration step 8).
 
 ### RECONCILIATION-16 — FR-HOOK-0022 closed as already-implemented; FR-SET-0050 enforces rather than composes
 

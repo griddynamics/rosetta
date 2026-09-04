@@ -140,7 +140,7 @@
     <criteria>Given: `cursor` When: assembled Then: a plugin-root path entry is generated and included in the bootstrap payload, and is not injected into output because the Cursor hook templates carry no bootstrap placeholder (FR-GEN-0011, FR-VAR-0070).</criteria>
     <criteria>Given: a target whose plugin-path entry probes a fixed install location When: that entry is emitted Then: the file it guards on is one every plugin of every set carries at that location — not a document contributed by any particular set's instruction folders.</criteria>
   </acceptance>
-  <implementation>Implemented</implementation>
+  <implementation>ToBeModified</implementation>
   <implementationNotes>ToBeModified: the plugin-root entry is appended last for every session-hook target and the
   payload count stays derived, never fixed, exactly as the statement requires. The per-IDE command shape
   returns to each target's own hook configuration template, and the Copilot install-location probe
@@ -157,7 +157,8 @@
   criterion again names the absence of a template placeholder as the decider, which is what it named
   before the layout table was introduced; the outcome was never in question.</implementationNotes>
   <depends>FR-VAR-0041, FR-HOOK-0004, FR-SET-0070, FR-GEN-0011</depends>
-  <notes>The Copilot plugin-path entry guarded on `commands/coding-flow.md` until 2026-09-03. After the
+  <notes>The Copilot plugin-path entry's criterion pinned the guard `commands/coding-flow.md`; that
+  criterion was corrected on 2026-09-03 and the generator has not yet followed. After the
   #315 set split that document is absent from every `core`-based Copilot plugin — the workflow moved to
   the `workflows` set — so the entry became a permanent no-op there, emitting no plugin-root context in
   either shell, while continuing to work for `rosetta`. The guard is a test of the proposition "a Rosetta

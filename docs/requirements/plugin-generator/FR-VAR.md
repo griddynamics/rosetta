@@ -27,9 +27,11 @@ The generator assembles the bootstrap context values uniformly for every target 
   <notes>Three consequences of this conjunction are by design and are recorded here so they are not
   re-raised as defects. (1) Copilot's plugin-form template registers its session-start block under the
   camelCase `sessionStart` key only. Copilot CLI honours that key; VS Code and JetBrains Copilot do not,
-  and receive the same bootstrap bodies through the auto-loaded `.instructions.md` documents the plugin
-  ships instead. Registering the PascalCase key beside it would double-deliver in the CLI. (2) The same
-  holds for Copilot's `preCompact` registration, which is likewise camel-only. (3) Neither Cursor
+  and receive the same bootstrap bodies through the auto-loaded rule/instruction files the plugin ships
+  instead. Registering the PascalCase key beside it would double-deliver in the CLI. (2) Copilot's
+  `preCompact` registration is likewise camel-only, so `read-once-reset` does not run on compaction in
+  VS Code; that is a hook-registration consequence rather than a bootstrap-delivery one, recorded here
+  because it shares the casing cause. (3) Neither Cursor
   template carries a bootstrap placeholder, so the Cursor payload is assembled, size-checked and never
   injected, and Cursor takes its bootstrap from its auto-loaded `alwaysApply` rules. One plugin serves
   every Copilot variant from a single document, which is why the entry shape carries `additionalContext`
@@ -54,6 +56,7 @@ The generator assembles the bootstrap context values uniformly for every target 
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>Implemented: src/rosettify-plugins/src/spec/targets.ts gives the cursor and copilot specs both hook template frames, and standaloneTemplates re-points the standalone-form file at the standalone build's output path. The per-form difference is back in the template text, which is where it lived before the layout table was introduced: template-copilot/hooks/hooks.json.tmpl carries a literal `"sessionStart": []` and plain `.github/hooks/` addressing while template-copilot/.github/plugin/hooks.json.tmpl carries the install-location probes and the bootstrap placeholder; template-cursor/hooks.json.tmpl carries `.cursor/hooks/` addressing while template-cursor/hooks/hooks.json.tmpl carries `hooks/`. Two files cannot collapse into one document, which is the property this unit now asserts.</implementationNotes>
+  <depends>FR-GEN-0011</depends>
   <notes>Status moved Approved to Draft and verification Inspection to Test: the unit now asserts a CONTENT property between the two forms, not merely that two template files exist, and that property is testable. Awaits re-approval.</notes>
 </req>
 
