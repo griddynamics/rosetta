@@ -46,6 +46,12 @@ PERMITTED = [
                                                                   "testing/","security/"))),
     (22, "FIX: antigravity templates/->rules/ corruption removed",
                                              lambda p: "security/SKILL.md" in p or "coding/assets/iac.md" in p),
+    # 23: source moved on main AFTER the golden snapshot was captured, so golden is simply older.
+    # Deliberately scoped to the one known file rather than "anything that changed on main" — a
+    # blanket class would blind the gate to real regressions. Extend it file by file, with the
+    # originating commit named, whenever main lands another instruction change ahead of a re-capture.
+    (23, "backlog SKILL.md changed on main post-golden (b5388f7e)",
+                                             lambda p: p.endswith("skills/backlog/SKILL.md")),
     # 2,3,4,15 are content-shaped, matched below by filename
     (2,  "SessionStart payload / hooks.json",lambda p: p.endswith("hooks.json") or p.endswith("hooks.json.tmpl")),
     (3,  "manifest name/description",        lambda p: p.endswith("plugin.json") or p.endswith("marketplace.json")),
