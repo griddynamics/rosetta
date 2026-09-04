@@ -259,9 +259,25 @@ function readVariants(value: unknown, file: string, setName: string): SetVariant
       fail(`${file}: ${at}.profile must be a profile name string, or null for the unprofiled build.`);
     }
 
+    const destinationSuffix = optionalString(obj.destinationSuffix, file, `${at}.destinationSuffix`);
+    // hooks-architecture.md §1.4/§3 step 8: destinationSuffix becomes a template variable
+    // ({{destination}} = `${set.name}-${target}${destinationSuffix}`) at the Copilot plugin-form
+    // template's 14 probe sites. Handlebars double-stache HTML-escapes & < > " ' ` = — none of
+    // which this pattern admits — so a validated suffix renders byte-identical to a literal; an
+    // unvalidated one was a latent input-validation gap (empty string or a single hyphenated
+    // lowercase-alphanumeric suffix like "-light", never validated before this).
+    if (!/^(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$/.test(destinationSuffix)) {
+      fail(
+        `${file}: ${at}.destinationSuffix "${destinationSuffix}" is not valid. It must be empty, ` +
+          `or a hyphen followed by lowercase alphanumeric segments joined by single hyphens ` +
+          `(e.g. "-light") — it is appended to the output folder name and embedded in Copilot's ` +
+          `install-location probes.`,
+      );
+    }
+
     return {
       profile: profileRaw as string | null,
-      destinationSuffix: optionalString(obj.destinationSuffix, file, `${at}.destinationSuffix`),
+      destinationSuffix,
       manifestNameSuffix: optionalString(obj.manifestNameSuffix, file, `${at}.manifestNameSuffix`),
       manifestDescriptionSuffix: optionalString(
         obj.manifestDescriptionSuffix, file, `${at}.manifestDescriptionSuffix`,
