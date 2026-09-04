@@ -161,24 +161,14 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
     <criteria>Given: `hooks.json` (root) and `.github/plugin/hooks.json` When: compared Then: they are byte-identical (same MD5).</criteria>
     <criteria>Given: `hooks/hooks.json` When: inspected Then: it contains the standalone-form hooks with `"sessionStart": []` (empty, no bootstrap payload for standalone use).</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: criteria 1-3 hold - agent files are emitted as *.agent.md, three hooks.json exist, and the
-  root and .github/plugin copies are byte-identical (verified by matching MD5 on real rosetta-copilot
-  output, produced by the declarative mirror pair on the copilot spec in
-  src/rosettify-plugins/src/spec/targets.ts, applied by pluginMirrorFiles). Criterion 4 still fails at the
-  time this text was written: hooks/hooks.json inside the copilot target is byte-identical to the other
-  two and carries the full bootstrap sessionStart array rather than an empty one, because the assembled
-  document is keyed by TARGET rather than by template path, so every hooks.json.tmpl under the copilot
-  target shares one document. AC4 is correct as written and is the criterion the restored literal
-  templates satisfy (FR-GEN-0011, FR-VAR-0071); it is not a text defect and must not be closed by editing
-  it. The genuinely empty sessionStart form for the separate copilot-standalone target lives at
-  .github/hooks/hooks.json and is unaffected. Verified by
-  plans/issue-315-plugin-sets/verify/ac_hooks_content.py (NFR-0012), which failed on this document and
-  passed against the pre-#315 snapshot. UPDATE: the standalone-form template that AC4 describes has since
-  been restored — template-copilot/hooks/hooks.json.tmpl now carries the literal empty session-start
-  array — so the source of the defect is fixed. This unit stays ToBeModified until the generated tree is
-  rebuilt and ac_hooks_content.py passes over it, because its criteria are assertions about generated
-  OUTPUT, not about the template. Status remains Draft; approval is independent of this.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: two literal hook templates under
+  src/rosettify-plugins/plugins/template-copilot/ — .github/plugin/hooks.json.tmpl (plugin form, install-location
+  probes parameterised on {{destination}}) and hooks/hooks.json.tmpl (standalone form, literal empty
+  session-start array). The root copy is the mirror pair declared on the copilot spec in
+  src/rosettify-plugins/src/spec/targets.ts, applied by pluginMirrorFiles. Agent files are renamed by the
+  copilot spec's fileRename processor. Verified by plans/issue-315-plugin-sets/verify/ac_hooks_content.py
+  (NFR-0012) over the generated tree at both deterministic-hooks postures.</implementationNotes>
   <depends>FR-COPY-0031, FR-COPY-0033, FR-HOOK-0005, FR-VAR-0071</depends>
 </req>
 

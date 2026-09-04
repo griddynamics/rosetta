@@ -280,10 +280,7 @@ Reference valid profile:
   bundles ship rather than what any document looks like; that is FR-SET-0070 and FR-HOOK-0020, not this
   unit. Record kept rather than deleted because FR-VAR-0070, FR-HOOK-0005, FR-GEN-0010, FR-GEN-0011 and
   FR-SET-0070 referenced it; those references are redirected to FR-GEN-0011 and FR-VAR-0071 in the same
-  pass. Implementation is `ToBeRemoved` rather than `Removed` because the code carrying the table —
-  src/rosettify-plugins/src/spec/hook-layouts.ts, PluginSpec.hookLayout and
-  plugin-assemble-hooks-json.ts — is still present at the time this record was written; it flips to
-  `Removed` when that deletion lands. UPDATE 2026-09-03: it has. PluginSpec.hookLayout,
+  pass. PluginSpec.hookLayout,
   plugin-assemble-hooks-json.ts and spec/hook-layouts.ts are all deleted, and HOOKS_PSEUDO_FOLDER — the
   one symbol from that module worth keeping, since it names a pseudo-folder rather than a document
   shape — is relocated to src/rosettify-plugins/src/spec/hooks.ts. No HOOK_LAYOUTS reference remains in

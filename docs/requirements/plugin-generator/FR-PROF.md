@@ -196,9 +196,7 @@ about which plugin set is being built (DATA-CFG-0003, FR-SET-0040).
   'rosetta-light' (AC1), qe-claude is exactly 'qe' (AC2), and the qe manifest name is identical across
   claude, cursor, copilot, codex and antigravity (AC4). AC3 verified by live load: loadProfile rejects a
   descriptor carrying pluginNameSuffix or pluginDescriptionSuffix with 'Unrecognized profile field ... A
-  profile descriptor defines exactly: modelOverrides', while a bare modelOverrides descriptor is accepted.
-  The earlier rosetta- prefix contradiction was a real defect in plugins.json and has since been fixed at
-  source.</implementationNotes>
+  profile descriptor defines exactly: modelOverrides', while a bare modelOverrides descriptor is accepted.</implementationNotes>
   <notes>Marketplace plugin names carry no prefix: `rosetta`, `rosetta-light`, `core`, `workflows`, `qe`, `search`, `modernization`.</notes>
 </req>
 

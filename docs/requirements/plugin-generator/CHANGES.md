@@ -627,3 +627,29 @@ sources, so the invariant is enforced at the moment of the edit rather than sati
 
 **Status:** `FR-SET-0050` `Approved` → `Draft` (refusing to load a catalog is a new obligation).
 `FR-HOOK-0022` stays `Approved`.
+
+### RECONCILIATION-17 — close FR-VAR-0030 and FR-HOOK-0007 against the rebuilt tree
+
+**Files:** `FR-VAR.md`, `FR-HOOK.md`
+
+**Change:** Both units held `ToBeModified` because their criteria assert generated output and the tree
+had not been rebuilt. It has been. `FR-VAR-0030`: all four criteria hold — three `hooks.json` at the
+declared paths, root and `.github/plugin` byte-identical, and `hooks/hooks.json` the standalone form
+with an empty session-start array, matching the pre-`#315` snapshot. `FR-HOOK-0007`: all nine hold,
+including the guard on `.github/plugin/plugin.json`, which the copilot spec emits for every set.
+Both → `implementation="Implemented"`; `status` stays `Draft`, approval being independent.
+
+**Status:** `FR-VAR-0030` and `FR-HOOK-0007` `ToBeModified` → `Implemented`, both `Draft`.
+
+### RECONCILIATION-18 — requirement records carry no change narrative
+
+**Files:** `FR-VAR.md`, `FR-HOOK.md`, `MODEL.md`, `STRUCTURES.md`, `FR-PROF.md`
+
+**Change:** Records are target-state; this file is the only change log. Removed progress and correction
+narrative from five units — dated "CLOSED"/"UPDATE" entries, "CORRECTION: the earlier note …",
+"at the time this record was written", and a paragraph explaining that a prior draft's claim had since
+been fixed. `FR-VAR-0030` and `FR-HOOK-0007` implementation notes were rewritten to the concise
+files-affected form. Retirement reasons on `Deprecated` units are retained: those state why the unit is
+gone, which is the record's current content, not its history.
+
+**Status:** No status or criteria changed.

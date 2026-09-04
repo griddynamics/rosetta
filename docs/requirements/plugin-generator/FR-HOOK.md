@@ -140,22 +140,14 @@
     <criteria>Given: `cursor` When: assembled Then: a plugin-root path entry is generated and included in the bootstrap payload, and is not injected into output because the Cursor hook templates carry no bootstrap placeholder (FR-GEN-0011, FR-VAR-0070).</criteria>
     <criteria>Given: a target whose plugin-path entry probes a fixed install location When: that entry is emitted Then: the file it guards on is one every plugin of every set carries at that location — not a document contributed by any particular set's instruction folders.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the plugin-root entry is appended last for every session-hook target and the
-  payload count stays derived, never fixed, exactly as the statement requires. The per-IDE command shape
-  returns to each target's own hook configuration template, and the Copilot install-location probe
-  literals live in that target's plugin-form template where a reviewer can diff them against
-  docs/hooks/copilot.md. The codex entry is the workspace-root traversal probe resolving to
-  $workspace_root/.agents
-  (src/rosettify-plugins/src/plugin-processors/plugin-assemble-codex-bootstrap.ts). The bootstrap probe
-  literal in src/rosettify-plugins/src/spec/bootstrap-manifest.ts still guards on commands/coding-flow.md
-  at the time this text was written; the corrected guard `.github/plugin/plugin.json` is outstanding.
-  CORRECTION: the previously recorded fixed counts (Claude and Copilot 9/5, Codex 8/4) are stale - the
-  real counts are 7 for r2 and 3 for r3 on both Claude and Codex, since the two index entries left the
-  payload. Tests: tests/e2e/bootstrap-session-start.e2e.test.ts asserts 7 and 3 and that the plugin-root
-  entry is last, plus one case in each of the four plugin-assemble-*-bootstrap.test.ts suites. The cursor
-  criterion again names the absence of a template placeholder as the decider, which is what it named
-  before the layout table was introduced; the outcome was never in question.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: COPILOT_PLUGIN_ROOT_BASH and COPILOT_PLUGIN_ROOT_POWERSHELL in
+  src/rosettify-plugins/src/spec/bootstrap-manifest.ts guard on .github/plugin/plugin.json, the manifest the
+  copilot spec emits for every set; the codex entry is the workspace-root probe in
+  src/rosettify-plugins/src/plugin-processors/plugin-assemble-codex-bootstrap.ts; per-IDE command shapes come
+  from each target's own hook configuration template. Payload entry count is derived from the bootstrap-manifest
+  documents a plugin contains, never fixed. Tests: tests/e2e/bootstrap-session-start.e2e.test.ts and one case in
+  each plugin-assemble-{claude,codex,copilot,cursor}-bootstrap.test.ts.</implementationNotes>
   <depends>FR-VAR-0041, FR-HOOK-0004, FR-SET-0070, FR-GEN-0011</depends>
   <notes>The Copilot plugin-path entry's criterion pinned the guard `commands/coding-flow.md`; that
   criterion was corrected on 2026-09-03 and the generator has not yet followed. After the
@@ -243,7 +235,6 @@
   bundles its set names plus the support modules resolveHookModules pulled in, and no other. A missing
   bundle directory is now a HARD ERROR naming the directory and the set, where it previously returned
   silently and shipped zero hooks. The non-deterministic-hooks branch removes stale bundle artifacts.
-  CORRECTION: the earlier note predicted that PluginSpec.bundleSource would be dropped - it was NOT.
   bundleSource remains in src/rosettify-plugins/src/types.ts, is set in targets.ts, and is read as
   spec.bundleSource ?? spec.name to pick the per-IDE bundle DIRECTORY, while hookModules selects which
   files are taken from it. The statement and criteria never mention bundleSource, so the unit itself is

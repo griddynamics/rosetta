@@ -127,8 +127,8 @@ Note: for the `antigravity` target, the generator emits no `model:` (FR-COPY-008
   .claude-plugin/ and its four solr skills - no agents, rules or workflows folder. core-codex maps
   workflows to .agents/skills/<name>/phases/*.md with no frontmatter, has no .agents/workflows/ folder,
   and retains .codex-plugin/ and .codex/ configuration. A search for INDEX.md across all 49 folders
-  returns zero matches. CORRECTION: the earlier note claimed .agents/rules/INDEX.md is retained - no such
-  file exists in the shipped output, since index generation is dormant. Tests:
+  returns zero matches. No .agents/rules/INDEX.md exists in the shipped
+  output; index generation is dormant. Tests:
   tests/unit/spec/targets-codex-output.test.ts and tests/e2e/parity.e2e.test.ts.</implementationNotes>
   <depends>FR-VAR-0010, FR-VAR-0020, FR-VAR-0030, FR-VAR-0031, FR-VAR-0041, FR-VAR-0042, FR-SET-0040</depends>
 </req>
