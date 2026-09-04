@@ -254,22 +254,59 @@ function makeSkillsEntry(normalizeModels: FileProcessor, targetFolder = 'skills'
 }
 
 /**
- * The bundle modules ONE target actually ships: the set's declared modules, narrowed to those its
- * layout genuinely binds, plus those modules' support modules.
+ * Which hook module basenames each IDE FAMILY's hooks.json.tmpl templates actually invoke by
+ * name. Standalone targets share their parent family's modules (familyOf() strips the
+ * `-standalone` suffix before this table is consulted).
+ *
+ * This is a bundle-SHIPPING fact ("which .js files this family's templates reference"), not a
+ * document-shape fact — it holds no event names, matchers, entry shapes, envelopes or bootstrap
+ * slots, all of which now live in the 7 literal templates (hooks-architecture.md §1.9). Four of
+ * five entries are identical; only Antigravity's two-module guardrail-only set differs.
+ *
+ * Verified against the raw text of every hooks.json.tmpl (T5, tests/hook-schema/): claude, codex,
+ * copilot (both forms) and cursor (both forms) each name exactly these 7 modules; antigravity
+ * names exactly these 2. `read-once-shared` never appears literally — it reaches every non-
+ * antigravity... no, EVERY target (antigravity included) only via `read-once`'s entry in
+ * plugins.json's hookSupportModules, expanded below in modulesForTarget.
+ */
+export const TARGET_HOOK_MODULES: Readonly<Record<string, readonly string[]>> = {
+  claude: [
+    'dangerous-actions', 'read-once', 'read-once-reset',
+    'loose-files', 'md-file-advisory', 'codemap-refresh', 'lint-format-advisory',
+  ],
+  codex: [
+    'dangerous-actions', 'read-once', 'read-once-reset',
+    'loose-files', 'md-file-advisory', 'codemap-refresh', 'lint-format-advisory',
+  ],
+  copilot: [
+    'dangerous-actions', 'read-once', 'read-once-reset',
+    'loose-files', 'md-file-advisory', 'codemap-refresh', 'lint-format-advisory',
+  ],
+  cursor: [
+    'dangerous-actions', 'read-once', 'read-once-reset',
+    'loose-files', 'md-file-advisory', 'codemap-refresh', 'lint-format-advisory',
+  ],
+  antigravity: ['dangerous-actions', 'read-once'],
+};
+
+/**
+ * The bundle modules ONE target actually ships: the set's declared modules, narrowed to those
+ * `TARGET_HOOK_MODULES` says this IDE family's templates genuinely invoke, plus those modules'
+ * support modules.
  *
  * A set declares hooks once, but not every IDE supports every hook — Antigravity's adapter builds
- * only 5 of the 8 bundles, because its layout binds just the two guardrail modules. Copying the
- * set's full list to every target therefore demanded files that are never built, and the (correct,
- * newly loud) missing-bundle check failed the run. Narrowing by layout is the data-driven fix: a
- * target ships what it can actually invoke.
+ * only 4 of the 8 bundles the other families need, because its templates invoke just the two
+ * guardrail modules. Copying the set's full list to every target therefore demanded files that
+ * are never built, and the (correct, newly loud) missing-bundle check failed the run. Narrowing
+ * by the per-family module list is the data-driven fix: a target ships what it can actually
+ * invoke.
  */
 function modulesForTarget(
-  layout: HookLayout | null,
+  boundModules: readonly string[],
   setModules: readonly string[],
   support: Record<string, string[]>,
 ): string[] {
-  if (!layout) return [];
-  const bound = new Set(layout.bindings.flatMap((b) => b.modules));
+  const bound = new Set(boundModules);
   const needed = new Set<string>();
   for (const m of setModules) {
     if (!bound.has(m)) continue;
@@ -668,7 +705,7 @@ function base(
     bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
     includeIndexEntries: false,
     indexes: [],
-    hookModules: modulesForTarget(layout, c.hookModules, c.hookSupportModules),
+    hookModules: modulesForTarget(TARGET_HOOK_MODULES[family] ?? [], c.hookModules, c.hookSupportModules),
     hookLayout: layout,
     bootstrap: c.set.bootstrap,
     manifest: c.manifest,
