@@ -55,7 +55,6 @@ import { pluginRenderTemplates } from '../plugin-processors/plugin-render-templa
 import { pluginMirrorFiles } from '../plugin-processors/plugin-mirror-files.js';
 import { pluginSyncBundles } from '../plugin-processors/plugin-sync-bundles.js';
 import { pluginWrite } from '../plugin-processors/plugin-write.js';
-import { pluginAssembleHooksJson } from '../plugin-processors/plugin-assemble-hooks-json.js';
 
 // Standard excludes (FR-COPY-0011, GT-8)
 const RULES_EXCLUDES = [
@@ -740,9 +739,9 @@ function buildPipeline(
     pluginGenerateIndexes,
     ...extraAfterIndexes,
     bootstrapAssembler,
-    // DATA-CFG-0008: assemble hooks.json from set data + layout, after the bootstrap payload
-    // exists and before the template that carries it is rendered.
-    pluginAssembleHooksJson,
+    // hooks.json documents are the seven literal per-IDE templates, restored under
+    // FR-GEN-0011 (hooks-architecture.md §1) — no separate assembly step. The bootstrap
+    // payload is injected by pluginRenderTemplates via bootstrap_hooks, plumbed above.
     pluginRenderTemplates,
     pluginMirrorFiles,
     pluginSyncBundles(hooksSource, outputDir, release.deterministicHooks, dryRun),

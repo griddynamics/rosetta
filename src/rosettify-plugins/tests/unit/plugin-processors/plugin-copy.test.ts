@@ -60,7 +60,11 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
       const preservedSource = path.join(tmp, 'preserved');
       const outputDir = path.join(tmp, 'output');
       fs.mkdirSync(preservedSource, { recursive: true });
-      fs.writeFileSync(path.join(preservedSource, 'hooks.json.tmpl'), '{{content}}');
+      // Named readme.md.tmpl, not hooks.json.tmpl: this test is about GENERIC .tmpl frame
+      // registration, unrelated to the hooks-emission skip pluginCopy now applies to
+      // hooks.json.tmpl specifically (hooks-architecture.md §1.8) — this spec ships no hooks
+      // (hookModules: [], bootstrap: false) and must not be conflated with that logic.
+      fs.writeFileSync(path.join(preservedSource, 'readme.md.tmpl'), '{{content}}');
       fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{}');
 
       const spec: Partial<PluginSpec> = {
@@ -80,7 +84,7 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
       // In dry-run: no files written to disk
       expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(false);
       // But .tmpl file was registered as a frame
-      const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === 'hooks.json.tmpl');
+      const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === 'readme.md.tmpl');
       expect(tmplFrame).toBeDefined();
       expect(tmplFrame!.target_contents).toBe('{{content}}');
     } finally {
@@ -96,8 +100,10 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
     try {
       const preservedSource = path.join(tmp, 'preserved');
       const outputDir = path.join(tmp, 'output');
-      fs.mkdirSync(path.join(preservedSource, 'hooks'), { recursive: true });
-      fs.writeFileSync(path.join(preservedSource, 'hooks', 'hooks.json.tmpl'), '{{content}}');
+      // readme.md.tmpl, not hooks.json.tmpl: generic .tmpl handling, not the hooks-emission skip
+      // (hooks-architecture.md §1.8) — this spec ships no hooks (hookModules: [], bootstrap: false).
+      fs.mkdirSync(path.join(preservedSource, 'docs'), { recursive: true });
+      fs.writeFileSync(path.join(preservedSource, 'docs', 'readme.md.tmpl'), '{{content}}');
       fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{}');
 
       const spec: Partial<PluginSpec> = {
@@ -116,9 +122,9 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
       // Non-.tmpl file physically copied
       expect(fs.existsSync(path.join(outputDir, 'core-claude', 'plugin.json'))).toBe(true);
       // .tmpl file must NOT be physically copied to disk
-      expect(fs.existsSync(path.join(outputDir, 'core-claude', 'hooks', 'hooks.json.tmpl'))).toBe(false);
+      expect(fs.existsSync(path.join(outputDir, 'core-claude', 'docs', 'readme.md.tmpl'))).toBe(false);
       // But it is still registered as a frame for pluginRenderTemplates to render
-      const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === 'hooks/hooks.json.tmpl');
+      const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === 'docs/readme.md.tmpl');
       expect(tmplFrame).toBeDefined();
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
@@ -205,9 +211,11 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         set: 'core',
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
+        // bootstrap: true — this spec ships hooks, so its hooks.json.tmpl standaloneTemplates
+        // entry is not skipped by pluginCopy's emitsHooksJson gate (hooks-architecture.md §1.8).
         hookModules: [],
         hookLayout: null,
-        bootstrap: false,
+        bootstrap: true,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
@@ -358,9 +366,10 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         set: 'core',
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
+        // bootstrap: true — see the identical note above; this spec ships hooks.
         hookModules: [],
         hookLayout: null,
-        bootstrap: false,
+        bootstrap: true,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],

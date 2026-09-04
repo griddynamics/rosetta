@@ -9,9 +9,22 @@ import type { Writable } from 'stream';
 import { updatePluginFrame } from '../frames.js';
 import { emitJson, emitStandaloneManifest } from '../serialize/json.js';
 import { getLogger } from '../logging.js';
-import { emitsHooksJson } from './plugin-assemble-hooks-json.js';
 import { HOOKS_PSEUDO_FOLDER } from '../spec/hook-layouts.js';
 import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec, Vfs } from '../types.js';
+
+/**
+ * True when this spec emits a hooks.json at all. A set with no hook modules and no bootstrap
+ * ships neither a `hooks/` folder nor a `hooks.json` — its `hooks.json.tmpl` frames are skipped
+ * at collection time (see `collectTmplFrames` / the `standaloneTemplates` loop below) rather than
+ * rendered and then dropped.
+ *
+ * Resignatured from the pre-migration three-argument form (FR-GEN-0011 / hooks-architecture.md
+ * §1.7): document SHAPE now lives in the seven literal templates, so this function no longer takes
+ * a layout — it only decides WHETHER a hooks.json.tmpl frame is kept, never what it contains.
+ */
+export function emitsHooksJson(spec: Pick<PluginSpec, 'hookModules' | 'bootstrap'>): boolean {
+  return spec.hookModules.length > 0 || spec.bootstrap;
+}
 
 /**
  * DATA-CFG-0007 — the manifest overlay merged into each preserved `plugin.json`.
@@ -37,7 +50,7 @@ export interface ManifestOverlay {
 export function buildManifestOverlay(spec: PluginSpec, vfs: Vfs): ManifestOverlay {
   const shipsFolder = (folder: string): boolean =>
     folder === HOOKS_PSEUDO_FOLDER
-      ? emitsHooksJson(spec.hookLayout, spec.hookModules, spec.bootstrap)
+      ? emitsHooksJson(spec)
       : vfs.some((vf) => vf.path === folder || vf.path.startsWith(folder + '/'));
 
   return {
@@ -95,6 +108,7 @@ export function pluginCopy(
     const overlay = buildManifestOverlay(spec, p.vfs);
     const targetDir = path.join(outputDir, spec.destination);
     const sourceDir = spec.preservedSource;
+    const emitsHooks = emitsHooksJson(spec);
 
     const tmplFrames: FileProcessingFrame[] = [];
 
@@ -105,6 +119,10 @@ export function pluginCopy(
       //       copilot-standalone hooks/hooks.json.tmpl → .github/hooks/hooks.json.tmpl
       if (spec.standaloneTemplates && fs.existsSync(sourceDir)) {
         for (const [srcRel, targetPath] of spec.standaloneTemplates) {
+          // A set with no hook modules and no bootstrap ships no hooks.json.tmpl frame at all
+          // (hooks-architecture.md §1.8) — declining to create the frame here is cleaner than
+          // creating and then filtering it in a separate processor.
+          if (path.basename(srcRel) === 'hooks.json.tmpl' && !emitsHooks) continue;
           const srcAbs = path.join(sourceDir, srcRel);
           if (fs.existsSync(srcAbs)) {
             const content = fs.readFileSync(srcAbs, 'utf-8').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -123,7 +141,7 @@ export function pluginCopy(
       // FR-CLI-0050/FR-ARCH-0045: real run copies to disk; dry-run reports each path instead
       // (copyDirRecursive itself branches on dryRun so both modes share one traversal).
       if (fs.existsSync(sourceDir)) {
-        collectTmplFrames(sourceDir, '', tmplFrames);
+        collectTmplFrames(sourceDir, '', tmplFrames, emitsHooks);
         copyDirRecursive(sourceDir, targetDir, '', overlay, dryRun, out);
       }
     }
@@ -164,6 +182,7 @@ function collectTmplFrames(
   srcDir: string,
   relPrefix: string,
   tmplFrames: FileProcessingFrame[],
+  emitsHooks: boolean,
 ): void {
   if (!fs.existsSync(srcDir)) return;
 
@@ -175,7 +194,11 @@ function collectTmplFrames(
     const relPath = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
 
     if (entry.isDirectory()) {
-      collectTmplFrames(srcPath, relPath, tmplFrames);
+      collectTmplFrames(srcPath, relPath, tmplFrames, emitsHooks);
+    } else if (entry.name === 'hooks.json.tmpl' && !emitsHooks) {
+      // Skip: this set ships no hooks.json (hooks-architecture.md §1.8). Raw disk copy is
+      // unaffected — copyDirRecursive already excludes all .tmpl files for every target.
+      continue;
     } else if (entry.name.endsWith('.tmpl')) {
       const content = fs.readFileSync(srcPath, 'utf-8').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
       tmplFrames.push({

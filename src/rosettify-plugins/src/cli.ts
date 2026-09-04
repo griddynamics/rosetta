@@ -134,7 +134,6 @@ Processor catalog:
   pluginCleanup, pluginCopy, pluginProcessSpecEntries, pluginRewriteReferences,
   pluginGenerateIndexes, pluginEmitDistributionRoot,
   pluginAssembleClaudeBootstrap, pluginAssembleCursorBootstrap, pluginAssembleCopilotBootstrap, pluginAssembleCodexBootstrap, pluginAssembleAntigravityBootstrap,
-  pluginAssembleHooksJson,
   pluginAntigravitySubagentModel,
   pluginRenderTemplates, pluginSyncBundles, pluginWrite
 
