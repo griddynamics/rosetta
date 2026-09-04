@@ -19,10 +19,10 @@ const HOOKS_DIR = path.resolve(ROOT, 'src', 'hooks', 'src', 'hooks');
 const PLUGINS_DIR = path.resolve(ROOT, 'plugins');
 
 const CANONICAL_HOOKS_JSONS: { plugin: string; jsonPath: string; manifestPath: string }[] = [
-  { plugin: 'core-claude',  jsonPath: path.join(PLUGINS_DIR, 'core-claude',  'hooks', 'hooks.json'), manifestPath: path.join(PLUGINS_DIR, 'core-claude',  '.claude-plugin', 'plugin.json') },
-  { plugin: 'core-copilot', jsonPath: path.join(PLUGINS_DIR, 'core-copilot', 'hooks', 'hooks.json'), manifestPath: path.join(PLUGINS_DIR, 'core-copilot', '.github', 'plugin', 'plugin.json') },
-  { plugin: 'core-cursor',  jsonPath: path.join(PLUGINS_DIR, 'core-cursor',  'hooks', 'hooks.json'), manifestPath: path.join(PLUGINS_DIR, 'core-cursor',  '.cursor-plugin', 'plugin.json') },
-  { plugin: 'core-codex',   jsonPath: path.join(PLUGINS_DIR, 'core-codex',   '.codex', 'hooks.json'), manifestPath: path.join(PLUGINS_DIR, 'core-codex',   '.codex-plugin', 'plugin.json') },
+  { plugin: 'rosetta-claude',  jsonPath: path.join(PLUGINS_DIR, 'rosetta-claude',  'hooks', 'hooks.json'), manifestPath: path.join(PLUGINS_DIR, 'rosetta-claude',  '.claude-plugin', 'plugin.json') },
+  { plugin: 'rosetta-copilot', jsonPath: path.join(PLUGINS_DIR, 'rosetta-copilot', 'hooks', 'hooks.json'), manifestPath: path.join(PLUGINS_DIR, 'rosetta-copilot', '.github', 'plugin', 'plugin.json') },
+  { plugin: 'rosetta-cursor',  jsonPath: path.join(PLUGINS_DIR, 'rosetta-cursor',  'hooks', 'hooks.json'), manifestPath: path.join(PLUGINS_DIR, 'rosetta-cursor',  '.cursor-plugin', 'plugin.json') },
+  { plugin: 'rosetta-codex',   jsonPath: path.join(PLUGINS_DIR, 'rosetta-codex',   '.codex', 'hooks.json'), manifestPath: path.join(PLUGINS_DIR, 'rosetta-codex',   '.codex-plugin', 'plugin.json') },
 ];
 
 // Hooks registered only on a subset of IDEs. Add entries here only for hooks using
@@ -58,7 +58,7 @@ describe('hooks-registered — bundled src hooks appear in every plugin hooks.js
 
       for (const hookName of hookNames) {
         // Skip claude-code-only hooks for non-claude plugins
-        if (CLAUDE_CODE_ONLY_HOOKS.has(hookName) && plugin !== 'core-claude') continue;
+        if (CLAUDE_CODE_ONLY_HOOKS.has(hookName) && plugin !== 'rosetta-claude') continue;
 
         test(`${hookName}.js is referenced`, () => {
           if (!shipsHooks(manifestPath)) return; // advisory hooks ship from the hooks release onward

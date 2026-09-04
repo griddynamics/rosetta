@@ -1,0 +1,6 @@
+{
+  "name": "rosetta-light",
+  "description": "Rosetta - Software Engineering Accelerator instruction set, workflows, agents, skills, and guardrails. (lightweight: simpler workflows, smaller models)",
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "version": "3.1.13"
+}

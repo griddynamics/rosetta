@@ -434,10 +434,10 @@ describe('ClaudeCodeAdapter — buildLaunch env stripping (§10.1)', () => {
 describe('ClaudeCodeAdapter — renderProvisioning (P11)', () => {
   it('renders a plugin as a session-scoped --plugin-dir launch arg (no global mutation)', async () => {
     const frag = await adapter.renderProvisioning(
-      { mcps: [], plugins: [{ name: 'rosetta', path: '/abs/plugin/core-claude' }] },
+      { mcps: [], plugins: [{ name: 'rosetta', path: '/abs/plugin/rosetta-claude' }] },
       ctx(),
     );
-    expect(frag.args).toEqual(['--plugin-dir', '/abs/plugin/core-claude']);
+    expect(frag.args).toEqual(['--plugin-dir', '/abs/plugin/rosetta-claude']);
     expect(frag.files).toBeUndefined();
   });
 

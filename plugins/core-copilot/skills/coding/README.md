@@ -48,4 +48,4 @@ Handle with care: `core_concepts`, `validation_checklist`, and anything in `asse
 
 New generic coding guidance belongs in `SKILL.md`. New IaC-specific procedure belongs in `assets/iac.md`, not inline in `SKILL.md` — keep the top-level file provider-agnostic and push tool-specific detail into the asset. Do not create a `references/` folder for this skill unless content stops being "always apply when IaC" and becomes "consult on demand" — `assets/iac.md` is mandatorily pulled, which is why it's an asset rather than a reference.
 
-Referenced by: `agents/engineer.agent.md`, `agents/validator.agent.md` (both `USE SKILL \`coding\``), `skills/testing/SKILL.md` (`skill \`coding\`` for implementation context), `commands/init-workspace-flow-verification.md` (`skill \`coding\`` as file-creation reference).
+Referenced by: `agents/engineer.md`, `agents/validator.md` (both `USE SKILL \`coding\``), `skills/testing/SKILL.md` (`skill \`coding\`` for implementation context), `commands/init-workspace-flow-verification.md` (`skill \`coding\`` as file-creation reference).

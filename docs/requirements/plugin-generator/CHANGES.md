@@ -1,5 +1,75 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-09-01 — #315 implementation landed: 78 units re-statused against the shipped code
+
+**Files:** `FR-SET.md`, `FR-GEN.md`, `FR-HOOK.md`, `FR-ARCH.md`, `FR-COPY.md`, `FR-VAR.md`, `FR-PROF.md`, `FR-CLI.md`, `MODEL.md`, `NFR.md`, `REFERENCES.md`, `STRUCTURES.md`, `GLOSSARY.md`, `ASSUMPTIONS.md`
+
+**Source:** verification pass over the landed #315 implementation on `feat/315-plugin-sets`. This entry records status only — it does not restate the 2026-09-01 authoring entry above, which stands. Every claim below was checked against the tree by symbol grep, by running the generator, or by running the test suites; no `implementation` value was flipped on the strength of the plan alone.
+
+**Outcome across the 72 units tagged `ticketId="315"`** (81 counting the nine that carry `138, 315` and are shared with that ticket): 45 `ToBeModified` + 33 `NotStarted` -> **71 `Implemented`, 10 `ToBeModified`, 0 `NotStarted`**. Every unit flipped to `Implemented` carries `<implementationNotes>` naming artifacts by symbol, never by line range. This change adds 12 new units: the eight `FR-SET-*`, plus `DATA-CFG-0007`, `DATA-CFG-0008`, `FR-CLI-0034` and `FR-ARCH-0025`.
+
+- **Implemented (54).** All eight `FR-SET-*` except `FR-SET-0050`; `FR-GEN-0010`; `FR-HOOK-0001/0007/0020`; `FR-ARCH-0001/0023/0025/0049/0057/0058/0060`; all three `FR-STRUCT-*`; `FR-SEED-0001/0002` and `FR-COPY-0020/0021/0022/0080/0081/0082/0083/0084`; `DATA-CFG-0002/0003/0005/0006`; `FR-PROF-0001/0010/0020/0030/0040`; `FR-CLI-0001/0032/0040/0041`; `FR-VAR-0010/0020/0041/0042/0080/0081`; `NFR-0001`; `INT-IDE-0001/0002/0003`. Key evidence: the new `plugins.json` catalog with `loadPluginCatalog`/`selectSets`/`allDeclaredDestinations`/`resolveHookModules`/`defaultConfigPath` and closed field allow-lists raising `PluginCatalogError` at pre-flight; `buildSpecsForSet`/`TARGET_BUILDERS` replacing `buildAllSpecs`; `HOOK_LAYOUTS` making per-IDE hook shape data; `buildHooksDocument` serializing via `JSON.stringify`; 49 folders from one invocation, exit 0; suites 919/919, 1441/1441, 432/432, e2e 132/132.
+- **`FR-HOOK-0007` counts corrected.** The recorded fixed payload counts (Claude and Copilot 9/5, Codex 8/4) were stale; the real counts are **7 for r2 and 3 for r3** on both Claude and Codex, the two index entries having left the payload. Asserted in `tests/e2e/bootstrap-session-start.e2e.test.ts`.
+- **Still `ToBeModified` (20), each for a named, verified reason** — the spec requires something the code does not do, so marking them Implemented would be false: `FR-SET-0050` (`requires` is not derived into the manifest description — the wording in `plugins.json` is hand-authored); `FR-GEN-0011` and `FR-VAR-0083` (templates no longer iterate a hook list — every `hooks.json.tmpl` is the single line `{{{hooks_json}}}`); `FR-HOOK-0004` and `FR-HOOK-0009` (`includeIndexEntries` was NOT removed, only pinned `false`, and `BOOTSTRAP_MANIFEST_ORDER` still lists the two `__*_index__` entries); `FR-HOOK-0022` (undeclared stale bundles are never swept from a hook folder); `FR-ARCH-0020`/`0021` (the `~1a~` order-token grammar does not exist and duplicate tokens are silently de-duplicated rather than rejected); `FR-CLI-0030`/`0031` (no missing-folder check, and an empty selection always exits non-zero); `FR-CLI-0034` (a relative `--config` is not resolved against `<source>`); `FR-CLI-0060` (help never enumerates the descriptor fields); `FR-CLI-0042` (all progress goes to stderr, nothing to stdout); `FR-PROF-0021` (marketplace names DO carry a `rosetta-` prefix); `FR-COPY-0011` (three rules are excluded, not the two named); `DATA-CFG-0007` (`id` vs shipped `name`; `template`/`releases`/`bootstrap` are required, not defaulted); `FR-VAR-0030` (the copilot `hooks/hooks.json` is not the standalone form); `FR-VAR-0072`/`0050`/`0051` (see below).
+- **Behavioural gap found during verification.** The standalone plugin-root injection never fires against the real `r3` tree: `pluginInjectSections` skips when its `# PREP STEP 1:` anchor is absent, and `instructions/r3/core/rules/plugin-files-mode.md` has no such anchor. Only `tests/fixtures/sample-instructions/r3/core/rules/plugin-files-mode.md` contains it, so the unit tests pass while the shipped standalone plugins carry no injected plugin-root text. Recorded on `FR-VAR-0072`, `FR-VAR-0050` and `FR-VAR-0051`.
+- **`FR-GEN-0001..0004` stay `NotStarted` (dormant).** `pluginGenerateIndexes` is retained and still composed in the pipeline with a unit test, but no set declares an index, so no `INDEX.md` reaches any output. Capability retained is not capability implemented.
+- **`--domain` meaning change recorded.** The one behaviour an existing caller can feel: `--domain` silently changed from an instruction-layer selector to a filter over declared sets, with no default. Captured in `FR-CLI-0030`/`0031`.
+- **Org-overlay layering retired in the text.** Per the owner's confirmation that org became a set and org layering is gone, the org-overlay framing was corrected — not merely annotated — in `GLOSSARY.md` ("Domain / instruction folder" and the "Layer merge" definition), `ASSUMPTIONS.md` (AC-23's justification, OQ-3's "`--domain` overlays"), `FR-CLI-0030`'s notes, `FR-ARCH-0002`'s rationale and one `FR-COPY-0011` criterion. Folder layering WITHIN a set is unaffected and still governs the combo `rosetta` set's five folders.
+- **Second pass — text corrected to the shipped design, then re-judged.** `DATA-CFG-0007` was rewritten to the real catalog contract: the identity field is `name` not `id`, `hooks` entries are bare module names (the event and matcher being per-IDE `HOOK_LAYOUTS` data), the variant suffixes are `manifestNameSuffix`/`manifestDescriptionSuffix`, only `requires` and `hooks` default while `template`/`releases`/`bootstrap`/`manifest` are required, and a set `name` is unique across the whole document rather than per release. Its reference JSON was rewritten and **verified to round-trip through `loadPluginCatalog`**, with all nine negative criteria confirmed by live rejection — including that the previous `id` spelling is rejected as an unrecognized field, which is what made the old example unusable. The same `id`->`name` correction was applied in `GLOSSARY.md`, `FR-SET-0010`, `FR-SET-0040`, `FR-SET-0050`, `FR-CLI-0060` and ten `<set-id>` placeholders across `FR-PROF.md`, `FR-ARCH.md`, `MODEL.md`, `STRUCTURES.md` and `GLOSSARY.md`. Separately, the superseded "template iterates the hook list" design was rewritten to the assembler design in `FR-GEN-0011`, `FR-VAR-0083` and `FR-SET-0070`'s rationale. `DATA-CFG-0007`, `FR-GEN-0011` and `FR-VAR-0083` are `Implemented` against the corrected text; `FR-PROF-0021` is `Implemented` after the marketplace-name defect was fixed at source (`rosetta-claude` now yields `rosetta`, `rosetta-claude-light` yields `rosetta-light`, `qe-claude` yields `qe`, identical across all five IDE families).
+- **The empty `hooks.json` question, resolved by amending the spec rather than the code.** `FR-GEN-0010` and `FR-SET-0070` were briefly withdrawn to `ToBeModified` after a clean `--release r3` build showed 12 folders shipping a `hooks.json` carrying neither a bootstrap block nor any hook entry — `core-` and `rosetta-` variants of `cursor`, `cursor-standalone`, `copilot-standalone` and `antigravity`, i.e. every target whose `HOOK_LAYOUTS` bootstrap slot is `null` or `empty`. This is PRE-EXISTING behaviour that #315 preserves, not a defect it introduced: the pre-change golden tree under `agents/TEMP/315-golden/` ships the same 12 files (37/60/68 bytes), the current tree the equivalent set, the byte deltas arising only because the assembler emits compact JSON where the template carried whitespace. Suppressing the file is deferred because an IDE manifest points at it — Cursor's `plugin.json` declares `"hooks": "./hooks/hooks.json"` — so removal needs per-IDE proof that a dangling reference does not break plugin load. Both units were therefore amended to describe reality: the guarantee is narrowed to a set declaring an empty hook list with `bootstrap: false` (verified — all four add-on sets ship zero `hooks.json` and zero `hooks/` directories across all seven targets), the deterministic-hooks-suppression clause is recorded in `<notes>` as deferred pre-existing behaviour, and `FR-GEN-0010`'s statement and AC4 were additionally corrected from the pre-assembler claim that the render context carries the set's bootstrap flag and ordered hook list — it carries exactly `release`, `deterministic_hooks`, `bootstrap_hooks` and `hooks_json`. Both are `Implemented` against the corrected text.
+- **Single-ownership pass (2026-09-02).** An independent review found six duplicated rules and one live contradiction; all are resolved by making exactly one unit own each rule and having the others cite it WITHOUT restating it. The contradiction: `FR-VAR-0070` keyed bootstrap delivery to a `{{{bootstrap_hooks}}}` placeholder in the preserved hook template, but all seven templates are now the single line `{{{hooks_json}}}` and none carries it, so the unit read as asserting that no target delivers bootstrap via hooks. The real decision is `emitsHooksJson` — the set's bootstrap flag conjoined with the target's `HOOK_LAYOUTS` slot being `inject` — and `FR-VAR-0070` now states that, owning the rule alone; `FR-HOOK-0004` drops its restatement. Ownership also re-cut for: config-file resolution (`FR-CLI-0034` owns it, `FR-SET-0001` omits it and drops two criteria — they had drifted to opposite implementation statuses over that one sentence); hook-entry placement (`DATA-CFG-0008` owns event, matcher and envelope, `FR-HOOK-0005` keeps only the entry object's form and escaping); output-folder naming (`FR-SET-0040` owns it, `FR-PROF-0020` keeps only the profile-exclusion rule); document well-formedness (`DATA-CFG-0007` owns it, `FR-SET-0010` keeps only the two environment checks a real run can make); one-invocation build (`FR-SET-0060` owns it, `FR-SET-0030` omits it, and `FR-SET-0060` in turn drops its restatements of `FR-CLI-0040`, `FR-CLI-0041` and `FR-SET-0010`).
+- **Dependency direction normalized.** `DATA-CFG-0008` now depends only on `DATA-CFG-0003` and `DATA-CFG-0007`, matching the corpus convention that DATA units depend only on DATA units; the FR side gained the edges instead (`FR-HOOK-0005`, `FR-SET-0070`, `FR-GEN-0011`, `FR-VAR-0070`). The dependency graph is a DAG: 158 nodes, 290 edges, zero cycles, zero dangling references — `FR-HOOK-0021`'s dangling `AC-3` and `FR-COPY-0081`'s empty `<depends>` were both removed.
+- **Staleness swept.** `FR-VAR-0071`'s rationale ("one template form cannot serve both") was false once both forms became the identical single line — corrected to locate the per-form difference in the assembled document. Also corrected: `FR-HOOK-0005`'s serialization criterion, `FR-HOOK-0007`'s cursor criterion and `FR-ARCH-0055`'s notes, all three of which still keyed behaviour to the dead `{{{bootstrap_hooks}}}` placeholder. `FR-HOOK-0005` was `Draft` while `Implemented` and already carried an approver; it is now `Approved`.
+- **Anchor-based injection replaced by a declared extraction root (2026-09-02).** The generator retired `pluginInjectSections` — module, test, `InjectionDecl`, `InjectionSection` and `PluginSpec.injections` are all deleted — after verification showed the mechanism had NEVER fired: it located its insertion point by matching a `# PREP STEP 1:` anchor, that anchor is absent from `instructions/r3/core/rules/plugin-files-mode.md`, and a missing anchor was a silent skip, so no shipped standalone ever carried the text while unit tests passed against a fixture that did contain it. `FR-ARCH-0051` is rewritten around the replacement `pluginEmitDistributionRoot()`: a FACTORY taking its root and workflow folder at composition time and placed only in the two standalone pipelines, rather than a `PluginSpec` field five of seven specs would leave unset — a field read by a processor that no-ops for most of them is identity branching wearing a data costume (FR-ARCH-0005). It appends at a deterministic structural position with no string matching, matches its host by base name taken to the FIRST dot so Copilot's `plugin-files-mode.instructions.md` still resolves, and derives the workflow extension from the frames actually emitted so `*.prompt.md` cannot drift. `FR-VAR-0072` is recast as the OUTCOME — a standalone distribution declares its extraction root — with `FR-VAR-0050` and `FR-VAR-0051` citing it and restating nothing. Verified on a real `--release r3` build: `.cursor/rules/plugin-files-mode.mdc` and `.github/instructions/plugin-files-mode.instructions.md` now carry the declaration, with workflow clauses `commands/*.md` and `prompts/*.prompt.md`.
+- **Why not rewrite the paths.** The rejected alternative is recorded on `FR-VAR-0072`: `agents/` is ambiguous, naming both plugin content that moves under the extraction root (`agents/architect.md`) and target-repo workspace files that must stay at the repository root (`agents/IMPLEMENTATION.md`, `agents/user-instructions/`, the `*-flow-state.md` files). A folder-level rewrite pair cannot separate them and would corrupt the workspace files — the hazard `FR-ARCH-0049` documents. One declared root moves resolution into the agent's reading of the document and leaves every emitted path untouched.
+- **Scope of the declaration corrected against a real build.** An initial draft of both units claimed the declaration is unconditional. It is not, and the real contract is better: a set shipping a rules folder that produced no host document is a HARD error, while an add-on set shipping no rules folder has no host and is skipped legitimately — 8 of 14 standalone folders (`advanced`, `qe`, `search`, `modernization` and their forms) correctly carry no declaration and rely on the set they `require` being extracted alongside. Both units now state that discrimination rather than an absolute.
+- **Stale `pluginInjectSections` references swept** from `GLOSSARY.md`, `NFR-0006`, `STRUCTURES.md`, `DATA-CFG-0002` (statement, notes and implementation notes — `injections` is gone from the descriptor, `indexes` remains), `FR-ARCH-0046`, `FR-ARCH-0054`, and `ASSUMPTIONS.md` AC-7 and AC-13. Dated changelog entries were left as written: a changelog records what was true when it was written.
+- **Whole-unit single-ownership pass (2026-09-02).** A second review found the previous pass had corrected `<statement>` text while leaving the superseded rule standing in titles, rationales, criteria and implementation notes. Titles and rationales are read as normative in practice, so ownership is now diffed across the WHOLE unit. The refuted claim that bootstrap delivery is decided by the preserved templates/rules was removed from `FR-VAR-0070`'s title and rationale, `FR-VAR-0082`'s rationale, `DATA-CFG-0002`'s statement and `FR-HOOK-0004`'s title and notes; one instance survives deliberately, in `FR-VAR-0070`'s statement, because preventing DOUBLE delivery genuinely does remain a template/rule concern.
+- **Duplicated `shall` clauses removed.** `FR-GEN-0010` no longer restates `FR-SET-0070`'s two hook-footprint rules (empty-hook-list-no-file, and suppression-does-not-remove-the-file), losing two criteria and a duplicated `<notes>`; the profiled model-drop rule, previously stated four times, is now owned normatively by `FR-PROF-0011` with `FR-COPY-0020/0021/0022` citing and omitting; `DATA-CFG-0003` cites `FR-SET-0040` rather than restating its `spec.name` prohibition; `FR-HOOK-0009` no longer restates `FR-HOOK-0004`'s retained-flag rule; and `FR-ARCH-0021` cites `FR-ARCH-0020`'s directive grammar instead of repeating it.
+- **Self-contradictions resolved.** `FR-ARCH-0051` discriminated two host-absence cases and then closed with an unqualified hard-error clause left over from the `pluginInjectSections` version — removed; it also claimed the workflow path is both configured and derived, when only the EXTENSION is derived; and its "never located by matching an anchor string" was literally false, now reworded to the guarantee that actually holds, that the insertion point always exists with an end-of-document fallback so the emission cannot be skipped. `FR-SET-0030` opened by delegating "every variant is built" to `FR-SET-0060` and closed by claiming it.
+- **`FR-SET-0070` narrowed.** Its "sole determinant of the set's hook footprint" was false. The set's declaration is the sole determinant of which modules the set REQUESTS; which of those a target binds, and whether a bootstrap block is emitted at all, is the target's layout (`DATA-CFG-0008`). A set's footprint is not uniform across its targets — `claude` receives a bootstrap block, `cursor` does not.
+- **Status rule made enforceable.** A unit this delta rewrote wholesale is in-delta: `FR-ARCH-0051` and `FR-VAR-0070` are tagged `315` and Approved under the delta's blanket approval, which also resolves `FR-VAR-0050`/`0051` depending on a Draft unit. `FR-HOOK-0005` was only cross-referenced, its Draft predates the delta, and it stays Draft. Revision narration was removed from every implementation note and from `FR-HOOK-0005`'s notes: a specification states what is true, and this log carries what changed.
+- **`FR-CLI-0012` untouched**, as it was not part of this delta. No `<status>` or `<approved_by>` value was changed anywhere: approval is independent of implementation, so `FR-COPY-0011` and `FR-VAR-0030` remain `Draft`.
+
+## 2026-09-01 — plugin sets: `instructions/r3/core` splits into five folders; one call builds 6 sets x 7 IDE targets (#315)
+
+**Files:** `FR-SET.md` (new), `MODEL.md`, `FR-CLI.md`, `FR-PROF.md`, `FR-GEN.md`, `FR-HOOK.md`, `FR-VAR.md`, `FR-ARCH.md`, `FR-COPY.md`, `NFR.md`, `SCOPE.md`, `STRUCTURES.md`, `GLOSSARY.md`, `REFERENCES.md`, `ASSUMPTIONS.md`, `TRACE.md`, `INDEX.md`
+
+**Source:** GitHub issue griddynamics/rosetta#315 and its 2026-08-26 design clarification, plus the owner decisions of 2026-09-01 that supersede it where they differ (preserved folders collapse to five `template-<ide>`; marketplace names carry no prefix; FR-PROF-0020/0021 restated rather than deprecated; FR-GEN index units kept Approved and marked dormant). Every unit below is `approved_by="isolomatov-gd"`, `ticketId` carrying `315`.
+
+- `FR-SET.md` **new file**, area `SET`, eight units, all Approved / NotStarted: `FR-SET-0001` plugin-set configuration resolution (`plugins.json`, default `<source>/src/rosettify-plugins/plugins.json`, `--config` override); `FR-SET-0010` fail-fast validation (missing/unparseable file, duplicate set id, missing folder, missing template folder for an IDE being built, duplicate variant suffix, unknown `requires`, unknown field); `FR-SET-0020` set-to-folder layering in declared order, reusing FR-ARCH-0042/0024; `FR-SET-0030` per-set variants, each naming a profile and carrying the three suffixes; `FR-SET-0040` destination `<set-id>-<ide-target>` + variant suffix, `spec.name` left bare; `FR-SET-0050` `requires` is metadata only; `FR-SET-0060` one invocation builds every (set variant × IDE target) pair; `FR-SET-0070` per-set bootstrap flag and hook list as the sole determinant of a plugin's hook footprint.
+- `MODEL.md` `DATA-CFG-0003`: "exactly seven base targets `core-*`" -> one plugin per (set variant × IDE target) pair, target identities renamed to the bare IDE names, output-folder count DERIVED from the configuration rather than fixed; both criteria rewritten and two added; the per-target preserved-config note became per-IDE. `Implemented` -> `ToBeModified`.
+- `MODEL.md` `DATA-CFG-0005`: preserved-file source `<preservedFilesSource>/<target>/` -> `<preservedFilesSource>/<template>-<ide>/` in the statement, all three criteria (plus a fourth) and the notes enumeration; templates are shared across sets, so the source holds five folders (`template-claude|cursor|copilot|codex|antigravity`) and grows only per IDE or per template. `Implemented` -> `ToBeModified`.
+- `MODEL.md` `DATA-CFG-0006`: profile descriptor "exactly four fields" -> exactly one, `modelOverrides`; `destinationSuffix`, `pluginNameSuffix`, `pluginDescriptionSuffix` become INVALID top-level fields; AC1/AC2 rewritten, AC9 restated, AC10 replaced by an empty-descriptor-`{}`-is-valid criterion, AC11 removed; outer keys and the key-space table moved to bare IDE identities; the reference JSON reduced. `Implemented` -> `ToBeModified`.
+- `MODEL.md` `DATA-CFG-0002`: index and injection-index declarations dropped from the descriptor field list, the set's bootstrap flag and hook list added; "the seven variants" criterion made count-free; notes record that `pluginGenerateIndexes` stays available but is composed by no spec, and that the `configure` and `templates` `SpecEntry`s are gone.
+- `MODEL.md` `DATA-CFG-0007` **new**: plugin-set descriptor — `id`, `folders`, `variants`, `template`, `manifest`, `requires`, `releases`, `bootstrap`, `hooks`, with defaults, a closed field set, and a reference configuration. `releases` is what keeps r2 on its legacy single-set path: a set declared for `r2` alone, id `core`, folder `core`, two variants, reproducing the `core-<ide>` and `core-<ide>-light` folder names r2 ships today. Set-id uniqueness is therefore per release, not per document.
+- `FR-CLI.md` `FR-CLI-0034` **new**: `--config <path>`, resolved against `<source>` exactly as `--pluginsSource`/`--profileSource` are; a new `## Plugin-set configuration` section.
+- `FR-CLI.md` `FR-CLI-0030` REDEFINED: "domain-selected instruction source" -> "domain folder filter over plugin sets". It no longer resolves the instruction source; it selects which declared sets build, and a named folder that does not exist under the release still aborts. `FR-CLI-0031` REDEFINED: "multi-domain layer bundling" -> filter matching semantics (all of a set's folders must be named; argument order immaterial; unused values ignored) plus the empty-selection outcome (no output, exit zero). Layering itself moved to `FR-SET-0020`.
+- `FR-CLI.md` `FR-CLI-0032` restated: `--profile` no longer decides whether a profile is active — variants do — and now overrides the profile of every variant while leaving variant suffixes untouched; a fifth criterion added. `FR-CLI-0040`/`0041`/`0042` extended from per-target to per-(set variant × IDE target) pair. `FR-CLI-0001` argument list and `FR-CLI-0060` help text now name `--config`, the plugin-set descriptor fields and the four namespaced directive tokens, and drop the three profile suffix fields.
+- `FR-PROF.md` `FR-PROF-0020` and `FR-PROF-0021` RESTATED, keeping their IDs and inverting their rules: destination naming derives from the set and its variant and a profile contributes nothing to it; manifest `name`/`description` derive from the set's declared manifest fields plus the variant suffixes and a profile shall not modify either. A descriptor declaring any of the three suffixes is now invalid. Neither unit is deprecated — both remain the owner of their boundary.
+- `FR-PROF.md` `FR-PROF-0001` allow-list narrowed from four fields to one and its outer-key check moved to the bare IDE identities; an empty-descriptor criterion added. `FR-PROF-0010` "each of the seven targets" -> "each IDE target". `FR-PROF-0030` distinctness now spans the `target-`/`ide-`/`set-`/`profile-` namespaces. `FR-PROF-0040` reframed from "a run invoked without a profile" — no longer a mode — to "a variant that names no profile", with all four criteria rewritten. The file's header prose no longer defines a target as one of seven `core-*` values.
+- `FR-GEN.md` `FR-GEN-0001..0004` kept `Approved`/`NotStarted` and marked DORMANT in `<notes>`: the index capability is retained in full but no set declares an index, so no `INDEX.md` reaches any output. Deliberately NOT `status="Removed"`. `FR-GEN-0010`/`0011` gain the set's bootstrap flag and ordered hook list in the render context, the no-hooks-at-all outcome, and iteration over the hook list instead of literals.
+- `FR-HOOK.md` `FR-HOOK-0004` restated: it owned index-entry inclusion in the payload and now forbids it outright; `includeIndexEntries` is dropped from the descriptor, mirroring how `includeBootstrapRules` was retired. `FR-HOOK-0009` drops "followed by the index documents" from the manifest order. `FR-HOOK-0007`: the fixed payload entry counts (Claude/Copilot 9 and 5, Codex 8 and 4) are replaced by a derived count, and the now-vacuous Codex-differential rationale is replaced by a cross-target-equality criterion. `FR-HOOK-0001` bootstrap assembly becomes per-set and yields nothing where the set's bootstrap flag is unset. `FR-HOOK-0020` places exactly the bundles the set's declared hook list names plus their support modules; `PluginSpec.bundleSource` goes. `FR-HOOK-0022` gains removal of a bundle absent from the declared list.
+- `FR-VAR.md` `FR-VAR-0083` restated as an instance of a set's declared hook list rather than a target-specific rule, which also satisfies `FR-ARCH-0005` (no identity branching); a criterion now asserts no target-named exclusion rule exists. Index-dormancy swept through `FR-VAR-0010`, `0020`, `0030`, `0041`, `0072`, `0080`; `FR-VAR-0072` no longer injects an index section into a standalone's auto-loaded file. Every `## <IDE> (\`core-<ide>\`)` heading and every in-criteria identity moved to the bare IDE name.
+- `FR-ARCH.md` `FR-ARCH-0025` **new**: `SetOnlyToken` (`set-<id>-only`), validated by shape only so VFS parsing never consults the plugin-set configuration, filtered in the same step as target and profile before overwrite truncation. `FR-ARCH-0023` split its overloaded `<target>-only`/`<family>-only` token into namespaced `target-<id>-only` and `ide-<family>-only`. `FR-ARCH-0020`/`0021` retokened in statement and criteria; `FR-ARCH-0060` recognized-token clause now admits four namespaces and rejects a bare `<name>-only`. `FR-ARCH-0049` keeps its statement — it OBSERVES renames from frames rather than recomputing them, so set layering flows through unchanged — and gains two criteria: the verbatim treatment of the harness IDE guides, and the set-layered pure-relocation-versus-restructuring discriminant.
+- `FR-COPY.md` `FR-SEED-0001`/`FR-SEED-0002` carry the preserved-file relocation to `<template>-<ide>` and state that several sets seed from one template folder and that a standalone has none of its own. `FR-COPY-0020/0021/0022/0080/0081/0082/0083/0084` retokened to the bare IDE identities; "the other six targets" and the four-of-seven leak enumeration made count-free.
+- `NFR-0001` restated from per-profile-and-target to per-(set variant × IDE target) parity, with a new criterion asserting that the union of the five split sets' file sets equals the combo set's lightweight file set, and `INDEX.md` added to the forbidden-output list. `Implemented` -> `ToBeModified`.
+- `SCOPE.md` purpose, in-scope, out-of-scope, entry point, constraints and goals rewritten around plugin sets; marketplace JSON, `requires` enforcement and configuration authorship added as explicit non-goals. `STRUCTURES.md` reframed the seven `## core-<x>` sections as IDE-target templates parameterized by set, stripped every `+ INDEX.md [G]` annotation and index-injection line, and updated hook-bundle provenance; `FR-STRUCT-0010`/`0020` dropped their hardcoded target enumerations.
+- `GLOSSARY.md` added `PluginSet`, `SetVariant`, `requires`, `Preserved-file template`, `Plugin`, `TargetOnlyToken`, `IdeOnlyToken`, `SetOnlyToken`; amended `PluginTarget`, `PluginSpec`, `Domain`, `Profile`, `Instruction source`, `Bootstrap files`, `Bootstrap file manifest`, `Transform spec`, `Preserved-file source`, `pluginCopy`, `Deterministic hooks`, `FilenameDirective`, `DirectiveToken`, `ProfileOnlyToken`; marked `Folder index` dormant.
+- `REFERENCES.md` repointed the preamble and all eight guide rows from `instructions/r3/core/configure/` to `instructions/r3/core/skills/harness/references/configure/` — the old folder is deleted on disk. `INT-IDE-0002`'s "for each supported IDE target" reworded; `INT-IDE-0003` now distinguishes adding an IDE (needs a guide) from adding a set (does not), with a criterion for it.
+- `ASSUMPTIONS.md` amended `AC-3a`, `AC-4`, `AC-9`, `AC-15`, `AC-18`, `AC-19`, `AC-20`, `AC-21`, `CX-1/2/3`, `AG-1`, `AG-3`, `AG-4`, `AG-5`, `AG-6`, `AG-7`, `AG-8`; added `AC-22` (set-token shape-only validation), `AC-23` (folders are disjoint, layering is mechanism not merge), `AC-24` (`requires` is unenforceable), `AG-9` (one Antigravity target, many sets), `OQ-7` (is `set-<id>-only` used by anything today). `OQ-6` RESOLVED: bundling order is the set's declared `folders` array, and `r3`'s folders are disjoint so the question is moot.
+- `TRACE.md` retitled goal-neutrally; goals `G6`-`G14` added (`G13` bare IDE ids + namespaced directives, `G14` `configure/`/`templates/` retired and the guides kept verbatim); the matrix grew to 115 rows and `## Coverage` was regenerated in full from it: 14 goals, 81 distinct units, 115 goal-to-unit links, no orphan on either side. `FR-CLI-0010` is deliberately absent — its fix is pre-existing and has no #315 goal.
+
+**Pre-existing defects fixed in the same pass, not caused by #315:**
+
+- `FR-CLI-0010` contradicted itself: the statement said the release default is `r3` while its first criterion said `r2`. `src/rosettify-plugins/src/cli.ts` declares `.option('--release <r>', …, 'r3')`, and `FR-CLI-0012` independently states a no-argument invocation uses `r3`, so the criterion was wrong. Criterion 1 now says `r3`; criterion 2 was repointed at `r2` to keep the non-default case covered. `GLOSSARY.md` "Release … Default `r2`" corrected to `r3`.
+- `FR-ARCH-0021`'s fifth criterion asserted that "`claude-only` matches no target", contradicting `FR-ARCH-0023` as amended 2026-08-19 (an IDE-family key IS a valid token). `CHANGES.md` records the same contradiction being fixed in `FR-ARCH-0060` on 2026-08-19; `FR-ARCH-0021` was missed then. Fixed here as part of the retokening.
+- The root `docs/requirements/INDEX.md` described the generator as producing "six IDE plugin distributions" (seven since ticket #138) and listed no entry for `FR-PROF.md` or `TRACE.md`. Corrected and both entries added.
+
+**Cross-cutting metadata:** every unit this change touches carries `315` in `ticketId` (78 units), `changed="2026-09-01"`, and `approved_by="isolomatov-gd"` — except the two units that were already `Draft` (`FR-COPY-0011`, `FR-VAR-0030`), which keep an empty approver because approval is independent of this change. No touched unit is left claiming `implementation="Implemented"` while its text is ahead of the code: 45 flipped to `ToBeModified`, 33 stay `NotStarted`. The `depends` graph was checked for cycles as well as liveness; this change introduces none and incidentally removes the pre-existing `DATA-CFG-0005 <-> DATA-CFG-0006` cycle. Four pre-existing cycles remain, untouched and out of scope: `FR-VAR-0070 <-> FR-HOOK-0004`, `FR-COPY-0081 <-> FR-VAR-0081`, `FR-VAR-0080 <-> FR-VAR-0081`, `FR-VAR-0082 <-> FR-VAR-0083`. `FR-HOOK-0021` still declares `<depends>AC-3</depends>`, an ASSUMPTIONS entry rather than a `<req>` id — also pre-existing and left alone.
+
+---
+
 ## 2026-08-19 — `FR-ARCH-0023` implemented: TargetOnlyToken family keys
 
 **Files:** `FR-ARCH.md`
@@ -444,3 +514,209 @@ ARCHITECTURE.md plugin section updated: "Claude Code uses short names (`sonnet`,
 **Change:** The 10,000-char check measured the JSON-wrapped/escaped payload (a Claude-shaped proxy), giving Copilot's merged-emit entries a false pass. Now measures the raw content directly — IDE-shape-independent.
 
 **Status:** `Draft` (implementation changed; pending re-approval).
+
+### RECONCILIATION-14 — hook-configuration content has no oracle
+
+**Files:** `NFR.md`, `INDEX.md`, `TRACE.md`
+
+**Change:** `NFR-0001` compares output file PATHS only and says so deliberately; the equivalence
+check compounded it by listing `hooks.json` among its permitted-difference classes. Between them,
+a hook-configuration document that changed SHAPE while keeping its path was invisible to every
+gate — which is how `<set>-copilot/hooks/hooks.json` went from the 60-byte standalone form to a
+byte-identical copy of the 24443-byte plugin form during #315 with all gates green. Added
+`NFR-0012` (hook-configuration content parity) as the content-shape complement to `NFR-0001`: it
+asserts the RELATIONSHIPS between the documents a target emits — declared path set, required
+identity (codex mirror pair, copilot alternate-name copy), required distinctness (copilot's two
+forms; cursor's two forms where the deterministic-hooks value makes them distinguishable), form
+markers, and JSON validity — plus a recorded content digest per document. Relationships rather
+than frozen bytes, so the gate stays valid as the bootstrap payload legitimately moves with the
+instruction source. `NFR-0001` notes and the `INDEX.md` summary now name where content is covered;
+`TRACE.md` traces `NFR-0012` to G7 alongside `NFR-0001`.
+
+**Status:** `Draft` (the capability was owner-approved — `follow.md` OWNER'S ASKS item 12 — but
+this unit's text is new and awaits review). Implemented as
+`plans/issue-315-plugin-sets/verify/ac_hooks_content.py`, validated in both directions: ALL PASS
+(28 assertions) against the pre-#315 golden snapshot, 12 failures against the tree carrying the
+regression.
+
+### RECONCILIATION-15 — hook document structure returns to literal per-IDE templates
+
+**Files:** `MODEL.md`, `FR-GEN.md`, `FR-VAR.md`, `FR-HOOK.md`, `FR-SET.md`, `FR-ARCH.md`,
+`GLOSSARY.md`, `REFERENCES.md`, `NFR.md`, `ASSUMPTIONS.md`, `STRUCTURES.md`, `TRACE.md`,
+`docs/ARCHITECTURE.md`
+
+**Source:** `plans/issue-315-plugin-sets/hooks-architecture.md` (design, owner-settled D23/D25),
+`plans/issue-315-plugin-sets/remediation-spec.md` §6/§7.
+
+**Change:** `DATA-CFG-0008` held hook document shape as a table keyed on bare IDE target identity —
+seven entries, fixed as the whole inventory by its own AC1 — while the generator emits NINE distinct
+documents, Copilot and Cursor each owning both a plugin form and a standalone form. A structure that
+cannot address the document it describes can only produce one document per target, so the two forms
+collapsed: `<set>-copilot/hooks/hooks.json` went from the 60-byte standalone form to a byte-identical
+copy of the 24443-byte plugin form, and `<set>-cursor/hooks.json` took plugin-form addressing where
+standalone-form addressing was required.
+
+- **`DATA-CFG-0008`** deprecated under the `FR-HOOK-0003` precedent — record kept, reason in
+  `implementationNotes`, `implementation: ToBeRemoved` until the code deletion lands.
+- **`FR-GEN-0011`** rewritten from assemble-then-serialize to render-then-validate. Its old text
+  ("exactly one raw-injection placeholder and no control flow ... no literal hook entry") mandated the
+  one-liner templates that made the collapse possible. Each emitted document now comes from its own
+  literal template, its path in the preserved tree being its identity; post-render `JSON.parse` is a
+  HARD error, strictly stronger than the old justification because it also catches a malformed raw
+  bootstrap injection, which serializing a built object cannot see.
+- **`FR-GEN-0010`** loses the assembled-value clause; render context becomes release variables, the
+  bootstrap payload and the spec's output folder name. **`FR-ARCH-0048`** gains both.
+- **`FR-VAR-0071`** rationale asserted the defect as design; rewritten, plus a criterion asserting the
+  two forms differ in content. **`FR-VAR-0030`** AC4 is correct and currently failing — left untouched
+  by design, so it is not closed by editing the criterion. **`FR-VAR-0030`/`0031`** now name the
+  mechanism that exists (declarative post-render mirror pair) rather than `SpecEntry`/`fileRename()`.
+- **`FR-HOOK-0007`** probe guard moves from `commands/coding-flow.md`, absent from every `core`-based
+  Copilot plugin after the set split and therefore a permanent no-op there, to
+  `.github/plugin/plugin.json`. New criterion generalizes the rule.
+- **`FR-SET-0070`** AC1/AC2 named per-set hook subsets no declared set has ever carried; restated over
+  the two configurations `plugins.json` declares.
+- **`FR-VAR-0070`** restates the delivery conjunction against the template placeholder rather than the
+  table slot, and its new `<notes>` record three by-design consequences so they are not re-raised as
+  defects: Copilot's camelCase `sessionStart` and `preCompact` registration, and Cursor's absent
+  placeholder. In each case the same bootstrap bodies arrive through auto-loaded rules/instructions, and
+  registering the second key would double-deliver.
+- Collateral: `DATA-CFG-0002`, `DATA-CFG-0005`, `DATA-CFG-0007`, `FR-ARCH-0039`, `FR-HOOK-0005`,
+  `FR-VAR-0020`, `FR-VAR-0082`, `FR-VAR-0083`, `INT-IDE-0002`, `NFR-0007`, `GLOSSARY` PluginProcessor
+  term, `STRUCTURES.md`, `ASSUMPTIONS.md` OQ-4 (which claimed hook JSON was covered by the paths-only
+  parity rule; it is not, and now points at `NFR-0012`), and `docs/ARCHITECTURE.md`, whose preserved-file
+  paragraph called Copilot's `hooks/hooks.json.tmpl` the plugin form, contradicting its own hook-forms
+  table nine paragraphs later.
+
+`STRUCTURES.md` needed almost nothing: it was never updated by the refactor and already described this
+architecture, which is independent corroboration from the committed structure spec rather than from the
+git baseline.
+
+**Status:** `Approved` → `Draft` on `FR-GEN-0011`, `FR-GEN-0010`, `FR-VAR-0071`, `FR-HOOK-0007`,
+`FR-SET-0070` and `FR-ARCH-0048` — each changed an obligation or a criterion. `FR-VAR-0070`,
+`DATA-CFG-0002`, `DATA-CFG-0005`, `DATA-CFG-0007`, `FR-ARCH-0039`, `FR-HOOK-0005`, `FR-VAR-0020`,
+`FR-VAR-0082`, `FR-VAR-0083`, `NFR-0007` and `INT-IDE-0002` keep `Approved`: only the mechanism a
+reference names moved, no obligation changed, which follows the same rule the `advanced`→`workflows`
+pass used for restatements. `FR-VAR-0030`/`0031` were already `Draft`. `NFR-0012` is unchanged and
+stays `Draft`; promoting it to `Approved` is recommended but is the owner's call, not this pass's.
+
+**Implementation status** tracks the tree, not the plan. `DATA-CFG-0008` is `Removed` (hook-layouts.ts,
+plugin-assemble-hooks-json.ts and PluginSpec.hookLayout are all deleted); `FR-GEN-0011`, `FR-VAR-0071`
+and `FR-VAR-0031` are `Implemented`. `FR-VAR-0030` stays `ToBeModified` although the template that
+caused its AC4 failure is fixed, because its criteria assert properties of generated OUTPUT and the
+tree has not been rebuilt against `ac_hooks_content.py`. `FR-HOOK-0007` stays `ToBeModified`: the
+corrected probe guard is a criterion change the generator has not yet followed (migration step 8).
+
+### RECONCILIATION-16 — FR-HOOK-0022 closed as already-implemented; FR-SET-0050 enforces rather than composes
+
+**Files:** `FR-HOOK.md`, `FR-SET.md`
+
+**Source:** `plans/issue-315-plugin-sets/remediation-spec.md` §6, §7.
+
+**Change:** `FR-HOOK-0022`'s `ToBeModified` note described the pre-fix state and contradicted both the
+code and a passing test file. `sweepUndeclaredBundles` is called unconditionally by `pluginSyncBundles`,
+outside the deterministic-hooks copy branch, so AC2 holds on both branches. Notes rewritten to cite the
+helper and the four named sweep tests, and to record that `pluginCleanup` wipes the destination folder
+first — so in the CLI pipeline the sweep is defence-in-depth for direct library callers, and cross-run
+survival of a hand-added file is not a property of that pipeline. No code change; flipped to
+`Implemented`, status stays `Approved`.
+
+`FR-SET-0050`'s duty moves from composing the manifest description to enforcing an authored one:
+`readSets` refuses a catalog whose `manifest.description` omits a set its `requires` list names. Added
+AC5 for the abort. Generated prose reads worse than the authored wording and would give one fact two
+sources, so the invariant is enforced at the moment of the edit rather than satisfied by derivation.
+
+**Status:** `FR-SET-0050` `Approved` → `Draft` (refusing to load a catalog is a new obligation).
+`FR-HOOK-0022` stays `Approved`.
+
+### RECONCILIATION-17 — close FR-VAR-0030 and FR-HOOK-0007 against the rebuilt tree
+
+**Files:** `FR-VAR.md`, `FR-HOOK.md`
+
+**Change:** Both units held `ToBeModified` because their criteria assert generated output and the tree
+had not been rebuilt. It has been. `FR-VAR-0030`: all four criteria hold — three `hooks.json` at the
+declared paths, root and `.github/plugin` byte-identical, and `hooks/hooks.json` the standalone form
+with an empty session-start array, matching the pre-`#315` snapshot. `FR-HOOK-0007`: all nine hold,
+including the guard on `.github/plugin/plugin.json`, which the copilot spec emits for every set.
+Both → `implementation="Implemented"`; `status` stays `Draft`, approval being independent.
+
+**Status:** `FR-VAR-0030` and `FR-HOOK-0007` `ToBeModified` → `Implemented`, both `Draft`.
+
+### RECONCILIATION-18 — requirement records carry no change narrative
+
+**Files:** `FR-VAR.md`, `FR-HOOK.md`, `MODEL.md`, `STRUCTURES.md`, `FR-PROF.md`
+
+**Change:** Records are target-state; this file is the only change log. Removed progress and correction
+narrative from five units — dated "CLOSED"/"UPDATE" entries, "CORRECTION: the earlier note …",
+"at the time this record was written", and a paragraph explaining that a prior draft's claim had since
+been fixed. `FR-VAR-0030` and `FR-HOOK-0007` implementation notes were rewritten to the concise
+files-affected form. Retirement reasons on `Deprecated` units are retained: those state why the unit is
+gone, which is the record's current content, not its history.
+
+**Status:** No status or criteria changed.
+
+### RECONCILIATION-19 — close FR-CLI-0030 and FR-CLI-0031
+
+**Files:** `FR-CLI.md`
+
+**Change:** Both criteria now hold. `--domain` with an unresolvable token aborts with exit 1, naming the
+folder and the absolute path searched, and writes no output; a legitimate empty match exits zero, which
+the missing-folder abort does not. Verified by running the CLI, not by inspection.
+
+**Status:** `FR-CLI-0030` and `FR-CLI-0031` `ToBeModified` → `Implemented`; both stay `Approved`.
+
+### RECONCILIATION-20 — close NFR-0007 and FR-CLI-0021
+
+**Files:** `NFR.md`, `FR-CLI.md`
+
+**Change:** Both statements already described the current code; only the tags lagged. `NFR-0007`'s
+statement lists the per-vocabulary model-normalization processors, and its criterion holds:
+filesystem mechanics, escaping, model maps and orchestration live in separate units. `FR-CLI-0021`'s
+criteria both hold — `cli.ts` resolves `outputDir` to the `--output` value when given and
+`<source>/plugins` otherwise. Its `ToBeModified` tag dated from RECONCILIATION-9, when the `--source`
+model was written into the spec ahead of the code; the code has since adopted it.
+
+**Status:** `NFR-0007` and `FR-CLI-0021` `ToBeModified` → `Implemented`. `FR-CLI-0021` stays `Draft`,
+`NFR-0007` stays `Approved`.
+
+### RECONCILIATION-21 — close FR-COPY-0033
+
+**Files:** `FR-COPY.md`
+
+**Change:** The statement already read "the target's model-normalization processor", the per-vocabulary
+wording; the note describing drift against a single `fileNormalizeModels` was stale, that dispatcher
+having been deleted under `FR-ARCH-0005`. The unit defines how a copy is expressed rather than
+asserting any target currently needs one, and both halves hold: duplication is available only as an
+additional `SpecEntry`, and no pre-copy pass exists.
+
+**Status:** `FR-COPY-0033` `ToBeModified` → `Implemented`; stays `Approved`.
+
+### RECONCILIATION-22 — `Policy:` prefix, and the Copilot mirror dependency
+
+**Files:** `FR-COPY.md`, `FR-VAR.md`
+
+**Change:** Prefixed `Policy:` onto the five `FR-COPY` units that prescribe a mechanism rather than
+assert a feature — model normalization, folder renames, pattern-based file renames, alternate-name
+duplication, file relocation. Each opens "Where …" and names the processor that shall do the work,
+often forbidding an alternative; without the marker such a unit scans as an unbuilt feature, which is
+how `FR-COPY-0033` came to be read as unimplemented. Units that merely open with "Where" but assert a
+feature (`FR-ARCH-0024`, `FR-GEN-0001/0003/0010`, `FR-HOOK-0020`, `FR-VAR-0072`, `NFR-0012`) are left
+unmarked so the prefix keeps its meaning.
+
+`FR-VAR-0030` and `FR-VAR-0031` both declared `depends` on `FR-COPY-0033`, the SpecEntry duplication
+policy, while the Copilot root `hooks.json` is a post-render mirror pair applied by a generic mirror
+processor — a different mechanism, as both statements now say. Repointed to `DATA-CFG-0002`, whose
+statement declares the mirror mechanism. No dependency cycles; `FR-COPY-0033` is now referenced by no
+`depends` edge, which is correct for a policy nothing needs to be gated on.
+
+**Status:** No status, statement or criteria changed.
+
+### RECONCILIATION-23 — approve the implemented Draft units
+
+**Files:** `FR-CLI.md`, `FR-COPY.md`, `FR-GEN.md`, `FR-HOOK.md`, `FR-SET.md`, `FR-VAR.md`, `NFR.md`
+
+**Change:** Owner approved every unit standing `Draft` with `implementation="Implemented"`, 13 in all:
+`FR-CLI-0021`, `FR-COPY-0011`, `FR-GEN-0010`, `FR-GEN-0011`, `FR-HOOK-0005`, `FR-HOOK-0007`,
+`FR-SET-0050`, `FR-SET-0070`, `FR-VAR-0030`, `FR-VAR-0031`, `FR-VAR-0071`, `NFR-0004`, `NFR-0012`.
+`FR-HOOK-0005`'s note explaining its unapproved state was removed with the state it described.
+
+**Status:** All 13 `Draft` → `Approved`, `approved_by` `isolomatov-gd`. No statement or criteria changed.

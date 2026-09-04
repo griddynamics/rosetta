@@ -1,0 +1,6 @@
+{
+  "name": "modernization",
+  "description": "Rosetta Modernization - conversion, upgrade, and re-architecture workflows. Requires Rosetta Core and Workflows.",
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "version": "3.1.13"
+}

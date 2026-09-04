@@ -119,13 +119,15 @@ jobs:
           echo "date=${DATE}" >> $GITHUB_OUTPUT
 
           ARCHIVES=""
-          # Includes standard plugins and standalone variants (core-cursor-standalone, core-copilot-standalone)
+          # One archive per generated plugin folder: <set>-<ide>[-light] for every set
+          # (rosetta, core, workflows, qe, search, modernization) and standalone variants
+          # (rosetta-cursor-standalone, rosetta-copilot-standalone).
           for plugin_dir in plugins/*/; do
             folder=$(basename "$plugin_dir")
             plugin_json=$(find "$plugin_dir" -name "plugin.json" -maxdepth 3 | head -1)
             if [ -z "$plugin_json" ]; then
-              echo "WARNING: No plugin.json found in $plugin_dir, skipping"
-              continue
+              echo "::error::No plugin.json found in ${plugin_dir} (searched to depth 3) - refusing to publish a partial release"
+              exit 1
             fi
             version=$(jq -r '.version' "$plugin_json")
             zip_name="${folder}-${version}-${DATE}.zip"
@@ -148,7 +150,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PLUGIN_JSON="${GITHUB_WORKSPACE}/plugins/core-claude/.claude-plugin/plugin.json"
+          PLUGIN_JSON="${GITHUB_WORKSPACE}/plugins/rosetta-claude/.claude-plugin/plugin.json"
           VERSION=$(jq -r '.version' "$PLUGIN_JSON")
           if [[ ! "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
             echo "::error::Invalid version in ${PLUGIN_JSON}: ${VERSION}"

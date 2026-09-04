@@ -111,14 +111,15 @@ compute_new_version() {
 }
 
 PLUGIN_MARKETPLACE_FILES=(
-    "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/plugin.json"
-    "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json"
-    "$ROOT/src/rosettify-plugins/plugins/core-copilot/.github/plugin/plugin.json"
-    "$ROOT/src/rosettify-plugins/plugins/core-codex/.codex-plugin/plugin.json"
-    "$ROOT/src/rosettify-plugins/plugins/core-antigravity/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/template-claude/.claude-plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/template-cursor/.cursor-plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/template-copilot/.github/plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/template-codex/.codex-plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/template-antigravity/plugin.json"
     "$ROOT/.claude-plugin/marketplace.json"
     "$ROOT/.cursor-plugin/marketplace.json"
     "$ROOT/.github/plugin/marketplace.json"
+    "$ROOT/.agents/plugins/marketplace.json"
 )
 
 bump_plugin_marketplace_group() {

@@ -39,16 +39,50 @@ import fs from 'fs';
 import path from 'path';
 
 export const TARGETS = [
-  'core-claude',
-  'core-cursor',
-  'core-copilot',
-  'core-codex',
-  'core-cursor-standalone',
-  'core-copilot-standalone',
-  'core-antigravity',
+  'claude',
+  'cursor',
+  'copilot',
+  'codex',
+  'cursor-standalone',
+  'copilot-standalone',
+  'antigravity',
 ] as const;
 
 export type Target = (typeof TARGETS)[number];
+
+/** The IDE family a target belongs to — its preserved-template family and bundle source. */
+function familyOf(target: Target): string {
+  return target.replace(/-standalone$/, '');
+}
+
+/**
+ * The parts of a plugin-set declaration this oracle needs. Restated here rather than imported from
+ * `src/spec/plugin-sets.ts` for the same reason the directive grammar is restated below: the oracle
+ * must not be defeated by mirroring a bug in the code it checks.
+ */
+export interface SetShape {
+  name: string;
+  /** Instruction folders layered into the set, in order (left = lower priority). */
+  folders: string[];
+  /** Preserved-template family: `<template>-<ide>` under the plugins source root. */
+  template: string;
+  /** Whether the set registers a bootstrap payload. */
+  bootstrap: boolean;
+  /** Hook modules the set declares (before per-target narrowing). */
+  hooks: string[];
+}
+
+/**
+ * Whether a target emits a hooks.json for this set. Mirrors the shipped rule: a set with no hook
+ * modules and no bootstrap ships neither a `hooks/` folder nor a `hooks.json`. The two Cursor forms
+ * and Antigravity take no bootstrap payload, so for them only the hook modules count.
+ */
+function emitsHooks(set: SetShape, target: Target): boolean {
+  if (set.hooks.length > 0) return true;
+  const takesBootstrap = !['cursor', 'cursor-standalone', 'antigravity', 'copilot-standalone']
+    .includes(target);
+  return set.bootstrap && takesBootstrap;
+}
 
 // FR-COPY-0011: legacy MCP-mode / bootstrap rule files never emitted to any target.
 const RULES_EXCLUDES = new Set(['bootstrap.md', 'mcp-files-mode.md', 'local-files-mode.md']);
@@ -68,27 +102,39 @@ function splitDirectiveStem(rawStem: string): { cleanStem: string; tokens: strin
 }
 
 /**
- * FR-PROF-0030: a `-only` token scopes a file to exactly one of two DISJOINT namespaces that share
- * the same `-only` suffix shape — a TARGET (one of the seven `spec.name` values) or, when prefixed
- * `profile-`, a PROFILE. This restates that distinction independently of the generator's own
- * `matchesTarget`/`matchesProfile`: a `profile-`-prefixed `-only` token is NEVER read as a target
- * selector (so it never accidentally excludes a file for every target), and a bare `-only` token is
- * never read as a profile selector. With no active profile (`activeProfile === null`), a file
- * carrying ANY `profile-*-only` token is excluded outright — every profile-scoped file is inert on
- * an unprofiled run (FR-PROF-0040 regression guard).
+ * FR-PROF-0030, DATA-CFG-0007: a `-only` token scopes a file to exactly one of FOUR disjoint
+ * namespaces that share the same `-only` suffix shape, distinguished by prefix:
+ *   `target-<id>-only`    — one exact IDE identity
+ *   `ide-<family>-only`   — every target of one IDE (so `ide-copilot-only` covers copilot AND
+ *                           copilot-standalone, while `target-copilot-only` covers only the former)
+ *   `set-<name>-only`     — one plugin set
+ *   `profile-<name>-only` — one build profile
+ * Every `-only` token present must be satisfied (AND across tokens).
+ *
+ * This restates the rules independently of the generator's own `matchesTarget`/`matchesProfile`,
+ * precisely so the oracle cannot be defeated by mirroring a bug in the generator's matcher. With no
+ * active profile, a file carrying ANY `profile-*-only` token is excluded outright (FR-PROF-0040).
  */
 function includedForTargetAndProfile(
   tokens: string[],
   target: Target,
+  setName: string,
   activeProfile: string | null,
 ): boolean {
   for (const token of tokens) {
     if (!token.endsWith('-only')) continue;
     const scoped = token.slice(0, -'-only'.length);
+
     if (scoped.startsWith('profile-')) {
-      const profileName = scoped.slice('profile-'.length);
-      if (profileName !== activeProfile) return false;
-    } else if (scoped !== target) {
+      if (scoped.slice('profile-'.length) !== activeProfile) return false;
+    } else if (scoped.startsWith('set-')) {
+      if (scoped.slice('set-'.length) !== setName) return false;
+    } else if (scoped.startsWith('target-')) {
+      if (scoped.slice('target-'.length) !== target) return false;
+    } else if (scoped.startsWith('ide-')) {
+      if (scoped.slice('ide-'.length) !== familyOf(target)) return false;
+    } else {
+      // An unrecognized namespace selects nothing — the generator rejects it at parse time.
       return false;
     }
   }
@@ -103,6 +149,16 @@ function listTopFiles(dir: string): string[] {
     .filter((e) => e.isFile() && e.name !== '.DS_Store')
     .map((e) => e.name)
     .sort();
+}
+
+/** The same one level, unioned across every instruction folder the set layers. */
+function listTopFilesAcross(sourceDirs: string[], sub: string): string[] {
+  return [...new Set(sourceDirs.flatMap((d) => listTopFiles(path.join(d, sub))))].sort();
+}
+
+/** A full recursive walk, unioned across every instruction folder the set layers. */
+function walkRelAcross(sourceDirs: string[], sub: string): string[] {
+  return [...new Set(sourceDirs.flatMap((d) => walkRel(path.join(d, sub))))].sort();
 }
 
 /** All files under a folder as forward-slash paths relative to `base`, OS-artifact filtered. */
@@ -128,18 +184,20 @@ function walkRel(dir: string, base: string = dir): string[] {
  * than being misread as its own (phantom) root or phase.
  */
 function directiveAwareStems(
-  dir: string,
+  sourceDirs: string[],
+  sub: string,
   target: Target,
+  setName: string,
   activeProfile: string | null,
   excludeCleanFilenames: Set<string> = new Set(),
 ): string[] {
   const stems = new Set<string>();
-  for (const f of listTopFiles(dir)) {
+  for (const f of listTopFilesAcross(sourceDirs, sub)) {
     if (!f.endsWith('.md')) continue;
     const rawStem = f.slice(0, -'.md'.length);
     const { cleanStem, tokens } = splitDirectiveStem(rawStem);
     if (excludeCleanFilenames.has(`${cleanStem}.md`)) continue;
-    if (!includedForTargetAndProfile(tokens, target, activeProfile)) continue;
+    if (!includedForTargetAndProfile(tokens, target, setName, activeProfile)) continue;
     stems.add(cleanStem);
   }
   return [...stems].sort();
@@ -150,17 +208,31 @@ function directiveAwareStems(
  * `*.tmpl` mapped to its rendered sibling (suffix dropped). deterministicHooks:false ⇒ the
  * committed sources carry no `*.js`, so none are added.
  */
-function preservedOutputs(pluginsDir: string, target: string): string[] {
-  return walkRel(path.join(pluginsDir, target))
-    .map((p) => (p.endsWith('.tmpl') ? p.slice(0, -'.tmpl'.length) : p));
+function preservedOutputs(
+  pluginsDir: string,
+  templateDir: string,
+  includeHooks: boolean,
+): string[] {
+  return walkRel(path.join(pluginsDir, templateDir))
+    .map((p) => (p.endsWith('.tmpl') ? p.slice(0, -'.tmpl'.length) : p))
+    // A set that ships no hooks drops its hooks.json.tmpl frame, so no hooks.json is emitted.
+    .filter((p) => includeHooks || !p.endsWith('hooks.json'));
 }
 
 /** True if a rule's frontmatter declares `applyTo: "**"` — the auto-loaded bootstrap instructions
  *  that Copilot-standalone relocates to `.github/instructions/*.instructions.md` (STRUCTURES.md). */
-function isAutoLoadedBootstrapRule(coreDir: string, ruleStem: string): boolean {
-  const text = fs.readFileSync(path.join(coreDir, 'rules', `${ruleStem}.md`), 'utf-8');
-  const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  return fm ? /^applyTo:\s*"\*\*"\s*$/m.test(fm[1]) : false;
+function isAutoLoadedBootstrapRule(sourceDirs: string[], ruleStem: string): boolean {
+  for (const dir of sourceDirs) {
+    const rulesDir = path.join(dir, 'rules');
+    // The stem is directive-stripped, so match any filename that collapses onto it.
+    const match = listTopFiles(rulesDir)
+      .find((f) => f.endsWith('.md') && splitDirectiveStem(f.slice(0, -3)).cleanStem === ruleStem);
+    if (!match) continue;
+    const text = fs.readFileSync(path.join(rulesDir, match), 'utf-8');
+    const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (fm && /^applyTo:\s*"\*\*"\s*$/m.test(fm[1])) return true;
+  }
+  return false;
 }
 
 /**
@@ -195,17 +267,24 @@ function workflowRoot(stem: string, allStems: string[]): string {
  */
 export function deriveExpectedPaths(
   target: Target,
-  coreDir: string,
+  set: SetShape,
+  sourceDirs: string[],
   pluginsDir: string,
   activeProfile: string | null = null,
 ): Set<string> {
-  const ruleStems = directiveAwareStems(path.join(coreDir, 'rules'), target, activeProfile, RULES_EXCLUDES);
-  const workflowStems = directiveAwareStems(path.join(coreDir, 'workflows'), target, activeProfile);
-  const agentStems = directiveAwareStems(path.join(coreDir, 'agents'), target, activeProfile);
-  // Skill folders and configure/ pass through with their full relative layout, for every target.
-  const skillFiles = walkRel(path.join(coreDir, 'skills')).map((p) => `skills/${p}`);
-  const configureFiles = walkRel(path.join(coreDir, 'configure')).map((p) => `configure/${p}`);
+  const setName = set.name;
+  const ruleStems = directiveAwareStems(sourceDirs, 'rules', target, setName, activeProfile, RULES_EXCLUDES);
+  const workflowStems = directiveAwareStems(sourceDirs, 'workflows', target, setName, activeProfile);
+  const agentStems = directiveAwareStems(sourceDirs, 'agents', target, setName, activeProfile);
+  // Skill folders pass through with their full relative layout, for every target.
+  const skillFiles = walkRelAcross(sourceDirs, 'skills').map((p) => `skills/${p}`);
   // templates/ is entirely templates/shell-schemas/** ⇒ fully excluded ⇒ no templates/ folder.
+  // configure/ no longer exists in the instruction set — its guides live under
+  // skills/harness/references/configure/, which arrives via skillFiles above.
+
+  const hooks = emitsHooks(set, target);
+  const preserved = (): string[] =>
+    preservedOutputs(pluginsDir, `${set.template}-${familyOf(target)}`, hooks);
 
   const out = new Set<string>();
   // Single-argument on purpose: used both directly and as `arr.forEach(add)`, where forEach passes
@@ -214,114 +293,97 @@ export function deriveExpectedPaths(
     out.add(p);
   };
 
+  // D6: no INDEX.md is expected anywhere — every set declares `indexes: []`.
   switch (target) {
-    // FR-VAR-0010: native folder names; rules+workflows indexes; hooks/hooks.json rendered.
-    case 'core-claude': {
+    // FR-VAR-0010: native folder names; hooks/hooks.json rendered.
+    case 'claude': {
       ruleStems.forEach((x) => add(`rules/${x}.md`));
-      add('rules/INDEX.md');
       workflowStems.forEach((w) => add(`workflows/${w}.md`));
-      add('workflows/INDEX.md');
       agentStems.forEach((a) => add(`agents/${a}.md`));
       skillFiles.forEach(add);
-      configureFiles.forEach(add);
-      preservedOutputs(pluginsDir, 'core-claude').forEach(add); // .claude-plugin/plugin.json + hooks/hooks.json
+      preserved().forEach(add); // .claude-plugin/plugin.json + hooks/hooks.json
       break;
     }
     // FR-VAR-0020: rules→.mdc, workflows→commands; two rendered hook forms preserved.
-    case 'core-cursor': {
+    case 'cursor': {
       ruleStems.forEach((x) => add(`rules/${x}.mdc`));
-      add('rules/INDEX.md');
       workflowStems.forEach((w) => add(`commands/${w}.md`));
-      add('commands/INDEX.md');
       agentStems.forEach((a) => add(`agents/${a}.md`));
       skillFiles.forEach(add);
-      configureFiles.forEach(add);
-      preservedOutputs(pluginsDir, 'core-cursor').forEach(add); // .cursor-plugin/plugin.json + hooks.json + hooks/hooks.json
+      preserved().forEach(add); // .cursor-plugin/plugin.json + hooks.json + hooks/hooks.json
       break;
     }
     // FR-VAR-0030/0031: agents→*.agent.md, workflows→commands; root hooks.json is an
     // alternate-name copy of .github/plugin/hooks.json.
-    case 'core-copilot': {
+    case 'copilot': {
       ruleStems.forEach((x) => add(`rules/${x}.md`));
-      add('rules/INDEX.md');
       workflowStems.forEach((w) => add(`commands/${w}.md`));
-      add('commands/INDEX.md');
       agentStems.forEach((a) => add(`agents/${a}.agent.md`));
       skillFiles.forEach(add);
-      configureFiles.forEach(add);
-      preservedOutputs(pluginsDir, 'core-copilot').forEach(add); // .github/plugin/{plugin.json,hooks.json} + hooks/hooks.json
-      add('hooks.json'); // FR-VAR-0031 alternate-name copy of .github/plugin/hooks.json
+      preserved().forEach(add); // .github/plugin/{plugin.json,hooks.json} + hooks/hooks.json
+      if (hooks) add('hooks.json'); // FR-VAR-0031 alternate-name copy
       break;
     }
     // FR-VAR-0040/0041/0042, FR-COPY-0080: instruction folders under .agents/; agents→
-    // .codex/agents/*.toml; hook config mirrored to .codex/hooks.json. Workflows restructure into
-    // skills (same as Antigravity's mapping, target base ".agents/skills" instead of "skills"):
-    // each workflow→.agents/skills/<root>/SKILL.md, each owned phase→
-    // .agents/skills/<root>/phases/<phase>.md. NO .agents/workflows/ folder or index — the Codex
-    // workflows-index declaration was removed; existing absent-document handling omits that entry.
-    case 'core-codex': {
+    // .codex/agents/*.toml; hook config mirrored to .codex/hooks.json.
+    case 'codex': {
       ruleStems.forEach((x) => add(`.agents/rules/${x}.md`));
-      add('.agents/rules/INDEX.md');
       for (const stem of workflowStems) {
         const root = workflowRoot(stem, workflowStems);
         if (stem === root) add(`.agents/skills/${root}/SKILL.md`);
         else add(`.agents/skills/${root}/phases/${stem}.md`);
       }
       skillFiles.forEach((f) => add(`.agents/${f}`));
-      configureFiles.forEach((f) => add(`.agents/${f}`));
       agentStems.forEach((a) => add(`.codex/agents/${a}.toml`));
-      preservedOutputs(pluginsDir, 'core-codex').forEach(add); // .codex-plugin/{plugin.json,hooks.json}
-      add('.codex/hooks.json'); // mirror of .codex-plugin/hooks.json
+      preserved().forEach(add); // .codex-plugin/{plugin.json,hooks.json}
+      if (hooks) add('.codex/hooks.json'); // mirror of .codex-plugin/hooks.json
       break;
     }
-    // FR-VAR-0050: everything under .cursor/; bootstrap stays as native .mdc rules; generated
-    // plugin.json at root; standalone-form .cursor/hooks.json.
-    case 'core-cursor-standalone': {
+    // FR-VAR-0050: everything under .cursor/; generated plugin.json at root; standalone-form
+    // .cursor/hooks.json. Standalones copy NO parent preserved files — only their own manifest
+    // and the one template routed via standaloneTemplates.
+    case 'cursor-standalone': {
       add('plugin.json');
       ruleStems.forEach((x) => add(`.cursor/rules/${x}.mdc`));
-      add('.cursor/rules/INDEX.md');
       workflowStems.forEach((w) => add(`.cursor/commands/${w}.md`));
-      add('.cursor/commands/INDEX.md');
       agentStems.forEach((a) => add(`.cursor/agents/${a}.md`));
       skillFiles.forEach((f) => add(`.cursor/${f}`));
-      configureFiles.forEach((f) => add(`.cursor/${f}`));
-      add('.cursor/hooks.json');
+      if (hooks) add('.cursor/hooks.json');
       break;
     }
     // FR-VAR-0051: everything under .github/; auto-loaded (applyTo "**") bootstrap rules relocate
-    // to instructions/*.instructions.md; remaining rules stay in rules/; workflows→prompts/*.prompt.md.
-    case 'core-copilot-standalone': {
+    // to instructions/*.instructions.md; remaining rules stay in rules/; workflows→prompts.
+    case 'copilot-standalone': {
       add('plugin.json');
-      const bootstrapStems = ruleStems.filter((x) => isAutoLoadedBootstrapRule(coreDir, x));
+      // `speckit-integration-policy` carries applyTo:"**" but is DELIBERATELY excluded from
+      // .github/instructions/ and routed to .github/rules/ instead (the instructions SpecEntry
+      // names it in its exclude list), so the auto-loaded test alone does not decide this one.
+      const INSTRUCTIONS_EXCLUDED = new Set(['speckit-integration-policy']);
+      const bootstrapStems = ruleStems.filter(
+        (x) => isAutoLoadedBootstrapRule(sourceDirs, x) && !INSTRUCTIONS_EXCLUDED.has(x),
+      );
       const remainingStems = ruleStems.filter((x) => !bootstrapStems.includes(x));
       bootstrapStems.forEach((x) => add(`.github/instructions/${x}.instructions.md`));
       remainingStems.forEach((x) => add(`.github/rules/${x}.md`));
-      add('.github/rules/INDEX.md');
       workflowStems.forEach((w) => add(`.github/prompts/${w}.prompt.md`));
-      add('.github/prompts/INDEX.md');
       agentStems.forEach((a) => add(`.github/agents/${a}.agent.md`));
       skillFiles.forEach((f) => add(`.github/${f}`));
-      configureFiles.forEach((f) => add(`.github/${f}`));
-      add('.github/hooks/hooks.json');
+      if (hooks) add('.github/hooks/hooks.json');
       break;
     }
-    // FR-VAR-0080/0081, FR-COPY-0080: root plugin.json + rendered hooks.json; rules/ (rules+templates)
-    // with index; source skills pass through; each workflow→skills/<root>/SKILL.md (+ phases/);
-    // agents/ (frontmatter reduced, path unchanged); skills index; no workflows/ folder.
-    case 'core-antigravity': {
+    // FR-VAR-0080/0081, FR-COPY-0080: root plugin.json + rendered hooks.json; rules/;
+    // source skills pass through; each workflow→skills/<root>/SKILL.md (+ phases/).
+    case 'antigravity': {
       add('plugin.json');
-      add('hooks.json');
+      if (hooks) add('hooks.json');
       ruleStems.forEach((x) => add(`rules/${x}.md`));
-      add('rules/INDEX.md');
       agentStems.forEach((a) => add(`agents/${a}.md`));
-      configureFiles.forEach(add);
       skillFiles.forEach(add); // source skills pass through
       for (const stem of workflowStems) {
         const root = workflowRoot(stem, workflowStems);
         if (stem === root) add(`skills/${root}/SKILL.md`);
         else add(`skills/${root}/phases/${stem}.md`);
       }
-      add('skills/INDEX.md');
       break;
     }
   }

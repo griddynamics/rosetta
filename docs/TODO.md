@@ -57,7 +57,7 @@ and leave the log messages plain.
 
 ## TODO: instructions — lightweight agent documents duplicate their base counterparts
 
-`instructions/r3/core/agents/<agent>~profile-lightweight-only~overwrite~.md` (ten files) are full
+`instructions/r3/workflows/agents/<agent>~profile-lightweight-only~overwrite~.md` (ten files) are full
 copies of the ten base agent documents differing in exactly one line: the `model:` candidate list.
 A FilenameDirective override replaces a whole document, so there is no partial-override mechanism
 today; a base agent edit must be mirrored by hand into its light twin or the two silently diverge.
@@ -65,9 +65,9 @@ Options: a frontmatter-only override kind (apply just the declared keys, inherit
 per-profile model-list map keyed by document path. Guard in the meantime: `diff` each pair and
 expect exactly one changed line.
 
-## TODO: instructions — configure/*.md IDE model catalogues still name superseded models
+## TODO: instructions — harness configure references still name superseded models
 
-`instructions/r3/core/configure/{claude-code,codex,cursor,github-copilot,opencode,windsurf}.md` document
+`instructions/r3/core/skills/harness/references/configure/{claude-code,codex,cursor,github-copilot,opencode,windsurf}.md` document
 what each IDE itself accepts (e.g. `configure/cursor.md`: "The `model` field accepts the following model
 id values", listing `gpt-5.1-codex-max`, `grok-code-fast-1`, `composer-2-fast`). They were deliberately
 left out of the issue #187 model upgrade because rewriting them asserts IDE capabilities we cannot
@@ -98,3 +98,9 @@ not drift. Model upgrades apply to R3 only. Owner decision, 2026-08-19 — do no
 are dropped from Copilot's `subagent_required_model` lists. That records only that no Copilot-native identifier has been established here — it is NOT a
 finding that Copilot lacks the models. Resolve by confirming what Copilot calls them and adding the
 entries, or by recording a sourced decision that Copilot does not offer them.
+
+## REVIEW: Move speckit-integration-policy into arrange-workspace-flow
+
+**Status:** Proposed
+
+**What:** Owner-requested follow-up from #315. The rule ships in `core/rules/` and each tool's rules mechanism picks it up; Claude plugins have no rules mechanism so it is pseudo-dormant there. Folding it into `arrange-workspace-flow` was the stated intent.

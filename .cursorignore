@@ -1,4 +1,5 @@
-/plugins/core-cursor/
-!/plugins/core-cursor/.cursor-plugin/plugin.json
-/plugins/core-claude/
-!/plugins/core-claude/.claude-plugin/plugin.json
+# Generated plugin output: <set>-<ide>[-light] for every set (rosetta, core, workflows,
+# qe, search, modernization) — ~49 trees. Ignore them all, keep the manifests indexable.
+/plugins/*/
+!/plugins/*/.cursor-plugin/plugin.json
+!/plugins/*/.claude-plugin/plugin.json

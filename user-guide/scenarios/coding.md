@@ -87,5 +87,5 @@ The agent won't slide past these gates on a vague reply; give a clear confirmati
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/coding-flow.md`](../../instructions/r3/core/workflows/coding-flow.md)
+- Workflow: [`instructions/r3/workflows/workflows/coding-flow.md`](../../instructions/r3/workflows/workflows/coding-flow.md)
 - Skills: [`coding`](../../instructions/r3/core/skills/coding/SKILL.md), [`planning`](../../instructions/r3/core/skills/planning/SKILL.md), [`tech-specs`](../../instructions/r3/core/skills/tech-specs/SKILL.md), [`testing`](../../instructions/r3/core/skills/testing/SKILL.md), [`hitl`](../../instructions/r3/core/skills/hitl/SKILL.md)

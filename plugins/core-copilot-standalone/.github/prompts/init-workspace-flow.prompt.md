@@ -128,19 +128,19 @@ DISABLED
 
    **WHAT**: Majority of tasks are actually coding tasks, including unit tests. Just ask exactly what is required.
 
-   "/coding-flow Implement left navigation sidebar on the home page, ..."
+   "/coding-flow Implement left navigation sidebar on the home page, ..."   (requires the `workflows` plugin)
 
-   "/coding-flow Identify and implement fix, ..."
+   "/coding-flow Identify and implement fix, ..."   (requires the `workflows` plugin)
 
-   "/coding-flow Improve unit tests coverage to 85% for ..."
+   "/coding-flow Improve unit tests coverage to 85% for ..."   (requires the `workflows` plugin)
 
    # Business and Technical Requirements
 
    **WHY**: Requirements - is the source of truth for code and tests. Going requirements first is the most effective. In brownfield start with extracting.
 
-   "/requirements-authoring-flow extract detailed business and technical requirements from community of ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."
+   "/requirements-authoring-flow extract detailed business and technical requirements from community of ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."   (requires the `workflows` plugin)
 
-   "/requirements-authoring-flow extract high-level business and technical requirements at end-point level for controllers according to glob ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."
+   "/requirements-authoring-flow extract high-level business and technical requirements at end-point level for controllers according to glob ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."   (requires the `workflows` plugin)
 
    # Modernization
 
@@ -148,11 +148,11 @@ DISABLED
 
    **NOTE**: All phases are must. All phases to be implemented one-by-one with proper review. Phase 3: Pre-Modernization Test Coverage is a must (and must include both unit and integration/e2e tests).
 
-   "/modernization-flow Perform modernization phase 1 to reuse library refsrc/... using subagents." 
+   "/modernization-flow Perform modernization phase 1 to reuse library refsrc/... using subagents."   (requires the `modernization` plugin) 
 
-   "/modernization-flow Perform modernization phase 2 to analyze service module ... using subagents. Target microservice name is ... ."
+   "/modernization-flow Perform modernization phase 2 to analyze service module ... using subagents. Target microservice name is ... ."   (requires the `modernization` plugin)
 
-   "/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must USE FLOW `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."
+   "/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must USE FLOW `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."   (requires the `modernization` and `workflows` plugins)
    ```
 </next_steps>
 

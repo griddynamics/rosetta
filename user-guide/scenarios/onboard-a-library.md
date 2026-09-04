@@ -56,5 +56,5 @@ Prerequisites: repomix (MCP or CLI).
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/external-lib-flow.md`](../../instructions/r3/core/workflows/external-lib-flow.md)
+- Workflow: [`instructions/r3/workflows/workflows/external-lib-flow.md`](../../instructions/r3/workflows/workflows/external-lib-flow.md)
 - Skills: [`reverse-engineering`](../../instructions/r3/core/skills/reverse-engineering/SKILL.md)

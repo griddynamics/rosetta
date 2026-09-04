@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { initLogger } from './logging.js';
 import { generate } from './generate.js';
+import { resolveConfigPath, SET_FIELDS, VARIANT_FIELDS, MANIFEST_FIELDS } from './spec/plugin-sets.js';
 import type { GenerateOptions, ResolvedSources } from './types.js';
 
 // FR-CLI-0012: explicit boolean only; anything else is a usage error (exit ≠ 0)
@@ -43,7 +44,7 @@ program
   .description('Generate Rosetta IDE plugins from instruction sources')
   .version(PACKAGE_VERSION)
   .option('--release <r>', 'Release name (e.g. r2, r3)', 'r3')
-  .option('--domain <list>', 'Comma-separated domain list (e.g. core)', 'core')
+  .option('--domain <list>', 'Comma-separated instruction-folder filter over plugin sets (e.g. qe). Default: build every set available for the release')
   .option('--source <dir>', 'Source root directory (default: current directory)', process.cwd())
   .option('--instructionsSource <dir>', 'Override instruction source directory (default: <source>/instructions)')
   .option('--pluginsSource <dir>', 'Override preserved-files source directory (default: <source>/src/rosettify-plugins/plugins)')
@@ -51,6 +52,7 @@ program
   .option('--output <dir>', 'Output directory (default: <source>/plugins)')
   .option('--profile <name>', 'Build profile name (e.g. lightweight); name only, never a path; default: none active', parseProfileName)
   .option('--profileSource <dir>', 'Override profile source directory (default: <source>/src/rosettify-plugins/profiles)')
+  .option('--config <path>', 'Override the plugin-set catalog location; a relative path resolves against --source (default: <source>/src/rosettify-plugins/plugins.json)')
   .option('--deterministic-hooks <bool>', 'Override the deterministic_hooks value (true|false); default: false regardless of release', parseBooleanArg)
   .option('--dry-run', 'Print what would be written, but do not write', false)
   .option('--verbose', 'Enable verbose logging', false);
@@ -64,26 +66,48 @@ Source model:
     --hooksSource         <source>/src/hooks
     --output              <source>/plugins
     --profileSource       <source>/src/rosettify-plugins/profiles
+    --config              <source>/src/rosettify-plugins/plugins.json
 
 Source structure:
-  <instructionsSource>/<release>/<domain>/{rules,workflows,agents,skills,configure,templates}/
+  <instructionsSource>/<release>/<folder>/{rules,workflows,agents,skills,templates}/
+
+Plugin sets (--config, --domain):
+  A plugin SET is a named bundle of instruction folders shipped as one installable plugin,
+  declared in plugins.json. ONE invocation expands  sets x variants x IDE targets  into every
+  output folder, named  <set>-<ide>[<variantSuffix>].
+
+    --domain <list>   Folder filter over sets: a set is built only when EVERY folder it layers
+                       is named in the list. Omit it to build every set available for the
+                       release. '--domain qe' therefore builds only the qe-* plugins.
+    --config <path>   Override where the catalog is read from. A relative path resolves
+                       against --source, not the current directory.
+
+  A set descriptor in plugins.json carries exactly these fields:
+    ${SET_FIELDS.join(', ')}
+  A variant carries: ${VARIANT_FIELDS.join(', ')}
+  A manifest carries: ${MANIFEST_FIELDS.join(', ')}
+  Any other field is rejected when the catalog loads.
+
+  Set availability is per release: instructions/r2 holds only core/, so r2 resolves to the one
+  set built from it. A set naming an instruction folder or a template folder that does not
+  exist is a pre-flight error — never a silent skip.
 
 Directives (in filenames, tilde-separated, opening and closing tilde fence around the
-token list: name~token[~token...]~.ext):
+token list: name~token[~token...]~.ext). There are four disjoint '-only' namespaces:
   file~overwrite~.md                 — overwrite earlier layers
-  file~core-claude-only~.md          — include only when generating that exact target
-                                        (core-claude, core-cursor, core-copilot, core-codex,
-                                        core-antigravity, core-cursor-standalone,
-                                        core-copilot-standalone)
-  file~copilot-only~.md              — include for every target of one IDE: claude, cursor,
-                                        copilot, codex, antigravity. copilot-only covers
-                                        core-copilot AND core-copilot-standalone, while
-                                        core-copilot-only covers only the former
+  file~target-claude-only~.md        — include only for that exact IDE target
+                                        (claude, cursor, copilot, codex, antigravity,
+                                        cursor-standalone, copilot-standalone)
+  file~ide-copilot-only~.md          — include for every target of one IDE: claude, cursor,
+                                        copilot, codex, antigravity. ide-copilot-only covers
+                                        copilot AND copilot-standalone, while
+                                        target-copilot-only covers only the former
+  file~set-qe-only~.md               — include only when building that plugin set
   file~profile-lightweight-only~.md  — include only when the "lightweight" profile is active
 
 Build profiles (--profile, --profileSource):
-  A profile is an optional named build variant, orthogonal to release/domain. With no
-  --profile argument, no profile is active and output is the standard, unsuffixed build.
+  Each set variant declares which profile it builds under. --profile OVERRIDES that for every
+  variant in the run; it is a debugging path, not the normal one.
 
     --profile <name>       Activate the named profile; loads <profileSource>/<name>.json.
                             <name> must be a bare name, never a path (no "/" or "\\", no
@@ -92,12 +116,12 @@ Build profiles (--profile, --profileSource):
     --profileSource <dir>  Override where profile descriptors are looked up (see Source
                             model above for the default).
 
-  A profile descriptor is a JSON file with these fields:
-    destinationSuffix         appended to each target's output folder name
-    pluginNameSuffix          appended to the plugin manifest's name
-    pluginDescriptionSuffix   appended to the plugin manifest's description
+  A profile descriptor is a JSON file with exactly one optional field:
     modelOverrides            per-target model-id remapping applied when normalizing
                                model/subagent-model fields
+  An empty descriptor '{}' is valid; its only effect is to activate the matching
+  profile-<name>-only filename directives. Output-folder and manifest suffixes are declared
+  on a plugin-set VARIANT in plugins.json, not here.
 
   A file can be scoped to a single profile with the profile-<name>-only directive token
   (see Directives above): it is included in the build only while that profile is active,
@@ -108,14 +132,15 @@ Processor catalog:
   fileNormalizeClaudeModels, fileNormalizeCursorModels, fileNormalizeCopilotModels, fileNormalizeCodexModels,
   fileRename, fileCodexAgentFormat, fileWorkflowToSkill, fileAntigravityReduceFrontmatter
   pluginCleanup, pluginCopy, pluginProcessSpecEntries, pluginRewriteReferences,
-  pluginGenerateIndexes, pluginInjectSections,
+  pluginGenerateIndexes, pluginEmitDistributionRoot,
   pluginAssembleClaudeBootstrap, pluginAssembleCursorBootstrap, pluginAssembleCopilotBootstrap, pluginAssembleCodexBootstrap, pluginAssembleAntigravityBootstrap,
   pluginAntigravitySubagentModel,
   pluginRenderTemplates, pluginSyncBundles, pluginWrite
 
 Spec model:
-  Each target is a PluginSpec with specEntries, pluginProcessors, etc.
-  See src/spec/targets.ts for the seven built-in targets.
+  Each output folder is a PluginSpec with specEntries, pluginProcessors, etc. 'spec.name' is the
+  bare IDE identity; the set and variant live on 'spec.destination'.
+  See plugins.json for the sets and src/spec/targets.ts for the seven IDE targets.
 `);
 
 async function main(): Promise<void> {
@@ -133,6 +158,7 @@ async function main(): Promise<void> {
     hooksSource: (opts.hooksSource as string | undefined) ?? path.join(sourceRoot, 'src', 'hooks'),
     outputDir: (opts.output as string | undefined) ?? path.join(sourceRoot, 'plugins'),
     profileSource: (opts.profileSource as string | undefined) ?? path.join(sourceRoot, 'src', 'rosettify-plugins', 'profiles'),
+    configPath: resolveConfigPath(sourceRoot, opts.config as string | undefined),
   };
 
   initLogger(verbose);
@@ -140,7 +166,7 @@ async function main(): Promise<void> {
   const options: GenerateOptions = {
     sources,
     release: opts.release as string,
-    domain: opts.domain as string,
+    domain: opts.domain as string | undefined,
     dryRun,
     verbose,
     deterministicHooks: opts.deterministicHooks as boolean | undefined, // FR-CLI-0012

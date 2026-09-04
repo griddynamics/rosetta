@@ -4,7 +4,7 @@
 
 **When should I read this?** After [ARCHITECTURE.md](ARCHITECTURE.md). MCP is the secondary, optional delivery mode — plugins are primary and most teams don't need MCP. MCP serves teams that want centrally managed, always-fresh instructions with nothing copied into the repository.
 
-Covers: the full MCP pipeline (Instructions Repo → CLI → RAGFlow → `rosetta-mcp` server → IDE), environments, RAGFlow (datasets, processing pipeline), Rosetta CLI (publish/parse/verify commands, auto-tagging), transports (Streamable HTTP + OAuth 2.1, STDIO), authentication and OAuth modes, Redis schema migrations, VFS resource paths and auto-tagging (tag-based retrieval), the MCP tools (`get_context_instructions`, `query_instructions`, `list_instructions`) and the `rosetta://{path}` resource, document bundling (core + organization overlays, `sort_order`, `INSTRUCTION_ROOT_FILTER`), XML/flat listings, context overflow prevention, MCP server development and validation, and MCP-specific tradeoffs. The [command aliases](ARCHITECTURE.md#command-aliases) themselves are mode-agnostic and documented in Architecture; in MCP mode they are bound to server calls by `mcp-files-mode.md`, and generated shells use `ACQUIRE <path> FROM KB` verbatim.
+Covers: the full MCP pipeline (Instructions Repo → CLI → RAGFlow → `rosetta-mcp` server → IDE), environments, RAGFlow (datasets, processing pipeline), Rosetta CLI (publish/parse/verify commands, auto-tagging), transports (Streamable HTTP + OAuth 2.1, STDIO), authentication and OAuth modes, Redis schema migrations, VFS resource paths and auto-tagging (tag-based retrieval), the MCP tools (`get_context_instructions`, `query_instructions`, `list_instructions`) and the `rosetta://{path}` resource, document bundling (`sort_order`, `INSTRUCTION_ROOT_FILTER`), XML/flat listings, context overflow prevention, MCP server development and validation, and MCP-specific tradeoffs. The [command aliases](ARCHITECTURE.md#command-aliases) themselves are mode-agnostic and documented in Architecture; in MCP mode they are bound to server calls by `mcp-files-mode.md`, and generated shells use `ACQUIRE <path> FROM KB` verbatim.
 
 ---
 
@@ -50,9 +50,10 @@ Covers: the full MCP pipeline (Instructions Repo → CLI → RAGFlow → `rosett
               │  Instructions Repo  │
               │  /instructions/r3/  │
               │                     │
-              │  core/ · <org>/     │
+              │  core/ · workflows/ │
+              │  qe/ · search/      │
+              │  modernization/     │
               │  skills · agents    │
-              │  workflows · rules  │
               └─────────────────────┘
 ```
 
@@ -130,10 +131,10 @@ The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instr
 **Change detection:** MD5 hash of content. Only modified files publish (~77% time savings). Use `--force` to bypass.
 
 **Auto-tagging and metadata extraction.** The CLI reads each file during publishing and extracts everything MCP needs to serve it efficiently:
-- **Tags:** all folder names + filename + composite pairs/triples (`core/skills`, `r3/core/skills`, etc.). These are what the typed load aliases query against.
+- **Tags:** all folder names + filename + composite pairs/triples (`core/skills`, `r3/qe/workflows`, etc.). These are what the typed load aliases query against.
 - **Frontmatter:** parsed from file content, saved as metadata. Exposed later in `<rosetta:file>` attributes so agents see document structure without loading full content.
-- **Resource path:** `skills/planning/SKILL.md` (org prefix stripped). This is the VFS path used everywhere in MCP.
-- **Domain** (`core`), **release** (`r3`), **collection** (`aia-r3`): derived from folder structure.
+- **Resource path:** `skills/planning/SKILL.md` (domain-set prefix stripped). This is the VFS path used everywhere in MCP.
+- **Domain** (the set folder under the release: `core`, `workflows`, `qe`, `search`, `modernization`), **release** (`r3`), **collection** (`aia-r3`): derived from folder structure.
 - **Title:** `[r3][core][skills][planning] SKILL.md` (tag-in-title format).
 
 **Environment:** `.env.dev` (dev RAGFlow) or `.env.prod` (production). Switch with `cp .env.dev .env`.
@@ -218,7 +219,7 @@ All three modes issue FastMCP JWTs to MCP clients and store upstream tokens in R
 
 ## VFS and Tags
 
-Everything MCP works with is VFS (virtual file system) resource paths. The CLI strips instruction root prefixes during publishing, so `core/skills/planning/SKILL.md` becomes `skills/planning/SKILL.md`. Files at the same resource path get bundled together.
+Everything MCP works with is VFS (virtual file system) resource paths. The CLI strips the domain-set prefix during publishing, so both `core/skills/planning/SKILL.md` and `qe/skills/qa-knowledge/SKILL.md` lose their first segment. That is why filenames must be globally unique across the whole tree: two sets cannot both own `skills/planning/SKILL.md`. Files at the same resource path get bundled together.
 
 **Tags are the primary access mechanism.** Typed load aliases (`USE SKILL`, `READ RULE`, `APPLY PHASE`, ...) query by tags, which provides the most direct and fastest access. The CLI's auto-tagging was designed specifically for this: every folder name, filename, and composite pair/triple becomes a tag, so agents can request exactly what they need. Keyword search (`query_instructions(query=...)`) remains an MCP-level fallback for discovery.
 
@@ -236,20 +237,30 @@ Three tools and one resource are exposed to agents.
 
 ## Bundler
 
-The Bundler merges multiple documents at the same VFS resource path into a single XML response. When an agent loads a skill (`USE SKILL`), core and organization files at that path are concatenated into one payload:
+The Bundler merges multiple documents at the same VFS resource path into a single XML response. Filenames are globally unique across the domain sets, so a single-domain deployment normally has one document per path; the merge exists for deployments that publish more than one instructions repository into the same collection:
 
 ```xml
 <rosetta:file id="..." dataset="..." path="skills/planning/SKILL.md" name="..." tags="..." frontmatter="...">
   [document content from core]
 </rosetta:file>
 <rosetta:file id="..." dataset="..." path="skills/planning/SKILL.md" name="..." tags="..." frontmatter="...">
-  [document content from organization overlay]
+  [document content from a second publishing source]
 </rosetta:file>
 ```
 
-Documents sorted by `sort_order` (default: 1000000), then by name. `INSTRUCTION_ROOT_FILTER` controls which layers are included (e.g., `CORE,GRID`).
+Documents sorted by `sort_order` (default: 1000000), then by name.
 
-Plugin mode has no runtime Bundler — the generator merges core and organization layers at build time instead. See [ARCHITECTURE.md — Instruction Structure](ARCHITECTURE.md#instruction-structure).
+### Instruction root filter
+
+`INSTRUCTION_ROOT_FILTER` is a comma-separated list of domain sets. Its purpose is to restrict what a deployment serves, for example `CORE,WORKFLOWS` for a deployment that wants the general engineering library without the QE, search, and modernization content.
+
+Two things to know before you set it.
+
+**It is not applied today.** The server parses the variable into `Config.root_filter` (`src/rosetta-mcp-server/rosetta_mcp/config.py:283,325,343`) and nothing reads it afterwards. Setting it changes nothing about what MCP returns.
+
+**Roots are domain sets.** `instructions/r3/` holds five of them: `core`, `workflows`, `qe`, `search`, `modernization`. Once the filter is wired up, `INSTRUCTION_ROOT_FILTER=CORE` would serve the `core` set alone, roughly a fifth of Rosetta, with no subagents and no orchestrated workflows. A filter value has to name every domain you want.
+
+Plugin mode has no runtime Bundler. The generator selects domain sets at build time instead, via `--domain` and the `plugins.json` catalog. See [ARCHITECTURE.md — Instruction Structure](ARCHITECTURE.md#instruction-structure).
 
 ## Listing
 

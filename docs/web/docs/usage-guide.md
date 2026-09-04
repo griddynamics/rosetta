@@ -707,7 +707,7 @@ See [Plugins](/rosetta/docs/plugins/) for install commands.
 - **Do not delete files in `docs/`.** They are Rosetta's project knowledge. Deleting them means starting over.
 - **Switch sessions at 65% context.** Monitor context usage. If it goes above 65%, queue the message or wait for the earliest ability to switch over to a new session:
 
-  `Please save execution state, workflow state, findings, original intent with clarifications, and tasks left to do as concise "agents/TEMP/execution-state.md" so that I can start a fresh new session and continue execution where you left it off.`
+  `Please save execution state, workflow state, findings, decisions, intent with clarifications, honest concerns, failure modes, improvements, and tasks left to do as concise hand-off "agents/TEMP/execution-state.md" so that I can start a fresh new session and continue execution where you left it off. Also record work protocol, useful skills, processes.`
 
   Once file saved, start the new session with the same original slash command:
 

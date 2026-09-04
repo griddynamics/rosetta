@@ -22,7 +22,7 @@ If MCP call returns back truncated result => you must read it fully, **instructi
 Typed loads: `query_instructions(tags="<path>")`; expect >=1 document. Noun → path:
 
 - SKILL `<name>` → `<name>/SKILL.md`, SKILL FILE `<subpath>` → `<current-skill>/<subpath>` (a skill's own files only)
-- FLOW/PHASE `<file>.md` → `workflows/<file>.md`, SUBAGENT `<name>` → `agents/<name>.md`, RULE `<file>.md` → `rules/<file>.md`, TEMPLATE `<file>.md` → `<file>.md`, CONFIGURE `<tool>.md` → `configure/<tool>.md`
+- FLOW/PHASE `<file>.md` → `workflows/<file>.md`, SUBAGENT `<name>` → `agents/<name>.md`, RULE `<file>.md` → `rules/<file>.md`, TEMPLATE `<file>.md` → `<file>.md`
 - `LIST <path>` → `list_instructions(full_path_from_root="<path>")`
 - `ACQUIRE <SMTH> FROM KB` → `query_instructions(tags="<SMTH>")`; expect >=1 document
 

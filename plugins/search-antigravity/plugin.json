@@ -1,0 +1,6 @@
+{
+  "name": "search",
+  "description": "Rosetta Search - Solr schema, query, and semantic-search skills. Requires Rosetta Core and Workflows.",
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "version": "3.1.13"
+}

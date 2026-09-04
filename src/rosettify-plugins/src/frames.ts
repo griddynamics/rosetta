@@ -64,3 +64,19 @@ export function updatePluginFrame(
 ): PluginProcessingFrame {
   return produce(frame, updater);
 }
+
+/**
+ * Base document name of a frame — the basename up to its FIRST dot.
+ *
+ * Stripping only the last extension is not enough for targets that add a compound suffix:
+ * Copilot renames `plugin-files-mode.md` to `plugin-files-mode.instructions.md` and its agents to
+ * `*.agent.md`, whose single-extension stems (`plugin-files-mode.instructions`, `x.agent`) match
+ * nothing. Cursor's `.mdc` and Claude's `.md` reduce identically either way; the compound rename is
+ * the case that decides it. Shared by every processor that has to find a document BY NAME after
+ * renames have been applied.
+ */
+export function baseDocName(frame: { target: string }): string {
+  const name = frame.target.split('/').pop() ?? '';
+  const dot = name.indexOf('.');
+  return dot >= 0 ? name.slice(0, dot) : name;
+}

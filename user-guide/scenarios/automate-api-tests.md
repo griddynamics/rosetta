@@ -66,5 +66,5 @@ Prerequisites: Swagger/OpenAPI spec or backend source path.
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/api-aqa-flow.md`](../../instructions/r3/core/workflows/api-aqa-flow.md) (plus the `api-aqa-flow-*.md` phase files)
-- Router: [`aqa-flow.md`](../../instructions/r3/core/workflows/aqa-flow.md)
+- Workflow: [`instructions/r3/qe/workflows/api-aqa-flow.md`](../../instructions/r3/qe/workflows/api-aqa-flow.md) (plus the `api-aqa-flow-*.md` phase files)
+- Router: [`aqa-flow.md`](../../instructions/r3/qe/workflows/aqa-flow.md)

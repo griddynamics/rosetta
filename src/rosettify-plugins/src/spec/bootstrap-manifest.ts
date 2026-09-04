@@ -44,18 +44,30 @@ export const CODEX_PLUGIN_ROOT_COMMAND =
 
 // Copilot needs additionalContext at BOTH top-level (Copilot CLI) AND nested in
 // hookSpecificOutput (VS Code) — see docs/hooks/copilot.md, Bug 2.
-export const COPILOT_PLUGIN_ROOT_BASH =
+//
+// The install path is DELIBERATELY hardcoded rather than discovered at runtime: Copilot does not
+// expose its own plugin path, and its hooks run in either standalone or plugin mode with only one
+// firing per case. It is, however, SET-AWARE — parameterized on the spec's output folder name, so
+// `qe-copilot` probes its own directory, and `core-copilot-light` probes `core-copilot-light`
+// rather than (as it did while this was a literal) the unrelated `core-copilot`.
+// Guard file: `.github/plugin/plugin.json`, not `commands/coding-flow.md` (hooks-architecture.md
+// §1.5, §3 step 8). The marketplace manifest is emitted unconditionally by pluginCopy's manifest
+// overlay for EVERY Copilot spec, at a location content-independent of any set split — unlike
+// `commands/coding-flow.md`, which lives in the `workflows` set (not `core`) and made this probe
+// a permanent no-op for every `core`-based Copilot plugin (FR-HOOK-0007). It is also, not
+// coincidentally, the file this probe itself lives alongside in the output tree.
+export const COPILOT_PLUGIN_ROOT_BASH = (destination: string): string =>
   `for base in "$HOME/.vscode/agent-plugins" "$HOME/.local/share/Code/agentPlugins"; ` +
-  `do root="$base/github.com/griddynamics/rosetta/plugins/core-copilot"; ` +
-  `if [ -f "$root/commands/coding-flow.md" ]; then ` +
+  `do root="$base/github.com/griddynamics/rosetta/plugins/${destination}"; ` +
+  `if [ -f "$root/.github/plugin/plugin.json" ]; then ` +
   `printf '%s' "{\\"additionalContext\\":\\"Rosetta Plugin Path: $root\\",\\"hookSpecificOutput\\":{\\"hookEventName\\":\\"SessionStart\\",\\"additionalContext\\":\\"Rosetta Plugin Path: $root\\"}}"; ` +
   `break; ` +
   `fi; ` +
   `done`;
 
-export const COPILOT_PLUGIN_ROOT_POWERSHELL =
-  `$root = "$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot"; ` +
-  `if (Test-Path "$root\\commands\\coding-flow.md") { ` +
+export const COPILOT_PLUGIN_ROOT_POWERSHELL = (destination: string): string =>
+  `$root = "$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\${destination.replace(/\//g, '\\')}"; ` +
+  `if (Test-Path "$root\\.github\\plugin\\plugin.json") { ` +
   `Write-Output ('{"additionalContext":"Rosetta Plugin Path: ' + $root + '","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Rosetta Plugin Path: ' + $root + '"}}') ` +
   `}`;
 

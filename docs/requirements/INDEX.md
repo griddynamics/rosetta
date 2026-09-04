@@ -22,20 +22,23 @@ Requirements are organized by Rosetta component. Each component has its own fold
 
 ## plugin-generator
 
-### plugin-generator/INDEX.md — Plugin generator: transforms an instruction source tree into six IDE plugin distributions.
+### plugin-generator/INDEX.md — Plugin generator: transforms an instruction source tree into IDE plugin distributions — every declared plugin set across every IDE target.
 ### plugin-generator/SCOPE.md — In/out of scope, actors, entry points, goals, non-goals, global constraints.
 ### plugin-generator/GLOSSARY.md — Domain terms and canonical type names: release, domain, target, VirtualFile, the two-tier FileProcessor/PluginProcessor model, SpecEntry, etc.
-### plugin-generator/MODEL.md — Configuration contract: release, plugin-target (PluginSpec = SpecEntry[] + PluginProcessor[] + descriptor), preserved-file source location (DATA-*).
+### plugin-generator/MODEL.md — Configuration contract: release, plugin-target (PluginSpec = SpecEntry[] + PluginProcessor[] + descriptor), plugin-set descriptor, preserved-file template location (DATA-*).
 ### plugin-generator/FR-ARCH.md — Architecture: uniform spec contract, immutable flat VFS with structural sharing, filename directives, two-tier File/Plugin processor pipeline (FR-ARCH-*).
-### plugin-generator/FR-CLI.md — Invocation, release selection, domain resolution + bundling, run modes (dry-run/verbose), orchestration, exit status (FR-CLI-*).
-### plugin-generator/FR-COPY.md — Preserved-file seeding from src/plugin-generator/plugins (FR-SEED-*), source reset, copy, model normalization, renames, content reference rewriting (FR-COPY-*).
+### plugin-generator/FR-CLI.md — Invocation, release selection, plugin-set configuration (--config), domain folder filter, run modes (dry-run/verbose), orchestration, exit status (FR-CLI-*).
+### plugin-generator/FR-COPY.md — Preserved-file seeding from the shared template folders (FR-SEED-*), source reset, copy, model normalization, renames, content reference rewriting (FR-COPY-*).
 ### plugin-generator/FR-GEN.md — Folder index generation and template rendering (FR-GEN-*).
 ### plugin-generator/FR-HOOK.md — Bootstrap context payload assembly and hook-bundle synchronization (FR-HOOK-*).
 ### plugin-generator/FR-VAR.md — Per-target structure, reasoning, and bootstrap-delivery strategy; per-variant output properties (FR-VAR-*).
+### plugin-generator/FR-SET.md — Plugin sets: plugins.json resolution and validation, set-to-folder layering, per-set variants, `<set>-<ide>` naming, `requires` metadata, single-call generation, per-set bootstrap and hooks (FR-SET-*).
+### plugin-generator/FR-PROF.md — Profile capability: descriptor resolution and validation, effective model vocabulary, exhaustive candidate skipping, and the boundary keeping naming and manifest identity out of a profile (FR-PROF-*).
 ### plugin-generator/NFR.md — Byte-for-byte parity, determinism, idempotency, portability (TS/npx), modularity, library selection criteria, limits (NFR-*).
-### plugin-generator/REFERENCES.md — Authoritative per-IDE configuration guides under instructions/r3/core/configure/ (INT-IDE-*).
+### plugin-generator/REFERENCES.md — Authoritative per-IDE configuration guides under instructions/r3/core/skills/harness/references/configure/ (INT-IDE-*).
 ### plugin-generator/STRUCTURES.md — Generalized example folder structure per target (preserved vs generated, with provenance) (FR-STRUCT-*).
 ### plugin-generator/ASSUMPTIONS.md — Assumptions, flagged quirks/implementation accidents, open questions.
+### plugin-generator/TRACE.md — Goal-to-requirement-to-criteria traceability matrix with a full bidirectional coverage assertion.
 
 ## Planned Components
 

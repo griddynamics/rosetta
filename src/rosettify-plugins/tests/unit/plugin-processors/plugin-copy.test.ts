@@ -6,7 +6,6 @@ import os from 'os';
 import path from 'path';
 import { PassThrough } from 'stream';
 import { pluginCopy } from '../../../src/plugin-processors/plugin-copy.js';
-import type { ManifestSuffix } from '../../../src/plugin-processors/plugin-copy.js';
 import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec } from '../../../src/types.js';
 
 function makePluginFrame(spec: Partial<PluginSpec>): PluginProcessingFrame {
@@ -31,8 +30,13 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
       fs.writeFileSync(path.join(preservedSource, 'readme.md'), '# readme');
 
       const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
+        name: 'claude',
         destination: 'core-claude',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
       };
       const frame = makePluginFrame(spec);
@@ -55,12 +59,21 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
       const preservedSource = path.join(tmp, 'preserved');
       const outputDir = path.join(tmp, 'output');
       fs.mkdirSync(preservedSource, { recursive: true });
-      fs.writeFileSync(path.join(preservedSource, 'hooks.json.tmpl'), '{{content}}');
+      // Named readme.md.tmpl, not hooks.json.tmpl: this test is about GENERIC .tmpl frame
+      // registration, unrelated to the hooks-emission skip pluginCopy now applies to
+      // hooks.json.tmpl specifically (hooks-architecture.md §1.8) — this spec ships no hooks
+      // (hookModules: [], bootstrap: false) and must not be conflated with that logic.
+      fs.writeFileSync(path.join(preservedSource, 'readme.md.tmpl'), '{{content}}');
       fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{}');
 
       const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
+        name: 'claude',
         destination: 'core-claude',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
       };
       const frame = makePluginFrame(spec);
@@ -69,7 +82,7 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
       // In dry-run: no files written to disk
       expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(false);
       // But .tmpl file was registered as a frame
-      const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === 'hooks.json.tmpl');
+      const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === 'readme.md.tmpl');
       expect(tmplFrame).toBeDefined();
       expect(tmplFrame!.target_contents).toBe('{{content}}');
     } finally {
@@ -85,13 +98,20 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
     try {
       const preservedSource = path.join(tmp, 'preserved');
       const outputDir = path.join(tmp, 'output');
-      fs.mkdirSync(path.join(preservedSource, 'hooks'), { recursive: true });
-      fs.writeFileSync(path.join(preservedSource, 'hooks', 'hooks.json.tmpl'), '{{content}}');
+      // readme.md.tmpl, not hooks.json.tmpl: generic .tmpl handling, not the hooks-emission skip
+      // (hooks-architecture.md §1.8) — this spec ships no hooks (hookModules: [], bootstrap: false).
+      fs.mkdirSync(path.join(preservedSource, 'docs'), { recursive: true });
+      fs.writeFileSync(path.join(preservedSource, 'docs', 'readme.md.tmpl'), '{{content}}');
       fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{}');
 
       const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
+        name: 'claude',
         destination: 'core-claude',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
       };
       const result = pluginCopy(outputDir, false)(makePluginFrame(spec));
@@ -99,9 +119,9 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
       // Non-.tmpl file physically copied
       expect(fs.existsSync(path.join(outputDir, 'core-claude', 'plugin.json'))).toBe(true);
       // .tmpl file must NOT be physically copied to disk
-      expect(fs.existsSync(path.join(outputDir, 'core-claude', 'hooks', 'hooks.json.tmpl'))).toBe(false);
+      expect(fs.existsSync(path.join(outputDir, 'core-claude', 'docs', 'readme.md.tmpl'))).toBe(false);
       // But it is still registered as a frame for pluginRenderTemplates to render
-      const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === 'hooks/hooks.json.tmpl');
+      const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === 'docs/readme.md.tmpl');
       expect(tmplFrame).toBeDefined();
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
@@ -118,8 +138,13 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
       fs.writeFileSync(path.join(preservedSource, 'real.md'), '# real');
 
       const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
+        name: 'claude',
         destination: 'core-claude',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
       };
       pluginCopy(outputDir, false)(makePluginFrame(spec));
@@ -136,8 +161,13 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-nodir-'));
     try {
       const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
+        name: 'claude',
         destination: 'core-claude',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource: path.join(tmp, 'does-not-exist'),
       };
       const frame = makePluginFrame(spec);
@@ -171,8 +201,15 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
 
       const outputDir = path.join(tmp, 'output');
       const spec: Partial<PluginSpec> = {
-        name: 'core-cursor-standalone',
+        name: 'cursor-standalone',
         destination: 'core-cursor-standalone',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        // bootstrap: true — this spec ships hooks, so its hooks.json.tmpl standaloneTemplates
+        // entry is not skipped by pluginCopy's emitsHooksJson gate (hooks-architecture.md §1.8).
+        hookModules: [],
+        bootstrap: true,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
@@ -211,8 +248,13 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
 
       const outputDir = path.join(tmp, 'output');
       const spec: Partial<PluginSpec> = {
-        name: 'core-cursor-standalone',
+        name: 'cursor-standalone',
         destination: 'core-cursor-standalone',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
@@ -242,8 +284,13 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
 
       const outputDir = path.join(tmp, 'output');
       const spec: Partial<PluginSpec> = {
-        name: 'core-cursor-standalone',
+        name: 'cursor-standalone',
         destination: 'core-cursor-standalone',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
@@ -274,8 +321,13 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
 
       const outputDir = path.join(tmp, 'output');
       const spec: Partial<PluginSpec> = {
-        name: 'core-cursor-standalone',
+        name: 'cursor-standalone',
         destination: 'core-cursor-standalone',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
@@ -300,8 +352,14 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
 
       const outputDir = path.join(tmp, 'output');
       const spec: Partial<PluginSpec> = {
-        name: 'core-cursor-standalone',
+        name: 'cursor-standalone',
         destination: 'core-cursor-standalone',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        // bootstrap: true — see the identical note above; this spec ships hooks.
+        hookModules: [],
+        bootstrap: true,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
@@ -329,8 +387,13 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
 
       const outputDir = path.join(tmp, 'output');
       const spec: Partial<PluginSpec> = {
-        name: 'core-cursor-standalone',
+        name: 'cursor-standalone',
         destination: 'core-cursor-standalone',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
@@ -345,108 +408,135 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
   });
 });
 
-describe('pluginCopy — manifest suffixing (FR-PROF-0021)', () => {
-  it('appends name/description suffixes to plugin.json without replacing them, and preserves every other key and its order', () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-suffix-'));
+describe('pluginCopy — set-driven manifest overlay (DATA-CFG-0007)', () => {
+  // The template plugin.json now holds only what EVERY set shares. Identity (name/description) is
+  // set-driven and already variant-suffixed, and folder-advertising fields are conditional on the
+  // set actually shipping that folder.
+  const baseSpec = (preservedSource: string): Partial<PluginSpec> => ({
+    name: 'claude',
+    destination: 'rosetta-claude',
+    set: 'rosetta',
+    manifest: { name: 'rosetta', description: 'Rosetta.' },
+    manifestConditionalFields: [],
+    hookModules: [],
+    bootstrap: false,
+    preservedSource,
+  });
+
+  function withTemp(fn: (preservedSource: string, outputDir: string) => void): void {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-overlay-'));
     try {
       const preservedSource = path.join(tmp, 'preserved');
-      const outputDir = path.join(tmp, 'output');
       fs.mkdirSync(preservedSource, { recursive: true });
-      const sourceManifest = {
-        name: 'core-claude',
-        description: 'Rosetta core plugin for Claude Code',
-        version: '2.0.40',
-        author: 'griddynamics',
-      };
+      fn(preservedSource, path.join(tmp, 'output'));
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  }
+
+  it('takes name/description from the set and preserves every shared template key', () => {
+    withTemp((preservedSource, outputDir) => {
       fs.writeFileSync(
         path.join(preservedSource, 'plugin.json'),
-        JSON.stringify(sourceManifest, null, 2) + '\n',
+        JSON.stringify({ version: '2.0.40', author: 'griddynamics' }, null, 2) + '\n',
       );
 
-      const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
-        destination: 'core-claude',
-        preservedSource,
-      };
-      const manifestSuffix: ManifestSuffix = { name: '-light', description: ' (lightweight)' };
-      pluginCopy(outputDir, false, manifestSuffix)(makePluginFrame(spec));
+      pluginCopy(outputDir, false)(makePluginFrame({
+        ...baseSpec(preservedSource),
+        manifest: { name: 'rosetta-light', description: 'Rosetta. (lightweight)' },
+      }));
 
-      const manifestPath = path.join(outputDir, 'core-claude', 'plugin.json');
-      const written = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-
-      // Appended, not replaced.
-      expect(written.name).toBe('core-claude-light');
-      expect(written.description).toBe('Rosetta core plugin for Claude Code (lightweight)');
-      // Every other key, AND its order, survives.
+      const written = JSON.parse(
+        fs.readFileSync(path.join(outputDir, 'rosetta-claude', 'plugin.json'), 'utf-8'),
+      );
+      expect(written.name).toBe('rosetta-light');
+      expect(written.description).toBe('Rosetta. (lightweight)');
+      // Identity leads; the shared template keys follow, in their original order.
       expect(Object.keys(written)).toEqual(['name', 'description', 'version', 'author']);
       expect(written.version).toBe('2.0.40');
       expect(written.author).toBe('griddynamics');
-    } finally {
-      fs.rmSync(tmp, { recursive: true, force: true });
-    }
+    });
   });
 
-  it('with a null manifestSuffix, writes plugin.json BYTE-IDENTICAL to the source (FR-PROF-0040 regression guard)', () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-nullsuffix-'));
-    try {
-      const preservedSource = path.join(tmp, 'preserved');
-      const outputDir = path.join(tmp, 'output');
-      fs.mkdirSync(preservedSource, { recursive: true });
-      // Deliberately NOT how emitJson would format it (no trailing newline, no 2-space indent) —
-      // proves the bytes are copied raw rather than parsed and re-serialized.
-      const rawManifestBytes = '{"name":"core-claude","description":"desc","version":"2.0.40"}';
-      fs.writeFileSync(path.join(preservedSource, 'plugin.json'), rawManifestBytes);
+  it('emits a conditional field only when the VFS actually ships that folder', () => {
+    withTemp((preservedSource, outputDir) => {
+      fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{"version":"1.0.0"}');
 
-      const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
-        destination: 'core-claude',
-        preservedSource,
+      const spec = {
+        ...baseSpec(preservedSource),
+        manifestConditionalFields: [
+          { field: 'commands', requires: 'workflows', value: './workflows/' },
+          { field: 'skills', requires: 'skills', value: './skills/' },
+        ],
       };
-      pluginCopy(outputDir, false, null)(makePluginFrame(spec));
+      // A `search`-shaped set: skills but NO workflows.
+      const frame = makePluginFrame(spec);
+      (frame as { vfs: unknown }).vfs = [{ path: 'skills/solr-query/SKILL.md', sourceFiles: [] }];
 
-      const writtenBytes = fs.readFileSync(
-        path.join(outputDir, 'core-claude', 'plugin.json'),
-        'utf-8',
+      pluginCopy(outputDir, false)(frame);
+
+      const written = JSON.parse(
+        fs.readFileSync(path.join(outputDir, 'rosetta-claude', 'plugin.json'), 'utf-8'),
       );
-      expect(writtenBytes).toBe(rawManifestBytes);
-    } finally {
-      fs.rmSync(tmp, { recursive: true, force: true });
-    }
+      expect(written.skills).toBe('./skills/');
+      expect(written).not.toHaveProperty('commands');
+    });
   });
 
-  it('the standalone manifest path also receives the name suffix', () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-standalone-suffix-'));
+  it('drops the hooks field for a set that ships no hooks (@hooks pseudo-folder)', () => {
+    withTemp((preservedSource, outputDir) => {
+      fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{"version":"1.0.0"}');
+
+      pluginCopy(outputDir, false)(makePluginFrame({
+        ...baseSpec(preservedSource),
+        manifestConditionalFields: [
+          { field: 'hooks', requires: '@hooks', value: './hooks/hooks.json' },
+        ],
+        hookModules: [],
+        bootstrap: false,
+      }));
+
+      const written = JSON.parse(
+        fs.readFileSync(path.join(outputDir, 'rosetta-claude', 'plugin.json'), 'utf-8'),
+      );
+      expect(written).not.toHaveProperty('hooks');
+    });
+  });
+
+  it('uses the standalone manifestOverride name verbatim — the variant suffix is applied once, upstream', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-standalone-overlay-'));
     try {
-      const preservedSource = path.join(tmp, 'core-cursor');
+      const preservedSource = path.join(tmp, 'template-cursor');
       fs.mkdirSync(path.join(preservedSource, '.claude-plugin'), { recursive: true });
       fs.writeFileSync(
         path.join(preservedSource, '.claude-plugin', 'plugin.json'),
-        '{"name":"core-cursor","version":"9.9.9"}',
+        '{"version":"9.9.9"}',
       );
-      fs.writeFileSync(path.join(preservedSource, 'hooks.json.tmpl'), '{"hooks":{}}');
+      fs.writeFileSync(path.join(preservedSource, 'hooks.json.tmpl'), '{{{hooks_json}}}');
 
       const outputDir = path.join(tmp, 'output');
-      const spec: Partial<PluginSpec> = {
-        name: 'core-cursor-standalone',
-        destination: 'core-cursor-standalone',
-        preservedSource,
-        manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
+      pluginCopy(outputDir, false)(makePluginFrame({
+        ...baseSpec(preservedSource),
+        name: 'cursor-standalone',
+        destination: 'rosetta-cursor-standalone-light',
+        manifestOverride: { name: 'rosetta-light-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
-      };
-      const manifestSuffix: ManifestSuffix = { name: '-light', description: ' (lightweight)' };
-      pluginCopy(outputDir, false, manifestSuffix)(makePluginFrame(spec));
+      }));
 
       const manifest = JSON.parse(
-        fs.readFileSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'), 'utf-8'),
+        fs.readFileSync(
+          path.join(outputDir, 'rosetta-cursor-standalone-light', 'plugin.json'), 'utf-8',
+        ),
       );
-      expect(manifest.name).toBe('core-cursor-standalone-light');
-      // Standalone manifests carry only {name, version} — no description field to suffix.
+      expect(manifest.name).toBe('rosetta-light-standalone');
+      // Standalone manifests carry only {name, version}.
       expect(manifest.version).toBe('9.9.9');
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
   });
 });
+
 
 describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045 parity fix)', () => {
   // Regression coverage for the bug where a real run wrote a raw preserved-file copy (e.g. the
@@ -462,8 +552,13 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
       fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{"name":"core-claude"}');
 
       const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
+        name: 'claude',
         destination: 'core-claude',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
       };
 
@@ -473,13 +568,15 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
 
-      pluginCopy(outputDir, true, null, sink)(makePluginFrame(spec));
+      pluginCopy(outputDir, true, sink)(makePluginFrame(spec));
       sink.end();
 
       // Reported: full target path and full content, same shape pluginWrite uses.
       const expectedPath = path.join(outputDir, 'core-claude', 'plugin.json');
       expect(captured).toContain(expectedPath);
-      expect(captured).toContain('{"name":"core-claude"}');
+      // plugin.json is always composed now (identity comes from the set), so the preview shows
+      // the COMPOSED manifest rather than the raw template bytes.
+      expect(captured).toContain('"name": "rosetta-core"');
       // Nothing written to disk.
       expect(fs.existsSync(outputDir)).toBe(false);
     } finally {
@@ -500,8 +597,13 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
 
       const outputDir = path.join(tmp, 'output');
       const spec: Partial<PluginSpec> = {
-        name: 'core-cursor-standalone',
+        name: 'cursor-standalone',
         destination: 'core-cursor-standalone',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
@@ -513,7 +615,7 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
 
-      pluginCopy(outputDir, true, null, sink)(makePluginFrame(spec));
+      pluginCopy(outputDir, true, sink)(makePluginFrame(spec));
       sink.end();
 
       const expectedManifestPath = path.join(outputDir, 'core-cursor-standalone', 'plugin.json');
@@ -530,7 +632,7 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
     }
   });
 
-  it('dry-run preview mirrors the manifestSuffix-applied content a real run would write', () => {
+  it('dry-run preview mirrors the composed manifest a real run would write', () => {
     // Scenario: a profile is active (non-null manifestSuffix). The real-run branch appends the
     // suffix to name/description and re-serializes via emitJson; the dry-run preview must show
     // that exact suffixed content, not the raw preserved bytes.
@@ -545,23 +647,26 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
       );
 
       const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
+        name: 'claude',
         destination: 'core-claude',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
       };
-      const manifestSuffix: ManifestSuffix = { name: '-light', description: ' (lightweight)' };
-
       let captured = '';
       const sink = new PassThrough();
       sink.on('data', (chunk: Buffer | string) => {
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
 
-      pluginCopy(outputDir, true, manifestSuffix, sink)(makePluginFrame(spec));
+      pluginCopy(outputDir, true, sink)(makePluginFrame(spec));
       sink.end();
 
-      expect(captured).toContain('"name": "core-claude-light"');
-      expect(captured).toContain('"description": "desc (lightweight)"');
+      expect(captured).toContain('"name": "rosetta-core"');
+      expect(captured).toContain('"description": "Rosetta Core."');
       expect(fs.existsSync(outputDir)).toBe(false);
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
@@ -580,8 +685,13 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
       fs.writeFileSync(path.join(preservedSource, 'nested', 'readme.md'), '# readme');
 
       const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
+        name: 'claude',
         destination: 'core-claude',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
       };
 
@@ -605,7 +715,7 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
       sink.on('data', (chunk: Buffer | string) => {
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
-      pluginCopy(dryOutputDir, true, null, sink)(makePluginFrame(spec));
+      pluginCopy(dryOutputDir, true, sink)(makePluginFrame(spec));
       sink.end();
 
       expect(realPaths.size).toBe(2); // plugin.json + nested/readme.md
@@ -629,8 +739,13 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
       fs.writeFileSync(path.join(preservedSource, 'icon.bin'), Buffer.from([0x00, 0x01, 0x02]));
 
       const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
+        name: 'claude',
         destination: 'core-claude',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
       };
 
@@ -640,7 +755,7 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
 
-      pluginCopy(outputDir, true, null, sink)(makePluginFrame(spec));
+      pluginCopy(outputDir, true, sink)(makePluginFrame(spec));
       sink.end();
 
       const expectedPath = path.join(outputDir, 'core-claude', 'icon.bin');
@@ -661,8 +776,13 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
       fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{}');
 
       const spec: Partial<PluginSpec> = {
-        name: 'core-claude',
+        name: 'claude',
         destination: 'core-claude',
+        set: 'core',
+        manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+        manifestConditionalFields: [],
+        hookModules: [],
+        bootstrap: false,
         preservedSource,
       };
 

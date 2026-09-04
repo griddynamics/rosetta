@@ -8,7 +8,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { buildAllSpecs } from '../../../src/spec/targets.js';
+import { buildTestSpecs } from '../../helpers/build-specs.js';
 import { createPluginFrame } from '../../../src/frames.js';
 import { buildVfs } from '../../../src/vfs/build-vfs.js';
 import type { PluginProcessingFrame, ReleaseDescriptor } from '../../../src/types.js';
@@ -89,7 +89,7 @@ describe('core-antigravity — generated output shape (FR-VAR-0080, FR-STRUCT-00
     outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'antigravity-out-'));
 
     const vfs = buildVfs(instructionsSource, 'r1', 'core');
-    const specs = buildAllSpecs({
+    const specs = buildTestSpecs({
       pluginsSource: REAL_PLUGINS_ROOT,
       hooksSource: path.join(outputDir, '__no-hooks-source__'),
       outputDir,
@@ -97,8 +97,8 @@ describe('core-antigravity — generated output shape (FR-VAR-0080, FR-STRUCT-00
       dryRun: false,
     });
 
-    const coreAntigravity = specs.find((s) => s.name === 'core-antigravity');
-    if (!coreAntigravity) throw new Error('core-antigravity spec not found in buildAllSpecs() output');
+    const coreAntigravity = specs.find((s) => s.name === 'antigravity');
+    if (!coreAntigravity) throw new Error('core-antigravity spec not found in buildTestSpecs() output');
 
     let frame: PluginProcessingFrame = createPluginFrame(coreAntigravity, vfs, {
       release: 'r1',
@@ -128,13 +128,12 @@ describe('core-antigravity — generated output shape (FR-VAR-0080, FR-STRUCT-00
     expect(fs.existsSync(path.join(targetRoot, 'workflows'))).toBe(false);
   });
 
-  it('generates a rules index and a skills (workflow) index', () => {
-    expect(fs.existsSync(path.join(targetRoot, 'rules', 'INDEX.md'))).toBe(true);
-    const skillsIndexPath = path.join(targetRoot, 'skills', 'INDEX.md');
-    expect(fs.existsSync(skillsIndexPath)).toBe(true);
-    const idx = fs.readFileSync(skillsIndexPath, 'utf-8');
-    // AG-5: skills index lists only workflow-tagged skills (the workflow-derived one)
-    expect(idx).toContain('demo-flow');
+  // D6: every set declares `indexes: []`, so NO index is generated for any target any more.
+  // pluginGenerateIndexes itself is retained (and still unit-tested in
+  // tests/unit/plugin-processors/plugin-generate-indexes.test.ts) — it is dormant, not deleted.
+  it('generates NO indexes — every set declares indexes: [] (D6)', () => {
+    expect(fs.existsSync(path.join(targetRoot, 'rules', 'INDEX.md'))).toBe(false);
+    expect(fs.existsSync(path.join(targetRoot, 'skills', 'INDEX.md'))).toBe(false);
   });
 
   it('emits the workflow as a skill folder with its phase under phases/', () => {

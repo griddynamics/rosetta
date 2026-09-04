@@ -1,0 +1,6 @@
+{
+  "name": "rosetta",
+  "description": "Rosetta - Software Engineering Accelerator instruction set, workflows, agents, skills, and guardrails.",
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "version": "3.1.13"
+}

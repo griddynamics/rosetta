@@ -1,0 +1,23 @@
+{
+  "name": "search",
+  "description": "Rosetta Search - Solr schema, query, and semantic-search skills. Requires Rosetta Core and Workflows.",
+  "version": "3.1.13",
+  "author": {
+    "name": "Grid Dynamics",
+    "email": "rosetta-support@griddynamics.com"
+  },
+  "homepage": "https://griddynamics.github.io/rosetta/",
+  "repository": "https://github.com/griddynamics/rosetta",
+  "license": "Apache-2.0",
+  "keywords": [
+    "rosetta",
+    "ai-agents",
+    "workflows",
+    "instructions",
+    "guardrails",
+    "planning",
+    "coding",
+    "knowledge-base"
+  ],
+  "category": "productivity"
+}

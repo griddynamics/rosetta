@@ -41,7 +41,7 @@ When a workflow and a skill overlap, it recommends the **workflow** — that's t
 
 ## A note on the command
 
-`/help-flow` is the current command. You may see `/self-help-flow` referenced in older material — it's the deprecated alias and still works, but prefer `/help-flow`.
+`/help-flow` is the command. Older material sometimes mentions `/self-help-flow`; that alias is gone.
 
 There's also `/aqa-flow`, a small **router** for test automation: give it any testing request and it dispatches to [UI](automate-ui-tests.md), [API](automate-api-tests.md), or [test-case generation](generate-test-cases.md) — handy when you're not sure which of the three you need.
 
@@ -56,4 +56,4 @@ The full menu is the [Scenarios index](../README.md#scenarios-at-a-glance) and t
 ## Sources
 
 - Workflow: [`instructions/r3/core/workflows/help-flow.md`](../../instructions/r3/core/workflows/help-flow.md)
-- Router: [`aqa-flow.md`](../../instructions/r3/core/workflows/aqa-flow.md)
+- Router: [`aqa-flow.md`](../../instructions/r3/qe/workflows/aqa-flow.md)

@@ -65,6 +65,6 @@ Prerequisites: documentation search tools (DeepWiki, Context7).
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/research-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/research-flow.md?plain=1)
+- Workflow: [`instructions/r3/workflows/workflows/research-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/research-flow.md?plain=1)
 - Skills: [`research`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/research/SKILL.md?plain=1), [`reasoning`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/reasoning/SKILL.md?plain=1)
 

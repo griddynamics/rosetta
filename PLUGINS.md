@@ -16,6 +16,30 @@ Every plugin supports two installation methods:
 > [!NOTE]
 > There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
 
+## Which plugin do I install
+
+Rosetta ships as seven plugins. Five of them are domain sets; the other two bundle all five.
+
+| Plugin | Contains | Requires |
+| ------ | -------- | -------- |
+| `rosetta` | Everything. Skills, rules, subagents, and all workflows. | nothing |
+| `rosetta-light` | Everything, lightweight profile (simpler workflows, smaller models). | nothing |
+| `core` | Composable skills, always-on rules, bootstrap, guardrail hooks. No subagents. | nothing |
+| `workflows` | Subagents and the orchestrated workflows that spawn them. | `core` |
+| `qe` | Test automation and test generation. | `core`, `workflows` |
+| `search` | Solr and search engineering. | `core`, `workflows` |
+| `modernization` | Conversion, upgrade, and re-architecture workflows. | `core`, `workflows` |
+
+**Most people want `rosetta`.** It is the whole product in one install, and it is what the rest of this page assumes.
+
+Install the split plugins instead when you want a smaller footprint or only one domain. Two things to know before you do.
+
+`core` on its own is deliberately incomplete. It carries no subagents at all, so `skills/orchestration` has nothing to spawn and the routing skills have very little to route to. `core` plus `workflows` is the smallest setup that behaves like Rosetta.
+
+Install the combo **or** the split, never both. Installing `rosetta` alongside `core` and `workflows` puts every skill, agent, and workflow into your session twice under two namespaces. Nothing stops you; nothing warns you either.
+
+The five split plugins are themselves lightweight builds, so `core` plus `workflows` lands closer to `rosetta-light` than to `rosetta`.
+
 ## Step 1: Install Plugin
 
 <details>
@@ -28,6 +52,14 @@ Every plugin supports two installation methods:
 ```sh
 claude plugin marketplace add griddynamics/rosetta
 claude plugin install rosetta@rosetta
+```
+
+For the split plugins instead, install each by name from the same marketplace:
+
+```sh
+claude plugin install core@rosetta
+claude plugin install workflows@rosetta
+claude plugin install qe@rosetta        # optional, needs core + workflows
 ```
 </details>
 
@@ -54,7 +86,7 @@ For detailed setup instructions, see the Cursor documentation:
 
 #### Standalone
 
-1. Download `core-cursor-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-cursor-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract the archive contents into your repository.
 3. Verify you can see a file `.cursor/agents/architect.md`. Ensure there are no `.cursor/.cursor` folders.
 
@@ -86,7 +118,7 @@ Use when your Marketplace/plugin catalog isn't available, or to avoid a live reg
 > [!NOTE]
 > The standalone installation is also detected by VS Code, so installing Rosetta through the standalone and marketplace methods will result in duplicate tools, commands, and context.
 
-1. Download `core-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract the archive contents into your repository. If `.github/copilot-instructions.md` already exists, merge contents — Rosetta first, then the original content.
 3. Verify you can see a file `.github/agents/architect.agent.md`. Ensure there are no `.github/.github` folders.
 
@@ -102,7 +134,7 @@ Use when your Marketplace/plugin catalog isn't available, or to avoid a live reg
 
 #### Standalone
 
-1. Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract the archive contents into your repository.
 3. Enable hooks:
 
@@ -121,10 +153,10 @@ One plugin serves Antigravity 2.0, Antigravity CLI, and Antigravity IDE.
 
 #### Standalone
 
-1. Download `core-antigravity-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-antigravity-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Create the folder `.agents/plugins/rosetta/` at your workspace root.
 3. Extract the archive contents into it.
-4. Verify you can see a file `.agents/plugins/rosetta/plugin.json`. Ensure there are no `.agents/plugins/rosetta/core-antigravity` folders.
+4. Verify you can see a file `.agents/plugins/rosetta/plugin.json`. Ensure there are no `.agents/plugins/rosetta/rosetta-antigravity` folders.
 
 For all workspaces instead of one, extract into `~/.gemini/config/plugins/rosetta/` — same contents.
 
