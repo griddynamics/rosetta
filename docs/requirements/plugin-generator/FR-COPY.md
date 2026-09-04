@@ -296,7 +296,7 @@ The files a plugin keeps but never generates — the IDE manifest, hook template
 </req>
 
 <req id="FR-COPY-0033" type="FR" level="System" ticketId="" classification="technical">
-  <title>Alternate-name folder duplication (as a SpecEntry, not a pre-pass)</title>
+  <title>Policy: alternate-name folder duplication (as a SpecEntry, not a pre-pass)</title>
   <statement>Where a target needs a duplicate of a source folder under an alternate output name, the generator shall express it as an additional `SpecEntry` (source glob → alternate target folder) whose `FileProcessor` pipeline applies the target's model-normalization processor only (with `fileRead` ingress / `pluginWrite` egress) — no `fileRename()` and, since it is generated content with no hand-authored cross-references to fix, no involvement of `pluginRewriteReferences()`. There shall be no separate "pre-copy" pass.</statement>
   <rationale>A second source→target mapping is exactly a `SpecEntry`; modeling it as a one-off imperative pre-pass (the original `pre_copy_folders`) broke uniformity. The pipeline omitting `pluginRewriteReferences()`/`fileRename()` reproduces the original's "model normalization only" behavior for these copies.</rationale>
   <source>Sources</source>
@@ -309,8 +309,14 @@ The files a plugin keeps but never generates — the IDE manifest, hook template
     <criteria>Given: an alternate-name `SpecEntry` When: generated Then: the alternate-named folder exists with frontmatter models normalized and no reference rewriting applied.</criteria>
     <criteria>Given: the generation design When: inspected Then: this duplication is a `SpecEntry`, not a pre-pass.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: applies the target's per-vocabulary model-normalization processor rather than a single `fileNormalizeModels`.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: folder duplication is expressed only as an additional SpecEntry
+  (source glob → alternate target folder) composed in the target's specEntries; the generator has no
+  pre-copy pass. Such a pipeline carries BASE_PROCESSORS plus that target's per-vocabulary
+  model-normalization processor — fileNormalizeClaudeModels, fileNormalizeCodexModels,
+  fileNormalizeCopilotModels or fileNormalizeCursorModels
+  (src/rosettify-plugins/src/file-processors/) — and neither fileRename nor pluginRewriteReferences;
+  the single fileNormalizeModels dispatcher was deleted under FR-ARCH-0005.</implementationNotes>
   <depends>FR-ARCH-0002, FR-ARCH-0035</depends>
 </req>
 

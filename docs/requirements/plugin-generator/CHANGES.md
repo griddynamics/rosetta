@@ -677,3 +677,15 @@ model was written into the spec ahead of the code; the code has since adopted it
 
 **Status:** `NFR-0007` and `FR-CLI-0021` `ToBeModified` → `Implemented`. `FR-CLI-0021` stays `Draft`,
 `NFR-0007` stays `Approved`.
+
+### RECONCILIATION-21 — close FR-COPY-0033
+
+**Files:** `FR-COPY.md`
+
+**Change:** The statement already read "the target's model-normalization processor", the per-vocabulary
+wording; the note describing drift against a single `fileNormalizeModels` was stale, that dispatcher
+having been deleted under `FR-ARCH-0005`. The unit defines how a copy is expressed rather than
+asserting any target currently needs one, and both halves hold: duplication is available only as an
+additional `SpecEntry`, and no pre-copy pass exists.
+
+**Status:** `FR-COPY-0033` `ToBeModified` → `Implemented`; stays `Approved`.
