@@ -150,6 +150,6 @@
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>Implemented: src/rosettify-plugins/src/plugin-processors/plugin-assemble-hooks-json.ts buildHooksDocument builds the document from spec.hookModules, spec.bootstrap and the target's HOOK_LAYOUTS bindings, and pluginAssembleHooksJson publishes JSON.stringify(doc, null, 2) under HOOKS_JSON_KEY; emitsHooksJson drops the frame entirely when a set would render an empty configuration. src/rosettify-plugins/src/plugin-processors/plugin-render-templates.ts renders with Handlebars strict: true and never emits the .tmpl frame. Verified: all 7 shipped hooks.json.tmpl files are the single line {{{hooks_json}}}, with zero occurrences of {{#if}} or {{#each}} in any of them; across the generated tree 90 hooks.json files all parse as valid JSON, with per-file entry counts of 0, 1, 3, 8, 10, 12, 15 and 18 — proving content varies by set and IDE while the template is identical; and zero .tmpl files leak into output.</implementationNotes>
-  <depends>DATA-CFG-0008</depends>
+  <depends>FR-GEN-0010, FR-ARCH-0048, FR-VAR-0071, FR-VAR-0031, NFR-0012</depends>
   <notes>The assembler is the reason validity is structural rather than editorial. `HOOK_LAYOUTS` (src/rosettify-plugins/src/spec/hook-layouts.ts) owns the per-IDE event and matcher shape, so one declared hook list serves all seven targets.</notes>
 </req>

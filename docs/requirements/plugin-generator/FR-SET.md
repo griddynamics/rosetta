@@ -300,16 +300,18 @@ variant × IDE target) pair.
      source="User"
      priority="Must" verification="Test"
      status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
-     depends="FR-SET-0001, DATA-CFG-0007, DATA-CFG-0008, FR-CLI-0012"
+     depends="FR-SET-0001, DATA-CFG-0007, FR-GEN-0011, FR-CLI-0012"
      implementation="Implemented">
   <title>Per-set bootstrap flag and hook list</title>
   <statement>Each set shall declare a bootstrap flag and a hook list, and that declaration shall be the
   sole determinant of which hook modules the set REQUESTS: no plugin of that set shall carry a hook
   entry its list does not name, and a set whose flag is unset shall request no session-start
   bootstrap block anywhere. Which of the requested modules a given target actually binds, and
-  whether a bootstrap block is emitted for it at all, is that target's layout (DATA-CFG-0008). A
+  whether a bootstrap block is emitted for it at all, is determined by that target's hook
+  configuration templates, and the module list used for bundle shipping is asserted against those
+  templates (FR-GEN-0011). A
   set's footprint is therefore NOT uniform across its targets: `claude` receives a bootstrap block
-  while `cursor`, whose layout declares no bootstrap slot, does not. A set that declares an empty hook list with its bootstrap flag unset shall
+  while `cursor`, whose templates carry no bootstrap placeholder, does not. A set that declares an empty hook list with its bootstrap flag unset shall
   produce neither a `hooks/` folder nor a `hooks.json`. Suppression by the effective
   deterministic-hooks value (FR-CLI-0012) shall not by itself remove the file: where a target's
   layout contributes no bootstrap block, the emitted configuration is valid but entry-less, which is
