@@ -269,8 +269,9 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
     <criteria>Given: no `output` argument When: invoked Then: output goes to `<source>/plugins`.</criteria>
     <criteria>Given: an `output` argument When: invoked Then: every target folder is created under it.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: clean-architecture re-implementation (CLI source model, RECON-9).</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: cli.ts resolves `outputDir` as the `--output` value when given and
+  `<source>/plugins` otherwise; generate.ts writes every target folder beneath it.</implementationNotes>
 </req>
 
 ## Run modes

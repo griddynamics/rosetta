@@ -175,8 +175,12 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
   <acceptance>
     <criteria>Given: the re-implementation When: inspected Then: filesystem mechanics, IDE-specific escaping, model maps, and orchestration reside in separate units.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the single `fileNormalizeModels` in the `FileProcessor` catalog is replaced by per-vocabulary model-normalization processors.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: file-processors/ (11 modules) holds the FileProcessor set including the four
+  per-vocabulary model-normalization processors; plugin-processors/ (19) holds the PluginProcessor set;
+  escaping/ holds the per-IDE escaping helpers; spec/model-maps.ts holds the model vocabularies; generate.ts
+  holds orchestration. Filesystem mechanics, escaping, model maps and orchestration are separate units, and
+  each IDE adaptation is descriptor data plus processor composition.</implementationNotes>
   <notes>Detailed architecture deliberately deferred by the user; this NFR states the quality target only.</notes>
 </req>
 

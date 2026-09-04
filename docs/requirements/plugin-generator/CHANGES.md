@@ -663,3 +663,17 @@ folder and the absolute path searched, and writes no output; a legitimate empty 
 the missing-folder abort does not. Verified by running the CLI, not by inspection.
 
 **Status:** `FR-CLI-0030` and `FR-CLI-0031` `ToBeModified` → `Implemented`; both stay `Approved`.
+
+### RECONCILIATION-20 — close NFR-0007 and FR-CLI-0021
+
+**Files:** `NFR.md`, `FR-CLI.md`
+
+**Change:** Both statements already described the current code; only the tags lagged. `NFR-0007`'s
+statement lists the per-vocabulary model-normalization processors, and its criterion holds:
+filesystem mechanics, escaping, model maps and orchestration live in separate units. `FR-CLI-0021`'s
+criteria both hold — `cli.ts` resolves `outputDir` to the `--output` value when given and
+`<source>/plugins` otherwise. Its `ToBeModified` tag dated from RECONCILIATION-9, when the `--source`
+model was written into the spec ahead of the code; the code has since adopted it.
+
+**Status:** `NFR-0007` and `FR-CLI-0021` `ToBeModified` → `Implemented`. `FR-CLI-0021` stays `Draft`,
+`NFR-0007` stays `Approved`.
