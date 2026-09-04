@@ -1,1 +1,76 @@
-{{{hooks_json}}}
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [{{{bootstrap_hooks}}}]
+      }
+    ]{{#if deterministic_hooks}},{{/if}}
+{{#if deterministic_hooks}}
+    "PostCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/read-once-reset.js"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/dangerous-actions.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|shell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/read-once.js"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|apply_patch|functions.apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/loose-files.js"
+          },
+          {
+            "type": "command",
+            "command": "node .codex/hooks/md-file-advisory.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|apply_patch|functions.apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/codemap-refresh.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|apply_patch|functions.apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/lint-format-advisory.js"
+          }
+        ]
+      }
+    ]
+{{/if}}
+  }
+}
