@@ -108,8 +108,8 @@
   <rationale>Hook configuration is generated from templates parameterized by release and per-target bootstrap content. Rendering is a distinct pipeline stage, not an out-of-band step.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
   <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
@@ -138,8 +138,8 @@
   <rationale>Where a document's structure lives decides whether the generator can tell two documents apart. Holding structure in generator code keyed on target identity cannot express a target that emits two documents of different FORMS — Copilot's and Cursor's marketplace and standalone forms — and collapsing them is silent, because both keep their paths. A literal template per document makes the distinction structural: there is nothing to route, and each file stays diffable against the per-IDE verified specification in `docs/hooks/`. The JSON-validity guarantee that previously justified composing the document in code is obtained instead by parsing what was rendered, which is strictly stronger: it also covers a malformed raw bootstrap injection, which serializing a built object cannot detect. Validity therefore no longer depends on template authoring discipline, and the trailing-comma idiom is checked rather than trusted. The duplication this restores across near-identical templates is accepted deliberately: the probe and command strings are what a reviewer verifies against the IDE guides, so they must be readable in the file that emits them, and collapsing them into a code helper is the move being undone.</rationale>
   <source>Documentation</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
   <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>

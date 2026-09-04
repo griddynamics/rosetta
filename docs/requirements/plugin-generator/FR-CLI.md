@@ -261,9 +261,9 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   <rationale>Allows isolated output (e.g. for diffing) without touching the committed tree; the default derives from `source` like every other location.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
-  <changed>2026-06-05</changed>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: no `output` argument When: invoked Then: output goes to `<source>/plugins`.</criteria>

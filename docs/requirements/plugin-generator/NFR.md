@@ -34,8 +34,8 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
   <rationale>A paths-only oracle cannot see a document that changes SHAPE while keeping its path, and the two distinct hook-configuration forms a target emits are exactly such a case: they occupy fixed, different paths and differ only in content. This was not hypothetical — under #315 `<set>-copilot/hooks/hooks.json` changed from the 60-byte standalone form to a byte-identical copy of the 24443-byte plugin form, and every acceptance gate passed, because NFR-0001 compares paths and the equivalence check listed `hooks.json` among its permitted-difference classes. Asserting the RELATIONSHIPS between the documents, rather than freezing their bytes, keeps the gate valid as the bootstrap payload legitimately changes with the instruction source — the same self-updating property NFR-0001 has, applied to content shape. The digest is recorded rather than pinned for the same reason: it makes a content change visible for classification without failing a build whose content was supposed to move.</rationale>
   <source>User</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
   <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
@@ -116,9 +116,9 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
   <rationale>Compatibility: IDE session-start context has a size budget; the run completes so all problems surface at once, and the non-zero exit signals the violation. The limit applies to the original content so the same document gets the same verdict regardless of which IDE's wire format happens to carry it.</rationale>
   <source>User</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by>User</approved_by>
-  <changed>2026-07-01</changed>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a document whose ORIGINAL content (after folder rewrites and, for the lead document, the leading-newline strip — the bootstrap prefix itself was removed, FR-HOOK-0003 Deprecated — before any IDE JSON wrapping) is over 10000 chars When: assembled for ANY IDE Then: a violation is reported naming the target and file, the output is still emitted, and exit status is non-zero.</criteria>

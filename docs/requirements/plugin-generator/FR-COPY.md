@@ -106,8 +106,8 @@ The files a plugin keeps but never generates — the IDE manifest, hook template
   <rationale>Certain files are delivered via hooks, are legacy, or are authoring-only schemas (authoring-only schemas describe frontmatter fields for authors and are not needed by any IDE plugin), but the source files cannot be renamed or removed because MCP serves them and instruction text references them. A data `exclude` list (supporting whole-folder globs) omits them at generation without touching the source.</rationale>
   <source>User</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
   <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>

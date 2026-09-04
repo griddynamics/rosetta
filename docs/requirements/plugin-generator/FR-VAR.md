@@ -45,8 +45,8 @@ The generator assembles the bootstrap context values uniformly for every target 
   <rationale>Marketplace install and in-repo extraction resolve hook paths from different roots, so the two distributions need separate hook configuration FILES at different locations AND different CONTENT. The difference between the forms lives in the template text: the marketplace form addresses its hook bundles through the fixed install-location probe and carries the session-start bootstrap payload, while the standalone form addresses them by a plain repository-relative path and carries an empty session-start array, because a standalone distribution delivers bootstrap through its own auto-loaded rule files and would otherwise double-deliver. Holding that difference in generator code keyed on target identity is what allowed the two forms to collapse into byte-identical copies; holding it in two files makes them structurally incapable of collapsing. The standalone form needs no output-folder-name parameter at all, since it addresses nothing by install location.</rationale>
   <source>User</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
   <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
@@ -151,8 +151,8 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
   <rationale>Copilot expects `*.agent.md` agents, mapped model names, and the plugin-form hooks accessible at the plugin root. The root copy is an alternate-name duplication (not a rename — both source and root copy are present), confirmed byte-identical by MD5 in the r2/r3 baseline. `hooks/hooks.json` is NOT read in marketplace mode — Copilot reads `.github/plugin/hooks.json`, and the root copy is what its runtime resolves — so it is a shipped artifact of the shared template tree, retained because the standalone build renders the same source file and because removing it would change the output path set. It must nonetheless carry the standalone form: that file is what an in-repo extraction of this tree would use, and a marketplace-form copy there would point every hook at an install location that does not exist. Three distinct paths, three distinct purposes.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
   <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
@@ -178,8 +178,8 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
   <rationale>The IDE runtime reads the plugin-form hooks from the root; `.github/plugin/hooks.json` is also required (it is the canonical rendered location of the plugin-form template). A declarative copy correctly produces both files; a rename would eliminate one of them. Declaring the pair as data on the spec, consumed by one generic mirror processor, keeps the duplication out of generator control flow and lets the same mechanism serve the Codex mirror. Baseline r2/r3 confirms both files exist and are byte-identical.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
   <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>

@@ -212,7 +212,7 @@ variant × IDE target) pair.
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Draft" approved_by="" changed="2026-09-03"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-09-03"
      depends="FR-SET-0001, FR-SET-0020, DATA-CFG-0007"
      implementation="Implemented">
   <title>`requires` is metadata, never composition</title>
@@ -299,7 +299,7 @@ variant × IDE target) pair.
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Draft" approved_by="" changed="2026-09-03"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-09-03"
      depends="FR-SET-0001, DATA-CFG-0007, FR-GEN-0011, FR-CLI-0012"
      implementation="Implemented">
   <title>Per-set bootstrap flag and hook list</title>

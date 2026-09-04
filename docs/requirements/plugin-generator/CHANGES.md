@@ -709,3 +709,14 @@ statement declares the mirror mechanism. No dependency cycles; `FR-COPY-0033` is
 `depends` edge, which is correct for a policy nothing needs to be gated on.
 
 **Status:** No status, statement or criteria changed.
+
+### RECONCILIATION-23 — approve the implemented Draft units
+
+**Files:** `FR-CLI.md`, `FR-COPY.md`, `FR-GEN.md`, `FR-HOOK.md`, `FR-SET.md`, `FR-VAR.md`, `NFR.md`
+
+**Change:** Owner approved every unit standing `Draft` with `implementation="Implemented"`, 13 in all:
+`FR-CLI-0021`, `FR-COPY-0011`, `FR-GEN-0010`, `FR-GEN-0011`, `FR-HOOK-0005`, `FR-HOOK-0007`,
+`FR-SET-0050`, `FR-SET-0070`, `FR-VAR-0030`, `FR-VAR-0031`, `FR-VAR-0071`, `NFR-0004`, `NFR-0012`.
+`FR-HOOK-0005`'s note explaining its unapproved state was removed with the state it described.
+
+**Status:** All 13 `Draft` → `Approved`, `approved_by` `isolomatov-gd`. No statement or criteria changed.

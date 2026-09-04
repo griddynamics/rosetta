@@ -99,9 +99,9 @@
   <rationale>Each IDE expects a different hook schema and quoting; the exact schema is owned by the IDE guide, not duplicated here. Because the shapes differ by IDE, each is a case-specific entry builder composed per target rather than a switch on an identity-discriminant (FR-ARCH-0005).</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by>User</approved_by>
-  <changed>2026-09-02</changed>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: any target When: assembled Then: each entry conforms to that IDE's session-start hook schema per its guide, with content transported intact.</criteria>
@@ -115,7 +115,6 @@
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>src/rosettify-plugins/src/bootstrap/payload.ts (buildClaudeBootstrapEntry, buildCodexBootstrapEntry, buildCopilotBootstrapEntry, buildCursorBootstrapEntry exported; hookEntryShape switch deleted); src/rosettify-plugins/src/escaping/json-string.ts (buildCursorHookPayloadJson, buildCopilotHookPayloadJson added — the latter emits the merged top-level+nested shape); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (per-IDE assemblers compose their own entry builder). Template context key: bootstrap_hooks (one shared key). Join separator: `, `.</implementationNotes>
-  <notes>Approval status and implementation status are independent here: this unit shipped before it was approved, and its `Draft` predates the #315 delta that would otherwise carry approval.</notes>
   <depends>INT-IDE-0002, FR-ARCH-0005, FR-GEN-0011</depends>
 </req>
 
@@ -125,8 +124,8 @@
   <rationale>Agents need the plugin root to resolve instruction file paths at runtime. The entry remains distinct and final. The payload entry count is derived, never fixed: it follows from how many bootstrap-manifest documents the building set actually contains, so it varies by set and moves with the instruction source rather than being asserted as a number.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
   <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
