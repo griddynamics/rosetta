@@ -146,7 +146,7 @@ The files a plugin keeps but never generates — the IDE manifest, hook template
 ## Model normalization
 
 <req id="FR-COPY-0020" type="FR" level="System" ticketId="315" classification="technical">
-  <title>Normalize model identifiers per IDE</title>
+  <title>Policy: normalize model identifiers per IDE</title>
   <statement>Where a target requires model normalization, the target's own model-normalization `FileProcessor` (the per-vocabulary case-specific processor composed into its pipeline, FR-ARCH-0046) shall rewrite each markdown document's frontmatter `model:` value into that target's effective `ModelVocabulary` — the built-in vocabulary, or, when a profile supplies a per-target model-override block for that target, that block in its place — using the IDE's selection strategy (see FR-COPY-0021 for Claude; FR-COPY-0022 for Codex; first-model-overall for Cursor and Copilot), and shall leave content without a model value unchanged. The selection strategy is unchanged; only the map consulted after selection changes. When applying the Cursor or Copilot first-model-overall strategy, a candidate token absent from the effective map shall be skipped as if it were not present and the scan shall continue to the next candidate. When no candidate survives, the no-survivor outcome depends on whether a profile supplies a per-target override block for this target: with no such block (the unprofiled path) the unmapped token shall pass through unchanged, as today. The profiled-path outcome is FR-PROF-0011 and is not restated here.</statement>
   <rationale>Each IDE accepts only its own model identifier format. Normalization is one explicit pipeline stage, not a side effect hidden inside copying. The selection strategy differs per IDE: Claude scans for the first claude-compatible model; Codex scans for the first gpt-* model; Cursor and Copilot take the first model overall.</rationale>
   <source>Sources</source>
@@ -237,7 +237,7 @@ The files a plugin keeps but never generates — the IDE manifest, hook template
 ## Renames and reference rewriting
 
 <req id="FR-COPY-0030" type="FR" level="System" ticketId="" classification="technical">
-  <title>Folder renames</title>
+  <title>Policy: folder renames</title>
   <statement>Where a target declares folder renames, the `fileRename()` processor (FR-ARCH-0043) shall place affected files under the renamed top-level folder in the output by changing the target path only.</statement>
   <rationale>IDEs expect workflow content under IDE-specific folder names (e.g. `commands`, `prompts`). The path change is `fileRename()`'s sole responsibility; the matching in-body reference updates are `pluginRewriteReferences()` (FR-COPY-0032).</rationale>
   <source>Sources</source>
@@ -255,7 +255,7 @@ The files a plugin keeps but never generates — the IDE manifest, hook template
 </req>
 
 <req id="FR-COPY-0031" type="FR" level="System" ticketId="" classification="technical">
-  <title>Pattern-based file renames</title>
+  <title>Policy: pattern-based file renames</title>
   <statement>Where a target declares file-rename patterns (including the agent-file suffix rename), the `fileRename()` processor (FR-ARCH-0043) shall set the matching file's target path according to the pattern's replacement, changing the path only.</statement>
   <rationale>IDEs require specific file suffixes (e.g. `.mdc`, `.prompt.md`, `.agent.md`). The agent rename (`agents/x.md`→`agents/x.agent.md`) is one such pattern, not a separate special case.</rationale>
   <source>Sources</source>
@@ -321,7 +321,7 @@ The files a plugin keeps but never generates — the IDE manifest, hook template
 </req>
 
 <req id="FR-COPY-0034" type="FR" level="System" ticketId="" classification="technical">
-  <title>File relocation (as a rename, not a pre-move pass)</title>
+  <title>Policy: file relocation (as a rename, not a pre-move pass)</title>
   <statement>Where a target relocates matching files into a destination subfolder under a renamed filename, it shall do so with the `fileRename()` processor (FR-ARCH-0043) setting the target path (folder + filename) of the affected `VirtualFile`s. There shall be no separate "pre-move" pass.</statement>
   <rationale>Relocating a file is a path change — exactly `fileRename()`. The original `pre_move_files` (e.g. `rules/bootstrap-*.md`→`instructions/*.instructions.md` for Copilot-standalone) was an out-of-band move; as a `fileRename()` it composes with the rest of the pipeline and its reference updates flow through `pluginRewriteReferences()`.</rationale>
   <source>Sources</source>

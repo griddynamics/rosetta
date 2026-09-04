@@ -689,3 +689,23 @@ asserting any target currently needs one, and both halves hold: duplication is a
 additional `SpecEntry`, and no pre-copy pass exists.
 
 **Status:** `FR-COPY-0033` `ToBeModified` → `Implemented`; stays `Approved`.
+
+### RECONCILIATION-22 — `Policy:` prefix, and the Copilot mirror dependency
+
+**Files:** `FR-COPY.md`, `FR-VAR.md`
+
+**Change:** Prefixed `Policy:` onto the five `FR-COPY` units that prescribe a mechanism rather than
+assert a feature — model normalization, folder renames, pattern-based file renames, alternate-name
+duplication, file relocation. Each opens "Where …" and names the processor that shall do the work,
+often forbidding an alternative; without the marker such a unit scans as an unbuilt feature, which is
+how `FR-COPY-0033` came to be read as unimplemented. Units that merely open with "Where" but assert a
+feature (`FR-ARCH-0024`, `FR-GEN-0001/0003/0010`, `FR-HOOK-0020`, `FR-VAR-0072`, `NFR-0012`) are left
+unmarked so the prefix keeps its meaning.
+
+`FR-VAR-0030` and `FR-VAR-0031` both declared `depends` on `FR-COPY-0033`, the SpecEntry duplication
+policy, while the Copilot root `hooks.json` is a post-render mirror pair applied by a generic mirror
+processor — a different mechanism, as both statements now say. Repointed to `DATA-CFG-0002`, whose
+statement declares the mirror mechanism. No dependency cycles; `FR-COPY-0033` is now referenced by no
+`depends` edge, which is correct for a policy nothing needs to be gated on.
+
+**Status:** No status, statement or criteria changed.

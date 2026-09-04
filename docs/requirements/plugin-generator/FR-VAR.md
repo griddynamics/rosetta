@@ -169,7 +169,7 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
   src/rosettify-plugins/src/spec/targets.ts, applied by pluginMirrorFiles. Agent files are renamed by the
   copilot spec's fileRename processor. Verified by plans/issue-315-plugin-sets/verify/ac_hooks_content.py
   (NFR-0012) over the generated tree at both deterministic-hooks postures.</implementationNotes>
-  <depends>FR-COPY-0031, FR-COPY-0033, FR-HOOK-0005, FR-VAR-0071</depends>
+  <depends>DATA-CFG-0002, FR-COPY-0031, FR-HOOK-0005, FR-VAR-0071</depends>
 </req>
 
 <req id="FR-VAR-0031" type="FR" level="System" ticketId="" classification="technical">
@@ -193,7 +193,7 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
   byte-identical copy, leaving the source frame in place. Verified by matching MD5 on real output. The
   same declarative mechanism carries the Codex `.codex-plugin/hooks.json` to `.codex/hooks.json` pair, so
   it is generic rather than a Copilot special case.</implementationNotes>
-  <depends>FR-COPY-0033, FR-VAR-0030, FR-GEN-0011</depends>
+  <depends>DATA-CFG-0002, FR-VAR-0030, FR-GEN-0011</depends>
 </req>
 
 ## Codex (`codex`) — marketplace
