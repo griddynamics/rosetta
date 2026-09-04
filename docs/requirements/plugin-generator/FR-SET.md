@@ -212,12 +212,13 @@ variant × IDE target) pair.
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
+     status="Draft" approved_by="" changed="2026-09-03"
      depends="FR-SET-0001, FR-SET-0020, DATA-CFG-0007"
-     implementation="ToBeModified">
+     implementation="Implemented">
   <title>`requires` is metadata, never composition</title>
-  <statement>A set's `requires` list shall be metadata only. The generator shall name every entry of it
-  in that set's generated manifest description and shall otherwise let it affect nothing: it shall not
+  <statement>A set's `requires` list shall be metadata only. The generator shall require that the set's
+  declared `manifest.description` names every entry of it, refusing to load a catalog whose description
+  omits one, and shall otherwise let it affect nothing: it shall not
   add any required set's files to the requiring set's output, shall not cause a required set to be
   built, and shall not impose any ordering between a set and the sets it requires. No IDE the generator
   targets enforces plugin dependencies, so `requires` states an install-time expectation and carries no
@@ -226,24 +227,34 @@ variant × IDE target) pair.
   agent's registries, so composition stays driven by `folders` alone — letting `requires` add files
   would duplicate every core document into four domain plugins and reintroduce the drift the split
   removes. A manifest description line is the only enforcement available, no target IDE having a
-  plugin dependency mechanism.</rationale>
+  plugin dependency mechanism. That line is authored, not generated: the generator enforces the
+  invariant rather than composing the sentence, because generated prose reads worse than the authored
+  wording and a derived clause would give one fact two sources. Validating at catalog load closes the
+  trap at the moment the `requires` edit is made, rather than shipping a description that silently
+  contradicts the list.</rationale>
   <evidence>src/rosettify-plugins/src/plugin-processors/plugin-copy.ts pluginCopy (manifest name and description are the only identity fields the generator writes, so a description line is where install-time metadata can land)</evidence>
   <acceptance>
     <criteria id="FR-SET-0050.AC1" ears="event" when="set `qe` declares `requires: [core, workflows]`" system="the generator" shall="produce `qe-claude` holding no file originating under `instructions/r3/core/` or `instructions/r3/workflows/`"/>
     <criteria id="FR-SET-0050.AC2" ears="ubiquitous" system="the generator" shall="produce a manifest description that names every set name in that set's `requires` list"/>
     <criteria id="FR-SET-0050.AC3" ears="ubiquitous" system="the generator" shall="build no set merely because another set requires it, and impose no build order between the two"/>
     <criteria id="FR-SET-0050.AC4" ears="optional" where="a `requires` entry names a set declared later in the configuration document" system="the generator" shall="accept it, since the list imposes no ordering"/>
+    <criteria id="FR-SET-0050.AC5" ears="unwanted" if="a set's `requires` names a set whose name does not appear in that set's `manifest.description`" system="the generator" shall="abort at catalog load naming the set and the missing entry, before any output is written"/>
   </acceptance>
-  <implementationNotes>ToBeModified: AC1, AC3 and AC4 hold - src/rosettify-plugins/src/spec/plugin-sets.ts reads set.requires
-  only to validate that each entry names a declared set and that no set requires itself, and nothing in
-  the pipeline adds a required set's files or forces a build order. The statement's central duty fails:
-  the generator does NOT name the requires entries in the manifest description.
-  src/rosettify-plugins/src/spec/targets.ts composes the description as set.manifest.description +
+  <implementationNotes>Implemented: readSets (src/rosettify-plugins/src/spec/plugin-sets.ts) validates each
+  `requires` entry against the set's own declared manifest.description inside the existing
+  declared-set loop, raising PluginCatalogError before any output is written; the check matches the
+  required set's name on its own word boundary rather than as a bare substring, so a hyphenated set
+  name cannot match inside a longer one. Composition is unchanged: buildSpecsForSet
+  (src/rosettify-plugins/src/spec/targets.ts) still writes set.manifest.description +
   variant.manifestDescriptionSuffix, and the 'Requires Rosetta Core and Workflows' wording in
-  src/rosettify-plugins/plugins.json is hand-authored prose, not derived from the requires array. Adding a
-  requires entry without editing the description would silently break AC2. Needs either a text correction
-  or a small generator change.</implementationNotes>
-  <notes></notes>
+  src/rosettify-plugins/plugins.json stays hand-authored. The shipped catalog passes: workflows names
+  'Core'; qe, search and modernization name 'Core' and 'Workflows'; rosetta and core declare an empty
+  requires list. Tests: tests/unit/spec/plugin-sets.test.ts (a description omitting a required set
+  raises, and the shipped catalog still loads), tests/unit/generate.test.ts (a built qe manifest
+  description contains both names).</implementationNotes>
+  <notes>Status moved Approved to Draft: the statement's duty changed from composing the description
+  to enforcing an authored one, which is a new obligation on catalog load and awaits re-approval. The
+  observable outcome AC2 asserts is unchanged.</notes>
 </req>
 
 ## Single-invocation generation

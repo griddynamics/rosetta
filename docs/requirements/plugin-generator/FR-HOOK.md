@@ -260,21 +260,26 @@
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a hook folder with a rendered `hooks.json` When: bundles are synced Then: `hooks.json` remains and bundle files are added/replaced.</criteria>
     <criteria>Given: a hook folder holding a `loose-files` bundle and a set whose declared hook list omits it When: bundles are synced Then: that bundle is removed.</criteria>
     <criteria>Given: a hook folder holding a support module of a declared bundle When: bundles are synced Then: the module is retained.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: AC1 and AC3 hold - src/rosettify-plugins/src/plugin-processors/plugin-sync-bundles.ts
-  copies only the declared bundle files into the hook folder, so a rendered hooks.json and any support
-  module survive the sync. AC2 fails: the deterministic-hooks branch never enumerates the hook folder to
-  delete bundles the set's list does not name, it only copies the declared ones; the other branch removes
-  only files whose names ARE in the declared list. A bundle left behind by an earlier declaration
-  therefore persists across regenerations, which is precisely the stale-artifact case this unit's
-  carve-out was written for. The orphan sweep in generate.ts removes whole undeclared plugin folders, not
-  stale files inside a declared one.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: pluginSyncBundles
+  (src/rosettify-plugins/src/plugin-processors/plugin-sync-bundles.ts) calls sweepUndeclaredBundles
+  unconditionally, outside the deterministic-hooks copy branch, so AC2 holds on both branches. The
+  helper deletes only a `.js` the set no longer declares that the bundle source knows about; a rendered
+  hooks.json, any non-`.js` file and any unrecognised `.js` survive, which is AC1 and AC3. Tests:
+  tests/unit/plugin-processors/plugin-sync-bundles.test.ts — `r3: removes a previously-shipped bundle
+  that the set has since dropped`, `r3: a set that dropped hooks entirely has its whole bundle set
+  swept`, `preserves unmanaged files: a non-bundle .js and a non-.js file both survive`, and `r2:
+  sweeps every managed bundle`. Nuance: pluginCleanup runs first in buildPipeline and removes the whole
+  destination folder, so in the CLI pipeline the sweep never finds anything left to sweep — it is
+  defence-in-depth for callers that drive the processors directly as a library. Cross-run survival of a
+  hand-added file in an output hook folder is therefore not a property of the CLI pipeline; this unit is
+  scoped `When placing hook bundles` and holds at that scope.</implementationNotes>
   <depends>FR-HOOK-0020, FR-SET-0070</depends>
 </req>
