@@ -926,8 +926,8 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0048" type="FR" level="System" ticketId="" classification="technical">
   <title>pluginRenderTemplates() processor</title>
-  <statement>The `pluginRenderTemplates()` processor shall render each template frame into its non-template output frame, using the `PluginProcessingFrame`'s `templateContext` (release variables plus the assembled bootstrap payload placeholder values), with raw injection and release-driven conditionals.</statement>
-  <rationale>Template rendering depends on the assembled bootstrap payload (carried on the frame's `templateContext`), so it is a `PluginProcessor` and an explicit pipeline stage rather than an out-of-band step.</rationale>
+  <statement>The `pluginRenderTemplates()` processor shall render each template frame into its non-template output frame, using the `PluginProcessingFrame`'s `templateContext` (release variables, the assembled bootstrap payload placeholder values, and the spec's output folder name), with raw injection and release-driven conditionals. A rendered frame whose output path denotes JSON shall be parsed immediately after rendering, a parse failure being a hard error that suppresses the frame (FR-GEN-0011).</statement>
+  <rationale>Template rendering depends on the assembled bootstrap payload (carried on the frame's `templateContext`), so it is a `PluginProcessor` and an explicit pipeline stage rather than an out-of-band step. Validation belongs here for the same reason: this is the stage that produces the final text, and it is the only point at which a raw injection and the literal structure around it exist together.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -937,10 +937,11 @@ Architecture requirements: the configuration-driven generation model — uniform
   <acceptance>
     <criteria>Given: a template frame and a render context When: rendered Then: the output frame content is the rendered result and the template suffix is removed from its path.</criteria>
     <criteria>Given: a release-conditional block When: rendered Then: the output is valid for the selected release.</criteria>
+    <criteria>Given: a rendered frame whose output path denotes JSON When: rendering completes Then: it is parsed, and a parse failure raises a hard error naming the target and the output file instead of emitting the frame.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
-  <depends>FR-GEN-0010, FR-ARCH-0055</depends>
+  <depends>FR-GEN-0010, FR-GEN-0011, FR-ARCH-0055</depends>
 </req>
 
 <req id="FR-ARCH-0045" type="FR" level="System" ticketId="" classification="technical">

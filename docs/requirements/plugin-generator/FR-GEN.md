@@ -104,17 +104,17 @@
 
 <req id="FR-GEN-0010" type="FR" level="System" ticketId="315" classification="technical">
   <title>Render Handlebars templates</title>
-  <statement>Where a target declares templates, the `pluginRenderTemplates()` processor (FR-ARCH-0048) shall render each Handlebars template `VirtualFile` to its sibling output `VirtualFile` with the template suffix removed, using a context of release variables, the per-target bootstrap payload value, and the pre-serialized hook configuration the assembler publishes (FR-GEN-0011); the set's bootstrap flag and hook list reach the output through that assembled value rather than as template variables (FR-SET-0070, DATA-CFG-0007). Whether a hook configuration file is produced at all follows from the building set's declaration and is FR-SET-0070; this unit states no rule about it.</statement>
+  <statement>Where a target declares templates, the `pluginRenderTemplates()` processor (FR-ARCH-0048) shall render each Handlebars template `VirtualFile` to its sibling output `VirtualFile` with the template suffix removed, using a context of release variables, the per-target bootstrap payload value, and the spec's output folder name (FR-GEN-0011). A document that renders successfully but is not valid JSON shall be a HARD error under FR-GEN-0011, distinct from the warn-and-continue handling this unit applies to render failures. Whether a hook configuration file is produced at all follows from the building set's declaration and is FR-SET-0070; this unit states no rule about it.</statement>
   <rationale>Hook configuration is generated from templates parameterized by release and per-target bootstrap content. Rendering is a distinct pipeline stage, not an out-of-band step.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <status>Draft</status>
+  <approved_by></approved_by>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: `hooks/hooks.json.tmpl` and a set declaring a bootstrap flag or a non-empty hook list When: rendered Then: `hooks/hooks.json` is produced.</criteria>
-    <criteria>Given: the render context When: inspected Then: it carries exactly the release name, the effective deterministic-hooks value, the bootstrap payload value and the assembled hook-configuration value, every key a template may reference being plumbed explicitly so strict rendering cannot meet an unknown one.</criteria>
+    <criteria>Given: the render context When: inspected Then: it carries exactly the release name, the effective deterministic-hooks value, the bootstrap payload value and the spec's output folder name, every key a template may reference being plumbed explicitly so strict rendering cannot meet an unknown one.</criteria>
     <criteria>Given: a declared template that is missing When: rendering Then: a warning is emitted and the run continues.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
@@ -122,34 +122,51 @@
   (src/rosettify-plugins/src/plugin-processors/plugin-render-templates.ts) renders each .tmpl frame to its
   sibling with the suffix removed under Handlebars strict: true, never emits the .tmpl frame itself, and
   warns-and-continues on a missing template or render error - verified, zero .tmpl files reach the output
-  tree. emitsHooksJson (plugin-assemble-hooks-json.ts) suppresses both hooks.json and the hooks/ folder
+  tree. The per-set emit decision suppresses both hooks.json and the hooks/ folder
   for a set declaring an empty hook list with bootstrap unset: verified on a real --release r3 build, all
   four add-on sets (workflows, qe, search, modernization) ship zero hooks.json and zero hooks/ directories
-  across every IDE target. The render context in generate.ts is baseTemplateContext = { release,
-  deterministic_hooks, bootstrap_hooks, hooks_json }, every key plumbed explicitly so strict rendering
-  cannot meet an unknown one.</implementationNotes>
-  <notes>The entry-less `hooks.json` some targets emit, and why suppressing it is deferred, are recorded on FR-SET-0070.</notes>
+  across every IDE target. The render context in generate.ts becomes { release,
+  deterministic_hooks, bootstrap_hooks, destination }, every key plumbed explicitly so strict rendering
+  cannot meet an unknown one; the hooks_json key leaves it with the assembler (FR-GEN-0011). At the time
+  this text was written the shipped context still carried hooks_json and not destination.</implementationNotes>
+  <notes>The entry-less `hooks.json` some targets emit, and why suppressing it is deferred, are recorded on FR-SET-0070. Status moved Approved to Draft: the render context loses the assembled hook-configuration value and gains the spec's output folder name, which changes what this unit's second criterion asserts, and awaits re-approval.</notes>
 </req>
 
 <req id="FR-GEN-0011" type="FR" level="System" ticketId="315" classification="technical">
-  <title>Assembled hook configuration and raw injection</title>
-  <statement>The hook configuration document shall be assembled in generator code and injected into its template as one pre-serialized value, not composed by template control flow. The `pluginAssembleHooksJson()` processor shall build the complete document from the building set's declared hook list and bootstrap flag (FR-SET-0070) resolved against that target's `HOOK_LAYOUTS` bindings, serialize it with `JSON.stringify`, and publish it as the single `hooks_json` template value; the template shall then insert that value raw (unescaped). A hook-configuration template shall carry exactly one raw-injection placeholder and no control flow: no conditional block, no iteration, and no literal hook entry. Bootstrap payload values shall likewise be injected raw, as pre-escaped JSON fragments. Rendering shall be strict, so a placeholder the context does not plumb shall throw rather than render empty. The rendered configuration shall be valid JSON for every combination of an effective deterministic-hooks value, a bootstrap flag, and a hook list of any length including zero — a property that follows from serializing a built object rather than from template authoring discipline.</statement>
-  <rationale>Six near-duplicate templates previously relied on a trailing-comma idiom to stay valid JSON while conditionally emitting hook entries, which made malformed output a one-character authoring mistake. Serializing a built object makes malformed output structurally impossible and collapses those templates to a single shared line, so adding a set or an IDE changes data rather than template text. The placeholder is retained rather than writing the file directly because rendering stays the one uniform stage that turns preserved `.tmpl` frames into output, and strict rendering keeps an unplumbed variable loud instead of silently empty.</rationale>
+  <title>Literal hook-configuration templates and post-render validation</title>
+  <statement>Each emitted hook configuration document shall be produced by its own literal Handlebars template file, whose path in the preserved template tree determines the output document it produces. A template shall carry the document's complete structure — envelope, event keys, matchers, grouping and entry commands — as literal text, together with the release conditional that gates the deterministic hook entries and, where that target delivers bootstrap through session-start hooks, one raw-injection placeholder for the assembled bootstrap payload. A target that emits more than one DISTINCT hook document shall provide one template per distinct document, and no template shall be given its CONTENT by matching its filename — a document's structure comes from the file at that path and from nowhere else. An alternate-name copy of an already-rendered document is the same document at a second path and needs no template of its own (FR-VAR-0031). Whether a spec emits hook configuration AT ALL is a separate, per-set decision (FR-SET-0070) applied uniformly to every hook template of that spec, and may be taken by recognising the hook-template filename. Generator code shall supply VALUES only — the effective deterministic-hooks value, the pre-escaped bootstrap payload fragment, and the spec's output folder name where a target's hook commands must address a fixed install location — and shall not compose the document. Rendering shall be strict, so a placeholder the context does not plumb shall throw rather than render empty. Immediately after rendering, every document whose output path denotes JSON shall be parsed; a document that does not parse shall raise a HARD error naming the target, the output file and the parser message, and shall not be emitted. This validation is distinct from, and stricter than, the warn-and-continue handling FR-GEN-0010 applies to render failures.</statement>
+  <rationale>Where a document's structure lives decides whether the generator can tell two documents apart. Holding structure in generator code keyed on target identity cannot express a target that emits two documents of different FORMS — Copilot's and Cursor's marketplace and standalone forms — and collapsing them is silent, because both keep their paths. A literal template per document makes the distinction structural: there is nothing to route, and each file stays diffable against the per-IDE verified specification in `docs/hooks/`. The JSON-validity guarantee that previously justified composing the document in code is obtained instead by parsing what was rendered, which is strictly stronger: it also covers a malformed raw bootstrap injection, which serializing a built object cannot detect. Validity therefore no longer depends on template authoring discipline, and the trailing-comma idiom is checked rather than trusted. The duplication this restores across near-identical templates is accepted deliberately: the probe and command strings are what a reviewer verifies against the IDE guides, so they must be readable in the file that emits them, and collapsing them into a code helper is the move being undone.</rationale>
   <source>Documentation</source>
   <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <status>Draft</status>
+  <approved_by></approved_by>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: a raw-injection placeholder When: rendered Then: the JSON fragment is inserted verbatim, unescaped.</criteria>
-    <criteria>Given: any shipped hook-configuration template When: inspected Then: it carries a single raw placeholder and contains no conditional block, no iteration and no literal hook entry.</criteria>
-    <criteria>Given: sets declaring hook lists of differing length rendered from the same template When: compared Then: each result carries exactly its own entries, produced by the assembler rather than by template iteration or literals.</criteria>
-    <criteria>Given: any combination of an effective deterministic-hooks value, a bootstrap flag and a hook list of any length including zero When: rendered Then: the result is valid JSON.</criteria>
-    <criteria>Given: a placeholder the render context does not plumb When: rendered Then: rendering throws rather than emitting an empty value.</criteria>
+    <criteria>Given: a target whose templates produce more than one hook document When: generated Then: each template-rendered document comes from its own template file, and documents of different FORMS are not byte-identical wherever the effective deterministic-hooks value makes them distinguishable; alternate-name copies of a rendered document are governed by FR-VAR-0031 and NFR-0012, not by this criterion.</criteria>
+    <criteria>Given: any hook configuration template When: inspected Then: it carries the document's literal structure, and generator code contains no per-target table of event keys, matchers, entry shapes or envelopes.</criteria>
+    <criteria>Given: the bootstrap-payload raw-injection placeholder When: rendered Then: the pre-escaped JSON fragment is inserted verbatim, unescaped.</criteria>
+    <criteria>Given: a hook configuration template rendered with any combination of an effective deterministic-hooks value, a bootstrap flag and a hook list of any length including zero When: the rendered output is parsed Then: it is valid JSON.</criteria>
+    <criteria>Given: a template that renders to malformed JSON When: the generator runs Then: it raises a hard error naming the target and the output file, and emits no document for it.</criteria>
+    <criteria>Given: a template referencing a variable the context does not plumb When: rendered Then: rendering throws rather than producing empty text.</criteria>
   </acceptance>
-  <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: src/rosettify-plugins/src/plugin-processors/plugin-assemble-hooks-json.ts buildHooksDocument builds the document from spec.hookModules, spec.bootstrap and the target's HOOK_LAYOUTS bindings, and pluginAssembleHooksJson publishes JSON.stringify(doc, null, 2) under HOOKS_JSON_KEY; emitsHooksJson drops the frame entirely when a set would render an empty configuration. src/rosettify-plugins/src/plugin-processors/plugin-render-templates.ts renders with Handlebars strict: true and never emits the .tmpl frame. Verified: all 7 shipped hooks.json.tmpl files are the single line {{{hooks_json}}}, with zero occurrences of {{#if}} or {{#each}} in any of them; across the generated tree 90 hooks.json files all parse as valid JSON, with per-file entry counts of 0, 1, 3, 8, 10, 12, 15 and 18 — proving content varies by set and IDE while the template is identical; and zero .tmpl files leak into output.</implementationNotes>
+  <implementation>ToBeModified</implementation>
+  <implementationNotes>ToBeModified: supersedes the assembled-document form, which is still the shipped
+  behaviour at the time this text was written. Target state: the seven literal hooks.json.tmpl files
+  are restored under src/rosettify-plugins/plugins/template-&lt;ide&gt;/ at the paths git ref 492b6a78~1
+  held them; plugin-assemble-hooks-json.ts and spec/hook-layouts.ts are removed;
+  plugin-render-templates.ts gains the post-render JSON.parse check as a hard error. The Copilot
+  plugin-form template is the only one carrying a generator-supplied value beyond the release
+  conditional and the bootstrap payload: the spec's own output folder name at the fourteen sites where
+  its install-location probes name that folder, plumbed from PluginSpec.destination in generate.ts —
+  without it a non-default set's Copilot plugin would probe another set's directory. Nine documents are
+  emitted from seven templates plus two mirrors (FR-VAR-0030, FR-VAR-0031).</implementationNotes>
   <depends>FR-GEN-0010, FR-ARCH-0048, FR-VAR-0071, FR-VAR-0031, NFR-0012</depends>
-  <notes>The assembler is the reason validity is structural rather than editorial. `HOOK_LAYOUTS` (src/rosettify-plugins/src/spec/hook-layouts.ts) owns the per-IDE event and matcher shape, so one declared hook list serves all seven targets.</notes>
+  <notes>Validity is a checked property of the rendered text, not a structural consequence of
+  serializing a built object. Post-render parsing is strictly the stronger of the two: it also catches a
+  malformed raw bootstrap injection, which serializing a built object cannot see, because that fragment
+  is spliced in as text after the object would have been serialized. The per-IDE event and matcher shape
+  lives in each target's own template, so one declared hook list still serves all seven targets — the
+  set declares WHICH modules, each template declares WHERE they bind. Status moved Approved to Draft:
+  the obligation changed from assemble-then-serialize to render-then-validate and awaits re-approval.</notes>
 </req>

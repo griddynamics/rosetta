@@ -299,7 +299,7 @@ variant × IDE target) pair.
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
+     status="Draft" approved_by="" changed="2026-09-03"
      depends="FR-SET-0001, DATA-CFG-0007, FR-GEN-0011, FR-CLI-0012"
      implementation="Implemented">
   <title>Per-set bootstrap flag and hook list</title>
@@ -326,24 +326,24 @@ variant × IDE target) pair.
   it does not carry — masked today because every target receives every bundle.</rationale>
   <evidence>src/rosettify-plugins/src/plugin-processors/plugin-sync-bundles.ts pluginSyncBundles (copies bundles by bundleSource, which defaults to the target identity, so every target receives every bundle today); src/rosettify-plugins/src/types.ts PluginSpec.bundleSource (the identity-keyed bundle selector the declared list replaces)</evidence>
   <acceptance>
-    <criteria id="FR-SET-0070.AC1" ears="event" when="set `core` declares the bootstrap flag set and hooks `dangerous-actions` on `PreToolUse` and `codemap-refresh` on `PostToolUse`" system="the generator" shall="render a `hooks.json` carrying a session-start bootstrap block and exactly those two hook entries"/>
-    <criteria id="FR-SET-0070.AC2" ears="event" when="set `workflows` declares the bootstrap flag unset and hooks `read-once`, `lint-format-advisory`, `md-file-advisory` and `loose-files`" system="the generator" shall="render a `hooks.json` carrying those four entries and no session-start bootstrap block"/>
+    <criteria id="FR-SET-0070.AC1" ears="event" when="a set declares the bootstrap flag set and the full hook module list" system="the generator" shall="render, for every target whose templates bind those modules, a hook configuration carrying that target's session-start bootstrap block where its template provides one, and an entry for each bound module"/>
+    <criteria id="FR-SET-0070.AC2" ears="event" when="a set declares the bootstrap flag unset and an empty hook list" system="the generator" shall="write neither a `hooks/` folder nor a `hooks.json` in any of that set's target outputs"/>
     <criteria id="FR-SET-0070.AC3" ears="event" when="set `qe` declares the bootstrap flag unset and an empty hook list" system="the generator" shall="write neither a `hooks/` folder nor a `hooks.json` in any `qe-<ide>` output"/>
     <criteria id="FR-SET-0070.AC7" ears="event" when="a set declaring hooks is built for a target whose layout contributes no bootstrap block, with the effective deterministic-hooks value false" system="the generator" shall="emit a valid but entry-less `hooks.json`, keeping any IDE manifest reference to it resolvable"/>
     <criteria id="FR-SET-0070.AC4" ears="ubiquitous" system="the generator" shall="emit no hook entry that the building set's declared list does not name"/>
     <criteria id="FR-SET-0070.AC5" ears="state" while="the effective deterministic-hooks value is false" system="the generator" shall="emit no entry from any set's declared hook list, leaving only the session-start bootstrap block where the flag is set"/>
     <criteria id="FR-SET-0070.AC6" ears="ubiquitous" system="the generator" shall="present one set's declared module list identically to every IDE target of that set, each target's layout then binding the subset it supports"/>
   </acceptance>
-  <implementationNotes>Implemented against the corrected text: PluginSpec.hookModules, hookLayout and bootstrap
+  <implementationNotes>Implemented against the corrected text: PluginSpec.hookModules and bootstrap
   (src/rosettify-plugins/src/types.ts) carry the set's declaration; resolveHookModules
   (src/rosettify-plugins/src/spec/plugin-sets.ts) expands the declared hooks with their
-  hookSupportModules; modulesForTarget (src/rosettify-plugins/src/spec/targets.ts) intersects that list
-  with what the target's layout binds; and buildHooksDocument applies one declaration identically to every
-  IDE target of a set through HOOK_LAYOUTS, so no entry appears that the list does not name.
-  emitsHooksJson suppresses the hooks/ folder and hooks.json for a set declaring an empty hook list with
-  bootstrap unset - verified on a real --release r3 build: workflows, qe, search and modernization ship
+  hookSupportModules; modulesForTarget (src/rosettify-plugins/src/spec/targets.ts) narrows that list to
+  the modules the target's templates actually invoke, which is what decides which bundles ship; and one
+  declaration reaches every IDE target of a set identically, so no entry appears that the list does not
+  name. The per-set emit decision suppresses the hooks/ folder and hooks.json for a set declaring an empty
+  hook list with bootstrap unset - verified on a real --release r3 build: workflows, qe, search and modernization ship
   zero hooks.json and zero hooks/ directories across all seven IDE targets, while rosetta and core ship
   theirs. At the default deterministic-hooks=false (FR-CLI-0012) no entry from any declared list is
   emitted, which AC5 requires.</implementationNotes>
-  <notes>A target whose `HOOK_LAYOUTS` bootstrap slot is `null` or `empty` — Cursor, Cursor-standalone, Copilot-standalone and Antigravity — emits a valid but ENTRY-LESS `hooks.json` when the effective deterministic-hooks value (FR-CLI-0012) suppresses the hooks its set declares. This predates #315: the pre-change golden tree shipped the same 12 files (`core-cursor{,-light}` and `core-cursor-standalone{,-light}` at 37 bytes, `core-copilot-standalone*` at 60, `core-antigravity{,-light}` at 68), and the current tree ships the equivalent set, the byte counts differing only because the assembler emits compact JSON where the template carried whitespace. Suppressing the file is DEFERRED: an IDE manifest references it — Cursor's `plugin.json` declares `"hooks": "./hooks/hooks.json"` — so removing it requires per-IDE verification that a dangling manifest reference does not break plugin load, which cannot be tested here. The narrower guarantee that a set declaring no hooks with `bootstrap: false` ships neither a `hooks/` folder nor a `hooks.json` is unaffected and verified.</notes>
+  <notes>Four targets — Cursor, Cursor-standalone, Copilot-standalone and Antigravity — emit a valid but ENTRY-LESS `hooks.json` when the effective deterministic-hooks value (FR-CLI-0012) suppresses the hooks its set declares. The cause is in each one's template: the two Cursor templates and the Antigravity template carry no bootstrap placeholder at all, and the Copilot standalone-form template carries a literal empty session-start array. This predates #315: the pre-change golden tree shipped the same 12 files (`core-cursor{,-light}` and `core-cursor-standalone{,-light}` at 37 bytes, `core-copilot-standalone*` at 60, `core-antigravity{,-light}` at 68), and the current tree ships the equivalent set, the byte counts differing only because the assembler emits compact JSON where the template carried whitespace. Suppressing the file is DEFERRED: an IDE manifest references it — Cursor's `plugin.json` declares `"hooks": "./hooks/hooks.json"` — so removing it requires per-IDE verification that a dangling manifest reference does not break plugin load, which cannot be tested here. The narrower guarantee that a set declaring no hooks with `bootstrap: false` ships neither a `hooks/` folder nor a `hooks.json` is unaffected and verified. AC1 and AC2 were restated on 2026-09-03: they named per-set hook subsets — `core` with two modules, `workflows` with four — that no declared set has ever carried. `plugins.json` declares exactly two configurations, the full module list with the bootstrap flag set (`rosetta`, `core`) or the empty list with it unset (`workflows`, `qe`, `search`, `modernization`), so the criteria now state the rule over those two rather than an untested partial list. AC3 is kept as the named `qe` instance of the rule AC2 states generally. Status moved Approved to Draft for that restatement, and awaits re-approval.</notes>
 </req>

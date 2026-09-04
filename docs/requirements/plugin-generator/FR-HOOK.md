@@ -125,9 +125,9 @@
   <rationale>Agents need the plugin root to resolve instruction file paths at runtime. The entry remains distinct and final. The payload entry count is derived, never fixed: it follows from how many bootstrap-manifest documents the building set actually contains, so it varies by set and moves with the instruction source rather than being asserted as a number.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <status>Draft</status>
+  <approved_by></approved_by>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: any session-hook target When: assembled Then: its payload includes exactly one plugin-root path entry, appended last, in that IDE's shape.</criteria>
@@ -135,25 +135,40 @@
     <criteria>Given: the `codex` and `claude` targets of one set When: each payload is assembled Then: both carry the same entry count, since no target omits a manifest document the others include.</criteria>
     <criteria>Given: a set whose bootstrap flag is unset When: assembled Then: no payload is emitted and therefore no plugin-root entry either.</criteria>
     <criteria>Given: the `claude` plugin-root entry When: inspected Then: command = `printf '%s' "{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Rosetta Plugin Path: ${CLAUDE_PLUGIN_ROOT}\"}}"` with `"once": true`.</criteria>
-    <criteria>Given: the `codex` plugin-root entry When: inspected Then: it is a workspace-root probe resolving to `$workspace_root/.agents` with `statusMessage`+`timeout`; the `copilot` one is an agentPlugins-base probe (`commands/coding-flow.md`) resolving to `$root` with bash+powershell.</criteria>
+    <criteria>Given: the `codex` plugin-root entry When: inspected Then: it is a workspace-root probe resolving to `$workspace_root/.agents` with `statusMessage`+`timeout`; the `copilot` one is an agentPlugins-base probe (`.github/plugin/plugin.json`) resolving to `$root` with bash+powershell.</criteria>
     <criteria>Given: the `copilot` plugin-root entry When: inspected Then: its embedded JSON is `{"additionalContext":"Rosetta Plugin Path: <root>","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Rosetta Plugin Path: <root>"}}` — same merged top-level+nested requirement as FR-HOOK-0005's doc entries (docs/hooks/copilot.md).</criteria>
-    <criteria>Given: `cursor` When: assembled Then: a plugin-root path entry is generated and included in the bootstrap payload, and is not injected into output because the cursor layout declares no bootstrap slot (DATA-CFG-0008, FR-VAR-0070).</criteria>
+    <criteria>Given: `cursor` When: assembled Then: a plugin-root path entry is generated and included in the bootstrap payload, and is not injected into output because the Cursor hook templates carry no bootstrap placeholder (FR-GEN-0011, FR-VAR-0070).</criteria>
+    <criteria>Given: a target whose plugin-path entry probes a fixed install location When: that entry is emitted Then: the file it guards on is one every plugin of every set carries at that location — not a document contributed by any particular set's instruction folders.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: the plugin-root entry is appended last for every session-hook target, with the per-IDE
-  command shape carried as data in HOOK_LAYOUTS (src/rosettify-plugins/src/spec/hook-layouts.ts); the
-  copilot probe is built by copilotProbeBash/copilotProbePowershell over COPILOT_PLUGIN_PATH, the codex
-  one is the workspace-root traversal probe resolving to $workspace_root/.agents
-  (src/rosettify-plugins/src/plugin-processors/plugin-assemble-codex-bootstrap.ts), and the
-  commands/coding-flow.md probe literal lives in src/rosettify-plugins/src/spec/bootstrap-manifest.ts. The
-  payload count stays derived, never fixed, exactly as the statement requires. CORRECTION: the previously
-  recorded fixed counts (Claude and Copilot 9/5, Codex 8/4) are stale - the real counts are 7 for r2 and 3
-  for r3 on both Claude and Codex, since the two index entries left the payload. Tests:
-  tests/e2e/bootstrap-session-start.e2e.test.ts asserts 7 and 3 and that the plugin-root entry is last,
-  plus one case in each of the four plugin-assemble-*-bootstrap.test.ts suites. NOTE: the cursor criterion
-  still names the {{{bootstrap_hooks}}} placeholder as the decider; the outcome is unchanged (payload
-  generated, not injected) but the decider is now HOOK_LAYOUTS.cursor.bootstrap === null.</implementationNotes>
-  <depends>FR-VAR-0041, FR-HOOK-0004, FR-SET-0070</depends>
+  <implementationNotes>ToBeModified: the plugin-root entry is appended last for every session-hook target and the
+  payload count stays derived, never fixed, exactly as the statement requires. The per-IDE command shape
+  returns to each target's own hook configuration template, and the Copilot install-location probe
+  literals live in that target's plugin-form template where a reviewer can diff them against
+  docs/hooks/copilot.md. The codex entry is the workspace-root traversal probe resolving to
+  $workspace_root/.agents
+  (src/rosettify-plugins/src/plugin-processors/plugin-assemble-codex-bootstrap.ts). The bootstrap probe
+  literal in src/rosettify-plugins/src/spec/bootstrap-manifest.ts still guards on commands/coding-flow.md
+  at the time this text was written; the corrected guard `.github/plugin/plugin.json` is outstanding.
+  CORRECTION: the previously recorded fixed counts (Claude and Copilot 9/5, Codex 8/4) are stale - the
+  real counts are 7 for r2 and 3 for r3 on both Claude and Codex, since the two index entries left the
+  payload. Tests: tests/e2e/bootstrap-session-start.e2e.test.ts asserts 7 and 3 and that the plugin-root
+  entry is last, plus one case in each of the four plugin-assemble-*-bootstrap.test.ts suites. The cursor
+  criterion again names the absence of a template placeholder as the decider, which is what it named
+  before the layout table was introduced; the outcome was never in question.</implementationNotes>
+  <depends>FR-VAR-0041, FR-HOOK-0004, FR-SET-0070, FR-GEN-0011</depends>
+  <notes>The Copilot plugin-path entry guarded on `commands/coding-flow.md` until 2026-09-03. After the
+  #315 set split that document is absent from every `core`-based Copilot plugin — the workflow moved to
+  the `workflows` set — so the entry became a permanent no-op there, emitting no plugin-root context in
+  either shell, while continuing to work for `rosetta`. The guard is a test of the proposition "a Rosetta
+  Copilot plugin is installed at this root", so it must name a file the plugin itself always carries:
+  `.github/plugin/plugin.json` is the Copilot marketplace manifest, emitted unconditionally for every
+  Copilot spec of every set, and it sits beside the very document the probe lives in. Note it is not at
+  the plugin root — a Copilot plugin folder has no root `plugin.json`. Rejected: `rules/bootstrap-alwayson.md`,
+  which works for both bootstrap-declaring sets today but couples an install-location probe to
+  instruction-source content and would silently re-break on a future bootstrap set without that rule; and
+  a bare directory test, which a stale or partially-deleted directory passes. Status moved Approved to
+  Draft: a criterion changed and one was added, so the unit awaits re-approval.</notes>
 </req>
 
 <req id="FR-HOOK-0008" type="FR" level="System" ticketId="" classification="technical">

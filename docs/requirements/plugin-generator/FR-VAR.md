@@ -40,19 +40,21 @@ The generator assembles the bootstrap context values uniformly for every target 
 <req id="FR-VAR-0071" type="FR" level="System" ticketId="" classification="technical">
   <title>Two hook-template forms for in-repo distributions</title>
   <statement>A target that has a separate in-repo (standalone) distribution shall provide both a marketplace-form and a standalone-form hook template, so each distribution references hooks by paths valid in its runtime location.</statement>
-  <rationale>Marketplace install and in-repo extraction resolve hook paths from different roots, so the two distributions need separate hook configuration FILES at different locations. The two template frames are now byte-identical single-placeholder files: the difference between the forms lives in the assembled document, whose entry commands carry each form's own hook path (DATA-CFG-0008), not in the template text. Two frames are still required because each distribution needs its own output file.</rationale>
+  <rationale>Marketplace install and in-repo extraction resolve hook paths from different roots, so the two distributions need separate hook configuration FILES at different locations AND different CONTENT. The difference between the forms lives in the template text: the marketplace form addresses its hook bundles through the fixed install-location probe and carries the session-start bootstrap payload, while the standalone form addresses them by a plain repository-relative path and carries an empty session-start array, because a standalone distribution delivers bootstrap through its own auto-loaded rule files and would otherwise double-deliver. Holding that difference in generator code keyed on target identity is what allowed the two forms to collapse into byte-identical copies; holding it in two files makes them structurally incapable of collapsing. The standalone form needs no output-folder-name parameter at all, since it addresses nothing by install location.</rationale>
   <source>User</source>
   <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-11</changed>
-  <verification>Inspection</verification>
+  <status>Draft</status>
+  <approved_by></approved_by>
+  <changed>2026-09-03</changed>
+  <verification>Test</verification>
   <acceptance>
     <criteria>Given: Cursor or Copilot When: generated Then: both a marketplace-form and a standalone-form hook template are produced.</criteria>
     <criteria>Given: a target with no separate in-repo distribution When: generated Then: a single hook-template form suffices.</criteria>
+    <criteria>Given: a target providing both forms When: generated Then: the standalone-form document carries no marketplace install-location probe and an empty session-start array, and the marketplace-form document carries neither the in-repo extraction path nor the standalone form's addressing.</criteria>
   </acceptance>
-  <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/targets.ts gives the cursor and copilot specs both hook template frames, and src/rosettify-plugins/src/spec/hook-layouts.ts carries a distinct entry builder per form — cursorEntry('hooks') against cursorEntry('.cursor/hooks'), and copilotPluginEntry against the .github form — so each rendered file resolves hook paths from its own root. Both .tmpl frames are the single line {{{hooks_json}}}; the per-form difference is in the assembled document, not the template.</implementationNotes>
+  <implementation>ToBeModified</implementation>
+  <implementationNotes>ToBeModified: src/rosettify-plugins/src/spec/targets.ts already gives the cursor and copilot specs both hook template frames, and standaloneTemplates re-points the standalone-form file at the standalone build's output path. What is outstanding is the CONTENT: at the time this text was written both .tmpl frames of each pair were the same single-placeholder file, so the two forms rendered byte-identical. The per-form difference returns to the two template files (FR-GEN-0011), which is where it lived before the layout table was introduced.</implementationNotes>
+  <notes>Status moved Approved to Draft and verification Inspection to Test: the unit now asserts a CONTENT property between the two forms, not merely that two template files exist, and that property is testable. Awaits re-approval.</notes>
 </req>
 
 <req id="FR-VAR-0072" type="FR" level="System" ticketId="315" classification="technical">
@@ -142,13 +144,13 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
 
 <req id="FR-VAR-0030" type="FR" level="System" ticketId="315" classification="technical">
   <title>Copilot output</title>
-  <statement>The Copilot variant shall rename `workflows` to `commands`, rename agent files to `*.agent.md`, use Copilot model vocabulary, generate no folder index (FR-GEN-0001, dormant), render hook templates, and preserve a `.github` config folder. It shall produce exactly three `hooks.json` files at distinct paths: (1) `.github/plugin/hooks.json` — the plugin-form hooks, rendered from `.github/plugin/hooks.json.tmpl`; (2) `hooks.json` at the plugin root — an alternate-name copy of `.github/plugin/hooks.json` with identical content, expressed as an additional `SpecEntry` (`fileRename()` target `"."`) and not a bespoke layout step; (3) `hooks/hooks.json` — the standalone-form hooks, rendered from `hooks/hooks.json.tmpl` (standalone-form template). Files (1) and (2) shall be byte-identical.</statement>
-  <rationale>Copilot expects `*.agent.md` agents, mapped model names, and the plugin-form hooks accessible at the plugin root. The root copy is an alternate-name duplication (not a rename — both source and root copy are present), confirmed byte-identical by MD5 in the r2/r3 baseline. The standalone-form hooks at `hooks/hooks.json` serve in-repo (standalone) extraction. Three distinct paths, three distinct purposes.</rationale>
+  <statement>The Copilot variant shall rename `workflows` to `commands`, rename agent files to `*.agent.md`, use Copilot model vocabulary, generate no folder index (FR-GEN-0001, dormant), render hook templates, and preserve a `.github` config folder. It shall produce exactly three `hooks.json` files at distinct paths: (1) `.github/plugin/hooks.json` — the plugin-form hooks, rendered from `.github/plugin/hooks.json.tmpl`; (2) `hooks.json` at the plugin root — an alternate-name copy of `.github/plugin/hooks.json` with identical content, declared on the spec as a post-render mirror pair and applied by a generic mirror processor, not by a rename and not by a bespoke per-target step; (3) `hooks/hooks.json` — the standalone-form hooks, rendered from `hooks/hooks.json.tmpl` (standalone-form template). Files (1) and (2) shall be byte-identical.</statement>
+  <rationale>Copilot expects `*.agent.md` agents, mapped model names, and the plugin-form hooks accessible at the plugin root. The root copy is an alternate-name duplication (not a rename — both source and root copy are present), confirmed byte-identical by MD5 in the r2/r3 baseline. `hooks/hooks.json` is NOT read in marketplace mode — Copilot reads `.github/plugin/hooks.json`, and the root copy is what its runtime resolves — so it is a shipped artifact of the shared template tree, retained because the standalone build renders the same source file and because removing it would change the output path set. It must nonetheless carry the standalone form: that file is what an in-repo extraction of this tree would use, and a marketplace-form copy there would point every hook at an install location that does not exist. Three distinct paths, three distinct purposes.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Draft</status>
   <approved_by></approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: the Copilot variant When: generated Then: agent files end in `.agent.md`.</criteria>
@@ -159,33 +161,42 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
   <implementation>ToBeModified</implementation>
   <implementationNotes>ToBeModified: criteria 1-3 hold - agent files are emitted as *.agent.md, three hooks.json exist, and the
   root and .github/plugin copies are byte-identical (verified by matching MD5 on real rosetta-copilot
-  output). Criterion 4 fails: hooks/hooks.json inside the copilot target is NOT the standalone form. It is
-  byte-identical to the other two and carries the full bootstrap sessionStart array rather than an empty
-  one. HOOK_LAYOUTS (src/rosettify-plugins/src/spec/hook-layouts.ts) keys the assembled document by
-  TARGET, not by template path, so every hooks.json.tmpl under the copilot target shares that target's one
-  assembled document. The genuinely empty sessionStart form belongs to the separate copilot-standalone
-  target and lives at .github/hooks/hooks.json, not at hooks/hooks.json within copilot. Status remains
-  Draft; approval is independent of this.</implementationNotes>
+  output, produced by the declarative mirror pair on the copilot spec in
+  src/rosettify-plugins/src/spec/targets.ts, applied by pluginMirrorFiles). Criterion 4 still fails at the
+  time this text was written: hooks/hooks.json inside the copilot target is byte-identical to the other
+  two and carries the full bootstrap sessionStart array rather than an empty one, because the assembled
+  document is keyed by TARGET rather than by template path, so every hooks.json.tmpl under the copilot
+  target shares one document. AC4 is correct as written and is the criterion the restored literal
+  templates satisfy (FR-GEN-0011, FR-VAR-0071); it is not a text defect and must not be closed by editing
+  it. The genuinely empty sessionStart form for the separate copilot-standalone target lives at
+  .github/hooks/hooks.json and is unaffected. Verified by
+  plans/issue-315-plugin-sets/verify/ac_hooks_content.py (NFR-0012), which fails on this document today
+  and passes against the pre-#315 snapshot. Status remains Draft; approval is independent of this.</implementationNotes>
   <depends>FR-COPY-0031, FR-COPY-0033, FR-HOOK-0005, FR-VAR-0071</depends>
 </req>
 
 <req id="FR-VAR-0031" type="FR" level="System" ticketId="" classification="technical">
   <title>Copilot root hooks.json as alternate-name copy</title>
-  <statement>The `hooks.json` file at the Copilot plugin root shall be produced as an alternate-name copy of `.github/plugin/hooks.json` — an additional `SpecEntry` that sources the same rendered plugin-form hooks output and writes it to the root path — so that both `hooks.json` (root) and `.github/plugin/hooks.json` exist in the output with identical content. This shall not be expressed as a `fileRename()` (which would remove the source path from the output).</statement>
-  <rationale>The IDE runtime reads the plugin-form hooks from the root; `.github/plugin/hooks.json` is also required (it is the canonical rendered location of the plugin-form template). An alternate-name duplication (`SpecEntry`, FR-COPY-0033) correctly produces both files; a `fileRename()` would eliminate one of them. Baseline r2/r3 confirms both files exist and are byte-identical.</rationale>
+  <statement>The `hooks.json` file at the Copilot plugin root shall be produced as an alternate-name copy of `.github/plugin/hooks.json` — a declarative post-render copy that sources the same rendered plugin-form hooks output and writes it to the root path — so that both `hooks.json` (root) and `.github/plugin/hooks.json` exist in the output with identical content. This shall not be expressed as a rename, which would remove the source path from the output, and shall need no template of its own: it is the same document at a second path (FR-GEN-0011).</statement>
+  <rationale>The IDE runtime reads the plugin-form hooks from the root; `.github/plugin/hooks.json` is also required (it is the canonical rendered location of the plugin-form template). A declarative copy correctly produces both files; a rename would eliminate one of them. Declaring the pair as data on the spec, consumed by one generic mirror processor, keeps the duplication out of generator control flow and lets the same mechanism serve the Codex mirror. Baseline r2/r3 confirms both files exist and are byte-identical.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Draft</status>
   <approved_by></approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-09-03</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: the Copilot variant When: generated Then: both `hooks.json` (root) and `.github/plugin/hooks.json` exist.</criteria>
-    <criteria>Given: the generation design When: inspected Then: the root `hooks.json` is produced by a `SpecEntry` alternate-name copy, not by `fileRename()` from `.github/plugin/hooks.json`.</criteria>
+    <criteria>Given: the generation design When: inspected Then: the root `hooks.json` is produced by a declarative copy that leaves `.github/plugin/hooks.json` in place, not by a rename that would consume it.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes>corrected to match generator baseline; pending owner review — original FR-VAR-0030 implied a fileRename/SpecEntry producing a single root file; baseline proves both files coexist with identical content</implementationNotes>
-  <depends>FR-COPY-0033, FR-VAR-0030</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: the copilot spec in src/rosettify-plugins/src/spec/targets.ts declares the
+  mirror pair `.github/plugin/hooks.json` to `hooks.json` as data, and pluginMirrorFiles
+  (src/rosettify-plugins/src/plugin-processors/plugin-mirror-files.ts) applies it after rendering as a
+  byte-identical copy, leaving the source frame in place. Verified by matching MD5 on real output. The
+  same declarative mechanism carries the Codex `.codex-plugin/hooks.json` to `.codex/hooks.json` pair, so
+  it is generic rather than a Copilot special case.</implementationNotes>
+  <depends>FR-COPY-0033, FR-VAR-0030, FR-GEN-0011</depends>
 </req>
 
 ## Codex (`codex`) — marketplace
