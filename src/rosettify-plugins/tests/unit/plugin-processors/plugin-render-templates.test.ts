@@ -215,3 +215,75 @@ describe('pluginRenderTemplates — a missing context key fails loudly', () => {
     expect(JSON.parse(result.frames[0].target_contents as string)).toEqual({ v: 1 });
   });
 });
+
+// FR-GEN-0011 — post-render JSON validation is a HARD error, distinct in kind from FR-GEN-0010's
+// warn-and-continue render-failure handling above: a template that renders successfully but to
+// malformed JSON is a template-authoring bug or a corrupt payload, not a recoverable state, and
+// shipping it silently disables every hook in that plugin (hooks-architecture.md §1.6, §3 step 7).
+describe('pluginRenderTemplates — post-render JSON validation (FR-GEN-0011)', () => {
+  function frameWith(target: string, template: string, templateContext: Record<string, unknown>) {
+    return {
+      spec: { name: 'claude', set: 'core', destination: 'core-claude' },
+      vfs: [],
+      frames: [{
+        sourcePath: target,
+        target,
+        isBinary: false,
+        target_contents: template,
+        source: [],
+      }],
+      templateContext,
+      errors: [],
+    } as unknown as Parameters<typeof pluginRenderTemplates>[0];
+  }
+
+  it('raises a HARD error naming target and file, and emits no sibling, for a stray-comma .json render', () => {
+    // A trailing comma is exactly the failure mode the old `]{{#if deterministic_hooks}},{{/if}}`
+    // idiom could silently produce (hooks-architecture.md §1.6).
+    const result = pluginRenderTemplates(
+      frameWith('hooks/hooks.json.tmpl', '{"a": 1,}', {}),
+    );
+
+    expect(result.frames).toHaveLength(0);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0].kind).toBe('hard');
+    expect(result.errors[0].target).toBe('core-claude');
+    expect(result.errors[0].file).toBe('hooks/hooks.json');
+    expect(result.errors[0].message).toMatch(/not valid JSON/);
+  });
+
+  it('raises a HARD error for a malformed raw {{{bootstrap_hooks}}} injection', () => {
+    // JSON.stringify of a built object could never fail this way; a raw triple-stache injection
+    // can, which is the "strictly stronger than the old assembled-document guarantee" property.
+    const result = pluginRenderTemplates(
+      frameWith(
+        'hooks/hooks.json.tmpl',
+        '{"hooks":{"SessionStart":[{{{bootstrap_hooks}}}]}}',
+        { bootstrap_hooks: '{not json}' },
+      ),
+    );
+
+    expect(result.frames).toHaveLength(0);
+    expect(result.errors[0].kind).toBe('hard');
+  });
+
+  it('does not JSON-validate a non-.json target — e.g. a rendered .md file', () => {
+    const result = pluginRenderTemplates(
+      frameWith('README.md.tmpl', 'not json at all, and that is fine', {}),
+    );
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.frames).toHaveLength(1);
+    expect(result.frames[0].target_contents).toBe('not json at all, and that is fine');
+  });
+
+  it('emits the sibling normally when the rendered .json IS valid', () => {
+    const result = pluginRenderTemplates(
+      frameWith('hooks/hooks.json.tmpl', '{"hooks":{}}', {}),
+    );
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.frames).toHaveLength(1);
+    expect(JSON.parse(result.frames[0].target_contents as string)).toEqual({ hooks: {} });
+  });
+});

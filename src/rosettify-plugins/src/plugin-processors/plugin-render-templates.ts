@@ -12,6 +12,16 @@ import type { FileProcessingFrame, GenError, PluginProcessingFrame } from '../ty
  * Missing template / render error → warn+continue (FR-GEN-0010): the .tmpl frame is still dropped,
  * no sibling is emitted, and a soft error is recorded.
  * Uses {{{raw}}} triple-stache for unescaped bootstrap payloads.
+ *
+ * FR-GEN-0011 — post-render JSON validation, HARD (not soft). Immediately after a `.json` target
+ * renders successfully, the rendered text is JSON.parse'd. This is strictly stronger than the
+ * document-shape guarantee JSON.stringify used to provide, because it also catches a malformed
+ * raw `{{{bootstrap_hooks}}}` injection, which serializing a built object never could. A render
+ * failure is a recoverable authoring state (the run's other 48 folders are still useful); a
+ * document that DID render but is not parseable JSON is not recoverable in the same way — it can
+ * only be a template-authoring bug or a corrupt payload, and shipping it silently disables every
+ * hook in that plugin. So this is a hard error and the sibling is not emitted, distinct from the
+ * warn-and-continue handling above.
  * FR-ARCH-0048
  */
 export function pluginRenderTemplates(
@@ -52,6 +62,23 @@ export function pluginRenderTemplates(
       });
 
       const rendered = compiled(templateContext);
+
+      // FR-GEN-0011: a rendered document whose path denotes JSON must actually parse. Hard error,
+      // not soft — see the function doc comment. No sibling is emitted for this frame.
+      if (outputTarget.endsWith('.json')) {
+        try {
+          JSON.parse(rendered);
+        } catch (parseErr) {
+          const parseMsg = parseErr instanceof Error ? parseErr.message : String(parseErr);
+          renderErrors.push({
+            target: p.spec.destination,
+            file: outputTarget,
+            message: `Rendered output is not valid JSON: ${parseMsg}`,
+            kind: 'hard',
+          });
+          continue;
+        }
+      }
 
       // Create rendered frame (sibling without .tmpl) — the only frame emitted for this input.
       const renderedFrame: FileProcessingFrame = {
