@@ -19,8 +19,7 @@
 // behaviour at all; five of seven targets would carry a permanently-undefined field read by a
 // processor that no-ops for them, which is identity branching wearing a data costume
 // (FR-ARCH-0005). Composing it only where it applies means the behaviour does not exist elsewhere:
-// nothing to leave unset, nothing to misconfigure. (Contrast HOOK_LAYOUTS, correctly a table —
-// EVERY target emits hooks, only the values differ.) The root and the per-IDE workflow folder are
+// nothing to leave unset, nothing to misconfigure. The root and the per-IDE workflow folder are
 // genuinely data, so they are factory arguments rather than two near-duplicate processors.
 //
 // This replaces an anchor-based injection that had NEVER fired: it scanned for a `# PREP STEP 1:`

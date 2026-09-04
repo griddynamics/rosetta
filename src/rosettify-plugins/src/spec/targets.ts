@@ -7,9 +7,8 @@ import type { Writable } from 'stream';
 import type { PluginSpec, SpecEntry, FileProcessor, PluginProcessor, ReleaseDescriptor } from '../types.js';
 import { TARGET_NAMES } from './target-names.js';
 import type { TargetName } from './target-names.js';
-import { HOOK_LAYOUTS, HOOKS_PSEUDO_FOLDER } from './hook-layouts.js';
-import type { HookLayout } from './hook-layouts.js';
 import type { PluginSetDecl, SetVariant } from './plugin-sets.js';
+import { HOOKS_PSEUDO_FOLDER } from './hooks.js';
 import {
   CLAUDE_VOCABULARY,
   CURSOR_VOCABULARY,
@@ -265,9 +264,9 @@ function makeSkillsEntry(normalizeModels: FileProcessor, targetFolder = 'skills'
  *
  * Verified against the raw text of every hooks.json.tmpl (T5, tests/hook-schema/): claude, codex,
  * copilot (both forms) and cursor (both forms) each name exactly these 7 modules; antigravity
- * names exactly these 2. `read-once-shared` never appears literally — it reaches every non-
- * antigravity... no, EVERY target (antigravity included) only via `read-once`'s entry in
- * plugins.json's hookSupportModules, expanded below in modulesForTarget.
+ * names exactly these 2. `read-once-shared` never appears literally in ANY template — every
+ * target reaches it only via `read-once`'s entry in plugins.json's hookSupportModules, expanded
+ * below in modulesForTarget.
  */
 export const TARGET_HOOK_MODULES: Readonly<Record<string, readonly string[]>> = {
   claude: [
@@ -695,7 +694,6 @@ function base(
   'baseSubfolder' | 'pluginRootPath' | 'hookFolder' | 'specEntries' | 'pluginProcessors' |
   'manifestConditionalFields'> {
   const family = familyOf(name);
-  const layout = HOOK_LAYOUTS[name] ?? null;
   return {
     name,
     set: c.set.name,
@@ -706,7 +704,6 @@ function base(
     includeIndexEntries: false,
     indexes: [],
     hookModules: modulesForTarget(TARGET_HOOK_MODULES[family] ?? [], c.hookModules, c.hookSupportModules),
-    hookLayout: layout,
     bootstrap: c.set.bootstrap,
     manifest: c.manifest,
     // Standalone targets pull bundles from their parent IDE's directory; every target's bundle

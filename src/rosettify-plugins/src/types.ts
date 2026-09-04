@@ -1,7 +1,6 @@
 // FR-ARCH-0001/0002/0003/0030/0036/0039 — all PascalCase domain types, camelCase processor factories
 
 import type { Writable } from 'stream';
-import type { HookLayout } from './spec/hook-layouts.js';
 
 export type DirectiveToken = string;
 
@@ -166,11 +165,6 @@ export interface PluginSpec {
    * Empty ⇒ pluginSyncBundles copies nothing and creates no hook folder.
    */
   hookModules: string[];
-  /**
-   * This target's hooks.json layout (DATA-CFG-0008), or null when the spec emits no hooks.json
-   * at all — a set with no hook modules and no bootstrap.
-   */
-  hookLayout: HookLayout | null;
   /** Whether this set registers the session-start bootstrap payload (DATA-CFG-0007). */
   bootstrap: boolean;
   /** Set-driven manifest name/description, before variant suffixing (DATA-CFG-0007). */

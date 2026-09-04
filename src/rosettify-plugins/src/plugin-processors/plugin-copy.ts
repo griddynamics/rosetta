@@ -9,7 +9,7 @@ import type { Writable } from 'stream';
 import { updatePluginFrame } from '../frames.js';
 import { emitJson, emitStandaloneManifest } from '../serialize/json.js';
 import { getLogger } from '../logging.js';
-import { HOOKS_PSEUDO_FOLDER } from '../spec/hook-layouts.js';
+import { HOOKS_PSEUDO_FOLDER } from '../spec/hooks.js';
 import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec, Vfs } from '../types.js';
 
 /**

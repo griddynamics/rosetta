@@ -36,7 +36,6 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
       };
@@ -74,7 +73,6 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
       };
@@ -113,7 +111,6 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
       };
@@ -147,7 +144,6 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
       };
@@ -171,7 +167,6 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource: path.join(tmp, 'does-not-exist'),
       };
@@ -214,7 +209,6 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         // bootstrap: true — this spec ships hooks, so its hooks.json.tmpl standaloneTemplates
         // entry is not skipped by pluginCopy's emitsHooksJson gate (hooks-architecture.md §1.8).
         hookModules: [],
-        hookLayout: null,
         bootstrap: true,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
@@ -260,7 +254,6 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
@@ -297,7 +290,6 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
@@ -335,7 +327,6 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
@@ -368,7 +359,6 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         manifestConditionalFields: [],
         // bootstrap: true — see the identical note above; this spec ships hooks.
         hookModules: [],
-        hookLayout: null,
         bootstrap: true,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
@@ -403,7 +393,6 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
@@ -430,7 +419,6 @@ describe('pluginCopy — set-driven manifest overlay (DATA-CFG-0007)', () => {
     manifest: { name: 'rosetta', description: 'Rosetta.' },
     manifestConditionalFields: [],
     hookModules: [],
-    hookLayout: null,
     bootstrap: false,
     preservedSource,
   });
@@ -505,7 +493,6 @@ describe('pluginCopy — set-driven manifest overlay (DATA-CFG-0007)', () => {
           { field: 'hooks', requires: '@hooks', value: './hooks/hooks.json' },
         ],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
       }));
 
@@ -571,7 +558,6 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
       };
@@ -617,7 +603,6 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
@@ -668,7 +653,6 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
       };
@@ -707,7 +691,6 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
       };
@@ -762,7 +745,6 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
       };
@@ -800,7 +782,6 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
         manifestConditionalFields: [],
         hookModules: [],
-        hookLayout: null,
         bootstrap: false,
         preservedSource,
       };
