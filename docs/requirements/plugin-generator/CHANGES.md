@@ -653,3 +653,13 @@ files-affected form. Retirement reasons on `Deprecated` units are retained: thos
 gone, which is the record's current content, not its history.
 
 **Status:** No status or criteria changed.
+
+### RECONCILIATION-19 — close FR-CLI-0030 and FR-CLI-0031
+
+**Files:** `FR-CLI.md`
+
+**Change:** Both criteria now hold. `--domain` with an unresolvable token aborts with exit 1, naming the
+folder and the absolute path searched, and writes no output; a legitimate empty match exits zero, which
+the missing-folder abort does not. Verified by running the CLI, not by inspection.
+
+**Status:** `FR-CLI-0030` and `FR-CLI-0031` `ToBeModified` → `Implemented`; both stay `Approved`.

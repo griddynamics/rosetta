@@ -124,14 +124,11 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
     <criteria>Given: `--domain qe` When: the `qe` set is built Then: its folder composition and layering order are exactly its declared `folders`, unaffected by the filter.</criteria>
     <criteria>Given: `--domain acme` and no `instructions/<release>/acme/` folder When: invoked Then: the missing folder is reported and the run exits non-zero without generating output.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the filter and layering semantics are implemented in selectSets
-  (src/rosettify-plugins/src/spec/plugin-sets.ts) - the argument selects which sets build and never alters
-  a set's folder composition or order. The last criterion fails: there is no check that a --domain-named
-  folder exists under <instructionsSource>/<release>/, so a nonexistent domain value falls through to the
-  generic 'No plugin sets to build' message in generate.ts, which never names the missing instruction
-  folder. Verified empirically with --domain zzz-nonexistent-domain: exit 1, but the message does not name
-  the folder as this unit requires.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: parseDomainTokens and selectSets (src/rosettify-plugins/src/spec/plugin-sets.ts)
+  select which sets build without altering any set's folder composition or order; generate.ts checks each
+  --domain token against <instructionsSource>/<release>/ before selection and aborts naming the unresolved
+  folder and the absolute path searched. Tests: tests/unit/generate.test.ts.</implementationNotes>
   <depends>DATA-CFG-0001, DATA-CFG-0007, FR-SET-0020</depends>
   <notes>Organization content is declared as its own plugin set in the configuration rather than passed on the command line; org-overlay layering is retired entirely, so the argument no longer introduces a layer the configuration does not declare.</notes>
 </req>
@@ -153,13 +150,11 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
     <criteria>Given: `--domain search,qe` where `qe` is used only by sets the filter does not otherwise match When: matched Then: the unused value is ignored rather than reported as an error.</criteria>
     <criteria>Given: a filter whose named folders exist but match no declared set When: the run completes Then: no plugin output is written, the empty selection is reported, and exit status is zero.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the matching semantics hold in selectSets - order-insensitive, exact folder names, unused
-  argument values ignored, and a set built only when every folder it names appears. The empty-selection
-  criterion fails: generate.ts returns 1 unconditionally when no set matches, with no branch
-  distinguishing a legitimate empty match (which this unit requires to exit zero) from the missing-folder
-  abort of FR-CLI-0030. With the current plugins.json every real instruction folder is also a singleton
-  set's sole folder, so the two failure modes are presently indistinguishable in the code.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: selectSets (src/rosettify-plugins/src/spec/plugin-sets.ts) matches
+  order-insensitively on exact folder names, ignores unused argument values, and builds a set only when every
+  folder it names appears; generate.ts distinguishes a legitimate empty match, which exits zero without
+  writing output, from the missing-folder abort of FR-CLI-0030. Tests: tests/unit/generate.test.ts.</implementationNotes>
   <depends>FR-CLI-0030, FR-SET-0020</depends>
   <notes>Bundling of same-path documents across a set's folders is FR-SET-0020 and FR-ARCH-0042. Bundling order is the set's declared `folders` order and no longer depends on command-line order, which resolves OQ-6.</notes>
 </req>
