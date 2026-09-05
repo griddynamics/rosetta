@@ -86,7 +86,7 @@ class DocumentData:
             try:
                 content_str = content.decode("utf-8")
             except UnicodeDecodeError:
-                content_str = content.decode("utf-8", errors="ignore")
+                is_text = False
 
         # Count lines platform-independently: \r\n, \n\r, \r, \n all count as separators
         line_count = None
@@ -111,7 +111,7 @@ class DocumentData:
         doc_title = cls._compute_doc_title(parsed_path, file_path.name)
 
         content_hash = cls._calculate_hash(
-            content_str if content_str is not None else str(len(content)),
+            content_str if content_str is not None else hashlib.sha256(content).hexdigest(),
             tags,
             domain,
             release,

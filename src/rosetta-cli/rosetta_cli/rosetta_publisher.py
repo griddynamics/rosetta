@@ -178,7 +178,6 @@ class ContentPublisher:
                 cache = DocumentData.from_file(
                     file,
                     self.workspace_root,
-                    self.file_extensions,
                     publish_root=folder,
                 )
                 all_caches.append(cache)
@@ -350,7 +349,6 @@ class ContentPublisher:
             cache = DocumentData.from_file(
                 file,
                 self.workspace_root,
-                self.file_extensions,
                 publish_root=file.parent,
             )
             
