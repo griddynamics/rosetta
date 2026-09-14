@@ -118,6 +118,52 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 31.08 – Sun 06.09
+
+A new harness skill formalizes how the AI builds the apparatus it needs to run, observe, and automate its own work — CLI/MCP actions, devcontainers, per-agent skill and hook authoring, unattended automations — covering eight coding agents (Claude Code, Codex, Cursor, Copilot, Windsurf, Antigravity, opencode, JetBrains Junie) with real captured session logs as evidence, not claims. The coding and testing skills now point at it directly instead of a narrow "CLI testing harness for libraries" line.
+
+Repo automation (analysis, triage, planning, implementation, prompt validation) can now run on Codex as well as Claude Code, chosen per dispatch or a repo-wide default, now Codex. Getting there took real debugging: a mutation gate that reported verified GitHub work as "changed nothing" three times, a filesystem deny that instead broke DNS and git for the whole run, and a mystery ~60-minute runner death that a watchdog and resource sampler were built to diagnose before the real cause turned up — a leftover process, not a timeout. That diagnostic scaffolding is gone now that the fix is known.
+
+**Highlights**
+
+- A new harness skill designs, gates, and proves the tooling an agent needs to run, observe, and automate its own work, across eight coding agents (#330)
+- coding and testing skills now recommend the harness skill directly when there's no way to run or observe a change locally
+- CI pipelines (analysis, triage, planning, implementation, prompt validation) can run on Codex as well as Claude Code, chosen per dispatch or a repo-wide `ROSETTA_CI_AGENT` variable, defaulting to Codex
+- Codex and Claude runs use matched model/effort tiers, drawn from the same ladder the subagent instructions already declare
+- The mutation gate's trace parser missed most of what Codex actually ran (JS-wrapped calls, template-literal commands, chained shell commands); fixed and verified against real runs that had been misreported as no-ops
+- A filesystem deny ported from Claude's per-tool model instead broke DNS and git config for the whole Codex run; removed
+- ~60-minute runner deaths traced to the Codex action leaving its process tree running after success, not a timeout; the watchdog and resource sampler built to chase it are deleted now that the real cause is fixed
+- The Codex action is pinned to v1.11: v1.12 carries two upstream bugs behind the deaths, one of which kills the whole runner's DNS
+- `repo-triage`, the one pipeline any GitHub user can trigger, deliberately keeps its stricter sudo-revoking safety strategy while the maintainer-gated pipelines get an escape hatch
+- The backlog skill now works disjoint bounded stories in parallel instead of one story per run
+- The lightweight coding workflow gained proper red/green TDD support
+- `validate-prompts` is back on pull requests and now publishes its execution trace like the other four pipelines
+
+#### A new harness skill: build the apparatus, then prove it (#330)
+
+- **Change.** `[R3]` A new model-invocable `harness` skill designs the executable apparatus an agent needs to run its work, prove it, and stop repeating it by hand: CLI/MCP actions against a live service, devcontainers, per-agent skill and hook authoring, and unattended automations. It classifies the gap, writes a specification, gates it on HITL approval, hands implementation to `coding-flow`, then requires proof by actual execution before recording a `## Harness` entry in `ARCHITECTURE.md`. It ships with hook-wiring reference guides for eight coding agents, each backed by real captured session logs. The `coding` and `testing` skills' validation guidance now recommends it directly, replacing a line scoped only to "CLI testing harness for libraries/packages". (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** The old guidance covered library CLIs only; one skill covering "cannot run, observe, or prove it" across five remedies means the AI reaches for the right one instead of improvising each time. Real logs per agent turn a hook-wiring claim into something checked against evidence.
+
+#### CI automation switches to Codex, with matched model tiers and permission profiles
+
+- **Change.** `[CI]` `repo-analysis`, `repo-triage`, `repo-plan`, `repo-implement`, and `validate-prompts` now run on either Claude Code or Codex behind one variable, chosen per dispatch input or a repo-wide `ROSETTA_CI_AGENT` default (now Codex). Both branches authenticate through the same Bifrost key on different routes — Anthropic base URL for Claude, the OpenAI Responses API for Codex. Codex model/effort pairs mirror the Claude ladder position-for-position from the subagent instructions (opus↔gpt-5.6-sol, sonnet↔gpt-5.6-terra, haiku↔gpt-5.6-luna). Codex has no per-tool allow-list, so three permission profiles stand in instead — read-only with network, workspace-write with no network, workspace-write with network — and each pipeline takes the least it needs. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** Running the same automation on a second model family is a real test of whether the instructions generalize past one vendor, and gives a fallback if either provider has an outage or a cost spike.
+
+#### Live Codex runs surfaced real trace-integrity gaps, now fixed
+
+- **Change.** `[CI]` The first smoke runs found a mutation gate that reported real, verified work — issue creation, project board edits — as "changed nothing", three separate times, because its trace parser understood only one of the three command shapes Codex's JS wrapper actually emits: bare JSON, quoted-but-bare keys, and backtick template literals. A fourth gap let chained commands (`pwd && gh issue create ...`) slip past a gate anchored to match only the first command in a line. All four are fixed and verified against the runs that had been misreported. Separately, a filesystem deny ported from Claude's tool-blocking model (`Read(//etc/**)`) instead removed `/etc` from the whole Codex process, taking out the TLS trust store and git config and breaking every network and git call; removed, since a Codex permission profile denies a path from the process, not a tool from the agent. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** A mutation gate that under-reports is the one failure mode a "did this run actually do anything" check can't afford — it would wave through a run that quietly did real work. A filesystem deny that breaks unrelated system function is worse than no deny at all.
+
+#### ~60-minute runner deaths traced to a leftover process, not a timeout
+
+- **Change.** `[CI]` Long Codex runs were dying at 52–67 minutes with no logs, execution trace, or diagnosis. Two rounds of instrumentation — a resource sampler, then a step-level watchdog with a liveness check — chased it as memory starvation, then a network stall, then an Actions timeout later proven to be silently ignored on composite-action steps. The real cause: `openai/codex-action` leaves its response proxy and exec process tree running after its step reports success, so the runner just waits on a still-open pipe until GitHub gives up on it around an hour in. Once found, the sampler and watchdog scaffolding built to chase it were deleted and replaced with one ordinary cleanup step, and the action is pinned to v1.11 — v1.12 carries the bug that caused this, plus a separate report of runs that never return. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** Root-causing it by reading what the failing runs actually had in common, instead of adding another timeout, turned a permanent diagnostic apparatus into one cleanup step. Pinning the action avoids a second upstream regression rather than working around it indefinitely.
+
+#### Smaller fixes: parallel backlog stories, TDD workflow support, restored prompt validation
+
+- **Change.** `[R3]` `[CI]` The backlog skill now works disjoint bounded stories in parallel instead of one story per run. The lightweight coding workflow gained explicit red/green TDD support: when the context requests it, test authoring and review move ahead of implementation. `validate-prompts` is back on pull requests — paused earlier on cost grounds, but its path filter already bounds that cost — and now publishes its execution trace like the other four pipelines, closing the one pipeline that could be audited for its report but not its actual behavior. Two prompt gaps found on live planner and implementer runs are closed: the planner's own Bash allow-list blocked it from reading the CodeQL data a different section of the same prompt told it to handle, and the implementer's workspace-write profile pointed npm's cache and the GitHub step summary at read-only paths. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** A permission gate that contradicts the same prompt's stated job, or a pipeline no one can audit for behavior, undermines trust in the automation faster than it saves time.
+
 ### Week Mon 24.08 – Sun 30.08
 
 A new backlog skill splits two jobs that used to live inside planning: grading whether a tracked story is actually ready for development (business and technical verdicts, each independent), and writing the human work breakdown once it is. The split let both get sharper: readiness grading gained a three-state severity scale (blocker, hold, advisory) instead of one binary flag, an idempotency key so a repeat run can't duplicate tracker items, and a hard limit on what it's allowed to write. Every subagent role also picked up an explicit effort setting and a color shown in Claude Code's UI, with the lightweight profile deliberately keeping architect on stronger models while moving other high-complexity roles to cheaper ones for the same effort.
