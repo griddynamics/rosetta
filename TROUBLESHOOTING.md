@@ -11,7 +11,7 @@ Most sections below are MCP-specific (connection, OAuth, server issues) — if y
 
 **OAuth prompt does not appear**
 - Restart your IDE and retry the connection
-- Confirm your IDE supports HTTP MCP transport (see [QUICKSTART.md](QUICKSTART.md))
+- Confirm your IDE supports HTTP MCP transport (see [MCPs — Connect Rosetta MCP](MCPs.md#step-1-connect-rosetta-mcp))
 - Some IDEs require manually triggering auth (Claude Code: `/mcp` > select Rosetta > Authenticate)
 
 **MCP server shows as disconnected**
@@ -35,7 +35,7 @@ Most sections below are MCP-specific (connection, OAuth, server issues) — if y
 **If you installed via MCP (agent ignores Rosetta tools entirely):**
 - Confirm the MCP server shows as connected in your IDE's MCP settings
 - Add a [bootstrap rule](INSTALLATION.md) to your project. This is the universal fallback for any IDE or agent that doesn't reliably read MCP server prompts
-- Download [mcp-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/rules/mcp-files-mode.md?plain=1) and place it in your IDE's instruction file (see [QUICKSTART.md](QUICKSTART.md) Step 2 for paths)
+- Download [mcp-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/rules/mcp-files-mode.md?plain=1) and place it in your IDE's instruction file (see [Installation — Add Bootstrap Rule](INSTALLATION.md#step-2-add-bootstrap-rule-http-and-stdio-modes-only) for paths)
 
 **Agent used Rosetta before but stopped (MCP)**
 - Check re-authentication (see above)
@@ -43,7 +43,7 @@ Most sections below are MCP-specific (connection, OAuth, server issues) — if y
 - Re-add the bootstrap rule if it was removed
 
 **Untested IDE or agent**
-- Not every IDE/agent has been validated with Rosetta. If yours isn't listed in [QUICKSTART.md](QUICKSTART.md), it may not invoke MCP tools reliably
+- Not every IDE or agent has been validated with Rosetta. If its MCP configuration is not listed in [MCPs — Connect Rosetta MCP](MCPs.md#step-1-connect-rosetta-mcp), it may not invoke MCP tools reliably
 - The bootstrap rule works as a fallback for any agent that reads project-level instruction files
 - If neither MCP nor bootstrap works, your IDE/agent may not support the required capabilities. Open an [issue](https://github.com/griddynamics/rosetta/issues)
 
