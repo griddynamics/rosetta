@@ -1,6 +1,8 @@
 # solr-semantic-search
 Builds, debugs, and extends dictionary-driven phrase-tagging semantic search on Solr 9.x — concept tagging, graph-based path resolution, structured multi-field query construction.
 
+Phrase-tagging semantic search on Solr: concept tagging, taxonomy, graph paths, ambiguity resolution. Lexical, not vector.
+
 ## Why it exists
 The obvious failure mode is the name itself: a model asked for "semantic search" on Solr defaults to vector/embedding retrieval. This skill's role statement exists to preempt that: "This is lexical, not vector/embedding, semantic search." Without it a model would also likely reach for a hand-rolled regex/synonym matcher instead of evaluating Solr's built-in `solr.TaggerRequestHandler` first, skip ambiguity resolution and ship a query that OR's every overlapping interpretation (latency explosion), or bake Brand/Line/Model validation logic into the tagger instead of a separate post-processor.
 

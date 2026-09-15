@@ -1,6 +1,8 @@
 # tech-specs
 Turns approved requirements/discovery into a terse, testable tech-spec document (target-state architecture, contracts, interfaces) — the WHAT half of the specs/plan pair with `planning`.
 
+Produces target-state interfaces, API contracts, data models, and security considerations. Forces the AI to read the real code, grounding its assumptions.
+
 ## Why it exists
 Without it, a model asked for "specs" would likely produce prose that explains standard patterns, skip a TLDR, write the whole document in one pass instead of section-by-section, blend "what to build" into "how to build it" (duplicating the plan), or over-specify implementation instead of contracts. The skill forces compressed/terse output, a mandatory TLDR, a strict WHAT/HOW split, and a validation checklist before calling the spec done.
 

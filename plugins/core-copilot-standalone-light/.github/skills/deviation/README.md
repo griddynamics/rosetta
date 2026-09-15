@@ -2,6 +2,8 @@
 
 Forces a hard stop and re-check against original intent the moment execution surprises, stalls, or drifts from what was asked.
 
+Stops the moment work no longer matches what you asked, or the AI cannot stand behind its own solution. Escalates instead of pressing on.
+
 ## Why it exists
 
 Without this skill a capable model treats surprise, low confidence, or a stalled approach as something to push through — it rationalizes the current path as "close enough" or "an improvement" and keeps going, burning more effort in the wrong direction and only surfacing the conflict (if at all) after the fact, once it is expensive to unwind. The skill forces the model to stop before doing more, to challenge its own direction, and to escalate rather than silently resolve ambiguity by guessing.

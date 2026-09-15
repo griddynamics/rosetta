@@ -2,6 +2,8 @@
 
 Forces proactive planning, large-file/scope restructuring, context-threshold warnings, and stale-content cleanup instead of letting them happen reactively or not at all.
 
+Keeps work organized as it grows: splits oversized tasks and files, clears stale content, flags when a session should restart. Announces before it reorganizes.
+
 ## Why it exists
 
 Without this skill a capable model plans reactively: it keeps working inside a growing context, only splitting a session or restructuring a file after something breaks or the context is already overloaded, and it silently accumulates stale/outdated/redundant content instead of flagging it for cleanup. It also tends to restructure files, split scope, or start a new session without telling the user first. The skill front-loads restructuring and cleanup into the plan itself, adds hard numeric thresholds for warning the user about context consumption, and requires announcing self-organization moves in advance rather than executing them silently.

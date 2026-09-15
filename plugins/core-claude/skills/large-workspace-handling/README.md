@@ -2,6 +2,8 @@
 
 Splits a workspace too big for one agent's context into non-overlapping subagent scopes, using one of two mutually exclusive strategies.
 
+Use when a repository is too big to handle at once. Splits into non-overlapping scopes, one subagent each, then a second wave verifies the work.
+
 ## Why it exists
 
 Fixes the failure mode where an agent tries to read/edit a 100+ file workspace in one pass, blows its context window, and either stalls or produces partial, inconsistent results. Without this skill a good model would still try to do everything itself, or split work ad hoc with overlapping scopes, no shared output contract, and no verification pass — leading to duplicated effort, dropped files, or conflicting edits across subagents.

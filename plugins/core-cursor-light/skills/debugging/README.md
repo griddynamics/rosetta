@@ -2,6 +2,8 @@
 
 Forces root-cause-before-fix methodology on any error, test failure, or unexpected behavior.
 
+OODA. Root cause with evidence before any fix, one hypothesis at a time, prevention recommended. Three failed fixes means a design problem.
+
 ## Why it exists
 
 Without this skill a model under time pressure patches the symptom it can see — silences the error, adds a null check, retries the flaky call — and reports success once the visible failure stops, without ever confirming why the failure happened. It would also stack multiple speculative fixes at once, making it impossible to tell which change (if any) actually helped, and would treat a persistent multi-fix failure as "try again" rather than as a signal that the design itself is wrong. The skill blocks all of that: no fix may be proposed before a root cause is confirmed with evidence (`root_cause_investigation` phase 1), only one hypothesis is tested at a time (`hypothesis_and_testing` phase 3), and three failed fixes force a stop to question the architecture (`implementation` phase 4, point 4).

@@ -1,6 +1,8 @@
 # research
 Meta-prompting skill: craft an optimized research prompt first, then execute it as a separate subagent — never research directly.
 
+Researches any question grounded in your project, with real sources. Compares options and validates its own conclusions.
+
 ## Why it exists
 Fixes the failure mode where an AI treats its training-data knowledge as sufficient and skips external verification. The skill forces the opposite: "Search documentation for libraries, versions, and issues not in built-in knowledge" and "MUST prioritize ACCURACY over SPEED ... MUST be grounded: prove with links and references." Without it a competent model would answer from memory, present a single unverified source as fact, and skip the explicit self-validation pass this skill mandates.
 

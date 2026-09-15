@@ -1,6 +1,8 @@
 # requirements-use
 Turns approved requirement units into an execution contract: every task, test, and result must map to a requirement ID, with ambiguity escalated via HITL instead of assumed.
 
+Plans and builds from approved requirements. Every task, test, and result traces back to a requirement ID.
+
 ## Why it exists
 Failure mode fixed: a model told to "implement the feature" starts from prose intent, fills silence with its own guesses, treats a Draft requirement as if it were Approved, and leaves traceability implicit or backfilled at the end. `requirements-use` forces the opposite: "Use only Approved units for execution," "No scope without requirement ID," and "Draft units require explicit user decision" (`requirement_usage_rules`, `core_principles_to_enforce`). Without it, priority (Must/Should/Could/Wont) and status (Draft/Approved/Deprecated/Removed) would be read as commentary rather than as gates.
 

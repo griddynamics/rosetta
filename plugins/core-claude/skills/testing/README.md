@@ -2,6 +2,8 @@
 
 Enforces coverage, isolation, and mocking discipline on test-writing, with a sequence-diagram requirement for complex scenarios.
 
+Isolated and idempotent at 80%+ coverage, external calls mocked only. Scenario tests start from a sequence diagram: what depends on what, what is shared setup, then the test.
+
 ## Why it exists
 
 Without this skill a model would treat "tests pass" as sufficient, with no coverage floor, and would either mock everything (including plain in-process classes, masking real wiring bugs) or mock nothing (letting real external calls make unit tests slow/flaky). It would let state leak between test runs (stale servers left running from a previous pass) and would skip a sequence diagram for a complex orchestrator scenario, leaving call order to be reverse-engineered from prose later. It would also scope-creep: asked to fix one test, it would add unrequested refactors while in the file.

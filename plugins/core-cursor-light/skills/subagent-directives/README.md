@@ -1,6 +1,8 @@
 # subagent-directives
 The subagent-side contract: use assigned MUST skills, never deviate from the assigned task, stop and report instead of improvising, close out against the dispatch prompt's own field names.
 
+Requested automatically by the orchestrator for every subagent: stay in scope, stop and report when blocked rather than improvise, prove each claim with links and line ranges.
+
 ## Why it exists
 Failure mode fixed: a subagent left to its own judgment silently expands scope when it notices adjacent work, guesses past ambiguous instructions instead of asking, keeps going after hitting a blocker and reports success anyway, declares "done" without checking its output against the Checklist it was given, or returns a free-form summary instead of the exact Output/Evidence shape the orchestrator needs to verify without re-doing the work. `subagent-directives` forces: load MUST skills first, look around but never deviate, STOP on ambiguity or any blocking condition, close out against the Checklist honestly (deviations/assumptions/open items named), return exactly per Output specs, prove claims per Evidence specs, escalate only to the orchestrator (never straight to the user).
 

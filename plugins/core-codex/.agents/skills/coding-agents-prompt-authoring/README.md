@@ -1,6 +1,8 @@
 # coding-agents-prompt-authoring
 Turns any request to author, refactor, review, port, or harden a prompt (skill/agent/workflow/rule/template/command) into a fixed discover-to-validate pipeline with a written brief, HITL gates, and a hard split between analyst notes and the delivered prompt.
 
+Write, review, harden, and port your own skills, subagents, workflows, and rules, including between different IDEs and agents.
+
 ## Why it exists
 Without this skill a capable model asked to "write a skill/agent/rule" drafts straight from intuition: skips a written brief, blends its own reasoning/history into the delivered file, invents alias verbs outside the closed set, forgets HITL gates, lets the target prompt balloon past a readable size, or leaks another skill's internal file paths across the isolation boundary. This skill forces a fixed flow (discover → extract+intake → blueprint → draft/harden/edit per prompt → simulate → validate), keeps analyst artifacts (brief, blueprint, change-log) in the FEATURE PLAN folder away from the target file, and routes HITL, alias grammar, and Rosetta identity through fixed reference files instead of ad hoc judgment.
 

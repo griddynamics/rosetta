@@ -2,6 +2,8 @@
 
 Rewrites or drafts text so it reads as human, not model-generated — strips AI-tell phrasing, hype, and stiff constructs from user-facing prose.
 
+Strips AI giveaways: hype words, em-dashes, rhetorical questions, fake engagement. For docs, emails, posts, release notes.
+
 ## Why it exists
 
 Without it, a model defaults to its own house style: hedging filler, "dive into"/"unleash"/"game-changing" hype words, em-dashes, colon-led lists, rhetorical-question hooks ("Have you ever wondered…?"), and stock engagement phrases ("Let's take a look," "buckle up"). That prose technically communicates but reads as machine-generated and erodes trust in anything user-facing (docs, emails, blog posts, social copy). The skill exists to catch and remove those markers, and to provide an intent-confirmation template so meaning isn't silently altered by the rewrite.

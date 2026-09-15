@@ -2,6 +2,8 @@
 
 Turns existing code into a spec that captures WHAT and WHY, stripping out HOW.
 
+Recovers domain rules and intent from code into business specs.
+
 ## Why it exists
 
 Without it, an agent asked to reverse-engineer code defaults to the failure modes named in `<pitfalls>`: transcribing code as pseudocode instead of recovering intent, treating duplicate terminology ("Order" vs "Purchase") as cosmetic, specifying dead code/workarounds as requirements, missing implicit state machines hidden in nullable columns (`reminded_at`, `feedback_id`), specifying current bugs as intended behavior, and diving in without scoping first. The skill supplies named, repeatable tests instead of leaving the domain/implementation line to ad hoc judgment.

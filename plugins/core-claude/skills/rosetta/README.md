@@ -1,6 +1,8 @@
 # rosetta
 The user-invoked `/rosetta` entry point: classifies a request and hands off to the single best-matching workflow.
 
+You want Rosetta to handle it itself. Classifies your request, picks the matching workflow, and runs it end to end.
+
 ## Why it exists
 Per `docs/stories/reduce-bootstrap.md` (the design record for this skill): "A user who does not type `/rosetta` is choosing the lean path, and that choice is legitimate" — a plain request already runs lean (`bootstrap-alwayson.md` + auto-engaging skills), so `/rosetta` exists only for the moment a user explicitly wants the full routed treatment. Without it, a model asked for "the rigorous flow" has no deterministic way to pick a workflow and no gate stopping it from jumping straight to code before one is chosen — exactly what `<FORBIDDEN>` and the prerequisite chain below prevent. "`/rosetta` makes rigor *requested*, so authority becomes real instead of manufactured."
 
