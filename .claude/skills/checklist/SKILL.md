@@ -1,6 +1,6 @@
 ---
 name: checklist
-description: Prepare checklist for session self-verification
+description: Session self-verification checklist
 ---
 
 Problem: Long-running work may drift, forget requirements, or falsely appear complete.
@@ -14,10 +14,11 @@ Solution: Create and maintain a checklist as the persistent completion spine.
    - Include only medium+ findings.
    - Calibrate severity from impact, risk, and consequences of omission/failure.
    - Create before implementation context biases the analysis.
-   - Each item contains < 8 words
-   - Each item covers archetype/concept
-   - Checklist is not a plan
-   - Checklist has items for result verification
+   - Each item contains < 8 words.
+   - Each item covers archetype/concept.
+   - Mix general ("Build: no warnings, no errors", "Absolutely all unit tests pass") and request-specific items
+   - Checklist is not a plan.
+   - Checklist has items for result verification.
 
 2. Store the checklist in a project/feature temporary location. It may be committed for multi-session work.
    - Persist its path and validation instructions through context compaction.
