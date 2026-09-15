@@ -36,13 +36,13 @@ Rosetta-guided work follows five phases — **Prepare → Research → Plan → 
 
 Read more in the [User Guide](user-guide/README.md).
 
-## [Quick Start](QUICKSTART.md)
+## Quick Start
 
-Overall Process: **Install** (plugin preferred) → **Initialize** workspace → **Configure** workspace ecosystem (tools, MCPs) → **Proceed** with Coding, Modernization, Analysis, etc.
+**Install** Rosetta: use [PLUGINS.md](PLUGINS.md) when your IDE supports a plugin, or [MCPs.md](MCPs.md) when you need MCP. For every mode and the bootstrap fallback, see [INSTALLATION.md](INSTALLATION.md).
 
-Please follow **[Quick Start Guide](QUICKSTART.md)** which will walk you through the process.
+**Initialize** the repository once: follow [Installation — Initialize Repository](INSTALLATION.md#step-4-initialize-repository).
 
-Very detailed information on installation and configuration in all available modes is in [Installation Guide](INSTALLATION.md).
+**Configure** its context and tooling: use [CONFIGURATION.md](CONFIGURATION.md). Then use the [Usage Guide](USAGE_GUIDE.md) for coding, modernization, analysis, and other workflows.
 
 ## Skills
 
@@ -275,7 +275,7 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and e
 | I want to...                                         | Read                                       |
 | ---------------------------------------------------- | ------------------------------------------ |
 | Use Rosetta day to day                               | [User Guide](user-guide/README.md)         |
-| Set up Rosetta                                       | [QUICKSTART.md](QUICKSTART.md)             |
+| Set up Rosetta                                       | [Quick Start](#quick-start)                |
 | Install as a plugin (recommended)                    | [PLUGINS.md](PLUGINS.md)                   |
 | Connect over MCP (optional, secondary)               | [MCPs.md](MCPs.md)                         |
 | Configure your coding-agent workspace                | [CONFIGURATION.md](CONFIGURATION.md)       |

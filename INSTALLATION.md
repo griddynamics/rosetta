@@ -1,7 +1,7 @@
 # Installation
 
 **Who is this for?** Complete setup reference for all installation modes.
-**When should I read this?** When you need the full picture: plugins, offline, or the optional MCP modes (HTTP, STDIO) and their environment variables. For the fastest path, see [QUICKSTART.md](QUICKSTART.md).
+**When should I read this?** When you need the full picture: plugins, offline, or the optional MCP modes (HTTP, STDIO) and their environment variables. For the fastest path, see the [Quick Start](README.md#quick-start).
 
 > [!CAUTION]
 > You must receive prior approval from your manager and company to use Rosetta.
@@ -719,7 +719,7 @@ After initialization, Rosetta maintains these files in your repository. Read mor
 ## Related Docs
 
 - [PLUGINS.md](PLUGINS.md) - plugin contents and capabilities
-- [QUICKSTART.md](QUICKSTART.md) - fastest path to a working setup
+- [Quick Start](README.md#quick-start) - fastest path to a working setup
 - [MCPs.md](MCPs.md) - when and how to use the optional MCP path
 - [OVERVIEW.md](OVERVIEW.md) - mental model and terminology
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - common issues and fixes
