@@ -669,6 +669,8 @@ What happens:
 
 </details>
 
+<a id="how-rosetta-protects-you"></a>
+
 <details markdown="1">
 <summary><b>How Rosetta Protects You</b></summary>
 

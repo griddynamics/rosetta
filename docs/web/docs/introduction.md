@@ -121,13 +121,22 @@ Reusable units of work the AI loads on demand. Workflows pick them for you, and 
 
 If you prefer to follow your own workflows, check the skills above.
 
+## Why not just use IDE rules?
+
+IDE rules stay local to one tool, one repo, or one developer. Rosetta makes them layered, versioned, and portable, and adds the workflows and approval gates flat rules files lack. [Full answer in the FAQ](/rosetta/docs/faq/#concepts).
+
 ## Why use it
 
-- **Context engineering, not prompt hacking.** Agents receive your conventions, architecture, and business rules automatically — structured, versioned, and ready before the first line of code. See [how it fits your workflow](/rosetta/docs/overview/#how-rosetta-fits-into-your-workflow).
-- **Write once, run everywhere.** Agent-agnostic design adapts to any IDE and any tech stack. No per-tool maintenance.
-- **Guardrails built in.** Approval gates, risk assessment, and data protection ensure consistent AI behavior across teams. See [how Rosetta protects you](/rosetta/docs/usage-guide/#how-rosetta-protects-you).
-- **One-command onboarding.** New repo, new developer — productive immediately with best practices baked in.
-- **Instructions as code.** Prompts version-controlled with release management — single source of truth for all teams.
+| For builders | For organizations |
+| --- | --- |
+| **Deep project context** — reads your architecture and conventions, not a few open files | **One standard** across every team, tool, model, and repo |
+| **Plain-language tasks** — a slash command, no prompt scaffolding or new syntax | **No vendor lock-in** — one instruction set across Claude Code, Cursor, Copilot, Codex; engineers keep their IDEs |
+| **Ready-made flows** — coding, testing, AQA, research, and more | **Versioned control** — review, approve, and roll back instructions in Git |
+| **Plans and approval gates** before code, not after the damage | **Knowledge captured once** — out of senior engineers' heads |
+| **Fresh-context review** and execution-backed validation | **Cross-repository intelligence** — agents see the system, not just one repo |
+| **Less babysitting** — fewer wrong turns to catch and re-prompt | **Runs inside your perimeter** — works with limited internet access; no source code leaves |
+
+See [how Rosetta fits your workflow](/rosetta/docs/overview/#how-rosetta-fits-into-your-workflow) and [how it protects you](/rosetta/docs/usage-guide/#how-rosetta-protects-you).
 
 ## How it works
 
@@ -198,13 +207,19 @@ Works with any other IDE too — via a plugin where supported, via MCP otherwise
 
 | I want to... | Read |
 |---|---|
-| Understand what Rosetta is and how to think about it | [Overview](/rosetta/docs/overview/) |
+| Use Rosetta day to day | [User Guide](/rosetta/user-guide/) |
 | Set up Rosetta | [Quick Start](/rosetta/docs/quickstart/) |
+| Install as a plugin (recommended) | [Plugins](/rosetta/docs/plugins/) |
+| Connect over MCP (optional, secondary) | [MCPs](/rosetta/docs/mcps/) |
+| Configure your coding-agent workspace | [Configuration](/rosetta/docs/configuration/) |
+| Understand what Rosetta is and how to think about it | [Overview](/rosetta/docs/overview/) |
 | Learn how to use Rosetta flows | [Usage Guide](/rosetta/docs/usage-guide/) |
 | Understand the system architecture | [Architecture](/rosetta/docs/architecture/) |
 | Navigate the codebase | [Developer Guide](/rosetta/docs/developer-guide/) |
 | Contribute a change | [Contributing](/rosetta/docs/contributing/) |
 | Debug a problem | [Troubleshooting](/rosetta/docs/troubleshooting/) |
+| See release history | [Changelog](https://github.com/griddynamics/rosetta/blob/main/CHANGELOG.md) |
+| Security Policy | [Security](https://github.com/griddynamics/rosetta/blob/main/SECURITY.md) |
 | Self-host MCP for my organization (optional, rare) | [Deployment](/rosetta/docs/deployment/) |
 
 ## Contributing
