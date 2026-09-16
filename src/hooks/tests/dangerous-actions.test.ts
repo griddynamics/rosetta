@@ -650,6 +650,13 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
     expect((r as {kind:'deny';reason:string}).reason).toContain('rm-rf-root');
   });
 
+  test('mcp shell command with marker only in path → deny (paths cannot override)', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__plugin_serena_serena__execute_shell_command',
+      { command: 'rm -rf /tmp/x', path: '/tmp/Rosetta-AI-reviewed' }
+    ))?.kind).toBe('deny');
+  });
+
   test('mcp filesystem write_file to .aws/credentials → advise aws-credentials (non-blocking)', () => {
     const r = evaluateDangerous(mcpCtx(
       'mcp__filesystem__write_file',
@@ -716,6 +723,34 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
       { command: 'rm -rf /tmp/x  # Rosetta-AI-reviewed' }
     ));
     expect(r).toBeNull();
+  });
+
+  test('mcp shell cmd with `# Rosetta-AI-reviewed` → null (marker applies to every MCP shell field)', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__shell__run',
+      { cmd: 'rm -rf /tmp/x  # Rosetta-AI-reviewed' }
+    ))).toBeNull();
+  });
+
+  test('mcp shell cmd without marker → deny', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__shell__run',
+      { cmd: 'rm -rf /tmp/x' }
+    ))?.kind).toBe('deny');
+  });
+
+  test('mcp shell shell_command with `# Rosetta-AI-reviewed` → null (marker applies to every MCP shell field)', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__shell__run',
+      { shell_command: 'rm -rf /tmp/x  # Rosetta-AI-reviewed' }
+    ))).toBeNull();
+  });
+
+  test('mcp shell shell_command without marker → deny', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__shell__run',
+      { shell_command: 'rm -rf /tmp/x' }
+    ))?.kind).toBe('deny');
   });
 
   // Obj9: MCP marker in query field (not just command)
