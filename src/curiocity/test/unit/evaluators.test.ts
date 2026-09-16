@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { execa } from 'execa';
 import { describe, it, expect, vi } from 'vitest';
 import { fileExists } from '../../src/evaluators/file-exists';
-import { command } from '../../src/evaluators/command';
+import { command, commandParamsSchema } from '../../src/evaluators/command';
 import { trajectoryCheck, resolveToolPattern } from '../../src/evaluators/trajectory-check';
 import {
   assembleJudgePrompt,
@@ -60,6 +60,40 @@ describe('file-exists (§11)', () => {
 });
 
 describe('command (§11)', () => {
+  it('bounds a command that does not terminate before the evaluator timeout', async () => {
+    const run = `"${process.execPath}" -e "setTimeout(function () {}, 2000)"`;
+    const started = performance.now();
+    const res = await command.evaluate(ctx({}), { run, timeoutSec: 0.1 });
+    const elapsedMs = performance.now() - started;
+
+    expect(elapsedMs).toBeLessThan(1000);
+    expect(res.pass).toBe(false);
+    expect(res.details).toContain('timed out after 0.1s');
+  }, 4000);
+
+  it('defaults timeoutSec to 60 seconds', () => {
+    expect(commandParamsSchema.parse({ run: 'echo ok' }).timeoutSec).toBe(60);
+  });
+
+  it('converts fractional timeoutSec to milliseconds for execa', async () => {
+    const exec = vi.fn().mockResolvedValue({ exitCode: 0, failed: false, timedOut: false, all: '' });
+    const res = await command.evaluate(ctx({ exec: exec as unknown as EvalContext['exec'] }), {
+      run: 'echo ok',
+      timeoutSec: 1.25,
+    });
+
+    expect(exec).toHaveBeenCalledWith('echo ok', expect.objectContaining({
+      // Execa gets a short reporting grace period after the configured
+      // deadline so the process-tree fallback can terminate shell children.
+      timeout: 2250,
+    }));
+    expect(res.pass).toBe(true);
+  });
+
+  it.each([0, -1])('rejects a non-positive timeoutSec (%s)', (timeoutSec) => {
+    expect(() => commandParamsSchema.parse({ run: 'echo ok', timeoutSec })).toThrow();
+  });
+
   it('passes when the command exits with the expected code', async () => {
     const res = await command.evaluate(ctx({}), { run: 'exit 0' });
     expect(res.pass).toBe(true);
