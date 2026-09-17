@@ -51,6 +51,7 @@ Each task has its own page. Jump straight in.
 | I want to…                             | Scenario                                                  | Command                        |
 | -------------------------------------- | --------------------------------------------------------- | ------------------------------ |
 | Write a feature, fix a bug, add tests  | [Write or change code](scenarios/coding.md)               | `/coding-flow`                 |
+| Carry a task from requirements to verified delivery across chats | [Manage a task](scenarios/coding.md#manage-a-task-across-chats) | `/task-define`, `/task-spec`, `/task-implement`, `/tasks-list` |
 | Define what to build first             | [Author requirements](scenarios/requirements.md)          | `/requirements-authoring-flow` |
 | Handle a small or unusual task         | [Ad-hoc task](scenarios/adhoc-task.md)                    | `/adhoc-flow`                  |
 
