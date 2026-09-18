@@ -13,7 +13,7 @@ On failure or mismatch — also: user asks why something didn't work · 3+ error
 2. Identify root cause — not symptoms. Understand BEFORE replanning.
 3. Ask 1-3 clarifying questions if ambiguous.
 4. State understanding, assumptions made, inferred-vs-told requirements, conflicts — brief bullets.
-5. Wait for explicit user confirmation; let the user redirect.
+5. Wait for explicit user confirmation; let the user redirect. With active decision-bound continuation, diagnosed technical recovery within its authorization proceeds after architect consultation and orchestrator verification; no confirmation-only pause. Unresolved decisions, changed intent, user dissatisfaction, and repeated failure without progress still require escalation.
 
 Memory:
 

@@ -13,6 +13,10 @@
 - coding-agents-prompting-flow
 - help-flow
 - coding-flow
+- task-define
+- task-spec
+- task-implement
+- tasks-list
 - security-flow
 - requirements-authoring-flow
 - testgen-flow

@@ -583,6 +583,19 @@ What happens:
 6. Delivers to docs/REQUIREMENTS/ with traceability matrix
 ```
 
+### Managed Tasks Across Chats
+
+Use `/task-define [description]` to create a task and agree its requirements, then
+`/task-spec TASK-0001` for architecture/specifications and `/task-implement TASK-0001` for delivery.
+Use the ID returned by creation; `/tasks-list` shows registered tasks and their next step.
+`/task-define TASK-0001 additional requirements` revises an existing task; its folder is also accepted.
+Each command stops at its stage boundary and preserves human approval gates.
+
+The task passport lives at `plans/<TASK_ID>/TASK.md`; requirements live under
+`docs/REQUIREMENTS/<TASK_ID>/`. Separate spec/plan files follow existing sizing rules.
+Ordinary `/coding-flow` behavior, including small tasks without separate documents, is unchanged.
+See [the full task walkthrough](user-guide/scenarios/coding.md#manage-a-task-across-chats).
+
 ### Project Initialization
 
 **Greenfield (new repository):**

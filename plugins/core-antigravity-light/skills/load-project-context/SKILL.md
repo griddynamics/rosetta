@@ -31,6 +31,7 @@ Rosetta files: terse, SRP/DRY/MECE. Markdown headers = Auto-TOC (grep + line-ran
 - `agents/IMPLEMENTATION.md` — implementation state; the only changelog
 - `agents/MEMORY.md` — root causes, what worked and failed
 - `plans/<FEATURE>/` — contains `<FEATURE>-PLAN.md` execution plan, `<FEATURE>-SPECS.md` tech specs, `plan.json` EXECUTION_CONTROLLER tracking, plus supporting files
+- `plans/<TASK_ID>/TASK.md` — optional managed-task passport; explicit task commands only, contract in SKILL `task-management`; requirements at `docs/REQUIREMENTS/<TASK_ID>/`. Ordinary workflows need no task registration.
 - `refsrc/*` — knowledge-only source; SCM-excluded except `refsrc/INDEX.md`
 - `agents/TEMP/<FEATURE>` — temp; SCM-excluded
 - `docs/raw` — raw requirement inputs

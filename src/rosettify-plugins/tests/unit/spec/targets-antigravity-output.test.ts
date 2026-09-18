@@ -217,7 +217,7 @@ describe('core-antigravity — generated output shape (FR-VAR-0080, FR-STRUCT-00
   it('rewrites the WORKFLOW/COMMAND glob-doc string to the skills-flow form, leaving a bare workflows/*.md token elsewhere unchanged', () => {
     const ruleDoc = path.join(targetRoot, 'rules', 'sample-rule.md');
     const content = fs.readFileSync(ruleDoc, 'utf-8');
-    expect(content).toContain('WORKFLOW/COMMAND `skills/*-flow/SKILL.md`');
+    expect(content).toContain('WORKFLOW/COMMAND `skills/*/SKILL.md`');
     expect(content).not.toContain('WORKFLOW/COMMAND `workflows/*.md`');
     expect(content).toContain('unrelated glob `workflows/*.md`');
   });

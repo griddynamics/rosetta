@@ -75,6 +75,102 @@ The agent won't slide past these gates on a vague reply; give a clear confirmati
 - Planning artifacts: `plans/<feature>/discovery-notes.md`, `plans/<feature>/architecture-notes.md`, and `plans/<feature>/<FEATURE>-SPECS.md` + `<FEATURE>-PLAN.md`.
 - The code changes and passing tests, plus brief updates to your `docs/CONTEXT.md` / `docs/ARCHITECTURE.md` when relevant.
 
+## Manage a task across chats
+
+Use these four commands when you want a named task whose requirements, approvals and results
+survive a new chat. Run them in the target repository with the Rosetta plugin installed.
+Type them the way your host expects. In Claude Code that is `/rosetta:task-define`; other hosts use
+`$rosetta:task-define` or a bare `/task-define`. Rosetta always shows you the form your own host uses.
+
+```text
+/task-define
+/task-define Let customers cancel an upcoming booking
+```
+
+Both create a task. The first starts with questions; the second uses your description as input.
+The agent returns a stable ID and folder, clarifies scope and acceptance criteria, authors and
+reviews requirements, and asks for approval. It stops before architecture or coding.
+
+**Each command ends at its own boundary.** It will not ask whether to continue into the next stage,
+and it will not start it. Instead it saves everything to the task files, tells you what is done and
+what is still open, and gives you one line to paste into a **new chat** — already written the way
+your host expects. A fresh chat reads the files rather than a long conversation, so the next stage
+starts from the agreed record instead of a summary of it.
+
+Use the returned ID in subsequent commands. `TASK-0001` below is an example:
+
+```text
+/task-spec TASK-0001
+/task-implement TASK-0001
+/tasks-list
+```
+
+| Command | Result | Where it stops |
+|---|---|---|
+| `task-define` | Requirements and their approval | Before solution design |
+| `task-spec` | Approved architecture, specification and plan | Before implementation |
+| `task-implement` | Implementation, independent review, tests and verification evidence | Final acceptance with you |
+| `tasks-list` | ID, title, stage, blockers, folder and next command | Read-only listing |
+
+When a stage cannot finish, the same stop applies: the work is saved and you get the command that
+resumes that stage, together with the decisions it still needs from you.
+
+The specification step runs the preparation part of `coding-flow`; implementation resumes its
+remaining work. Each command retains the workflow's review and approval checkpoints. Starting a
+new chat does not mean repeating an unchanged, recorded approval.
+
+Each modifying task command starts or reuses a task-scoped background architect consultant,
+including small tasks. The consultant checks requirements gaps, solution choices, and implementation
+risks before dependent decisions. Its advice is saved for the next chat; it remains separate from
+the specification author, independent reviewer, and your approvals. If the host supports subagents
+but not background continuation, Rosetta discloses that limitation and consults synchronously.
+Without subagent support, it reports a blocker before dependent decisions.
+
+Routine task-file work continues without repeated permission. When a technical error has a known
+cause and the architect's proposed fix stays within the approved scope, the agent repairs it,
+reruns checks, and continues. It asks you when a decision or missing input is needed, and still
+requests requirements/design/plan approvals and final acceptance. This does not bypass failed
+checks or authorize changes to agreed behavior.
+
+To revise or resume a task:
+
+```text
+/task-define TASK-0001 Customers may cancel only before the booking starts
+/task-define plans/TASK-0001
+/task-spec plans/TASK-0001
+```
+
+The ID or task folder comes first; the remaining text changes requirements. With only a task
+reference, `task-define` resumes the existing discussion. Quote a folder containing spaces.
+An explicit unknown ID or path reports a lookup problem rather than silently creating a task.
+
+```text
+plans/TASK-0001/
+  TASK.md                 identity, approvals, current work and durable results
+  ...                     specifications/plans/reports as the task size requires
+docs/REQUIREMENTS/TASK-0001/
+  ...                     requirement documents when produced
+```
+
+For a small managed task, a concise approved solution and plan can live in `TASK.md`; separate
+specification and plan files are not mandatory. Ordinary `/coding-flow` keeps its existing
+size rules and does not automatically register tasks or acquire new documentation obligations.
+
+The list derives four stages from current approved content and evidence:
+
+```text
+Requirements needed → Specification needed → Implementation needed → Done
+```
+
+Work in progress, blockers and pending approval appear separately. Files existing is not proof
+of approval. Changed requirements make dependent approvals stale while preserving earlier work.
+`Done` requires verification and your recorded acceptance of the current result. Malformed or
+duplicate passports are shown as diagnostics; listing does not repair them.
+
+To continue after interruption, run the same command with the same ID in a new chat. The passport
+and linked evidence survive loss of temporary workflow state. Missing evidence is rechecked;
+the agent does not invent completion.
+
 ## Tips
 
 - **Read the plan before approving.** The gate only protects you if you use it.

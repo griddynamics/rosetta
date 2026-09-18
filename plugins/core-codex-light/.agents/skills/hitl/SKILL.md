@@ -16,6 +16,8 @@ baseSchema: docs/schemas/skill.md
 
 <process>
 
+When explicitly supplied decision-bound continuation for a bounded invocation, APPLY SKILL FILE `references/decision-bound-continuation.md`. This scopes routine execution and recovery permission; it does not disable HITL or approve artifacts.
+
 Questioning:
 
 1. Post-discovery pre-implementation, and again whenever anything new comes up or ambiguity returns.
@@ -27,7 +29,7 @@ Questioning:
 6. Open questions → todo tasks. Persist Q&A (incl. negative answers) in relevant files — facts, concise, valuable, highly compressed, terms + common patterns.
 7. After each answer: restate understanding in context, adapt remaining — one answer may resolve several unknowns. Unanswered → mark assumption, continue.
 8. Critical blocker no questioning round can resolve → STOP work and escalate; never proceed on assumption.
-9. MUST NOT assume — even reasonably. Task crystal clear: suggest + confirm, never guess.
+9. MUST NOT assume — even reasonably. Task crystal clear: suggest + confirm unless the exact action already has scoped authorization; never guess.
 10. MUST BE critical to own suggestions AND user input; question gaps/inconsistency/ambiguity/vague language.
 
 Approval:

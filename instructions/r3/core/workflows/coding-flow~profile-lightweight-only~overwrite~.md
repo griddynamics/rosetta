@@ -16,6 +16,24 @@ Lightweight variant: a single architect pass produces discovery, design, specs, 
 
 </description_and_purpose>
 
+<task_stage_binding applies="explicit task command invocation only">
+
+1. Default is the full workflow, unchanged. Only an explicit `task_stage=spec|implement` invocation with resolved task context activates this contract; never infer it from existing task files, TEMP state, or request size.
+2. USE SKILL `task-management` to inspect current approvals and bind FEATURE/task folders. No-skipping means every applicable phase inside the selected stage; prior phases require verified approval evidence, not replay.
+3. `task_stage=spec`: run through `user_review_design` only. In `solution_design`, obtain architecture approval after Step 3 before specs/plan; the normal single-gate rule is overridden only for this explicit stage. Final gate approves specification and plan. Stop even when `/goal` remains unmet.
+4. `task_stage=implement`: require current requirements, architecture, and specification/plan approvals; revalidate their source context. Resume the earliest incomplete or freshness-unproven delivery phase. Missing/stale approval or material source drift: report affected work and return the task's define/spec command before implementation; do not redesign silently.
+5. TEMP state and continuation phase labels are checkpoints, not approval or freshness evidence. Recover approved decisions from the durable passport using `task-management`. After any interruption, repeat reviews, validation, and tests unless a current passed verification receipt proves their exact input/delivery snapshot and upstream approvals are unchanged. Old reports, phase labels, or missing TEMP never justify skipping unproven checks.
+6. After each applicable phase and before interruption, USE SKILL `task-management` to record current progress, artifacts, actual approvals, verification evidence, blockers, and next phase. Record architecture and specification/plan approvals separately. Retain earlier evidence; invalidate affected approvals on revision.
+7. SMALL managed tasks may persist concise architecture, specification, and plan in passport sections instead of separate files. Ordinary invocations retain existing message-only/skip rules and never register tasks automatically.
+8. For test-first work, `spec` records intent and test plan only; no test authoring/execution. In `implement`, the pre-implementation tests pass permits expected targeted red failures proving the missing behavior; this overrides the tests phase all-success requirement for that pass only. Unexpected failures block. After code changes, require green execution of all planned checks and re-review affected code/tests before verification. Never reuse pre-implementation results as final verification.
+9. Implementation includes every size-applicable review/test gate and final validation (SMALL: inline build/test confirmation). A SMALL combined implementation/final gate remains after tests, not a prerequisite blocking tests. Before any final acceptance prompt, USE SKILL `task-management` to record passed verification after all criteria/checks pass, then inspect its current receipt. Failed/stale/incomplete verification blocks acceptance. Present that exact snapshot; bind acceptance to its verification receipt. The outer task command presents any still-pending acceptance.
+10. `/goal` loops stay inside the selected stage; they cannot reopen approved design or cross the specification stop boundary. Return the selected stage's result to the invoking task command.
+
+11. Reuse the supplied task-scoped read-only architect consultant; do not substitute native advisor or the design/plan author. Consult before architecture approval and specification/plan approval, before material implementation decisions or recovery, and on outstanding architectural risks before final acceptance. Await relevant advice before dependent action; record its disposition through `task-management`. Advice never satisfies independent review or human approval.
+12. Inherit decision-bound continuation only from the invoking task command. Apply it to routine work and diagnosed recovery inside this stage; preserve approval gates, freshness checks, and stage boundaries.
+
+</task_stage_binding>
+
 <workflow_phases>
 
 <prerequisites phase="0" applies="ALL">
@@ -23,14 +41,14 @@ Lightweight variant: a single architect pass produces discovery, design, specs, 
 1. All Rosetta prep steps MUST be FULLY completed
 2. MUST USE SKILL `load-project-context` (required: all), `orchestration` (all except trivial), `hitl` (all, unless `No HITL` or `Fully Autonomous`)
 3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
-4. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping, if in doubt - select the safest / longest path, no deviation from the workflow is allowed
+4. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY within an explicitly selected task stage (otherwise all phases), no skipping, if in doubt - select the safest / longest path, no deviation from the workflow is allowed
 5. When debugging is needed, INVOKE SUBAGENT `engineer` with `debugging` skill to save LLM context
 6. INVOKE SUBAGENT `executor` for building, running tests, installing packages, and similar mechanical actions.
 7. MUST just-in-time load each phase's skills
 8. If workflow is for REQUIREMENTS, MUST USE SKILL `requirements-use` and LOAD all affected requirements. Use refs to requirements for subagents.
 9. If `/goal` is set repeat phases 4-7 postponing final_validation until goal is met.
 10. If migrate/modernize: implementation phase MUST use tiny batches ONLY (1-3 files), never bulk-read (other phases may); specs/plan enforce; FS-copy RECOMMENDED; no behavior change/new code; mirror source; subagents same; REQUIRED TO log <file> started/completed; Use impl subagents like MAP-REDUCE;
-11. Run architect subagent with required model in the background and consult with it if already supported or prefer advisor if already available
+11. Explicit task stage: reuse its consultant binding. Otherwise run architect subagent with required model in the background and consult with it if already supported or prefer advisor if already available
 12. Coding workflow state MUST be saved to `agents/TEMP/<FEATURE>/coding-flow-state.md` file.
 13. If context already contains request for TDD => implement properly red and green adjusting this workflow, including by moving execution of phases `tests` and `review_tests` to be after `user_review_design` and before `implementation`.
 

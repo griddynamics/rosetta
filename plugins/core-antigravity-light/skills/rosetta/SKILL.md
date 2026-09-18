@@ -18,7 +18,8 @@ Routing user request to proper workflow and high process adherence.
 
 <process>
 
-1. MUST USE FLOW `<most matching workflow>.md` (note: "*-flow" skills are additional workflows) — YOU MUST FULLY ALWAYS execute loaded workflow following its entire definition for all request sizes, workflow WAS created to fix your failure modes (deviations, and weak process adherence, and shallow analysis), workflow is PRIMARY deterministic process to resolve the original user request
+1. MUST USE FLOW `<most matching workflow>.md` (note: workflows may be exposed as skills; discover them by their declared purpose/index, not a required `-flow` suffix) — YOU MUST FULLY ALWAYS execute loaded workflow following its entire definition for all request sizes, workflow WAS created to fix your failure modes (deviations, and weak process adherence, and shallow analysis), workflow is PRIMARY deterministic process to resolve the original user request
+   Managed task workflows require explicit task-lifecycle intent; never register ordinary work automatically.
 2. On resume/continue: load workflow state file; extract completed steps, current phase, and pending work; resume from there
 3. Once flow is loaded you MUST use workflow phases to immediately create/update todo tasks (LEDGER); open one per phase, work sequentially, close on completion immediately;
 4. In planning mode: `planning` + `tech-specs` outputs → store per system prompt, never `plans/` (read-only)

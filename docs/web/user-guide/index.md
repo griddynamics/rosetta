@@ -57,6 +57,7 @@ Each task has its own page. Jump straight in.
 | I want to…                             | Scenario                                                  | Command                        |
 | -------------------------------------- | --------------------------------------------------------- | ------------------------------ |
 | Write a feature, fix a bug, add tests  | [Write or change code](/rosetta/user-guide/scenarios/coding/)               | `/coding-flow`                 |
+| Carry a task from requirements to verified delivery across chats | [Manage a task](/rosetta/user-guide/scenarios/coding/#manage-a-task-across-chats) | `/task-define`, `/task-spec`, `/task-implement`, `/tasks-list` |
 | Define what to build first             | [Author requirements](/rosetta/user-guide/scenarios/requirements/)          | `/requirements-authoring-flow` |
 | Handle a small or unusual task         | [Ad-hoc task](/rosetta/user-guide/scenarios/adhoc-task/)                    | `/adhoc-flow`                  |
 

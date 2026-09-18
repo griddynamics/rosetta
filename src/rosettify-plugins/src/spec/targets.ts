@@ -73,7 +73,7 @@ const TEMPLATES_EXCLUDES = ['templates/shell-schemas/**'];
 // never selected by identity branching inside a shared processor (FR-ARCH-0004, FR-ARCH-0005).
 const WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR: readonly [string, string] = [
   'WORKFLOW/COMMAND `workflows/*.md`',
-  'WORKFLOW/COMMAND `skills/*-flow/SKILL.md`',
+  'WORKFLOW/COMMAND `skills/*/SKILL.md`',
 ];
 
 // Base processors shared across all text file entries

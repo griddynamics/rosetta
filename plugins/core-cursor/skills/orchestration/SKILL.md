@@ -18,6 +18,7 @@ Prerequisites: USE SKILL `hitl`, `load-project-context`
 5. Proactively use available skills, tools, MCPs — incorporate in plan.
 6. Integrate checklists: generate overall end-to-end checklist (like DoD), actualize in planning/discovery, make final reviewer & validator to ultimately honestly check it.
 7. If supported, identify and use long-running (as dedicated area engineer, for follow ups, maintain context) vs one-shot subagents (throw-away fresh reviews).
+8. Explicit background-consultant assignment: start/reuse the assigned specialist, with required model and supplied isolation/read-only contract, even for SMALL. Keep independent work moving; await advice before dependent decisions. Without resumable/background support, re-brief an actual specialist subagent synchronously at each consultation and disclose the limitation once. Without subagents, report the capability blocker before dependent decisions; never simulate an independent consultant. The consultant is separate from phase authors and fresh reviewers.
 
 </context>
 
