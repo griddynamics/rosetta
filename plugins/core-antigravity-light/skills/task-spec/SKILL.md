@@ -39,10 +39,11 @@ Input: existing task ID or folder. Output: approved solution and plan; no implem
 
 </specify>
 
-<handoff phase="3" role="Orchestrator reporting readiness">
+<handoff phase="3" role="Orchestrator closing the stage">
 
-1. USE SKILL `task-management` to inspect stage, blockers, approval evidence, and next action.
-2. Ready: return `rosetta:task-implement <TASK_ID>`. Pending: return the exact continuation command and decisions still required.
+1. USE SKILL `task-management` with operation `handoff`: persist the stage outcome, then inspect stage, blockers, approval evidence, and next action.
+2. Ready: hand off the `task-implement` command for this task, rendered per `command-rendering`. Pending: hand back `task-spec` the same way, with the decisions still required.
+3. End the invocation at this boundary. Never offer, ask about, or start implementation here; direct the user to a new chat with the rendered command line.
 
 </handoff>
 

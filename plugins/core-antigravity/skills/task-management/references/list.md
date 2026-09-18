@@ -11,6 +11,6 @@ baseSchema: docs/schemas/generic.md
 2. Return ID | title | derived stage | progress/blockers | folder | next action.
    Sort valid IDs numerically; list duplicate, corrupt, misplaced, unreadable, or incomplete reservations separately with their paths.
 3. Distinguish no registered tasks from unavailable/unreadable inventory. Ordinary plan folders remain unregistered.
-4. Map next actions to the invoking interface; use exact ID/folder, quote folders containing spaces.
+4. READ SKILL FILE `references/command-rendering.md` and render next actions by it; use exact ID/folder, quote folders containing spaces.
 
 </list>

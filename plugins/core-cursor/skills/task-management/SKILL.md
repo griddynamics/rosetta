@@ -11,7 +11,7 @@ baseSchema: docs/schemas/skill.md
 <when_to_use_skill>
 
 Manage explicitly registered repository tasks; preserve identity, approvals, progress, and next action across chats.
-Inputs: operation (`resolve/create`, `inspect`, `record`, `invalidate`, `list`, `consultation`), target?, initial text?, stage result?.
+Inputs: operation (`resolve/create`, `inspect`, `record`, `invalidate`, `list`, `consultation`, `handoff`), target?, initial text?, stage result?.
 
 </when_to_use_skill>
 
@@ -26,6 +26,7 @@ Inputs: operation (`resolve/create`, `inspect`, `record`, `invalidate`, `list`, 
 - Ordinary work gains no registration or documentation obligation.
 - File existence, timestamps, workflow completion, and model assertions are not human approval.
 - READ SKILL FILE `references/passport.md` before reading or writing passports.
+- READ SKILL FILE `references/command-rendering.md` before showing any command to a user.
 
 </core_concepts>
 
@@ -41,6 +42,7 @@ Load and apply only the requested operation and its listed prerequisites:
 | `invalidate` | READ SKILL FILE `references/invalidate.md` | `inspect` |
 | `list` | READ SKILL FILE `references/list.md` | `inspect` |
 | `consultation` | READ SKILL FILE `references/consultation.md` | `inspect`; `record` for advice persistence |
+| `handoff` | READ SKILL FILE `references/handoff.md` | `inspect`; `record` before reporting, except read-only rendering |
 
 Load prerequisites through this table; apply with the passport contract and return the output below.
 
@@ -49,6 +51,7 @@ Load prerequisites through this table; apply with the passport contract and retu
 <output>
 
 Return `task_id`, `task_folder`, `requirements_folder`, `current_stage`, `next_action`, plus blockers, drift, and evidence references.
+Render `next_action` commands per `references/command-rendering.md`; stage boundaries end the invocation instead of continuing.
 For unresolved/invalid targets, return the diagnostic and unset identity/stage fields; never invent a task.
 For listing, return one result per valid task plus inventory diagnostics. This skill adds no public command or execution engine.
 

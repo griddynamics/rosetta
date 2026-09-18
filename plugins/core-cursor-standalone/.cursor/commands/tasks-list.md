@@ -24,8 +24,8 @@ Read registered tasks in the current repository; never create, repair, or advanc
 <list phase="1" role="Orchestrator reading the task registry">
 
 1. USE SKILL `task-management` with operation list, strictly read-only.
-2. Show ID, title, derived stage, folder, progress/blockers, and exact next command. Translate stage labels for the user; keep IDs and commands exact.
-3. Empty registry: say no managed tasks and show `rosetta:task-define` to create one.
+2. Show ID, title, derived stage, folder, progress/blockers, and exact next command. Translate stage labels for the user; keep IDs exact and render every command per `command-rendering`.
+3. Empty registry: say no managed tasks and show the `task-define` command to create one, rendered the same way.
 4. Report unreadable, malformed, duplicate, or stale entries explicitly; never omit them or silently repair state. Approval must be verifiable, not inferred from file existence.
 
 </list>

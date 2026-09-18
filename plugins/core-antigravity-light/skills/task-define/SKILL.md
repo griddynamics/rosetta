@@ -41,10 +41,11 @@ Output: registered task, reviewed requirements, durable approval state, next com
 
 </requirements>
 
-<handoff phase="3" role="Orchestrator reporting the next action">
+<handoff phase="3" role="Orchestrator closing the stage">
 
-1. USE SKILL `task-management` to inspect and report stage, blockers, artifacts, and next action.
-2. If current requirements are approved, return `rosetta:task-spec <TASK_ID>`; otherwise give the exact `rosetta:task-define <TASK_ID>` continuation and unresolved decisions.
+1. USE SKILL `task-management` with operation `handoff`: persist the stage outcome, then inspect and report stage, blockers, artifacts, and next action.
+2. Requirements approved: hand off the `task-spec` command for this task, rendered per `command-rendering`. Otherwise hand back `task-define` the same way, with the unresolved decisions.
+3. End the invocation at this boundary. Never offer, ask about, or start specification here; direct the user to a new chat with the rendered command line.
 
 </handoff>
 

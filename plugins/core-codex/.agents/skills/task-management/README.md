@@ -18,6 +18,8 @@ It makes task resumption and listing use the same passport contract.
 
 `consultation` routes to `references/consultation.md`: prepare a task/conversation-scoped brief, restore it from current durable evidence, and preserve advice as execution notes. The workflow dispatches the consultant; this skill does not spawn agents or grant approvals. SMALL can keep notes in `## History`; detailed reports belong to `artifacts.execution` with a handoff reference.
 
+`handoff` routes to `references/handoff.md`: end the stage in files, report what was produced and where, and give the user one command line for a new chat. A stage boundary is a hard stop, never a question about continuing. `references/command-rendering.md` holds the one rule for showing a command to a user — the host's own invocation syntax — so the read-only listing path can apply it without loading a write procedure.
+
 `SKILL.md` routes the caller's intent through resolution/creation, inspection, recording,
 invalidation, or read-only listing, loading only the matching private operation reference and its listed prerequisites.
 `references/passport.md` defines the YAML frontmatter,
@@ -39,6 +41,7 @@ corrupt records remain unknown. Progress and blockers supplement the result.
 - "Never restore invalidated pointers automatically" prevents an old approval reviving after a revert.
 - "Existing directory without passport -> unregistered" prevents accidental task creation/import.
 - "Read-only operations leave the repository unchanged" keeps inspection separate from repairs.
+- "The bare `rosetta:<command>` form is reference notation, never something a user types" keeps a foreign host's prefix out of a handoff.
 - Normative selectors exclude only defined execution metadata; completing work does not revoke its requirements.
 - Receipt inventories are stage-owned; creating a specification cannot invalidate requirements.
 - Interrupted review/testing/validation repeats unless complete current verification proves freshness.
@@ -46,7 +49,7 @@ corrupt records remain unknown. Progress and blockers supplement the result.
 ## Invariants — do not change
 
 - Skill name and folder: `task-management`; `user-invocable: false` keeps it an internal method.
-- Operations: resolve/create, inspect, record, invalidate, list, consultation; callers address these through the skill.
+- Operations: resolve/create, inspect, record, invalidate, list, consultation, handoff; callers address these through the skill.
 - Output fields: task_id, task_folder, requirements_folder, current_stage, next_action.
 - Identity is immutable; folders use `plans/<TASK_ID>` and `docs/REQUIREMENTS/<TASK_ID>`.
 - Schema version 1 and current receipt kinds have one definition in `references/passport.md`.

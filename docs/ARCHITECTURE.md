@@ -246,6 +246,8 @@ without a separate central index. The commands bind stage boundaries of the exis
 and coding workflows. The three modifying commands bind a separate read-only architect consultant
 and decision-bound continuation to their invocation. Consultation evidence is durable task execution
 state, never an approval; routine work and diagnosed recovery continue inside approved boundaries.
+Each command ends at its stage boundary through the `handoff` operation: outcome persisted, next action
+handed to the user as one command line rendered in that host's own invocation syntax, for a new chat.
 Ordinary workflow calls do not register tasks; small-work sizing remains unchanged. Temporary workflow state is recoverable from the passport and its linked evidence.
 
 **Other:**

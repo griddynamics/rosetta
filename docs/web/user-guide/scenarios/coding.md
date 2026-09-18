@@ -86,7 +86,8 @@ The agent won't slide past these gates on a vague reply; give a clear confirmati
 
 Use these four commands when you want a named task whose requirements, approvals and results
 survive a new chat. Run them in the target repository with the Rosetta plugin installed.
-Your host may display a plugin prefix; for example `$rosetta:task-define` instead of `/task-define`.
+Type them the way your host expects. In Claude Code that is `/rosetta:task-define`; other hosts use
+`$rosetta:task-define` or a bare `/task-define`. Rosetta always shows you the form your own host uses.
 
 ```text
 /task-define
@@ -96,6 +97,12 @@ Your host may display a plugin prefix; for example `$rosetta:task-define` instea
 Both create a task. The first starts with questions; the second uses your description as input.
 The agent returns a stable ID and folder, clarifies scope and acceptance criteria, authors and
 reviews requirements, and asks for approval. It stops before architecture or coding.
+
+**Each command ends at its own boundary.** It will not ask whether to continue into the next stage,
+and it will not start it. Instead it saves everything to the task files, tells you what is done and
+what is still open, and gives you one line to paste into a **new chat** — already written the way
+your host expects. A fresh chat reads the files rather than a long conversation, so the next stage
+starts from the agreed record instead of a summary of it.
 
 Use the returned ID in subsequent commands. `TASK-0001` below is an example:
 
@@ -111,6 +118,9 @@ Use the returned ID in subsequent commands. `TASK-0001` below is an example:
 | `task-spec` | Approved architecture, specification and plan | Before implementation |
 | `task-implement` | Implementation, independent review, tests and verification evidence | Final acceptance with you |
 | `tasks-list` | ID, title, stage, blockers, folder and next command | Read-only listing |
+
+When a stage cannot finish, the same stop applies: the work is saved and you get the command that
+resumes that stage, together with the decisions it still needs from you.
 
 The specification step runs the preparation part of `coding-flow`; implementation resumes its
 remaining work. Each command retains the workflow's review and approval checkpoints. Starting a

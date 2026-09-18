@@ -46,7 +46,7 @@ Input: existing task ID or folder. Output: verified delivery and explicit final 
 2. Present that exact verified delivery snapshot: requirement coverage, verification results, outstanding limitations, and exact user verification steps.
 3. Obtain explicit final user acceptance if not already recorded for this snapshot; no duplicate approval request for unchanged accepted evidence.
 4. Re-inspect before recording acceptance; changes require renewed verification and presentation. USE SKILL `task-management` to bind acceptance to the current passed verification receipt and inspect derived stage. Report done only when its completion contract holds.
-5. Return `rosetta:tasks-list`; if unfinished, report the exact continuation command and remaining work.
+5. USE SKILL `task-management` with operation `handoff`; render every command per `command-rendering`. Accepted and complete: report acceptance and offer the `tasks-list` command; no new chat is required. Unfinished: persist the outcome, hand back the continuation command with the remaining work, and end the invocation at that boundary.
 
 </accept>
 
