@@ -14,6 +14,8 @@ No `<when_to_use_skill>` block; engagement is driven by the frontmatter `descrip
 
 ## How it works
 
+Active decision-bound continuation permits diagnosed technical recovery after architect consultation and orchestrator verification. Actual drift, uncertain recovery, and unresolved decisions still escalate; ordinary invocations retain the existing stop-and-wait behavior.
+
 Single flat `SKILL.md`, no `assets/` or `references/` subfolders, no `<role>`, `<core_concepts>`, or `<validation_checklist>`. Root `<deviation>` wraps two sections: `<process>` (8 numbered steps — stop, double-check against intent, "think the opposite," escalate subagents → orchestrator → user, state briefly, wait for explicit decision, update memory, recommend `post-mortem`) and `<pitfalls>` (2 anti-patterns). No prep-steps gate — unlike most skills there is no "Rosetta prep steps MUST be FULLY completed" line, consistent with a skill meant to fire mid-task on panic/surprise rather than at a clean starting point (intent not documented).
 
 ## Mental hooks & unexpected rules

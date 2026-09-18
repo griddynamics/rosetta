@@ -14,6 +14,8 @@ Trigger set (frontmatter `description`, since no `<when_to_use_skill>` block exi
 
 ## How it works
 
+Active decision-bound continuation permits diagnosed technical recovery after architect consultation and orchestrator verification, without a confirmation-only pause. Root-cause analysis, learning, and escalation for unresolved decisions or user dissatisfaction remain mandatory; ordinary invocations retain their confirmation step.
+
 Single flat `SKILL.md`, no `assets/` or `references/` subfolders. Root `<self_learning>` wraps two sections: `<process>` — 11 numbered steps, first half (1-5) stop/root-cause/ask/state/wait, second half (6-11, headed "Memory:") consult `AGENT MEMORY.md` → init if missing → convert root cause into a generalized reusable rule → store → record what worked/failed → recommend `post-mortem` — and `<pitfalls>` (6 anti-patterns). Actor: whichever agent hits the failure; escalates to the user for confirmation, and to the user-invoked `post-mortem` skill for full harness diagnosis if the user chooses to run it.
 
 ## Mental hooks & unexpected rules

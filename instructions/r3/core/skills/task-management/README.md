@@ -16,6 +16,8 @@ It makes task resumption and listing use the same passport contract.
 
 ## How it works
 
+`consultation` routes to `references/consultation.md`: prepare a task/conversation-scoped brief, restore it from current durable evidence, and preserve advice as execution notes. The workflow dispatches the consultant; this skill does not spawn agents or grant approvals. SMALL can keep notes in `## History`; detailed reports belong to `artifacts.execution` with a handoff reference.
+
 `SKILL.md` routes the caller's intent through resolution/creation, inspection, recording,
 invalidation, or read-only listing, loading only the matching private operation reference and its listed prerequisites.
 `references/passport.md` defines the YAML frontmatter,
@@ -44,7 +46,7 @@ corrupt records remain unknown. Progress and blockers supplement the result.
 ## Invariants — do not change
 
 - Skill name and folder: `task-management`; `user-invocable: false` keeps it an internal method.
-- Operations: resolve/create, inspect, record, invalidate, list; callers address these through the skill.
+- Operations: resolve/create, inspect, record, invalidate, list, consultation; callers address these through the skill.
 - Output fields: task_id, task_folder, requirements_folder, current_stage, next_action.
 - Identity is immutable; folders use `plans/<TASK_ID>` and `docs/REQUIREMENTS/<TASK_ID>`.
 - Schema version 1 and current receipt kinds have one definition in `references/passport.md`.

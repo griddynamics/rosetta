@@ -14,7 +14,7 @@ Input: existing task ID or folder. Output: verified delivery and explicit final 
 <prerequisites phase="0" applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed.
-2. USE SKILL `load-project-context`, `hitl`; `orchestration` except trivial work.
+2. USE SKILL `load-project-context`, `orchestration`, `hitl`; activate decision-bound continuation for this invocation and its delegated work only.
 3. Use todo tasks ledger; execute sequentially; load instructions just in time.
 4. Nested workflow owns phase delegation. Dispatched subagents MUST USE SKILL `subagent-directives` and assigned skills.
 
@@ -27,14 +27,16 @@ Input: existing task ID or folder. Output: verified delivery and explicit final 
 3. Bind FEATURE to task ID, FEATURE PLAN to task folder, REQUIREMENTS to task requirements folder; provide resolved task context to the nested workflow.
 4. Already accepted and current: report completion without replaying implementation.
 
+5. USE SKILL `task-management` for consultation context. Through `orchestration`, INVOKE SUBAGENT `architect` as a separate read-only background consultant, all sizes; reuse only the same task/conversation instance. Pass its brief and decision-bound continuation to nested work. Persist material advice through `task-management`; advice never replaces human approval or independent review.
+
 </resolve>
 
 <execute phase="2" role="Orchestrator invoking implementation and verification specialists">
 
-1. USE FLOW `coding-flow.md` with explicit invocation binding `task_stage=implement` and resolved task context.
+1. USE FLOW `coding-flow.md` with explicit invocation binding `task_stage=implement`, resolved task context, consultant binding, and decision-bound continuation.
 2. Resume the earliest incomplete or freshness-unproven delivery phase. After interruption, repeat reviews, validation, and tests unless a current passed verification receipt proves unchanged exact inputs/delivery and upstream approvals; a continuation label or old report is insufficient. Retain every applicable independent review and validation phase.
 3. Preserve all applicable approval gates. Never treat plan approval or code completion as final delivery acceptance.
-4. USE SKILL `task-management` to record progress and evidence after each phase and before interruption; report failures as blockers, not completed checks.
+4. USE SKILL `task-management` to record progress and evidence after each phase and before interruption; record failures as incomplete checks; diagnose and recover under decision-bound continuation. Escalate unresolved blockers; do not end the invocation for a recoverable failure alone.
 
 </execute>
 

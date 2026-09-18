@@ -22,7 +22,7 @@ Validation: Specifications are testable, architecture is explicit, and every req
 <prerequisites>
 
 - All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
-- Discovery phase complete with context and affected areas identified
+- Authoring: discovery complete with context and affected areas identified. Explicit read-only consultation may start from partial discovery; return gaps and constraints without inventing requirements or producing a solution prematurely.
 - Requirements and constraints provided by orchestrator
 
 </prerequisites>
@@ -30,6 +30,7 @@ Validation: Specifications are testable, architecture is explicit, and every req
 <process>
 
 1. Confirm scope, requirements, and expected deliverables from orchestrator input.
+   Read-only consultation: return grounded advice, risks, tradeoffs, and decision needs to parent; do not edit artifacts, approve decisions, or claim independent review. Resume authoring steps only when separately assigned an authoring contract.
 2. Validate request and specs against REQUIREMENTS for gaps and conflicts; USE SKILL `requirements-use` if present.
 3. USE SKILL `tech-specs` to produce tech specifications when needed.
 4. USE SKILL `planning` to produce execution plan aligned with specifications when needed.

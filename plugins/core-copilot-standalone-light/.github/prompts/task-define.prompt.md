@@ -17,7 +17,7 @@ Output: registered task, reviewed requirements, durable approval state, next com
 <prerequisites phase="0" applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed.
-2. USE SKILL `load-project-context`, `hitl`; `orchestration` except trivial work.
+2. USE SKILL `load-project-context`, `orchestration`, `hitl`; activate decision-bound continuation for this invocation and its delegated work only.
 3. Use todo tasks ledger; execute sequentially; load instructions just in time.
 4. Nested workflow owns phase delegation. Dispatched subagents MUST USE SKILL `subagent-directives` and assigned skills.
 
@@ -30,11 +30,13 @@ Output: registered task, reviewed requirements, durable approval state, next com
 3. Existing task: inspect current sources and approvals; preserve history. Before changing requirements, record the proposed revision and invalidate affected downstream approvals using `task-management`.
 4. No arguments: create the task identity, then elicit the initial need; never invent requirements.
 
+5. USE SKILL `task-management` for consultation context. Through `orchestration`, INVOKE SUBAGENT `architect` as a separate read-only background consultant, all sizes; reuse only the same task/conversation instance. Pass its brief and decision-bound continuation to nested work. Persist material advice through `task-management`; advice never replaces human approval or independent review.
+
 </resolve>
 
 <requirements phase="2" role="Orchestrator invoking requirements specialists">
 
-1. USE FLOW `requirements-authoring-flow.md` with original input, resolved task, current requirements, and scoped output root.
+1. USE FLOW `requirements-authoring-flow.md` with original input, resolved task, current requirements, scoped output root, consultant binding, and decision-bound continuation. Consult before its intent/outline/requirement approval gates on gaps, feasibility, constraints, dependencies, and conflicts; await advice before presenting affected decisions. Do not require solution design to approve requirements unless observable behavior or a mandatory constraint depends on it.
 2. Preserve its discovery, questioning, independent review, and requirement approval gates. Persist task progress via USE SKILL `task-management` after each phase or interruption.
 3. Record the reviewed requirements and actual user approvals using `task-management`; unapproved work stays pending.
 4. Stop at requirements finalization. Its coding handoff is a recommendation only for this invocation; neither `/goal` nor nested instructions may start specification or implementation here.

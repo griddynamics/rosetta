@@ -243,8 +243,10 @@ share the `task-management` skill. A task passport at `plans/<TASK_ID>/TASK.md` 
 content-bound approvals, progress, and durable results; requirements use
 `docs/REQUIREMENTS/<TASK_ID>/`. Listing derives the four stages from current approvals/evidence
 without a separate central index. The commands bind stage boundaries of the existing authoring
-and coding workflows. Ordinary workflow calls do not register tasks; small-work sizing remains
-unchanged. Temporary workflow state is recoverable from the passport and its linked evidence.
+and coding workflows. The three modifying commands bind a separate read-only architect consultant
+and decision-bound continuation to their invocation. Consultation evidence is durable task execution
+state, never an approval; routine work and diagnosed recovery continue inside approved boundaries.
+Ordinary workflow calls do not register tasks; small-work sizing remains unchanged. Temporary workflow state is recoverable from the passport and its linked evidence.
 
 **Other:**
 

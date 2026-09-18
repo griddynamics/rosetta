@@ -8,7 +8,7 @@ description: "To resolve, persist, inspect, and list explicitly managed tasks wi
 <when_to_use_skill>
 
 Manage explicitly registered repository tasks; preserve identity, approvals, progress, and next action across chats.
-Inputs: operation (`resolve/create`, `inspect`, `record`, `invalidate`, `list`), target?, initial text?, stage result?.
+Inputs: operation (`resolve/create`, `inspect`, `record`, `invalidate`, `list`, `consultation`), target?, initial text?, stage result?.
 
 </when_to_use_skill>
 
@@ -37,6 +37,7 @@ Load and apply only the requested operation and its listed prerequisites:
 | `record` | READ SKILL FILE `references/record.md` | `inspect`; `invalidate` if scope changed |
 | `invalidate` | READ SKILL FILE `references/invalidate.md` | `inspect` |
 | `list` | READ SKILL FILE `references/list.md` | `inspect` |
+| `consultation` | READ SKILL FILE `references/consultation.md` | `inspect`; `record` for advice persistence |
 
 Load prerequisites through this table; apply with the passport contract and return the output below.
 

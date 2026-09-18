@@ -116,6 +116,19 @@ The specification step runs the preparation part of `coding-flow`; implementatio
 remaining work. Each command retains the workflow's review and approval checkpoints. Starting a
 new chat does not mean repeating an unchanged, recorded approval.
 
+Each modifying task command starts or reuses a task-scoped background architect consultant,
+including small tasks. The consultant checks requirements gaps, solution choices, and implementation
+risks before dependent decisions. Its advice is saved for the next chat; it remains separate from
+the specification author, independent reviewer, and your approvals. If the host supports subagents
+but not background continuation, Rosetta discloses that limitation and consults synchronously.
+Without subagent support, it reports a blocker before dependent decisions.
+
+Routine task-file work continues without repeated permission. When a technical error has a known
+cause and the architect's proposed fix stays within the approved scope, the agent repairs it,
+reruns checks, and continues. It asks you when a decision or missing input is needed, and still
+requests requirements/design/plan approvals and final acceptance. This does not bypass failed
+checks or authorize changes to agreed behavior.
+
 To revise or resume a task:
 
 ```text
