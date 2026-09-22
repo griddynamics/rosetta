@@ -94,7 +94,7 @@ XML_FRONTMATTER_OPEN = "<frontmatter{attrs}>"
 XML_FRONTMATTER_CLOSE = "</frontmatter>"
 XML_CONTENT_NOT_LOADED = "<content_not_loaded/>"
 
-COMPATIBILITY_MODE_UPGRADE_URL = "https://github.com/griddynamics/rosetta/blob/main/QUICKSTART.md"
+COMPATIBILITY_MODE_UPGRADE_URL = "https://github.com/griddynamics/rosetta/blob/main/MCPs.md"
 COMPATIBILITY_MODE_UPGRADE_NOTICE = (
     "\n\n<rosetta:compatibility_notice>"
     "\nThis Rosetta MCP is running in legacy compatibility mode."
