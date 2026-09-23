@@ -87,7 +87,7 @@ Use when your Marketplace/plugin catalog isn't available, or to avoid a live reg
 > The standalone installation is also detected by VS Code, so installing Rosetta through the standalone and marketplace methods will result in duplicate tools, commands, and context.
 
 1. Download `core-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
-2. Extract the archive contents into your repository. If `.github/copilot-instructions.md` already exists, merge contents — Rosetta first, then the original content.
+2. Extract the archive contents into your repository.
 3. Verify you can see a file `.github/agents/architect.agent.md`. Ensure there are no `.github/.github` folders.
 
 </details>

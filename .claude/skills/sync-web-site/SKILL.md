@@ -124,7 +124,7 @@ Verbosity kills documentation. These are hard rules.
 - Fix web site content inconsistencies
 - Ask questions instead of assuming
 
-If you learned something new which is reusable, there are process efficiency improvements, you can prevent faiures in the future, update `## Lessons learned` below for self-improvement.
+If you learned something new which is reusable, there are process efficiency improvements, you can prevent failures in the future, update `## Lessons learned` below for self-improvement.
 
 ## Lessons learned (self-improvement, keep updating, first line is template, keep template, follow "<instructions>", high confidence only):
 

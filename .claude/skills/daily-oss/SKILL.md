@@ -58,7 +58,7 @@ MUST USE SKILL `orchestration`, `hitl`, `load-project-context`.
 13. PREVENT YOUR CONSISTENT FAILURE: STOP RUNNING AHEAD. THERE IS NO URGENCY. TAKE THE TASK SERIOUSLY AND CAREFULLY. QUALITY IS THE PRIORITY. NO jumping to conclusions! Step back and dig into each issue, there IS NO URGENCY TO REPLY AS QUICKLY AS YOU CAN. DO NOT WASTE USER TIME WITH SHALLOW RESTATING. VERIFY your understanding, GROUND in actual issue, DO NOT ACT on assumptions, provide references!
 14. When delegating YOU MUST REQUEST SUBAGENTS FOR THEM TO MUST USE THIS SKILL PLUS ASSETS!
 
-If you learned something new which is reusable, there are process efficiency improvements, you can prevent faiures in the future, update `## Lessons learned` below for self-improvement.
+If you learned something new which is reusable, there are process efficiency improvements, you can prevent failures in the future, update `## Lessons learned` below for self-improvement.
 
 ## Lessons learned (self-improvement, keep updating, first line is template, keep template, follow "<instructions>", high confidence only):
 
