@@ -118,6 +118,34 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 14.09 – Sun 20.09
+
+The README's skill list is replaced with a full catalog: all 42 skills grouped into 11 task-shaped categories (decide what to build, build it, stay safe, recover when it goes wrong, extend, domain packs, and more), instead of two flat top-N lists that had drifted out of sync with what actually ships. Each skill's own README gained a matching one-line pitch, written from the reader's job to be done rather than paraphrased from its "Why it exists" section.
+
+The public web site and `llms-full.txt` (the dense file an AI agent reads to learn Rosetta) caught up to match. A second pass closed several sections that had drifted out of sync long before this week: a dead anchor link, a missing FAQ answer, an Automated QA section absent from the web quickstart. `llms-full.txt`'s own skill list, never updated since the file was created, named eight skills that don't exist and was missing twelve real ones; it now matches the actual `instructions/r3/core/skills` tree. Skill counts quoted across three different docs, which had drifted to 40/40/38, now read 42 everywhere; the same docs' workflow-type counts went from 13 to 17.
+
+**Highlights**
+
+- Root README's `## Skills` section replaced with a full catalog: 42 skills across 11 task-shaped groups, replacing two flat "Top Guardrails" / "Top Skills" lists
+- Every skill README gained a matching one-line pitch as its second paragraph, written from the reader's job to be done, not paraphrased from its "Why it exists" section
+- `llms-full.txt`'s skill list, unedited since the file's creation, corrected: 8 named skills that don't exist in r3 removed, 12 missing real ones added, verified against the actual `instructions/r3/core/skills` tree
+- `orchestrator-contract` renamed to `orchestration` in the three places that still used the old name; a phantom `analyst` agent removed
+- Skill counts, drifted to 40/40/38 across `docs/ARCHITECTURE.md`, its web mirror, and `llms-full.txt`, now read 42 in all three; the same three docs' workflow-type counts went from 13 to 17
+- Web site sync also closed older drift unrelated to this week's own changes: a dead anchor link on the usage-guide page, a missing quickstart Automated QA section, an architecture Versioning section, a developer-guide git pre-commit hook section, and a "why not just use IDE rules?" answer missing from the web FAQ
+- Two lessons recorded for future sync runs: verify a handed-off file against the repo instead of trusting its author's summary (caught three more stale references this way), and never edit `docs/web/llms-full.txt` directly, since CI overwrites it from the root copy on every build
+- The `checklist` skill (maintainer-internal) now asks for a mix of general and request-specific items, not just archetypal ones
+- Routine: weekly GitHub stats snapshot refreshed
+
+#### README rebuilt around a full skills catalog
+
+- **Change.** `[Docs]` Root README's skill section, previously two flat top-N lists (guardrails, then skills) that had gone stale as new skills shipped, is replaced with a categorized catalog of all 42 skills, one line each, linked to its own README, grouped by the job it does (understand what exists, decide what to build, build it, delegate the work, stay safe, recover when it goes wrong, extend, domain packs, and more). Each skill's own README gained the same one-liner as a new second paragraph, mirroring the root list; a new lesson recorded in `agents/MEMORY.md` requires editing both together so the copies don't drift, and sets the bar for writing them: state what the skill is for, in the reader's terms, at its widest true scope, and never let a section name or a single example become the subject of the sentence. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** A flat "Top 8" list can't represent 42 skills without hiding most of them; a categorized catalog scales, and a reader can find the one skill for their actual job instead of scanning an arbitrary top list. The writing bar now exists once, in a place this and future skill READMEs can both reuse.
+
+#### Web site and llms-full.txt resynced; stale counts fixed
+
+- **Change.** `[Docs]` The web site's introduction and architecture pages, and `llms-full.txt`, are updated to match the new README skills catalog, then swept for older drift found independently: a dead `#how-rosetta-protects-you` anchor on the web usage-guide page, a missing quickstart Automated QA section, an architecture Versioning section, a developer-guide git pre-commit hook write-up, and a "why not just use IDE rules?" answer missing from the web FAQ (root `FAQ.md` got the same entry, so the pair can't drift apart again). `llms-full.txt`'s own skill list, unedited since the file was created, named eight skills that no longer exist in r3 and omitted twelve real ones; it's now verified against the actual `instructions/r3/core/skills` tree, with `orchestrator-contract` renamed to `orchestration` and a phantom `analyst` agent removed. Skill counts quoted in `docs/ARCHITECTURE.md`, its web mirror, and `llms-full.txt` had drifted to 40/40/38; all three now read 42. The same three docs' workflow-type counts moved from 13 to 17; agent counts (10) were already consistent and untouched. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** Docs that quote a stale skill list or a wrong count actively mislead a reader trying to learn what Rosetta can do; catching drift that predates the week's own changes, not just the changes themselves, is the point of a sync pass. Two lessons recorded for the next one: a peer session's own summary of its diff is a claim to verify, not evidence to adopt (verifying one handoff here caught three more stale references), and the web copy of `llms-full.txt` is a CI-generated artifact overwritten from the root file on every build, so it's never the one to edit.
+
 ### Week Mon 31.08 – Sun 06.09
 
 A new harness skill formalizes how the AI builds the apparatus it needs to run, observe, and automate its own work — CLI/MCP actions, devcontainers, per-agent skill and hook authoring, unattended automations — covering eight coding agents (Claude Code, Codex, Cursor, Copilot, Windsurf, Antigravity, opencode, JetBrains Junie) with real captured session logs as evidence, not claims. The coding and testing skills now point at it directly instead of a narrow "CLI testing harness for libraries" line.
