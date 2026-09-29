@@ -2,7 +2,7 @@
 
 **Who is this for?** Engineers setting up a workspace (in the VS Code sense) for the first time, so AI coding agents work well in it.
 
-**When should I read this?** After you connect Rosetta (see [Quick Start](QUICKSTART.md)), and before you start real coding or modernization work.
+**When should I read this?** After you connect Rosetta (see [Quick Start](README.md#quick-start)), and before you start real coding or modernization work.
 
 ---
 
@@ -16,8 +16,8 @@ If you are migrating or modernizing a codebase, do the steps below first, then r
 
 ## 1. Install and Onboard
 
-1. Connect Rosetta to your IDE — follow the [Quick Start](QUICKSTART.md).
-2. Onboard the repository to Rosetta (Quick Start, Step 2). This is required before the steps below.
+1. Connect Rosetta to your IDE — follow [PLUGINS.md](PLUGINS.md), [MCPs.md](MCPs.md), or [INSTALLATION.md](INSTALLATION.md).
+2. Onboard the repository to Rosetta — follow [Installation — Initialize Repository](INSTALLATION.md#step-4-initialize-repository). This is required before the steps below.
 
 ---
 
@@ -189,7 +189,7 @@ Setup actions:
 
 - Open the repository in your IDE.
 - Clone any read-only reference codebases into `refsrc/` as subfolders.
-- Initialize Rosetta (see [Quick Start](QUICKSTART.md)).
+- Initialize Rosetta (see [Installation — Initialize Repository](INSTALLATION.md#step-4-initialize-repository)).
 
 <details>
 <summary><b>Detailed examples what should be in RefSrc folder</b></summary>
@@ -328,7 +328,7 @@ Setup actions:
 
 - Create a new empty git repository to serve as the composite workspace envelope.
 - Request AI to add each sub-repository (code, infra, QA, frontend, shared libraries, etc.) as a git submodule and clone them into the envelope.
-- Initialize Rosetta in the envelope workspace, telling it this is a composite workspace and that `ARCHITECTURE.md` must record that submodules are used for dynamic and optionally sparse-checkout (see [Quick Start](QUICKSTART.md)).
+- Initialize Rosetta in the envelope workspace, telling it this is a composite workspace and that `ARCHITECTURE.md` must record that submodules are used for dynamic and optionally sparse-checkout (see [Installation — Initialize Repository](INSTALLATION.md#step-4-initialize-repository)).
 - Development teams can then use sparse-checkout on modules and/or they can select submodules they need.
 - AI can dynamically check out a missing submodule at any point: `git submodule update --init <name>`.
 
@@ -369,7 +369,7 @@ Setup actions:
 - Create a new empty git repository to serve as the composite workspace envelope.
 - Clone each sub-repository (code, infra, QA, frontend, shared libraries, etc.) into the envelope as a plain folder.
 - Add each cloned folder to `.gitignore` so it is excluded from the envelope's git tracking.
-- Initialize Rosetta in the envelope workspace, telling it this is a composite workspace (see [Quick Start](QUICKSTART.md)).
+- Initialize Rosetta in the envelope workspace, telling it this is a composite workspace (see [Installation — Initialize Repository](INSTALLATION.md#step-4-initialize-repository)).
 
 ---
 
@@ -402,3 +402,8 @@ The old code in `refsrc/` keeps its own `docs/CONTEXT.md` and `docs/ARCHITECTURE
 
 - Use `/requirements-authoring-flow` or `Allium` to generate specs from the existing old code.
 - Use `/coding-flow` for unit tests and `/ui-aqa-flow` for e2e tests to cover the old code before you change it.
+
+## Next Steps
+
+- [Workflows](USAGE_GUIDE.md#workflows) — choose and run the right Rosetta workflow.
+- [Best Practices](USAGE_GUIDE.md#best-practices) — use the practices that improve workflow results.

@@ -17,7 +17,7 @@ If none of these are true, Rosetta is not active for this session. See [INSTALLA
 
 **How do I install Rosetta for the first time?**
 
-See the [Quick Start Guide](QUICKSTART.md) for the fastest path, or [INSTALLATION.md](INSTALLATION.md) for the full setup including the fallback bootstrap rule. Once installed, [QUICKSTART.md](QUICKSTART.md) walks you through your first session.
+See the [Quick Start](README.md#quick-start) for the fastest path, or [INSTALLATION.md](INSTALLATION.md) for the full setup including the fallback bootstrap rule. Once installed, follow [Installation — Initialize Repository](INSTALLATION.md#step-4-initialize-repository) for your first session.
 
 **Which Rosetta release should I use?**
 
@@ -77,7 +77,7 @@ Pick a **medium** model — **Sonnet 5**, **GPT-5.6-terra-medium**, or **gemini-
 - **Running everything on a high-reasoning/Opus model.** Opus-class models spend heavily on reasoning and can exhaust a daily balance in one sitting. Rosetta already assigns an appropriate model per subagent and switches automatically, so you do not need to force the most expensive model for the whole session.
 - **Letting Auto pick the model.** Auto often downgrades to a weaker model mid-task, producing low-quality results. Choose the model explicitly.
 
-See the model guidance in [QUICKSTART.md](QUICKSTART.md).
+Use the model guidance in the [Model Selection](#model-selection) section above.
 
 **How do I reduce token cost?**
 

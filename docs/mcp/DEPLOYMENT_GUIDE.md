@@ -1,7 +1,7 @@
 # Deployment Guide
 
 **Who is this for?** Engineers deploying self-hosted Rosetta MCP infrastructure for their organization. This is optional — only needed if you specifically require centrally-managed instructions or an IDE with no Rosetta plugin; most teams should use [Plugins](../../PLUGINS.md) instead.
-**When should I read this?** When you've decided you need self-hosted MCP and want to stand up Rosetta Server (RAGFlow) and Rosetta MCP for your team. For single-user setup, see [QUICKSTART.md](../../QUICKSTART.md). For client/IDE configuration, see [INSTALLATION.md](../../INSTALLATION.md).
+**When should I read this?** When you've decided you need self-hosted MCP and want to stand up Rosetta Server (RAGFlow) and Rosetta MCP for your team. For single-user setup, see the [Quick Start](../../README.md#quick-start). For client/IDE configuration, see [INSTALLATION.md](../../INSTALLATION.md).
 
 > [!WARNING]
 > **Never expose RAGFlow or Rosetta MCP directly to the internet.** Always place an API gateway, reverse proxy, or firewall in front of both services. Both have application-level authentication (RAGFlow: user accounts, OIDC/SSO, API keys; Rosetta MCP: OAuth 2.1), but network-level protection is still required as a defense-in-depth measure.
@@ -527,7 +527,7 @@ Production deploys require a manual image tag bump in `values-prod.yaml`.
 
 ## Related Docs
 
-- [QUICKSTART.md](../../QUICKSTART.md) - single-user setup (zero to working in minutes)
+- [Quick Start](../../README.md#quick-start) - single-user setup (zero to working in minutes)
 - [INSTALLATION.md](../../INSTALLATION.md) - client/IDE configuration, all transport modes
 - [docs/ARCHITECTURE.md](../ARCHITECTURE.md) - system structure and component relationships
 - [TROUBLESHOOTING.md](../../TROUBLESHOOTING.md) - common issues and fixes

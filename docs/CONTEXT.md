@@ -144,7 +144,7 @@ These principles shape every product and architectural decision:
 - [Developer Guide](../DEVELOPER_GUIDE.md): Repo navigation, where to change what
 - [Contributing](../CONTRIBUTING.md): Fastest path to merged PR
 - [Review](../REVIEW.md): What reviewers verify, what authors provide
-- [Quickstart](../QUICKSTART.md): Zero to working setup
+- [Quick Start](../README.md#quick-start): Zero to working setup
 - [Usage Guide](../USAGE_GUIDE.md): How to use Rosetta day-to-day
 - [Deployment Guide](mcp/DEPLOYMENT_GUIDE.md): Self-hosted MCP server and infrastructure setup (optional, rarely needed)
 - [Troubleshooting](../TROUBLESHOOTING.md): Symptom-first diagnosis

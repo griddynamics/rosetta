@@ -204,7 +204,7 @@ It should use Rosetta MCP to retrieve agents, guardrails, and instructions:
 
 Once the MCP is verified:
 
-- **Run your first session and initialize the repo** — see [QUICKSTART.md](QUICKSTART.md).
+- **Run your first session and initialize the repo** — see [Installation — Initialize Repository](INSTALLATION.md#step-4-initialize-repository).
 - **Explore the workflows** (coding, requirements authoring, modernization, and more) — see [USAGE_GUIDE.md — Workflows](USAGE_GUIDE.md#workflows).
 
 ## Links
