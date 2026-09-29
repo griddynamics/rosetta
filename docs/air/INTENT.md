@@ -16,12 +16,17 @@ Engineering priority changes.
 2. Molecules - advanced skills, workflows for use cases, each covers one use-case, one state-machine, adopting to current context, combines atoms skills, configurable (mildly opinionated).
    Examples: review all pending PRs (orchestration + backlog + automation), coding (discovery + design + specs + planning + implementation + testing + validation), api aqa (qa structure + qa knowledge + testing), etc.
 
-3. Organisms - full end-to-end automation of business processes, each skill is one process, opinionated, combines atoms and molecules.
+3. Organisms - full end-to-end automation of business processes, each skill is one process, opinionated, combines atoms and molecules. One organism is one autonomous software factory.
    Examples: automated development on top of kanban board, modernization (discovery, design, and multiple coding workflow sessions), bootstrapping entire knowledge layer with reverse engineering, etc.
+
+# Priorities
+
+1. Atoms > Molecules > Organisms
+2. Self-improvement is delivered with organisms
 
 # New directions
 
-- Self-evolution - capture lessons learned, capture what worked, split by skill, dedicated cycle to improve prompts both shared and custom
+- Self-improvement - capture lessons learned, capture what worked, split by skill, dedicated cycle to improve prompts both shared and custom
 - Self-organization - organize knowledge according to OKF bundles, split large files into smaller ones, etc.
 - Based on customization - make best use of local customizations - reuses and combines atom skills to build automation for current project using provided templates of molecules and organisms skills. Molecules are adapted, Organisms are used as accelerators. Subagents and hooks are configured as per user review for their models, tools, etc. Rosetta skills defines what it needs, templates, and how to configure those. Team person uses skill to configure that all.
 - Works on medium to large and beyond tasks
@@ -33,6 +38,7 @@ Engineering priority changes.
 - Use cases / workflows are state-machine-like workflows
 - Store plan, execution state, etc.
 - Replace python/node with much faster tooling
+- We build entire software factory specific to the project according to the needs of the project, from triage to implementation, review, and operations
 
 Almost nothing is lost from old rosetta, but instead converted and pivoted.
 
