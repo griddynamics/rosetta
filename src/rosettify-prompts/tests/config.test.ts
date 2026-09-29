@@ -67,6 +67,27 @@ describe('parseConfig', () => {
     ).toThrow(/duplicate variant id/);
   });
 
+  it('rejects duplicate suite ids before execution', () => {
+    expect(() =>
+      parseConfig({
+        suites: [
+          { id: 'suite-a', variants: [{ id: 'v1', turns: ['first'] }] },
+          { id: 'suite-a', variants: [{ id: 'v1', turns: ['second'] }] },
+        ],
+      }),
+    ).toThrow(/Duplicate suite id "suite-a"/);
+  });
+
+  it('allows the same variant id in different suites', () => {
+    const config = parseConfig({
+      suites: [
+        { id: 'suite-a', variants: [{ id: 'v1', turns: ['first'] }] },
+        { id: 'suite-b', variants: [{ id: 'v1', turns: ['second'] }] },
+      ],
+    });
+    expect(config.suites.map((suite) => suite.id)).toEqual(['suite-a', 'suite-b']);
+  });
+
   it('rejects a thinking budget below the Anthropic minimum of 1024', () => {
     expect(() =>
       parseConfig(minimalSuite({ thinking: { enabled: true, mode: 'manual', budgetTokens: 100 } })),
