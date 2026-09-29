@@ -26,11 +26,12 @@ const MARKER_FIELDS_BY_TOOL: Readonly<Record<string, readonly string[]>> = {
   MultiEdit: ['edits'],
 };
 
-const MCP_MARKER_FIELDS = ['command', 'sql', 'query', 'new_string', 'content'] as const;
-
 const MCP_SHELL_FIELDS   = ['command', 'cmd', 'shell_command'] as const;
 const MCP_PATH_FIELDS    = ['path', 'file_path', 'filePath', 'target', 'target_path'] as const;
 const MCP_CONTENT_FIELDS = ['content', 'new_string', 'query', 'sql'] as const;
+// Markers are accepted only in writable MCP payload fields. Paths remain excluded
+// so an override cannot be carried solely by changing an operation target.
+const MCP_MARKER_FIELDS = [...new Set([...MCP_SHELL_FIELDS, ...MCP_CONTENT_FIELDS])] as const;
 
 type PatternHit = { result: HookResult; pattern: DangerPattern | null };
 
