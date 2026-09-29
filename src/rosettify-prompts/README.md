@@ -198,6 +198,8 @@ Fields:
 - `model`, `maxOutputTokens`, `thinking`, `repetitions`, `concurrency`: global
   defaults. Any of them can be overridden per suite (`suites[].model`,
   `suites[].thinking`, etc.).
+- `suites[].id`: must be unique across the config. Duplicate suite IDs are
+  rejected before any runs because reports group results by suite and variant ID.
 - `thinking.mode`:
   - `"adaptive"` (default): depth is controlled by `effort`
     (`low`/`medium`/`high`/`xhigh`/`max`). Required by current-gen models

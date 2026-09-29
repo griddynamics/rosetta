@@ -92,7 +92,12 @@ export function parseConfig(raw: unknown): BenchConfig {
     throw new Error(formatZodError(result.error));
   }
   const parsed = result.data;
+  const suiteIds = new Set<string>();
   for (const suite of parsed.suites) {
+    if (suiteIds.has(suite.id)) {
+      throw new Error(`Duplicate suite id "${suite.id}".`);
+    }
+    suiteIds.add(suite.id);
     const maxOut = suite.maxOutputTokens ?? parsed.maxOutputTokens;
     const thinking = suite.thinking ?? parsed.thinking;
     if (thinking.enabled && thinking.mode === 'manual' && thinking.budgetTokens >= maxOut) {
