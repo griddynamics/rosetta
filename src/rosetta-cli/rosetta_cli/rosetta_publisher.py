@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import cast
 
 from .services.document_service import DocumentService
-from .services.document_data import DocumentData
+from .services.document_data import DocumentData, InvalidTextEncodingError
 from .ragflow_client import DocumentMetadata, RAGFlowClient, RAGFlowClientError
 from .rosetta_config import DEFAULT_PARSE_TIMEOUT
 from .typing_utils import DocumentLike, JsonDict
@@ -182,6 +182,15 @@ class ContentPublisher:
                 )
                 all_caches.append(cache)
 
+            except InvalidTextEncodingError as e:
+                print(f"✗ Error reading {file.name}: {e}")
+                results.append(PublishResult(
+                    success=False,
+                    document_id="",
+                    file_path=str(file),
+                    tags=[],
+                    error=str(e),
+                ))
             except Exception as e:
                 print(f"✗ Error reading {file.name}: {e}")
                 continue
@@ -346,11 +355,20 @@ class ContentPublisher:
                 )
             
             # Create cache on-the-fly (still better than reading multiple times)
-            cache = DocumentData.from_file(
-                file,
-                self.workspace_root,
-                publish_root=file.parent,
-            )
+            try:
+                cache = DocumentData.from_file(
+                    file,
+                    self.workspace_root,
+                    publish_root=file.parent,
+                )
+            except InvalidTextEncodingError as e:
+                return PublishResult(
+                    success=False,
+                    document_id="",
+                    file_path=str(file),
+                    tags=[],
+                    error=str(e),
+                )
             
             ims_doc_id = cache.ims_doc_id
             content = cache.content

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from rosetta_cli.services.document_data import DocumentData
+from rosetta_cli.services.document_data import DocumentData, InvalidTextEncodingError
 
 
 def test_frontmatter_metadata_merge_and_sort_order(tmp_path: Path):
@@ -152,19 +152,12 @@ def test_text_hash_preserves_existing_format(tmp_path: Path):
     )
 
 
-def test_invalid_utf8_text_suffix_uses_binary_content_state(tmp_path: Path):
+def test_invalid_utf8_text_suffix_raises_clear_encoding_error(tmp_path: Path):
     path = tmp_path / "example.md"
     path.write_bytes(b"\xff---\ntags: [ignored]\n---\nbody")
-    original = DocumentData.from_file(path, workspace_root=tmp_path)
-    path.write_bytes(b"\xfe---\ntags: [ignored]\n---\nbody")
-    replacement = DocumentData.from_file(path, workspace_root=tmp_path)
 
-    assert not original.is_text and not replacement.is_text
-    assert original.content_str is None and replacement.content_str is None
-    assert original.line_count is None and replacement.line_count is None
-    assert original.frontmatter is None and replacement.frontmatter is None
-    assert "ignored" not in original.tags and "ignored" not in replacement.tags
-    assert original.content_hash != replacement.content_hash
+    with pytest.raises(InvalidTextEncodingError, match=r"example\.md is not valid UTF-8"):
+        DocumentData.from_file(path, workspace_root=tmp_path)
 
 
 def test_binary_hash_still_includes_metadata(tmp_path: Path):

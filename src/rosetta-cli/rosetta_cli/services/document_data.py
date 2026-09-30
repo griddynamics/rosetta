@@ -18,6 +18,13 @@ except Exception:  # pragma: no cover - guarded at runtime
     frontmatter = None
 
 
+class InvalidTextEncodingError(ValueError):
+    """Raised when a text-suffix file cannot be decoded as UTF-8."""
+
+    def __init__(self, file_path: Path):
+        super().__init__(f"{file_path} is not valid UTF-8")
+
+
 def _is_r2_or_later(release: str) -> bool:
     """Check if release is r2 or later (r2, r3, r2.5, etc.)."""
     if not release or not release.startswith("r"):
@@ -85,8 +92,8 @@ class DocumentData:
         if is_text:
             try:
                 content_str = content.decode("utf-8")
-            except UnicodeDecodeError:
-                is_text = False
+            except UnicodeDecodeError as error:
+                raise InvalidTextEncodingError(file_path) from error
 
         # Count lines platform-independently: \r\n, \n\r, \r, \n all count as separators
         line_count = None

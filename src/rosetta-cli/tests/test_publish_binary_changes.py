@@ -126,3 +126,45 @@ def test_configured_pdf_filter_keeps_binary_change_detection(tmp_path: Path):
     [unchanged] = publisher.publish_folder(str(instructions), parse_documents=False)
     assert unchanged.success and unchanged.skipped
     client.upload_document.assert_not_called()
+
+
+def test_invalid_utf8_text_suffix_fails_direct_publication(tmp_path: Path):
+    path = tmp_path / "instructions" / "r3" / "core" / "invalid.md"
+    path.parent.mkdir(parents=True)
+    path.write_bytes(b"\xffinvalid")
+    client = Mock(spec=RAGFlowClient)
+    publisher = ContentPublisher(client, str(tmp_path))
+
+    result = publisher.publish_file(str(path), parse_documents=False)
+
+    assert not result.success
+    assert Path(result.file_path) == path
+    assert result.error == f"{path} is not valid UTF-8"
+    client.upload_document.assert_not_called()
+
+
+def test_invalid_utf8_text_suffix_fails_in_folder_without_blocking_valid_files(tmp_path: Path):
+    instructions = tmp_path / "instructions"
+    invalid_path = instructions / "r3" / "core" / "invalid.md"
+    valid_path = instructions / "r3" / "core" / "valid.md"
+    invalid_path.parent.mkdir(parents=True)
+    invalid_path.write_bytes(b"\xffinvalid")
+    valid_path.write_text("# Valid\n", encoding="utf-8")
+    client = Mock(spec=RAGFlowClient)
+    client.page_size = 1000
+    client.get_dataset.return_value = SimpleNamespace(id="dataset")
+    client.get_existing_doc.return_value = None
+    client.list_documents.return_value = []
+    client.upload_document.return_value = SimpleNamespace(id="valid-document"), "dataset"
+    publisher = ContentPublisher(client, str(tmp_path))
+
+    results = publisher.publish_folder(str(instructions), parse_documents=False)
+
+    assert len(results) == 2
+    failed = next(result for result in results if Path(result.file_path) == invalid_path)
+    succeeded = next(result for result in results if Path(result.file_path) == valid_path)
+    assert not failed.success
+    assert failed.error == f"{invalid_path} is not valid UTF-8"
+    assert succeeded.success
+    assert client.upload_document.call_count == 1
+    assert client.upload_document.call_args.kwargs["file_path"] == valid_path
