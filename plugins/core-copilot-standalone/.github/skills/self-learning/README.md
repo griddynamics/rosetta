@@ -2,6 +2,8 @@
 
 On failure or mismatch, forces a hard stop and root-cause analysis before any fix, then converts the root cause into a generalized rule persisted in agent memory instead of a one-off patch.
 
+After a failure or a wrong result, stops and finds the cause, then records a reusable rule in the repo's memory so it does not repeat.
+
 ## Why it exists
 
 Without this skill a capable model reacts to failure by patching the visible symptom, trying "one more thing," or replanning immediately — never pausing to establish the actual root cause, and never writing anything durable down. Any lesson learned dies with the session. The skill forces stop-before-fix, root-cause-before-replan, explicit user confirmation before continuing, and mandates persisting the generalized rule to `agents/MEMORY.md` rather than an incident-specific note.

@@ -1,6 +1,8 @@
 # backlog
 Two-mode backlog skill: decide whether an existing story is honestly ready for development, and break approved work into a human WBS.
 
+Turns a thin ticket into a buildable one: gaps found, questions posed, facts written back. Also produces a WBS for people.
+
 ## Why it exists
 Left to plain judgment, an agent handed a story either declares it fine and starts coding, or declares it blocked and stops. Both are wrong. This skill forces a code-grounded readiness verdict on two independent axes, and makes an unready story *partially actionable* instead of blocked. The failure modes it targets are named in the technical-analysis prompt: nobody should discover mid-sprint that an external contract was never read, a package was never used here, or a field does not exist.
 

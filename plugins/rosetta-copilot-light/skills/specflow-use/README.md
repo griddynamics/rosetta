@@ -2,6 +2,8 @@
 
 Connector skill that lets the agent drive the remote Grid Dynamics **SpecFlow** product through **SpecFlow MCP**, routing the user through pregeneration/generation/post-run phases without ever touching the remote workspace directly.
 
+Connects your workspace to Grid Dynamics SpecFlow through its MCP.
+
 ## Why it exists
 
 Without it, a model encountering "SpecFlow" would be tempted to reach into the remote workspace itself, re-derive MCP tool schemas that the MCP server already injects at connection time, invent its own status/checkpoint meanings, or try to fix specs itself instead of handing that loop to the `requirements-authoring` skill. The skill exists to keep the agent a thin, correctly-sequenced client of an external product it does not own.

@@ -1,6 +1,8 @@
 # solr-query
 Builds and debugs Apache Solr 9.x queries — parser selection, eDisMax, block join, JSON Facets, kNN, explain — at the syntax level the official docs underspecify.
 
+Apache Solr queries that return what you meant: eDisMax, block join, JSON facets, kNN, explain output, relevancy tuning.
+
 ## Why it exists
 A model asked to write or debug a Solr query will guess at plausible-looking syntax: invented parsers (`{!phrase}`, `{!exact}`), a hard `mm=3` that zeroes out short queries, a narrowed block-join `which=` that corrupts the block mask, scoring logic placed in `fq` (which never scores), or a default post-filtered kNN that returns near-zero results under a selective `fq`. None of these raise an error — they just produce wrong or empty results silently. The skill replaces guessing with named decision tables (`bf` vs `bq` vs `boost`, `{!child}` vs `[subquery]`, BM25 vs `BooleanSimilarity`) and an anti-pattern catalog, so answers are checked against documented landmines instead of reconstructed from memory of the docs.
 

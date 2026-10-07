@@ -1,6 +1,8 @@
 # planning
 Produces a graph of session plan files for incremental modernization. Each file is later executed by a coding agent. Human WBS lives in the `backlog` skill.
 
+An ordered graph of AI sessions for automated execution, each with its own scope, checklist, and handoff.
+
 ## Why it exists
 Without it, a plan restates docs, narrates process the executor already knows, or dumps code instead of WHAT + CHECKLIST. The skill forces terse session files, project-specific traps only, dependency-ordered decomposition, and a handoff index that stays factual.
 

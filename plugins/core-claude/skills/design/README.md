@@ -2,6 +2,8 @@
 
 Decides architecture: what is actually being decided, real alternatives weighted by how hard they are to unwind, a committed decision with rationale, boundaries, and the domain's non-obvious concerns.
 
+Deep architecture decisions with defended rejections, plus domain playbooks: distributed systems, multi-tenancy, payments, regulated data, migrations.
+
 ## Why it exists
 Targets decision failures a capable model still makes unprompted: converging on the first plausible answer, equal ceremony for one-way and reversible choices, re-deciding what the running system already settled, resolving tradeoffs the user owns, and missing the concern the domain makes expensive. Domain assets carry only what a model does not raise on its own.
 

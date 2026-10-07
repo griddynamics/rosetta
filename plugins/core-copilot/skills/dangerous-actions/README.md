@@ -2,6 +2,8 @@
 
 Guardrail skill that forces blast-radius reasoning before any potentially irreversible or catastrophic action.
 
+Before anything irreversible: blast radius first, safer alternatives offered, explicit approval required. Higher environments are off limits.
+
 ## Why it exists
 
 Without this skill a capable model will run `rm -rf`, `git reset --hard`, force-pushes, DDL drops, or writes to secret files as routine steps inside a larger task, treating them as no different from any other tool call — because nothing else in the always-on bootstrap forces a blast-radius check before destructive or irreversible operations. It fixes the failure mode of an AI executing a catastrophic, hard-to-undo action while focused on completing the user's actual (often unrelated, trivial) request. The skill makes the model stop and assess consequences ("THINK THE OPPOSITE") before executing.

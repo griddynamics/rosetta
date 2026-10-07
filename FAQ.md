@@ -126,6 +126,10 @@ Rosetta also adds guardrails, HITL approval gates, sensitive-data handling, and 
 
 If you already have a sophisticated harness for the one workflow you care about, you may not need Rosetta. If you want a broad, consistent foundation across many engineering activities, that's where Rosetta fits.
 
+**Why not just use IDE rules (`.cursorrules`, `CLAUDE.md`, Copilot custom instructions)?**
+
+They are useful, but they are usually local to one tool, one repo, or one developer. Rosetta makes instructions layered, versioned, reusable, and portable across agents and IDEs. Organization standards flow into every project, while project-specific context stays local and customizable. On top of that, Rosetta adds the workflows, guardrails, and approval gates that flat rules files do not provide.
+
 **What's the difference between a skill, workflow, agent, and rule?**
 
 - **Rule** — always-on policy the agent must follow (e.g. guardrails, HITL questioning, file naming). Loaded at the start of every session.

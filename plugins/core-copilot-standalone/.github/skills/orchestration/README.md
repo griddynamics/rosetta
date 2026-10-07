@@ -1,6 +1,8 @@
 # orchestration
 Turns the top-level agent from a worker into a senior team lead who delegates, sizes, and quality-gates subagent work instead of doing it directly.
 
+Sizes the work, builds and briefs a subagent team, and gates every result through fresh eyes instead of self-review. Large plans run with phases, steps, and tasks.
+
 ## Why it exists
 Without this skill a strong model left alone tends to: do the work itself instead of delegating; write a vague subagent prompt and trust whatever comes back; skip sizing the request (treating a 15-file change like a 1-file one, or over-planning a trivial one); let subagents self-review; and lose the plan state across a long multi-phase session. This skill forces a fixed decision path (size → team/plan → structured prompt → mini-loop review) and a mandatory prompt template so delegation is repeatable and verifiable, and it hands off to a session-level execution controller (external CLI, with a todo-task fallback) once work exceeds ad-hoc tracking.
 

@@ -2,6 +2,8 @@
 
 Runs the executor as a "Farm Leader" driving multiple external coding-agent CLIs (Claude, Codex, Copilot, Gemini, OpenCode, Goose) in parallel on isolated git worktrees.
 
+Runs Claude, Codex, Copilot, Gemini and others in parallel on isolated git worktrees, for throughput or cross-model validation. Burns money fast, so it is gated behind explicit consent.
+
 ## Why it exists
 
 Without this skill a model asked to "parallelize this across a few agents" would improvise: skip the explicit money-risk confirmation, guess at CLI flags from stale training data (wrong `--yolo`/permission-mode syntax, wrong model ids), run agents on the same working tree instead of separate worktrees (write collisions), and fail to notice a sub-agent claiming completion with no test evidence, going idle on a rate limit, or drifting out of scope. This skill fixes those by hardcoding the confirmation gate, the exact CLI/flag table per provider, worktree isolation, and a monitor/intervene loop with named failure signals.

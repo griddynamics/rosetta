@@ -284,6 +284,36 @@ venv/bin/pytest src/rosetta-cli/tests
 
 Run this after any Python code change.
 
+### Git pre-commit hook
+
+The repository ships a native Git pre-commit hook shim in `.githooks/pre-commit`.
+It runs the Python entrypoint at `scripts/pre_commit.py`, which first regenerates all plugin payloads (via `npx -y rosettify-plugins@latest`) and then executes type validation.
+
+Use the root repo virtualenv for hook execution:
+
+```bash
+python3 -m venv venv
+venv/bin/pip install -r requirements.txt
+git config core.hooksPath .githooks
+```
+
+Git does not automatically use the repository's `.githooks/` directory.
+Each developer must run `git config core.hooksPath .githooks` once in their local clone to enable the native pre-commit hook.
+
+On Windows, use the matching root-venv interpreter and pip executable:
+
+```powershell
+py -3 -m venv venv
+venv\Scripts\pip.exe install -r requirements.txt
+git config core.hooksPath .githooks
+```
+
+You can test the hook entrypoint directly:
+
+```bash
+venv/bin/python scripts/pre_commit.py
+```
+
 ---
 
 ## Dev Environment: Integration Testing

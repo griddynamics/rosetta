@@ -1,6 +1,8 @@
 # questioning
 Loop-until-clear clarification gate: batches a few high-impact questions, each with a priority, a "why it matters," and an enterprise safe default, instead of guessing or asking everything at once.
 
+A few high-impact questions before work starts, each one decision, with why it matters and a recommended answer. Anything researchable it answers itself.
+
 ## Why it exists
 Failure mode fixed: users rarely state scope, security, UX, and technical decisions correctly in one shot, and a model left to its own judgment either silently assumes and proceeds, or dumps an unbounded list of questions instead of a few independent ones, or asks once and stops instead of looping as answers reshape the picture, or asks without a recommended default so the user has nothing to approve/reject quickly, or loses track of which questions are still open. `questioning` forces a bounded, prioritized, default-carrying loop with an explicit halt condition instead.
 

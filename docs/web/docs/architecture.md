@@ -136,6 +136,14 @@ Requests are classified only when the user invokes `/rosetta`; a plain request l
 
 ---
 
+## Versioning
+
+Each individual solution component follows its own version (except major).
+
+All plugins follow the same version.
+
+---
+
 ## Rosettify
 
 Local CLI/MCP utility for AI coding agents and users. Purpose: deterministic local AI coding workflow execution and single entry point for Rosetta tooling in any project. All data and IP stays local — zero network calls during operation.
@@ -271,7 +279,7 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are the primary delivery mechanism for Rosetta. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-Each plugin contains core instructions: 40 skills, 10 agents, 13 workflow types, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
+Each plugin contains core instructions: 42 skills, 10 agents, 17 workflow types, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
 
 | Plugin | IDE | Mode |
 |---|---|---|

@@ -2,6 +2,8 @@
 
 Meta-cognitive skill that forces an 8-step DISCOVERY→DECIDE flow with explicit confidence and Tree-of-Thoughts branch expansion before a decision is committed.
 
+Breaks a hard problem down, identifies roles, boundaries, events, models. Works via Tree-of-Thoughts, expanding every alternative to its conclusion before committing.
+
 ## Why it exists
 
 Without this skill a capable model jumps to a plausible-sounding answer, states it with unearned confidence, and never checks the strongest alternative to its own leading hypothesis. It fixes that failure mode by making decomposition, framework selection, and confidence scoring explicit steps, then forcing a second pass: DEBRIEF gates on confidence and DECIDE requires branching to competing answers — not just confirming the first one — before committing.

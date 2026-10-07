@@ -310,7 +310,7 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are the primary delivery mechanism for Rosetta. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-Plugin folders are named `<set>-<ide>`. `plugins.json` declares six *plugin* sets: the five domain sets plus `rosetta`, which bundles all five. Six times seven IDE targets, plus a `-light` variant of `rosetta`, gives 49 folders. The content of a given set is identical across IDEs; only the format differs.
+Plugin folders are named `<set>-<ide>`. `plugins.json` declares six *plugin* sets: the five domain sets plus `rosetta`, which bundles all five (42 skills, 10 agents, 17 workflow types, and bootstrap rules). Six times seven IDE targets, plus a `-light` variant of `rosetta`, gives 49 folders. The content of a given set is identical across IDEs; only the format differs.
 
 | Set folder prefix | Contains | Requires |
 | ----------------- | -------- | -------- |

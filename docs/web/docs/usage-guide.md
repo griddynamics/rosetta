@@ -485,7 +485,7 @@ Add project-specific rules alongside Rosetta without touching its files.
 |-------------|----------------|-----------------|
 | Cursor | `.cursor/rules/agents.mdc` | `.cursor/rules/*.mdc` |
 | Claude Code | `CLAUDE.md` | `.claude/rules/*.md` |
-| GitHub Copilot | `.github/copilot-instructions.md` | |
+| GitHub Copilot | `.github/copilot-instructions.md` | `.github/instructions/*.instructions.md` |
 | Windsurf | `.windsurf/rules/*.md` | All `.md` files auto-load |
 | JetBrains (Junie + AI Assistant) | `.aiassistant/rules/agents.md` | `.junie/guidelines.md` |
 | Antigravity / Google IDX | `.agents/rules/agents.md` | `.agents/rules/*.md` |
@@ -668,6 +668,8 @@ What happens:
 ```
 
 </details>
+
+<a id="how-rosetta-protects-you"></a>
 
 <details markdown="1">
 <summary><b>How Rosetta Protects You</b></summary>
