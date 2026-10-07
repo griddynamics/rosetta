@@ -11,7 +11,7 @@
 // returns a list of violations (empty = valid).
 //
 // Sources cited per function: docs/hooks/<ide>.md and FR-HOOK-0005
-// (docs/requirements/plugin-generator/FR-HOOK.md).
+// (docs/REQUIREMENTS/plugin-generator/FR-HOOK.md).
 
 export type Violation = string;
 

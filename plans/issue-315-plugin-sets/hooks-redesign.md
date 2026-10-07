@@ -192,7 +192,7 @@ where it matters most.
 
 This is **not** the same thing as `FR-HOOK-0006`. That unit described a Copilot-side bug where *a
 single registered hook was invoked twice per real event*, fixed upstream and the workaround removed
-(`docs/requirements/plugin-generator/CHANGES.md:502-508`, *"RECONCILIATION-12 — FR-HOOK-0006
+(`docs/REQUIREMENTS/plugin-generator/CHANGES.md:502-508`, *"RECONCILIATION-12 — FR-HOOK-0006
 retired"*). **FACT.** The casing double-fire is caused by our own registration and is entirely under
 our control; the two are independent.
 
@@ -584,7 +584,7 @@ declares `"hooks": "./hooks/hooks.json"` explicitly, and Cursor's project hooks 
 
 ## 6. Requirements conflict that must be surfaced before any code is written
 
-`DATA-CFG-0008` (`docs/requirements/plugin-generator/MODEL.md:246`) is
+`DATA-CFG-0008` (`docs/REQUIREMENTS/plugin-generator/MODEL.md:246`) is
 `status="Approved" approved_by="isolomatov-gd" changed="2026-09-02"` — approved **today**. It
 specifies the current design as the target state, names the file and the symbols
 (`hook-layouts.ts`, `HookBinding`, `BootstrapBinding`, `HookLayout`, `HOOK_LAYOUTS`,

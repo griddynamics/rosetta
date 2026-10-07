@@ -849,7 +849,7 @@ existence; the "binds to" column is what keeps it in agreement with its neighbou
 | 11 | `src/rosettify-plugins/src/spec/targets.ts` | `hookFolder`, `mirrors`, `standaloneTemplates`, the cursor-only manifest `hooks` field | **No** |
 | 12 | `src/rosettify-plugins/plugins/template-*/**/hooks.json.tmpl` × 7 | Output **location** per form (their content is one placeholder) | **No** |
 | 13 | `src/hooks/tests/regression/hooks-registered.test.ts` `CANONICAL_HOOKS_JSONS` | Which document is "the" one per plugin | it *is* a test — but see §11 |
-| 14 | `docs/requirements/plugin-generator/*` | Required paths, forms, entry shapes | *(see §10)* |
+| 14 | `docs/REQUIREMENTS/plugin-generator/*` | Required paths, forms, entry shapes | *(see §10)* |
 | 15 | `docs/ARCHITECTURE.md` §Hooks Runtime | Prose restatement of most of the above | **No** — and wrong in 6 places (§9.1) |
 
 **Fifteen locations. Zero cross-checks between packages** except #13 and one substring grep.
@@ -885,8 +885,8 @@ the citation that turns §7.3's antigravity row from a defect into a documented 
 
 ## 10. Stage 8 — Requirements
 
-The hook corpus is **63 requirement units** across `docs/requirements/plugin-generator/` plus 4 in
-`docs/requirements/rosettify/` (different component; note the id collisions `FR-HOOK-0001`,
+The hook corpus is **63 requirement units** across `docs/REQUIREMENTS/plugin-generator/` plus 4 in
+`docs/REQUIREMENTS/rosettify/` (different component; note the id collisions `FR-HOOK-0001`,
 `FR-GEN-0001`, `FR-ARCH-0004` exist in both trees). **FACT.**
 
 ### 10.1 Coverage of the 11 documents — the table that was missing

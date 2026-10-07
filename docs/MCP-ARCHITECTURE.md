@@ -112,7 +112,7 @@ RAGFlow is constantly updating and AI knowledge of it goes stale fast. For RAGFl
 
 The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instructions repository into RAGFlow. It handles change detection, metadata extraction, frontmatter parsing, and auto-tagging.
 
-**Requirements-first:** spec-before-code from `docs/requirements/rosetta-cli/` (authoritative; code follows).
+**Requirements-first:** spec-before-code from `docs/REQUIREMENTS/rosetta-cli/` (authoritative; code follows).
 
 **Core commands:**
 

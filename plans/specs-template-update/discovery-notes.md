@@ -1,6 +1,6 @@
 # Discovery Notes — Specs Template Update (17 in-scope requirements)
 
-Scope: `docs/requirements/rosettify/SPECS.md` in-scope ids FR-SPECS-0001, 0002, 0004, 0006, 0007,
+Scope: `docs/REQUIREMENTS/rosettify/SPECS.md` in-scope ids FR-SPECS-0001, 0002, 0004, 0006, 0007,
 0008, 0010, 0012, 0021, 0022, 0023, 0024, 0025, 0050, 0060, 0061, 0071 against
 `src/rosettify/src/commands/specs/` + its dependencies in `shared/` and `registry/`.
 Read-only discovery; no source/test/requirement files were modified.
@@ -42,7 +42,7 @@ Files: `core.ts`, `output.ts`, `info.ts`, `render.ts`, `schemas.ts`, `help-conte
 
 - **Correction to SPECS.md**: FR-SPECS-0002's own `implementation` tag reads `Implemented` (not
   `ToBeModified`) with `implementationNotes` = `core.ts, write.ts, shared/doc-io.ts`
-  (`docs/requirements/rosettify/SPECS.md:118-119`). This is stale: the requirement's own statement
+  (`docs/REQUIREMENTS/rosettify/SPECS.md:118-119`). This is stale: the requirement's own statement
   now reads `system: str # required, non-empty` (`SPECS.md:92`), but the code still uses
   `component`: `core.ts:95` (`SpecsDocument.component`), `core.ts:373` (`newDocument`), and every
   reader/writer of it — `output.ts:16,56`, `output.ts:204` (`SpecInfoResult.component`),
@@ -516,7 +516,7 @@ Phase 3 above. No other CLI-frontend change needed — the `query` positional fo
    vocabulary or id/type consistency); `update.ts` is implicated by AC8 (`id_type_mismatch`) but
    omitted; `errors.ts` needs the two new error codes and is omitted. Recommend correcting the note
    to `core.ts, add.ts, update.ts, errors.ts, migrate.ts` (dropping `info.ts`).
-3. **`docs/requirements/rosettify/SPECS.md`'s "unchanged" bucket in
+3. **`docs/REQUIREMENTS/rosettify/SPECS.md`'s "unchanged" bucket in
    `agents/TEMP/specs-template-update/requirements-authoring-flow-state.md:73`
    (`0002, 0010, 0022, 0024, ... 0071`) does not match the `changed="2026-08-10"` timestamp these
    same units carry** — every one of them was re-saved on the same date as the units the flow-state

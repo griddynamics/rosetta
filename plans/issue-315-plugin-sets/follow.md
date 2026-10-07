@@ -38,7 +38,7 @@ shipping shapes** — misreading these caused M4. `docs/hooks-verify.md` = the p
 
 **Requirements in scope:** `FR-VAR-0030` (three copilot documents), `DATA-CFG-0008` (its AC1 mandates
 the defect), `FR-VAR-0070` (bootstrap delivery), `FR-VAR-0082/0083` (antigravity), `FR-HOOK-0005`
-(entry shape), `FR-GEN-0010/0011`. All under `docs/requirements/plugin-generator/`.
+(entry shape), `FR-GEN-0010/0011`. All under `docs/REQUIREMENTS/plugin-generator/`.
 
 **Build locally — never `npx rosettify-plugins@latest`** (published build predates `plugins.json`):
 `npm --prefix src/rosettify-plugins start -- --release r3 --deterministic-hooks <t|f> --source $PWD --output <dir>`

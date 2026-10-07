@@ -363,7 +363,7 @@ Together T1+T2+T3 would each independently have failed the `#315` PR.
 Swept by phrase, not by id — the sweep was **run**, not assumed:
 
 ```
-grep -rn -i 'HOOK_LAYOUTS\|hook layout\|hookLayout\|single.placeholder\|one.placeholder\|raw.injection\|serializing a built\|seven layouts\|one layout per\|coding-flow\|pluginAssembleHooksJson\|hooks_json\|buildHooksDocument\|layout' docs/requirements/plugin-generator/*.md
+grep -rn -i 'HOOK_LAYOUTS\|hook layout\|hookLayout\|single.placeholder\|one.placeholder\|raw.injection\|serializing a built\|seven layouts\|one layout per\|coding-flow\|pluginAssembleHooksJson\|hooks_json\|buildHooksDocument\|layout' docs/REQUIREMENTS/plugin-generator/*.md
 ```
 
 §5.1–5.11 cover the units the design decides. **§5.12 lists every remaining hit** — 32 further locations to edit across 10 files, plus 19 checked-and-unrelated, most of them in `<notes>`, `<rationale>` and `<implementationNotes>` nodes, which read as normative in this corpus. Files touched in total: `MODEL.md`, `FR-GEN.md`, `FR-VAR.md`, `FR-HOOK.md`, `FR-SET.md`, `FR-ARCH.md`, `GLOSSARY.md`, `REFERENCES.md`, `NFR.md`, `ASSUMPTIONS.md`, `STRUCTURES.md`, `CHANGES.md`, `TRACE.md`.
@@ -559,7 +559,7 @@ Correct as written, `Implemented`, and validated in both directions. Recommend p
 
 ### 5.12 Collateral references — results of the phrase sweep
 
-Run over `docs/requirements/plugin-generator/*.md` for `HOOK_LAYOUTS`, `hookLayout`, `hook layout`, `hooks_json`, `pluginAssembleHooksJson`, `buildHooksDocument`, `raw.injection`, `single placeholder`, `one layout per`, `serializing a built`, `coding-flow`. These are hits **outside** the units already covered above. Titles, rationales, `<notes>` and `<implementationNotes>` read as normative in this corpus, so each needs editing.
+Run over `docs/REQUIREMENTS/plugin-generator/*.md` for `HOOK_LAYOUTS`, `hookLayout`, `hook layout`, `hooks_json`, `pluginAssembleHooksJson`, `buildHooksDocument`, `raw.injection`, `single placeholder`, `one layout per`, `serializing a built`, `coding-flow`. These are hits **outside** the units already covered above. Titles, rationales, `<notes>` and `<implementationNotes>` read as normative in this corpus, so each needs editing.
 
 | Location | Text to fix | Fix |
 |---|---|---|

@@ -29,7 +29,7 @@ This file contains grep compatible list of very concise improvements, suggestion
 
 ## TODO: Requirements — split oversized plugin-generator requirement files
 
-`docs/requirements/plugin-generator/` files over the 300-line refactor threshold, deferred from the
+`docs/REQUIREMENTS/plugin-generator/` files over the 300-line refactor threshold, deferred from the
 profiles change so that change stayed reviewable:
 - `FR-ARCH.md` — 898 lines. Split by concern (VFS/directives · processor tiers · pipeline · parity).
 - `FR-COPY.md` — 418 lines. Candidate split: extract model handling (FR-COPY-0020/0021/0022/0080/0081/
@@ -39,8 +39,8 @@ IDs must stay stable across any split; update INDEX.md and cross-references.
 
 ## TODO: Requirements — `FR-ARCH-*` id prefix is ambiguous across components
 
-`FR-ARCH-0016` is defined only in `docs/requirements/rosettify/ARCH.md`, while
-`docs/requirements/plugin-generator/FR-ARCH.md` defines its own `FR-ARCH-0001..0059`. One prefix,
+`FR-ARCH-0016` is defined only in `docs/REQUIREMENTS/rosettify/ARCH.md`, while
+`docs/REQUIREMENTS/plugin-generator/FR-ARCH.md` defines its own `FR-ARCH-0001..0059`. One prefix,
 two components, so a bare `FR-ARCH-00NN` reference is ambiguous repo-wide. Consider component-scoped
 prefixes (e.g. `FR-PGARCH-*` vs `FR-RSARCH-*`) or a documented qualification convention.
 No current cross-component citation is broken.

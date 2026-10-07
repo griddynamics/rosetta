@@ -13,7 +13,7 @@
  * changes both the derived-expected set and the generated-actual set identically, so the parity
  * gate keeps passing with no test edits.
  *
- * Contracts encoded (verify against docs/requirements/plugin-generator/):
+ * Contracts encoded (verify against docs/REQUIREMENTS/plugin-generator/):
  *   - Global rule exclusions (FR-COPY-0011): rules/bootstrap.md, rules/mcp-files-mode.md,
  *     rules/local-files-mode.md; and the whole templates/shell-schemas/ tree — which is the
  *     entire templates/ folder, so no templates/ folder appears in any target.
