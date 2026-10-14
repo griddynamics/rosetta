@@ -22,7 +22,7 @@ Rosetta ships dedicated requirements, coding, and AQA workflows — the user sel
 
 ## USE CASE: LEGACY CODE MIGRATION
 
-Rosetta ships a dedicated modernization, coding, and AQA workflows — of 12 workflow types the user selects per request. On brownfield migration it directly addresses the "confidently wrong" failure mode where AI agents read a few lines of code and guess the rest:
+Rosetta ships a dedicated modernization, coding, and AQA workflows — of 17 workflows the user selects per request. On brownfield migration it directly addresses the "confidently wrong" failure mode where AI agents read a few lines of code and guess the rest:
 
 - **Reverse-engineering pass.** At repo initialization the agent extracts architecture, tech stack, business rules, coding patterns, and dependencies into structured workspace files. Every subsequent task reads these instead of rediscovering the codebase on every prompt.
 - **Progressive context loading.** Only the guardrails, skills, and workflow the current migration task needs are loaded — keeping the agent's context lean and reasoning sharp on large legacy monoliths.

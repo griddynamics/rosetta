@@ -19,8 +19,11 @@ IDE plugin trees are derived artifacts, not source. Manual sync is error-prone a
 
 1. **hooks build** — compiles TypeScript hooks via `npm --prefix src/hooks run build:quiet`
 2. **plugin sync** — runs `npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false` (output to `<repo-root>/plugins`)
-3. **type validation** — runs `src/validate-types.sh` or mypy
-4. **tests** — runs the full test suite via `src/run-tests.sh`
+3. **verify** — `verify structure`, `verify crossrefs`, `verify hooks content`, `verify counts`, `verify links` (`scripts/verify/`; scope and rules in `docs/definitions/live_counts.json`)
+4. **type validation** — runs `src/validate-types.sh` or mypy
+5. **tests** — runs the full test suite via `src/run-tests.sh`
+
+`--only <slug>` runs selected steps. The `verify links` step requires `jq` on PATH (`ac_links.sh` exits 2 without it). `plans/issue-315-plugin-sets/verify/ac_equivalence.py` is a manual #315 gate, not part of pre-commit.
 
 ## What Gets Generated
 
@@ -33,8 +36,10 @@ The seven IDE targets are `claude`, `cursor`, `copilot`, `codex`, `cursor-standa
 
 ## Occurrences
 
-- `scripts/pre_commit.py` — pre-commit orchestration (hooks build → plugin sync → type check → tests)
+- `scripts/pre_commit.py` — pre-commit orchestration (hooks build → plugin sync → verify steps → type check → tests)
 - `.githooks/pre-commit` — hook entry point
+- `scripts/verify/` — the verify checks run by the orchestration
+- `docs/definitions/live_counts.json` — scope and rules shared by `verify counts` and `verify links`
 - `src/rosettify-plugins/plugins.json` — the set catalog the single invocation expands
 - `plugins/` — generated output (49 plugin trees)
 - `docs/ARCHITECTURE.md` — "Plugins" section

@@ -310,14 +310,14 @@ Without storage approval, the workflow returns sanitized results without committ
 
 ## Source Files
 
-- [security-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/security-flow.md)
+- [security-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/security-flow.md)
 - [security skill](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/security/SKILL.md)
 - [security skill README](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/security/README.md)
-- [security-flow readiness phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/security-flow-readiness.md)
-- [security-flow authorization phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/security-flow-authorize.md)
-- [security-flow deterministic gates phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/security-flow-deterministic-gates.md)
-- [security-flow model and select phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/security-flow-model-and-select.md)
-- [security-flow inspect and test phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/security-flow-inspect-and-test.md)
-- [security-flow normalize and triage phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/security-flow-normalize-and-triage.md)
-- [security-flow independent review phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/security-flow-independent-review.md)
-- [security-flow report and package phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/security-flow-report-and-package.md)
+- [security-flow readiness phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/security-flow-readiness.md)
+- [security-flow authorization phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/security-flow-authorize.md)
+- [security-flow deterministic gates phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/security-flow-deterministic-gates.md)
+- [security-flow model and select phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/security-flow-model-and-select.md)
+- [security-flow inspect and test phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/security-flow-inspect-and-test.md)
+- [security-flow normalize and triage phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/security-flow-normalize-and-triage.md)
+- [security-flow independent review phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/security-flow-independent-review.md)
+- [security-flow report and package phase](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/security-flow-report-and-package.md)

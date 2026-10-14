@@ -121,7 +121,7 @@ permalink: /
       <div class="adds-num">4</div>
       <div class="adds-body">
         <strong>Request classification and source of truth.</strong>
-        Agents treat every request the same. Rosetta auto-classifies each request into one of thirteen workflow types — coding, security review, testing, research, requirements, modernization, and others — loading entirely different instructions for each. The agent maintains requirements traceability instead of mixing everything together.
+        Agents treat every request the same. Rosetta auto-classifies each request into one of fifteen request types — coding, security review, testing, research, requirements, modernization, and others — loading entirely different instructions for each. The agent maintains requirements traceability instead of mixing everything together.
       </div>
     </div>
 
@@ -263,7 +263,7 @@ claude plugin install rosetta@rosetta">Copy</button>
 https://github.com/griddynamics/rosetta
 
 <span class="qs-comment"># Standalone fallback</span>
-Download core-cursor-standalone-*.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.</pre>
+Download rosetta-cursor-standalone-&lt;version&gt;-&lt;date&gt;.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.</pre>
               <button class="qs-copy" data-copy="https://github.com/griddynamics/rosetta">Copy</button>
             </div>
           </div>
@@ -276,7 +276,7 @@ Download core-cursor-standalone-*.zip from the <a href="https://github.com/gridd
 https://github.com/griddynamics/rosetta
 
 <span class="qs-comment"># Standalone fallback</span>
-Download core-copilot-standalone-*.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.</pre>
+Download rosetta-copilot-standalone-&lt;version&gt;-&lt;date&gt;.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.</pre>
               <button class="qs-copy" data-copy="https://github.com/griddynamics/rosetta">Copy</button>
             </div>
           </div>
@@ -285,7 +285,7 @@ Download core-copilot-standalone-*.zip from the <a href="https://github.com/grid
           <div class="qs-content" data-tab-content="codex">
             <p class="qs-content-hint">Extract the standalone Codex plugin package into the repository, then enable hooks. Deep links: <a href="{{ '/docs/plugins/#codex' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
-              <pre class="qs-code">Download core-codex-*.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.
+              <pre class="qs-code">Download rosetta-codex-&lt;version&gt;-&lt;date&gt;.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.
 
 <span class="qs-prompt">$</span> codex features enable hooks</pre>
               <button class="qs-copy" data-copy="codex features enable hooks">Copy</button>
@@ -296,7 +296,7 @@ Download core-copilot-standalone-*.zip from the <a href="https://github.com/grid
           <div class="qs-content" data-tab-content="antigravity">
             <p class="qs-content-hint">Extract the standalone Antigravity plugin package into the workspace plugin folder. One plugin serves Antigravity 2.0, CLI, and IDE. Deep links: <a href="{{ '/docs/plugins/#antigravity' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
-              <pre class="qs-code">Download core-antigravity-*.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into .agents/plugins/rosetta/ at the workspace root.
+              <pre class="qs-code">Download rosetta-antigravity-&lt;version&gt;-&lt;date&gt;.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into .agents/plugins/rosetta/ at the workspace root.
 
 <span class="qs-comment"># All workspaces instead of one</span>
 ~/.gemini/config/plugins/rosetta/</pre>

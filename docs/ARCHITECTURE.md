@@ -36,7 +36,7 @@ Plugins are the primary delivery mode: instructions are generated once and shipp
                          │ install (marketplace or standalone zip)
               ┌──────────┴──────────┐
               │   Rosetta Plugin    │
-              │ (core-<ide> package)│
+              │ (rosetta-<ide> pkg) │
               │                     │
               │  Bootstrap rule     │
               │  Skills · Agents    │
@@ -214,13 +214,16 @@ A new domain is a new sibling folder here plus an entry in `src/rosettify-plugin
 
 **What each set carries** (counted on `instructions/r3/`, distinct components after collapsing `~profile-lightweight-only~` variants):
 
-| Set | Skills | Workflows | Rules | Agents |
-| --- | ------ | --------- | ----- | ------ |
-| `core` | 36 | 17 | 5 | 0 |
-| `workflows` | 0 | 17 | 0 | 10 |
-| `qe` | 2 | 27 | 0 | 0 |
-| `search` | 4 | 0 | 0 | 0 |
-| `modernization` | 0 | 9 | 0 | 0 |
+| Set | Skills | Workflows | Workflow files | Rules | Agents |
+| --- | ------ | --------- | -------------- | ----- | ------ |
+| `core` | 36 | 3 | 17 | 5 | 0 |
+| `workflows` | 0 | 9 | 17 | 0 | 10 |
+| `qe` | 2 | 4 | 27 | 0 | 0 |
+| `search` | 4 | 0 | 0 | 0 | 0 |
+| `modernization` | 0 | 1 | 9 | 0 | 0 |
+| **total (`rosetta`)** | **42** | **17** | **70** | **5** | **10** |
+
+"Workflows" = entry points (front-matter `tags` contains `workflow`); 15 of them are distinct request types. "Workflow files" = every workflow and phase file.
 
 **`core` is deliberately not a complete solution.** It holds every composable skill, the always-on rules, and the bootstrap and guardrail hooks, but zero subagents. A core-only install therefore ships `skills/orchestration` and `skills/rosetta` with nothing to spawn and very little to route to. That is the intended shape, not a defect. Pair `core` with `workflows` to get a working setup, or install the combo `rosetta` plugin which contains all five sets.
 
@@ -290,6 +293,7 @@ MCP has its own, separate delivery flow (publish → index → serve) — see [M
 ### Prerequisites
 
 - Python 3.12 — ONE virtual environment at repo root: `venv/`. MUST be used for ALL Python code in this repo: every `src/*` package, tests, validation scripts, tools, ad-hoc runs. MUST NOT create any other venv (no `.venv`, no per-package venvs).
+- `jq` — required by the pre-commit `verify links` check (`scripts/verify/ac_links.sh` exits 2 without it).
 - Pre-commit hook exists
 
 MCP server development, publishing instructions, and RAGFlow/MCP validation are covered in [MCP-ARCHITECTURE.md — Development](MCP-ARCHITECTURE.md#development).
@@ -310,7 +314,7 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are the primary delivery mechanism for Rosetta. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-Plugin folders are named `<set>-<ide>`. `plugins.json` declares six *plugin* sets: the five domain sets plus `rosetta`, which bundles all five (42 skills, 10 agents, 17 workflow types, and bootstrap rules). Six times seven IDE targets, plus a `-light` variant of `rosetta`, gives 49 folders. The content of a given set is identical across IDEs; only the format differs.
+Plugin folders are named `<set>-<ide>`. `plugins.json` declares six *plugin* sets: the five domain sets plus `rosetta`, which bundles all five (42 skills, 17 workflows, 10 agents, 5 rules). Six times seven IDE targets, plus a `-light` variant of `rosetta`, gives 49 folders. The content of a given set is identical across IDEs; only the format differs.
 
 | Set folder prefix | Contains | Requires |
 | ----------------- | -------- | -------- |
@@ -431,7 +435,7 @@ Cursor and Copilot are the only plugins that need two distinct templates because
 - **IDE normalization** — `src/adapter.ts` detects the IDE (env signature first, then stdin shape: codex > cursor > claude-code > windsurf > antigravity > copilot; Antigravity IDE is a VS Code fork, so its `ANTIGRAVITY_CONVERSATION_ID` env signal is checked before the generic `VSCODE_*` copilot catch-all) and normalizes to a canonical `NormalizedInput`, which MUST be fully mapped: a field is empty only when the value is genuinely absent from the raw input AND not derivable from the event name, another field, or the IDE's documented tool/event vocabulary
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
 
-`scripts/pre_commit.py` builds and tests hook bundles, then runs `npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false`; when deterministic hooks are enabled the generator syncs the bundles into each hook-carrying plugin's hooks directory (`plugins/{rosetta,rosetta-light,core}-{claude,cursor,copilot}/hooks/`, `plugins/{rosetta,rosetta-light,core}-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.
+`scripts/pre_commit.py` runs, in order: the hooks build; the plugin sync (`npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false`); the five verify steps `verify structure`, `verify crossrefs`, `verify hooks content`, `verify counts` and `verify links` (`scripts/verify/`, scope and rules in `docs/definitions/live_counts.json`); type validation; and tests. `--only <slug>` runs selected steps. When deterministic hooks are enabled the generator syncs the bundles into each hook-carrying plugin's hooks directory (`plugins/{rosetta,rosetta-light,core}-{claude,cursor,copilot}/hooks/`, `plugins/{rosetta,rosetta-light,core}-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.
 
 ---
 
@@ -442,7 +446,7 @@ Triggers on push to `main` or manual dispatch. Use actionlint. It lints workflow
 
 Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages. Original web content is not generated, but adapted and synchronized. Jekyll uses that content to build the website. The one exception is `docs/web/user-guide/`, which is synchronized from `user-guide/` by `scripts/sync_user_guide_web.py` (rewrites relative links to permalinks, `instructions/**` refs to GitHub blob URLs, and wraps mermaid blocks in `{% raw %}` so Liquid does not consume `{{"..."}}` hexagon nodes).
 
-**Plugin distribution.** The publish-instructions pipeline zips each plugin folder and attaches the archives to a GitHub Release alongside `instructions.zip`. See [Plugins](#plugins) for how plugin files are generated.
+**Plugin distribution.** The publish-instructions pipeline zips each plugin folder as `<folder>-<version>-<date>.zip` and attaches the archives to a GitHub Release alongside `instructions.zip`. The generated release body is replaced on every run and lists the zips per IDE in 3 blocks: rosetta and rosetta-light; the domain plugins core → modernization; then all standalones. The Assets panel stays alphabetical. See [Plugins](#plugins) for how plugin files are generated.
 
 ---
 

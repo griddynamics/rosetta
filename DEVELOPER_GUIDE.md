@@ -119,6 +119,7 @@ rosetta/
 
 - **Python 3.12+**
 - **uvx** (included with [uv](https://docs.astral.sh/uv/getting-started/installation/))
+- **jq** (required by the pre-commit `verify links` check)
 - **Podman or Docker** (optional, for Redis, used by full MCP execution_controller tests)
 
 ---
@@ -300,7 +301,7 @@ Run this after any Python code change.
 ### Git pre-commit hook
 
 The repository ships a native Git pre-commit hook shim in `.githooks/pre-commit`.
-It runs the Python entrypoint at `scripts/pre_commit.py`, which first regenerates all plugin payloads (a single `npx -y rosettify-plugins@latest` call that reads `src/rosettify-plugins/plugins.json` and emits every `<set>-<ide>` folder in one pass) and then executes type validation.
+It runs the Python entrypoint at `scripts/pre_commit.py`, which runs, in order: the hooks build; the plugin sync (a single `npx -y rosettify-plugins@latest` call that reads `src/rosettify-plugins/plugins.json` and emits every `<set>-<ide>` folder in one pass); the `verify structure`, `verify crossrefs`, `verify hooks content`, `verify counts` and `verify links` steps (`scripts/verify/`, scope and rules in `docs/definitions/live_counts.json`); type validation; and tests. The `verify links` step needs `jq` installed (`ac_links.sh` exits 2 without it). `--only <slug>` runs selected steps.
 
 Use the root repo virtualenv for hook execution:
 

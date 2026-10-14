@@ -300,4 +300,4 @@ If any of those checks fail, later workflows will either miss the dependency ent
 
 ## Source Files
 
-- [external-lib-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/external-lib-flow.md)
+- [external-lib-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/external-lib-flow.md)

@@ -86,7 +86,7 @@ For detailed setup instructions, see the Cursor documentation:
 
 #### Standalone
 
-1. Download `rosetta-cursor-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-cursor-standalone-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract the archive contents into your repository.
 3. Verify you can see a file `.cursor/agents/architect.md`. Ensure there are no `.cursor/.cursor` folders.
 
@@ -118,7 +118,7 @@ Use when your Marketplace/plugin catalog isn't available, or to avoid a live reg
 > [!NOTE]
 > The standalone installation is also detected by VS Code, so installing Rosetta through the standalone and marketplace methods will result in duplicate tools, commands, and context.
 
-1. Download `rosetta-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-copilot-standalone-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract the archive contents into your repository.
 3. Verify you can see a file `.github/agents/architect.agent.md`. Ensure there are no `.github/.github` folders.
 
@@ -134,7 +134,7 @@ Use when your Marketplace/plugin catalog isn't available, or to avoid a live reg
 
 #### Standalone
 
-1. Download `rosetta-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-codex-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract the archive contents into your repository.
 3. Enable hooks:
 
@@ -153,7 +153,7 @@ One plugin serves Antigravity 2.0, Antigravity CLI, and Antigravity IDE.
 
 #### Standalone
 
-1. Download `rosetta-antigravity-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-antigravity-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Create the folder `.agents/plugins/rosetta/` at your workspace root.
 3. Extract the archive contents into it.
 4. Verify you can see a file `.agents/plugins/rosetta/plugin.json`. Ensure there are no `.agents/plugins/rosetta/rosetta-antigravity` folders.

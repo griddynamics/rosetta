@@ -334,14 +334,14 @@ Plus: `agents/TEMP/<FEATURE>/ui-aqa-state.md` (phase status, key artifacts, resu
 
 Authoritative source workflow and phases:
 
-- [ui-aqa-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/ui-aqa-flow.md)
-- [ui-aqa-flow-data-collection.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/ui-aqa-flow-data-collection.md)
-- [ui-aqa-flow-requirements-clarification.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/ui-aqa-flow-requirements-clarification.md)
-- [ui-aqa-flow-code-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/ui-aqa-flow-code-analysis.md)
-- [ui-aqa-flow-selector-identification.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/ui-aqa-flow-selector-identification.md)
-- [ui-aqa-flow-selector-implementation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/ui-aqa-flow-selector-implementation.md)
-- [ui-aqa-flow-test-implementation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/ui-aqa-flow-test-implementation.md)
-- [ui-aqa-flow-test-report-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/ui-aqa-flow-test-report-analysis.md)
-- [ui-aqa-flow-test-correction.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/ui-aqa-flow-test-correction.md)
+- [ui-aqa-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/ui-aqa-flow.md)
+- [ui-aqa-flow-data-collection.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/ui-aqa-flow-data-collection.md)
+- [ui-aqa-flow-requirements-clarification.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/ui-aqa-flow-requirements-clarification.md)
+- [ui-aqa-flow-code-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/ui-aqa-flow-code-analysis.md)
+- [ui-aqa-flow-selector-identification.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/ui-aqa-flow-selector-identification.md)
+- [ui-aqa-flow-selector-implementation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/ui-aqa-flow-selector-implementation.md)
+- [ui-aqa-flow-test-implementation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/ui-aqa-flow-test-implementation.md)
+- [ui-aqa-flow-test-report-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/ui-aqa-flow-test-report-analysis.md)
+- [ui-aqa-flow-test-correction.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/ui-aqa-flow-test-correction.md)
 
-Shared skills: [qa-knowledge](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/core/skills/qa-knowledge), [qa-structure](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/core/skills/qa-structure), [data-collection](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/core/skills/data-collection)
+Shared skills: [qa-knowledge](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/qe/skills/qa-knowledge), [qa-structure](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/qe/skills/qa-structure), [data-collection](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/core/skills/data-collection)

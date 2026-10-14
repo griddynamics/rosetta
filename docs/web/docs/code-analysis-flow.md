@@ -326,7 +326,7 @@ At workflow close:
 
 Authoritative workflow sources used for this page:
 
-- [code-analysis-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/code-analysis-flow.md)
+- [code-analysis-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/code-analysis-flow.md)
 - [reverse-engineering/SKILL.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/reverse-engineering/SKILL.md)
 - [large-workspace-handling/SKILL.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/large-workspace-handling/SKILL.md)
 - [requirements-authoring/SKILL.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/requirements-authoring/SKILL.md)
