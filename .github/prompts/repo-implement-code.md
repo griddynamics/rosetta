@@ -36,7 +36,7 @@ Assign issue to me.
 ## Method 1 - coding tasks — run `coding-flow`, implementation half only
 
 Invoke `rosetta:coding-flow` with the Skill tool. If it does not resolve, read
-`instructions/r3/core/workflows/coding-flow.md` from this checkout and follow it
+`instructions/r3/workflows/workflows/coding-flow.md` from this checkout and follow it
 directly. Run only the phases that turn an approved plan into code. The
 planning half already ran and its output is the `## 🤖 Rosetta Plan` section of the
 issue description; the user approved it by moving the card to "Scheduled".

@@ -202,7 +202,7 @@ jobs:
           fi
 
           # One `agent_model` input serves both agents. Translate a Claude tier token to
-          # its Codex counterpart (the ladder in instructions/r3/core/agents/*.md:
+          # its Codex counterpart (the ladder in instructions/r3/workflows/agents/*.md:
           # opus<->sol, sonnet<->terra, haiku<->luna) so codex never receives a
           # claude-* id. Anything already gpt-* passes through untouched.
           AGENT_MODEL="${{ inputs.agent_model }}"
