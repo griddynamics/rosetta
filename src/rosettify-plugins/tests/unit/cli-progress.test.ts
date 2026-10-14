@@ -16,6 +16,9 @@ const TSX_BIN = path.join(PACKAGE_ROOT, 'node_modules', '.bin', 'tsx');
 function runCli(args: string[]): { status: number | null; stdout: string; stderr: string } {
   const result = spawnSync(TSX_BIN, [CLI_ENTRY, ...args], {
     cwd: PACKAGE_ROOT,
+    // The assertions depend on info-level progress on stderr, so pin the level instead of
+    // inheriting a caller's (e.g. src/run-tests.sh exports ROSETTIFY_PLUGINS_LOG_LEVEL=warn).
+    env: { ...process.env, ROSETTIFY_PLUGINS_LOG_LEVEL: 'info' },
     encoding: 'utf-8',
     // --dry-run measured ~2.7MB of payload on stdout (FR-CLI-0042); the 1MB spawnSync default
     // truncates the pipe and kills the child with SIGTERM before it can exit cleanly.
