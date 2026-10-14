@@ -7,6 +7,9 @@ Content: brief, grep-friendly, MECE across sections. Style: one-liner per entry,
 
 ## Preventive Rules
 
+### Learn Both Sides' Intent, Plans And Gates Before Merging; A Found Failure Is Fixed, Whoever Introduced It [ACTIVE]
+Before resolving any conflict, read the branch's handoff/execution state, its plans and its acceptance gates, and main's incoming changes in full, not commit titles. Re-assess every resolution against both intents, then run the branch's gates. A failure found during the work is diagnosed to its root cause and fixed; "pre-existing" or "not from the merge" is never a reason to skip it.
+
 ### Absence From This Repo Is Not Proof A Referenced Thing Does Not Exist [ACTIVE]
 Before calling a reference dangling, establish what it is FOR. `/goal` and `/advisor` are Claude Code features the user sets; `graphify` is a third-party skill installed via `graphify install`. None is defined in this repo by design. Web-search and read `docs/definitions/workflows.md` first. Six issues in one batch rested on this error, and acting on them deleted working features.
 
