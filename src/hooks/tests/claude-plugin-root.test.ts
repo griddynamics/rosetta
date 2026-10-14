@@ -7,7 +7,7 @@
 // These tests verify:
 // 1. The built loose-files.js is present at the expected CLAUDE_PLUGIN_ROOT-relative path.
 // 2. When the env var is set correctly, the script executes and produces valid JSON.
-// 3. The hooks.json for core-claude references ${CLAUDE_PLUGIN_ROOT} in PostToolUse.
+// 3. The hooks.json for rosetta-claude references ${CLAUDE_PLUGIN_ROOT} in PostToolUse.
 
 import { test, describe, expect } from 'vitest';
 import { spawnSync } from 'child_process';
@@ -19,7 +19,7 @@ const HOOKS_ROOT = path.resolve(__dirname, '..');
 
 // Path that CLAUDE_PLUGIN_ROOT would point to in a real Claude Code install.
 // In tests we point it at the project-local copy of the built plugin.
-const PLUGIN_ROOT = path.resolve(HOOKS_ROOT, '..', '..', 'plugins', 'core-claude');
+const PLUGIN_ROOT = path.resolve(HOOKS_ROOT, '..', '..', 'plugins', 'rosetta-claude');
 const LOOSE_FILES_JS = path.join(PLUGIN_ROOT, 'hooks', 'loose-files.js');
 
 // Release detection: deterministic (advisory) hooks ship one-by-one from the designated
@@ -32,7 +32,7 @@ const SHIPS_HOOKS = shipsHooks(MANIFEST);
 // ---------------------------------------------------------------------------
 describe('CLAUDE_PLUGIN_ROOT — file exists at expected path', () => {
 
-  test('plugins/core-claude/hooks/loose-files.js is present when registered', () => {
+  test('plugins/rosetta-claude/hooks/loose-files.js is present when registered', () => {
     if (!SHIPS_HOOKS) return; // advisory hooks ship from the hooks release onward
     const hooksJson = path.join(PLUGIN_ROOT, 'hooks', 'hooks.json');
     const raw = existsSync(hooksJson) ? readFileSync(hooksJson, 'utf-8') : '';

@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { fileApplyOverrides } from '../../../src/file-processors/file-apply-overrides.js';
 import type { FileProcessingFrame, TargetContext, PluginSpec, Vfs } from '../../../src/types.js';
 
-function makeCtx(specName = 'core-claude', activeProfile: string | null = null): TargetContext {
+function makeCtx(specName = 'claude', activeProfile: string | null = null): TargetContext {
   return {
     spec: { name: specName } as unknown as PluginSpec,
     vfs: [] as unknown as Vfs,
@@ -59,21 +59,21 @@ describe('fileApplyOverrides', () => {
   });
 
   it('target-only match keeps source', () => {
-    const frame = makeFrame([{ conditions: ['core-claude-only'] }]);
-    const result = fileApplyOverrides(frame, makeCtx('core-claude'));
+    const frame = makeFrame([{ conditions: ['target-claude-only'] }]);
+    const result = fileApplyOverrides(frame, makeCtx('claude'));
     expect(result.source.length).toBe(1);
   });
 
   it('target-only mismatch drops source', () => {
-    const frame = makeFrame([{ conditions: ['core-cursor-only'] }]);
-    const result = fileApplyOverrides(frame, makeCtx('core-claude'));
+    const frame = makeFrame([{ conditions: ['target-cursor-only'] }]);
+    const result = fileApplyOverrides(frame, makeCtx('claude'));
     expect(result.source.length).toBe(0);
     expect(result.target_contents).toBeNull();
   });
 
   it('null target_contents when all sources dropped', () => {
-    const frame = makeFrame([{ conditions: ['core-cursor-only'] }]);
-    const result = fileApplyOverrides(frame, makeCtx('core-claude'));
+    const frame = makeFrame([{ conditions: ['target-cursor-only'] }]);
+    const result = fileApplyOverrides(frame, makeCtx('claude'));
     expect(result.target_contents).toBeNull();
   });
 
@@ -94,7 +94,7 @@ describe('fileApplyOverrides — profile-scoped exclusion (FR-PROF-0030.AC4)', (
       { conditions: [] }, // base document
       { conditions: ['profile-lightweight-only', 'overwrite'] }, // profile override, profile inactive
     ]);
-    const result = fileApplyOverrides(frame, makeCtx('core-claude', null));
+    const result = fileApplyOverrides(frame, makeCtx('claude', null));
     expect(result.source.length).toBe(1);
     expect(result.source[0].conditions.has('overwrite')).toBe(false);
     expect(result.source[0].conditions.has('profile-lightweight-only')).toBe(false);
@@ -105,7 +105,7 @@ describe('fileApplyOverrides — profile-scoped exclusion (FR-PROF-0030.AC4)', (
       { conditions: [] }, // base document
       { conditions: ['profile-lightweight-only', 'overwrite'] }, // profile override, profile active
     ]);
-    const result = fileApplyOverrides(frame, makeCtx('core-claude', 'lightweight'));
+    const result = fileApplyOverrides(frame, makeCtx('claude', 'lightweight'));
     expect(result.source.length).toBe(1);
     expect(result.source[0].conditions.has('overwrite')).toBe(true);
     expect(result.source[0].conditions.has('profile-lightweight-only')).toBe(true);

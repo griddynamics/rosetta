@@ -41,13 +41,13 @@ fork/clone → branch → edit → validate → push → PR
      - Refactor an old prompt into the new format using local instructions:
 
        ```
-       MUST FULLY EXECUTE `instructions/r3/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
+       MUST FULLY EXECUTE `instructions/r3/workflows/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
        ```
 
      - Author a new prompt using local instructions:
 
        ```
-       MUST FULLY EXECUTE `instructions/r3/core/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       MUST FULLY EXECUTE `instructions/r3/workflows/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
        ```
 
      - Author a new prompt via Rosetta MCP:
@@ -117,6 +117,7 @@ rosetta/
 
 - **Python 3.12+**
 - **uvx** (included with [uv](https://docs.astral.sh/uv/getting-started/installation/))
+- **jq** (required by the pre-commit `verify links` check)
 - **Podman or Docker** (optional, for Redis, used by full MCP execution_controller tests)
 
 ---
@@ -287,7 +288,7 @@ Run this after any Python code change.
 ### Git pre-commit hook
 
 The repository ships a native Git pre-commit hook shim in `.githooks/pre-commit`.
-It runs the Python entrypoint at `scripts/pre_commit.py`, which first regenerates all plugin payloads (via `npx -y rosettify-plugins@latest`) and then executes type validation.
+It runs the Python entrypoint at `scripts/pre_commit.py`, which runs, in order: the hooks build; the plugin sync (a single `npx -y rosettify-plugins@latest` call that reads `src/rosettify-plugins/plugins.json` and emits every `<set>-<ide>` folder in one pass); the `verify structure`, `verify crossrefs`, `verify hooks content`, `verify counts` and `verify links` steps (`scripts/verify/`, scope and rules in `docs/definitions/live_counts.json`); type validation; and tests. The `verify links` step needs `jq` installed (`ac_links.sh` exits 2 without it). `--only <slug>` runs selected steps.
 
 Use the root repo virtualenv for hook execution:
 
@@ -400,13 +401,15 @@ venv/bin/rosetta-cli list-dataset --dataset aia-r3
 
 ## Where to Change What
 
+Instruction sources live in five sibling domain sets under `instructions/r3/` (`core`, `workflows`, `qe`, `search`, `modernization`). Every top-level folder under a release is one of these, and none of them overrides another. Pick the set by subject, not by importance. See [Instruction Structure](/rosetta/docs/architecture/#instruction-structure).
+
 | Change type            | Location                                              | Validation                               |
 | ---------------------- | ----------------------------------------------------- | ---------------------------------------- |
-| New/modified skill     | `instructions/r3/core/skills/<name>/SKILL.md`         | Publish, test via MCP                    |
-| New/modified agent     | `instructions/r3/core/agents/<name>.md`               | Publish, test via MCP                    |
-| New/modified workflow  | `instructions/r3/core/workflows/<name>.md`            | Publish, test via MCP                    |
-| New/modified rule      | `instructions/r3/core/rules/<name>.md`                | Publish, test via MCP                    |
-| Organization extension | `instructions/r3/<org>/` (same type structure)        | Publish, test via MCP                    |
+| New/modified skill     | `instructions/r3/<set>/skills/<name>/SKILL.md`. `core` for general engineering, `qe` for testing, `search` for Solr | Publish, test via MCP |
+| New/modified agent     | `instructions/r3/workflows/agents/<name>.md`. `workflows` is the only set with agents | Publish, test via MCP   |
+| New/modified workflow  | `instructions/r3/<set>/workflows/<name>.md`. `core` for workspace setup and help, `workflows` for orchestrated flows, `qe` for test automation, `modernization` for conversions | Publish, test via MCP |
+| New/modified rule      | `instructions/r3/core/rules/<name>.md`. `core` is the only set with rules | Publish, test via MCP  |
+| New domain             | `instructions/r3/<domain>/` plus a `plugins.json` entry | Publish, test via MCP                  |
 | MCP tool or prompt     | `src/rosetta-mcp-server/rosetta_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, src/validate-types.sh |
 | CLI command            | `src/rosetta-cli/rosetta_cli/commands/`               | pytest, dry-run, publish to dev          |
 | Website                | `docs/web/`                                           | Local Jekyll build                       |

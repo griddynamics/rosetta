@@ -101,8 +101,8 @@ permalink: /roadmap/
   <div class="rm-group">
     <div class="rm-label">Workflows &amp; Skills</div>
     <ul class="rm-list">
-      <li>14+ structured workflows covering the full SDLC — from initialization to validation</li>
-      <li>30 skills spanning coding, testing, planning, research, security, and documentation</li>
+      <li>17 structured workflows covering the full SDLC — from initialization to validation</li>
+      <li>42 skills spanning coding, testing, planning, research, security, and documentation</li>
       <li>Every request auto-classified and routed to the right workflow</li>
       <li>Context loads progressively — agents get only what they need, when they need it</li>
       <li>Five-phase execution: Prepare, Research, Plan, Act, Validate</li>

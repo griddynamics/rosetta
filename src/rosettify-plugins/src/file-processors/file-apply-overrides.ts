@@ -6,7 +6,8 @@ import type { FileProcessingFrame, TargetContext } from '../types.js';
 
 /**
  * fileApplyOverrides: filter source files by directive conditions.
- * 1. Drop SourceFiles that don't match the current target (via target-only directive) OR the
+ * 1. Drop SourceFiles that don't match the current target/set (via the target-/ide-/set-only
+ *    directives) OR the
  *    active build profile (via profile-<name>-only directive, FR-PROF-0030). Both filters apply
  *    in this same step, before overwrite truncation, so `overwrite` cannot bypass either exclusion.
  * 2. Apply overwrite token: if any remaining SourceFile has conditions.has('overwrite'),
@@ -19,14 +20,14 @@ export function fileApplyOverrides(
   frame: FileProcessingFrame,
   ctx: TargetContext,
 ): FileProcessingFrame {
-  const targetName = ctx.spec.name;
+  const matchCtx = { target: ctx.spec.name, set: ctx.spec.set ?? null };
   const activeProfile = ctx.activeProfile;
   const originalFirstOrigin = frame.source[0]?.origin;
 
   // Step 1: filter by target-only AND profile-only directives (FR-PROF-0030: overwrite must not
   // bypass profile exclusion, exactly as it does not bypass target exclusion).
   const targetFiltered = frame.source.filter(
-    (sf) => matchesTarget(sf.conditions, targetName) && matchesProfile(sf.conditions, activeProfile),
+    (sf) => matchesTarget(sf.conditions, matchCtx) && matchesProfile(sf.conditions, activeProfile),
   );
 
   // Step 2: apply overwrite token — find the first SourceFile with overwrite condition,

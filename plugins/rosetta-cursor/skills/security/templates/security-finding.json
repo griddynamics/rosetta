@@ -1,0 +1,34 @@
+{
+  "finding_id": "<normalized-id>",
+  "source": {
+    "producer": "<tool-or-agent>",
+    "source_id": "<unchanged>",
+    "location": "<unchanged>",
+    "evidence_ref": "<unchanged; carries the evidence envelope's evidence_id>",
+    "severity": "<unchanged>",
+    "rule": "<unchanged>"
+  },
+  "assessment": {
+    "severity": "<critical|high|medium|low|info>",
+    "confidence": "<high|medium|low>",
+    "exploitability": "<assessment>",
+    "reachability": "<assessment>",
+    "impact": "<assessment>",
+    "environment": "<environment>",
+    "compensating_controls": ["<control>"],
+    "priority": "<P0|P1|P2|P3>",
+    "priority_rationale": "<contextual rationale>"
+  },
+  "correlation": {
+    "root_cause": "<root cause>",
+    "fix_strategy": "<fix strategy>",
+    "related_source_ids": ["<source-id>"]
+  },
+  "disposition": {
+    "status": "<confirmed|unverified|false-positive|accepted-risk|suppressed|fixed>",
+    "reason": "<reason>",
+    "actor_or_approver": "<identity>",
+    "time": "<ISO-8601>",
+    "review_or_expiry": "<ISO-8601-or-null>"
+  }
+}

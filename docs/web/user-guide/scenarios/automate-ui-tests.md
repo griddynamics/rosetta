@@ -72,6 +72,6 @@ A plan folder `plans/ui-aqa-<test-name>/` with `test-plan.md` (including the exp
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/ui-aqa-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/ui-aqa-flow.md?plain=1) (plus the `ui-aqa-flow-*.md` phase files)
-- Router: [`aqa-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/aqa-flow.md?plain=1)
+- Workflow: [`instructions/r3/qe/workflows/ui-aqa-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/ui-aqa-flow.md?plain=1) (plus the `ui-aqa-flow-*.md` phase files)
+- Router: [`aqa-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/aqa-flow.md?plain=1)
 

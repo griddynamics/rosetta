@@ -66,8 +66,8 @@ Reusable units of work the AI loads on demand. Workflows pick them for you, and 
 
 **Test automation and QA**
 
-1. [`qa-knowledge`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/qa-knowledge/README.md): QA engineering end to end: sources into requirements, gap analysis, Given-When-Then specs, TMS export, runnable API and UI tests, failure triage. Every case is implemented or recorded as a gap, never dropped.
-2. [`qa-structure`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/qa-structure/README.md): Canonical paths, slugs, and state files for QA runs. Each session in its own folder, so parallel runs never collide and a long flow knows which phase is done.
+1. [`qa-knowledge`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/skills/qa-knowledge/README.md): QA engineering end to end: sources into requirements, gap analysis, Given-When-Then specs, TMS export, runnable API and UI tests, failure triage. Every case is implemented or recorded as a gap, never dropped.
+2. [`qa-structure`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/skills/qa-structure/README.md): Canonical paths, slugs, and state files for QA runs. Each session in its own folder, so parallel runs never collide and a long flow knows which phase is done.
 3. [`data-collection`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/data-collection/README.md): Read-only pull from issue tracker, test management, wiki, and the codebase. A ticket gets recorded, not acted on. Gaps and permission walls recorded, never guessed.
 
 **Delegate the work**
@@ -103,10 +103,10 @@ Reusable units of work the AI loads on demand. Workflows pick them for you, and 
 
 **Domain packs**
 
-1. [`solr-query`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/solr-query/README.md): Apache Solr queries that return what you meant: eDisMax, block join, JSON facets, kNN, explain output, relevancy tuning.
-2. [`solr-schema`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/solr-schema/README.md): Apache Solr schema and solrconfig, audit or design: field types, analyzer symmetry, docValues, synonyms, commit strategy.
-3. [`solr-extending`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/solr-extending/README.md): Custom Apache Solr plugins: SearchComponent, DocTransformer, QParser, update processors, function queries, and their solrconfig wiring.
-4. [`solr-semantic-search`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/solr-semantic-search/README.md): Phrase-tagging semantic search on Solr: concept tagging, taxonomy, graph paths, ambiguity resolution. Lexical, not vector.
+1. [`solr-query`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/search/skills/solr-query/README.md): Apache Solr queries that return what you meant: eDisMax, block join, JSON facets, kNN, explain output, relevancy tuning.
+2. [`solr-schema`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/search/skills/solr-schema/README.md): Apache Solr schema and solrconfig, audit or design: field types, analyzer symmetry, docValues, synonyms, commit strategy.
+3. [`solr-extending`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/search/skills/solr-extending/README.md): Custom Apache Solr plugins: SearchComponent, DocTransformer, QParser, update processors, function queries, and their solrconfig wiring.
+4. [`solr-semantic-search`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/search/skills/solr-semantic-search/README.md): Phrase-tagging semantic search on Solr: concept tagging, taxonomy, graph paths, ambiguity resolution. Lexical, not vector.
 5. [`specflow-use`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/specflow-use/README.md): Connects your workspace to Grid Dynamics SpecFlow through its MCP.
 
 ## [Top Workflows](/rosetta/docs/usage-guide/#workflows)

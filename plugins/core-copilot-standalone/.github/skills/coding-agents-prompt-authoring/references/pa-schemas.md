@@ -56,6 +56,7 @@ Note:
   - `## Invariants — do not change` — exact markers/names/wording others depend on (external contracts, alias grammar, frontmatter description ≤ ~25 tokens driving auto-activation, names registered in `docs/definitions/`) and why each is locked
   - `## Editing guide` — safe vs handle-with-care; where new content belongs (SKILL.md vs assets/ vs references/); who references this skill
 - README rules: ground every claim in file text; effect over invented origin (intent not evident → flag, don't fabricate); no history/changelog; ≤ ~80 lines
+  - Paths are plugin-relative: name shipped files as the plugin sees them (`skills/<name>/SKILL.md`, `prompts/<flow>.md`, `agents/<name>.md`, `rules/<file>.md`; `.` = plugin root), never a repository path such as `instructions/<release>/…`; the generator rewrites plugin-relative paths per IDE. Inbound-coupling check: `grep -rn "<skill>" . --include="*.md"` from the plugin root.
 
 </skill_authoring>
 

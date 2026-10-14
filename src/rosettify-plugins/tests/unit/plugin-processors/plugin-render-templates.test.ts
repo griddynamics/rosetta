@@ -158,3 +158,132 @@ describe('pluginRenderTemplates', () => {
     expect(result).toBe(p); // no new frames → original returned
   });
 });
+
+// FR-GEN-0010, DATA-CFG-0008 — strict rendering.
+// The template context carried exactly three keys and rendered with `strict: false`, so an
+// unplumbed `{{var}}` rendered EMPTY and silently produced malformed JSON with no error anywhere.
+// Rendering is strict now: an unknown variable is a loud (soft) error and emits no sibling file.
+describe('pluginRenderTemplates — a missing context key fails loudly', () => {
+  function frameWith(template: string, templateContext: Record<string, unknown>) {
+    return {
+      spec: { name: 'claude', set: 'core', destination: 'core-claude' },
+      vfs: [],
+      frames: [{
+        sourcePath: 'hooks/hooks.json.tmpl',
+        target: 'hooks/hooks.json.tmpl',
+        isBinary: false,
+        target_contents: template,
+        source: [],
+      }],
+      templateContext,
+      errors: [],
+    } as unknown as Parameters<typeof pluginRenderTemplates>[0];
+  }
+
+  it('records a soft error and emits NO sibling when a referenced key is absent', () => {
+    const result = pluginRenderTemplates(frameWith('{"a": {{nope}}}', { release: 'r3' }));
+
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors[0].kind).toBe('soft');
+    expect(result.errors[0].message).toMatch(/nope/);
+    // The .tmpl frame is dropped and no rendered sibling replaces it — a malformed hooks.json
+    // never reaches the output.
+    expect(result.frames).toHaveLength(0);
+  });
+
+  it('renders normally when every referenced key is plumbed', () => {
+    const result = pluginRenderTemplates(
+      frameWith('{{{hooks_json}}}', { hooks_json: '{"hooks":{}}' }),
+    );
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.frames).toHaveLength(1);
+    expect(result.frames[0].target).toBe('hooks/hooks.json');
+    expect(JSON.parse(result.frames[0].target_contents as string)).toEqual({ hooks: {} });
+  });
+
+  // Scope note, verified against Handlebars 4.7: `strict: true` throws for a bare `{{var}}` whose
+  // key is absent — the case that silently produced malformed JSON — but NOT for `{{#if absent}}`,
+  // which still evaluates falsy. Block helpers are therefore not covered by strict mode, which is
+  // why every key a template may use is ALSO plumbed explicitly in generate().
+  it('a false-valued key renders its {{#if}} as falsy without error', () => {
+    const result = pluginRenderTemplates(
+      frameWith('{"v":1{{#if deterministic_hooks}},"d":true{{/if}} }', { deterministic_hooks: false }),
+    );
+
+    expect(result.errors).toHaveLength(0);
+    expect(JSON.parse(result.frames[0].target_contents as string)).toEqual({ v: 1 });
+  });
+});
+
+// FR-GEN-0011 — post-render JSON validation is a HARD error, distinct in kind from FR-GEN-0010's
+// warn-and-continue render-failure handling above: a template that renders successfully but to
+// malformed JSON is a template-authoring bug or a corrupt payload, not a recoverable state, and
+// shipping it silently disables every hook in that plugin (hooks-architecture.md §1.6, §3 step 7).
+describe('pluginRenderTemplates — post-render JSON validation (FR-GEN-0011)', () => {
+  function frameWith(target: string, template: string, templateContext: Record<string, unknown>) {
+    return {
+      spec: { name: 'claude', set: 'core', destination: 'core-claude' },
+      vfs: [],
+      frames: [{
+        sourcePath: target,
+        target,
+        isBinary: false,
+        target_contents: template,
+        source: [],
+      }],
+      templateContext,
+      errors: [],
+    } as unknown as Parameters<typeof pluginRenderTemplates>[0];
+  }
+
+  it('raises a HARD error naming target and file, and emits no sibling, for a stray-comma .json render', () => {
+    // A trailing comma is exactly the failure mode the old `]{{#if deterministic_hooks}},{{/if}}`
+    // idiom could silently produce (hooks-architecture.md §1.6).
+    const result = pluginRenderTemplates(
+      frameWith('hooks/hooks.json.tmpl', '{"a": 1,}', {}),
+    );
+
+    expect(result.frames).toHaveLength(0);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0].kind).toBe('hard');
+    expect(result.errors[0].target).toBe('core-claude');
+    expect(result.errors[0].file).toBe('hooks/hooks.json');
+    expect(result.errors[0].message).toMatch(/not valid JSON/);
+  });
+
+  it('raises a HARD error for a malformed raw {{{bootstrap_hooks}}} injection', () => {
+    // JSON.stringify of a built object could never fail this way; a raw triple-stache injection
+    // can, which is the "strictly stronger than the old assembled-document guarantee" property.
+    const result = pluginRenderTemplates(
+      frameWith(
+        'hooks/hooks.json.tmpl',
+        '{"hooks":{"SessionStart":[{{{bootstrap_hooks}}}]}}',
+        { bootstrap_hooks: '{not json}' },
+      ),
+    );
+
+    expect(result.frames).toHaveLength(0);
+    expect(result.errors[0].kind).toBe('hard');
+  });
+
+  it('does not JSON-validate a non-.json target — e.g. a rendered .md file', () => {
+    const result = pluginRenderTemplates(
+      frameWith('README.md.tmpl', 'not json at all, and that is fine', {}),
+    );
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.frames).toHaveLength(1);
+    expect(result.frames[0].target_contents).toBe('not json at all, and that is fine');
+  });
+
+  it('emits the sibling normally when the rendered .json IS valid', () => {
+    const result = pluginRenderTemplates(
+      frameWith('hooks/hooks.json.tmpl', '{"hooks":{}}', {}),
+    );
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.frames).toHaveLength(1);
+    expect(JSON.parse(result.frames[0].target_contents as string)).toEqual({ hooks: {} });
+  });
+});

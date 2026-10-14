@@ -14,7 +14,7 @@
    - You must double check if anything is missing, not covered, lost, conflicting, gaps, inconsistencies
    - You must double check what consequences this implementation leads to
    - If there are any concerns or uncertainties for the PR/issue itself - ask advisor, then comment author
-   - Is this project using docs/requirements? Where those updated too?
+   - Is this project using docs/REQUIREMENTS? Where those updated too?
    - Ensure this PR matches all requirements including test coverage
    - Check if any useless meta-commentary and explanation of the change is present outside of the predefined changelogs (just state true facts, remove false facts, instead of MORE content)
    - Was ALL documentation updated?

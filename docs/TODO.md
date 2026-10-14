@@ -29,7 +29,7 @@ This file contains grep compatible list of very concise improvements, suggestion
 
 ## TODO: Requirements — split oversized plugin-generator requirement files
 
-`docs/requirements/plugin-generator/` files over the 300-line refactor threshold, deferred from the
+`docs/REQUIREMENTS/plugin-generator/` files over the 300-line refactor threshold, deferred from the
 profiles change so that change stayed reviewable:
 - `FR-ARCH.md` — 898 lines. Split by concern (VFS/directives · processor tiers · pipeline · parity).
 - `FR-COPY.md` — 418 lines. Candidate split: extract model handling (FR-COPY-0020/0021/0022/0080/0081/
@@ -39,8 +39,8 @@ IDs must stay stable across any split; update INDEX.md and cross-references.
 
 ## TODO: Requirements — `FR-ARCH-*` id prefix is ambiguous across components
 
-`FR-ARCH-0016` is defined only in `docs/requirements/rosettify/ARCH.md`, while
-`docs/requirements/plugin-generator/FR-ARCH.md` defines its own `FR-ARCH-0001..0059`. One prefix,
+`FR-ARCH-0016` is defined only in `docs/REQUIREMENTS/rosettify/ARCH.md`, while
+`docs/REQUIREMENTS/plugin-generator/FR-ARCH.md` defines its own `FR-ARCH-0001..0059`. One prefix,
 two components, so a bare `FR-ARCH-00NN` reference is ambiguous repo-wide. Consider component-scoped
 prefixes (e.g. `FR-PGARCH-*` vs `FR-RSARCH-*`) or a documented qualification convention.
 No current cross-component citation is broken.
@@ -57,7 +57,7 @@ and leave the log messages plain.
 
 ## TODO: instructions — lightweight agent documents duplicate their base counterparts
 
-`instructions/r3/core/agents/<agent>~profile-lightweight-only~overwrite~.md` (ten files) are full
+`instructions/r3/workflows/agents/<agent>~profile-lightweight-only~overwrite~.md` (ten files) are full
 copies of the ten base agent documents differing in exactly one line: the `model:` candidate list.
 A FilenameDirective override replaces a whole document, so there is no partial-override mechanism
 today; a base agent edit must be mirrored by hand into its light twin or the two silently diverge.
@@ -65,11 +65,11 @@ Options: a frontmatter-only override kind (apply just the declared keys, inherit
 per-profile model-list map keyed by document path. Guard in the meantime: `diff` each pair and
 expect exactly one changed line.
 
-## TODO: instructions — configure/*.md IDE model catalogues: newest models added 2026-10-13, superseded ones kept
+## TODO: instructions — harness configure references: newest models added 2026-10-13, superseded ones kept
 
-On 2026-10-13 the newest models were added to `instructions/r3/core/configure/{claude-code,github-copilot,cursor,codex,opencode,windsurf}.md` (and the identical copies in `skills/harness/references/configure/`), using each vendor's own id format: Claude Code full ids and aliases, Copilot display names, Cursor ids with bracketed options, Codex ids, OpenCode `provider/model_id` (checked against Models.dev), Windsurf effort-suffixed `model_uid`. Superseded entries were kept (Cursor legacy lines on purpose). Still open: Cursor ids for GPT 6.1 Sol, Gemini 3.8 Flash and Grok 4.7 are inferred from Cursor's naming pattern, not quoted from its docs; Windsurf docs do not confirm a `model:` field in workflow files and list no Haiku 5.5; Codex docs name Max and Ultra effort levels but not the config values, so `model_reasoning_effort` keeps `minimal|low|medium|high|xhigh`. Copilot lists `Grok 4.7`, which the generator's Copilot map still lacks (next TODO). The text below is the earlier note.
+On 2026-10-13 the newest models were added to `instructions/r3/core/skills/harness/references/configure/{claude-code,github-copilot,cursor,codex,opencode,windsurf}.md`, using each vendor's own id format: Claude Code full ids and aliases, Copilot display names, Cursor ids with bracketed options, Codex ids, OpenCode `provider/model_id` (checked against Models.dev), Windsurf effort-suffixed `model_uid`. Superseded entries were kept (Cursor legacy lines on purpose). Still open: Cursor ids for GPT 6.1 Sol, Gemini 3.8 Flash and Grok 4.7 are inferred from Cursor's naming pattern, not quoted from its docs; Windsurf docs do not confirm a `model:` field in workflow files and list no Haiku 5.5; Codex docs name Max and Ultra effort levels but not the config values, so `model_reasoning_effort` keeps `minimal|low|medium|high|xhigh`. Copilot lists `Grok 4.7`, which the generator's Copilot map still lacks (next TODO). The text below is the earlier note.
 
-`instructions/r3/core/configure/{claude-code,codex,cursor,github-copilot,opencode,windsurf}.md` document
+`instructions/r3/core/skills/harness/references/configure/{claude-code,codex,cursor,github-copilot,opencode,windsurf}.md` document
 what each IDE itself accepts (e.g. `configure/cursor.md`: "The `model` field accepts the following model
 id values", listing `gpt-5.1-codex-max`, `grok-code-fast-1`, `composer-2-fast`). They were deliberately
 left out of the issue #187 model upgrade because rewriting them asserts IDE capabilities we cannot
@@ -133,5 +133,11 @@ Further open items from the independent review of this upgrade:
 
 ## TODO: requirements — `MODEL.md` reference profile still mixes old and new values
 
-The hypothetical `modelOverrides` example in `docs/requirements/plugin-generator/MODEL.md` and several profile-block criteria (`FR-COPY-0020` 2, 3, 5; `FR-COPY-0021` 4; `FR-COPY-0022` 3, 4; `FR-COPY-0083` AC4; `FR-COPY-0084` AC2) keep `gpt-5.4*` replacement values while the Claude and Copilot values moved to 5.5. They are illustrative profile blocks, not built-in behavior, and were left as in the #187 upgrade. Owner decision whether to make them consistent.
+The hypothetical `modelOverrides` example in `docs/REQUIREMENTS/plugin-generator/MODEL.md` and several profile-block criteria (`FR-COPY-0020` 2, 3, 5; `FR-COPY-0021` 4; `FR-COPY-0022` 3, 4; `FR-COPY-0083` AC4; `FR-COPY-0084` AC2) keep `gpt-5.4*` replacement values while the Claude and Copilot values moved to 5.5. They are illustrative profile blocks, not built-in behavior, and were left as in the #187 upgrade. Owner decision whether to make them consistent.
 
+
+## REVIEW: Move speckit-integration-policy into arrange-workspace-flow
+
+**Status:** Proposed
+
+**What:** Owner-requested follow-up from #315. The rule ships in `core/rules/` and each tool's rules mechanism picks it up; Claude plugins have no rules mechanism so it is pseudo-dormant there. Folding it into `arrange-workspace-flow` was the stated intent.

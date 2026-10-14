@@ -35,7 +35,7 @@ if [[ "$ROSETTA_AGENT" == "claude" ]]; then
 else
   CLI_CMD="${VALIDATE_CLI_CMD:-codex}"
   # The tier counterpart of the claude default above. The ladder is the one
-  # instructions/r3/core/agents/*.md already pairs: opus<->gpt-6.1-sol,
+  # instructions/r3/workflows/agents/*.md already pairs: opus<->gpt-6.1-sol,
   # sonnet<->gpt-6-luna (effort one step higher), haiku<->gpt-6-luna.
   MODEL="${MODEL:-gpt-6-luna}"
 fi

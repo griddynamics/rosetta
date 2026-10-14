@@ -12,13 +12,38 @@
   "plugins": [
     {
       "name": "rosetta",
-      "source": "core-copilot",
+      "source": "rosetta-copilot",
       "description": "Rosetta for Copilot - Software Engineering Accelerator instruction set, workflows, and guardrails. Includes Rosetta MCP for knowledge base access."
     },
     {
       "name": "rosetta-light",
-      "source": "core-copilot-light",
+      "source": "rosetta-copilot-light",
       "description": "Rosetta for Copilot - Software Engineering Accelerator instruction set, workflows, and guardrails. Includes Rosetta MCP for knowledge base access. (lightweight profile: simpler workflows, smaller models)"
+    },
+    {
+      "name": "core",
+      "source": "core-copilot",
+      "description": "Rosetta for Copilot - core set: composable skills, always-on rules, bootstrap and guardrail hooks; required by every other Rosetta plugin."
+    },
+    {
+      "name": "workflows",
+      "source": "workflows-copilot",
+      "description": "Rosetta for Copilot - workflows set: subagents, workflows, and orchestration automation. Requires the `core` plugin."
+    },
+    {
+      "name": "qe",
+      "source": "qe-copilot",
+      "description": "Rosetta for Copilot - qe set: test automation and test generation. Requires the `core` and `workflows` plugins."
+    },
+    {
+      "name": "search",
+      "source": "search-copilot",
+      "description": "Rosetta for Copilot - search set: Solr and search engineering. Requires the `core` and `workflows` plugins."
+    },
+    {
+      "name": "modernization",
+      "source": "modernization-copilot",
+      "description": "Rosetta for Copilot - modernization set: conversion, modernization, and re-architecture. Requires the `core` and `workflows` plugins."
     }
   ]
 }

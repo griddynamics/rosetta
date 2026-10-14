@@ -46,7 +46,7 @@ MUST read `instructions/r3/core/skills/coding-agents-prompt-authoring/references
   - Terse/compressed phrasing, abbreviations, and shortcuts are **intentional** (every loaded token is paid for on every turn) — do not flag them as unclear writing.
   - File paths referenced inside `instructions/**` (e.g. `docs/CONTEXT.md`, `agents/MEMORY.md`) describe the **target repo's** structure, not this repo's — they are not broken links here (except the init-workspace workflow, which creates/upgrades that structure).
   - Releases: `r3` is active (incremental updates), `r2` is backport-only, earlier releases get no new work. Default any new instruction work to `r3` unless told otherwise.
-  - Edits under `instructions/r3/**` ripple into the generated plugin directories (`plugins/core-claude/`, `plugins/core-cursor/`, etc. via the plugin generator) — flag this as a follow-up dependency in the issue body, don't treat it as an isolated file edit.
+  - Edits under any of the five instruction roots (`instructions/r3/{core,workflows,qe,search,modernization}/**`) ripple into the generated plugin directories (`plugins/rosetta-claude/`, `plugins/core-claude/`, `plugins/qe-cursor/`, etc. — one `<set>-<ide>` folder per set x IDE, via the plugin generator) — flag this as a follow-up dependency in the issue body, don't treat it as an isolated file edit.
 
 AI Coding Agents use MCP to load bootstrap instructions `instructions/r3/core/rules/bootstrap-*.md` as the first thing (exactly the same you have loaded too).
 After that AI Coding Agent is instructed to follow one workflow and to load skills/agents/rules when needed.

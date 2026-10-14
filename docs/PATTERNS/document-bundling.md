@@ -1,15 +1,17 @@
 # Document Bundling Pattern
 
-Multiple RAGFlow documents at the same VFS resource path are merged into a single structured XML response, enabling layered instruction override (core + org) transparent to the agent.
+Multiple RAGFlow documents at the same VFS resource path are merged into a single structured XML response, so an agent asking for one resource path gets everything published at it in one call.
 
 ## Problem Solved
 
-Organization customizations must extend core instructions without replacing them. Agents should receive both layers in one call. XML wrapping adds metadata without polluting document content.
+A resource path is a lookup key, not a file handle, and more than one published document can answer it: a deployment that publishes two instruction repositories into the same collection, or a transitional state during a rename. The agent should get all of them in one call rather than a truncated arbitrary pick. XML wrapping adds metadata without polluting document content.
+
+Within Rosetta's own tree this rarely fires. Filenames are unique across the domain sets, so a path normally resolves to exactly one document.
 
 ## When to Use
 
 - Any `ACQUIRE ... FROM KB` response with 1–5 matching documents.
-- Adding an organization overlay at the same resource path as a core instruction.
+- Serving a collection fed by more than one publishing source.
 
 ## Output Format
 
@@ -19,14 +21,14 @@ Organization customizations must extend core instructions without replacing them
   [core document content]
 </rosetta:file>
 <rosetta:file id="<uuid>" dataset="aia-r3" path="skills/planning/SKILL.md"
-              name="grid/skills/planning/SKILL.md" tags="...">
-  [organization overlay content]
+              name="other-source/skills/planning/SKILL.md" tags="...">
+  [content from the second publishing source]
 </rosetta:file>
 ```
 
 ## Sorting
 
-Documents sorted by `sort_order` metadata (default `1000000`), then by name. Core comes before org overlays when org has higher sort_order.
+Documents sorted by `sort_order` metadata (default `1000000`), then by name. A publisher that wants its document to land last gives it a higher `sort_order`.
 
 ## Listing vs. Bundle
 
@@ -39,4 +41,4 @@ Documents sorted by `sort_order` metadata (default `1000000`), then by name. Cor
 - `src/rosetta-mcp-server/rosetta_mcp/services/bundler.py` — `Bundler` class
 - `src/rosetta-mcp-server/rosetta_mcp/tools/instructions.py` — threshold decision
 - `src/rosetta-mcp-server/rosetta_mcp/tools/resources.py` — VFS resource reads
-- `instructions/r3/core/` + `instructions/r3/grid/` (if present) — layered content
+- `instructions/r3/{core,workflows,qe,search,modernization}/` — the domain sets that supply bundled content

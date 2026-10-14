@@ -1,3 +1,5 @@
+Plugin folders are named `<set>-<ide>`. `rosetta-<ide>` is the full plugin (all five domain sets); `core-<ide>` is the core set alone. Test against `rosetta-<ide>` unless you are specifically testing a split plugin.
+
 # Claude Code
 
 ```
@@ -17,36 +19,36 @@ claude plugin marketplace update rosetta && claude plugin uninstall rosetta@rose
 
 ## Plugin testing
 
-Add marketplace to `chat.plugins.marketplaces` in settings using using local files path. Example: `file:///Users/isolomatov/Sources/GAIN/rosetta`.
+Add marketplace to `chat.plugins.marketplaces` in settings using a local file path to your clone of this repository, for example `file:///path/to/rosetta`.
 Go to agent customizations screen (settings gear icon in Copliot chat plane), click `Browse Marketplaces`, click `install` for `rosetta`.
 
 # Copilot Standalone
 
-1. Copy `core-copilot-standalone` content to the root of the repository.
+1. Copy `rosetta-copilot-standalone` content to the root of the repository.
 2. Verify `.github/instructions/plugin-files-mode.instructions.md` and `.github/instructions/bootstrap-alwayson.instructions.md` exist.
 
 # Codex
 
-Copy `core-codex` content to the root of the repository.
+Copy `rosetta-codex` content to the root of the repository.
 
 # Cursor
 
-Create `.cursor` folder in the repository. Copy contents of `core-cursor` to `.cursor` folder.
+Create `.cursor` folder in the repository. Copy contents of `rosetta-cursor` to `.cursor` folder.
 
 # Cursor Standalone
 
-Copy `core-cursor-standalone` content to the root of the repository.
+Copy `rosetta-cursor-standalone` content to the root of the repository.
 
 # Antigravity
 
 **All three** surfaces must be tested: Antigravity 2.0, Antigravity CLI, Antigravity IDE — one plugin serves all.
 
-Create `.agents/plugins/rosetta` folder in the repository. Copy contents of `core-antigravity` to `.agents/plugins/rosetta` folder.
+Create `.agents/plugins/rosetta` folder in the repository. Copy contents of `rosetta-antigravity` to `.agents/plugins/rosetta` folder.
 
 # Prompts reliability
 
 ```
-I am a plugin developer. Take no actions or execute anything. ultrathink. How to improve which prompt for you to [PROBLEM TO FIX]? I can only modify hook prompts as of now. Instructions from the session start hook: /Users/isolomatov/Sources/GAIN/rosetta/instructions/r3/core/rules/bootstrap-*.md
+I am a plugin developer. Take no actions or execute anything. ultrathink. How to improve which prompt for you to [PROBLEM TO FIX]? I can only modify hook prompts as of now. Instructions from the session start hook: instructions/r3/core/rules/bootstrap-*.md
 ```
 
 ```

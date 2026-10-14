@@ -1,5 +1,5 @@
 // Implements FR-PLAN-0036 (seed upsert template: for-subagent).
-// Content is byte-equivalent to docs/requirements/rosettify/assets/templates/upsert-for-subagent.json.
+// Content is byte-equivalent to docs/REQUIREMENTS/rosettify/assets/templates/upsert-for-subagent.json.
 
 /**
  * FR-PLAN-0036 — upsert-kind template for bootstrapping a subagent preparation phase.

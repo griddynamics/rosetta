@@ -2,6 +2,7 @@
 name: bootstrap-speckit-policy
 description: Invoke if directly requested and speckit is already in context
 alwaysApply: false
+applyTo: "**"
 trigger: model_decision
 tags: ["speckit", "integration", "policy"]
 baseSchema: docs/schemas/rule.md

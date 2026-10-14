@@ -119,13 +119,15 @@ jobs:
           echo "date=${DATE}" >> $GITHUB_OUTPUT
 
           ARCHIVES=""
-          # Includes standard plugins and standalone variants (core-cursor-standalone, core-copilot-standalone)
+          # One archive per generated plugin folder: <set>-<ide>[-light] for every set
+          # (rosetta, core, workflows, qe, search, modernization) and standalone variants
+          # (rosetta-cursor-standalone, rosetta-copilot-standalone).
           for plugin_dir in plugins/*/; do
             folder=$(basename "$plugin_dir")
             plugin_json=$(find "$plugin_dir" -name "plugin.json" -maxdepth 3 | head -1)
             if [ -z "$plugin_json" ]; then
-              echo "WARNING: No plugin.json found in $plugin_dir, skipping"
-              continue
+              echo "::error::No plugin.json found in ${plugin_dir} (searched to depth 3) - refusing to publish a partial release"
+              exit 1
             fi
             version=$(jq -r '.version' "$plugin_json")
             zip_name="${folder}-${version}-${DATE}.zip"
@@ -142,13 +144,136 @@ jobs:
           echo "archives=${ARCHIVES}" >> $GITHUB_OUTPUT
           echo "All plugin archives created."
 
+      - name: Compose release index
+        id: index
+        if: ${{ github.event_name == 'push' || inputs.create_release }}
+        env:
+          ARCHIVES: ${{ steps.plugins.outputs.archives }}
+          ARCHIVE_DATE: ${{ steps.plugins.outputs.date }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Builds RELEASE_INDEX.md: this run's dated zips grouped per IDE in 3 blocks
+          # (1: rosetta, rosetta-light; 2: core..modernization; 3: all standalones).
+          # Blocks are separated by an HTML comment: GitHub keeps blank-line-separated
+          # blocks as ONE list. Runs before any tag moves. Portable (no bash 4 features).
+          set -euo pipefail
+          VERSION=$(jq -r '.version' plugins/rosetta-claude/.claude-plugin/plugin.json)
+          TAG="v${VERSION}"
+          CATALOG=src/rosettify-plugins/plugins.json
+          IDE_ORDER="claude cursor copilot codex antigravity"
+          COMBO_SET=rosetta
+          ZIP_SUFFIX="-${VERSION}-${ARCHIVE_DATE}.zip"
+          WORK=$(mktemp -d)
+          : > "${WORK}/zips"
+          : > "${WORK}/placed"
+
+          # folder<TAB>zip for every archive; the zip must belong to THIS version and date
+          RC=0
+          for zip in ${ARCHIVES}; do
+            if [[ "$zip" != *"${ZIP_SUFFIX}" ]]; then
+              echo "::error::Archive ${zip} does not end with ${ZIP_SUFFIX} (version/date mismatch)"
+              RC=1
+              continue
+            fi
+            printf '%s\t%s\n' "${zip%"${ZIP_SUFFIX}"}" "$zip" >> "${WORK}/zips"
+          done
+          [ "$RC" -eq 0 ] || exit 1
+          if [ ! -s "${WORK}/zips" ]; then
+            echo "::error::No plugin archives to index (ARCHIVES is empty)"
+            exit 1
+          fi
+
+          SETS=$(jq -r '.sets[].name' "$CATALOG")
+          other_sets=$(printf '%s\n' "$SETS" | grep -vx "$COMBO_SET" || true)
+
+          # add_entry <block-file> <folder>: append the link when the folder has an archive
+          add_entry() {
+            local zip
+            zip=$(awk -F '\t' -v f="$2" '$1 == f { print $2 }' "${WORK}/zips")
+            [ -n "$zip" ] || return 0
+            echo "- [${zip}](https://github.com/${REPO}/releases/download/${TAG}/${zip})" >> "$1"
+            echo "$2" >> "${WORK}/placed"
+          }
+
+          # add_set <block-file> <set> <ide-target>: one entry per variant suffix
+          add_set() {
+            local suffix
+            while IFS= read -r suffix; do
+              add_entry "$1" "${2}-${3}${suffix}"
+            done < <(jq -r --arg s "$2" '.sets[] | select(.name == $s) | .variants[].destinationSuffix' "$CATALOG")
+          }
+
+          ide_title() {
+            case "$1" in
+              claude) echo "Claude Code" ;;
+              cursor) echo "Cursor" ;;
+              copilot) echo "GitHub Copilot (VS Code, JetBrains)" ;;
+              codex) echo "Codex" ;;
+              antigravity) echo "Antigravity" ;;
+              *) echo "$1" ;;
+            esac
+          }
+
+          {
+            echo "## Plugin downloads"
+            for ide in $IDE_ORDER; do
+              B1="${WORK}/b1"; B2="${WORK}/b2"; B3="${WORK}/b3"
+              : > "$B1"; : > "$B2"; : > "$B3"
+              add_set "$B1" "$COMBO_SET" "$ide"
+              for set in $other_sets; do add_set "$B2" "$set" "$ide"; done
+              if jq -e --arg t "${ide}-standalone" '.targets | index($t) != null' "$CATALOG" > /dev/null; then
+                add_set "$B3" "$COMBO_SET" "${ide}-standalone"
+                for set in $other_sets; do add_set "$B3" "$set" "${ide}-standalone"; done
+              fi
+              echo
+              echo "### $(ide_title "$ide")"
+              sep=""
+              for block in "$B1" "$B2" "$B3"; do
+                [ -s "$block" ] || continue
+                printf '%s\n' "$sep"
+                cat "$block"
+                sep=$'\n<!-- -->\n'
+              done
+            done
+          } > "${WORK}/index.md"
+
+          # Any archive not placed above is a plugin folder the layout does not know
+          UNPLACED=$(cut -f1 "${WORK}/zips" | sort | grep -vxFf "${WORK}/placed" || true)
+          if [ -n "$UNPLACED" ]; then
+            {
+              echo
+              echo "### Other"
+              echo
+              for f in $UNPLACED; do
+                zip=$(awk -F '\t' -v f="$f" '$1 == f { print $2 }' "${WORK}/zips")
+                echo "- [${zip}](https://github.com/${REPO}/releases/download/${TAG}/${zip})"
+              done
+            } >> "${WORK}/index.md"
+          fi
+
+          cp "${WORK}/index.md" RELEASE_INDEX.md
+          echo "Release index: $(grep -c '^- \[' RELEASE_INDEX.md) entries for ${TAG}"
+          {
+            echo "tag=${TAG}"
+            echo "index_file=RELEASE_INDEX.md"
+          } >> "$GITHUB_OUTPUT"
+
+          if [ -n "$UNPLACED" ]; then
+            echo "::error::unplaced plugin folder(s): $(echo "$UNPLACED" | tr '\n' ' ')"
+            exit 1
+          fi
+
       - name: Create GitHub Release
         id: release
         if: ${{ github.event_name == 'push' || inputs.create_release }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ARCHIVES: ${{ steps.plugins.outputs.archives }}
+          INDEX_TAG: ${{ steps.index.outputs.tag }}
+          INDEX_FILE: ${{ steps.index.outputs.index_file }}
+          REPO: ${{ github.repository }}
         run: |
-          PLUGIN_JSON="${GITHUB_WORKSPACE}/plugins/core-claude/.claude-plugin/plugin.json"
+          PLUGIN_JSON="${GITHUB_WORKSPACE}/plugins/rosetta-claude/.claude-plugin/plugin.json"
           VERSION=$(jq -r '.version' "$PLUGIN_JSON")
           if [[ ! "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
             echo "::error::Invalid version in ${PLUGIN_JSON}: ${VERSION}"
@@ -164,6 +289,13 @@ jobs:
           TAG_PATCH="v${MAJOR}.${MINOR}.${PATCH}"
           DATE=$(date +'%Y%m%d')
           RELEASE_TITLE="${TAG_PATCH} ${DATE}"
+
+          # Checked before any side effect (git config, tag moves): the index was
+          # built for INDEX_TAG; the release must be the same version
+          if [ "$TAG_PATCH" != "$INDEX_TAG" ]; then
+            echo "::error::Release tag ${TAG_PATCH} differs from the tag the index was built for (${INDEX_TAG})"
+            exit 1
+          fi
 
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag_major=${TAG_MAJOR}" >> "$GITHUB_OUTPUT"
@@ -181,26 +313,45 @@ jobs:
             echo "Updated tag ${tag} -> ${GITHUB_SHA}"
           done
 
+          # Body = index + generated notes. A notes failure is not fatal: index only.
+          if ! gh api "repos/${REPO}/releases/generate-notes" \
+              -f tag_name="${TAG_PATCH}" -f target_commitish="${GITHUB_SHA}" \
+              --jq .body > release-notes.md; then
+            echo "::warning::generate-notes failed; the release body will contain the plugin index only"
+            : > release-notes.md
+          fi
+          {
+            cat "$INDEX_FILE"
+            printf '\n\n'
+            cat release-notes.md
+          } > RELEASE_BODY.md
+
+          read -r -a ARCHIVE_LIST <<< "$ARCHIVES"
+
+          # The body is replaced on every run (hand edits are not supported)
           gh release create "${TAG_PATCH}" \
             --title "${RELEASE_TITLE}" \
-            --generate-notes \
+            --notes-file RELEASE_BODY.md \
             --latest \
             --target "${GITHUB_SHA}" \
             instructions.zip \
-            ${{ steps.plugins.outputs.archives }} \
+            "${ARCHIVE_LIST[@]}" \
           || {
             gh release edit "${TAG_PATCH}" \
               --title "${RELEASE_TITLE}" \
+              --notes-file RELEASE_BODY.md \
               --latest \
               --target "${GITHUB_SHA}"
             gh release upload "${TAG_PATCH}" \
               --clobber \
               instructions.zip \
-              ${{ steps.plugins.outputs.archives }}
+              "${ARCHIVE_LIST[@]}"
           }
 
       - name: Summary
         if: always()
+        env:
+          ARCHIVES: ${{ steps.plugins.outputs.archives }}
         run: |
           echo "## Publishing Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -210,7 +361,14 @@ jobs:
           if [ "${{ inputs.deploy_to_prod }}" == "true" ]; then TARGETS="${TARGETS} PROD"; fi
           echo "- **Targets:**${TARGETS:-none}" >> $GITHUB_STEP_SUMMARY
           echo "- **Folders:** instructions/, plugins/" >> $GITHUB_STEP_SUMMARY
-          echo "- **Plugin Archives:** ${{ steps.plugins.outputs.archives }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f RELEASE_INDEX.md ]; then
+            {
+              echo "### Plugin archives"
+              cat RELEASE_INDEX.md
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- **Plugin Archives:** ${ARCHIVES}" >> "$GITHUB_STEP_SUMMARY"
+          fi
           if [ -n "${{ steps.release.outputs.tag_patch }}" ]; then
             echo "- **Version:** ${{ steps.release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
             echo "- **Tags:** ${{ steps.release.outputs.tag_major }}, ${{ steps.release.outputs.tag_minor }}, ${{ steps.release.outputs.tag_patch }}" >> $GITHUB_STEP_SUMMARY

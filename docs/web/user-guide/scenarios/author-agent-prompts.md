@@ -72,6 +72,6 @@ Analysis artifacts in the plan folder (`prompt-brief.md`, `open-questions.md`, `
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/coding-agents-prompting-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/coding-agents-prompting-flow.md?plain=1)
+- Workflow: [`instructions/r3/workflows/workflows/coding-agents-prompting-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/coding-agents-prompting-flow.md?plain=1)
 - Skill: [`coding-agents-prompt-authoring`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/coding-agents-prompt-authoring/SKILL.md?plain=1)
 

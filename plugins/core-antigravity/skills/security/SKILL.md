@@ -113,7 +113,7 @@ Without storage approval, return sanitized results without committing artifacts.
 
 <templates>
 
-READ SKILL FILE `rules/security-report.md`, `rules/security-run.json`, `rules/security-finding.json`, `rules/security-evidence-envelope.json`, `rules/security-threat-model.md`, `rules/security-task-index.md`, `rules/security-remediation-task.md`.
+READ SKILL FILE `templates/security-report.md`, `templates/security-run.json`, `templates/security-finding.json`, `templates/security-evidence-envelope.json`, `templates/security-threat-model.md`, `templates/security-task-index.md`, `templates/security-remediation-task.md`.
 
 </templates>
 

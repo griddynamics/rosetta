@@ -1,0 +1,166 @@
+{
+  "$schema-note": "Declarative plugin-set catalog for the Rosetta plugin generator. ONE invocation expands sets x variants x targets into every output folder. Loaded and fully validated at pre-flight by src/spec/plugin-sets.ts BEFORE any output is written; an unknown field or a structural violation aborts the run naming this file. Override the location with --config <path>.",
+
+  "targets": [
+    "claude",
+    "cursor",
+    "copilot",
+    "codex",
+    "cursor-standalone",
+    "copilot-standalone",
+    "antigravity"
+  ],
+
+  "hookSupportModules": {
+    "read-once": ["read-once-reset", "read-once-shared"]
+  },
+
+  "sets": [
+    {
+      "name": "rosetta",
+      "folders": ["core", "workflows", "qe", "search", "modernization"],
+      "template": "template",
+      "releases": ["r3"],
+      "requires": [],
+      "bootstrap": true,
+      "hooks": [
+        "dangerous-actions",
+        "read-once",
+        "loose-files",
+        "md-file-advisory",
+        "codemap-refresh",
+        "lint-format-advisory"
+      ],
+      "manifest": {
+        "name": "rosetta",
+        "description": "Rosetta - Software Engineering Accelerator instruction set, workflows, agents, skills, and guardrails."
+      },
+      "variants": [
+        {
+          "profile": null,
+          "destinationSuffix": "",
+          "manifestNameSuffix": "",
+          "manifestDescriptionSuffix": ""
+        },
+        {
+          "profile": "lightweight",
+          "destinationSuffix": "-light",
+          "manifestNameSuffix": "-light",
+          "manifestDescriptionSuffix": " (lightweight: simpler workflows, smaller models)"
+        }
+      ]
+    },
+    {
+      "name": "core",
+      "folders": ["core"],
+      "template": "template",
+      "releases": ["r2", "r3"],
+      "requires": [],
+      "bootstrap": true,
+      "hooks": [
+        "dangerous-actions",
+        "read-once",
+        "loose-files",
+        "md-file-advisory",
+        "codemap-refresh",
+        "lint-format-advisory"
+      ],
+      "manifest": {
+        "name": "core",
+        "description": "Rosetta Core - foundation instruction set, rules, skills, and guardrails."
+      },
+      "variants": [
+        {
+          "profile": "lightweight",
+          "destinationSuffix": "",
+          "manifestNameSuffix": "",
+          "manifestDescriptionSuffix": ""
+        }
+      ]
+    },
+    {
+      "name": "workflows",
+      "folders": ["workflows"],
+      "template": "template",
+      "releases": ["r3"],
+      "requires": ["core"],
+      "bootstrap": false,
+      "hooks": [],
+      "manifest": {
+        "name": "workflows",
+        "description": "Rosetta Workflows - orchestration workflows and specialist subagents. Requires Rosetta Core."
+      },
+      "variants": [
+        {
+          "profile": "lightweight",
+          "destinationSuffix": "",
+          "manifestNameSuffix": "",
+          "manifestDescriptionSuffix": ""
+        }
+      ]
+    },
+    {
+      "name": "qe",
+      "folders": ["qe"],
+      "template": "template",
+      "releases": ["r3"],
+      "requires": ["core", "workflows"],
+      "bootstrap": false,
+      "hooks": [],
+      "manifest": {
+        "name": "qe",
+        "description": "Rosetta QE - test automation and quality-engineering workflows. Requires Rosetta Core and Workflows."
+      },
+      "variants": [
+        {
+          "profile": "lightweight",
+          "destinationSuffix": "",
+          "manifestNameSuffix": "",
+          "manifestDescriptionSuffix": ""
+        }
+      ]
+    },
+    {
+      "name": "search",
+      "folders": ["search"],
+      "template": "template",
+      "releases": ["r3"],
+      "requires": ["core", "workflows"],
+      "bootstrap": false,
+      "hooks": [],
+      "manifest": {
+        "name": "search",
+        "description": "Rosetta Search - Solr schema, query, and semantic-search skills. Requires Rosetta Core and Workflows."
+      },
+      "variants": [
+        {
+          "profile": "lightweight",
+          "destinationSuffix": "",
+          "manifestNameSuffix": "",
+          "manifestDescriptionSuffix": ""
+        }
+      ]
+    },
+    {
+      "name": "modernization",
+      "folders": ["modernization"],
+      "template": "template",
+      "releases": ["r3"],
+      "requires": ["core", "workflows"],
+      "bootstrap": false,
+      "hooks": [],
+      "manifest": {
+        "name": "modernization",
+        "description": "Rosetta Modernization - conversion, upgrade, and re-architecture workflows. Requires Rosetta Core and Workflows."
+      },
+      "variants": [
+        {
+          "profile": "lightweight",
+          "destinationSuffix": "",
+          "manifestNameSuffix": "",
+          "manifestDescriptionSuffix": ""
+        }
+      ]
+    }
+  ]
+}

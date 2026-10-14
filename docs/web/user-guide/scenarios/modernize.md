@@ -81,6 +81,6 @@ Per-project spec documents in `docs/`: `reference-code-specs-*.md`, `original-co
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/modernization-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/modernization-flow.md?plain=1) (plus the `modernization-flow-*.md` phase files)
+- Workflow: [`instructions/r3/modernization/workflows/modernization-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/modernization/workflows/modernization-flow.md?plain=1) (plus the `modernization-flow-*.md` phase files)
 - Skills: [`tech-specs`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/tech-specs/SKILL.md?plain=1), [`reverse-engineering`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/reverse-engineering/SKILL.md?plain=1)
 

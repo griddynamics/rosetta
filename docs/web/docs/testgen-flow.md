@@ -374,11 +374,11 @@ Ticket-level artifacts under `plans/testgen-{TICKET-KEY}/`:
 
 Authoritative workflow sources:
 
-- [testgen-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow.md)
-- [testgen-flow-project-config-loading.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-project-config-loading.md)
-- [testgen-flow-data-collection.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-data-collection.md)
-- [testgen-flow-gap-and-contradiction-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-gap-and-contradiction-analysis.md)
-- [testgen-flow-question-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-question-generation.md)
-- [testgen-flow-requirements-document-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-requirements-document-generation.md)
-- [testgen-flow-test-case-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-test-case-generation.md)
-- [testgen-flow-test-case-export.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-test-case-export.md)
+- [testgen-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/testgen-flow.md)
+- [testgen-flow-project-config-loading.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/testgen-flow-project-config-loading.md)
+- [testgen-flow-data-collection.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/testgen-flow-data-collection.md)
+- [testgen-flow-gap-and-contradiction-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/testgen-flow-gap-and-contradiction-analysis.md)
+- [testgen-flow-question-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/testgen-flow-question-generation.md)
+- [testgen-flow-requirements-document-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/testgen-flow-requirements-document-generation.md)
+- [testgen-flow-test-case-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/testgen-flow-test-case-generation.md)
+- [testgen-flow-test-case-export.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/testgen-flow-test-case-export.md)

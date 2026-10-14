@@ -64,5 +64,5 @@ Prerequisites: Issue Tracker; Test Management System for export.
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/testgen-flow.md`](../../instructions/r3/core/workflows/testgen-flow.md) (plus the `testgen-flow-*.md` phase files)
-- Skills: [`qa-knowledge`](../../instructions/r3/core/skills/qa-knowledge/SKILL.md), [`qa-structure`](../../instructions/r3/core/skills/qa-structure/SKILL.md), [`data-collection`](../../instructions/r3/core/skills/data-collection/SKILL.md), [`questioning`](../../instructions/r3/core/skills/questioning/SKILL.md), [`sensitive-data`](../../instructions/r3/core/skills/sensitive-data/SKILL.md)
+- Workflow: [`instructions/r3/qe/workflows/testgen-flow.md`](../../instructions/r3/qe/workflows/testgen-flow.md) (plus the `testgen-flow-*.md` phase files)
+- Skills: [`qa-knowledge`](../../instructions/r3/qe/skills/qa-knowledge/SKILL.md), [`qa-structure`](../../instructions/r3/qe/skills/qa-structure/SKILL.md), [`data-collection`](../../instructions/r3/core/skills/data-collection/SKILL.md), [`questioning`](../../instructions/r3/core/skills/questioning/SKILL.md), [`sensitive-data`](../../instructions/r3/core/skills/sensitive-data/SKILL.md)

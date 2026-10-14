@@ -1349,7 +1349,7 @@ Steps → Phases → Plan root. Plan root status is always derived; never set di
 ````
 
 ### workflow OPERATION_MANAGER remnants + template `rosetta` step — EC is orchestrator/LARGE-only; `rosetta` is user-only
-**Source**: `instructions/r3/core/workflows/adhoc-flow.md` (inline section + prereq), 8 workflow prereq lines (`requirements-authoring`, `init-workspace`, `self-help`, `research`, `coding`, `external-lib`, `modernization`, `code-analysis` flows), `docs/requirements/rosettify/assets/templates/create-for-orchestrator.json` + `src/rosettify/src/commands/plan/templates/create/for-orchestrator.ts`.
+**Source**: `instructions/r3/core/workflows/adhoc-flow.md` (inline section + prereq), 8 workflow prereq lines (`requirements-authoring`, `init-workspace`, `self-help`, `research`, `coding`, `external-lib`, `modernization`, `code-analysis` flows), `docs/REQUIREMENTS/rosettify/assets/templates/create-for-orchestrator.json` + `src/rosettify/src/commands/plan/templates/create/for-orchestrator.ts`.
 **Disposition**:
 - `adhoc-flow` `<OPERATION_MANAGER>` section — DELETED-as-duplicate of `o-session-execution-controller.md` (every atom incl. RFC 7396, fresh-`next`, "Plan has been changed", loop-until lives there); replaced by `<orchestration severity="CRITICAL">` demanding SKILL `orchestration` FULLY + BOTH assets — plan-driven execution is this workflow's core idea (user ruling).
 - 8× prereq `MUST USE OPERATION_MANAGER for deterministic execution` — DELETED-as-obsolete (EC = orchestrator + LARGE only); replaced with `MUST use todo tasks for reliability` (adhoc-flow: with the orchestration-FULLY line instead).

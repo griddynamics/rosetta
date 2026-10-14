@@ -19,7 +19,7 @@ GitHub Copilot supports customization through repository-committed configuration
 - **`.github/plugin/`** - Plugin manifests and marketplace - JSON
 - **`.vscode/mcp.json`** - MCP server integration - JSON
 
-Because regular `*.md` rules/prompts/commands are not supported directly, we should copy `*.md` files to `.github/instructions/` or `.github/prompts/` as-is and then reference them in `.github/copilot-instructions.md` using INDEX style (template: `- .github/instructions/file.md: [Description from frontmatter verbatim, or description of why/when to use it inferred from the content] [Glob: if glob pattern used in frontmatter]`).
+Because regular `*.md` rules/workflows/commands are not supported directly, we should copy `*.md` files to `.github/instructions/` or `.github/prompts/` as-is and then reference them in `.github/copilot-instructions.md` using INDEX style (template: `- .github/instructions/file.md: [Description from frontmatter verbatim, or description of why/when to use it inferred from the content] [Glob: if glob pattern used in frontmatter]`).
 
 ---
 

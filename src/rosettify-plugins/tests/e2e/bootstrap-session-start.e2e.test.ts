@@ -49,6 +49,8 @@ function buildSources(outputDir: string): ResolvedSources {
     pluginsSource: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins'),
     hooksSource: path.join(REPO_ROOT, 'src', 'hooks'),
     outputDir,
+    profileSource: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'profiles'),
+    configPath: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins.json'),
   };
 }
 
@@ -76,6 +78,10 @@ function flattenGrouped(sessionStart: GroupedSessionStart[]): CommandHook[] {
 }
 
 // Real, generated repo state for both releases — built once, reused by every assertion below.
+// D6 count change: every set now declares `indexes: []`, so the two virtual index entries
+// (__rules_index__, __workflows_index__) are never present in the payload. Claude and Copilot
+// therefore drop 2 entries each (9→7 for r2, 5→3 for r3) and Codex drops the 1 index it declared
+// (8→7, 4→3), which is why all three now agree.
 describe('Bootstrap SessionStart real-instruction counts (FR-HOOK-0007)', () => {
   let tmpR2: string;
   let tmpR3: string;
@@ -122,18 +128,18 @@ describe('Bootstrap SessionStart real-instruction counts (FR-HOOK-0007)', () => 
       return flattenGrouped(data.hooks.SessionStart);
     }
 
-    it('r2: 9 SessionStart entries, last entry is the plugin-root entry', () => {
+    it('r2: 7 SessionStart entries, last entry is the plugin-root entry', () => {
       const entries = loadEntries(outR2);
-      expect(entries.length, 'core-claude r2 SessionStart entry count').toBe(9);
+      expect(entries.length, 'core-claude r2 SessionStart entry count').toBe(7);
       const last = entries.at(-1)!;
       expect(last.once).toBe(true);
       expect(last.command).toContain('CLAUDE_PLUGIN_ROOT');
       expect(last.command).toContain('Rosetta Plugin Path:');
     });
 
-    it('r3: 5 SessionStart entries, last entry is the plugin-root entry', () => {
+    it('r3: 3 SessionStart entries, last entry is the plugin-root entry', () => {
       const entries = loadEntries(outR3);
-      expect(entries.length, 'core-claude r3 SessionStart entry count').toBe(5);
+      expect(entries.length, 'core-claude r3 SessionStart entry count').toBe(3);
       const last = entries.at(-1)!;
       expect(last.once).toBe(true);
       expect(last.command).toContain('CLAUDE_PLUGIN_ROOT');
@@ -153,18 +159,18 @@ describe('Bootstrap SessionStart real-instruction counts (FR-HOOK-0007)', () => 
       return data.hooks.sessionStart;
     }
 
-    it('r2: 9 sessionStart entries, last entry is the plugin-root entry', () => {
+    it('r2: 7 sessionStart entries, last entry is the plugin-root entry', () => {
       const entries = loadEntries(outR2);
-      expect(entries.length, 'core-copilot r2 sessionStart entry count').toBe(9);
+      expect(entries.length, 'core-copilot r2 sessionStart entry count').toBe(7);
       const last = entries.at(-1)!;
       expect(last.bash).toContain('agentPlugins');
       expect(last.powershell).toContain('agentPlugins');
       expect(last.bash).toContain('Rosetta Plugin Path:');
     });
 
-    it('r3: 5 sessionStart entries, last entry is the plugin-root entry', () => {
+    it('r3: 3 sessionStart entries, last entry is the plugin-root entry', () => {
       const entries = loadEntries(outR3);
-      expect(entries.length, 'core-copilot r3 sessionStart entry count').toBe(5);
+      expect(entries.length, 'core-copilot r3 sessionStart entry count').toBe(3);
       const last = entries.at(-1)!;
       expect(last.bash).toContain('agentPlugins');
       expect(last.powershell).toContain('agentPlugins');
@@ -181,9 +187,9 @@ describe('Bootstrap SessionStart real-instruction counts (FR-HOOK-0007)', () => 
       return flattenGrouped(data.hooks.SessionStart);
     }
 
-    it('r2: 8 SessionStart entries (one fewer than Claude/Copilot — no workflows index), last entry is the plugin-root entry', () => {
+    it('r2: 7 SessionStart entries, last entry is the plugin-root entry', () => {
       const entries = loadEntries(outR2);
-      expect(entries.length, 'core-codex r2 SessionStart entry count').toBe(8);
+      expect(entries.length, 'core-codex r2 SessionStart entry count').toBe(7);
       const last = entries.at(-1)!;
       expect(last.statusMessage).toBe('Loading Rosetta bootstrap');
       expect(last.timeout).toBe(30);
@@ -192,9 +198,9 @@ describe('Bootstrap SessionStart real-instruction counts (FR-HOOK-0007)', () => 
       expect(last.command).toContain('Rosetta Plugin Path:');
     });
 
-    it('r3: 4 SessionStart entries (one fewer than Claude/Copilot — no workflows index), last entry is the plugin-root entry', () => {
+    it('r3: 3 SessionStart entries, last entry is the plugin-root entry', () => {
       const entries = loadEntries(outR3);
-      expect(entries.length, 'core-codex r3 SessionStart entry count').toBe(4);
+      expect(entries.length, 'core-codex r3 SessionStart entry count').toBe(3);
       const last = entries.at(-1)!;
       expect(last.statusMessage).toBe('Loading Rosetta bootstrap');
       expect(last.timeout).toBe(30);

@@ -1,0 +1,5 @@
+This file is the target of the Rosetta hook prevention test (Mode C).
+
+When an AI is asked to read this file, the PreToolUse hook (tester.js --deny-on-match HOOK-DENY-PROBE)
+should DENY the read and return a reason telling the AI it was a hook test, to report the block,
+and to continue. If the AI shows you these contents, the deny did NOT take effect.

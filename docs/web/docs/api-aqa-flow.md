@@ -331,14 +331,14 @@ Plus: `agents/TEMP/<FEATURE>/api-aqa-state.md` (phase status, metrics, approvals
 
 Authoritative source workflow and phases:
 
-- [api-aqa-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/api-aqa-flow.md)
-- [api-aqa-flow-project-config-loading.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/api-aqa-flow-project-config-loading.md)
-- [api-aqa-flow-data-collection.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/api-aqa-flow-data-collection.md)
-- [api-aqa-flow-api-spec-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/api-aqa-flow-api-spec-analysis.md)
-- [api-aqa-flow-gap-and-requirements-clarification.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/api-aqa-flow-gap-and-requirements-clarification.md)
-- [api-aqa-flow-test-case-specification.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/api-aqa-flow-test-case-specification.md)
-- [api-aqa-flow-test-implementation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/api-aqa-flow-test-implementation.md)
-- [api-aqa-flow-execution-and-report-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/api-aqa-flow-execution-and-report-analysis.md)
-- [api-aqa-flow-test-correction.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/api-aqa-flow-test-correction.md)
+- [api-aqa-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/api-aqa-flow.md)
+- [api-aqa-flow-project-config-loading.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/api-aqa-flow-project-config-loading.md)
+- [api-aqa-flow-data-collection.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/api-aqa-flow-data-collection.md)
+- [api-aqa-flow-api-spec-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/api-aqa-flow-api-spec-analysis.md)
+- [api-aqa-flow-gap-and-requirements-clarification.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/api-aqa-flow-gap-and-requirements-clarification.md)
+- [api-aqa-flow-test-case-specification.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/api-aqa-flow-test-case-specification.md)
+- [api-aqa-flow-test-implementation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/api-aqa-flow-test-implementation.md)
+- [api-aqa-flow-execution-and-report-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/api-aqa-flow-execution-and-report-analysis.md)
+- [api-aqa-flow-test-correction.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/api-aqa-flow-test-correction.md)
 
-Shared skills: [qa-knowledge](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/core/skills/qa-knowledge), [qa-structure](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/core/skills/qa-structure), [data-collection](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/core/skills/data-collection)
+Shared skills: [qa-knowledge](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/qe/skills/qa-knowledge), [qa-structure](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/qe/skills/qa-structure), [data-collection](https://github.com/griddynamics/rosetta/tree/main/instructions/r3/core/skills/data-collection)

@@ -140,7 +140,7 @@ jobs:
           codex-home: ${{ steps.codex.outputs.codex-home }}
           permission-profile: rosetta-read-net
           # Mirrors the Claude branch's `--model opus --effort high`. The tier ladder is
-          # the one instructions/r3/core/agents/*.md already pairs, position by position:
+          # the one instructions/r3/workflows/agents/*.md already pairs, position by position:
           # opus<->gpt-6.1-sol, sonnet<->gpt-6-luna (effort one step higher), haiku<->gpt-6-luna. Effort is a
           # separate axis on Codex, so the `-high` suffix form collapses to model+effort.
           model: gpt-6.1-sol

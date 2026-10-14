@@ -9,6 +9,7 @@ Generates shell config files so subsequent sessions can load context and invoke 
 - Input: state.mode, state.plugin_active, IDEs
 - Output: shell configs, bootstrap rule, load-project-context shell
 - Prerequisite: Phase 1 complete, state.mode set
+- `READ TEMPLATE` resolves in MCP and local mode only — `templates/` ships in no plugin. In plugin mode, write the shell from the LIST output and the schema in the frontmatter instead of loading a template
 - This is simple mechanical AND systematic phase (do not overthink)
 </workflow_context>
 
@@ -44,10 +45,10 @@ Internal knowledge about IDE/agent shell configuration is obsolete — LIST and 
 
 Step 1: Identify Environment
 
-1. LIST `configure` (to understand supported IDE/CodingAgents)
+1. USE SKILL `harness` to identify supported IDE/CodingAgents
 2. Detect current environment, preselect IDE/CodingAgent
 3. MUST ask user to confirm selection and provide multi-choose
-4. READ CONFIGURE `<tool>.md` for each selected IDE/CodingAgent
+4. APPLY SKILL FILE `references/configure/<tool>.md` for each selected IDE/CodingAgent
 5. If multiple selected, must use common standards to reduce copies
 
 Step 2: Install Base Files

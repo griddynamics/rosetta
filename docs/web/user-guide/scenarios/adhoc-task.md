@@ -69,6 +69,6 @@ Any of the dedicated scenarios if your task actually fits one — they're more t
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/adhoc-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/adhoc-flow.md?plain=1)
+- Workflow: [`instructions/r3/workflows/workflows/adhoc-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/adhoc-flow.md?plain=1)
 - Skills: [`orchestration`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/orchestration/SKILL.md?plain=1), [`reasoning`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/reasoning/SKILL.md?plain=1), [`hitl`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/hitl/SKILL.md?plain=1)
 

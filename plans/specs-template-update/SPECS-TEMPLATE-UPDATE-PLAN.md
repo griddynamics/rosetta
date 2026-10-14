@@ -50,7 +50,7 @@ Why `npm run test` fails: `pretest` runs `npm run build`, which succeeds (src on
 
 ## 2. Plan-level EARS requirements
 
-Product behaviour is already specified as EARS criteria in `docs/requirements/rosettify/SPECS.md` — restating it here would violate DRY. These EARS statements govern the **execution process** only.
+Product behaviour is already specified as EARS criteria in `docs/REQUIREMENTS/rosettify/SPECS.md` — restating it here would violate DRY. These EARS statements govern the **execution process** only.
 
 - **PR1** (ubiquitous) The implementation phase shall leave `npm run typecheck` and `npm run build` passing at every phase boundary.
 - **PR2** (unwanted) If a phase-0 file is edited by more than one agent concurrently, the orchestrator shall serialize them, because phase 0 owns the entire shared type surface.
@@ -296,7 +296,7 @@ watch **surface specs §14 G5 first** — 9 of the 21 in-scope units are `status
 **S35 · Implementation state** — Should
 files `agents/IMPLEMENTATION.md`, `agents/TEMP/specs-template-update/coding-flow-state.md` · req — (process) · agent engineer/**sonnet** · pred S34
 AC `IMPLEMENTATION.md` records the breaking data-model change, the two new modules, the purged-id registry, and the expected-red test state; the flow-state file's phase table marks phases 4 and 7 complete and its in-scope table lists 21 ids.
-watch do not touch `docs/requirements/**` or `instructions/**` — the requirement amendments in specs §14 are a separate flow.
+watch do not touch `docs/REQUIREMENTS/**` or `instructions/**` — the requirement amendments in specs §14 are a separate flow.
 
 ---
 

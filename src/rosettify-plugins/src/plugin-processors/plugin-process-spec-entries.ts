@@ -86,17 +86,19 @@ export function pluginProcessSpecEntries(
           if (ghostFrame.target !== vfsPath) {
             allFrameEntries.push({ frame: ghostFrame, entry });
           }
-          logger.debug({ target: spec.name, vfsPath, ghostTarget: ghostFrame.target }, 'FR-ARCH-0049: excluded file ghost frame for reference-rewrite lookup');
+          logger.debug({ target: spec.destination, vfsPath, ghostTarget: ghostFrame.target }, 'FR-ARCH-0049: excluded file ghost frame for reference-rewrite lookup');
           continue;
         }
 
         // FR-ARCH-0050: log per-VirtualFile processing metadata (path decisions only, no content)
-        logger.debug({ target: spec.name, vfsPath, targetPath, sourceCount: vf.sourceFiles.length }, 'FR-ARCH-0050: processing VirtualFile');
+        logger.debug({ target: spec.destination, vfsPath, targetPath, sourceCount: vf.sourceFiles.length }, 'FR-ARCH-0050: processing VirtualFile');
 
         // Create frame
         let frame = createFileFrame(vf, targetPath);
-        // TODO-2: propagate verbatim flag so pluginRewriteReferences skips this frame
-        if (entry.verbatim) {
+        // TODO-2: propagate verbatim flag so pluginRewriteReferences skips this frame.
+        // Either the whole entry is verbatim, or an individual subtree of it is — the latter
+        // matched against the VFS source path, which is stable regardless of later renames.
+        if (entry.verbatim || isVerbatimPath(vfsPath, entry.verbatimPaths)) {
           frame = { ...frame, verbatim: true };
         }
 
@@ -106,7 +108,7 @@ export function pluginProcessSpecEntries(
           const beforeNull = frame.target_contents === null;
           frame = processor(frame, ctx);
           logger.debug({
-            target: spec.name,
+            target: spec.destination,
             vfsPath,
             processor: processor.name || '(anonymous)',
             targetBefore: beforeTarget,
@@ -139,7 +141,7 @@ export function pluginProcessSpecEntries(
       const existing = seenByTarget.get(fe.frame.target);
       if (existing) {
         allFileErrors.push({
-          target: spec.name,
+          target: spec.destination,
           message:
             `Target conflict: two SpecEntries write to the same path "${fe.frame.target}".\n` +
             `  Entry 1: source="${existing.entry.source}" target="${existing.entry.target}", file VFS path="${existing.frame.sourcePath}"\n` +
@@ -164,6 +166,16 @@ export function pluginProcessSpecEntries(
       }
     });
   };
+}
+
+/**
+ * Whether a VFS path falls under one of an entry's verbatim subtrees (SpecEntry.verbatimPaths).
+ * Prefix match on a path boundary, so `skills/harness/references/configure` covers everything
+ * beneath it without also matching a sibling like `.../configure-notes.md`.
+ */
+function isVerbatimPath(vfsPath: string, verbatimPaths: string[] | undefined): boolean {
+  if (!verbatimPaths || verbatimPaths.length === 0) return false;
+  return verbatimPaths.some((prefix) => vfsPath === prefix || vfsPath.startsWith(prefix + '/'));
 }
 
 /**

@@ -1,5 +1,5 @@
 // Implements FR-PLAN-0035 (seed create template: for-orchestrator).
-// Content is byte-equivalent to docs/requirements/rosettify/assets/templates/create-for-orchestrator.json.
+// Content is byte-equivalent to docs/REQUIREMENTS/rosettify/assets/templates/create-for-orchestrator.json.
 
 /**
  * FR-PLAN-0035 — create-kind template for bootstrapping an orchestrator plan.

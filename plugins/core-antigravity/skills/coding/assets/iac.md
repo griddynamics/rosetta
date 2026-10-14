@@ -77,7 +77,7 @@ If issues detected - document, resolve with user, HITL.
 <coding>
 
 1. **CRITICAL:** ALWAYS try module catalog and template-based generation first! 
-2. **CRITICAL:** MUST search approved modules/rules/catalogs.
+2. **CRITICAL:** MUST search approved modules/templates/catalogs.
 3. **CRITICAL:** ALWAYS fetch modules/templates from repository!
 4. **CRITICAL:** MUST check existing infrastructure for existing resources.
 5. **CRITICAL:** MUST ALWAYS apply security best practices. Run security and validation tools on generated code.

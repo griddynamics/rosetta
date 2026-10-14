@@ -37,7 +37,7 @@ companion files needed.
 | C1/C2/C3 — `apply_patch` creation-only gate | — | ✔ | — | — | — |
 | **Total checks (incl. setup + cleanup)** | **11** | **14** | **12** | **11** | **12** |
 
-**Test 6 is Copilot-only** because only `core-copilot` outer-gate matcher includes `create_file`
+**Test 6 is Copilot-only** because only the `rosetta-copilot` outer-gate matcher includes `create_file`
 (alongside `Write`). **C1/C2/C3 are Codex-only** because `apply_patch` is the Codex creation
 tool. **Test 5b is Windsurf-only** because Windsurf maps both file creation and file
 modification to `post_write_code → Write` — there is no distinct Edit event, so the hook fires
@@ -96,11 +96,11 @@ Cleanup step restores `package.json` via `git checkout` and removes the
 The hook itself: [`src/hooks/src/hooks/loose-files.ts`](../../../src/hooks/src/hooks/loose-files.ts)
 
 Outer-gate matchers (per IDE):
-- [`plugins/core-claude/hooks/hooks.json`](../../../plugins/core-claude/hooks/hooks.json)
-- [`plugins/core-codex/.codex/hooks.json`](../../../plugins/core-codex/.codex/hooks.json)
-- [`plugins/core-copilot/hooks/hooks.json`](../../../plugins/core-copilot/hooks/hooks.json)
-- [`plugins/core-cursor/hooks/hooks.json`](../../../plugins/core-cursor/hooks/hooks.json)
-- Windsurf: `plugins/core-windsurf/` not yet created — see `prompt-windsurf.md` for the assumed hooks.json shape
+- [`plugins/rosetta-claude/hooks/hooks.json`](../../../plugins/rosetta-claude/hooks/hooks.json)
+- [`plugins/rosetta-codex/.codex/hooks.json`](../../../plugins/rosetta-codex/.codex/hooks.json)
+- [`plugins/rosetta-copilot/hooks/hooks.json`](../../../plugins/rosetta-copilot/hooks/hooks.json)
+- [`plugins/rosetta-cursor/hooks/hooks.json`](../../../plugins/rosetta-cursor/hooks/hooks.json)
+- Windsurf: `plugins/rosetta-windsurf/` does not exist (windsurf is not an output target) — see `prompt-windsurf.md` for the assumed hooks.json shape
 
 Compiled bundles:
 [`src/hooks/dist/bundles/core-<ide>/loose-files.js`](../../../src/hooks/dist/bundles/)

@@ -75,6 +75,6 @@ A state file under `agents/TEMP/<feature>/`, then the deliverables under `docs/R
 
 ## Sources
 
-- Workflow: [`instructions/r3/core/workflows/requirements-authoring-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/requirements-authoring-flow.md?plain=1)
+- Workflow: [`instructions/r3/workflows/workflows/requirements-authoring-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/workflows/workflows/requirements-authoring-flow.md?plain=1)
 - Skills: [`requirements-authoring`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/requirements-authoring/SKILL.md?plain=1), [`reverse-engineering`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/reverse-engineering/SKILL.md?plain=1), [`hitl`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/hitl/SKILL.md?plain=1)
 

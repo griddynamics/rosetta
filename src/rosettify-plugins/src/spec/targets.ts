@@ -1,4 +1,4 @@
-// DATA-CFG-0002/0003 — the seven PluginSpec values
+// DATA-CFG-0002/0003/0007 — PluginSpec construction: one spec per (set x variant x IDE target).
 // FR-VAR-0010–0072, FR-SEED-0001/0002, FR-COPY-0011
 
 import path from 'path';
@@ -6,6 +6,9 @@ import { fileURLToPath } from 'url';
 import type { Writable } from 'stream';
 import type { PluginSpec, SpecEntry, FileProcessor, PluginProcessor, ReleaseDescriptor } from '../types.js';
 import { TARGET_NAMES } from './target-names.js';
+import type { TargetName } from './target-names.js';
+import type { PluginSetDecl, SetVariant } from './plugin-sets.js';
+import { HOOKS_PSEUDO_FOLDER } from './hooks.js';
 import {
   CLAUDE_VOCABULARY,
   CURSOR_VOCABULARY,
@@ -28,11 +31,10 @@ import { fileCodexAgentFormat } from '../file-processors/file-codex-agent.js';
 import { fileWorkflowToSkill } from '../file-processors/file-workflow-to-skill.js';
 import { pluginCleanup } from '../plugin-processors/plugin-cleanup.js';
 import { pluginCopy } from '../plugin-processors/plugin-copy.js';
-import type { ManifestSuffix } from '../plugin-processors/plugin-copy.js';
 import { pluginProcessSpecEntries } from '../plugin-processors/plugin-process-spec-entries.js';
 import { pluginRewriteReferences } from '../plugin-processors/plugin-rewrite-references.js';
 import { pluginGenerateIndexes } from '../plugin-processors/plugin-generate-indexes.js';
-import { pluginInjectSections } from '../plugin-processors/plugin-inject-sections.js';
+import { pluginEmitDistributionRoot } from '../plugin-processors/plugin-emit-distribution-root.js';
 import { pluginAssembleClaudeBootstrap } from '../plugin-processors/plugin-assemble-claude-bootstrap.js';
 import { pluginAssembleCursorBootstrap } from '../plugin-processors/plugin-assemble-cursor-bootstrap.js';
 import { pluginAssembleCopilotBootstrap } from '../plugin-processors/plugin-assemble-copilot-bootstrap.js';
@@ -59,27 +61,113 @@ const RULES_EXCLUDES = [
   'rules/mcp-files-mode.md', // r3 MCP mode
   'rules/local-files-mode.md',
 ];
-// FR-COPY-0011, GT-8: exclude entire templates/shell-schemas/** folder (authoring-only schemas)
-const TEMPLATES_EXCLUDES = ['templates/shell-schemas/**'];
+
+/**
+ * `skills/harness/references/configure/**` is a byte-identical copy of the instruction set's
+ * `configure/` tree, which was never reference-rewritten. Rewriting the copy while leaving the
+ * original alone silently diverged the two. Reference rewriting was previously all-or-nothing per
+ * SpecEntry, so expressing "this subtree only" needs SpecEntry.verbatimPaths (TODO-2).
+ */
+const VERBATIM_SKILL_PATHS = ['skills/harness/references/configure'];
 
 // FR-ARCH-0049: literal content rewrite pair for targets whose workflows->skills SpecEntry
 // restructures document paths (fileWorkflowToSkill). buildRenamePairs deliberately emits no
 // folder-level pair for that restructuring mapping (a bare `workflows/` token carries no document
 // identity there), so the `WORKFLOW/COMMAND \`workflows/*.md\`` glob-doc string in
-// plugin-files-mode.md is left stale unless rewritten explicitly. Keyed on the long literal
-// (including the `WORKFLOW/COMMAND ` prefix) — not the bare `workflows/*.md` token — because that
-// bare token also appears (unrelated) in skills/rosetta/README.md, which must stay unchanged.
-// Supplied to pluginReplaceLiterals (FR-ARCH-0058) only in the Codex and Antigravity pipelines,
-// never selected by identity branching inside a shared processor (FR-ARCH-0004, FR-ARCH-0005).
+// plugin-files-mode.md is left stale unless rewritten explicitly.
+// Antigravity only. Codex performs the same workflows->skills restructuring but expresses the
+// result ROOT-relative (see CODEX_ROOT_RELATIVE_GLOBS below), so it no longer shares this pair.
 const WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR: readonly [string, string] = [
   'WORKFLOW/COMMAND `workflows/*.md`',
   'WORKFLOW/COMMAND `skills/*-flow/SKILL.md`',
 ];
 
+/**
+ * INT-IDE-0002, FR-ARCH-0058 — Codex documents EVERY unit path relative to the REPOSITORY ROOT,
+ * not to a plugin root.
+ *
+ * Codex is the only target whose content genuinely spans two roots: instructions land under
+ * `.agents/` (its baseSubfolder) while subagents land under `.codex/agents/` as TOML, outside that
+ * namespace entirely. A plugin-root-relative list therefore cannot name the subagents at all —
+ * `agents/*.md` resolved to `.agents/agents/`, which does not exist.
+ *
+ * Correcting only that one entry would leave the list mixing two frames of reference with nothing
+ * signalling the switch, so all four are made root-relative together. `configure/codex.md` (the
+ * authority under INT-IDE-0002, mirrored at skills/harness/references/configure/codex.md) writes
+ * every path this way for the same reason. Consistency WITHIN Codex beats consistency across
+ * targets here, because Codex is the one target that really is different.
+ *
+ * KEYS ARE THE ORIGINAL SOURCE STRINGS for all four — verified against generated output rather
+ * than assumed. Three are plugin-root no-ops (`rules/`, `skills/` and the out-of-namespace
+ * `agents/` all reach this point unrewritten), and the workflow entry keys on the original because
+ * the workflows->skills restructuring emits no folder pair at all (FR-ARCH-0049). Each pair gets
+ * its OWN pluginReplaceLiterals call so it carries its own drift guard: batched into one call, a
+ * single drifted key would be masked by the other three still matching.
+ */
+const CODEX_ROOT_RELATIVE_GLOBS: ReadonlyArray<{
+  pair: readonly [string, string];
+  driftGuard: string;
+}> = [
+  { pair: ['RULE `rules/*.md`', 'RULE `.agents/rules/*.md`'], driftGuard: 'RULE `' },
+  {
+    pair: ['SKILL `skills/*/SKILL.md`', 'SKILL `.agents/skills/*/SKILL.md`'],
+    driftGuard: 'SKILL `',
+  },
+  {
+    pair: ['AGENT/SUBAGENT `agents/*.md`', 'AGENT/SUBAGENT `.codex/agents/*.toml`'],
+    driftGuard: 'AGENT/SUBAGENT `',
+  },
+  {
+    pair: [
+      'WORKFLOW/COMMAND `workflows/*.md`',
+      'WORKFLOW/COMMAND `.agents/skills/*-flow/SKILL.md`',
+    ],
+    driftGuard: 'WORKFLOW/COMMAND',
+  },
+];
+
+/**
+ * FR-ARCH-0058 — Copilot-standalone renames every workflow to `*.prompt.md`, but FR-ARCH-0049's
+ * folder-level pair only relocates the FOLDER (`workflows/` -> `prompts/`); the `*.md` suffix in a
+ * glob string survives untouched. The rule therefore documented `prompts/*.md` while the emitted
+ * files are `adhoc-flow.prompt.md`, so the documented path matched nothing on disk.
+ *
+ * NOTE THE KEY IS THE POST-REWRITE STRING. pluginReplaceLiterals is composed into
+ * `extraAfterIndexes`, which runs AFTER pluginRewriteReferences, so by the time this pair is
+ * applied the source's `workflows/*.md` has already become `prompts/*.md`. That is the opposite of
+ * the Codex/Antigravity pair above, whose restructuring mapping emits no folder pair at all, so
+ * those still see the original `workflows/*.md`.
+ */
+const COPILOT_STANDALONE_PROMPT_GLOB_LITERAL_PAIR: readonly [string, string] = [
+  'WORKFLOW/COMMAND `prompts/*.md`',
+  'WORKFLOW/COMMAND `prompts/*.prompt.md`',
+];
+
+/**
+ * FR-ARCH-0058 — the same defect class as the prompt glob above, for the two remaining unit kinds
+ * whose files are renamed: Cursor rewrites `rules/*.md` to `*.mdc`, and Copilot rewrites
+ * `agents/*.md` to `*.agent.md`. In both cases the always-loaded rule documented a filename
+ * pattern that matches nothing on disk in that plugin.
+ *
+ * NOTE THESE KEYS ARE THE ORIGINAL SOURCE STRINGS, unlike the prompt pair above. FR-ARCH-0049
+ * emits a folder-level pair only when the folder actually moves; here the plugin-root-relative
+ * folder is unchanged (`rules/` -> `rules/`, `agents/` -> `agents/` — the standalones' baseSubfolder
+ * is stripped before comparison), so the pair is a no-op and no rewrite reaches these globs. Only
+ * the file EXTENSION changed, which a folder pair never expresses. Verified against generated
+ * output per target rather than assumed symmetric with the prompt case.
+ */
+const CURSOR_RULE_GLOB_LITERAL_PAIR: readonly [string, string] = [
+  'RULE `rules/*.md`',
+  'RULE `rules/*.mdc`',
+];
+
+const COPILOT_AGENT_GLOB_LITERAL_PAIR: readonly [string, string] = [
+  'AGENT/SUBAGENT `agents/*.md`',
+  'AGENT/SUBAGENT `agents/*.agent.md`',
+];
+
 // Base processors shared across all text file entries
 const BASE_PROCESSORS = [fileRead, fileApplyOverrides, fileBundle];
-
-// --- Spec builders (called at generate time with resolved sources + release) ---
 
 // FR-CLI-0020: all source roots are resolved externally (from --source + overrides) and passed in.
 export interface SpecBuildContext {
@@ -91,21 +179,38 @@ export interface SpecBuildContext {
   dryRun?: boolean;
   /** FR-ARCH-0045/FR-CLI-0050: dry-run output sink; defaults to process.stdout */
   out?: Writable;
-  /**
-   * FR-PROF-0001/0010/0020/0021: the loaded profile descriptor for this run, or null when no
-   * `--profile` was supplied. Sole entry point for profile data into spec construction — read here
-   * to resolve each spec's effective model vocabulary (FR-PROF-0010), destination suffix
-   * (FR-PROF-0020), and manifest name/description suffix (FR-PROF-0021). Optional with a `null`
-   * default so pre-existing direct callers of buildAllSpecs() (e.g. unit tests exercising a single
-   * spec in isolation) keep compiling and behaving exactly as the no-profile path (FR-PROF-0040).
-   */
+  /** FR-PROF-0001/0010: the loaded profile descriptor for this variant, or null. */
   profile?: ProfileDescriptor | null;
-  /**
-   * FR-PROF-0030: the active `--profile` name (or null), threaded unchanged into
-   * TargetContext via pluginProcessSpecEntries for `profile-<name>-only` directive evaluation.
-   * Optional with a `null` default for the same reason as `profile` above.
-   */
+  /** FR-PROF-0030: the active profile name (or null), threaded into TargetContext. */
   activeProfile?: string | null;
+  /** DATA-CFG-0007: the plugin set being built. */
+  set: PluginSetDecl;
+  /** DATA-CFG-0007: which flavour of that set. */
+  variant: SetVariant;
+  /** DATA-CFG-0007: IDE targets to expand the set across. */
+  targets: readonly TargetName[];
+  /** DATA-CFG-0007: bundle modules this set ships, support modules already expanded. */
+  hookModules: string[];
+  /** DATA-CFG-0007: extra bundle modules pulled in by a named hook module. */
+  hookSupportModules: Record<string, string[]>;
+}
+
+/** Everything a per-target builder needs that is identical across the seven builders. */
+interface TargetCommon {
+  set: PluginSetDecl;
+  destination: string;
+  pluginsRoot: string;
+  profile: ProfileDescriptor | null;
+  hookModules: string[];
+  hookSupportModules: Record<string, string[]>;
+  manifest: { name: string; description: string };
+  /** Set manifest name BEFORE the variant suffix, for composing the standalone manifest name. */
+  manifestBaseName: string;
+  manifestNameSuffix: string;
+  buildPipeline: (
+    bootstrapAssembler: PluginProcessor,
+    extraAfterIndexes?: PluginProcessor[],
+  ) => PluginProcessor[];
 }
 
 // ─── Standard SpecEntries builders ──────────────────────────────────────────
@@ -119,10 +224,7 @@ function makeRulesEntry(normalizeModels: FileProcessor): SpecEntry {
   };
 }
 
-function makeWorkflowsEntry(
-  normalizeModels: FileProcessor,
-  targetFolder = 'workflows',
-): SpecEntry {
+function makeWorkflowsEntry(normalizeModels: FileProcessor, targetFolder = 'workflows'): SpecEntry {
   return {
     source: 'workflows/**',
     target: targetFolder,
@@ -131,10 +233,7 @@ function makeWorkflowsEntry(
   };
 }
 
-function makeAgentsEntry(
-  normalizeModels: FileProcessor,
-  targetFolder = 'agents',
-): SpecEntry {
+function makeAgentsEntry(normalizeModels: FileProcessor, targetFolder = 'agents'): SpecEntry {
   return {
     source: 'agents/**',
     target: targetFolder,
@@ -149,114 +248,125 @@ function makeSkillsEntry(normalizeModels: FileProcessor, targetFolder = 'skills'
     target: targetFolder,
     exclude: [],
     processors: [...BASE_PROCESSORS, normalizeModels],
+    verbatimPaths: VERBATIM_SKILL_PATHS,
   };
 }
 
-function makeConfigureEntry(targetFolder = 'configure'): SpecEntry {
-  return {
-    source: 'configure/**',
-    target: targetFolder,
-    exclude: [],
-    processors: [...BASE_PROCESSORS],
-    verbatim: true, // TODO-2: configure files must not have references rewritten
-  };
+/**
+ * Which hook module basenames each IDE FAMILY's hooks.json.tmpl templates actually invoke by
+ * name. Standalone targets share their parent family's modules (familyOf() strips the
+ * `-standalone` suffix before this table is consulted).
+ *
+ * This is a bundle-SHIPPING fact ("which .js files this family's templates reference"), not a
+ * document-shape fact — it holds no event names, matchers, entry shapes, envelopes or bootstrap
+ * slots, all of which now live in the 7 literal templates (hooks-architecture.md §1.9). Four of
+ * five entries are identical; only Antigravity's two-module guardrail-only set differs.
+ *
+ * Verified against the raw text of every hooks.json.tmpl (T5, tests/hook-schema/): claude, codex,
+ * copilot (both forms) and cursor (both forms) each name exactly these 7 modules; antigravity
+ * names exactly these 2. `read-once-shared` never appears literally in ANY template — every
+ * target reaches it only via `read-once`'s entry in plugins.json's hookSupportModules, expanded
+ * below in modulesForTarget.
+ */
+export const TARGET_HOOK_MODULES: Readonly<Record<string, readonly string[]>> = {
+  claude: [
+    'dangerous-actions', 'read-once', 'read-once-reset',
+    'loose-files', 'md-file-advisory', 'codemap-refresh', 'lint-format-advisory',
+  ],
+  codex: [
+    'dangerous-actions', 'read-once', 'read-once-reset',
+    'loose-files', 'md-file-advisory', 'codemap-refresh', 'lint-format-advisory',
+  ],
+  copilot: [
+    'dangerous-actions', 'read-once', 'read-once-reset',
+    'loose-files', 'md-file-advisory', 'codemap-refresh', 'lint-format-advisory',
+  ],
+  cursor: [
+    'dangerous-actions', 'read-once', 'read-once-reset',
+    'loose-files', 'md-file-advisory', 'codemap-refresh', 'lint-format-advisory',
+  ],
+  antigravity: ['dangerous-actions', 'read-once'],
+};
+
+/**
+ * The bundle modules ONE target actually ships: the set's declared modules, narrowed to those
+ * `TARGET_HOOK_MODULES` says this IDE family's templates genuinely invoke, plus those modules'
+ * support modules.
+ *
+ * A set declares hooks once, but not every IDE supports every hook — Antigravity's adapter builds
+ * only 4 of the 8 bundles the other families need, because its templates invoke just the two
+ * guardrail modules. Copying the set's full list to every target therefore demanded files that
+ * are never built, and the (correct, newly loud) missing-bundle check failed the run. Narrowing
+ * by the per-family module list is the data-driven fix: a target ships what it can actually
+ * invoke.
+ */
+function modulesForTarget(
+  boundModules: readonly string[],
+  setModules: readonly string[],
+  support: Record<string, string[]>,
+): string[] {
+  const bound = new Set(boundModules);
+  const needed = new Set<string>();
+  for (const m of setModules) {
+    if (!bound.has(m)) continue;
+    needed.add(m);
+    for (const s of support[m] ?? []) needed.add(s);
+  }
+  return setModules.filter((m) => needed.has(m));
 }
 
-function makeTemplatesEntry(targetFolder = 'templates', normalizeModels?: FileProcessor, extraExcludes: string[] = []): SpecEntry {
-  const processors = normalizeModels ? [...BASE_PROCESSORS, normalizeModels] : [...BASE_PROCESSORS];
-  return {
-    source: 'templates/**',
-    target: targetFolder,
-    // FR-COPY-0011, GT-8: exclude shell-schemas folder (authoring-only, not shipped)
-    exclude: [...TEMPLATES_EXCLUDES, ...extraExcludes],
-    processors,
-  };
+/**
+ * The IDE family a target belongs to — the same derivation TARGET_FAMILIES uses. Standalone
+ * targets share their parent's preserved template folder and hook bundles.
+ */
+function familyOf(target: TargetName): string {
+  return target.replace(/-standalone$/, '');
 }
 
-// ─── Factory function for all seven PluginSpecs ────────────────────────────
+// ─── Per-target spec builders ───────────────────────────────────────────────
+// A Record keyed by target id. Selecting a builder is a data lookup, not a switch on identity
+// (FR-ARCH-0005): no function below inspects which set or target it is being called for.
 
-export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
-  const {
-    pluginsSource,
-    hooksSource,
-    outputDir,
-    release,
-    dryRun = false,
-    out = process.stdout,
-    profile = null,
-    activeProfile = null,
-  } = ctx;
-  const pluginsRoot = pluginsSource; // alias for readability in spec constructors
+type TargetBuilder = (c: TargetCommon) => PluginSpec;
 
-  // FR-PROF-0020: global destination suffix, applied identically to all seven `spec.destination`
-  // values; `spec.name` is NEVER suffixed (it is the directive-match identity, see
-  // matchesTarget/fileApplyOverrides — suffixing it would silently stop every `<name>-only`
-  // directive from matching its target).
-  const destinationSuffix = profile?.destinationSuffix ?? '';
-  // FR-PROF-0021: global manifest name/description suffix pair, or null when no profile is active
-  // (pluginCopy keeps every manifest write byte-identical to today when null, FR-PROF-0040).
-  const manifestSuffix: ManifestSuffix | null = profile
-    ? { name: profile.pluginNameSuffix, description: profile.pluginDescriptionSuffix }
-    : null;
-
-  // ── core-claude ───────────────────────────────────────────────────────────
-  const coreClaude: PluginSpec = {
-    name: TARGET_NAMES.CLAUDE,
-    destination: 'core-claude' + destinationSuffix,
+const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
+  claude: (c) => ({
+    ...base(c, TARGET_NAMES.CLAUDE, CLAUDE_VOCABULARY),
     baseSubfolder: '',
-    preservedSource: path.join(pluginsRoot, 'core-claude'),
-    modelVocabulary: resolveEffectiveVocabulary('core-claude', CLAUDE_VOCABULARY, profile),
-    bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
-    includeIndexEntries: true,
     pluginRootPath: '${CLAUDE_PLUGIN_ROOT}',
-    indexes: [
-      { folder: 'rules', targetFolder: 'rules', heading: 'rules' },
-      { folder: 'workflows', targetFolder: 'workflows', requiredTag: 'workflow', heading: 'workflows' },
-    ],
-    injections: [],
-    // DATA-CFG-0002: hook folder and bundle config
     hookFolder: 'hooks',
+    manifestConditionalFields: [
+      { field: 'commands', requires: 'workflows', value: './workflows/' },
+    ],
     specEntries: [
       makeRulesEntry(fileNormalizeClaudeModels),
       makeWorkflowsEntry(fileNormalizeClaudeModels),
       makeAgentsEntry(fileNormalizeClaudeModels),
       makeSkillsEntry(fileNormalizeClaudeModels),
-      makeConfigureEntry(),
-      makeTemplatesEntry('templates', fileNormalizeClaudeModels),
     ],
-    pluginProcessors: buildPipeline(
-      hooksSource,
-      outputDir,
-      release,
-      dryRun,
-      pluginAssembleClaudeBootstrap,
-      out,
-      // FR-COPY-0083: always-on subagent_required_model list normalization, same late slot as
-      // the Antigravity sibling (after index generation).
-      [pluginNormalizeSubagentRequiredModel(claudeSubagentModelTokenMapper)],
-      manifestSuffix,
-      activeProfile,
-    ),
-  };
+    pluginProcessors: c.buildPipeline(pluginAssembleClaudeBootstrap, [
+      pluginNormalizeSubagentRequiredModel(claudeSubagentModelTokenMapper),
+    ]),
+  }),
 
-  // ── core-cursor ────────────────────────────────────────────────────────────
   // workflows→commands, rules/*.md→*.mdc
-  const coreCursor: PluginSpec = {
-    name: TARGET_NAMES.CURSOR,
-    destination: 'core-cursor' + destinationSuffix,
+  cursor: (c) => ({
+    ...base(c, TARGET_NAMES.CURSOR, CURSOR_VOCABULARY),
     baseSubfolder: '',
-    preservedSource: path.join(pluginsRoot, 'core-cursor'),
-    modelVocabulary: resolveEffectiveVocabulary('core-cursor', CURSOR_VOCABULARY, profile),
-    bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
-    includeIndexEntries: true,
     pluginRootPath: '',
-    indexes: [
-      { folder: 'rules', targetFolder: 'rules', heading: 'rules' },
-      { folder: 'workflows', targetFolder: 'commands', requiredTag: 'workflow', heading: 'workflows' },
-    ],
-    injections: [],
-    // DATA-CFG-0002: hook folder and bundle config
     hookFolder: 'hooks',
+    manifestConditionalFields: [
+      {
+        field: 'rules',
+        requires: 'rules',
+        value: [
+          './rules/bootstrap-alwayson.mdc',
+          './rules/plugin-files-mode.mdc',
+          './rules/speckit-integration-policy.mdc',
+        ],
+      },
+      { field: 'hooks', requires: HOOKS_PSEUDO_FOLDER, value: './hooks/hooks.json' },
+    ],
     specEntries: [
       {
         source: 'rules/**',
@@ -271,41 +381,30 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
       makeWorkflowsEntry(fileNormalizeCursorModels, 'commands'),
       makeAgentsEntry(fileNormalizeCursorModels),
       makeSkillsEntry(fileNormalizeCursorModels),
-      makeConfigureEntry(),
-      makeTemplatesEntry('templates', fileNormalizeCursorModels),
     ],
-    pluginProcessors: buildPipeline(
-      hooksSource,
-      outputDir,
-      release,
-      dryRun,
-      pluginAssembleCursorBootstrap,
-      out,
-      [pluginNormalizeSubagentRequiredModel(cursorSubagentModelTokenMapper)],
-      manifestSuffix,
-      activeProfile,
-    ),
-  };
+    pluginProcessors: c.buildPipeline(pluginAssembleCursorBootstrap, [
+      pluginNormalizeSubagentRequiredModel(cursorSubagentModelTokenMapper),
+      // FR-ARCH-0058: rules are emitted as *.mdc; correct the documented glob.
+      pluginReplaceLiterals([CURSOR_RULE_GLOB_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'RULE `',
+      }),
+    ]),
+  }),
 
-  // ── core-copilot ───────────────────────────────────────────────────────────
   // workflows→commands, agents/*.md→*.agent.md
-  // 3× hooks.json: (a) .github/plugin/hooks.json (rendered), (b) root hooks.json (copy of a), (c) hooks/hooks.json (standalone-form)
-  const coreCopilot: PluginSpec = {
-    name: TARGET_NAMES.COPILOT,
-    destination: 'core-copilot' + destinationSuffix,
+  // 2× hooks.json: (a) .github/plugin/hooks.json (rendered), (b) root hooks.json (mirror of a)
+  copilot: (c) => ({
+    ...base(c, TARGET_NAMES.COPILOT, COPILOT_VOCABULARY),
     baseSubfolder: '',
-    preservedSource: path.join(pluginsRoot, 'core-copilot'),
-    modelVocabulary: resolveEffectiveVocabulary('core-copilot', COPILOT_VOCABULARY, profile),
-    bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
-    includeIndexEntries: true,
     pluginRootPath: '',
-    indexes: [
-      { folder: 'rules', targetFolder: 'rules', heading: 'rules' },
-      { folder: 'workflows', targetFolder: 'commands', requiredTag: 'workflow', heading: 'workflows' },
-    ],
-    injections: [],
-    // DATA-CFG-0002: hook folder and bundle config
     hookFolder: 'hooks',
+    manifestConditionalFields: [
+      { field: 'agents', requires: 'agents', value: ['agents/'] },
+      { field: 'skills', requires: 'skills', value: ['skills/'] },
+      { field: 'commands', requires: 'workflows', value: ['commands/'] },
+    ],
+    mirrors: [{ from: '.github/plugin/hooks.json', to: 'hooks.json' }],
     specEntries: [
       makeRulesEntry(fileNormalizeCopilotModels),
       makeWorkflowsEntry(fileNormalizeCopilotModels, 'commands'),
@@ -320,44 +419,29 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         ],
       },
       makeSkillsEntry(fileNormalizeCopilotModels),
-      makeConfigureEntry(),
-      makeTemplatesEntry('templates', fileNormalizeCopilotModels),
     ],
-    // GT-4: mirror .github/plugin/hooks.json → root hooks.json (byte-identical copy) after rendering
-    // DATA-CFG-0002: declarative mirrors on spec, consumed generically by pluginMirrorFiles
-    mirrors: [
-      { from: '.github/plugin/hooks.json', to: 'hooks.json' },
-    ],
-    pluginProcessors: buildPipeline(
-      hooksSource,
-      outputDir,
-      release,
-      dryRun,
-      pluginAssembleCopilotBootstrap,
-      out,
-      [pluginNormalizeSubagentRequiredModel(copilotSubagentModelTokenMapper)],
-      manifestSuffix,
-      activeProfile,
-    ),
-  };
+    pluginProcessors: c.buildPipeline(pluginAssembleCopilotBootstrap, [
+      pluginNormalizeSubagentRequiredModel(copilotSubagentModelTokenMapper),
+      // FR-ARCH-0058: agents are emitted as *.agent.md; correct the documented glob.
+      pluginReplaceLiterals([COPILOT_AGENT_GLOB_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'AGENT/SUBAGENT `',
+      }),
+    ]),
+  }),
 
-  // ── core-codex ─────────────────────────────────────────────────────────────
   // Instructions go under .agents/; agents → .codex/agents/*.toml; hooks → .codex/
-  const coreCodex: PluginSpec = {
-    name: TARGET_NAMES.CODEX,
-    destination: 'core-codex' + destinationSuffix,
+  codex: (c) => ({
+    ...base(c, TARGET_NAMES.CODEX, CODEX_VOCABULARY),
     baseSubfolder: '.agents',
-    preservedSource: path.join(pluginsRoot, 'core-codex'),
-    modelVocabulary: resolveEffectiveVocabulary('core-codex', CODEX_VOCABULARY, profile),
-    bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
-    includeIndexEntries: true,
     pluginRootPath: '',
-    indexes: [
-      { folder: '.agents/rules', targetFolder: '.agents/rules', heading: 'rules' },
-    ],
-    injections: [],
-    // DATA-CFG-0002: hook folder and bundle config
     hookFolder: '.codex/hooks',
+    manifestConditionalFields: [
+      // .agents/skills/ is populated by BOTH the skills and the workflows entries below, so the
+      // field is emitted when the set ships either.
+      { field: 'skills', requires: 'skills|workflows', value: './.agents/skills/' },
+    ],
+    mirrors: [{ from: '.codex-plugin/hooks.json', to: '.codex/hooks.json' }],
     specEntries: [
       {
         source: 'rules/**',
@@ -365,10 +449,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         exclude: RULES_EXCLUDES,
         processors: [...BASE_PROCESSORS, fileNormalizeCodexModels],
       },
-      // FR-COPY-0080/FR-VAR-0041/0042: each workflow doc → .agents/skills/<name>/SKILL.md; each
-      // phase file → .agents/skills/<name>/phases/<phase>.md, frontmatter stripped. No
-      // .agents/workflows/ folder or index (removed above) — existing absent-document handling
-      // omits that payload entry. Model normalization precedes the shared transform.
+      // FR-COPY-0080/FR-VAR-0041/0042: each workflow doc → .agents/skills/<name>/SKILL.md.
       {
         source: 'workflows/**',
         target: '.agents/skills',
@@ -390,90 +471,30 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         target: '.agents/skills',
         exclude: [],
         processors: [...BASE_PROCESSORS, fileNormalizeCodexModels],
-      },
-      {
-        source: 'configure/**',
-        target: '.agents/configure',
-        exclude: [],
-        processors: [...BASE_PROCESSORS],
-        verbatim: true, // TODO-2: configure files must not have references rewritten
-      },
-      {
-        source: 'templates/**',
-        target: '.agents/templates',
-        exclude: TEMPLATES_EXCLUDES,
-        processors: [...BASE_PROCESSORS],
+        verbatimPaths: VERBATIM_SKILL_PATHS,
       },
     ],
-    // GT-4: mirror .codex-plugin/hooks.json → .codex/hooks.json after rendering
-    // DATA-CFG-0002: declarative mirrors on spec, consumed generically by pluginMirrorFiles
-    mirrors: [
-      { from: '.codex-plugin/hooks.json', to: '.codex/hooks.json' },
-    ],
-    pluginProcessors: buildPipeline(
-      hooksSource,
-      outputDir,
-      release,
-      dryRun,
-      pluginAssembleCodexBootstrap,
-      out,
-      // FR-ARCH-0058: workflows->skills restructures document paths, so FR-ARCH-0049 emits no
-      // folder-level pair for it; this corrects the plugin-files-mode.md glob-doc string. Runs
-      // before the bootstrap assembler, so the hooks payload inherits the correction.
-      // FR-COPY-0083: always-on subagent_required_model list normalization, same late slot as
-      // the Antigravity sibling (after index generation).
-      [
-        pluginReplaceLiterals([WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR]),
-        pluginNormalizeSubagentRequiredModel(codexSubagentModelTokenMapper),
-      ],
-      manifestSuffix,
-      activeProfile,
-    ),
-  };
+    pluginProcessors: c.buildPipeline(pluginAssembleCodexBootstrap, [
+      // INT-IDE-0002: rewrite all four enumerated globs to their root-relative form.
+      ...CODEX_ROOT_RELATIVE_GLOBS.map(({ pair, driftGuard }) =>
+        pluginReplaceLiterals([pair], { requiredIn: 'plugin-files-mode', driftGuard })),
+      pluginNormalizeSubagentRequiredModel(codexSubagentModelTokenMapper),
+    ]),
+  }),
 
-  // ── core-cursor-standalone ────────────────────────────────────────────────
-  // All files under .cursor/; plugin-files-mode.mdc gets injection
-  const cursorStandalonePluginFilesPath = '.cursor/rules/plugin-files-mode.mdc';
-  // The leading \n adds the blank line separator after the bullets section.
-  // The trailing \n\n adds a blank line before the section end-tag.
-  const cursorStandaloneInjectionText =
-    `\nRosetta plugin root: ".cursor". You MUST FOLLOW ALL bootstrap* and plugin* instructions and execute every prep step in order. After prep steps, you MUST select a workflow and execute it. All workflows (commands) are stored in ".cursor/commands/<workflowtag>.md". Example ".cursor/commands/coding-flow.md".\n\n`;
-
-  const coreCursorStandalone: PluginSpec = {
-    name: TARGET_NAMES.CURSOR_STANDALONE,
-    destination: 'core-cursor-standalone' + destinationSuffix,
+  // All files under .cursor/; plugin-files-mode.mdc gets the plugin-root injection
+  'cursor-standalone': (c) => ({
+    ...base(c, TARGET_NAMES.CURSOR_STANDALONE, CURSOR_VOCABULARY),
     baseSubfolder: '.cursor',
-    preservedSource: path.join(pluginsRoot, 'core-cursor'),
-    modelVocabulary: resolveEffectiveVocabulary('core-cursor-standalone', CURSOR_VOCABULARY, profile),
-    bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
-    includeIndexEntries: false,
     pluginRootPath: '.cursor',
-    indexes: [
-      { folder: '.cursor/rules', targetFolder: '.cursor/rules', heading: 'rules' },
-      { folder: '.cursor/commands', targetFolder: '.cursor/commands', requiredTag: 'workflow', heading: 'workflows' },
-    ],
-    injections: [
-      {
-        hostFramePath: cursorStandalonePluginFilesPath,
-        anchor: '# PREP STEP 1:',
-        sections: [
-          {
-            kind: 'literal',
-            text: cursorStandaloneInjectionText,
-          },
-          {
-            kind: 'index',
-            indexFolder: '.cursor/commands',
-          },
-        ],
-      },
-    ],
-    manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
-    // GT-4: cursor-standalone renders root hooks.json.tmpl (standalone-form) to .cursor/hooks.json
-    standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
-    // DATA-CFG-0002: hook folder and bundle config
     hookFolder: '.cursor/hooks',
-    bundleSource: 'core-cursor', // uses parent target's bundles
+    manifestConditionalFields: [],
+    // `<base>-standalone<suffix>`, mirroring the destination's `<set>-<ide><suffix>` ordering —
+    // not `<base><suffix>-standalone`, which would read "rosetta-light-standalone".
+    manifestOverride: {
+      name: `${c.manifestBaseName}-standalone${c.manifestNameSuffix}`, version: 'parent',
+    },
+    standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
     specEntries: [
       {
         source: 'rules/**',
@@ -502,95 +523,41 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         target: '.cursor/skills',
         exclude: [],
         processors: [...BASE_PROCESSORS, fileNormalizeCursorModels],
-      },
-      {
-        source: 'configure/**',
-        target: '.cursor/configure',
-        exclude: [],
-        processors: [...BASE_PROCESSORS],
-        verbatim: true, // TODO-2: configure files must not have references rewritten
+        verbatimPaths: VERBATIM_SKILL_PATHS,
       },
     ],
-    pluginProcessors: buildPipeline(
-      hooksSource,
-      outputDir,
-      release,
-      dryRun,
-      pluginAssembleCursorBootstrap,
-      out,
-      [pluginNormalizeSubagentRequiredModel(cursorSubagentModelTokenMapper)],
-      manifestSuffix,
-      activeProfile,
-    ),
-  };
+    pluginProcessors: c.buildPipeline(pluginAssembleCursorBootstrap, [
+      pluginNormalizeSubagentRequiredModel(cursorSubagentModelTokenMapper),
+      // FR-ARCH-0058: same *.mdc rule rename as the marketplace Cursor target.
+      pluginReplaceLiterals([CURSOR_RULE_GLOB_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'RULE `',
+      }),
+      // FR-VAR-0072: composed ONLY here and on copilot-standalone — the two distributions that
+      // extract into a user repo. Runs before the bootstrap assembler, so the hook payload reads
+      // the declaration along with the rest of the document body.
+      pluginEmitDistributionRoot({ root: '.cursor', workflowFolder: 'commands' }),
+    ]),
+  }),
 
-  // ── core-copilot-standalone ───────────────────────────────────────────────
-  // bootstrap rules → .github/instructions/*.instructions.md
-  // non-bootstrap rules → .github/rules/
-  // workflows → .github/prompts/*.prompt.md
-  // agents → .github/agents/*.agent.md
-  // plugin-files-mode gets injected with root block + workflows index + rules index
-  const copilotStandalonePluginFilesPath = '.github/instructions/plugin-files-mode.instructions.md';
-  // The leading \n adds the blank line separator after the bullets section.
-  const copilotStandaloneInjectionText =
-    `\nRosetta plugin root: ".github". You MUST FOLLOW ALL bootstrap* and plugin* instructions and execute every prep step in order. After prep steps, you MUST select a workflow and execute it. All workflows (commands) are stored in ".github/prompts/<workflowtag>.prompt.md". Example ".github/prompts/coding-flow.prompt.md".\n\n`;
-
-  const coreCopilotStandalone: PluginSpec = {
-    name: TARGET_NAMES.COPILOT_STANDALONE,
-    destination: 'core-copilot-standalone' + destinationSuffix,
+  // bootstrap rules → .github/instructions/*.instructions.md; others → .github/rules/
+  // workflows → .github/prompts/*.prompt.md; agents → .github/agents/*.agent.md
+  'copilot-standalone': (c) => ({
+    ...base(c, TARGET_NAMES.COPILOT_STANDALONE, COPILOT_VOCABULARY),
     baseSubfolder: '.github',
-    preservedSource: path.join(pluginsRoot, 'core-copilot'),
-    modelVocabulary: resolveEffectiveVocabulary('core-copilot-standalone', COPILOT_VOCABULARY, profile),
-    bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
-    includeIndexEntries: false,
     pluginRootPath: '.github',
-    indexes: [
-      { folder: '.github/rules', targetFolder: '.github/rules', heading: 'rules' },
-      { folder: '.github/prompts', targetFolder: '.github/prompts', requiredTag: 'workflow', heading: 'workflows' },
-    ],
-    injections: [
-      {
-        hostFramePath: copilotStandalonePluginFilesPath,
-        anchor: '# PREP STEP 1:',
-        sections: [
-          {
-            kind: 'literal',
-            text: copilotStandaloneInjectionText,
-          },
-          {
-            kind: 'index',
-            indexFolder: '.github/prompts',
-          },
-          {
-            kind: 'literal',
-            text: '\n\n',
-          },
-          {
-            kind: 'index',
-            indexFolder: '.github/rules',
-          },
-        ],
-      },
-    ],
-    manifestOverride: { name: 'core-copilot-standalone', version: 'parent' },
-    // GT-4: copilot-standalone renders hooks/hooks.json.tmpl (standalone-form) to .github/hooks/hooks.json
-    standaloneTemplates: [['hooks/hooks.json.tmpl', '.github/hooks/hooks.json.tmpl']],
-    // DATA-CFG-0002: hook folder and bundle config
     hookFolder: '.github/hooks',
-    bundleSource: 'core-copilot', // uses parent target's bundles
+    manifestConditionalFields: [],
+    manifestOverride: {
+      name: `${c.manifestBaseName}-standalone${c.manifestNameSuffix}`, version: 'parent',
+    },
+    standaloneTemplates: [['hooks/hooks.json.tmpl', '.github/hooks/hooks.json.tmpl']],
     specEntries: [
       // Bootstrap rules → .github/instructions/*.instructions.md
-      // Only bootstrap-* and plugin-files-mode go here; all others go to .github/rules/
-      // FR-COPY-0011, GT-8
       {
         source: 'rules/**',
         target: '.github/instructions',
-        exclude: [
-          ...RULES_EXCLUDES,
-          // Non-bootstrap, non-plugin-files-mode rules are excluded from instructions/
-          // They go to .github/rules/ via the entry below
-          'rules/speckit-integration-policy.md',
-        ],
+        exclude: [...RULES_EXCLUDES, 'rules/speckit-integration-policy.md'],
         processors: [
           ...BASE_PROCESSORS,
           fileNormalizeCopilotModels,
@@ -614,7 +581,6 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         ],
         processors: [...BASE_PROCESSORS, fileNormalizeCopilotModels],
       },
-      // Workflows → .github/prompts/*.prompt.md
       {
         source: 'workflows/**',
         target: '.github/prompts',
@@ -625,7 +591,6 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
           fileRename('\\.github/prompts/(.+)\\.md', '.github/prompts/$1.prompt.md'),
         ],
       },
-      // Agents → .github/agents/*.agent.md
       {
         source: 'agents/**',
         target: '.github/agents',
@@ -641,87 +606,61 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         target: '.github/skills',
         exclude: [],
         processors: [...BASE_PROCESSORS, fileNormalizeCopilotModels],
-      },
-      {
-        source: 'configure/**',
-        target: '.github/configure',
-        exclude: [],
-        processors: [...BASE_PROCESSORS],
-        verbatim: true, // TODO-2: configure files must not have references rewritten
+        verbatimPaths: VERBATIM_SKILL_PATHS,
       },
     ],
-    pluginProcessors: buildPipeline(
-      hooksSource,
-      outputDir,
-      release,
-      dryRun,
-      pluginAssembleCopilotBootstrap,
-      out,
-      [pluginNormalizeSubagentRequiredModel(copilotSubagentModelTokenMapper)],
-      manifestSuffix,
-      activeProfile,
-    ),
-  };
+    pluginProcessors: c.buildPipeline(pluginAssembleCopilotBootstrap, [
+      pluginNormalizeSubagentRequiredModel(copilotSubagentModelTokenMapper),
+      // FR-ARCH-0058: correct the workflow glob the folder-level rewrite left as `prompts/*.md`.
+      // Must run BEFORE pluginEmitDistributionRoot, which appends its own (already correct)
+      // `prompts/*.prompt.md` to the same document — otherwise the driftGuard would match that
+      // new sentence and mask a genuinely stale enumerated glob.
+      pluginReplaceLiterals([COPILOT_STANDALONE_PROMPT_GLOB_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'WORKFLOW/COMMAND',
+      }),
+      // FR-ARCH-0058: same *.agent.md rename as the marketplace Copilot target. A SEPARATE call
+      // rather than a second pair in the one above, so each correction carries its own drift
+      // guard — with both pairs in one call, one drifting key would be masked by the other still
+      // matching, and the guard would stay silent.
+      pluginReplaceLiterals([COPILOT_AGENT_GLOB_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'AGENT/SUBAGENT `',
+      }),
+      // FR-VAR-0072: see the cursor-standalone sibling above.
+      pluginEmitDistributionRoot({ root: '.github', workflowFolder: 'prompts' }),
+    ]),
+  }),
 
-  // ── core-antigravity ──────────────────────────────────────────────────────
   // DATA-CFG-0003: single combined plugin, no dot-prefixed config folder, no standalone target.
-  // FR-VAR-0080/0081: rules+templates→rules/ (frontmatter untouched); skills+workflows→skills/
-  // (workflow→skill transform, FR-COPY-0080); agents→agents/; configure→configure/ verbatim;
-  // no workflows/ folder. FR-COPY-0081/0082: agent+skill frontmatter reduced to name+description,
-  // subagent_required_model→inherit — both Antigravity-only, composed in below (no branching in
-  // shared processors: fileWorkflowToSkill is shared with Codex; fileAntigravityReduceFrontmatter
-  // and pluginAntigravitySubagentModel are wired only into this spec's specEntries/pipeline).
-  // FR-VAR-0082/0083: bootstrap rides the source's authored always-on rule, not a
-  // session-start hook; hooks.json.tmpl omits the bootstrap placeholder (mirrors Cursor, FR-VAR-0070).
-  const coreAntigravity: PluginSpec = {
-    name: TARGET_NAMES.ANTIGRAVITY,
-    destination: 'core-antigravity' + destinationSuffix,
+  // FR-VAR-0080/0081: rules→rules/; skills+workflows→skills/; agents→agents/; no workflows/ folder.
+  antigravity: (c) => ({
+    ...base(c, TARGET_NAMES.ANTIGRAVITY, ANTIGRAVITY_VOCABULARY),
     baseSubfolder: '',
-    preservedSource: path.join(pluginsRoot, 'core-antigravity'),
-    // AG-2: no model vocabulary — V2 forbids a profile core-antigravity block, so this always
-    // resolves to the empty built-in map unchanged; routed through the same resolver as every
-    // other target purely for uniformity (FR-PROF-0010), not because a block can ever apply here.
-    modelVocabulary: resolveEffectiveVocabulary('core-antigravity', ANTIGRAVITY_VOCABULARY, profile),
-    bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
-    includeIndexEntries: true,
     pluginRootPath: '',
-    indexes: [
-      { folder: 'rules', targetFolder: 'rules', heading: 'rules' },
-      // AG-5: "skills index" is the Antigravity analog of Claude's workflow index — it lists only
-      // the workflow-derived skills (tagged 'workflow'), not every plain skill.
-      { folder: 'skills', targetFolder: 'skills', requiredTag: 'workflow', heading: 'workflows' },
-    ],
-    injections: [],
-    // DATA-CFG-0002: hook folder and bundle config (bundleSource defaults to spec.name)
     hookFolder: 'hooks',
+    manifestConditionalFields: [],
     specEntries: [
-      // FR-VAR-0081: rules — frontmatter (incl. any authored `trigger:`) preserved unchanged;
-      // NOT reduced (rules are excluded from FR-COPY-0081); no model normalization (AG-2).
+      // FR-VAR-0081: rules — frontmatter preserved unchanged; no model normalization (AG-2).
       {
         source: 'rules/**',
         target: 'rules',
         exclude: RULES_EXCLUDES,
         processors: [...BASE_PROCESSORS],
       },
-      // FR-VAR-0081: templates join rules/ (same target folder as the rules entry above).
-      makeTemplatesEntry('rules'),
-      // FR-COPY-0080: each workflow doc → skills/<name>/SKILL.md; each phase file →
-      // skills/<name>/phases/<phase>.md; phase references rewritten within both.
-      // Frontmatter reduction (FR-COPY-0081) happens later, as a plugin-tier pass AFTER indexes
-      // are generated — the resulting SKILL.md's `tags: ["workflow"]` field must still be present
-      // when pluginGenerateIndexes builds the skills index (AG-5).
+      // FR-COPY-0080: each workflow doc → skills/<name>/SKILL.md.
       {
         source: 'workflows/**',
         target: 'skills',
         exclude: [],
         processors: [...BASE_PROCESSORS, fileWorkflowToSkill],
       },
-      // Real Rosetta skills → skills/ verbatim structure.
       {
         source: 'skills/**',
         target: 'skills',
         exclude: [],
         processors: [...BASE_PROCESSORS],
+        verbatimPaths: VERBATIM_SKILL_PATHS,
       },
       {
         source: 'agents/**',
@@ -729,58 +668,91 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         exclude: [],
         processors: [...BASE_PROCESSORS],
       },
-      makeConfigureEntry(),
     ],
-    pluginProcessors: buildPipeline(
-      hooksSource,
-      outputDir,
-      release,
-      dryRun,
-      pluginAssembleAntigravityBootstrap,
-      out,
-      // FR-COPY-0081/0082, Antigravity-only whole-plugin passes, run AFTER pluginGenerateIndexes
-      // (see plugin-antigravity-reduce-frontmatter.ts for why reduction must come after indexing).
-      [
-        pluginAntigravityReduceFrontmatter,
-        pluginAntigravitySubagentModel,
-        // FR-ARCH-0058: same glob-doc correction as Codex — this target also restructures
-        // workflows into skills, so FR-ARCH-0049 emits no folder-level pair for that mapping.
-        pluginReplaceLiterals([WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR]),
-        // FR-COPY-0083.AC6: Antigravity keeps its own unconditional pluginAntigravitySubagentModel
-        // above and is deliberately NOT composed with pluginNormalizeSubagentRequiredModel.
-      ],
-      manifestSuffix,
-      activeProfile,
-    ),
-  };
+    pluginProcessors: c.buildPipeline(pluginAssembleAntigravityBootstrap, [
+      pluginAntigravityReduceFrontmatter,
+      pluginAntigravitySubagentModel,
+      pluginReplaceLiterals([WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR], {
+        requiredIn: 'plugin-files-mode',
+        driftGuard: 'WORKFLOW/COMMAND',
+      }),
+    ]),
+  }),
+};
 
-  return [
-    coreClaude,
-    coreCursor,
-    coreCopilot,
-    coreCodex,
-    coreCursorStandalone,
-    coreCopilotStandalone,
-    coreAntigravity,
-  ];
+/**
+ * The fields every target spec shares. `name` is the bare IDE identity; `destination` carries the
+ * set and variant. D6: `indexes` is empty and `includeIndexEntries` false on every set — the three
+ * remaining index code paths (pluginGenerateIndexes, bootstrap/payload) are retained but dormant,
+ * and both are fail-soft, so an empty declaration simply produces no indexes.
+ */
+function base(
+  c: TargetCommon,
+  name: TargetName,
+  vocabulary: Parameters<typeof resolveEffectiveVocabulary>[1],
+): Omit<PluginSpec,
+  'baseSubfolder' | 'pluginRootPath' | 'hookFolder' | 'specEntries' | 'pluginProcessors' |
+  'manifestConditionalFields'> {
+  const family = familyOf(name);
+  return {
+    name,
+    set: c.set.name,
+    destination: c.destination,
+    preservedSource: path.join(c.pluginsRoot, `${c.set.template}-${family}`),
+    modelVocabulary: resolveEffectiveVocabulary(name, vocabulary, c.profile),
+    bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
+    includeIndexEntries: false,
+    indexes: [],
+    hookModules: modulesForTarget(TARGET_HOOK_MODULES[family] ?? [], c.hookModules, c.hookSupportModules),
+    bootstrap: c.set.bootstrap,
+    manifest: c.manifest,
+    // Standalone targets pull bundles from their parent IDE's directory; every target's bundle
+    // directory is now the BARE IDE id (src/hooks/dist/bundles/<family>), matching build-bundles.mjs.
+    bundleSource: family,
+  };
+}
+
+/**
+ * Build every PluginSpec for one (set, variant) pair — one per IDE target.
+ * Called once per selected set-variant by generate(); the seven builders come from a data table.
+ */
+export function buildSpecsForSet(ctx: SpecBuildContext): PluginSpec[] {
+  const {
+    pluginsSource, hooksSource, outputDir, release,
+    dryRun = false, out = process.stdout,
+    profile = null, activeProfile = null,
+    set, variant, targets, hookModules, hookSupportModules,
+  } = ctx;
+
+  const manifest = {
+    name: set.manifest.name + variant.manifestNameSuffix,
+    description: set.manifest.description + variant.manifestDescriptionSuffix,
+  };
+  return targets.map((target) => {
+    const common: TargetCommon = {
+      set,
+      destination: `${set.name}-${target}${variant.destinationSuffix}`,
+      pluginsRoot: pluginsSource,
+      profile,
+      hookModules,
+      hookSupportModules,
+      manifest,
+      manifestBaseName: set.manifest.name,
+      manifestNameSuffix: variant.manifestNameSuffix,
+      buildPipeline: (bootstrapAssembler, extraAfterIndexes = []) =>
+        buildPipeline(
+          hooksSource, outputDir, release, dryRun, bootstrapAssembler, out,
+          extraAfterIndexes, activeProfile,
+        ),
+    };
+    return TARGET_BUILDERS[target](common);
+  });
 }
 
 /**
  * Build the standard plugin processor pipeline for a target.
- * hooksSource: absolute path to hooks root (FR-CLI-0020); used by pluginSyncBundles.
- * dryRun threads through all disk-mutating processors (FR-CLI-0050, FR-ARCH-0045).
- * pluginMirrorFiles reads mirror pairs from spec.mirrors (data-driven, FR-ARCH-0035, DATA-CFG-0002).
- * extraAfterIndexes: optional target-specific whole-plugin passes inserted right after
- * pluginGenerateIndexes (composition point; empty for every target except where a caller supplies
- * some — e.g. FR-COPY-0081/0082's Antigravity-only frontmatter-reduction/subagent-model passes,
- * and FR-COPY-0083's always-on subagent-list normalization for the six non-Antigravity targets).
- * Inserted after indexing so index membership (e.g. a `tags: ["workflow"]` field) is still intact
- * when indexes are built. This is data supplied by the caller, not a branch on target/IDE identity
- * inside this function.
- * manifestSuffix: FR-PROF-0021 global {name, description} append pair (or null, no profile active),
- * forwarded to pluginCopy unchanged for every target.
- * activeProfile: FR-PROF-0030 active --profile name (or null), forwarded to
- * pluginProcessSpecEntries unchanged for every target, mirroring how `release` is threaded.
+ * extraAfterIndexes: target-specific whole-plugin passes inserted right after pluginGenerateIndexes.
+ * This is data supplied by the caller, not a branch on target/IDE identity inside this function.
  * FR-ARCH-0032
  */
 function buildPipeline(
@@ -791,24 +763,22 @@ function buildPipeline(
   bootstrapAssembler: PluginProcessor,
   out: Writable = process.stdout,
   extraAfterIndexes: PluginProcessor[] = [],
-  manifestSuffix: ManifestSuffix | null = null,
   activeProfile: string | null = null,
 ) {
-  const pipeline = [
-    pluginCleanup(outputDir, dryRun),               // FR-CLI-0050: no-op in dry-run
-    pluginCopy(outputDir, dryRun, manifestSuffix, out),  // FR-CLI-0050: skip disk copy; keep tmpl frames; dry-run preview goes to the same sink as pluginWrite
+  return [
+    pluginCleanup(outputDir, dryRun),
+    pluginCopy(outputDir, dryRun, out),
     pluginProcessSpecEntries(release, activeProfile),
     pluginRewriteReferences,
     pluginGenerateIndexes,
     ...extraAfterIndexes,
-    pluginInjectSections,
     bootstrapAssembler,
+    // hooks.json documents are the seven literal per-IDE templates, restored under
+    // FR-GEN-0011 (hooks-architecture.md §1) — no separate assembly step. The bootstrap
+    // payload is injected by pluginRenderTemplates via bootstrap_hooks, plumbed above.
     pluginRenderTemplates,
-    // GT-4: mirror step reads spec.mirrors (declarative data); no-op if mirrors is empty/absent
     pluginMirrorFiles,
-    // FR-CLI-0020: hooksSource is <source>/hooks; bundles at <hooksSource>/dist/bundles/<bundleSource>
-    pluginSyncBundles(hooksSource, outputDir, release.deterministicHooks, dryRun), // FR-CLI-0050
-    pluginWrite(outputDir, dryRun, out),      // FR-ARCH-0045: emit paths+contents to the output sink in dry-run
+    pluginSyncBundles(hooksSource, outputDir, release.deterministicHooks, dryRun),
+    pluginWrite(outputDir, dryRun, out),
   ];
-  return pipeline;
 }

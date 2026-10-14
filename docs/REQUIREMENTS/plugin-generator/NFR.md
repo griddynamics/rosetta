@@ -1,0 +1,258 @@
+# plugin-generator — Non-Functional Requirements
+
+ISO/IEC 25010 buckets. Metrics and conditions stated.
+
+<req id="NFR-0001" type="NFR" level="System" ticketId="315" classification="technical">
+  <title>Per-plugin structural parity</title>
+  <statement>For every (set variant × IDE target) pair the generator shall produce an output file-path set whose structure matches the layout derived from that set's instruction source and that IDE target's mapping contract: the set of generated output file paths shall equal the set obtained by applying that target's documented mapping rules — folder placement, folder and file renames, source exclusions, rendered templates, preserved-file seeding, alternate-name hook copies, the set's declared hook bundles, the variant's `destination` suffixing, and set-, target- and profile-directive resolution — to the folders that set declares. The oracle applies per pair, over every declared pair rather than a fixed list of targets. Parity is defined over output file PATHS and folder layout only; it does not compare file content. Under `deterministicHooks:false` the output shall contain no `*.js` hook bundle, and no target output shall contain a `*.tmpl` file.</statement>
+  <rationale>Structure is the durable, content-agnostic acceptance surface: each target must lay out the correct files for whatever the current source contains. Deriving the expected path set from the actual source tree (not a frozen snapshot) makes the check self-updating, so the owner can add or remove skills, workflows, rules, or subagents and the gate stays valid without edits — a newly added source file appears in both the derived-expected and the generated-actual sets. A set changes which folders feed the VFS and a variant changes the output folder name and which profile-scoped files apply, but neither changes the per-IDE layout contract, so one structural oracle applies to every pair. Content correctness is verified separately (per-target unit and E2E tests); this requirement isolates the layout contract.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-01</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: release r3 generated for any (set variant × IDE target) pair When: its generated output file-path set is compared to the set derived from that set's folders and that target's mapping contract Then: the two sets are equal — no path is only-in-expected and none only-in-actual.</criteria>
+    <criteria>Given: a skill, workflow, rule, or agent added to or removed from the instruction source When: the target is regenerated Then: the derived-expected and generated-actual path sets change identically and remain equal, with no change to the parity test.</criteria>
+    <criteria>Given: a pair generated under an active profile When: its generated output file-path set is compared to the set derived from that set's folders, the target's mapping contract, and the variant's `destination` suffixing plus profile-directive resolution Then: the two sets are equal.</criteria>
+    <criteria>Given: the union of the file sets of `core-<ide>`, `workflows-<ide>`, `qe-<ide>`, `search-<ide>` and `modernization-<ide>` When: compared with the file set of `rosetta-<ide>-light`, excluding per-plugin manifests and hook configuration Then: the two are equal.</criteria>
+    <criteria>Given: any generated plugin output tree When: inspected Then: it contains no `*.tmpl` file and no `INDEX.md`, and under `deterministicHooks:false` it contains no `*.js` hook bundle.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: tests/e2e/parity.e2e.test.ts and tests/e2e/profile.e2e.test.ts pass against real r3
+  generation, and the generated tree contains zero .tmpl files, zero INDEX.md files and zero .js hook
+  bundles when deterministic hooks are off. The oracle in tests/e2e/parity-derive-structure.ts
+  (deriveExpectedPaths) imports no generator code and is directive- and profile-aware, so it independently
+  predicts the expected path set.</implementationNotes>
+  <notes>Redefined from the former byte-for-byte parity stance: the previous generator (the byte-identity reference) was removed in r2, its snapshot baselines were gitignored and are no longer produced, so a content-diff oracle can no longer run. Parity is now structural (path/layout) per plugin; content is covered by the sample and Antigravity E2E suites and the unit tests. One content-shape case is NOT covered by those and has its own unit: where a target emits two hook-configuration documents that occupy fixed, different paths and differ only in content, this path-only oracle is blind to their collapse — see NFR-0012, which asserts the relationships between those documents rather than freezing their bytes.</notes>
+</req>
+
+<req id="NFR-0012" type="NFR" level="System" ticketId="315" classification="technical">
+  <title>Hook-configuration content parity</title>
+  <statement>Where one (set variant × IDE target) pair emits more than one `hooks.json` document, the generator shall preserve the declared relationship between those documents, and that relationship shall be verified over document CONTENT rather than over paths alone (NFR-0001 covers paths and explicitly does not compare content). For each pair the verification shall assert: the exact set of `hooks.json` paths that target emits; that documents declared byte-identical are byte-identical — the `codex` mirror pair (`.codex-plugin/hooks.json` ↔ `.codex/hooks.json`) and the `copilot` alternate-name copy (`hooks.json` ↔ `.github/plugin/hooks.json`, FR-VAR-0030); that documents declared to be different FORMS are not byte-identical — `copilot`'s plugin form against its standalone-form document (FR-VAR-0030), and `cursor`'s two forms where the effective deterministic-hooks value makes them distinguishable; that each document carries its own form's addressing and no other's, a standalone form carrying neither the marketplace plugin-root probe nor a non-empty session-start array; and that every emitted document parses as JSON. The verification shall additionally record a content digest per emitted document, so that a change in any hook configuration's content is surfaced for classification rather than passing silently. Documents under `**/skills/harness/references/hooks/**` are verification probe harnesses, not shipping configuration, and are excluded.</statement>
+  <rationale>A paths-only oracle cannot see a document that changes SHAPE while keeping its path, and the two distinct hook-configuration forms a target emits are exactly such a case: they occupy fixed, different paths and differ only in content. This was not hypothetical — under #315 `<set>-copilot/hooks/hooks.json` changed from the 60-byte standalone form to a byte-identical copy of the 24443-byte plugin form, and every acceptance gate passed, because NFR-0001 compares paths and the equivalence check listed `hooks.json` among its permitted-difference classes. Asserting the RELATIONSHIPS between the documents, rather than freezing their bytes, keeps the gate valid as the bootstrap payload legitimately changes with the instruction source — the same self-updating property NFR-0001 has, applied to content shape. The digest is recorded rather than pinned for the same reason: it makes a content change visible for classification without failing a build whose content was supposed to move.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-03</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: any (set variant × IDE target) pair that emits hook configuration When: its output is inspected Then: the set of emitted `hooks.json` paths equals the set that target declares, with no additional and no missing document.</criteria>
+    <criteria>Given: the `codex` target When: generated Then: `.codex-plugin/hooks.json` and `.codex/hooks.json` are byte-identical.</criteria>
+    <criteria>Given: the `copilot` target When: generated Then: `hooks.json` and `.github/plugin/hooks.json` are byte-identical, and `hooks/hooks.json` is NOT byte-identical to either.</criteria>
+    <criteria>Given: a standalone-form hook document When: inspected Then: it carries no marketplace plugin-root probe, and its session-start key is present and empty.</criteria>
+    <criteria>Given: a plugin-form hook document When: inspected Then: it does not address hook bundles by the in-repo extraction path.</criteria>
+    <criteria>Given: the `cursor` target generated with the effective deterministic-hooks value true When: its two forms are compared Then: they are not byte-identical; with that value false both legitimately reduce to the same entry-less document and no distinctness is asserted.</criteria>
+    <criteria>Given: any emitted hook configuration document When: parsed Then: it is valid JSON.</criteria>
+    <criteria>Given: any emitted hook configuration document When: the gate runs Then: a content digest for it is reported.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: scripts/verify/ac_hooks_content.py, driven by a per-target
+  declaration of the emitted path set and the identity, distinctness and form-marker relations between
+  those paths. Takes --tree (default plugins/) and --posture, since the cursor distinctness criterion
+  only applies at deterministic-hooks true. Validated in both directions rather than by synthetic
+  mutation: ALL PASS (28 assertions) against the pre-#315 output preserved at agents/TEMP/315-golden,
+  and 12 failures against the tree carrying the #315 regression, each naming the collapse across
+  core-copilot, rosetta-copilot and rosetta-copilot-light.</implementationNotes>
+  <depends>NFR-0001, FR-VAR-0030, FR-VAR-0071, FR-SET-0070</depends>
+  <notes>A standalone-form document emitted inside a marketplace plugin tree is NOT a "staging source"
+  for the standalone build: the standalone target reads its template from the shared preserved-template
+  directory, never from the main plugin's output, so the two builds are independent and merely render
+  the same source file. Such a document is an incidental emission of the preserved-tree template walk,
+  is read by nothing in marketplace mode, and is retained because it is pre-existing shipped output that
+  FR-VAR-0030 mandates. It must still carry its own form, which is what this unit asserts.
+  Two scopes exist deliberately. The relational assertions (path set, identity, distinctness,
+  form markers, JSON validity) need no baseline and can run anywhere, including CI. The golden
+  cross-check that compares copilot's standalone-staging document byte-for-byte against
+  agents/TEMP/315-golden additionally requires that snapshot, which is SCM-excluded and therefore
+  local-only; it is skipped when absent rather than failing. NFR-0001's note that "a content-diff
+  oracle can no longer run" holds for the removed byte-identity reference it describes, but not for
+  this relational check, which derives its expectations from the per-target contract rather than from
+  a frozen snapshot. The capability was owner-approved (follow.md, OWNER'S ASKS item 12); this unit's
+  text is new and awaits review, hence Draft.</notes>
+</req>
+
+<req id="NFR-0002" type="NFR" level="System" ticketId="" classification="technical">
+  <title>Deterministic, reproducible output</title>
+  <statement>Given identical inputs — the active profile (or its absence) counted as one of those inputs — the generator shall produce identical output across runs, processing files in a stable sorted order. The profile is an additional input dimension: two runs whose inputs and profile are identical produce identical output.</statement>
+  <rationale>Reliability: reproducible builds; clean diffs in version control. The profile is an input like release, domain, and source, so it belongs in the set of inputs that must be held identical for output to be identical.</rationale>
+  <source>Sources</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-08-19</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: two runs with identical inputs and the same active profile (or both with no profile) When: outputs compared Then: they are identical.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: the active profile (or its absence) is counted as an input dimension and the stable sorted processing order is preserved, so identical inputs plus profile produce identical output. Verified by tests/e2e/profile.e2e.test.ts and the no-profile parity run (2229 paths / vfsSize 320, identical to the baseline).</implementationNotes>
+</req>
+
+<req id="NFR-0003" type="NFR" level="System" ticketId="" classification="technical">
+  <title>Idempotent re-generation</title>
+  <statement>The generator shall be safely re-runnable, wiping and rebuilding generated content while preserving each target's config folder and preserved files, and shall produce a complete output into a clean or empty output directory by first seeding the preserved files from the effective preserved-file source (the default committed root or a `--pluginsSource` override).</statement>
+  <rationale>Reliability: re-running must not accumulate stale artifacts, and a first run into a clean directory must not depend on preserved files already committed in the output tree. Preserved-file sourcing now reads the effective preserved-file source, so idempotency is defined against that root, whether default or overridden.</rationale>
+  <source>Sources</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-08-19</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: two consecutive runs When: the second completes Then: output equals a single-run output with no leftover files.</criteria>
+    <criteria>Given: an empty output directory When: a single run completes Then: each target output is complete, equal to a run into a pre-populated output directory.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: the idempotency contract holds with a profile as an input — a profiled run reuses the same preserved-file source and rebuilds generated content into a clean or empty output dir. Covered by tests/e2e/profile.e2e.test.ts alongside the existing idempotency coverage.</implementationNotes>
+  <depends>FR-COPY-0001, FR-SEED-0001, FR-CLI-0060</depends>
+</req>
+
+<req id="NFR-0004" type="NFR" level="System" ticketId="" classification="technical">
+  <title>Bootstrap context size limit</title>
+  <statement>The generator shall treat any single bootstrap context entry's ORIGINAL content — the bootstrap document text itself, measured BEFORE any IDE-specific JSON wrapping/escaping/duplication — exceeding 10000 characters as a soft error: it shall report each offending target and file, still emit the output, and set a non-zero exit status. The limit is about the actual content an agent has to read, not the incidental size of whichever wire format carries it; the same content must not pass or fail the check depending on which IDE's entry shape happens to be measured.</statement>
+  <rationale>Compatibility: IDE session-start context has a size budget; the run completes so all problems surface at once, and the non-zero exit signals the violation. The limit applies to the original content so the same document gets the same verdict regardless of which IDE's wire format happens to carry it.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>isolomatov-gd</approved_by>
+  <changed>2026-09-03</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: a document whose ORIGINAL content (after folder rewrites and, for the lead document, the leading-newline strip — the bootstrap prefix itself was removed, FR-HOOK-0003 Deprecated — before any IDE JSON wrapping) is over 10000 chars When: assembled for ANY IDE Then: a violation is reported naming the target and file, the output is still emitted, and exit status is non-zero.</criteria>
+    <criteria>Given: a document whose original content is under 10000 chars but whose wrapped/escaped/IDE-specific entry (e.g. Copilot's merged top-level+nested emit, which duplicates the content) would exceed 10000 chars if measured post-wrapping When: assembled Then: NO violation is reported — the check is IDE-shape-independent.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify-plugins/src/bootstrap/payload.ts (assembleBootstrapPayload checks `rewrittenContext.length` — the additionalContext body, post-folder-rewrite, pre-JSON-wrapping); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,codex,cursor,copilot}-bootstrap.ts (EntryBuilderFn callback signature). 2026-07-28: the bootstrap prefix was removed (FR-HOOK-0003 Deprecated); "post-prefix" no longer applies — only folder rewrites and the lead document's leading-newline strip precede the size check.</implementationNotes>
+</req>
+
+<req id="NFR-0005" type="NFR" level="System" ticketId="" classification="technical">
+  <title>Generated artifact validity</title>
+  <statement>Every generated configuration artifact shall be syntactically valid in its format: JSON for hook configuration and manifests, TOML for Codex subagents.</statement>
+  <rationale>Functional correctness: invalid config breaks the IDE plugin.</rationale>
+  <source>Sources</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-06-04</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: any generated `hooks.json`, `plugin.json`, or subagent TOML When: parsed Then: parsing succeeds.</criteria>
+  </acceptance>
+  <implementation>NotStarted</implementation>
+  <implementationNotes></implementationNotes>
+</req>
+
+<req id="NFR-0006" type="NFR" level="System" ticketId="" classification="technical">
+  <title>Release- and content-agnostic engine</title>
+  <statement>The generation engine shall contain no per-release or per-instruction-content branching; adding a release or a domain shall require only descriptor/config changes.</statement>
+  <rationale>Maintainability: generator stays generic (agents/MEMORY.md "Keep Generators Generic And Content-Agnostic").</rationale>
+  <source>Documentation</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-06-04</changed>
+  <verification>Inspection</verification>
+  <acceptance>
+    <criteria>Given: the engine code When: inspected Then: release names and instruction file names appear only in descriptors/config, not in control flow.</criteria>
+  </acceptance>
+  <implementation>NotStarted</implementation>
+  <implementationNotes></implementationNotes>
+</req>
+
+<req id="NFR-0007" type="NFR" level="System" ticketId="" classification="technical">
+  <title>Modular, single-responsibility structure</title>
+  <statement>The re-implementation shall separate concerns into distinct, reusable units across two processor tiers: the pure single-responsibility `FileProcessor` set (`fileRead`, `fileApplyOverrides`, `fileBundle`, per-vocabulary model-normalization processors, `fileRename`, `fileCodexAgentFormat`) where `fileRename` changes only the path; the pure `PluginProcessor` set (`pluginCleanup`, `pluginCopy`, `pluginProcessSpecEntries`, `pluginRewriteReferences`, `pluginGenerateIndexes`, `pluginEmitDistributionRoot`, `pluginRenderTemplates`, `pluginWrite`) where `pluginRewriteReferences` changes only content; plus source resolution/merge, per-IDE escaping, hook-bundle sync, and per-target descriptors — such that each IDE adaptation is data plus processor composition, not bespoke procedure.</statement>
+  <rationale>Maintainability: separable single-responsibility concerns enable reuse and isolated testing. The original's one-module mix of filesystem mechanics, escaping, model maps, and orchestration (QF-6) is exactly what this decomposition removes.</rationale>
+  <source>User</source>
+  <priority>Should</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-09-03</changed>
+  <verification>Inspection</verification>
+  <acceptance>
+    <criteria>Given: the re-implementation When: inspected Then: filesystem mechanics, IDE-specific escaping, model maps, and orchestration reside in separate units.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: file-processors/ (11 modules) holds the FileProcessor set including the four
+  per-vocabulary model-normalization processors; plugin-processors/ (19) holds the PluginProcessor set;
+  escaping/ holds the per-IDE escaping helpers; spec/model-maps.ts holds the model vocabularies; generate.ts
+  holds orchestration. Filesystem mechanics, escaping, model maps and orchestration are separate units, and
+  each IDE adaptation is descriptor data plus processor composition.</implementationNotes>
+  <notes>Detailed architecture deliberately deferred by the user; this NFR states the quality target only.</notes>
+</req>
+
+<req id="NFR-0008" type="NFR" level="System" ticketId="" classification="technical">
+  <title>TypeScript / npx runtime</title>
+  <statement>The re-implementation shall run on Node via `npx` with no build step required by the consumer, using a Handlebars engine whose raw-injection and conditional semantics match the current templates and Node filesystem operations equivalent to the current copy/move/stat behavior.</statement>
+  <rationale>Portability: stated target runtime.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-06-04</changed>
+  <verification>Demo</verification>
+  <acceptance>
+    <criteria>Given: a clean environment with Node When: `npx <tool>` is run Then: it generates all targets without a separate install/build step.</criteria>
+  </acceptance>
+  <implementation>NotStarted</implementation>
+  <implementationNotes></implementationNotes>
+</req>
+
+<req id="NFR-0009" type="NFR" level="System" ticketId="" classification="technical">
+  <title>Cross-platform hook payloads</title>
+  <statement>For IDEs requiring it, the generator shall emit both POSIX-shell and PowerShell command forms with correct per-interpreter escaping.</statement>
+  <rationale>Compatibility: plugins run on macOS/Linux and Windows.</rationale>
+  <source>Sources</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-06-04</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: the Copilot target When: generated Then: each hook entry carries valid bash and PowerShell forms.</criteria>
+  </acceptance>
+  <implementation>NotStarted</implementation>
+  <implementationNotes></implementationNotes>
+  <depends>FR-HOOK-0005</depends>
+</req>
+
+<req id="NFR-0010" type="NFR" level="System" ticketId="" classification="technical">
+  <title>Lightweight libraries, versions consistent with rosettify</title>
+  <statement>The re-implementation shall use robust, well-maintained libraries instead of hand-rolling solved problems, pinned to versions consistent with the rosettify package, targeting the same Node and TypeScript baseline (ESM, Node ≥ 22, TypeScript 6.x, vitest for tests). The selected concerns and libraries are: CLI parsing (`commander`), logging (`pino`), templating (`handlebars`), frontmatter parsing (`gray-matter` — not a hand-rolled regex parser), immutable state with structural sharing (`immer`, realizing FR-ARCH-0014), and glob matching for `SpecEntry` sources (`fast-glob`). Each library is subject to the selection criteria in NFR-0011, and any library whose default formatting differs from the current output shall be supplemented by generator-controlled serialization to preserve structural parity (NFR-0001).</statement>
+  <rationale>Maintainability: a sibling Node tool in the same repo must share toolchain and dependency versions to avoid drift, and must reuse vetted libraries for solved problems (frontmatter, immutability, globbing) rather than re-implementing them as the original Python did.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-06-04</changed>
+  <verification>Inspection</verification>
+  <acceptance>
+    <criteria>Given: the package manifest When: inspected Then: CLI uses `commander`, logging uses `pino`, templating uses `handlebars` (major versions matching rosettify — commander ^14, pino ^10), frontmatter uses `gray-matter`, immutable state uses `immer`, and globbing uses `fast-glob`.</criteria>
+    <criteria>Given: the toolchain When: inspected Then: it is ESM, Node ≥ 22, TypeScript 6.x, tested with vitest, matching rosettify.</criteria>
+    <criteria>Given: frontmatter handling When: inspected Then: it uses a library, not a bespoke regex parser.</criteria>
+  </acceptance>
+  <implementation>NotStarted</implementation>
+  <implementationNotes></implementationNotes>
+  <depends>NFR-0008, NFR-0011</depends>
+</req>
+
+<req id="NFR-0011" type="NFR" level="System" ticketId="" classification="technical">
+  <title>Dependency selection criteria (popular, maintained)</title>
+  <statement>Every third-party dependency the generator adds shall be widely adopted and actively maintained: high npm download volume and repository popularity, a recent release / commit history (not abandoned or unattended for an extended period), responsive issue handling, a permissive license, and a small, focused footprint. Dependencies shall be pinned and kept consistent with the rosettify package. A library failing these criteria shall not be introduced even if functionally adequate; the current status shall be re-checked at implementation time.</statement>
+  <rationale>Maintainability and supply-chain safety: abandoned or low-adoption dependencies are a liability; the maintainer requires that added libraries be proven and current, not merely working.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-06-04</changed>
+  <verification>Inspection</verification>
+  <acceptance>
+    <criteria>Given: each added dependency When: assessed Then: it shows high adoption (downloads/stars), a recent release within an active maintenance window, and a permissive license.</criteria>
+    <criteria>Given: a candidate library that is adequate but unmaintained or low-adoption When: assessed Then: it is rejected in favor of a maintained, adopted alternative.</criteria>
+  </acceptance>
+  <implementation>NotStarted</implementation>
+  <implementationNotes></implementationNotes>
+</req>

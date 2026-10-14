@@ -8,7 +8,7 @@
 # experimental features are not enabled in this pipeline. Same egress posture as the
 # Claude branch, which restricts the `gh` command surface rather than the network.
 
-# On-disk effect of `codex features enable hooks`; the Rosetta core-codex plugin
+# On-disk effect of `codex features enable hooks`; the Rosetta rosetta-codex plugin
 # ships .codex/hooks.json and is inert without it.
 [features]
 hooks = true

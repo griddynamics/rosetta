@@ -38,4 +38,4 @@ The router recognizes a UI scenario and dispatches to `ui-aqa-flow` with your or
 
 ## Source Files
 
-- [aqa-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/aqa-flow.md)
+- [aqa-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/aqa-flow.md)

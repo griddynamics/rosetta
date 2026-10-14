@@ -63,8 +63,8 @@ Use when porting prompts between agents/IDEs, adapting KB prompts to local conte
 
 - Configuration for each IDE/agent changes frequently
 - KB is maintained up to date
-- LIST `configure`
-- READ CONFIGURE the selected `<tool>.md`
+- USE SKILL `harness`, then LIST `references/configure`
+- APPLY SKILL FILE `references/configure/<tool>.md` for the selected tool
 
 </knowledge_base>
 
