@@ -49,7 +49,7 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
     <criteria>Given: any emitted hook configuration document When: the gate runs Then: a content digest for it is reported.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: plans/issue-315-plugin-sets/verify/ac_hooks_content.py, driven by a per-target
+  <implementationNotes>Implemented: scripts/verify/ac_hooks_content.py, driven by a per-target
   declaration of the emitted path set and the identity, distinctness and form-marker relations between
   those paths. Takes --tree (default plugins/) and --posture, since the cursor distinctness criterion
   only applies at deterministic-hooks true. Validated in both directions rather than by synthetic

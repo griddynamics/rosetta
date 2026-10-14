@@ -4,7 +4,7 @@
 // separate from:
 //   - the generator-pipeline tests (tests/unit/plugin-processors/**), which exercise the render
 //     pipeline against real templates and real template contexts;
-//   - the output-tree content gate (plans/issue-315-plugin-sets/verify/ac_hooks_content.py), which
+//   - the output-tree content gate (scripts/verify/ac_hooks_content.py), which
 //     asserts inter-document relations over a BUILT tree.
 // This module never runs the generator and never writes a hooks.json to disk — every function
 // here takes a hand-built in-memory object (or a string, for the raw-template token scan) and

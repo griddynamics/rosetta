@@ -20,23 +20,43 @@ WHAT IT ASSERTS, per (set x target)
     F  HASH      sha256 per document, printed, so any future content change is
                  visible in a diff of this gate's output rather than silently permitted
 
+    G  NO-HOOK   the sets that carry no hooks (NO_HOOK_SETS) hold 0 hooks.json and
+                 0 *.js outside skills/harness/references/hooks/, at both postures
+    H  FOLDERS   every expected folder exists; a missing folder is a FAIL, never a skip
+
 USAGE
-    python3 ac_hooks_content.py [--tree DIR] [--posture true|false]
+    python3 scripts/verify/ac_hooks_content.py [--tree DIR] [--posture true|false]
+                                               [--golden DIR] [--require-golden]
       --tree     plugin output tree to check      (default: <repo>/plugins)
+                 a nonexistent DIR is exit 2
       --posture  the --deterministic-hooks value  (default: false, the shipped one)
                  the value that BUILT the tree; some assertions only apply at true
+      --golden   golden snapshot directory        (default: <repo>/agents/TEMP/315-golden)
+      --require-golden
+                 an absent snapshot is a failure (default: reported NOT RUN, exit 0)
+
+    The golden cross-check ends in exactly one state, printed in the section header
+    and in the final line:  RAN | NOT RUN -- snapshot absent at <path> | NOT APPLICABLE.
+    Exit: 0 pass, 1 findings, 2 usage/environment error.
 
 Build a posture=true tree into scratch first, never into plugins/:
     npm --prefix src/rosettify-plugins start -- --release r3 \
-        --deterministic-hooks true --source $PWD --output /tmp/hooks-true
+        --deterministic-hooks true --source $PWD \
+        --output $PWD/agents/TEMP/315-merge-followup/scratch-true
+    python3 scripts/verify/ac_hooks_content.py \
+        --tree agents/TEMP/315-merge-followup/scratch-true --posture true
 """
 import argparse, hashlib, json, pathlib, sys
 
-ROOT = pathlib.Path(__file__).resolve().parents[3]
+ROOT = pathlib.Path(__file__).resolve().parents[2]
 GOLD = ROOT / "agents/TEMP/315-golden"
 
 # Every set that emits hooks, as the destination stem before the target suffix.
 HOOK_SETS = ["core", "rosetta", "rosetta-light"]
+
+# Sets that must carry NO hooks at either posture (AN A.4.5).
+NO_HOOK_SETS = ["workflows", "qe", "search", "modernization"]
+HARNESS_HOOKS_REF = "skills/harness/references/hooks/"
 
 # The hooks.json path set each target must emit, and the relations between them.
 # 'identical' / 'distinct' are lists of (path_a, path_b).
@@ -104,10 +124,33 @@ class Check:
         self.checked += 1
 
 
+def plugin_name(s: str, target: str) -> str:
+    # rosetta-light is the -light variant suffix, not a set stem
+    return f"rosetta-{target}-light" if s == "rosetta-light" else f"{s}-{target}"
+
+
+def check_no_hooks(tree: pathlib.Path, plugin: str, c: Check):
+    base = tree / plugin
+    if not base.is_dir():
+        c.fail(plugin, f"missing folder {plugin} under {tree}")
+        return
+    stray = sorted(
+        p.relative_to(base).as_posix()
+        for p in list(base.rglob("hooks.json")) + list(base.rglob("*.js"))
+        if HARNESS_HOOKS_REF not in p.as_posix()
+    )
+    if stray:
+        for rel in stray:
+            c.fail(plugin, f"{rel}: a no-hook set must carry no hooks.json or *.js")
+    else:
+        c.ok()
+
+
 def check_plugin(tree: pathlib.Path, plugin: str, spec: dict, posture_true: bool, c: Check):
     base = tree / plugin
     if not base.is_dir():
-        return  # set/target pair not built in this tree; AC1 owns folder presence
+        c.fail(plugin, f"missing folder {plugin} under {tree}")
+        return
 
     # --- A. PATHS -----------------------------------------------------------
     expected = set(spec["paths"])
@@ -186,9 +229,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tree", default=str(ROOT / "plugins"))
     ap.add_argument("--posture", default="false", choices=["true", "false"])
+    ap.add_argument("--golden", default=str(GOLD))
+    ap.add_argument("--require-golden", action="store_true")
     args = ap.parse_args()
 
     tree = pathlib.Path(args.tree)
+    gold_dir = pathlib.Path(args.golden)
+    if not tree.is_dir():
+        print(f"ac_hooks_content.py: --tree {tree} is not a directory", file=sys.stderr)
+        return 2
     posture_true = args.posture == "true"
     print(f"=== B2 hooks.json content gate — tree={tree} "
           f"--deterministic-hooks {args.posture} ===")
@@ -196,15 +245,15 @@ def main():
     c = Check()
     for target, spec in TARGETS.items():
         for s in HOOK_SETS:
-            # rosetta-light is the -light variant suffix, not a set stem
-            plugin = f"rosetta-{target}-light" if s == "rosetta-light" else f"{s}-{target}"
-            check_plugin(tree, plugin, spec, posture_true, c)
+            check_plugin(tree, plugin_name(s, target), spec, posture_true, c)
+        for s in NO_HOOK_SETS:
+            check_no_hooks(tree, f"{s}-{target}", c)
 
     # --- F. HASHES ----------------------------------------------------------
     print("\n--- content hashes per (set x target) ---")
     for target in TARGETS:
         for s in HOOK_SETS:
-            plugin = f"rosetta-{target}-light" if s == "rosetta-light" else f"{s}-{target}"
+            plugin = plugin_name(s, target)
             base = tree / plugin
             if not base.is_dir():
                 continue
@@ -214,33 +263,42 @@ def main():
                     print(f"  {digest(p)[:16]}  {p.stat().st_size:>7} B  {plugin}/{rel}")
 
     # --- golden cross-check: the standalone-form staging document ------------
-    print("\n--- golden cross-check (posture=false only) ---")
-    gold = GOLD / "core-copilot/hooks/hooks.json"
-    if not posture_true and gold.is_file():
+    gold = gold_dir / "core-copilot/hooks/hooks.json"
+    if posture_true:
+        state = "NOT APPLICABLE — posture=true"
+        print(f"\n--- golden cross-check: {state} ---")
+    elif not gold.is_file():
+        state = f"NOT RUN — snapshot absent at {gold}"
+        print(f"\n--- golden cross-check: {state} ---")
+        if args.require_golden:
+            c.fail("golden", f"--require-golden given but snapshot absent at {gold}")
+    else:
+        state = "RAN"
+        print(f"\n--- golden cross-check: {state} ---")
         for s in HOOK_SETS:
-            plugin = "rosetta-copilot-light" if s == "rosetta-light" else f"{s}-copilot"
+            plugin = plugin_name(s, "copilot")
             cur = tree / plugin / "hooks/hooks.json"
             if not cur.is_file():
+                c.fail(plugin, f"hooks/hooks.json missing, cannot compare with golden {gold}")
                 continue
             if digest(cur) == digest(gold):
                 print(f"  PASS  {plugin}/hooks/hooks.json matches golden standalone form")
                 c.ok()
             else:
                 c.fail(plugin, f"hooks/hooks.json ({cur.stat().st_size} B) does not match "
-                               f"the golden standalone form ({gold.stat().st_size} B) at "
-                               f"agents/TEMP/315-golden/core-copilot/hooks/hooks.json")
-    else:
-        print("  skipped")
+                               f"the golden standalone form ({gold.stat().st_size} B) at {gold}")
 
     print()
+    if c.checked == 0:
+        c.fail("gate", "0 assertions ran: a vacuous pass is a failure")
     if c.failures:
         print(f"{len(c.failures)} failure(s), {c.checked} assertion(s) passed:")
         for f in c.failures:
             print(f)
-        print("\nHOOKS CONTENT: FAILURES PRESENT")
+        print(f"\nHOOKS CONTENT: FAILURES PRESENT (golden cross-check: {state})")
         return 1
     print(f"all {c.checked} assertion(s) passed")
-    print("HOOKS CONTENT: ALL PASS")
+    print(f"HOOKS CONTENT: ALL PASS (golden cross-check: {state})")
     return 0
 
 

@@ -3,7 +3,7 @@
 // disk and rendered IN-MEMORY with Handlebars (the same library and strict-mode settings
 // plugin-render-templates.ts uses), never written anywhere — this ties the schema assertions to
 // the actual production template text without going through the generator pipeline or the
-// output-tree gate (plans/issue-315-plugin-sets/verify/ac_hooks_content.py covers the built tree;
+// output-tree gate (scripts/verify/ac_hooks_content.py covers the built tree;
 // this file does not duplicate it).
 import { describe, it, expect } from 'vitest';
 import fs from 'fs';

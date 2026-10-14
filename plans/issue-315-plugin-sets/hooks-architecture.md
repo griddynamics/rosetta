@@ -305,7 +305,7 @@ Same root cause. Lower impact today because the affected document is inert in pl
 
 ### 2.7 Independent confirmation — the committed content gate
 
-`plans/issue-315-plugin-sets/verify/ac_hooks_content.py` (requirement `NFR-0012`) reaches the same two conclusions from a completely different direction, asserting inter-document relations rather than diffing:
+`scripts/verify/ac_hooks_content.py` (requirement `NFR-0012`) reaches the same two conclusions from a completely different direction, asserting inter-document relations rather than diffing:
 
 | Tree | Posture | Result |
 |---|---|---|

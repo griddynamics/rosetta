@@ -1,28 +1,44 @@
 #!/usr/bin/env bash
 # AC1 / AC4 / AC9 — structural checks. Read-only.
+# Usage: bash scripts/verify/ac_structure.sh [--tree DIR]
+#   --tree DIR  plugin output tree for the AC1 folder checks (default: $ROOT/plugins).
+#               AC4 and AC9 always read $ROOT. The root is derived from this file's
+#               location, so a copy under <S>/scripts/verify/ checks <S>.
+# Exit: 0 pass, 1 findings, 2 usage/environment error.
 set -uo pipefail
-ROOT=/Users/isolomatov/Sources/GAIN/rosetta-manual-branch
-cd "$ROOT" || exit 1
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+TREE="$ROOT/plugins"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --tree) [ $# -ge 2 ] || { echo "ac_structure.sh: --tree needs a directory" >&2; exit 2; }
+            TREE="$2"; shift 2
+            [ -d "$TREE" ] || { echo "ac_structure.sh: --tree $TREE is not a directory" >&2; exit 2; } ;;
+    *) echo "usage: ac_structure.sh [--tree DIR]" >&2; exit 2 ;;
+  esac
+done
+cd "$ROOT" || exit 2
 fail=0
 say(){ printf '%s\n' "$*"; }
 ok(){  say "  PASS  $*"; }
 no(){  say "  FAIL  $*"; fail=1; }
 
 say "=== AC1 — 49 output folders, one generator call ==="
-n=$(ls plugins 2>/dev/null | wc -l | tr -d ' ')
-[ "$n" = 49 ] && ok "plugins/ has 49 folders" || no "plugins/ has $n folders, expected 49"
+n=$(ls "$TREE" 2>/dev/null | wc -l | tr -d ' ')
+[ "$n" = 49 ] && ok "$TREE has 49 folders" || no "$TREE has $n folders, expected 49"
 missing=""
 for set in rosetta core workflows qe search modernization; do
   for ide in claude cursor copilot codex antigravity cursor-standalone copilot-standalone; do
-    [ -d "plugins/$set-$ide" ] || missing="$missing $set-$ide"
+    [ -d "$TREE/$set-$ide" ] || missing="$missing $set-$ide"
   done
 done
 for ide in claude cursor copilot codex antigravity cursor-standalone copilot-standalone; do
-  [ -d "plugins/rosetta-$ide-light" ] || missing="$missing rosetta-$ide-light"
+  [ -d "$TREE/rosetta-$ide-light" ] || missing="$missing rosetta-$ide-light"
 done
 [ -z "$missing" ] && ok "every expected folder present" || no "missing:$missing"
-c=$(grep -c 'rosettify-plugins' scripts/pre_commit.py 2>/dev/null || echo 0)
-[ "$c" = 1 ] && ok "pre_commit.py has exactly 1 generator call" || no "pre_commit.py has $c generator references, expected 1"
+# Count only NON-comment lines holding the bare token; comments may explain the call.
+c=$(grep -v '^[[:space:]]*#' scripts/pre_commit.py 2>/dev/null | grep -c 'rosettify-plugins')
+[ "$c" = 1 ] && ok "scripts/pre_commit.py has exactly 1 non-comment generator line" \
+  || no "scripts/pre_commit.py has $c non-comment lines with rosettify-plugins, expected 1"
 
 say ""
 say "=== AC4 — MECE across instructions/r3 folders ==="

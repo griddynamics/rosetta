@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "scope": {
+    "root_globs": ["*.md", "llms-full.txt"],
+    "dirs": ["docs", "user-guide", ".github"],
+    "extensions": ["md", "txt", "yml", "yaml", "json", "jsonl", "html", "sh", "py", "js", "css", "toml"],
+    "exclude_prefixes": [
+      "CHANGELOG.md",
+      "docs/stories/",
+      "docs/reviews/",
+      "docs/web/llms-full.txt",
+      "docs/github-stats.json",
+      "docs/definitions/live_counts.json",
+      "docs/web/_site/",
+      "docs/web/vendor/",
+      "docs/web/.jekyll-cache/"
+    ],
+    "exclude_basenames": ["CHANGES.md"],
+    "exclude_dir_names": ["node_modules"]
+  },
+  "links": {
+    "release": "r3",
+    "allowlist": [
+      {"prefix": "instructions/r3/core/rules/bootstrap-", "reason": "prefix glob"},
+      {"prefix": "instructions/r3/core/rules/example.md", "reason": "sample, .github/prompts/prompt-comparison.md"},
+      {"prefix": "instructions/r3/core/skills/example.md", "reason": "sample, .github/prompts/prompt-comparison.md"},
+      {"prefix": "instructions/r3/core/rules/deleted-rule.md", "reason": "sample, .github/prompts/prompt-comparison.md"},
+      {"prefix": "instructions/r3/core/skills/my-skill/", "reason": "sample, docs/definitions/folder-structure.md:15"},
+      {"prefix": "instructions/r3/aqa/", "reason": "example, docs/REQUIREMENTS/plugin-generator/FR-SET.md:80"}
+    ],
+    "plugin_relative": {
+      "root": "instructions/r3",
+      "forbidden": "instructions/r3/",
+      "allow_files": ["instructions/r3/core/rules/local-files-mode.md"]
+    }
+  },
+  "counts": {
+    "sets": ["core", "workflows", "qe", "search", "modernization"],
+    "request_type_exclusions": {"aqa-flow": "router", "coding-light-flow": "variant of coding-flow"},
+    "banned": [
+      "~[0-9]+ (SDLC )?workflow",
+      "WORKFLOWS \\(~",
+      "[0-9]+\\+ (structured )?workflows",
+      "[0-9]+ workflow types",
+      "30 skills",
+      "(thirteen|Seventeen|fifteen) workflow types"
+    ],
+    "sites": [
+      {"id": "CODEMAP-1", "path": "docs/CODEMAP.md", "template": "{skills} skills, {workflow_files} workflow files, {rules} rules, {agents} agents ({agent_files} files)", "count": 1},
+      {"id": "CODEMAP-2", "path": "docs/CODEMAP.md", "template": "{workflows} of the workflow files are entry points", "count": 1},
+      {"id": "CODEMAP-3", "path": "docs/CODEMAP.md", "template": "{request_types} of those", "count": 1},
+      {"id": "C1-head", "path": "docs/ARCHITECTURE.md", "template": "| Set | Skills | Workflows | Workflow files | Rules | Agents |", "count": 1},
+      {"id": "C1-core", "path": "docs/ARCHITECTURE.md", "template": "| `core` | {set:core:skills} | {set:core:workflows} | {set:core:workflow_files} | {set:core:rules} | {set:core:agents} |", "count": 1},
+      {"id": "C1-workflows", "path": "docs/ARCHITECTURE.md", "template": "| `workflows` | {set:workflows:skills} | {set:workflows:workflows} | {set:workflows:workflow_files} | {set:workflows:rules} | {set:workflows:agents} |", "count": 1},
+      {"id": "C1-qe", "path": "docs/ARCHITECTURE.md", "template": "| `qe` | {set:qe:skills} | {set:qe:workflows} | {set:qe:workflow_files} | {set:qe:rules} | {set:qe:agents} |", "count": 1},
+      {"id": "C1-search", "path": "docs/ARCHITECTURE.md", "template": "| `search` | {set:search:skills} | {set:search:workflows} | {set:search:workflow_files} | {set:search:rules} | {set:search:agents} |", "count": 1},
+      {"id": "C1-modernization", "path": "docs/ARCHITECTURE.md", "template": "| `modernization` | {set:modernization:skills} | {set:modernization:workflows} | {set:modernization:workflow_files} | {set:modernization:rules} | {set:modernization:agents} |", "count": 1},
+      {"id": "C1-total", "path": "docs/ARCHITECTURE.md", "template": "| **total (`rosetta`)** | **{skills}** | **{workflows}** | **{workflow_files}** | **{rules}** | **{agents}** |", "count": 1},
+      {"id": "C1-note", "path": "docs/ARCHITECTURE.md", "template": "{request_types} of them are distinct request types. \"Workflow files\" = every workflow and phase file.", "count": 1},
+      {"id": "C1-web-head", "path": "docs/web/docs/architecture.md", "template": "| Set | Skills | Workflows | Workflow files | Rules | Agents |", "count": 1},
+      {"id": "C1-web-core", "path": "docs/web/docs/architecture.md", "template": "| `core` | {set:core:skills} | {set:core:workflows} | {set:core:workflow_files} | {set:core:rules} | {set:core:agents} |", "count": 1},
+      {"id": "C1-web-workflows", "path": "docs/web/docs/architecture.md", "template": "| `workflows` | {set:workflows:skills} | {set:workflows:workflows} | {set:workflows:workflow_files} | {set:workflows:rules} | {set:workflows:agents} |", "count": 1},
+      {"id": "C1-web-qe", "path": "docs/web/docs/architecture.md", "template": "| `qe` | {set:qe:skills} | {set:qe:workflows} | {set:qe:workflow_files} | {set:qe:rules} | {set:qe:agents} |", "count": 1},
+      {"id": "C1-web-search", "path": "docs/web/docs/architecture.md", "template": "| `search` | {set:search:skills} | {set:search:workflows} | {set:search:workflow_files} | {set:search:rules} | {set:search:agents} |", "count": 1},
+      {"id": "C1-web-modernization", "path": "docs/web/docs/architecture.md", "template": "| `modernization` | {set:modernization:skills} | {set:modernization:workflows} | {set:modernization:workflow_files} | {set:modernization:rules} | {set:modernization:agents} |", "count": 1},
+      {"id": "C1-web-total", "path": "docs/web/docs/architecture.md", "template": "| **total (`rosetta`)** | **{skills}** | **{workflows}** | **{workflow_files}** | **{rules}** | **{agents}** |", "count": 1},
+      {"id": "C1-web-note", "path": "docs/web/docs/architecture.md", "template": "{request_types} of them are distinct request types. \"Workflow files\" = every workflow and phase file.", "count": 1},
+      {"id": "C2", "path": "docs/ARCHITECTURE.md", "template": "({skills} skills, {workflows} workflows, {agents} agents, {rules} rules)", "count": 1},
+      {"id": "C3", "path": "docs/web/docs/architecture.md", "template": "The `rosetta` plugin contains all five sets ({skills} skills, {workflows} workflows, {agents} agents, {rules} rules).", "count": 1},
+      {"id": "C4", "path": "FAQ.md", "template": "Rosetta covers {workflows} SDLC workflows ({request_types} distinct request types)", "count": 1},
+      {"id": "C5", "path": "docs/web/docs/faq.md", "template": "Rosetta covers {workflows} SDLC workflows ({request_types} distinct request types)", "count": 1},
+      {"id": "C6", "path": "docs/SecurityOnePager.md", "template": "of {workflows} workflows the user selects per request", "count": 1},
+      {"id": "C7", "path": "docs/web/roadmap.md", "template": "{workflows} structured workflows covering the full SDLC", "count": 1},
+      {"id": "C8", "path": "docs/web/roadmap.md", "template": "{skills} skills spanning", "count": 1},
+      {"id": "C9", "path": "llms-full.txt", "template": "one of {workflows} workflows ({request_types} distinct request types)", "count": 1},
+      {"id": "C10-core", "path": "llms-full.txt", "template": "core/ ({set:core:skills} skills, {set:core:workflows} workflows / {set:core:workflow_files} workflow files, {set:core:rules} rules", "count": 1},
+      {"id": "C10-workflows", "path": "llms-full.txt", "template": "workflows/ ({set:workflows:agents} agents, {set:workflows:workflows} workflows / {set:workflows:workflow_files} workflow files)", "count": 1},
+      {"id": "C10-qe", "path": "llms-full.txt", "template": "qe/ ({set:qe:skills} skills, {set:qe:workflows} workflows / {set:qe:workflow_files} workflow files)", "count": 1},
+      {"id": "C10-search", "path": "llms-full.txt", "template": "search/ ({set:search:skills} skills)", "count": 1},
+      {"id": "C10-modernization", "path": "llms-full.txt", "template": "modernization/ ({set:modernization:workflows} workflow / {set:modernization:workflow_files} workflow files)", "count": 1},
+      {"id": "C11", "path": "llms-full.txt", "template": "SKILLS ({skills}, loaded on demand)", "count": 1},
+      {"id": "C12", "path": "llms-full.txt", "template": "Full plugin `rosetta` = all five sets ({skills} skills, {workflows} workflows, {agents} agents, {rules} rules)", "count": 1},
+      {"id": "C13", "path": "llms-full.txt", "template": "Rosetta = {workflows} SDLC workflows", "count": 1},
+      {"id": "C15", "path": "llms-full.txt", "template": "WORKFLOWS ({workflows})", "count": 1},
+      {"id": "C16", "path": "docs/web/index.md", "template": "one of {word:request_types} request types", "count": 1},
+      {"id": "C17", "path": "README.md", "template": "one of {word:request_types} request types", "count": 1},
+      {"id": "C18-root", "path": "OVERVIEW.md", "template": "{Word:workflows} workflows cover the SDLC", "count": 1},
+      {"id": "C18-web", "path": "docs/web/docs/overview.md", "template": "{Word:workflows} workflows cover the SDLC", "count": 1}
+    ]
+  }
+}

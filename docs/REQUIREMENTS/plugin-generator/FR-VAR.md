@@ -167,7 +167,7 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
   probes parameterised on {{destination}}) and hooks/hooks.json.tmpl (standalone form, literal empty
   session-start array). The root copy is the mirror pair declared on the copilot spec in
   src/rosettify-plugins/src/spec/targets.ts, applied by pluginMirrorFiles. Agent files are renamed by the
-  copilot spec's fileRename processor. Verified by plans/issue-315-plugin-sets/verify/ac_hooks_content.py
+  copilot spec's fileRename processor. Verified by scripts/verify/ac_hooks_content.py
   (NFR-0012) over the generated tree at both deterministic-hooks postures.</implementationNotes>
   <depends>DATA-CFG-0002, FR-COPY-0031, FR-HOOK-0005, FR-VAR-0071</depends>
 </req>

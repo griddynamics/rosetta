@@ -10,7 +10,7 @@ AC6: every `USE SKILL <name>` / subagent name referenced FROM a domain set
 """
 import pathlib, re, sys, collections
 
-ROOT = pathlib.Path("/Users/isolomatov/Sources/GAIN/rosetta-manual-branch/instructions/r3")
+ROOT = pathlib.Path(__file__).resolve().parents[2] / "instructions/r3"
 FOLDERS = ["core", "workflows", "qe", "search", "modernization"]
 DOMAIN = ["qe", "search", "modernization"]
 

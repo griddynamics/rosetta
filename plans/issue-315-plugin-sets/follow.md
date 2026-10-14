@@ -20,7 +20,7 @@ commits `492b6a78` → `752a6826` → `6b2b2097`. **Open work is B1 below.**
 | `plans/issue-315-plugin-sets/hooks-redesign.md` | subagent: evidence matrix + designs A/B | analysis good; **design rejects the owner's constraint** |
 | `plans/issue-315-plugin-sets/hooks-complete.md` | subagent: full hooks discovery, defect register F1–F23, design D1–D5 | analysis good; **F1 is WITHDRAWN (bogus)**; design keeps the one-liners |
 | `plans/issue-315-plugin-sets/remediation-spec.md` | subagent: exact fixes for the 10 `ToBeModified` units | actionable |
-| `plans/issue-315-plugin-sets/verify/` | `ac_structure.sh`, `ac_equivalence.py`, `ac_crossrefs.py` — the #315 acceptance gates | mine, working |
+| `plans/issue-315-plugin-sets/verify/` (now only `ac_equivalence.py` + manifest) and `scripts/verify/` (`ac_structure.sh`, `ac_crossrefs.py`, `ac_hooks_content.py`, moved) | `ac_structure.sh`, `ac_equivalence.py`, `ac_crossrefs.py` — the #315 acceptance gates | mine, working |
 | `agents/TEMP/315-golden/` | pre-change plugin output, SCM-excluded | the AC2/AC3 oracle |
 
 **Ground truth for hooks:** `docs/hooks/<ide>.md` = verified **IDE spec** (claude-code, codex, cursor,
@@ -86,7 +86,7 @@ arise, because no set has a partial module list. And OQ-1 is **closed** — see
 difference #2 (`p.endswith("hooks.json")`) blanket-exempts every content change to any hooks.json.
 Between them B1 changed a file from 60 B to 24443 B and every gate in the PR passed.
 
-Implemented as `verify/ac_hooks_content.py`. It asserts the **relationships** between the
+Implemented as `scripts/verify/ac_hooks_content.py`. It asserts the **relationships** between the
 documents, not hashes alone: the exact path set per target; which must be byte-identical (codex
 mirror pair, copilot root ↔ `.github/plugin`); which must **differ** (copilot plugin form vs
 standalone-form staging; cursor's two forms, at `--posture true` only, since at false both
@@ -269,8 +269,8 @@ Full spec with exact symbols, tests, effort and risk:
 
 ## Verification assets
 
-`plans/issue-315-plugin-sets/verify/` — `ac_structure.sh` (AC1/4/9), `ac_equivalence.py` (AC2/3, categorized against
-22 permitted difference classes), `ac_crossrefs.py` (AC5/6, both directions).
+`scripts/verify/` — `ac_structure.sh` (AC1/4/9), `plans/issue-315-plugin-sets/verify/ac_equivalence.py` (AC2/3, categorized against
+22 permitted difference classes), `scripts/verify/ac_crossrefs.py` (AC5/6, both directions).
 
 Golden pre-change snapshot: `agents/TEMP/315-golden/` (SCM-excluded, 14 folders, 5172 files). This is
 the AC2/AC3 oracle. It was regenerated with zero diff before anything moved, so it is trustworthy.
