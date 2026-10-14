@@ -15,7 +15,7 @@ permalink: /docs/quickstart/
 > You must receive prior approval from your manager and company to use it.
 
 > [!WARNING]
-> Use **Sonnet 5 medium**, **GPT-5.6-terra-medium**, **gemini-3.7-flash-high** or newer models. Please use **medium** reasoning effort or it will take 30 minutes in useless reasoning. Avoid Auto model selection. 
+> Use **Sonnet 5.5 medium**, **GPT-6-luna-high**, **gemini-3.8-flash-high** or newer models. Please use the reasoning effort named above (do not go higher) or it will take 30 minutes in useless reasoning. Avoid Auto model selection. 
 
 > [!NOTE]
 > Rosetta is designed to never use or see data or IP.

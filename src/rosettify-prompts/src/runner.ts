@@ -128,6 +128,34 @@ function extractJsonObject(text: string): unknown {
   }
 }
 
+/** Models that reject `thinking: { type: 'disabled' }` with a 400 (and, for a provider-prefixed id, the same model). */
+const THINKING_CANNOT_BE_DISABLED = /^(anthropic\/)?claude-(opus-5-5|sonnet-5-5|fable|mythos)/;
+
+/**
+ * Request fields that keep a judge call short and deterministic.
+ *
+ * Older models accept `thinking: { type: 'disabled' }`. The 5.5 generation does not: Opus 5.5 and
+ * Sonnet 5.5 (and Fable/Mythos) answer it with a 400, whatever the effort. For those, thinking stays
+ * on and its depth is cut with `output_config.effort: 'low'` instead.
+ */
+export function judgeThinkingFields(model: string): {
+  thinking?: { type: 'disabled' };
+  output_config?: { effort: 'low' };
+} {
+  return THINKING_CANNOT_BE_DISABLED.test(model)
+    ? { output_config: { effort: 'low' } }
+    : { thinking: { type: 'disabled' } };
+}
+
+/**
+ * `max_tokens` for a judge call. Thinking tokens count against `max_tokens`, so when thinking stays on
+ * (see judgeThinkingFields) the verdict JSON needs headroom on top of its own budget or it can be
+ * truncated. `max_tokens` is a ceiling, not a charge.
+ */
+export function judgeMaxTokens(model: string, base: number): number {
+  return THINKING_CANNOT_BE_DISABLED.test(model) ? base + 8192 : base;
+}
+
 export function validateEvalResultItem(raw: unknown): EvalResultItem {
   const item = raw as Partial<EvalResultItem> | undefined;
   if (!item || typeof item !== 'object') {
@@ -227,10 +255,12 @@ async function runIndividualEval(
         withRetry(() =>
           client.messages.create({
             model,
-            max_tokens: 2048,
+            max_tokens: judgeMaxTokens(model, 2048),
             // Judges score, they don't deliberate — disabling thinking keeps the JSON verdict
             // deterministic and leaves the whole token budget for the output (no truncation).
-            thinking: { type: 'disabled' },
+            // The 5.5 models cannot disable it; judgeThinkingFields lowers the effort for them and
+            // judgeMaxTokens adds headroom for the thinking that remains.
+            ...judgeThinkingFields(model),
             messages: [{ role: 'user', content: buildEvalPrompt(assertion, suite.eval?.judgePrompt, turns) }],
           }),
         ),
@@ -314,8 +344,8 @@ async function runCombinedEval(
         withRetry(() =>
           client.messages.create({
             model,
-            max_tokens: 2048 + candidates.length * 1024,
-            thinking: { type: 'disabled' },
+            max_tokens: judgeMaxTokens(model, 2048 + candidates.length * 1024),
+            ...judgeThinkingFields(model),
             messages: [
               {
                 role: 'user',

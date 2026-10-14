@@ -8,12 +8,12 @@ description: "[Brief description of WHEN and HOW to use this agent and WHAT it d
 mode: "[Defines agent type]"
 
 # Model Configuration (Optional)
-# model — [Specifies which LLM model to use, any thinking/reasoning must be done with stronger models and high reasoning efforts, while execution with cheaper] [string] [Cursor, OpenCode, Claude Code] [ex: claude-sonnet-5]
+# model — [Specifies which LLM model to use, any thinking/reasoning must be done with stronger models and high reasoning efforts, while execution with cheaper] [string] [Cursor, OpenCode, Claude Code] [ex: claude-sonnet-5-5]
 model: "[Specifies which LLM model to use, any thinking/reasoning must be done with stronger models and high reasoning efforts, while execution with cheaper]"
 # temperature — [Controls response randomness] [float] [OpenCode] [ex: 0.7]
 temperature: "[Controls response randomness]"
 
-# [Latest Models: Anthropic (claude-opus-5, claude-sonnet-5, claude-haiku-4-5), OpenAI (gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna), Google (gemini-3.7-flash), Cursor (grok-4.6, composer-2.5), Z.ai (glm-5).]
+# [Latest Models: Anthropic (claude-opus-5-5, claude-sonnet-5-5, claude-haiku-5-5), OpenAI (gpt-6.1-sol, gpt-6-luna), Google (gemini-4-argon, gemini-3.8-flash), Cursor (grok-4.7, composer-2.5), Z.ai (glm-5).]
 
 # Tools Configuration (Optional)
 # tools — [Array specifying which tools are enabled, dangerous, only limit if it is a must and you know exactly in advance, otherwise remove completely] [array] [Claude Code] [ex: ["read", "grep"]]

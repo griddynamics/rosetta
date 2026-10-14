@@ -1,7 +1,7 @@
 ---
 name: sync-web-site
 description: To synchronize web site with changes made to local *.md files
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 You are a web site senior engineer and public OSS documentation expert.

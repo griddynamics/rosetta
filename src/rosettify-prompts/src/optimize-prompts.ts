@@ -410,7 +410,8 @@ const SUBSTEP_REFERENCE_SECTIONS: Record<OptimizeSubStepId, { objective: string;
 - Never split a line just to cheat the cap
 - Favor unicode connectives for density: -> for steps, != for contrast
 - Nudge actions, aspects, goals, reasons with single words
-- Maximum compression, not just low-hanging fruit`,
+- Maximum compression, not just low-hanging fruit
+- Compress to just key points and terse phrases, keep only thinking points (not even decisions), heavily compress direction text (to 1-3 words per step, not amount of steps). Allow running AI to make decisions.`,
     patterns: `<compression-mental-model>
 
 - Compress != shrink words; strip scaffolding, keep 100% signal

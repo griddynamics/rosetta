@@ -15,8 +15,8 @@
  *
  * Where parity.e2e.test.ts proves the profiled output has the right SHAPE (path-set parity),
  * this file proves the profiled build does the right THING with real repo inputs:
- *   - a profiled run writes every target to its `core-*-light` destination and never touches a
- *     pre-existing unsuffixed `core-*` destination (FR-PROF-0020)
+ *   - the light variant writes every target to its `rosetta-<ide>-light` destination beside the
+ *     unsuffixed `rosetta-<ide>` destination (FR-PROF-0020)
  *   - the profile-scoped documents (`coding-flow~profile-lightweight-only~overwrite~.md` and the ten
  *     `<agent>~profile-lightweight-only~overwrite~.md` agent documents) supersede their base
  *     counterparts ONLY in the light plugins, and their lighter `model:` candidate lists resolve
@@ -202,39 +202,67 @@ describe('Variant E2E — one run emits both the base and the -light variant', (
   // resolution strategy: Claude's exact-token tier and its family-substring fallback, Cursor's and
   // Copilot's first-token exact match, and Codex's first-gpt-token match plus reasoning-effort split.
   it('light agents resolve to the profile-scoped models on all four vocabularies', () => {
-    // Claude, exact-token tier.
+    // Claude, exact-token tier: architect's light list carries claude-opus-5-5-high, which the Claude
+    // map resolves through the opus tier (the exact key `claude-opus-5-5-high` and the `opus` family key
+    // agree). The `opus` family key resolves to the same value, so this agrees with the base build
+    // rather than diverging from it — Claude Code exposes three tiers and the light profile asks for
+    // the same one here. What an exact entry guarantees is that an author naming a version explicitly
+    // keeps getting THAT version even if the family default later moves.
     expect(fs.readFileSync(light('claude', 'agents', 'architect.md'), 'utf-8'))
-      .toMatch(/^model: claude-opus-5$/m);
-    // Claude, family fallback (`haiku`).
+      .toMatch(/^model: claude-opus-5-5$/m);
+
+    // Claude, family fallback: discoverer's light list carries claude-haiku-5-5. CLAUDE_CODE_MAP has
+    // exact keys only for the opus tokens, so this has no exact entry and the `haiku` family key
+    // resolves it, so the family-substring fallback remains covered by the real source tree. (The base
+    // list leads with claude-sonnet-5-5-medium, also family-resolved, via `sonnet`.)
     expect(fs.readFileSync(light('claude', 'agents', 'discoverer.md'), 'utf-8'))
-      .toMatch(/^model: claude-haiku-4-5$/m);
-    // Cursor: first-token exact match.
+      .toMatch(/^model: claude-haiku-5-5$/m);
+
+    // Haiku rule: where the light lists used to pair luna with sonnet (engineer, reviewer, validator,
+    // researcher) they now carry claude-haiku-5-5-high; the heavy-reasoning light agents keep sonnet.
+    for (const agent of ['engineer', 'reviewer', 'validator', 'researcher']) {
+      expect(fs.readFileSync(light('claude', 'agents', `${agent}.md`), 'utf-8'),
+        `${agent} (light)`).toMatch(/^model: claude-haiku-5-5$/m);
+    }
+    for (const agent of ['planner', 'requirements-engineer', 'prompt-engineer']) {
+      expect(fs.readFileSync(light('claude', 'agents', `${agent}.md`), 'utf-8'),
+        `${agent} (light)`).toMatch(/^model: claude-sonnet-5-5$/m);
+    }
+    expect(fs.readFileSync(light('claude', 'agents', 'engineer.md'), 'utf-8'))
+      .toMatch(/^effort: high$/m);
+
+    // Cursor: reviewer's light list leads with gemini-3.8-flash-medium, mapped to the IDE-native
+    // gemini-3.8-flash (the base list leads with gpt-6-luna-high -> gpt-6-luna).
     expect(fs.readFileSync(light('cursor', 'agents', 'reviewer.md'), 'utf-8'))
-      .toMatch(/^model: gemini-3\.7-flash$/m);
-    // Copilot: first-token exact match onto the IDE's display name. The light architect list
-    // leads with claude-opus-5-high, so this asserts the display-name mapping rather than a
-    // base/light divergence (the divergences are covered by cursor + codex + claude-discoverer).
+      .toMatch(/^model: gemini-3\.8-flash$/m);
+
+    // Copilot: architect's light list leads with claude-opus-5-5-high (Copilot takes the FIRST token),
+    // mapped to Copilot's display name.
     expect(fs.readFileSync(light('copilot', 'agents', 'architect.agent.md'), 'utf-8'))
-      .toMatch(/^model: Claude Opus 5$/m);
-    // Codex: first gpt- token split into model + reasoning effort.
+      .toMatch(/^model: Claude Opus 5\.5$/m);
+
+    // Codex: engineer's light list's first gpt- token is gpt-6-luna-xhigh, split into model +
+    // reasoning effort (the base list's first gpt- token is gpt-6-luna-high).
     const codexEngineer = fs.readFileSync(
       light('codex', '.codex', 'agents', 'engineer.toml'), 'utf-8');
-    expect(codexEngineer).toContain('model = "gpt-5.6-luna"');
+    expect(codexEngineer).toContain('model = "gpt-6-luna"');
     expect(codexEngineer).toContain('model_reasoning_effort = "xhigh"');
   });
 
   it('base agents keep their base models (FR-PROF-0040.AC3)', () => {
     expect(fs.readFileSync(base('claude', 'agents', 'discoverer.md'), 'utf-8'))
-      .toMatch(/^model: claude-sonnet-5$/m);
+      .toMatch(/^model: claude-sonnet-5-5$/m);
+    // The base architect resolves to the current Opus through the Claude vocabulary.
     expect(fs.readFileSync(base('claude', 'agents', 'architect.md'), 'utf-8'))
-      .toMatch(/^model: claude-opus-5$/m);
+      .toMatch(/^model: claude-opus-5-5$/m);
     expect(fs.readFileSync(base('cursor', 'agents', 'reviewer.md'), 'utf-8'))
-      .toMatch(/^model: gpt-5\.6-terra$/m);
+      .toMatch(/^model: gpt-6-luna$/m);
 
     const codexEngineer = fs.readFileSync(
       base('codex', '.codex', 'agents', 'engineer.toml'), 'utf-8');
-    expect(codexEngineer).toContain('model = "gpt-5.6-terra"');
-    expect(codexEngineer).toContain('model_reasoning_effort = "medium"');
+    // The base engineer's first gpt- token is the old terra-medium, now gpt-6-luna-high.
+    expect(codexEngineer).toContain('model = "gpt-6-luna"');
+    expect(codexEngineer).toContain('model_reasoning_effort = "high"');
   });
 
   it('every emitted agent TOML parses, in BOTH variants (NFR-0005, #271)', () => {

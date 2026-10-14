@@ -2,7 +2,7 @@
 name: requirements-engineer
 description: "Author, refine, and finalize requirements and specifications with traceability. Full subagent."
 mode: subagent
-model: GPT-5.6 Terra
+model: GPT-6 Luna
 effort: xhigh
 color: pink
 readonly: false

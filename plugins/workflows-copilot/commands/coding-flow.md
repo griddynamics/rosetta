@@ -36,7 +36,7 @@ Lightweight variant: a single architect pass produces discovery, design, specs, 
 
 </prerequisites>
 
-<solution_design phase="1" applies="ALL" subagent="architect" role="Architect producing discovery, design, specs, and plan in one pass" subagent_required_model="GPT-5.6 Sol, Claude Opus 5, Gemini 3.7 Flash">
+<solution_design phase="1" applies="ALL" subagent="architect" role="Architect producing discovery, design, specs, and plan in one pass" subagent_required_model="GPT-6.1 Sol, Claude Opus 5.5, Gemini 4 Argon, Gemini 3.8 Flash">
 
 Execute strongly in the specified order. A step MUST NOT start before the previous step is complete.
 
@@ -54,7 +54,7 @@ Execute strongly in the specified order. A step MUST NOT start before the previo
 
 </solution_design>
 
-<review_plan phase="2" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting architecture notes, specs, and plan against intent" subagent_required_model="Gemini 3.7 Flash, GPT-5.6 Terra, GPT-5.6 Luna, Claude Sonnet 5" must-be-subagent>
+<review_plan phase="2" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting architecture notes, specs, and plan against intent" subagent_required_model="Gemini 3.8 Flash, GPT-6 Luna, Claude Haiku 5.5" must-be-subagent>
 
 1. Review all three artifacts together - `architecture-notes.md`, specs, and plan - against user request, do not assume user is in context, give him full information with TLDR.
 2. Input: architecture notes, specs, plan, user request. Output: review findings and recommendations.
@@ -71,7 +71,7 @@ Execute strongly in the specified order. A step MUST NOT start before the previo
 
 </user_review_design>
 
-<implementation phase="4" applies="ALL" subagent="engineer" role="Senior engineer executing approved plan" subagent_required_model="GPT-5.6 Luna, GPT-5.6 Terra, Claude Sonnet 5, Gemini 3.7 Flash">
+<implementation phase="4" applies="ALL" subagent="engineer" role="Senior engineer executing approved plan" subagent_required_model="GPT-6 Luna, Claude Haiku 5.5, Gemini 3.8 Flash">
 
 1. Implement approved plan. Build MUST succeed. Tests excluded.
 2. Input: approved specs + plan. Demand subagent to read and execute it fully. Do not repeat contents => reference instead. Output: working code, build passing, update relevant documentation briefly (CONTEXT.md, ARCHITECTURE.md, etc).
@@ -84,7 +84,7 @@ Execute strongly in the specified order. A step MUST NOT start before the previo
 
 </implementation>
 
-<review_code phase="5" applies="ALL" subagent="reviewer" role="Reviewer inspecting implementation against specs" subagent_required_model="Gemini 3.7 Flash, GPT-5.6 Terra, GPT-5.6 Luna, Claude Sonnet 5" must-be-subagent>
+<review_code phase="5" applies="ALL" subagent="reviewer" role="Reviewer inspecting implementation against specs" subagent_required_model="Gemini 3.8 Flash, GPT-6 Luna, Claude Haiku 5.5" must-be-subagent>
 
 1. Review code changes against approved specs and plan.
 2. Input: implementation diff, specs, plan, check if documentation is updated, brief, and matches the file intent. Output: review findings and recommendations.
@@ -95,7 +95,7 @@ Execute strongly in the specified order. A step MUST NOT start before the previo
 
 </review_code>
 
-<tests phase="6" applies="ALL" subagent="engineer" role="Senior engineer writing and running tests" subagent_required_model="GPT-5.6 Luna, GPT-5.6 Terra, Claude Sonnet 5, Gemini 3.7 Flash">
+<tests phase="6" applies="ALL" subagent="engineer" role="Senior engineer writing and running tests" subagent_required_model="GPT-6 Luna, Claude Haiku 5.5, Gemini 3.8 Flash">
 
 1. Write and execute tests. All MUST succeed, isolated, idempotent.
 2. Input: implementation, specs. Demand subagent to read specs fully. Do not repeat contents => reference instead. Output: passing tests with coverage.
@@ -105,7 +105,7 @@ Execute strongly in the specified order. A step MUST NOT start before the previo
 
 </tests>
 
-<review_tests phase="7" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting test coverage and quality" subagent_required_model="Gemini 3.7 Flash, GPT-5.6 Terra, GPT-5.6 Luna, Claude Sonnet 5" must-be-subagent>
+<review_tests phase="7" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting test coverage and quality" subagent_required_model="Gemini 3.8 Flash, GPT-6 Luna, Claude Haiku 5.5" must-be-subagent>
 
 1. Review tests against specs: coverage, scenarios, edge cases, mocking correctness.
 2. Input: tests, specs, implementation. Output: review findings and recommendations.
@@ -115,7 +115,7 @@ Execute strongly in the specified order. A step MUST NOT start before the previo
 
 </review_tests>
 
-<final_validation phase="8" applies="MEDIUM,LARGE" subagent="validator" role="Final end-to-end verification" subagent_required_model="Gemini 3.7 Flash, GPT-5.6 Terra, GPT-5.6 Luna, Claude Sonnet 5">
+<final_validation phase="8" applies="MEDIUM,LARGE" subagent="validator" role="Final end-to-end verification" subagent_required_model="Gemini 3.8 Flash, GPT-6 Luna, Claude Haiku 5.5">
 
 1. Systematic by-dependency validation: databases, APIs, web, mobile. Check logs, clean up.
 2. Additionally systematic "manual QA" by yourself.

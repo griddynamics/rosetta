@@ -93,8 +93,11 @@ def best(line, pool, label, path):
     return sc[0][1]
 
 
-def build_branch(tree, golden, base, l1):
+def build_branch(tree, golden, base, l1, main_ref=None):
     changed = set(git("diff", "--name-only", base, "--", "instructions/r3").split())
+    if main_ref:  # files changed since base only by main (worktree == main tip) are main-owned, not branch-authored
+        same = [p for p in changed if subprocess.run(["git", "diff", "--quiet", main_ref, "--", p], cwd=ROOT).returncode == 0]
+        changed -= set(same)
     decl = {}
     for name in STRICT + PRESENCE:
         c = sorted(pathlib.Path(ROOT).glob(f"instructions/r3/*/skills/{name}/README.md"))
@@ -157,7 +160,7 @@ def build_branch(tree, golden, base, l1):
                 targets[label] = {"path": path, "hunks": ent}
         out[name if name != "pa-schemas.md" else "coding-agents-prompt-authoring/references/pa-schemas.md"] = {
             "mode": mode, "source": src, "reason": REASONS.get(name, DEFAULT_REASON), "targets": targets}
-    return {"source": {"diff_base": base, "diff": "git diff -U0 BASE -- instructions/r3 (worktree)",
+    return {"source": {"diff_base": base, "diff": "git diff -U0 BASE -- instructions/r3 (worktree)", "main_ref": main_ref,
                        "strict": sum(1 for v in out.values() if v["mode"] == "strict"),
                        "presence": sum(1 for v in out.values() if v["mode"] == "presence")},
             "files": out}
@@ -179,6 +182,7 @@ def main(argv=None):
     b.add_argument("--tree", type=pathlib.Path, required=True)
     b.add_argument("--golden", type=pathlib.Path, default=eq.GOLD)
     b.add_argument("--base", default="0ad95943")
+    b.add_argument("--main-ref", default=None, help="main tip: files changed since base but equal to it are main-owned")
     for s in (m, b):
         s.add_argument("--manifest", type=pathlib.Path, default=MANIFEST)
     a = ap.parse_args(argv)
@@ -194,7 +198,7 @@ def main(argv=None):
     else:
         if "main_post_golden" not in cur:
             raise SystemExit("run `main` first: layer 2 needs the layer-1 section")
-        sec = build_branch(a.tree.resolve(), a.golden.resolve(), a.base, cur["main_post_golden"])
+        sec = build_branch(a.tree.resolve(), a.golden.resolve(), a.base, cur["main_post_golden"], a.main_ref)
         cur["branch_authored"] = sec
         print(f"branch_authored: {sec['source']['strict']} strict + {sec['source']['presence']} presence files")
     a.manifest.write_text(dump(cur))

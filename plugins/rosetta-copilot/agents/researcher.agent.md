@@ -2,7 +2,7 @@
 name: researcher
 description: "Run deep research with grounded references, systematic exploration, self-validation, etc. Full subagent."
 mode: subagent
-model: claude-sonnet-5-medium
+model: Claude Sonnet 5.5
 effort: medium
 color: yellow
 readonly: false

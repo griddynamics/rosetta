@@ -2,7 +2,7 @@
 name: validator
 description: "Validate that implementation matches intent via execution and evidence. Full subagent."
 mode: subagent
-model: GPT-5.6 Terra
+model: GPT-6 Luna
 effort: medium
 color: red
 readonly: false

@@ -123,8 +123,8 @@ def load_manifest(path):
     for k in ("main_post_golden", "branch_authored"):
         if k not in m:
             raise SystemExit(f"manifest {path}: section '{k}' missing")
-    if not m["main_post_golden"].get("source", {}).get("commits"):
-        raise SystemExit(f"manifest {path}: main_post_golden.source.commits is required")
+    if not isinstance(m["main_post_golden"].get("source", {}).get("commits"), list):  # [] = golden is main tip
+        raise SystemExit(f"manifest {path}: main_post_golden.source.commits must be a list (empty when golden is the main tip)")
     return m
 
 def l1_hunks(man, name):

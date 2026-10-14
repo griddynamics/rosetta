@@ -2,7 +2,7 @@
 name: discoverer
 description: "Discover project context, patterns, affected areas, dependencies, etc. Lightweight subagent."
 mode: subagent
-model: gpt-5.6-luna
+model: gpt-6-luna
 effort: medium
 color: cyan
 readonly: false

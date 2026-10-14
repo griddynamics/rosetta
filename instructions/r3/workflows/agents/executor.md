@@ -2,7 +2,7 @@
 name: executor
 description: "Run simple commands, collect and summarize results to protect parent context. Lightweight subagent."
 mode: subagent
-model: claude-haiku-4-5, gpt-5.6-terra-low, gemini-3.7-flash-low, composer-2.5, gpt-5.6-luna-medium, grok-4.6-low
+model: claude-haiku-5-5, gpt-6-luna-medium, gemini-3.8-flash-low, composer-2.5, grok-4.7-low
 effort: medium
 color: cyan
 readonly: false

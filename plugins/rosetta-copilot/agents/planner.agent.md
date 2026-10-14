@@ -2,7 +2,7 @@
 name: planner
 description: "Plan execution: turn approved intent/specs into a sequenced plan scaled to size. Full subagent."
 mode: subagent
-model: Claude Opus 5
+model: Claude Opus 5.5
 effort: high
 color: orange
 readonly: false

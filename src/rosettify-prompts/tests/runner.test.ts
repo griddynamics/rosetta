@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { runBenchSuite, validateEvalResultItem } from '../src/runner.js';
+import { judgeMaxTokens, judgeThinkingFields, runBenchSuite, validateEvalResultItem } from '../src/runner.js';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { BenchConfig } from '../src/types.js';
 
@@ -535,5 +535,34 @@ describe('failure isolation', () => {
     expect(boom.error).toMatch(/bad request/);
     expect(ok.error).toBeUndefined();
     expect(ok.turns[0].assistantText).toBe('answer');
+  });
+});
+
+describe('judgeThinkingFields', () => {
+  it('disables thinking on models that accept it', () => {
+    expect(judgeThinkingFields('claude-sonnet-5')).toEqual({ thinking: { type: 'disabled' } });
+    expect(judgeThinkingFields('claude-haiku-5-5')).toEqual({ thinking: { type: 'disabled' } });
+    expect(judgeThinkingFields('claude-opus-4-8')).toEqual({ thinking: { type: 'disabled' } });
+  });
+
+  it('never sends thinking: disabled to Opus 5.5 / Sonnet 5.5 (400); lowers the effort instead', () => {
+    for (const model of ['claude-opus-5-5', 'claude-sonnet-5-5']) {
+      const fields = judgeThinkingFields(model);
+      expect(fields).toEqual({ output_config: { effort: 'low' } });
+      expect(fields).not.toHaveProperty('thinking');
+    }
+  });
+});
+
+describe('judgeThinkingFields / judgeMaxTokens — provider-prefixed ids and headroom', () => {
+  it('treats an anthropic/-prefixed 5.5 id like the bare id', () => {
+    expect(judgeThinkingFields('anthropic/claude-opus-5-5')).toEqual({ output_config: { effort: 'low' } });
+  });
+
+  it('adds token headroom only where thinking stays on', () => {
+    expect(judgeMaxTokens('claude-sonnet-5', 2048)).toBe(2048);
+    expect(judgeMaxTokens('claude-haiku-5-5', 2048)).toBe(2048);
+    expect(judgeMaxTokens('claude-sonnet-5-5', 2048)).toBe(2048 + 8192);
+    expect(judgeMaxTokens('claude-opus-5-5', 4096)).toBe(4096 + 8192);
   });
 });

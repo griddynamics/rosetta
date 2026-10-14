@@ -2,7 +2,7 @@
 name: requirements-engineer
 description: "Author, refine, and finalize requirements and specifications with traceability. Full subagent."
 mode: subagent
-model: claude-opus-5
+model: claude-opus-5-5
 effort: high
 color: pink
 readonly: false

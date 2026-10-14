@@ -118,6 +118,58 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 28.09 – Sun 04.10
+
+A new `docs/air/INTENT.md` sets out Rosetta Air, a longer-term direction built on an atoms/molecules/organisms skill hierarchy and per-project "software factory" automation. It is a vision document, not a shipped change. The maintainer-internal `checklist` skill is split into two variants, run side by side to find out which produces better completion checks.
+
+Three independent fixes landed in prompt-testing tooling: the `dangerous-actions` hook now only honors the `Rosetta-AI-reviewed` self-approval marker in a `MultiEdit`'s actual written content, `curiocity`'s `command` evaluator can no longer hang a benchmark run past a configured timeout, and `rosettify-prompts` rejects a config with duplicate suite IDs before it runs.
+
+**Highlights**
+
+- `docs/air/INTENT.md` adds a vision document for "Rosetta Air": skills organized as atoms, molecules, and organisms, with priorities (atoms first) and open directions (self-improvement, self-organization, per-project software factories) — a design intent, nothing shipped yet
+- `dangerous-actions` hook (MultiEdit): the `Rosetta-AI-reviewed` self-approval marker now counts only in an edit's `new_string`, closing a bypass where it could sit in `old_string` or an unrelated field (#339)
+- `curiocity`'s `command` evaluator gets a `timeoutSec` (default 60s) and kills the whole process tree on timeout instead of just the shell (#338)
+- `rosettify-prompts` rejects a config with duplicate `suites[].id` values before any run starts (#362)
+- The `checklist` skill (maintainer-internal) is split into two variants run side by side — `checklist-A`, a flat itemized list, and `checklist-B`, the prior fresh-eye-reviewed lifecycle — to compare which works better
+- Routine: two new lessons recorded in the `daily-oss` skill (a fallback branch that silently dropped frontmatter tags, worktree test runs needing `PYTHONPATH` set)
+- Routine: weekly GitHub stats snapshot refreshed; one typo fixed in `docs/stories/articles-rules-of-power.md`
+
+#### Rosetta Air: a vision document for the next iteration
+
+- **Change.** `[Docs]` A new `docs/air/INTENT.md` sets out a longer-term direction for Rosetta: skills organized as atoms (single-concern, reusable — implementation, testing, discovery), molecules (configurable workflows combining atoms for one use case — coding, API AQA), and organisms (opinionated, end-to-end automation of a business process; "one organism is one autonomous software factory"). It states priorities (atoms over molecules over organisms; self-improvement ships with organisms) and lists directions still to work out: self-improvement, self-organizing the knowledge base, per-project customization built from atom/molecule/organism templates, and distributing skills via `npx skills` instead of plugins. Nothing in the current instructions, workflows, or plugins changes as a result — this is a design intent, not a release. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** A named hierarchy and an explicit priority order give future work a shared vocabulary before it starts: build small reusable pieces first, then automate on top of them, instead of designing each new skill from scratch.
+
+#### dangerous-actions hook: MultiEdit marker restricted to new_string (#339)
+
+- **Change.** `[Hooks]` The `Rosetta-AI-reviewed` marker, which lets the agent self-approve a `reconsider`-tier dangerous action, now counts for a `MultiEdit` call only when it appears in an edit's `new_string`. The hook previously scanned every field of every edit object, so the marker sitting in `old_string` (the file's existing content) or an unrelated field such as `description` was enough to pass the check. (David Turner, atomicdjt)
+- **Why it helps.** The marker is supposed to mean "the agent reviewed what it's about to write." A marker in content the edit didn't produce, or in a field nobody reads, proved nothing — this closes that gap.
+
+#### curiocity: command evaluator bounded by a timeout (#338)
+
+- **Change.** `[Tooling]` `curiocity`'s `command` evaluator gains a `timeoutSec` param (positive number, default 60s). Past the deadline it kills the whole process tree, not just the top-level shell — SIGKILL on the process group on POSIX, `taskkill /t` on Windows — since Execa's own `timeout` option only ended the shell while a nested child kept running. A timeout now reports as a failed (not errored) evaluator result. (David Turner, atomicdjt)
+- **Why it helps.** One evaluator with no way to end a wedged build or test command could hang an entire benchmark run indefinitely. A bounded, whole-tree kill guarantees every run finishes.
+
+#### rosettify-prompts: duplicate suite IDs rejected upfront (#362)
+
+- **Change.** `[Tooling]` `rosettify-prompts` now rejects a config where two `suites[].id` values match, failing at config-parse time before any run starts. (Shin, shin4141)
+- **Why it helps.** Reports group results by suite and variant ID; a silent duplicate would merge two suites' results together in the report. Catching it at parse time turns a confusing downstream mixup into an immediate, clear error.
+
+### Week Mon 21.09 – Sun 27.09
+
+GitHub Copilot's standalone install got simpler: it no longer asks users to hand-merge Rosetta's instructions into an existing `.github/copilot-instructions.md`, and JetBrains now follows the same steps as VS Code instead of a separate manual procedure.
+
+**Highlights**
+
+- Copilot standalone install drops the "merge contents into `.github/copilot-instructions.md`" step from `INSTALLATION.md`, `PLUGINS.md`, and their web mirrors
+- JetBrains Copilot testing collapses into the same procedure as VS Code, checking for `.github/instructions/plugin-files-mode.instructions.md` and `.github/instructions/bootstrap-alwayson.instructions.md`
+- `USAGE_GUIDE.md` and `llms-full.txt` updated to match: Copilot's project-rules path is `.github/instructions/*.instructions.md`
+- Routine: a repeated typo ("faiures" → "failures") fixed across seven skill files
+
+#### Copilot standalone install simplified
+
+- **Change.** `[Docs]` Copilot's standalone package now relies on its native `.github/instructions/*.instructions.md` convention instead of a single shared `.github/copilot-instructions.md`, removing the instruction to manually merge Rosetta content into a pre-existing file. The JetBrains-specific manual setup in `docs/TESTING-PLUGINS.md` (copy into `.github`, hand-append plugin-files-mode content) is replaced by the same two-step check used for VS Code. `USAGE_GUIDE.md`'s rules table and `llms-full.txt` are updated to match. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** A manual merge step risked users losing their own `copilot-instructions.md` content, or skipping the merge and losing Rosetta's. JetBrains and VS Code Copilot users now follow one procedure instead of two that could drift apart.
+
 ### Week Mon 14.09 – Sun 20.09
 
 The README's skill list is replaced with a full catalog: all 42 skills grouped into 11 task-shaped categories (decide what to build, build it, stay safe, recover when it goes wrong, extend, domain packs, and more), instead of two flat top-N lists that had drifted out of sync with what actually ships. Each skill's own README gained a matching one-line pitch, written from the reader's job to be done rather than paraphrased from its "Why it exists" section.

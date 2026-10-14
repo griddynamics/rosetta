@@ -1,14 +1,14 @@
 {
   "repo": "griddynamics/rosetta",
   "url": "https://github.com/griddynamics/rosetta",
-  "generated_at": "2026-09-22T12:51:49Z",
+  "generated_at": "2026-10-12T12:14:47Z",
   "totals": {
-    "stars": 350,
-    "forks": 76,
+    "stars": 354,
+    "forks": 79,
     "watchers": 3,
-    "open_issues": 74,
+    "open_issues": 70,
     "contributors": 30,
-    "size_kb": 73293
+    "size_kb": 73597
   },
   "traffic": {
     "clones_daily": [
@@ -396,6 +396,106 @@
         "timestamp": "2026-09-21T00:00:00Z",
         "count": 54,
         "uniques": 21
+      },
+      {
+        "timestamp": "2026-09-22T00:00:00Z",
+        "count": 56,
+        "uniques": 27
+      },
+      {
+        "timestamp": "2026-09-23T00:00:00Z",
+        "count": 237,
+        "uniques": 61
+      },
+      {
+        "timestamp": "2026-09-24T00:00:00Z",
+        "count": 87,
+        "uniques": 42
+      },
+      {
+        "timestamp": "2026-09-25T00:00:00Z",
+        "count": 105,
+        "uniques": 73
+      },
+      {
+        "timestamp": "2026-09-26T00:00:00Z",
+        "count": 130,
+        "uniques": 17
+      },
+      {
+        "timestamp": "2026-09-27T00:00:00Z",
+        "count": 37,
+        "uniques": 13
+      },
+      {
+        "timestamp": "2026-09-28T00:00:00Z",
+        "count": 134,
+        "uniques": 23
+      },
+      {
+        "timestamp": "2026-09-29T00:00:00Z",
+        "count": 180,
+        "uniques": 66
+      },
+      {
+        "timestamp": "2026-09-30T00:00:00Z",
+        "count": 215,
+        "uniques": 61
+      },
+      {
+        "timestamp": "2026-10-01T00:00:00Z",
+        "count": 72,
+        "uniques": 31
+      },
+      {
+        "timestamp": "2026-10-02T00:00:00Z",
+        "count": 67,
+        "uniques": 26
+      },
+      {
+        "timestamp": "2026-10-03T00:00:00Z",
+        "count": 53,
+        "uniques": 17
+      },
+      {
+        "timestamp": "2026-10-04T00:00:00Z",
+        "count": 78,
+        "uniques": 11
+      },
+      {
+        "timestamp": "2026-10-05T00:00:00Z",
+        "count": 124,
+        "uniques": 45
+      },
+      {
+        "timestamp": "2026-10-06T00:00:00Z",
+        "count": 56,
+        "uniques": 24
+      },
+      {
+        "timestamp": "2026-10-07T00:00:00Z",
+        "count": 182,
+        "uniques": 29
+      },
+      {
+        "timestamp": "2026-10-08T00:00:00Z",
+        "count": 51,
+        "uniques": 22
+      },
+      {
+        "timestamp": "2026-10-09T00:00:00Z",
+        "count": 59,
+        "uniques": 22
+      },
+      {
+        "timestamp": "2026-10-10T00:00:00Z",
+        "count": 155,
+        "uniques": 10
+      },
+      {
+        "timestamp": "2026-10-11T00:00:00Z",
+        "count": 60,
+        "uniques": 22
       }
     ],
     "views_daily": [
@@ -783,6 +883,106 @@
         "timestamp": "2026-09-21T00:00:00Z",
         "count": 140,
         "uniques": 51
+      },
+      {
+        "timestamp": "2026-09-22T00:00:00Z",
+        "count": 197,
+        "uniques": 51
+      },
+      {
+        "timestamp": "2026-09-23T00:00:00Z",
+        "count": 234,
+        "uniques": 54
+      },
+      {
+        "timestamp": "2026-09-24T00:00:00Z",
+        "count": 157,
+        "uniques": 45
+      },
+      {
+        "timestamp": "2026-09-25T00:00:00Z",
+        "count": 147,
+        "uniques": 38
+      },
+      {
+        "timestamp": "2026-09-26T00:00:00Z",
+        "count": 80,
+        "uniques": 27
+      },
+      {
+        "timestamp": "2026-09-27T00:00:00Z",
+        "count": 47,
+        "uniques": 18
+      },
+      {
+        "timestamp": "2026-09-28T00:00:00Z",
+        "count": 144,
+        "uniques": 46
+      },
+      {
+        "timestamp": "2026-09-29T00:00:00Z",
+        "count": 131,
+        "uniques": 51
+      },
+      {
+        "timestamp": "2026-09-30T00:00:00Z",
+        "count": 218,
+        "uniques": 52
+      },
+      {
+        "timestamp": "2026-10-01T00:00:00Z",
+        "count": 220,
+        "uniques": 77
+      },
+      {
+        "timestamp": "2026-10-02T00:00:00Z",
+        "count": 150,
+        "uniques": 46
+      },
+      {
+        "timestamp": "2026-10-03T00:00:00Z",
+        "count": 48,
+        "uniques": 17
+      },
+      {
+        "timestamp": "2026-10-04T00:00:00Z",
+        "count": 49,
+        "uniques": 21
+      },
+      {
+        "timestamp": "2026-10-05T00:00:00Z",
+        "count": 171,
+        "uniques": 50
+      },
+      {
+        "timestamp": "2026-10-06T00:00:00Z",
+        "count": 175,
+        "uniques": 56
+      },
+      {
+        "timestamp": "2026-10-07T00:00:00Z",
+        "count": 130,
+        "uniques": 50
+      },
+      {
+        "timestamp": "2026-10-08T00:00:00Z",
+        "count": 143,
+        "uniques": 44
+      },
+      {
+        "timestamp": "2026-10-09T00:00:00Z",
+        "count": 113,
+        "uniques": 40
+      },
+      {
+        "timestamp": "2026-10-10T00:00:00Z",
+        "count": 29,
+        "uniques": 13
+      },
+      {
+        "timestamp": "2026-10-11T00:00:00Z",
+        "count": 64,
+        "uniques": 16
       }
     ]
   },
@@ -1371,6 +1571,201 @@
           "uniques": 9
         }
       ]
+    },
+    {
+      "snapshot_date": "2026-09-28",
+      "paths": [
+        {
+          "path": "/griddynamics/rosetta",
+          "title": "Overview",
+          "count": 505,
+          "uniques": 272
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/QUICKSTART.md",
+          "title": "/blob/main/QUICKSTART.md",
+          "count": 73,
+          "uniques": 45
+        },
+        {
+          "path": "/griddynamics/rosetta/pulls",
+          "title": "/pulls",
+          "count": 65,
+          "uniques": 18
+        },
+        {
+          "path": "/griddynamics/rosetta/issues",
+          "title": "/issues",
+          "count": 56,
+          "uniques": 19
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/PLUGINS.md",
+          "title": "/blob/main/PLUGINS.md",
+          "count": 49,
+          "uniques": 32
+        },
+        {
+          "path": "/griddynamics/rosetta/tree/main",
+          "title": "/tree/main",
+          "count": 49,
+          "uniques": 28
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/user-guide/README.md",
+          "title": "/blob/main/user-guide/README.md",
+          "count": 36,
+          "uniques": 23
+        },
+        {
+          "path": "/griddynamics/rosetta/releases/tag/v3.1.13",
+          "title": "/releases/tag/v3.1.13",
+          "count": 34,
+          "uniques": 23
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/USAGE_GUIDE.md",
+          "title": "/blob/main/USAGE_GUIDE.md",
+          "count": 33,
+          "uniques": 26
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/CONFIGURATION.md",
+          "title": "/blob/main/CONFIGURATION.md",
+          "count": 33,
+          "uniques": 14
+        }
+      ]
+    },
+    {
+      "snapshot_date": "2026-10-05",
+      "paths": [
+        {
+          "path": "/griddynamics/rosetta",
+          "title": "Overview",
+          "count": 439,
+          "uniques": 241
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/QUICKSTART.md",
+          "title": "/blob/main/QUICKSTART.md",
+          "count": 61,
+          "uniques": 42
+        },
+        {
+          "path": "/griddynamics/rosetta/pulls",
+          "title": "/pulls",
+          "count": 53,
+          "uniques": 18
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/PLUGINS.md",
+          "title": "/blob/main/PLUGINS.md",
+          "count": 45,
+          "uniques": 27
+        },
+        {
+          "path": "/griddynamics/rosetta/discussions",
+          "title": "/discussions",
+          "count": 44,
+          "uniques": 3
+        },
+        {
+          "path": "/griddynamics/rosetta/tree/main",
+          "title": "/tree/main",
+          "count": 42,
+          "uniques": 31
+        },
+        {
+          "path": "/griddynamics/rosetta/issues",
+          "title": "/issues",
+          "count": 41,
+          "uniques": 11
+        },
+        {
+          "path": "/griddynamics/rosetta/commits/main",
+          "title": "/commits/main",
+          "count": 28,
+          "uniques": 14
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/USAGE_GUIDE.md",
+          "title": "/blob/main/USAGE_GUIDE.md",
+          "count": 25,
+          "uniques": 19
+        },
+        {
+          "path": "/griddynamics/rosetta/releases/tag/v3.1.13",
+          "title": "/releases/tag/v3.1.13",
+          "count": 25,
+          "uniques": 16
+        }
+      ]
+    },
+    {
+      "snapshot_date": "2026-10-12",
+      "paths": [
+        {
+          "path": "/griddynamics/rosetta",
+          "title": "Overview",
+          "count": 449,
+          "uniques": 267
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/QUICKSTART.md",
+          "title": "/blob/main/QUICKSTART.md",
+          "count": 58,
+          "uniques": 36
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/PLUGINS.md",
+          "title": "/blob/main/PLUGINS.md",
+          "count": 52,
+          "uniques": 28
+        },
+        {
+          "path": "/griddynamics/rosetta/discussions",
+          "title": "/discussions",
+          "count": 51,
+          "uniques": 4
+        },
+        {
+          "path": "/griddynamics/rosetta/tree/main",
+          "title": "/tree/main",
+          "count": 41,
+          "uniques": 29
+        },
+        {
+          "path": "/griddynamics/rosetta/pulls",
+          "title": "/pulls",
+          "count": 34,
+          "uniques": 19
+        },
+        {
+          "path": "/griddynamics/rosetta/issues",
+          "title": "/issues",
+          "count": 31,
+          "uniques": 17
+        },
+        {
+          "path": "/griddynamics/rosetta/releases/tag/v3.1.13",
+          "title": "/releases/tag/v3.1.13",
+          "count": 26,
+          "uniques": 18
+        },
+        {
+          "path": "/griddynamics/rosetta/blob/main/user-guide/README.md",
+          "title": "/blob/main/user-guide/README.md",
+          "count": 25,
+          "uniques": 17
+        },
+        {
+          "path": "/griddynamics/rosetta/graphs/contributors",
+          "title": "/graphs/contributors",
+          "count": 21,
+          "uniques": 17
+        }
+      ]
     }
   ],
   "referrers_snapshots": [
@@ -1868,6 +2263,171 @@
           "uniques": 1
         }
       ]
+    },
+    {
+      "snapshot_date": "2026-09-28",
+      "referrers": [
+        {
+          "referrer": "Google",
+          "count": 266,
+          "uniques": 112
+        },
+        {
+          "referrer": "github.com",
+          "count": 105,
+          "uniques": 61
+        },
+        {
+          "referrer": "teams.public.onecdn.static.microsoft",
+          "count": 17,
+          "uniques": 10
+        },
+        {
+          "referrer": "griddynamics.github.io",
+          "count": 8,
+          "uniques": 6
+        },
+        {
+          "referrer": "chatgpt.com",
+          "count": 7,
+          "uniques": 5
+        },
+        {
+          "referrer": "DuckDuckGo",
+          "count": 5,
+          "uniques": 2
+        },
+        {
+          "referrer": "griddynamics.com",
+          "count": 5,
+          "uniques": 1
+        },
+        {
+          "referrer": "linkedin.com",
+          "count": 3,
+          "uniques": 2
+        },
+        {
+          "referrer": "griddynamics.atlassian.net",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "referrer": "search.brave.com",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "snapshot_date": "2026-10-05",
+      "referrers": [
+        {
+          "referrer": "Google",
+          "count": 149,
+          "uniques": 112
+        },
+        {
+          "referrer": "github.com",
+          "count": 83,
+          "uniques": 53
+        },
+        {
+          "referrer": "teams.public.onecdn.static.microsoft",
+          "count": 30,
+          "uniques": 19
+        },
+        {
+          "referrer": "griddynamics.github.io",
+          "count": 17,
+          "uniques": 14
+        },
+        {
+          "referrer": "StartPage",
+          "count": 7,
+          "uniques": 2
+        },
+        {
+          "referrer": "search.brave.com",
+          "count": 6,
+          "uniques": 5
+        },
+        {
+          "referrer": "griddynamics.atlassian.net",
+          "count": 4,
+          "uniques": 3
+        },
+        {
+          "referrer": "chatgpt.com",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "referrer": "griddynamics.com",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "referrer": "Bing",
+          "count": 3,
+          "uniques": 2
+        }
+      ]
+    },
+    {
+      "snapshot_date": "2026-10-12",
+      "referrers": [
+        {
+          "referrer": "Google",
+          "count": 159,
+          "uniques": 122
+        },
+        {
+          "referrer": "github.com",
+          "count": 70,
+          "uniques": 52
+        },
+        {
+          "referrer": "teams.public.onecdn.static.microsoft",
+          "count": 35,
+          "uniques": 22
+        },
+        {
+          "referrer": "griddynamics.github.io",
+          "count": 25,
+          "uniques": 17
+        },
+        {
+          "referrer": "StartPage",
+          "count": 9,
+          "uniques": 2
+        },
+        {
+          "referrer": "search.brave.com",
+          "count": 6,
+          "uniques": 5
+        },
+        {
+          "referrer": "griddynamics.atlassian.net",
+          "count": 4,
+          "uniques": 4
+        },
+        {
+          "referrer": "griddynamics.com",
+          "count": 4,
+          "uniques": 3
+        },
+        {
+          "referrer": "Bing",
+          "count": 3,
+          "uniques": 2
+        },
+        {
+          "referrer": "chatgpt.com",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
     }
   ],
   "release_downloads_weekly": [
@@ -1974,158 +2534,185 @@
       },
       "releases": [],
       "downloads_this_week": 0
+    },
+    {
+      "snapshot_date": "2026-09-28",
+      "window": {
+        "from": "2026-09-21",
+        "to": "2026-09-28"
+      },
+      "releases": [],
+      "downloads_this_week": 0
+    },
+    {
+      "snapshot_date": "2026-10-05",
+      "window": {
+        "from": "2026-09-28",
+        "to": "2026-10-05"
+      },
+      "releases": [],
+      "downloads_this_week": 0
+    },
+    {
+      "snapshot_date": "2026-10-12",
+      "window": {
+        "from": "2026-10-05",
+        "to": "2026-10-12"
+      },
+      "releases": [],
+      "downloads_this_week": 0
     }
   ],
   "companies": [
     {
       "value": "Grid Dynamics",
       "count": 26,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "@griddynamics",
       "count": 5,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "GridDynamics",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "@ImpactInc",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "@juxt",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "@paketmutfak",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "@premian-labs, @poweredbyanons, @premia-frontend, @premia-gov",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "@sureflapltd",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "@weby-homelab",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "@xtdb",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "_y_a_v_a_",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Adamage Software Solutions",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Central South University",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Cinnamon Agency",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Cloud Posse",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Codecademy",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "ex @griddynamics",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Fivenynes",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Grid Dynamics Holding Inc",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Grid Dynamics Holding Inc.",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Grid Dynamics Inc.",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Grid Dynamics International, Inc.",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Grid Dynamics, Inc",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "griddynamics",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Moscow State University",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Noid",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "palgogo.com",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Personal",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Provectus/Selectica",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "PwC",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "SkyDeck AI Inc.",
@@ -2135,344 +2722,359 @@
     {
       "value": "SLB",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
+    },
+    {
+      "value": "Sparker",
+      "count": 1,
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Splunk",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Tx10",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     }
   ],
   "locations": [
     {
       "value": "Belgrade, Serbia",
       "count": 3,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
+    },
+    {
+      "value": "India",
+      "count": 3,
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Ukraine",
       "count": 3,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Argentina",
       "count": 2,
-      "last_seen": "2026-09-22"
-    },
-    {
-      "value": "India",
-      "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Kharkiv, Ukraine",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Kraków",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Kyiv, Ukraine",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "London",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "London, United Kingdom",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Poland",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Saint-Petersburg",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "San Francisco",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "San Ramon, CA",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Ukraine, Kyiv",
       "count": 2,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": ".hack//MetaVerse",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Alameda, CA",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Alpharetta, GA",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Armenia",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Bengaluru, India",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Bhilwara, Raj.",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
+    },
+    {
+      "value": "Bochum",
+      "count": 1,
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Buenos Aires",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Chile",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "China",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Chisinau",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Chisinau MD",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Dallas, TX",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Essex, UK",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Gdańsk",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Gdańsk, Poland",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Houston",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Hyderabad",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "idk what timezon i live in lol",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Indonesia",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "japan",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Kazakhstan",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Kharkov",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Kingston, Jamaica",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Kirkland, WA",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Krakow, Poland",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Kyiv",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Leiden, NL",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
+    },
+    {
+      "value": "Leon",
+      "count": 1,
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Lviv",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Lviv, Ukraine",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "McAllen, Texas",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Mexico",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Moldova",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Morag",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Odessa, Ukraine",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Oregon",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Poland, Krakow",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Poland, Wroclaw",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Portugal",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Remote, Worldwide",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "San Francisco Bay Area",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "San Francisco, CA, US",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Seattle, WA, USA",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Serbia",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Sunnyvale, CA",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Switzerland",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Sydney, Australia",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Turkey",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "UK",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Ukraine, Kharkov",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "United Kingdom",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "United States",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-09-28"
     },
     {
       "value": "US",
@@ -2482,22 +3084,22 @@
     {
       "value": "Valencia, Spain",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Victoria, BC",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Warsaw",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Wrocław, Poland",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     },
     {
       "value": "Yerevan, Armenia",
@@ -2507,7 +3109,7 @@
     {
       "value": "🌍",
       "count": 1,
-      "last_seen": "2026-09-22"
+      "last_seen": "2026-10-12"
     }
   ],
   "weekly_snapshots": [
@@ -2599,6 +3201,36 @@
       "unique_cloners_14d": 503,
       "views_14d": 1779,
       "unique_visitors_14d": 400,
+      "release_downloads_this_week": 0
+    },
+    {
+      "snapshot_date": "2026-09-28",
+      "stars": 349,
+      "forks": 77,
+      "clones_14d": 1379,
+      "unique_cloners_14d": 524,
+      "views_14d": 1995,
+      "unique_visitors_14d": 414,
+      "release_downloads_this_week": 0
+    },
+    {
+      "snapshot_date": "2026-10-05",
+      "stars": 352,
+      "forks": 78,
+      "clones_14d": 1505,
+      "unique_cloners_14d": 378,
+      "views_14d": 1962,
+      "unique_visitors_14d": 415,
+      "release_downloads_this_week": 0
+    },
+    {
+      "snapshot_date": "2026-10-12",
+      "stars": 354,
+      "forks": 79,
+      "clones_14d": 1486,
+      "unique_cloners_14d": 324,
+      "views_14d": 1785,
+      "unique_visitors_14d": 409,
       "release_downloads_this_week": 0
     }
   ]

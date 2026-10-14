@@ -18,6 +18,38 @@ function hasKey(map: Record<string, string>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(map, key);
 }
 
+const EFFORT_SUFFIXES = ['xhigh', 'high', 'medium', 'low'] as const;
+
+/**
+ * Map each base token AND every effort-qualified form of it (`<base>-xhigh|high|medium|low`) to one
+ * value. Authors write effort-qualified tokens in `model:` lists; a map that names only the bare form
+ * leaves the qualified one unmapped, and Cursor/Copilot then pass it through raw (a `claude-sonnet-5-medium`
+ * Cursor model id does not exist). Generating the forms keeps the maps complete by construction.
+ */
+function effortForms(bases: readonly string[], value: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const base of bases) {
+    out[base] = value;
+    for (const effort of EFFORT_SUFFIXES) out[`${base}-${effort}`] = value;
+  }
+  return out;
+}
+
+/**
+ * Codex variant: the mapped value keeps (or, when `bump` is set, raises by one step) the effort of the
+ * source token, because normalizeCodex() effort-splits the value afterwards. A bare key maps to a bare
+ * value — no default effort is ever substituted (FR-ARCH-0057).
+ */
+function codexEffortForms(bases: readonly string[], target: string, bump: boolean): Record<string, string> {
+  const raised: Record<string, string> = { low: 'medium', medium: 'high', high: 'xhigh', xhigh: 'xhigh' };
+  const out: Record<string, string> = {};
+  for (const base of bases) {
+    out[base] = target;
+    for (const effort of EFFORT_SUFFIXES) out[`${base}-${effort}`] = `${target}-${bump ? raised[effort] : effort}`;
+  }
+  return out;
+}
+
 // ─── Low-level per-token selection+lookup helpers ─────────────────────────────
 // Extracted so S7 (plugin-normalize-subagent-model.ts, FR-COPY-0083) reuses the SAME
 // compatibility-test / key-derivation / effort-split logic rather than reimplementing it
@@ -94,19 +126,22 @@ export function splitCodexEffort(token: string): CodexModelResult {
 // FR-COPY-0021 — Claude Code full model IDs; update here when models change
 const CLAUDE_CODE_MAP: Record<string, string> = {
   // Family keys — the default for any opus/sonnet/haiku token that names no exact entry below.
-  opus: 'claude-opus-5',
-  sonnet: 'claude-sonnet-5',
-  haiku: 'claude-haiku-4-5',
-  // Exact source tokens, consulted BEFORE the family keys (claudeLookup). Now that `opus` itself
-  // resolves to Opus 5, these exact entries agree with the family key for every token below — they no
-  // longer name a version the family key can't reach. Their remaining value is version pinning: an
-  // author who writes one of these tokens explicitly keeps getting Opus 5 even if the family default
-  // (`opus`) later moves to a newer model. Adding an exact key changes nothing for any other token —
-  // only a byte-equal source token hits it.
-  'claude-5-opus-high': 'claude-opus-5',
-  'claude-5-opus': 'claude-opus-5',
-  'claude-opus-5': 'claude-opus-5',
-  'claude-opus-5-high': 'claude-opus-5',
+  opus: 'claude-opus-5-5',
+  sonnet: 'claude-sonnet-5-5',
+  haiku: 'claude-haiku-5-5',
+  // Exact source tokens, consulted BEFORE the family keys (claudeLookup). A superseded token resolves
+  // FORWARD (FR-ARCH-0057): `claude-opus-5` and its spellings are not pinned to Opus 5, they follow the
+  // tier to its current model like every other opus token, so these entries agree with the family key.
+  // Their remaining value is version pinning for the CURRENT model: an author who writes
+  // `claude-opus-5-5` explicitly keeps getting Opus 5.5 even if the family default (`opus`) later moves
+  // to a newer model. Adding an exact key changes nothing for any other token — only a byte-equal
+  // source token hits it.
+  'claude-5-opus-high': 'claude-opus-5-5',
+  'claude-5-opus': 'claude-opus-5-5',
+  'claude-opus-5': 'claude-opus-5-5',
+  'claude-opus-5-high': 'claude-opus-5-5',
+  'claude-opus-5-5': 'claude-opus-5-5',
+  'claude-opus-5-5-high': 'claude-opus-5-5',
 };
 
 /**
@@ -151,90 +186,55 @@ export function normalizeClaude(
 // the scan continues to subsequent tokens (FR-PROF-0011).
 
 const CURSOR_CLAUDE_MAP: Record<string, string> = {
-  'claude-4.8-opus-high': 'claude-opus-5',
-  'claude-4.8-opus': 'claude-opus-5',
-  'claude-opus-4-8': 'claude-opus-5',
-  'claude-4.7-opus-high': 'claude-opus-5',
-  'claude-4.7-opus': 'claude-opus-5',
-  'claude-opus-4-7': 'claude-opus-5',
-  'claude-4.6-sonnet': 'claude-sonnet-5',
-  'claude-5-sonnet': 'claude-sonnet-5',
-  'claude-4.5-haiku': 'claude-haiku-4-5',
-  'claude-opus-4-6': 'claude-opus-5',
-  'claude-sonnet-4-6': 'claude-sonnet-5',
-  'claude-sonnet-5': 'claude-sonnet-5',
-  'claude-haiku-4-5': 'claude-haiku-4-5',
-  'claude-5-opus-high': 'claude-opus-5',
-  'claude-5-opus': 'claude-opus-5',
-  'claude-opus-5': 'claude-opus-5',
-  'claude-opus-5-high': 'claude-opus-5',
+  // Every spelling (and effort-qualified form) of a superseded or current Claude token resolves to the
+  // current model of its own tier — FORWARD, never pinned (FR-ARCH-0057). Cursor-native spellings
+  // (`claude-4.8-opus`, `claude-5-sonnet`) and the dash forms (`claude-opus-4-8`, `claude-opus-5-5`) are both keyed.
+  ...effortForms(
+    ['claude-4.8-opus', 'claude-opus-4-8', 'claude-4.7-opus', 'claude-opus-4-7', 'claude-opus-4-6',
+     'claude-5-opus', 'claude-opus-5', 'claude-opus-5-5'],
+    'claude-opus-5-5',
+  ),
+  ...effortForms(
+    ['claude-4.6-sonnet', 'claude-5-sonnet', 'claude-sonnet-4-6', 'claude-sonnet-5', 'claude-sonnet-5-5'],
+    'claude-sonnet-5-5',
+  ),
+  ...effortForms(['claude-4.5-haiku', 'claude-haiku-4-5', 'claude-haiku-5-5'], 'claude-haiku-5-5'),
 };
 
+// GPT tiers on Cursor. A source token absent from this map is dropped from `subagent_required_model`
+// and passed through raw if it lands first in a `model:` list, so every form the instruction set uses
+// (bare and effort-qualified) is keyed. Cursor ids carry no effort, so tiers that differ only by
+// effort collapse: gpt-5.6-terra / 5.4 / 5.3 (the former workhorse) and gpt-5.6-luna / 5.4-mini all
+// resolve to gpt-6-luna; the old sol tier (5.6-sol, 5.5) resolves to gpt-6.1-sol.
 const CURSOR_GPT_MAP: Record<string, string> = {
-  // GPT-5.6 — bare and effort-qualified forms alike. A source token absent from this map is dropped
-  // from `subagent_required_model` and passed through raw if it lands first in a `model:` list, so
-  // omitting a form the instruction set actually uses loses the model rather than preserving it.
-  'gpt-5.6-sol':          'gpt-5.6-sol',
-  'gpt-5.6-terra':        'gpt-5.6-terra',
-  'gpt-5.6-luna':         'gpt-5.6-luna',
-  'gpt-5.6-sol-xhigh':    'gpt-5.6-sol',
-  'gpt-5.6-sol-high':     'gpt-5.6-sol',
-  'gpt-5.6-sol-medium':   'gpt-5.6-sol',
-  'gpt-5.6-sol-low':      'gpt-5.6-sol',
-  'gpt-5.6-terra-xhigh':  'gpt-5.6-terra',
-  'gpt-5.6-terra-high':   'gpt-5.6-terra',
-  'gpt-5.6-terra-medium': 'gpt-5.6-terra',
-  'gpt-5.6-terra-low':    'gpt-5.6-terra',
-  'gpt-5.6-luna-xhigh':   'gpt-5.6-luna',
-  'gpt-5.6-luna-high':    'gpt-5.6-luna',
-  'gpt-5.6-luna-medium':  'gpt-5.6-luna',
-  'gpt-5.6-luna-low':     'gpt-5.6-luna',
-  // GPT-5.5 → upgrade to 5.6 Sol
-  'gpt-5.5-high':         'gpt-5.6-sol',
-  'gpt-5.5-medium':       'gpt-5.6-sol',
-  'gpt-5.5-low':          'gpt-5.6-sol',
-  'gpt-5.5':              'gpt-5.6-sol',
-  // GPT-5.4 → upgrade to 5.6 Terra
-  'gpt-5.4-high':         'gpt-5.6-terra',
-  'gpt-5.4-medium':       'gpt-5.6-terra',
-  'gpt-5.4-low':          'gpt-5.6-terra',
-  'gpt-5.4':              'gpt-5.6-terra',
-  // GPT-5.4 mini → upgrade to 5.6 Luna
-  'gpt-5.4-mini-medium':  'gpt-5.6-luna',
-  'gpt-5.4-mini':         'gpt-5.6-luna',
-  // GPT-5.3 → upgrade to 5.6 Terra
-  'gpt-5.3-high':         'gpt-5.6-terra',
-  'gpt-5.3-medium':       'gpt-5.6-terra',
-  'gpt-5.3-low':          'gpt-5.6-terra',
-  'gpt-5.3':              'gpt-5.6-terra',
-  // GPT-5.3-Codex → upgrade to 5.6 Terra
-  'gpt-5.3-codex-high':   'gpt-5.6-terra',
-  'gpt-5.3-codex-medium': 'gpt-5.6-terra',
-  'gpt-5.3-codex-low':    'gpt-5.6-terra',
-  'gpt-5.3-codex':        'gpt-5.6-terra',
+  ...effortForms(['gpt-6.1-sol', 'gpt-5.6-sol', 'gpt-5.5'], 'gpt-6.1-sol'),
+  ...effortForms(
+    ['gpt-6-luna', 'gpt-5.6-luna', 'gpt-5.4-mini', 'gpt-5.6-terra', 'gpt-5.4', 'gpt-5.3', 'gpt-5.3-codex'],
+    'gpt-6-luna',
+  ),
 };
 
+// Gemini on Cursor: the Pro tier resolves to gemini-4-argon (the current Pro-tier model) and every other
+// Gemini token to gemini-3.8-flash (FR-ARCH-0057). Superseded Pro keys are retained and resolve FORWARD.
+// Argon has no effort in its id, so every effort form of each Pro-tier base token is keyed (a token such as
+// `gemini-4-argon-high` is authored in `subagent_required_model` lists and is dropped when unmapped).
 const CURSOR_GEMINI_MAP: Record<string, string> = {
-  'gemini-3.7-flash-high': 'gemini-3.7-flash',
-  'gemini-3.7-flash-medium': 'gemini-3.7-flash',
-  'gemini-3.7-flash-low': 'gemini-3.7-flash',
-  'gemini-3.7-flash': 'gemini-3.7-flash',
-  'gemini-3.5-flash': 'gemini-3.7-flash',
-  'gemini-3-flash': 'gemini-3.7-flash',
-  'gemini-3-flash-preview': 'gemini-3.7-flash',
-  'gemini-3.1-pro-preview': 'gemini-3.7-flash',
-  'gemini-3.1-pro': 'gemini-3.7-flash',
+  ...effortForms(
+    ['gemini-4-argon', 'gemini-3.1-pro', 'gemini-3.1-pro-preview', 'gemini-3-pro', 'gemini-3-pro-preview'],
+    'gemini-4-argon',
+  ),
+  ...effortForms(['gemini-3.8-flash', 'gemini-3.7-flash'], 'gemini-3.8-flash'),
+  'gemini-3.5-flash': 'gemini-3.8-flash',
+  'gemini-3-flash': 'gemini-3.8-flash',
+  'gemini-3-flash-preview': 'gemini-3.8-flash',
 };
 
 const CURSOR_GROK_MAP: Record<string, string> = {
-  'grok-4.6-high': 'grok-4.6',
-  'grok-4.6-medium': 'grok-4.6',
-  'grok-4.6-low': 'grok-4.6',
-  'grok-4.6': 'grok-4.6',
-  // Grok 4.5 -> upgrade to 4.6, same idiom as GPT-5.3 -> 5.4 above: same cost, better model, so a
-  // legacy token resolves forward rather than pinning a superseded version. The instruction set no
-  // longer authors grok-4.5; this entry keeps an older or third-party layer resolving correctly.
-  'grok-4.5': 'grok-4.6',
+  ...effortForms(['grok-4.7', 'grok-4.6'], 'grok-4.7'),
+  // Older grok tokens upgrade forward, same idiom as GPT above: same cost, better model, so a legacy
+  // token resolves forward rather than pinning a superseded version. The instruction set no longer
+  // authors grok-4.5; this entry keeps an older or third-party layer resolving correctly.
+  'grok-4.5': 'grok-4.7',
 };
 
 const CURSOR_COMPOSER_MAP: Record<string, string> = {
@@ -273,83 +273,43 @@ export function normalizeCursor(
 // core-copilot/agents/*.agent.md.
 
 const COPILOT_CLAUDE_MAP: Record<string, string> = {
-  'claude-4.8-opus-high': 'Claude Opus 5',
-  'claude-4.8-opus': 'Claude Opus 5',
-  'claude-opus-4-8': 'Claude Opus 5',
-  'claude-4.7-opus-high': 'Claude Opus 5',
-  'claude-4.7-opus': 'Claude Opus 5',
-  'claude-opus-4-7': 'Claude Opus 5',
-  'claude-4.6-sonnet': 'Claude Sonnet 5',
-  'claude-5-sonnet': 'Claude Sonnet 5',
-  'claude-4.5-haiku': 'Claude Haiku 4.5',
-  'claude-opus-4-6': 'Claude Opus 5',
-  'claude-sonnet-4-6': 'Claude Sonnet 5',
-  'claude-sonnet-5': 'Claude Sonnet 5',
-  'claude-haiku-4-5': 'Claude Haiku 4.5',
-  'claude-5-opus-high': 'Claude Opus 5',
-  'claude-5-opus': 'Claude Opus 5',
-  'claude-opus-5': 'Claude Opus 5',
-  'claude-opus-5-high': 'Claude Opus 5',
+  ...effortForms(
+    ['claude-4.8-opus', 'claude-opus-4-8', 'claude-4.7-opus', 'claude-opus-4-7', 'claude-opus-4-6',
+     'claude-5-opus', 'claude-opus-5', 'claude-opus-5-5'],
+    'Claude Opus 5.5',
+  ),
+  ...effortForms(
+    ['claude-4.6-sonnet', 'claude-5-sonnet', 'claude-sonnet-4-6', 'claude-sonnet-5', 'claude-sonnet-5-5'],
+    'Claude Sonnet 5.5',
+  ),
+  ...effortForms(['claude-4.5-haiku', 'claude-haiku-4-5', 'claude-haiku-5-5'], 'Claude Haiku 5.5'),
 };
 
+// GPT tiers on Copilot — same collapse as the Cursor map above (display names carry no effort).
 const COPILOT_GPT_MAP: Record<string, string> = {
-  // GPT-5.6 — bare and effort-qualified forms alike, as in the Cursor map above.
-  'gpt-5.6-sol':          'GPT-5.6 Sol',
-  'gpt-5.6-terra':        'GPT-5.6 Terra',
-  'gpt-5.6-luna':         'GPT-5.6 Luna',
-  'gpt-5.6-sol-xhigh':    'GPT-5.6 Sol',
-  'gpt-5.6-sol-high':     'GPT-5.6 Sol',
-  'gpt-5.6-sol-medium':   'GPT-5.6 Sol',
-  'gpt-5.6-sol-low':      'GPT-5.6 Sol',
-  'gpt-5.6-terra-xhigh':  'GPT-5.6 Terra',
-  'gpt-5.6-terra-high':   'GPT-5.6 Terra',
-  'gpt-5.6-terra-medium': 'GPT-5.6 Terra',
-  'gpt-5.6-terra-low':    'GPT-5.6 Terra',
-  'gpt-5.6-luna-xhigh':   'GPT-5.6 Luna',
-  'gpt-5.6-luna-high':    'GPT-5.6 Luna',
-  'gpt-5.6-luna-medium':  'GPT-5.6 Luna',
-  'gpt-5.6-luna-low':     'GPT-5.6 Luna',
-  // GPT-5.5 → upgrade to 5.6 Sol
-  'gpt-5.5-high':         'GPT-5.6 Sol',
-  'gpt-5.5-medium':       'GPT-5.6 Sol',
-  'gpt-5.5-low':          'GPT-5.6 Sol',
-  'gpt-5.5':              'GPT-5.6 Sol',
-  // GPT-5.4 → upgrade to 5.6 Terra
-  'gpt-5.4-high':         'GPT-5.6 Terra',
-  'gpt-5.4-medium':       'GPT-5.6 Terra',
-  'gpt-5.4-low':          'GPT-5.6 Terra',
-  'gpt-5.4':              'GPT-5.6 Terra',
-  // GPT-5.4 mini → upgrade to 5.6 Luna
-  'gpt-5.4-mini-medium':  'GPT-5.6 Luna',
-  'gpt-5.4-mini':         'GPT-5.6 Luna',
-  // GPT-5.3 → upgrade to 5.6 Terra
-  'gpt-5.3-high':         'GPT-5.6 Terra',
-  'gpt-5.3-medium':       'GPT-5.6 Terra',
-  'gpt-5.3-low':          'GPT-5.6 Terra',
-  'gpt-5.3':              'GPT-5.6 Terra',
-  // GPT-5.3-Codex → upgrade to 5.6 Terra
-  'gpt-5.3-codex-high':   'GPT-5.6 Terra',
-  'gpt-5.3-codex-medium': 'GPT-5.6 Terra',
-  'gpt-5.3-codex-low':    'GPT-5.6 Terra',
-  'gpt-5.3-codex':        'GPT-5.6 Terra',
+  ...effortForms(['gpt-6.1-sol', 'gpt-5.6-sol', 'gpt-5.5'], 'GPT-6.1 Sol'),
+  ...effortForms(
+    ['gpt-6-luna', 'gpt-5.6-luna', 'gpt-5.4-mini', 'gpt-5.6-terra', 'gpt-5.4', 'gpt-5.3', 'gpt-5.3-codex'],
+    'GPT-6 Luna',
+  ),
 };
 
+// Same Pro-tier split as CURSOR_GEMINI_MAP, as Copilot display names.
 const COPILOT_GEMINI_MAP: Record<string, string> = {
-  'gemini-3.7-flash-high': 'Gemini 3.7 Flash',
-  'gemini-3.7-flash-medium': 'Gemini 3.7 Flash',
-  'gemini-3.7-flash-low': 'Gemini 3.7 Flash',
-  'gemini-3.7-flash': 'Gemini 3.7 Flash',
-  'gemini-3.1-pro-preview': 'Gemini 3.7 Flash',
-  'gemini-3.1-pro': 'Gemini 3.7 Flash',
+  ...effortForms(
+    ['gemini-4-argon', 'gemini-3.1-pro', 'gemini-3.1-pro-preview', 'gemini-3-pro', 'gemini-3-pro-preview'],
+    'Gemini 4 Argon',
+  ),
+  ...effortForms(['gemini-3.8-flash', 'gemini-3.7-flash'], 'Gemini 3.8 Flash'),
   // FR-ARCH-0057 key-retention invariant: a superseded token keeps its key and resolves FORWARD to
   // the current model of its own cost tier. CURSOR_GEMINI_MAP has carried gemini-3.5-flash since the
   // forward-upgrade rewrite; Copilot's omission was the only unexplained asymmetry between the two
   // vocabularies (the missing grok-*/composer-* keys are deliberate — see the note above
-  // COPILOT_VOCABULARY). Value is `Gemini 3.7 Flash`, NOT `Gemini 3.5 Flash`: pinning the superseded
-  // model on Copilot while Cursor upgrades it would create a divergence, not close one.
-  'gemini-3.5-flash': 'Gemini 3.7 Flash',
-  'gemini-3-flash': 'Gemini 3.7 Flash',
-  'gemini-3-flash-preview': 'Gemini 3.7 Flash',
+  // COPILOT_VOCABULARY). Value is `Gemini 3.8 Flash`, NOT the superseded model: pinning it on Copilot
+  // while Cursor upgrades it would create a divergence, not close one.
+  'gemini-3.5-flash': 'Gemini 3.8 Flash',
+  'gemini-3-flash': 'Gemini 3.8 Flash',
+  'gemini-3-flash-preview': 'Gemini 3.8 Flash',
 };
 
 /**
@@ -376,14 +336,15 @@ export function normalizeCopilot(
 }
 
 // ─── Codex vocabulary (FR-COPY-0022) ──────────────────────────────────────────
-// Selection strategy UNCHANGED: scan all tokens for first gpt-* token. The built-in map now carries
-// upgrade entries for every superseded GPT family (5.3, 5.3-codex, 5.4, 5.4-mini, 5.5) so a legacy
-// gpt- token resolves forward to its 5.6-era successor instead of pinning the old model — same idiom
-// as the Cursor/Copilot GPT maps above. Each key is paired with a VALUE carrying the matching effort
-// suffix (e.g. 'gpt-5.4-medium' → 'gpt-5.6-terra-medium') so effort survives the upgrade: the chosen
-// value (mapped or as-is) is THEN effort-split into {model, effort} by normalizeCodex. A gpt-5.6-*
-// token is not superseded and carries no entry — it is not "mapped to itself"; it simply passes
-// through unmapped like any other unknown token, which is the existing pass-through contract. A
+// Selection strategy UNCHANGED: scan all tokens for first gpt-* token. The built-in map carries
+// upgrade entries for every superseded GPT family (5.3, 5.3-codex, 5.4, 5.4-mini, 5.5, 5.6-*) so a
+// legacy gpt- token resolves forward to its current successor instead of pinning the old model — same
+// idiom as the Cursor/Copilot GPT maps above. Each key is paired with a VALUE carrying the matching
+// effort suffix (e.g. 'gpt-5.4-medium' → 'gpt-6-luna-high', see CODEX_GPT_MAP) so effort survives the
+// upgrade: the chosen value (mapped or as-is) is THEN effort-split into {model, effort} by
+// normalizeCodex. A current gpt-6* token is not superseded and carries no entry — it is not "mapped
+// to itself"; it simply passes through unmapped like any other unknown token, which is the existing
+// pass-through contract. A
 // profile block may map a gpt- token to any string; that value is effort-split the same way. No gpt-
 // token found ⇒ null (non-exhaustive, today); all gpt- candidates absent under exhaustive ⇒
 // MODEL_DROP; an unmapped gpt- token under non-exhaustive still passes through as-is.
@@ -418,34 +379,20 @@ export function normalizeCodex(
   return exhaustive ? MODEL_DROP : null;
 }
 
-// FR-COPY-0022 — Codex built-in upgrade table: superseded gpt- families resolve forward to their
-// 5.6-era successor, one entry per effort-qualified form (plus the bare form) so normalizeCodex's
-// effort-split recovers the same effort the author wrote. gpt-5.6-* itself has no entry (see comment
-// above the Codex vocabulary section).
+// FR-COPY-0022 — Codex built-in upgrade table: every superseded gpt- token resolves forward to the
+// current model of its own tier, one entry per effort-qualified form (plus the bare form) so
+// normalizeCodex's effort-split recovers the effort. Unlike Cursor/Copilot, Codex carries effort as a
+// separate field, so the tiers stay distinguishable by effort:
+//   sol family   (gpt-5.6-sol, gpt-5.5)                     -> gpt-6.1-sol, effort kept
+//   luna family  (gpt-5.6-luna, gpt-5.4-mini)               -> gpt-6-luna,  effort kept
+//   terra family (gpt-5.6-terra, gpt-5.4, gpt-5.3, 5.3-codex) -> gpt-6-luna,  effort raised ONE step
+//                (low->medium, medium->high, high->xhigh, xhigh stays xhigh; a bare token stays bare)
+// gpt-6.1-sol* and gpt-6-luna* are current and carry no entry — they pass through unmapped, which is
+// the existing pass-through contract.
 const CODEX_GPT_MAP: Record<string, string> = {
-  // GPT-5.5 → upgrade to 5.6 Sol
-  'gpt-5.5-high':         'gpt-5.6-sol-high',
-  'gpt-5.5-medium':       'gpt-5.6-sol-medium',
-  'gpt-5.5-low':          'gpt-5.6-sol-low',
-  'gpt-5.5':              'gpt-5.6-sol',
-  // GPT-5.4 → upgrade to 5.6 Terra
-  'gpt-5.4-high':         'gpt-5.6-terra-high',
-  'gpt-5.4-medium':       'gpt-5.6-terra-medium',
-  'gpt-5.4-low':          'gpt-5.6-terra-low',
-  'gpt-5.4':              'gpt-5.6-terra',
-  // GPT-5.4 mini → upgrade to 5.6 Luna
-  'gpt-5.4-mini-medium':  'gpt-5.6-luna-medium',
-  'gpt-5.4-mini':         'gpt-5.6-luna',
-  // GPT-5.3 → upgrade to 5.6 Terra
-  'gpt-5.3-high':         'gpt-5.6-terra-high',
-  'gpt-5.3-medium':       'gpt-5.6-terra-medium',
-  'gpt-5.3-low':          'gpt-5.6-terra-low',
-  'gpt-5.3':              'gpt-5.6-terra',
-  // GPT-5.3-Codex → upgrade to 5.6 Terra
-  'gpt-5.3-codex-high':   'gpt-5.6-terra-high',
-  'gpt-5.3-codex-medium': 'gpt-5.6-terra-medium',
-  'gpt-5.3-codex-low':    'gpt-5.6-terra-low',
-  'gpt-5.3-codex':        'gpt-5.6-terra',
+  ...codexEffortForms(['gpt-5.6-sol', 'gpt-5.5'], 'gpt-6.1-sol', false),
+  ...codexEffortForms(['gpt-5.6-luna', 'gpt-5.4-mini'], 'gpt-6-luna', false),
+  ...codexEffortForms(['gpt-5.6-terra', 'gpt-5.4', 'gpt-5.3', 'gpt-5.3-codex'], 'gpt-6-luna', true),
 };
 
 // ─── Vocabulary objects ────────────────────────────────────────────────────────
@@ -460,7 +407,7 @@ export const CLAUDE_VOCABULARY: ModelVocabulary = {
 
 // Cursor/Copilot merge their per-vendor maps into one flat map consulted by exact-token lookup.
 // Keys are disjoint across the source maps (claude-*/gpt-*/gemini-*/grok-*/composer-* prefixes never
-// collide — verified: Cursor 65 total keys, 65 unique; Copilot 59 total, 59 unique), so merge order
+// collide — asserted by the disjointness test in tests/unit/spec/model-maps.test.ts), so merge order
 // is immaterial.
 //
 // The Copilot map carries no Grok or Composer entry. That records only that no Copilot-native
@@ -483,7 +430,7 @@ export const COPILOT_VOCABULARY: ModelVocabulary = {
 
 export const CODEX_VOCABULARY: ModelVocabulary = {
   map: CODEX_GPT_MAP, // superseded gpt- tokens upgrade forward (CODEX_GPT_MAP); any other token —
-  // including gpt-5.6-* — is unmapped and normalizeCodex() effort-splits it as-is
+  // including current gpt-6* — is unmapped and normalizeCodex() effort-splits it as-is
 };
 
 // AG-2, DATA-CFG-0004: Antigravity carries no model vocabulary. Agent/skill frontmatter model

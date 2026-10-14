@@ -101,9 +101,9 @@ INVARIANTS (always-on, declared once): `## KEEP verbatim` + `## NEVER`. Run pass
 ## Process (HITL)
 1. Read target + its type schema + the grammar above. Nothing else.
 2. Inventory: per-scope purpose + LOAD-BEARING verdict (keep/shrink/cut) + duplications, stale items, repeated literals.
-3. Draft the compressed artifact as file next to current one, running `## Transform` to fixpoint. Do not overwrite yet.
+3. Compress to just key points and terse phrases, keep only thinking points (not even decisions), heavily compress direction text (to 1-3 words per step, not amount of steps). Allow running AI to make decisions. Draft the compressed artifact as file next to current one, running `## Transform` to fixpoint. Do not overwrite yet.
 4. HITL: present to the user → word Δ (before→after, %) + where the cuts came from + your reasoned take on the subagent findings.
-5. VERIFY via subagent — `INVOKE SUBAGENT` (Sonnet-5 class, low reasoning (!), e.g. `claude-sonnet-5`) with a fresh read of OLD vs NEW, asking only:
+5. VERIFY via subagent — `INVOKE SUBAGENT` (Sonnet-5.5 low reasoning or GPT 6 Luna medium class) with a fresh read of OLD vs NEW, asking only:
    - Does anything change in an executing agent's understanding or behavior?
    - Is anything now ambiguous, underspecified, or lost?
    - Any rule / gate / distinction present in OLD but missing or weaker in NEW?

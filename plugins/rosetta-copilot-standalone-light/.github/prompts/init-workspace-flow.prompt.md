@@ -31,6 +31,7 @@ Validation: State file tracks every phase with file inventory; verification conf
 11. Conditional phases:
   - If you have already in context "RUNNING AS A PLUGIN": MUST NOT EXECUTE "shells" phase 2
   - Else MUST EXECUTE "shells" phase 2
+  - MUST NOT EXECUTE "patterns" phase 5 unless user directly requests it; mark skipped
 12. Note: `rosetta@rosetta` is an MCP connector, not a plugin — it follows the normal path (shells phase 2 executes)
 13. If user says to initialize rules, subagents, agents, workflows, commands it ONLY means to execute "shells" phase 2.
 14. Upgrade from R2 to R3 is exactly the same process as define here, but you already have some files available, which you can reuse.
@@ -50,7 +51,7 @@ Validation: State file tracks every phase with file inventory; verification conf
 
 </context>
 
-<shells phase="2" default="true" subagent="engineer" conditional role="Shell file generator" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra">
+<shells phase="2" default="true" subagent="engineer" conditional role="Shell file generator" subagent_required_model="Claude Sonnet 5.5, GPT-6 Luna">
 
 1. Generate shell files for skills, agents, workflows. Skip if state.plugin_active.
 2. Input: IDEs, Output: shell configs, bootstrap rule, load-project-context skill shell.
@@ -59,7 +60,7 @@ Validation: State file tracks every phase with file inventory; verification conf
 
 </shells>
 
-<discovery phase="3" subagent="discoverer" role="Tech stack analyst" subagent_required_model="Claude Haiku 4.5, GPT-5.6 Luna, Gemini 3.7 Flash">
+<discovery phase="3" subagent="discoverer" role="Tech stack analyst" subagent_required_model="Claude Haiku 5.5, GPT-6 Luna, Gemini 3.8 Flash">
 
 1. Analyze workspace tech stack, structure, source code file count.
 2. Output: TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md, state.file_count.
@@ -68,11 +69,13 @@ Validation: State file tracks every phase with file inventory; verification conf
 
 </discovery>
 
-<rules phase="4" optional="true" permanently-disabled subagent="built-in" role="Agent rules configurator" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra">
+<rules phase="4" optional="true" permanently-disabled subagent="built-in" role="Agent rules configurator" subagent_required_model="Claude Sonnet 5.5, GPT-6 Luna">
 DISABLED
 </rules>
 
-<patterns phase="5" subagent="engineer" role="Pattern extractor" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash">
+<patterns phase="5" optional="true" default="false" subagent="engineer" role="Pattern extractor" subagent_required_model="Claude Sonnet 5.5, GPT-6 Luna, Gemini 3.8 Flash">
+
+DISABLED by default. Execute only if user directly requests patterns.
 
 1. Extract coding and architectural patterns into reusable templates.
 2. Output: PATTERNS folder (one .md per pattern, INDEX.md, CHANGES.md).
@@ -81,7 +84,7 @@ DISABLED
 
 </patterns>
 
-<code-graph phase="6" subagent="engineer" type="HITL" role="Code-graph setup gate" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash">
+<code-graph phase="6" subagent="engineer" type="HITL" role="Code-graph setup gate" subagent_required_model="Claude Sonnet 5.5, GPT-6 Luna, Gemini 3.8 Flash">
 
 1. Suggest user to install LSPs xor code graphs if relevant
 2. Output: user selection, updates to CONTEXT.md
@@ -90,7 +93,7 @@ DISABLED
 
 </code-graph>
 
-<documentation phase="7" subagent="architect" role="Architect and documentation analyst" subagent_required_model="Claude Opus 5, GPT-5.6 Terra, GPT-5.6 Sol, Gemini 3.7 Flash">
+<documentation phase="7" subagent="architect" role="Architect and documentation analyst" subagent_required_model="Claude Opus 5.5, GPT-6 Luna, GPT-6.1 Sol, Gemini 4 Argon, Gemini 3.8 Flash">
 
 1. Create project documentation from workspace analysis.
 2. Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md.
@@ -108,7 +111,7 @@ DISABLED
 
 </questions>
 
-<verification phase="9" subagent="reviewer" role="Completeness validator" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra">
+<verification phase="9" subagent="reviewer" role="Completeness validator" subagent_required_model="Claude Sonnet 5.5, GPT-6 Luna">
 
 1. Verify all files exist, run validation checklist, suggest next steps.
 2. APPLY PHASE `init-workspace-flow-verification.md`

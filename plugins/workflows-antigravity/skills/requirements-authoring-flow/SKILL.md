@@ -22,7 +22,7 @@ Prevents premature drafting by enforcing HITL gates where every `<req>` unit rec
 7. If task is to reverse engineer orchestrator MUST USE SKILL `reverse-engineering`.
 8. Keep requirement identifiers in code comments only, must not be user facing.
 9. If `/goal` is set repeat phases 5-6 until goal is met, then continue with the rest of phases.
-10. This workflow MUST be used with Fable, Opus, GPT-5.5+ class models => IF NOT - DEMAND USER TO SWITCH MODEL
+10. This workflow MUST be used with Fable, Opus, GPT-6.1-Sol+ class models => IF NOT - DEMAND USER TO SWITCH MODEL
 
 IMPORTANT! If the task is to reverse engineer requirements, spawn MULTIPLE subagents with each handling one unit of analysis (one screen, one page, one controller, one endpoint, etc) to effectively prevent hallucinations by narrow scoping for phases intent_capture, outline, draft, validate.
 

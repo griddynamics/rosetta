@@ -2,7 +2,7 @@
 name: researcher
 description: "Run deep research with grounded references, systematic exploration, self-validation, etc. Full subagent."
 mode: subagent
-model: Gemini 3.7 Flash
+model: Gemini 3.8 Flash
 effort: high
 color: yellow
 readonly: false

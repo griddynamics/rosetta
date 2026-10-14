@@ -2,7 +2,7 @@ export type ThinkingEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 
 export interface ThinkingConfig {
   enabled: boolean;
-  /** 'adaptive' (recommended, required by current-gen models like claude-sonnet-5,
+  /** 'adaptive' (recommended, required by current-gen models like claude-sonnet-5-5, claude-opus-5-5,
    * claude-opus-4-7/4-8: depth is controlled by `effort`) vs 'manual' (legacy
    * `budget_tokens`-based control; deprecated/unsupported on newer models). */
   mode: 'adaptive' | 'manual';

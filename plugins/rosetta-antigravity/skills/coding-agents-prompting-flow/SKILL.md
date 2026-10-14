@@ -23,7 +23,7 @@ Orchestrates prompt authoring/adaptation via `discover -> extract+intake -> blue
 4. MUST just-in-time load/execute/update each phase's: instructions, definitions, skills, state file.
 5. Orchestrator and subagents MUST USE SKILL `coding-agents-prompt-authoring`.
 6. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping.
-7. This workflow MUST be used with Fable, Opus, GPT-5.5+ class models => IF NOT - DEMAND USER TO SWITCH MODEL.
+7. This workflow MUST be used with Fable, Opus, GPT-6.1-Sol+ class models => IF NOT - DEMAND USER TO SWITCH MODEL.
 8. Workflow state MUST be saved to `agents/TEMP/<FEATURE>/coding-agents-prompting-flow-state` file.
 
 </prerequisites>

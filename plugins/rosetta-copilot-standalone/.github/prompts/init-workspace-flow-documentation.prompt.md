@@ -15,9 +15,9 @@ Agents without workspace documentation re-discover facts, repeat mistakes, and m
 
 <workflow_context>
 - Phase 7 of 9 in init-workspace-flow
-- Input: TECHSTACK, CODEMAP, DEPENDENCIES, source code, PATTERNS, state.file_count, state.mode, state.composite
+- Input: TECHSTACK, CODEMAP, DEPENDENCIES, source code, PATTERNS (if phase 5 ran), state.file_count, state.mode, state.composite
 - Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md
-- Prerequisite: Phases 3 and 5 complete
+- Prerequisite: Phase 3 complete; phase 5 only if it ran
 </workflow_context>
 
 <phase_steps>
@@ -32,7 +32,7 @@ Agents without workspace documentation re-discover facts, repeat mistakes, and m
 3. Read state.mode, state.composite, state.file_count
 </read_state>
 
-<execute_documentation step="7.2" subagent="built-in" role="Senior technical writer synthesizing workspace documentation" subagent_recommended_model="claude-opus-5,gpt-5.6-sol-high,gemini-3.7-flash-high">
+<execute_documentation step="7.2" subagent="built-in" role="Senior technical writer synthesizing workspace documentation" subagent_recommended_model="claude-opus-5-5,gpt-6.1-sol-high,gemini-4-argon-high,gemini-3.8-flash-high">
 
 Act as a senior technical writer — recovers intent from code, not transcribes implementation. Workspaces lack structured documentation, forcing every session to re-discover facts and repeat mistakes. This creates five foundational docs from source code analysis. Proof: all five docs exist, are non-empty, complementary, and track unknowns.
 

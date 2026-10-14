@@ -74,27 +74,50 @@ const FIXTURE_D = 'gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5, grok
 const FIXTURE_E = 'claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna';
 
 describe('claudeSubagentModelTokenMapper — exact-token tier (claudeLookup, FR-COPY-0083)', () => {
-  it('resolves an exact-token entry: claude-5-opus-high -> claude-opus-5', () => {
-    expect(claudeSubagentModelTokenMapper('claude-5-opus-high', CLAUDE_VOCABULARY.map)).toBe('claude-opus-5');
+  it('resolves an exact-token entry: claude-5-opus-high -> claude-opus-5-5', () => {
+    expect(claudeSubagentModelTokenMapper('claude-5-opus-high', CLAUDE_VOCABULARY.map)).toBe('claude-opus-5-5');
   });
 
-  it('still drops a non-Claude token: gpt-5.6-sol-high -> null', () => {
-    expect(claudeSubagentModelTokenMapper('gpt-5.6-sol-high', CLAUDE_VOCABULARY.map)).toBeNull();
+  it('still drops a non-Claude token: gpt-6.1-sol-high -> null', () => {
+    expect(claudeSubagentModelTokenMapper('gpt-6.1-sol-high', CLAUDE_VOCABULARY.map)).toBeNull();
   });
 });
 
 describe('pluginNormalizeSubagentRequiredModel — end-to-end with the new vocabulary entries', () => {
-  const content = 'subagent_required_model="gpt-5.6-sol-high, claude-5-opus-high, grok-4.6-high, gemini-3.7-flash-high"';
+  const content = 'subagent_required_model="gpt-6.1-sol-high, claude-5-opus-high, grok-4.7-high, gemini-3.8-flash-high"';
 
   it('Claude vocabulary: only the Claude token survives, resolved through the exact-token tier', () => {
     expect(normalize(content, CLAUDE_VOCABULARY, claudeSubagentModelTokenMapper)).toBe(
-      'subagent_required_model="claude-opus-5"',
+      'subagent_required_model="claude-opus-5-5"',
     );
   });
 
   it('Cursor vocabulary: every token the merged map contains survives, in source order, de-duplicated', () => {
     expect(normalize(content, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper)).toBe(
-      'subagent_required_model="gpt-5.6-sol, claude-opus-5, grok-4.6, gemini-3.7-flash"',
+      'subagent_required_model="gpt-6.1-sol, claude-opus-5-5, grok-4.7, gemini-3.8-flash"',
+    );
+  });
+});
+
+describe('pluginNormalizeSubagentRequiredModel — gemini-4-argon beside gemini-3.8-flash (architect list shape)', () => {
+  const content =
+    'subagent_required_model="claude-opus-5-5, gpt-6.1-sol-high, gemini-4-argon-high, gemini-3.8-flash-high"';
+
+  it('Claude vocabulary: Argon is not claude-compatible, only the opus token survives', () => {
+    expect(normalize(content, CLAUDE_VOCABULARY, claudeSubagentModelTokenMapper)).toBe(
+      'subagent_required_model="claude-opus-5-5"',
+    );
+  });
+
+  it('Cursor vocabulary: Argon survives as gemini-4-argon, before gemini-3.8-flash, in source order', () => {
+    expect(normalize(content, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper)).toBe(
+      'subagent_required_model="claude-opus-5-5, gpt-6.1-sol, gemini-4-argon, gemini-3.8-flash"',
+    );
+  });
+
+  it('Copilot vocabulary: Argon survives as the Copilot display name Gemini 4 Argon', () => {
+    expect(normalize(content, COPILOT_VOCABULARY, copilotSubagentModelTokenMapper)).toBe(
+      'subagent_required_model="Claude Opus 5.5, GPT-6.1 Sol, Gemini 4 Argon, Gemini 3.8 Flash"',
     );
   });
 });
@@ -103,19 +126,19 @@ describe('pluginNormalizeSubagentRequiredModel — Claude mapper, real fixtures'
   it('A: filters to the opus family and maps through the built-in Claude vocabulary', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_A}"`, CLAUDE_VOCABULARY, claudeSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="claude-opus-5"');
+    ).toBe('subagent_required_model="claude-opus-5-5"');
   });
 
   it('B: filters to the sonnet family', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_B}"`, CLAUDE_VOCABULARY, claudeSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="claude-sonnet-5"');
+    ).toBe('subagent_required_model="claude-sonnet-5-5"');
   });
 
   it('E: maps via the haiku family key — proves family lookup, not raw string equality', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_E}"`, CLAUDE_VOCABULARY, claudeSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="claude-haiku-4-5"');
+    ).toBe('subagent_required_model="claude-haiku-5-5"');
   });
 
   it('no claude-family token survives -> "inherit"', () => {
@@ -132,38 +155,39 @@ describe('pluginNormalizeSubagentRequiredModel — Claude mapper, real fixtures'
   });
 });
 
-// The expected values below changed because every legacy Claude/GPT/Gemini token these fixtures
-// carry now upgrades forward to its 5.6/Opus-5/3.7-Flash-era successor (same idiom as the existing
-// grok-4.5 → grok-4.6 upgrade). Two consequences follow purely from that value change, not from any
-// change to the filtering/dedup rule itself: (1) a legacy token and a same-family bare 5.6/Opus-5
-// token appearing in the same fixture can now map to the SAME value and collapse under the existing
-// first-occurrence dedup where they used to stay distinct; (2) tokens the maps could already name
-// keep surviving, just with a newer mapped value.
+// The expected values below changed because every legacy Claude/GPT/Gemini/Grok token these fixtures
+// carry upgrades forward to its Claude 5.5 / GPT-6.1 Sol / GPT-6 Luna / Gemini 4 Argon (Pro tier) or
+// Gemini 3.8 Flash (every other Gemini) / Grok 4.7 successor (same idiom as the existing grok-4.5 upgrade). Two consequences follow purely from that
+// value change, not from any change to the filtering/dedup rule itself: (1) a legacy token and a
+// same-tier current token appearing in the same fixture can map to the SAME value and collapse under
+// the existing first-occurrence dedup (the old terra tier and the luna tier now share gpt-6-luna);
+// (2) tokens the maps could already name keep surviving, just with a newer mapped value.
 describe('pluginNormalizeSubagentRequiredModel — Cursor mapper, real fixtures', () => {
   it('A: filters to tokens present in the merged Cursor map, source order preserved, upgraded tokens de-duplicated', () => {
-    // gpt-5.5-high and the fixture's own gpt-5.6-sol both now map to 'gpt-5.6-sol', so they collapse
-    // to one survivor, keeping the first occurrence.
+    // gpt-5.5-high and the fixture's own gpt-5.6-sol both now map to 'gpt-6.1-sol', so they collapse
+    // to one survivor, keeping the first occurrence. gemini-3.1-pro-high (effort-qualified Pro token, a
+    // key since the Argon change; it was unmapped and dropped before) resolves to 'gemini-4-argon'.
     expect(
       normalize(`subagent_required_model="${FIXTURE_A}"`, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="claude-opus-5, gpt-5.6-sol"');
+    ).toBe('subagent_required_model="claude-opus-5-5, gpt-6.1-sol, gemini-4-argon"');
   });
 
   it('D: same filtering with the gpt- token appearing FIRST in source order (not IDE priority order), upgraded tokens de-duplicated', () => {
-    // gpt-5.4-medium and the fixture's own gpt-5.6-terra both now map to 'gpt-5.6-terra', so they
+    // gpt-5.4-medium and the fixture's own gpt-5.6-terra both now map to 'gpt-6-luna', so they
     // collapse to one survivor, keeping the first (source-order) occurrence.
     expect(
       normalize(`subagent_required_model="${FIXTURE_D}"`, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="gpt-5.6-terra, gemini-3.7-flash, claude-sonnet-5, grok-4.6"');
+    ).toBe('subagent_required_model="gpt-6-luna, gemini-4-argon, claude-sonnet-5-5, grok-4.7"');
   });
 });
 
 describe('pluginNormalizeSubagentRequiredModel — Copilot mapper, real fixtures', () => {
   it('C: filters to tokens present in the merged Copilot map, mapped to IDE-native display names, upgraded tokens de-duplicated', () => {
-    // gpt-5.4-medium and the fixture's own gpt-5.6-terra both now map to 'GPT-5.6 Terra', so they
+    // gpt-5.4-medium and the fixture's own gpt-5.6-terra both now map to 'GPT-6 Luna', so they
     // collapse to one survivor, keeping the first (source-order) occurrence.
     expect(
       normalize(`subagent_required_model="${FIXTURE_C}"`, COPILOT_VOCABULARY, copilotSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash"');
+    ).toBe('subagent_required_model="Claude Sonnet 5.5, GPT-6 Luna, Gemini 4 Argon"');
   });
 
   it('C: grok is still absent from the Copilot list — no Copilot identifier for it is established here', () => {
@@ -174,40 +198,40 @@ describe('pluginNormalizeSubagentRequiredModel — Copilot mapper, real fixtures
 });
 
 describe('pluginNormalizeSubagentRequiredModel — legacy token upgrade', () => {
-  it('a superseded grok-4.5 in an older layer resolves forward to grok-4.6 for Cursor', () => {
+  it('a superseded grok-4.5 in an older layer resolves forward to grok-4.7 for Cursor', () => {
     expect(
       normalize(
         'subagent_required_model="claude-sonnet-5, grok-4.5"',
         CURSOR_VOCABULARY,
         cursorSubagentModelTokenMapper,
       ),
-    ).toBe('subagent_required_model="claude-sonnet-5, grok-4.6"');
+    ).toBe('subagent_required_model="claude-sonnet-5-5, grok-4.7"');
   });
 
-  it('grok-4.5 and grok-4.6 in one list de-duplicate to a single grok-4.6', () => {
+  it('grok-4.5 and grok-4.6 in one list de-duplicate to a single grok-4.7', () => {
     expect(
       normalize(
         'subagent_required_model="grok-4.5, grok-4.6"',
         CURSOR_VOCABULARY,
         cursorSubagentModelTokenMapper,
       ),
-    ).toBe('subagent_required_model="grok-4.6"');
+    ).toBe('subagent_required_model="grok-4.7"');
   });
 });
 
 describe('pluginNormalizeSubagentRequiredModel — Codex mapper, real fixtures (effort retained, whole token)', () => {
-  it('A: superseded gpt- token upgrades forward whole, with its reasoning-effort suffix intact (gpt-5.5-high -> gpt-5.6-sol-high); the fixture bare gpt-5.6-sol survives unmapped', () => {
-    // CODEX_VOCABULARY now carries an upgrade entry for gpt-5.5-high; the whole-token Codex mapper
+  it('A: superseded gpt- token upgrades forward whole, with its reasoning-effort suffix intact (gpt-5.5-high -> gpt-6.1-sol-high); the bare gpt-5.6-sol upgrades to bare gpt-6.1-sol', () => {
+    // CODEX_VOCABULARY carries an upgrade entry for gpt-5.5-high; the whole-token Codex mapper
     // never effort-splits, so the mapped value's own "-high" suffix comes along as part of the value.
     expect(
       normalize(`subagent_required_model="${FIXTURE_A}"`, CODEX_VOCABULARY, codexSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="gpt-5.6-sol-high, gpt-5.6-sol"');
+    ).toBe('subagent_required_model="gpt-6.1-sol-high, gpt-6.1-sol"');
   });
 
-  it('B: same whole-token upgrade behavior, source order preserved (gpt-5.4-medium -> gpt-5.6-terra-medium)', () => {
+  it('B: same whole-token upgrade behavior, source order preserved (terra tier: gpt-5.4-medium -> gpt-6-luna-high, effort raised one step; bare gpt-5.6-terra -> gpt-6-luna)', () => {
     expect(
       normalize(`subagent_required_model="${FIXTURE_B}"`, CODEX_VOCABULARY, codexSubagentModelTokenMapper),
-    ).toBe('subagent_required_model="gpt-5.6-terra-medium, gpt-5.6-terra"');
+    ).toBe('subagent_required_model="gpt-6-luna-high, gpt-6-luna"');
   });
 });
 
@@ -274,7 +298,7 @@ describe('pluginNormalizeSubagentRequiredModel — boundary safety', () => {
   it('does not corrupt an adjacent attribute on the same line', () => {
     const content = 'subagent_required_model="claude-opus-4-8" other="kept"';
     expect(normalize(content, CLAUDE_VOCABULARY, claudeSubagentModelTokenMapper)).toBe(
-      'subagent_required_model="claude-opus-5" other="kept"',
+      'subagent_required_model="claude-opus-5-5" other="kept"',
     );
   });
 });

@@ -24,7 +24,7 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 </prerequisites>
 
-<context_load phase="1" subagent="researcher" role="Context gatherer for research scope" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash">
+<context_load phase="1" subagent="researcher" role="Context gatherer for research scope" subagent_required_model="Claude Sonnet 5.5, GPT-6 Luna, Gemini 3.8 Flash">
 
 1. Read all lines from CONTEXT.md, ARCHITECTURE.md, and IMPLEMENTATION.md.
 2. Input: user research request. Output: loaded project context.
@@ -32,7 +32,7 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 </context_load>
 
-<prompt_craft phase="2" subagent="researcher" role="Research prompt architect" subagent_required_model="Claude Opus 5, GPT-5.6 Terra, GPT-5.6 Sol, Gemini 3.7 Flash">
+<prompt_craft phase="2" subagent="researcher" role="Research prompt architect" subagent_required_model="Claude Opus 5.5, GPT-6 Luna, GPT-6.1 Sol, Gemini 4 Argon, Gemini 3.8 Flash">
 
 1. Create an optimized research prompt for the user request.
 2. Save as `research-prompt.md` in FEATURE PLAN folder. Output ONLY the optimized prompt.
@@ -43,7 +43,7 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 </prompt_craft>
 
-<execute_research phase="3" subagent="researcher" role="Deep research executor" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash">
+<execute_research phase="3" subagent="researcher" role="Deep research executor" subagent_required_model="Claude Sonnet 5.5, GPT-6 Luna, Gemini 3.8 Flash">
 
 1. Execute the approved research prompt as a separate subagent.
 2. Input: approved `research-prompt.md`. Output: `docs/<feature>-research.md`.
@@ -52,7 +52,7 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 </execute_research>
 
-<finalize phase="4" subagent="researcher" role="Research finalizer" subagent_required_model="Claude Sonnet 5, GPT-5.6 Terra, Gemini 3.7 Flash">
+<finalize phase="4" subagent="researcher" role="Research finalizer" subagent_required_model="Claude Sonnet 5.5, GPT-6 Luna, Gemini 3.8 Flash">
 
 1. Finalize `docs/<feature>-research.md`.
 2. Input: completed research document. Output: finalized research document.

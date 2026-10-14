@@ -562,7 +562,7 @@ function buildFinalValueLostPrompt(): string {
     'Final global preservation audit/fix.',
     OPTIMIZE_INVARIANT,
     'Compare the original target files (provided at the start of this conversation) against the draft target files you just produced (the previous message). Both are already in this conversation; do not expect them re-pasted.',
-    'Restore any remaining lost value, concrete anchor, mental hook, strategy, trick, unusual pattern, model-weight-sensitive wording, schema/format contract, cross-file reference, or validation obligation.',
+    'Restore only truly missing value, concrete anchor, mental hook, strategy, trick, unusual pattern, model-weight-sensitive wording, schema/format contract, cross-file reference, or validation obligation — as terse key/thinking points. Do not re-add decisions or direction verbosity that compression removed.',
     'Keep final edits minimal. Keep the rest of each file verbatim except loss-restoration edits. Do not add commentary.',
     'Return FINAL_FILES_JSON.',
   ].join('\n\n');

@@ -29,6 +29,7 @@ Validation: State file tracks every phase with file inventory; verification conf
 11. Conditional phases:
   - If you have already in context "RUNNING AS A PLUGIN": MUST NOT EXECUTE "shells" phase 2
   - Else MUST EXECUTE "shells" phase 2
+  - MUST NOT EXECUTE "patterns" phase 5 unless user directly requests it; mark skipped
 12. Note: `rosetta@rosetta` is an MCP connector, not a plugin — it follows the normal path (shells phase 2 executes)
 13. If user says to initialize rules, subagents, agents, workflows, commands it ONLY means to execute "shells" phase 2.
 14. Upgrade from R2 to R3 is exactly the same process as define here, but you already have some files available, which you can reuse.
@@ -70,7 +71,9 @@ Validation: State file tracks every phase with file inventory; verification conf
 DISABLED
 </rules>
 
-<patterns phase="5" subagent="engineer" role="Pattern extractor" subagent_required_model="inherit">
+<patterns phase="5" optional="true" default="false" subagent="engineer" role="Pattern extractor" subagent_required_model="inherit">
+
+DISABLED by default. Execute only if user directly requests patterns.
 
 1. Extract coding and architectural patterns into reusable templates.
 2. Output: PATTERNS folder (one .md per pattern, INDEX.md, CHANGES.md).

@@ -2,7 +2,7 @@
 name: researcher
 description: "Run deep research with grounded references, systematic exploration, self-validation, etc. Full subagent."
 mode: subagent
-model: claude-sonnet-5-medium, gpt-5.6-terra-medium, gemini-3.7-flash-high, grok-4.6-medium
+model: claude-sonnet-5-5-medium, gpt-6-luna-high, gemini-3.8-flash-high, grok-4.7-medium
 effort: medium
 color: yellow
 readonly: false

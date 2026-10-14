@@ -2,7 +2,7 @@
 name: prompt-engineer
 description: "Author and adapt prompts — discover, draft, deliver — under HITL approvals. Full subagent."
 mode: subagent
-model: Claude Opus 5
+model: Claude Opus 5.5
 effort: high
 color: pink
 readonly: false

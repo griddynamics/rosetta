@@ -1,7 +1,7 @@
 ---
 name: update-change-log
 description: To synchronize CHANGELOG.md with changes made last week (mon - sun)
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 You are a senior documentation engineer and tech writer expert for public OSS documentation.
@@ -22,6 +22,10 @@ Produce documentation that is:
 - strict about information architecture
 - minimal in duplication
 - explicit about where information belongs
+- naming things what they are, no AI slop, no sales pitches, no metaphors, no creativity
+- using simple language
+- introducing for people seeing it first time
+- keeping separate independent changes, even if those were implemented in one PR/commit
 
 ## Core principle
 
@@ -193,3 +197,5 @@ If you learned something new which is reusable, there are process efficiency imp
 
 - **<key action item, less then 7 words>** <concise/terse: what happened, why, root cause, reasoning, less then 25 words>.
 - **Verify asymmetric changes before flagging** Model/effort differences across similar items (e.g. one role restored, others not) can be deliberate tuning, not a gap; confirm with the user before calling it out.
+- **Resolve a bare git-log name via `gh pr view`** `gh pr view <n> --json author` returns the contributor's real GitHub display name, avoiding a needless ask when git log shows only a short name.
+- **`.claude/skills/*` changes get a highlight, not a tagged section** Maintainer-internal skill edits (checklist, daily-oss) have only ever appeared as one `(maintainer-internal)` highlight bullet, never a bracket-tagged detailed section.

@@ -2,7 +2,7 @@
 name: validator
 description: "Validate that implementation matches intent via execution and evidence. Full subagent."
 mode: subagent
-model: gemini-3.7-flash-medium, grok-4.6-medium, gpt-5.6-terra-high, gpt-5.6-luna-xhigh, claude-sonnet-5-high, composer-2.5
+model: gemini-3.8-flash-medium, grok-4.7-medium, gpt-6-luna-xhigh, claude-haiku-5-5-high, composer-2.5
 effort: high
 color: red
 readonly: false

@@ -80,11 +80,11 @@ The generator is data-driven: a future release, plugin set, or IDE is added by e
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-08-19</changed>
+  <changed>2026-10-13</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: logical key `sonnet` When: normalized Then: Claude→`claude-sonnet-5`, Cursor→`claude-sonnet-5`, Copilot→`Claude Sonnet 5`.</criteria>
-    <criteria>Given: exact source token `claude-5-opus-high` When: normalized Then: Claude→`claude-opus-5`, Cursor→`claude-opus-5`, Copilot→`Claude Opus 5`.</criteria>
+    <criteria>Given: source token `claude-5-sonnet`, which carries the logical key `sonnet` When: normalized Then: Claude→`claude-sonnet-5-5`, Cursor→`claude-sonnet-5-5`, Copilot→`Claude Sonnet 5.5`.</criteria>
+    <criteria>Given: exact source token `claude-5-opus-high` When: normalized Then: Claude→`claude-opus-5-5`, Cursor→`claude-opus-5-5`, Copilot→`Claude Opus 5.5`.</criteria>
     <criteria>Given: a `gpt-*` value When: normalized for Codex Then: a base model and optional reasoning-effort are derived.</criteria>
     <criteria>Given: an active profile declaring a block for a target When: that target's effective vocabulary is resolved Then: the profile block replaces the built-in mapping in full and any model token it does not name is treated as unmapped.</criteria>
   </acceptance>
@@ -122,8 +122,8 @@ The generator is data-driven: a future release, plugin set, or IDE is added by e
 
 <req id="DATA-CFG-0006" type="DATA" level="System" ticketId="315" classification="technical"
      source="User" priority="Must" verification="Inspection"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
-     depends="DATA-CFG-0003, DATA-CFG-0004"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-10-13"
+     depends="DATA-CFG-0003, DATA-CFG-0004, DATA-CFG-0005"
      implementation="Implemented">
   <title>Profile descriptor</title>
   <statement>A profile descriptor shall define, as data loaded from a named profile, exactly one field: `modelOverrides`, the per-target model map, a two-level map. `modelOverrides` shall be keyed at the outer level by IDE target name, one of the `spec.name` values (DATA-CFG-0003), and at the inner level by that target's own vocabulary key-space (DATA-CFG-0004), which differs per target. Destination, plugin-name and plugin-description suffixing shall be properties of a set variant, not of a profile (DATA-CFG-0007, FR-SET-0030): a descriptor carrying `destinationSuffix`, `pluginNameSuffix` or `pluginDescriptionSuffix` is invalid. The descriptor shall be the single source of per-profile configuration, mirroring how the release descriptor (DATA-CFG-0001) is the single source of per-release configuration. Profile shall be an axis orthogonal to release and to plugin set: an active profile shall alter neither release selection nor a set's folder layering. A `modelOverrides` block for `antigravity` shall be invalid, as that target holds no model vocabulary. `modelOverrides` shall be optional: an absent field means no overrides, leaving every target its built-in vocabulary, so the empty descriptor `{}` is valid and its whole remaining effect is to make that profile's `profile-<name>-only` files match while it is active. `modelOverrides` is nonetheless the complete set of fields a descriptor may carry — a descriptor declaring any other top-level field is invalid.</statement>
@@ -161,9 +161,9 @@ Reference valid profile:
 ```json
 {
   "modelOverrides": {
-    "claude":  { "opus": "claude-sonnet-5", "sonnet": "claude-sonnet-5" },
+    "claude":  { "opus": "claude-sonnet-5-5", "sonnet": "claude-sonnet-5-5" },
     "cursor":  { "claude-sonnet-5": "gpt-5.4", "claude-opus-4-8": "gpt-5.4" },
-    "copilot": { "claude-opus-4-8": "Claude Sonnet 5" },
+    "copilot": { "claude-opus-4-8": "Claude Sonnet 5.5" },
     "codex":   { "gpt-5.5-high": "gpt-5.4-medium" }
   }
 }

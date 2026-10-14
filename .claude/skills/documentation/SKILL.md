@@ -20,6 +20,10 @@ Produce documentation guidance that is:
 - strict about information architecture
 - minimal in duplication
 - explicit about where information belongs
+- naming things what they are, no AI slop, no sales pitches, no metaphors, no creativity
+- using simple language
+- introducing for people seeing it first time
+- keeping separate independent items, do not combine
 
 ## Core principle
 

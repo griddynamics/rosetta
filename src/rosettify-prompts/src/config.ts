@@ -12,7 +12,7 @@ function formatZodError(err: z.ZodError): string {
 
 const thinkingSchema = z.object({
   enabled: z.boolean().default(true),
-  // 'adaptive' is required by current-gen models (claude-sonnet-5, claude-opus-4-7/4-8, ...);
+  // 'adaptive' is required by current-gen models (claude-sonnet-5-5, claude-opus-5-5, claude-opus-4-7/4-8, ...);
   // 'manual' (budget_tokens) is deprecated/unsupported on those and only works on older models.
   mode: z.enum(['adaptive', 'manual']).default('adaptive'),
   // Anthropic requires budget_tokens >= 1024 and < max_tokens. Only used when mode === 'manual'.
@@ -60,7 +60,7 @@ const pricingSchema = z.object({
 });
 
 const benchConfigSchema = z.object({
-  model: z.string().min(1).default('claude-sonnet-5'),
+  model: z.string().min(1).default('claude-sonnet-5-5'),
   maxOutputTokens: z.number().int().positive().default(16_384),
   thinking: thinkingSchema.default({
     enabled: true,
@@ -92,7 +92,12 @@ export function parseConfig(raw: unknown): BenchConfig {
     throw new Error(formatZodError(result.error));
   }
   const parsed = result.data;
+  const suiteIds = new Set<string>();
   for (const suite of parsed.suites) {
+    if (suiteIds.has(suite.id)) {
+      throw new Error(`Duplicate suite id "${suite.id}".`);
+    }
+    suiteIds.add(suite.id);
     const maxOut = suite.maxOutputTokens ?? parsed.maxOutputTokens;
     const thinking = suite.thinking ?? parsed.thinking;
     if (thinking.enabled && thinking.mode === 'manual' && thinking.budgetTokens >= maxOut) {

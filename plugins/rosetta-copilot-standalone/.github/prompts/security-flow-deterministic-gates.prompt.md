@@ -25,7 +25,7 @@ Phase 3 for development, change, PR, and pipeline reviews.
 4. Choose lifecycle branch
 </phase_steps>
 
-<execute_gates step="3.1" subagent="executor" role="Bounded deterministic security-gate operator" subagent_required_model="Claude Haiku 4.5, GPT-5.6 Terra, Gemini 3.7 Flash, GPT-5.6 Luna">
+<execute_gates step="3.1" subagent="executor" role="Bounded deterministic security-gate operator" subagent_required_model="Claude Haiku 5.5, GPT-6 Luna, Gemini 3.8 Flash">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security`.

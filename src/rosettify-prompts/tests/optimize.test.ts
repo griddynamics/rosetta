@@ -198,9 +198,11 @@ describe('optimize prompts', () => {
     expect(STEP_REFERENCE_SECTIONS.compression.hardening).toContain('Never drop signal to hit the word cap');
     expect(STEP_REFERENCE_SECTIONS.compression.patterns).toContain('<transform-passes>');
     expect(OPTIMIZE_INVARIANT).toContain('COMMANDS + their args');
-    // compression = anti-slop (4 original + 12 ported) + compactness (7 original + 7 ported) merged,
-    // with zero duplicate lines between the two members (verified) so mergeUnique drops nothing: 30 lines.
-    expect(STEP_REFERENCE_SECTIONS.compression.hardening?.split('\n').filter(Boolean).length).toBe(30);
+    expect(STEP_REFERENCE_SECTIONS.compression.hardening).toContain('keep only thinking points (not even decisions)');
+    expect(STEP_REFERENCE_SECTIONS.compression.hardening).toContain('Allow running AI to make decisions.');
+    // compression = anti-slop (4 original + 12 ported) + compactness (7 original + 7 ported + 1 key-points directive)
+    // merged, with zero duplicate lines between the two members (verified) so mergeUnique drops nothing: 31 lines.
+    expect(STEP_REFERENCE_SECTIONS.compression.hardening?.split('\n').filter(Boolean).length).toBe(31);
   });
 
   it('uses target/supporting/additional semantics and writes every target preserving relative paths', async () => {
@@ -278,6 +280,8 @@ describe('optimize prompts', () => {
 
     const finalPrompt = textOf(calls[9].messages.at(-1)?.content);
     expect(finalPrompt).toContain('Final global preservation audit');
+    expect(finalPrompt).toContain('Restore only truly missing value');
+    expect(finalPrompt).toContain('Do not re-add decisions');
     // Final value-lost is instructions only: no re-rendered original/draft file blocks.
     expect(finalPrompt).not.toContain('ORIGINAL_TARGET_FILE');
     expect(finalPrompt).not.toContain('Skill prompt with mental hook');
