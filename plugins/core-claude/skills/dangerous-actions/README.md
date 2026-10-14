@@ -29,7 +29,7 @@ Single flat `SKILL.md`, no `assets/` or `references/` subfolders. Root `<dangero
 - `user-invocable: false` must stay as-is: the skill must remain model-invocable (so it fires proactively) and hidden from the `/` menu (it is background guardrail knowledge, not something a user manually invokes).
 - This skill is named explicitly in `rules/bootstrap-alwayson.md`'s priority line — `"guardrails (sensitive-data/dangerous-actions/risk-assessment)"` — and in its `skill_engagement_rules` all-agents list. Renaming the skill folder/name breaks both references.
 - XML section names (`<dangerous_actions>`, `<process>`, `<pitfalls>`) are load-bearing terms reused by this README and referenced by the skill schema convention; changing them desynchronizes the skill text from its documentation.
-- Inbound couplings (`grep -rn "dangerous-actions" instructions/r3/core --include="*.md"`): `workflows/coding-flow.md` (recommends this skill at 6 workflow steps), `rules/bootstrap-alwayson.md` (2 hits, above), `skills/hitl/SKILL.md` and `skills/hitl/README.md` (plain approval coupling, not hook-marker dependency), `skills/coding-agents-hooks-authoring/SKILL.md` (references the hook's file path as an example, not a behavioral dependency).
+- Inbound couplings (`grep -rn "dangerous-actions" . --include="*.md"`): `workflows/coding-flow.md` (recommends this skill at 6 workflow steps), `rules/bootstrap-alwayson.md` (2 hits, above), `skills/hitl/SKILL.md` and `skills/hitl/README.md` (plain approval coupling, not hook-marker dependency), `skills/coding-agents-hooks-authoring/SKILL.md` (references the hook's file path as an example, not a behavioral dependency).
 
 ## Editing guide
 

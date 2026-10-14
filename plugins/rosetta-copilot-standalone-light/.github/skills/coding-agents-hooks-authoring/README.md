@@ -1,6 +1,8 @@
 # coding-agents-hooks-authoring
 Reference sheet for authoring, registering, and debugging Rosetta's cross-IDE hooks and their SemanticKind taxonomy.
 
+Author, register, and debug hooks that fire on agent actions across every supported IDE.
+
 ## Why it exists
 Without this skill a capable model would place a new hook helper file directly at the top level of `src/hooks/src/hooks/`, assume the bundler recurses into subdirectories, forget to add the hook to every plugin's `hooks.json.tmpl`, or widen a JSON matcher without also updating `lookupToolKind`/`toolKinds` — each of these produces a hook that silently never fires (or produces a dead bundle) with no error at authoring time, only a CI regression-test failure or a runtime no-op.
 
@@ -30,4 +32,4 @@ Single flat `SKILL.md`; no `assets/` or `references/` subfolders — everything 
 - Hook event names (`PreToolUse` and siblings), the `hooks.json`/`hooks.json.tmpl` schema shape, and the `SemanticKind`/`TOOL_KINDS` naming are external IDE contracts shared with `src/hooks/src/runtime/ide-registry.ts` and 5 plugin templates; renaming any of these in prose without renaming them in source produces documentation that no longer matches the code it describes.
 
 ## Editing guide
-Safe to change: prose wording inside each `###` subsection, reordering pitfalls, adding new pitfalls. Handle with care: the 4-step SemanticKind procedure (order matters — `toolKinds` gating happens in `run-hook.ts:98` before `run(ctx)`), the exact regex fixes under Pitfalls, and every quoted file:line reference (verify against source before editing, since staleness is silent). New content belongs directly in `SKILL.md`; there is no `assets/`/`references/` split — if per-IDE detail grows, that split (one file per IDE row, or a dedicated `references/semantic-kinds.md`) is the natural place to move it. No other skill or rule file in `instructions/r3/core` references this skill by name (confirmed by repo-wide grep) — it is a standalone reference sheet, not a declared prerequisite of anything else.
+Safe to change: prose wording inside each `###` subsection, reordering pitfalls, adding new pitfalls. Handle with care: the 4-step SemanticKind procedure (order matters — `toolKinds` gating happens in `run-hook.ts:98` before `run(ctx)`), the exact regex fixes under Pitfalls, and every quoted file:line reference (verify against source before editing, since staleness is silent). New content belongs directly in `SKILL.md`; there is no `assets/`/`references/` split — if per-IDE detail grows, that split (one file per IDE row, or a dedicated `references/semantic-kinds.md`) is the natural place to move it. No other skill or rule file in the plugin root (`.`) references this skill by name (confirmed by repo-wide grep) — it is a standalone reference sheet, not a declared prerequisite of anything else.

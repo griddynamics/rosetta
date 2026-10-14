@@ -2,6 +2,8 @@
 
 Forces root-cause-before-fix methodology on any error, test failure, or unexpected behavior.
 
+OODA. Root cause with evidence before any fix, one hypothesis at a time, prevention recommended. Three failed fixes means a design problem.
+
 ## Why it exists
 
 Without this skill a model under time pressure patches the symptom it can see — silences the error, adds a null check, retries the flaky call — and reports success once the visible failure stops, without ever confirming why the failure happened. It would also stack multiple speculative fixes at once, making it impossible to tell which change (if any) actually helped, and would treat a persistent multi-fix failure as "try again" rather than as a signal that the design itself is wrong. The skill blocks all of that: no fix may be proposed before a root cause is confirmed with evidence (`root_cause_investigation` phase 1), only one hypothesis is tested at a time (`hypothesis_and_testing` phase 3), and three failed fixes force a stop to question the architecture (`implementation` phase 4, point 4).
@@ -35,7 +37,7 @@ Single-file skill (`SKILL.md`), no `assets/` or `references/`. Four sequential p
 - `description` is the ≤~25-token auto-activation string; it is always in context and currently reads "To investigate errors, test failures, and unexpected behavior — root cause before fix." — keep dense and keyword-bearing if edited.
 - The literal phrase `Rosetta prep steps` in `core_concepts` is the canonical bootstrap-completion marker used verbatim across the repo; do not reword.
 - XML section names (`role`, `when_to_use_skill`, `core_concepts`, `root_cause_investigation`, `pattern_analysis`, `hypothesis_and_testing`, `implementation`, `validation_checklist`, `best_practices`, `pitfalls`) and the `phase="N"` attributes are structural markers other files may assume when referring to "phase 1" etc.; the outer `<debugging>` tag must match `name`.
-- Inbound couplings (`grep -rn "debugging" instructions/r3/core --include="*.md"`): `agents/engineer.agent.md` (`skills_available` entry, process step 2), `prompts/coding-flow.prompt.md` (phase-0 prerequisites item 5, plus per-phase "Recommended skills" lists), `prompts/help-flow.prompt.md` (examples of when NOT to invoke `/debugging` directly — routes through `coding-flow` instead), `skills/testing/SKILL.md` and `skills/coding/SKILL.md` (fallback pointer for failures/issues), `docs/definitions/skills.md` (registry entry). All other hits are the generic English word "debugging" (Solr query/schema/semantic-search skills, GitHub Copilot config) and are unrelated to this skill.
+- Inbound couplings (`grep -rn "debugging" . --include="*.md"`): `agents/engineer.agent.md` (`skills_available` entry, process step 2), `prompts/coding-flow.prompt.md` (phase-0 prerequisites item 5, plus per-phase "Recommended skills" lists), `prompts/help-flow.prompt.md` (examples of when NOT to invoke `/debugging` directly — routes through `coding-flow` instead), `skills/testing/SKILL.md` and `skills/coding/SKILL.md` (fallback pointer for failures/issues), `docs/definitions/skills.md` (registry entry). All other hits are the generic English word "debugging" (Solr query/schema/semantic-search skills, GitHub Copilot config) and are unrelated to this skill.
 
 ## Editing guide
 

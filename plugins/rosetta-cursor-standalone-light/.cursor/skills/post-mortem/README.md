@@ -1,6 +1,8 @@
 # post-mortem
 User-invoked two-phase harness diagnosis: attribute a bad outcome to a layer (prompt/workspace/local config/Rosetta/tooling), then — only if ≥1 defect is Rosetta-attributed — optionally file a sanitized GitHub issue against Rosetta.
 
+Diagnoses why a session went wrong across your prompt, workspace docs, local config, Rosetta instructions, and tooling. Can file a sanitized issue when Rosetta is at fault.
+
 ## Why it exists
 Without it, a model asked "why did this fail" would blame the artifact instead of the harness that produced it, skip straight to a conclusion without an evidence inventory, default to blaming Rosetta instructions rather than the more-common local causes, treat a user's question or edit on a draft as approval, and jump from diagnosis to filing an issue in one motion. The skill forces an evidence-first, per-layer, root-cause process with a hard stop between reporting and submitting.
 
@@ -26,7 +28,7 @@ Single flat `SKILL.md`, no `assets/`/`references/`. Root `<post_mortem>` wraps: 
 - `argument-hint` is present because `user-invocable: true`, per the schema's pairing rule.
 - Gate B literal string `Submit the issue as drafted` is the only accepted sanction text (process step 14); nothing parses it in code, but rewording removes the documented anti-rubber-stamp safeguard and breaks the parity hitl's README cites ("High+ risk: require EXACT sentence to type ... same pattern as `post-mortem`'s exact-sentence submit gate").
 - `gh issue create --repo griddynamics/rosetta ...` — target repo string; changing it silently redirects where findings get filed.
-- Inbound couplings — re-verify with `grep -rn "post-mortem" instructions/r3/core --include="*.md"`: `deviation/SKILL.md` step 8 and `self-learning/SKILL.md` step 11 both name-reference `post-mortem` in prose only (not machine-checked) — renaming or restructuring this skill breaks those recommendations silently. `hitl/README.md` cites this skill's Gate B as a comparison example, a documentation-only coupling.
+- Inbound couplings — re-verify with `grep -rn "post-mortem" . --include="*.md"`: `deviation/SKILL.md` step 8 and `self-learning/SKILL.md` step 11 both name-reference `post-mortem` in prose only (not machine-checked) — renaming or restructuring this skill breaks those recommendations silently. `hitl/README.md` cites this skill's Gate B as a comparison example, a documentation-only coupling.
 
 ## Editing guide
 - Safe: prose inside `<core_concepts>`/`<process>` bullets that preserves the OUTPUT-checkpoint sequencing and Gate A/B semantics; template field order; `<pitfalls>` ordering.

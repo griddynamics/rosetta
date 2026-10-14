@@ -2,6 +2,8 @@
 
 On failure or mismatch, forces a hard stop and root-cause analysis before any fix, then converts the root cause into a generalized rule persisted in agent memory instead of a one-off patch.
 
+After a failure or a wrong result, stops and finds the cause, then records a reusable rule in the repo's memory so it does not repeat.
+
 ## Why it exists
 
 Without this skill a capable model reacts to failure by patching the visible symptom, trying "one more thing," or replanning immediately — never pausing to establish the actual root cause, and never writing anything durable down. Any lesson learned dies with the session. The skill forces stop-before-fix, root-cause-before-replan, explicit user confirmation before continuing, and mandates persisting the generalized rule to `agents/MEMORY.md` rather than an incident-specific note.
@@ -28,7 +30,7 @@ Single flat `SKILL.md`, no `assets/` or `references/` subfolders. Root `<self_le
 - Frontmatter `name: self-learning` must equal the folder name and match `docs/definitions/skills.md` (registered alongside `deviation`, `self-organization`, `post-mortem`, `sensitive-data`, `hitl`).
 - `description` is the sole engagement trigger (no `<when_to_use_skill>` block) — must stay dense/keyword-form per the `docs/schemas/skill.md` budget (~25 tokens); do not pad with prose.
 - `user-invocable: false` must stay — the skill fires proactively on failure/mismatch and stays hidden from the `/` menu (background reflex, not a user-run command).
-- Inbound couplings, verified via `grep -rn "self-learning" instructions/r3/core --include="*.md"`: `instructions/bootstrap-alwayson.instructions.md:72` (all-agents `skill_engagement_rules` list — the actual engagement trigger); `prompts/adhoc-flow.prompt.md:110` ("Use self-learning" best-practice bullet); `skills/orchestration/assets/o-team-manager.md:37` ("Root-cause every failure into a reusable preventive rule (SKILL `self-learning`; agent memory > task memory)"); `skills/post-mortem/README.md` (documents the step-11 recommend-only coupling from both sides). `skills/coding-agents-prompt-authoring/references/pa-patterns.md:49,62` uses an unrelated `<memory-self-learning>` XML tag — not a coupling to this skill, do not treat as an inbound reference.
+- Inbound couplings, verified via `grep -rn "self-learning" . --include="*.md"`: `instructions/bootstrap-alwayson.instructions.md:72` (all-agents `skill_engagement_rules` list — the actual engagement trigger); `prompts/adhoc-flow.prompt.md:110` ("Use self-learning" best-practice bullet); `skills/orchestration/assets/o-team-manager.md:37` ("Root-cause every failure into a reusable preventive rule (SKILL `self-learning`; agent memory > task memory)"); `skills/post-mortem/README.md` (documents the step-11 recommend-only coupling from both sides). `skills/coding-agents-prompt-authoring/references/pa-patterns.md:49,62` uses an unrelated `<memory-self-learning>` XML tag — not a coupling to this skill, do not treat as an inbound reference.
 
 ## Editing guide
 

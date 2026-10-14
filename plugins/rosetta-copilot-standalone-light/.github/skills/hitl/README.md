@@ -1,6 +1,8 @@
 # hitl
 Session-wide approval-gate protocol: forces explicit human review/approval at defined checkpoints instead of letting the agent infer consent.
 
+Makes the AI work together with you. Approval gates at specs, implementation, and closing, with review in small batches. A clear affirmative counts.
+
 ## Why it exists
 Failure mode this fixes: a capable model left to its own judgment treats a neutral user reply, a "review" comment, or a permissive runtime setting (`danger-full-access`, approval policy `never`, auto-mode) as license to keep going — it silently decides, batches too much work before check-in, or rubber-stamps its own output. Without this skill the model would skip staged questioning, accept short acknowledgements as approval, and let permission-mode config override human review. `hitl` adds: mandatory numbered gates, a fixed vocabulary for what counts as approval, and an explicit rule that runtime auto-approval of tool prompts is unrelated to HITL.
 

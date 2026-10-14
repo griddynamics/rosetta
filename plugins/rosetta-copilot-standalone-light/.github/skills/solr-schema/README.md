@@ -1,6 +1,8 @@
 # solr-schema
 Audits and designs Apache Solr 9.x schemas/solrconfig — field types, analyzer symmetry, the `indexed`/`stored`/`docValues` triad, synonyms, and solrconfig review.
 
+Apache Solr schema and solrconfig, audit or design: field types, analyzer symmetry, docValues, synonyms, commit strategy.
+
 ## Why it exists
 A strong model asked to "review this Solr schema" will check obvious things (field names, types present) but tends to skip the failure modes that are invisible until production: analyzer asymmetry (query returns zero hits, no error, no log line), missing `docValues` (works in dev, OOMs under load), query-time multi-word synonyms (breaks `mm`/phrase silently), and `Trie*` field types that simply fail to load on 9.x. Without this skill a model also has no severity ordering — it might report a `luceneMatchVersion` typo before a field-type-for-full-text error that makes the whole field unsearchable. The skill supplies a walked-in-order audit checklist, an anti-pattern catalog, and per-topic reference files with worked failure examples, so the model is checking for named, known landmines instead of general code smell.
 

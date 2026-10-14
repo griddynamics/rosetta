@@ -2,6 +2,8 @@
 
 Forces a hard stop and re-check against original intent the moment execution surprises, stalls, or drifts from what was asked.
 
+Stops the moment work no longer matches what you asked, or the AI cannot stand behind its own solution. Escalates instead of pressing on.
+
 ## Why it exists
 
 Without this skill a capable model treats surprise, low confidence, or a stalled approach as something to push through — it rationalizes the current path as "close enough" or "an improvement" and keeps going, burning more effort in the wrong direction and only surfacing the conflict (if at all) after the fact, once it is expensive to unwind. The skill forces the model to stop before doing more, to challenge its own direction, and to escalate rather than silently resolve ambiguity by guessing.
@@ -27,7 +29,7 @@ Single flat `SKILL.md`, no `assets/` or `references/` subfolders, no `<role>`, `
 - Frontmatter `name: deviation` must equal the folder name and match the registration in `docs/definitions/skills.md` (line 32: `- deviation`).
 - `description` must keep the guardrail form per `docs/schemas/skill.md`: `"Rosetta CRITICAL MUST skill. MUST activate when <condition>"` — this is what routes engagement since there is no `<when_to_use_skill>` section; do not convert it to the generic verb form.
 - `user-invocable: false` must stay: the skill must remain model-invocable (fires proactively on surprise/panic) and hidden from the `/` menu (background reflex, not a user-run command).
-- `grep -rn "deviation" instructions/r3/core --include="*.md"` returns ~9 hits, but only `instructions/bootstrap-alwayson.instructions.md:72` names the *skill* (backtick `deviation` in the `skill_engagement_rules` all-agents list). Every other hit (`coding-flow.md`, `ui-aqa-flow-selector-implementation.md`, `init-workspace-flow-shells.md`, `subagent-directives/SKILL.md`, `pa-knowledge-base.md`, `orchestration/SKILL.md`, `coding-agents-farm/SKILL.md`) uses the plain English word "deviation"/"deviations" and is not a coupling to this skill — do not treat those as inbound references when editing.
+- `grep -rn "deviation" . --include="*.md"` returns ~9 hits, but only `instructions/bootstrap-alwayson.instructions.md:72` names the *skill* (backtick `deviation` in the `skill_engagement_rules` all-agents list). Every other hit (`coding-flow.md`, `ui-aqa-flow-selector-implementation.md`, `init-workspace-flow-shells.md`, `subagent-directives/SKILL.md`, `pa-knowledge-base.md`, `orchestration/SKILL.md`, `coding-agents-farm/SKILL.md`) uses the plain English word "deviation"/"deviations" and is not a coupling to this skill — do not treat those as inbound references when editing.
 
 ## Editing guide
 

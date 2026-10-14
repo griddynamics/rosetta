@@ -28,7 +28,7 @@ Single flat `SKILL.md`, no `assets/`/`references/`. Root `<post_mortem>` wraps: 
 - `argument-hint` is present because `user-invocable: true`, per the schema's pairing rule.
 - Gate B literal string `Submit the issue as drafted` is the only accepted sanction text (process step 14); nothing parses it in code, but rewording removes the documented anti-rubber-stamp safeguard and breaks the parity hitl's README cites ("High+ risk: require EXACT sentence to type ... same pattern as `post-mortem`'s exact-sentence submit gate").
 - `gh issue create --repo griddynamics/rosetta ...` — target repo string; changing it silently redirects where findings get filed.
-- Inbound couplings — re-verify with `grep -rn "post-mortem" instructions/r3/core --include="*.md"`: `deviation/SKILL.md` step 8 and `self-learning/SKILL.md` step 11 both name-reference `post-mortem` in prose only (not machine-checked) — renaming or restructuring this skill breaks those recommendations silently. `hitl/README.md` cites this skill's Gate B as a comparison example, a documentation-only coupling.
+- Inbound couplings — re-verify with `grep -rn "post-mortem" . --include="*.md"`: `deviation/SKILL.md` step 8 and `self-learning/SKILL.md` step 11 both name-reference `post-mortem` in prose only (not machine-checked) — renaming or restructuring this skill breaks those recommendations silently. `hitl/README.md` cites this skill's Gate B as a comparison example, a documentation-only coupling.
 
 ## Editing guide
 - Safe: prose inside `<core_concepts>`/`<process>` bullets that preserves the OUTPUT-checkpoint sequencing and Gate A/B semantics; template field order; `<pitfalls>` ordering.
