@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import cast
 
 from .services.document_service import DocumentService
-from .services.document_data import DocumentData
+from .services.document_data import DocumentData, InvalidTextEncodingError
 from .ragflow_client import DocumentMetadata, RAGFlowClient, RAGFlowClientError
 from .rosetta_config import DEFAULT_PARSE_TIMEOUT
 from .typing_utils import DocumentLike, JsonDict
@@ -171,6 +171,7 @@ class ContentPublisher:
         print("Reading files...")
         all_caches = []   # ALL successfully read caches (for cleanup/orphan detection)
         results = []
+        read_failures: list[Path] = []
 
         for file in files:
             try:
@@ -178,17 +179,36 @@ class ContentPublisher:
                 cache = DocumentData.from_file(
                     file,
                     self.workspace_root,
-                    self.file_extensions,
                     publish_root=folder,
                 )
                 all_caches.append(cache)
 
+            except InvalidTextEncodingError as e:
+                read_failures.append(file)
+                print(f"✗ Error reading {file.name}: {e}")
+                results.append(PublishResult(
+                    success=False,
+                    document_id="",
+                    file_path=str(file),
+                    tags=[],
+                    error=str(e),
+                ))
             except Exception as e:
+                read_failures.append(file)
                 print(f"✗ Error reading {file.name}: {e}")
                 continue
 
-        # Duplicate cleanup: remove stale server copies of the same file (before publish)
-        self._cleanup_duplicates(all_caches, dry_run)
+        # Destructive cleanup requires a complete local inventory. If even one
+        # file could not be read, preserve remote documents until a full run can
+        # determine which paths are truly stale.
+        if read_failures:
+            print(
+                "\nDuplicate cleanup skipped "
+                f"({len(read_failures)} local file(s) could not be read)"
+            )
+        else:
+            # Remove stale server copies of the same file before publishing.
+            self._cleanup_duplicates(all_caches, dry_run)
 
         # Check for changes after cleanup so skip decisions reflect current server state.
         doc_caches = []   # Only changed caches (for publishing)
@@ -271,15 +291,23 @@ class ContentPublisher:
         # docs — running orphan detection would delete everything else.
         is_full_publish = folder.name == "instructions" or folder.parent == self.workspace_root
         if is_full_publish:
-            managed_domains_by_dataset: dict[str, set[str]] = {}
-            for cache in all_caches:
-                dataset_name = self._resolve_dataset_name({"release": cache.release})
-                managed_domains_by_dataset.setdefault(dataset_name, set()).add(cache.domain)
-            self._cleanup_orphans(
-                all_caches,
-                dry_run,
-                managed_domains_by_dataset=managed_domains_by_dataset,
-            )
+            if read_failures:
+                # The local inventory is incomplete, so a failed read must not
+                # make an existing server document look like an orphan.
+                print(
+                    "\nOrphan detection skipped "
+                    f"({len(read_failures)} local file(s) could not be read)"
+                )
+            else:
+                managed_domains_by_dataset: dict[str, set[str]] = {}
+                for cache in all_caches:
+                    dataset_name = self._resolve_dataset_name({"release": cache.release})
+                    managed_domains_by_dataset.setdefault(dataset_name, set()).add(cache.domain)
+                self._cleanup_orphans(
+                    all_caches,
+                    dry_run,
+                    managed_domains_by_dataset=managed_domains_by_dataset,
+                )
         else:
             print("\nOrphan detection skipped (subfolder publish)")
 
@@ -347,12 +375,20 @@ class ContentPublisher:
                 )
             
             # Create cache on-the-fly (still better than reading multiple times)
-            cache = DocumentData.from_file(
-                file,
-                self.workspace_root,
-                self.file_extensions,
-                publish_root=file.parent,
-            )
+            try:
+                cache = DocumentData.from_file(
+                    file,
+                    self.workspace_root,
+                    publish_root=file.parent,
+                )
+            except InvalidTextEncodingError as e:
+                return PublishResult(
+                    success=False,
+                    document_id="",
+                    file_path=str(file),
+                    tags=[],
+                    error=str(e),
+                )
             
             ims_doc_id = cache.ims_doc_id
             content = cache.content
