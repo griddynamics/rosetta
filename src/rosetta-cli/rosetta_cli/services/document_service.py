@@ -5,6 +5,7 @@ Handles document operations including listing, filtering, and status management.
 Eliminates code duplication and fixes naming inconsistencies.
 """
 
+import json
 import time
 from typing import cast
 
@@ -12,6 +13,23 @@ from tqdm import tqdm
 from ..ragflow_client import RAGFlowClient
 from ..rosetta_config import DEFAULT_PARSE_TIMEOUT
 from ..typing_utils import DatasetLike, DocumentLike, JsonDict
+
+
+def _extract_doc_tags(document: DocumentLike) -> set[str]:
+    """Tags of a document, lowercased. meta_fields may be a dict, a JSON
+    string, or an object with attributes (same tolerance as the MCP-side
+    helper in rosetta_mcp/tools/instructions.py)."""
+    meta = getattr(document, "meta_fields", {}) or {}
+    if isinstance(meta, str):
+        try:
+            meta = json.loads(meta)
+        except Exception:
+            meta = {}
+    if isinstance(meta, dict):
+        tags = meta.get("tags", [])
+    else:
+        tags = getattr(meta, "tags", []) or []
+    return {str(tag).strip().lower() for tag in tags if str(tag).strip()}
 
 
 class DocumentService:
@@ -83,7 +101,11 @@ class DocumentService:
         limit: int = 1000
     ) -> list[DocumentLike]:
         """
-        Filter documents by title prefix using server-side filtering.
+        Filter documents by title prefix.
+
+        Sends a server-side metadata hint and enforces the prefix client-side:
+        RAGFlow 0.25 ignores metadata_condition server-side (see the notes in
+        ragflow_client.py), so the returned list must be re-filtered.
         
         Args:
             dataset: Dataset object
@@ -108,7 +130,10 @@ class DocumentService:
             metadata_condition=metadata_filter
         )
         
-        return documents if documents else []
+        return [
+            document for document in (documents or [])
+            if str(getattr(document, "name", "")).startswith(prefix)
+        ]
     
     def filter_documents_by_tags(
         self,
@@ -117,7 +142,11 @@ class DocumentService:
         limit: int = 1000
     ) -> list[DocumentLike]:
         """
-        Filter documents by tags using server-side metadata filtering.
+        Filter documents by tags.
+
+        Sends a server-side metadata hint and enforces the tags client-side:
+        RAGFlow 0.25 ignores metadata_condition server-side (see the notes in
+        ragflow_client.py), so the returned list must be re-filtered.
         
         Uses "or" logic to find documents containing ANY of the specified tags.
         
@@ -155,7 +184,11 @@ class DocumentService:
             metadata_condition=metadata_filter
         )
         
-        return documents if documents else []
+        wanted = {tag.strip().lower() for tag in tags if tag and tag.strip()}
+        return [
+            document for document in (documents or [])
+            if _extract_doc_tags(document) & wanted
+        ]
     
     def get_document_summary(self, document: DocumentLike) -> JsonDict:
         """
