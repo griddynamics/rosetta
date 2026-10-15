@@ -3,7 +3,7 @@
 ## Phase Flow
 
 **Phase 6: Implementation Mapping**
-1. Complete Phase 5 first
+1. Complete Phase 5 first (skipped ONLY on the reduced route recorded in the state file)
 2. Define technical approaches
 3. Compare multiple alternatives
 4. Map source to target
@@ -15,7 +15,7 @@
 
 ## Context
 
-**PREREQUISITES:** Complete Phase 5 (cross-project analysis)
+**PREREQUISITES:** Complete Phase 5 (cross-project analysis). EXCEPTION — on the reduced route recorded in the state file (single-project mapping scope), Phase 5 is skipped: `docs/cross-project-analysis.md` does not exist; substitute an explicit note that mapping is scoped to this project alone.
 
 **OBJECTIVES:**
 - Define technical approaches for modernization
@@ -44,7 +44,7 @@
 ## Requirements
 
 - **MUST** process each project separately
-- **MUST** re-read `docs/cross-project-analysis.md`
+- **MUST** re-read `docs/cross-project-analysis.md` (on the reduced route: the single-project scope note instead, per the PREREQUISITES exception)
 - **MUST** re-read matching `docs/original-code-specs-<lib/project>.md`
 - **MUST** re-read both incoming/outgoing dependency if those exist `docs/target-code-specs-<lib/project>.md`
 - **MUST** create `docs/target-code-specs-<lib/project>.md` for each project

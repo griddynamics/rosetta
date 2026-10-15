@@ -28,7 +28,7 @@ This modernization process is designed to systematically analyze, specify, and i
 
 - If user did not specify any preferences perform all steps except optional.
 - User CAN customize and ask only for specific steps OR steps could have been done already OR towards specific goal OR for specific case, in this case LISTEN and ADOPT to the user.
-- Modernization scope could be small or could be done in place (example: upgrade Java 8 to 17 or 17 to 21), in this case only use `Phase 2` and `Phase 6`, unless you discover dependencies and project becomes bigger.
+- Modernization scope could be small or could be done in place (example: upgrade Java 8 to 17 or 17 to 21), in this case only use `Phase 2` and `Phase 6`, unless you discover dependencies and project becomes bigger. This reduced route is an explicit exception to the phase-prerequisite contract: Phase 2 runs without Phase 1 ONLY after recording in the state file that no reusable reference-library analysis is needed (no prior reference specs exist and none is requested), and Phase 6 runs without Phase 5 ONLY under a bounded single-project mapping scope — cross-project findings are replaced by an explicit note that mapping is scoped to this project alone. On the reduced route Phase 7 (Final Review) is skipped: it reviews cross-project artifacts that do not exist; the Phase 6 single-project note is its substitute. Record both decisions in the state file so the exception is auditable.
 - If there is no need to rewrite code (example: upgrade .NET 6 to .NET 8), then take original and target code specs LIGHTLY, only document WHAT IS NECESSARY TO CHANGE (example: new way to use app builder).
 
 ## Modernization Flow - Phase Overview
@@ -112,6 +112,10 @@ Create/update `agents/modernization-flow-state.md` briefly after each phase usin
 - [ ] Phase 7: Final Review - Not Started
 - [ ] Implementation Phase - Not Started
 
+## Reduced Route
+
+Reduced route: no — full sequence. If reduced: yes — Phase 1 skipped because [no reusable reference-library analysis needed: …]; Phase 5 skipped because [single-project mapping scope: …]; Phase 7 skipped (substituted by the Phase 6 single-project note).
+
 ## Phase Details
 
 ### Phase 1
@@ -125,7 +129,7 @@ Create/update `agents/modernization-flow-state.md` briefly after each phase usin
 
 ## Important Notes
 
-- **Sequential Execution Required**: Phases build on each other and must be done in order
+- **Sequential Execution Required**: Phases build on each other and must be done in order — the ONLY exception is the reduced route recorded in the state file (see User Customizations), whose skipped-phase substitutes are defined in the affected phase files.
 - **No Assumptions**: If information is missing, track it in spec files
 - **User Guidance**: Ask questions to resolve critical unknowns
 - **Evidence-Based**: All findings must reference actual code
