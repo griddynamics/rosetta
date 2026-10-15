@@ -10,51 +10,9 @@ Covers: the full MCP pipeline (Instructions Repo → CLI → RAGFlow → `rosett
 
 ## System Overview
 
-```
-┌─────────────────────────────────────────────────────────┐
-│              Target Repository + IDE                    │
-│  Cursor · Claude Code · VS Code · JetBrains · Codex     │
-│  Windsurf · Antigravity · OpenCode                      │
-│  (MCP integration; native hooks vary by IDE)            │
-│                         │                               │
-│                    MCP Protocol                         │
-│             (Streamable HTTP + OAuth)                   │
-└────────────────────────┬────────────────────────────────┘
-                         │ PULL
-              ┌──────────▼──────────┐
-              │    Rosetta MCP      │
-              │   (rosetta-mcp on PyPI) │
-              │                     │
-              │  VFS resource paths │
-              │  Bundler · Tags     │
-              │  Context headers    │
-              └──────────┬──────────┘
-                         │ PULL
-              ┌──────────▼──────────┐
-              │   RAGFlow (Server)  │
-              │  (document engine)  │
-              │                     │
-              │  parse · chunk      │
-              │  embed · retrieve   │
-              └──────────▲──────────┘
-                         │ PUSH
-              ┌──────────┴──────────┐
-              │    Rosetta CLI      │
-              │ (rosetta-cli PyPI)  │
-              │                     │
-              │  publish · parse    │
-              │  verify · cleanup   │
-              └──────────▲──────────┘
-                         │ PUSH
-              ┌──────────┴──────────┐
-              │  Instructions Repo  │
-              │  /instructions/r3/  │
-              │                     │
-              │  core/ · <org>/     │
-              │  skills · agents    │
-              │  workflows · rules  │
-              └─────────────────────┘
-```
+![MCP delivery pipeline](architecture/mcp-delivery.svg)
+
+<sub>Source: [`architecture/mcp-delivery.d2`](architecture/mcp-delivery.d2). Arrows show instruction content moving toward the coding agent; the agent authenticates against the server's OAuth proxy (HTTP) or API key (STDIO). See [architecture/README.md](architecture/README.md) for all views.</sub>
 
 Instructions flow up: files are published by the CLI into RAGFlow, served by Rosetta MCP to IDEs. Rosetta does not see or process your source code — by design, it only delivers knowledge and instructions.
 

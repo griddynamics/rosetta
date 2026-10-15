@@ -1,0 +1,37 @@
+# Optional MCP delivery pipeline (secondary to plugins).
+# Arrows = instruction content flowing toward the coding agent.
+direction: down
+
+repo: "Instructions repo\ninstructions/r3/"
+
+cli: "rosetta-cli" {
+  pub: "publish · parse\nverify · cleanup"
+}
+
+ragflow: "RAGFlow" {
+  ds: "datasets aia-<release>\nparse · chunk · embed · index" {
+    shape: cylinder
+  }
+}
+
+mcp: "rosetta-mcp (FastMCP v3)" {
+  tools: "tools\nget_context_instructions\nquery_instructions · list_instructions"
+  res: "resource rosetta://{path}"
+  svc: "Bundler · tags · VFS paths\ncontext headers"
+  auth: "OAuth 2.1 proxy / API key"
+  tools -> svc
+  res -> svc
+}
+
+redis: "Redis (optional)\nOAuth proxy client state\nschema version + migration lock" {
+  shape: cylinder
+}
+
+ide: "Coding agent\n(target repo)"
+
+repo -> cli.pub: read .md + frontmatter
+cli.pub -> ragflow.ds: "upsert by deterministic\nUUID (MD5 changed only)"
+ragflow.ds -> mcp.svc: retrieve by tags
+mcp.tools -> ide: "bundled instructions\n(Streamable HTTP or STDIO)"
+ide -> mcp.auth: authenticate
+mcp.auth -> redis: "persist client state"

@@ -1,0 +1,51 @@
+# Rosetta system context: how instructions travel from this repo to a coding agent.
+# Arrows = data/artifacts flowing toward the consumer. Solid = primary (plugin) path,
+# dashed = optional MCP path. Evidence: docs/architecture/README.md.
+direction: down
+
+repo: Instructions repository (this repo) {
+  instr: "instructions/r3/core\n(+ optional <org>/ overlays)"
+  hooks_src: "src/hooks\n(TypeScript hook sources)"
+}
+
+build: Build and publish (CI / maintainer) {
+  gen: "rosettify-plugins\n(plugin generator)"
+  cli: "rosetta-cli\n(publisher)"
+}
+
+dist: Distribution {
+  plugins: "plugins/core-*\n(IDE-native packages)"
+  ragflow: "RAGFlow\n(document engine)" {
+    shape: cylinder
+  }
+  mcp: "rosetta-mcp\n(FastMCP server)"
+}
+
+target: Target repository (user machine) {
+  ide: "Coding agent\nClaude Code · Cursor · Copilot\nCodex · Antigravity · ..."
+  ws: "Workspace files\ndocs/ · agents/ · plans/" {
+    shape: page
+  }
+  rosettify: "rosettify\n(local plan/specs CLI + MCP)"
+}
+
+repo.instr -> build.gen: read sources
+repo.hooks_src -> build.gen: "esbuild bundles"
+build.gen -> dist.plugins: generate (build time)
+dist.plugins -> target.ide: "install\n(marketplace or zip)"
+
+repo.instr -> build.cli: read sources {
+  style.stroke-dash: 4
+}
+build.cli -> dist.ragflow: "publish (MD5 change\ndetection)" {
+  style.stroke-dash: 4
+}
+dist.ragflow -> dist.mcp: retrieve by tags {
+  style.stroke-dash: 4
+}
+dist.mcp -> target.ide: "instructions on demand\n(HTTP+OAuth or STDIO)" {
+  style.stroke-dash: 4
+}
+
+target.ide -> target.ws: read / maintain
+target.ide -> target.rosettify: "npx rosettify plan|specs"
