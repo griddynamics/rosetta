@@ -76,7 +76,47 @@ jobs:
         with:
           version: v3.20.2
 
+      - name: Check if chart version exists
+        id: check_version
+        run: |
+          set -euo pipefail
+          CHART_PATH=./src/helm-charts/rosetta-mcp-server
+          VERSION="$(grep -E '^version:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
+          CHART_NAME="$(grep -E '^name:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
+          REPOSITORY="registry-1.docker.io/griddynamics"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "chart_name=${CHART_NAME}" >> "$GITHUB_OUTPUT"
+          echo "Chart version is ${VERSION} (${CHART_NAME})"
+          mkdir -p /tmp/helm-check
+          set +e
+          PULL_OUT=$(helm pull "oci://${REPOSITORY}/${CHART_NAME}" --version "${VERSION}" --destination /tmp/helm-check 2>&1)
+          PULL_RC=$?
+          set -e
+          echo "${PULL_OUT}"
+          if [ "${PULL_RC}" -eq 0 ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Version ${VERSION} already exists at oci://${REPOSITORY}/${CHART_NAME}"
+          else
+            # Not-found is expected for a new version. Network/auth/registry errors must fail.
+            if echo "${PULL_OUT}" | grep -qiE 'not found|no such|unknown tag|manifest unknown|404|does not exist'; then
+              echo "exists=false" >> "$GITHUB_OUTPUT"
+              echo "Version ${VERSION} is new, will publish"
+            else
+              echo "::error::helm pull failed while checking existing chart version (rc=${PULL_RC})"
+              exit 1
+            fi
+          fi
+
+      - name: Fail if version exists
+        if: steps.check_version.outputs.exists == 'true'
+        run: |
+          echo "::error::Version ${{ steps.check_version.outputs.version }} already published at oci://registry-1.docker.io/griddynamics/${{ steps.check_version.outputs.chart_name }}"
+          echo "Docker Hub / OCI does not allow silently overwriting the same chart version."
+          echo "Please increment version in src/helm-charts/rosetta-mcp-server/Chart.yaml"
+          exit 1
+
       - name: Package and push Helm chart (OCI / Docker Hub)
+        if: steps.check_version.outputs.exists == 'false'
         run: |
           set -euo pipefail
           CHART_PATH=./src/helm-charts/rosetta-mcp-server
