@@ -13,6 +13,7 @@ import {
  * Matches the `Rosetta-AI-reviewed` brand token with word boundaries on both sides.
  * Accepts any surrounding context: `# Rosetta-AI-reviewed`, `-- Rosetta-AI-reviewed`,
  * plain `Rosetta-AI-reviewed`. Rejects merged words like `XRosetta-AI-reviewedY`.
+ * Danger patterns in `patterns.ts` must never contain this token, or a match overrides itself.
  */
 const MARKER_RE = /\bRosetta-AI-reviewed\b/;
 
