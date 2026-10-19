@@ -143,7 +143,7 @@ The two tasks do not overlap: the small task has no customer, age, or checkout l
 
 ### Task 1 (small): product storage conditions
 
-**Prompt:**
+**Starter Prompt:**
 
 ```text
 Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
