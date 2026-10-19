@@ -22,12 +22,8 @@ Go to agent customizations screen (settings gear icon in Copliot chat plane), cl
 
 # Copilot Standalone
 
-Copy `core-copilot-standalone` content to the root of the repository.
-
-## Standalone testing (Jetbrains specifically)
-
-1. Copy `core-copilot` contents to a `.github` folder in your repository
-2. Copy the contents of `.github/rules/plugin-files-mode.md` into `.github/copilot-instructions.md` and append before the closing `</plugin_files_mode>` tag: `Rosetta plugin root: ".github", get_context_instructions: must read fully all five "cat .github/rules/bootstrap-*.md" files all lines. You MUST FOLLOW ALL instructions and then MUST select workflow and execute it. All workflows are stored in ".github/rules/<workflowtag>.md".`
+1. Copy `core-copilot-standalone` content to the root of the repository.
+2. Verify `.github/instructions/plugin-files-mode.instructions.md` and `.github/instructions/bootstrap-alwayson.instructions.md` exist.
 
 # Codex
 

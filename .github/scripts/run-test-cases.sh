@@ -35,11 +35,11 @@ if [[ "$ROSETTA_AGENT" == "claude" ]]; then
 else
   CLI_CMD="${VALIDATE_CLI_CMD:-codex}"
   # The tier counterpart of the claude default above. The ladder is the one
-  # instructions/r3/core/agents/*.md already pairs: opus<->gpt-5.6-sol,
-  # sonnet<->gpt-5.6-terra, haiku<->gpt-5.6-luna.
-  MODEL="${MODEL:-gpt-5.6-terra}"
+  # instructions/r3/core/agents/*.md already pairs: opus<->gpt-6.1-sol,
+  # sonnet<->gpt-6-luna (effort one step higher), haiku<->gpt-6-luna.
+  MODEL="${MODEL:-gpt-6-luna}"
 fi
-CODEX_EFFORT="${CODEX_EFFORT:-medium}"
+CODEX_EFFORT="${CODEX_EFFORT:-high}"
 BASE_SHA="${BASE_SHA:-HEAD^}"
 TEST_LIB="${TEST_LIB:-$REPO_ROOT/test-library}"
 ROOT_ZIP="${ROOT_ZIP:-$TEST_LIB/spring-boot-react-mysql.zip}"

@@ -1,6 +1,8 @@
 # solr-extending
 Builds production-grade custom Solr 9.x plugins — SearchComponent, DocTransformer, QParser, URP, ValueSourceParser — and their solrconfig.xml/jar wiring.
 
+Custom Apache Solr plugins: SearchComponent, DocTransformer, QParser, update processors, function queries, and their solrconfig wiring.
+
 ## Why it exists
 Without this skill a competent model still picks the wrong extension point or ships a plugin that "works on my machine" and breaks in production. The named failure modes it forecloses: confusing SearchComponent (once per request) with DocTransformer (once per doc, so batched fetches there silently break parallel response writers); registering a `<lib>` directive as if Solr 9.x still allowed it by default (it is "deprecated and disabled by default" for security); writing a SearchComponent that works standalone but drops its own response additions in SolrCloud because `distributedProcess()`/`handleResponses()` were never overridden; letting a URP throw on one bad doc and take the whole indexing batch down; and forgetting `equals`/`hashCode` on a ValueSource, which corrupts function-query caching silently. It also supplies the factory+instance mental model (instances are reused across threads — mutable state is a bug by default) that a model would otherwise have to rediscover from Solr's Javadoc.
 

@@ -7,11 +7,11 @@ alwaysApply: false
 
 # Model Configuration (Required) — stronger/high-reasoning models for thinking, cheaper ones for execution
 # model — use the FULL current model id; NEVER an alias (opus/sonnet) or a stale id: an executor on older data can't resolve aliases or newer ids and will spawn the wrong model [string] [Cursor, OpenCode, Claude Code]
-model: "<FULL current model id, e.g. claude-opus-5>"
+model: "<FULL current model id, e.g. claude-opus-5-5>"
 # temperature — response randomness (Optional — uncomment to enable) [float] [OpenCode]
 # temperature: 0.7
-# [Latest models: Anthropic (claude-opus-5, claude-sonnet-5, claude-haiku-4-5); OpenAI (gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna); Google (gemini-3.7-flash); Cursor (grok-4.6, composer-2.5); Z.ai (glm-5)]
-# [Families: large/smart/slow {opus, high, sol} · medium/workhorse {sonnet, medium, glm-5, kimi-k2.5, minimax-m2.5, terra, grok-4.6} · small/fast {haiku, glm-4.7, flash, mini, low, luna, composer-2.5}]
+# [Latest models: Anthropic (claude-opus-5-5, claude-sonnet-5-5, claude-haiku-5-5); OpenAI (gpt-6.1-sol, gpt-6-luna); Google (gemini-4-argon, gemini-3.8-flash); Cursor (grok-4.7, composer-2.5); Z.ai (glm-5)]
+# [Families: large/smart/slow {opus, high, sol, argon} · medium/workhorse {sonnet, medium, glm-5, kimi-k2.5, minimax-m2.5, luna-high, grok-4.7} · small/fast {haiku, glm-4.7, flash, mini, low, luna, composer-2.5}]
 
 # Mode (Optional — uncomment to enable)
 # mode — agent type [string] [OpenCode] [ex: primary, subagent]

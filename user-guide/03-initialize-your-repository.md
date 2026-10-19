@@ -54,7 +54,7 @@ The agent works through several phases and does most of the heavy lifting itself
 
 1. Detects the situation (fresh, upgrade, plugin, or composite).
 2. Analyzes your project structure and tech stack.
-3. Extracts reusable coding and architecture patterns.
+3. Extracts reusable coding and architecture patterns (only if you ask).
 4. Writes the context documents (below).
 5. **Asks you to pick a code-navigation tool** — a language server, or an optional third-party code graph.
 6. **Asks you targeted questions** about domain and architecture that it can't infer from code.

@@ -23,6 +23,11 @@
 - Serve intended purpose
 - No content duplication or repetition
 - Max compress for AI like you
+- Compress to just key points, terse phrases
+- Keep only thinking points, not even decisions
+- Heavily compress direction text: 1-3 words per step
+- Keep every step; shrink wording only; keep mental hooks
+- Allow running AI to make decisions
 - Draft means: the best quality content, just not reviewed nor approved
 - Do not use references by numbers (ex: see phase 1, info for step 3)
 

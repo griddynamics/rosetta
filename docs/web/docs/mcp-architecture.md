@@ -132,7 +132,7 @@ The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instr
 
 **Critical rule:** Always publish the entire `/instructions` folder. Never subfolders or single files (breaks tag extraction).
 
-**Change detection:** MD5 hash of content. Only modified files publish (~77% time savings). Use `--force` to bypass.
+**Change detection:** MD5 hash of content and metadata. Only modified files publish (~77% time savings). Recognized text files must be valid UTF-8; binary content is hashed from its raw bytes. If any local file fails to read, duplicate and orphan cleanup is skipped for that run and the file is reported as failed. Use `--force` to bypass.
 
 **Auto-tagging and metadata extraction.** The CLI reads each file during publishing and extracts everything MCP needs to serve it efficiently:
 - **Tags:** all folder names + filename + composite pairs/triples (`core/skills`, `r3/core/skills`, etc.). These are what the typed load aliases query against.

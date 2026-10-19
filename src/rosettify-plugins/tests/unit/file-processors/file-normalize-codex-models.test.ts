@@ -108,11 +108,11 @@ describe('fileNormalizeCodexModels — no gpt token: strip model line', () => {
 // ─── GPT token with effort → two-field rewrite ───────────────────────────────
 
 describe('fileNormalizeCodexModels — gpt token with effort: two-field rewrite', () => {
-  it('gpt-5.5-high → model: gpt-5.6-sol and model_reasoning_effort: high', () => {
+  it('gpt-5.5-high → model: gpt-6.1-sol and model_reasoning_effort: high', () => {
     const content = '---\nmodel: gpt-5.5-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.5-high');
     const result = fileNormalizeCodexModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gpt-5.6-sol\nmodel_reasoning_effort: high');
+    expect(result.target_contents as string).toContain('model: gpt-6.1-sol\nmodel_reasoning_effort: high');
   });
 
   it('CRITICAL: source[0].frontmatter.model NOT updated for gpt token (two-field replacement)', () => {
@@ -128,7 +128,7 @@ describe('fileNormalizeCodexModels — gpt token with effort: two-field rewrite'
     const content = '---\nmodel: claude-4.8-opus-high, gpt-5.5-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-4.8-opus-high, gpt-5.5-high');
     const result = fileNormalizeCodexModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gpt-5.6-sol');
+    expect(result.target_contents as string).toContain('model: gpt-6.1-sol');
     expect(result.target_contents as string).toContain('model_reasoning_effort: high');
   });
 
@@ -158,5 +158,33 @@ describe('fileNormalizeCodexModels — gpt token without effort: model line only
     const result = fileNormalizeCodexModels(frame, makeCtx());
     // frontmatter.model stays unchanged — codex never updates frontmatter.model
     expect((result.source[0]?.frontmatter as any).model).toBe('gpt-4o');
+  });
+});
+
+// ─── GPT-6 tiers: sol keeps effort, the old terra tier moves to luna one effort step higher ────
+
+describe('fileNormalizeCodexModels — GPT-6 tiers', () => {
+  it('gpt-5.6-terra-medium → gpt-6-luna with model_reasoning_effort: high', () => {
+    const frame = makeFrame('---\nmodel: gpt-5.6-terra-medium\ntags: []\n---\n# Body\n', 'gpt-5.6-terra-medium');
+    const result = fileNormalizeCodexModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: gpt-6-luna\nmodel_reasoning_effort: high');
+  });
+
+  it('gpt-5.6-terra-xhigh stays xhigh (capped)', () => {
+    const frame = makeFrame('---\nmodel: gpt-5.6-terra-xhigh\ntags: []\n---\n# Body\n', 'gpt-5.6-terra-xhigh');
+    const result = fileNormalizeCodexModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: gpt-6-luna\nmodel_reasoning_effort: xhigh');
+  });
+
+  it('gpt-5.6-sol-high → gpt-6.1-sol, effort unchanged', () => {
+    const frame = makeFrame('---\nmodel: gpt-5.6-sol-high\ntags: []\n---\n# Body\n', 'gpt-5.6-sol-high');
+    const result = fileNormalizeCodexModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: gpt-6.1-sol\nmodel_reasoning_effort: high');
+  });
+
+  it('current gpt-6-luna-xhigh passes through unmapped, effort split', () => {
+    const frame = makeFrame('---\nmodel: gpt-6-luna-xhigh\ntags: []\n---\n# Body\n', 'gpt-6-luna-xhigh');
+    const result = fileNormalizeCodexModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: gpt-6-luna\nmodel_reasoning_effort: xhigh');
   });
 });

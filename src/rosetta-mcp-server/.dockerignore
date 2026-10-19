@@ -90,7 +90,6 @@ setup.py
 setup.cfg
 
 # Publishing metadata
-QUICKSTART.md
 SECURITY.md
 DEBUGGING.md
 PUBLISHING.md

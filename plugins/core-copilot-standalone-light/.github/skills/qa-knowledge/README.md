@@ -1,6 +1,8 @@
 # qa-knowledge
 QA convention router: loads the right artifact skeletons, failure taxonomies, and correction discipline for API-AQA and UI-AQA work.
 
+QA engineering end to end: sources into requirements, gap analysis, Given-When-Then specs, TMS export, runnable API and UI tests, failure triage. Every case is implemented or recorded as a gap, never dropped.
+
 ## Why it exists
 Without this skill, an agent doing QA work will invent artifact shapes from memory, restate taxonomies inline, drop assertions or ATCs silently, or emit artifacts without rerunning the sensitive-data gate. `qa-knowledge` fixes that by centralizing QA-domain conventions and forcing point-of-use loading of the exact asset or reference the current step needs.
 

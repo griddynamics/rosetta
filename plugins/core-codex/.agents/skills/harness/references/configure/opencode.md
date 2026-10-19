@@ -52,8 +52,8 @@ OpenCode: Terminal-based AI coding assistant with workspace config files, agents
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "anthropic/claude-sonnet-4-5",
-  "small_model": "anthropic/claude-haiku-4-5",
+  "model": "anthropic/claude-sonnet-5-5",
+  "small_model": "anthropic/claude-haiku-5-5",
   "default_agent": "build",
   "instructions": ["CONTRIBUTING.md", "docs/*.md"],
   "share": "manual",
@@ -100,7 +100,7 @@ OpenCode: Terminal-based AI coding assistant with workspace config files, agents
 ---
 description: Reviews code for best practices, security, maintainability
 mode: subagent
-model: anthropic/claude-sonnet-4-5
+model: anthropic/claude-sonnet-5-5
 temperature: 0.1
 tools:
   write: false

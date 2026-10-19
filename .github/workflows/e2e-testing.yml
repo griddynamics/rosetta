@@ -42,7 +42,7 @@ on:
       agent_model:
         description: 'Agent CLI model (--agent-model <agent>=<v>); empty = the CLI default'
         type: string
-        default: claude-sonnet-5
+        default: claude-sonnet-5-5
       agent_effort:
         description: 'Agent CLI reasoning effort (--agent-effort <agent>=<v>)'
         type: string
@@ -50,15 +50,15 @@ on:
       fast_model:
         description: 'Fast-tier model override (--fast-model)'
         type: string
-        default: anthropic/claude-sonnet-5
+        default: anthropic/claude-sonnet-5-5
       workhorse_model:
         description: 'Workhorse-tier model override (--workhorse-model)'
         type: string
-        default: anthropic/claude-sonnet-5
+        default: anthropic/claude-sonnet-5-5
       judge_model:
         description: 'Judge-tier model override (--judge-model)'
         type: string
-        default: anthropic/claude-sonnet-5
+        default: anthropic/claude-sonnet-5-5
       timeout_sec:
         description: 'Per-trial wall-clock cap in seconds (--timeout)'
         type: string
@@ -203,16 +203,25 @@ jobs:
 
           # One `agent_model` input serves both agents. Translate a Claude tier token to
           # its Codex counterpart (the ladder in instructions/r3/core/agents/*.md:
-          # opus<->sol, sonnet<->terra, haiku<->luna) so codex never receives a
-          # claude-* id. Anything already gpt-* passes through untouched.
+          # opus<->sol, sonnet<->luna with the effort one step higher, haiku<->luna) so
+          # codex never receives a claude-* id. Anything already gpt-* passes through
+          # untouched (model and effort alike).
           AGENT_MODEL="${{ inputs.agent_model }}"
+          AGENT_EFFORT="${{ inputs.agent_effort }}"
           if [ "$AGENT_ID" = "codex" ]; then
             case "$AGENT_MODEL" in
-              *opus*)   AGENT_MODEL="gpt-5.6-sol" ;;
-              *sonnet*) AGENT_MODEL="gpt-5.6-terra" ;;
-              *haiku*)  AGENT_MODEL="gpt-5.6-luna" ;;
+              *opus*)   AGENT_MODEL="gpt-6.1-sol" ;;
+              *sonnet*)
+                AGENT_MODEL="gpt-6-luna"
+                case "$AGENT_EFFORT" in
+                  low) AGENT_EFFORT="medium" ;;
+                  medium) AGENT_EFFORT="high" ;;
+                  high) AGENT_EFFORT="xhigh" ;;
+                esac
+                ;;
+              *haiku*)  AGENT_MODEL="gpt-6-luna" ;;
             esac
-            echo "::notice::agent=codex — agent model resolved to $AGENT_MODEL"
+            echo "::notice::agent=codex — agent model resolved to $AGENT_MODEL, effort $AGENT_EFFORT"
           fi
 
           KEEP_ARGS=""
@@ -230,7 +239,7 @@ jobs:
             --repeats "${{ inputs.trials }}" \
             --agent "$AGENT_ID" \
             --agent-model "$AGENT_ID=$AGENT_MODEL" \
-            --agent-effort "$AGENT_ID=${{ inputs.agent_effort }}" \
+            --agent-effort "$AGENT_ID=$AGENT_EFFORT" \
             --fast-model "${{ inputs.fast_model }}" \
             --workhorse-model "${{ inputs.workhorse_model }}" \
             --judge-model "${{ inputs.judge_model }}" \

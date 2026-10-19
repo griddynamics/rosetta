@@ -1,6 +1,8 @@
 # post-mortem
 User-invoked two-phase harness diagnosis: attribute a bad outcome to a layer (prompt/workspace/local config/Rosetta/tooling), then — only if ≥1 defect is Rosetta-attributed — optionally file a sanitized GitHub issue against Rosetta.
 
+Diagnoses why a session went wrong across your prompt, workspace docs, local config, Rosetta instructions, and tooling. Can file a sanitized issue when Rosetta is at fault.
+
 ## Why it exists
 Without it, a model asked "why did this fail" would blame the artifact instead of the harness that produced it, skip straight to a conclusion without an evidence inventory, default to blaming Rosetta instructions rather than the more-common local causes, treat a user's question or edit on a draft as approval, and jump from diagnosis to filing an issue in one motion. The skill forces an evidence-first, per-layer, root-cause process with a hard stop between reporting and submitting.
 

@@ -2,7 +2,7 @@
 name: discoverer
 description: "Discover project context, patterns, affected areas, dependencies, etc. Lightweight subagent."
 mode: subagent
-model: claude-haiku-4-5
+model: claude-haiku-5-5
 effort: medium
 color: cyan
 readonly: false

@@ -144,7 +144,7 @@ You are a senior code reviewer.
 | `description` | Yes | string | Human-facing guidance for when to use |
 | `developer_instructions` | Yes | string | Core behavioral directives (system prompt) |
 | `nickname_candidates` | No | string[] | Display name pool for spawned instances |
-| `model` | No | string | LLM selection (inherits from parent if omitted), gpt-5.3-codex and  gpt-5.4 (workhorse with medium, and a little more expensive with high reasoning), gpt-5.5 (twice expensive, opus level, high reasoning is only applicable) |
+| `model` | No | string | LLM selection (inherits from parent if omitted), gpt-6.1-sol (architect, planner), gpt-6-luna (workhorse with high reasoning), gpt-5.3-codex and  gpt-5.4 (workhorse with medium, and a little more expensive with high reasoning), gpt-5.5 (twice expensive, opus level, high reasoning is only applicable) |
 | `model_reasoning_effort` | No | string | `"minimal"`, `"low"`, `"medium"`, `"high"`, `"xhigh"` |
 | `sandbox_mode` | No | string | `"read-only"`, `"workspace-write"`, `"danger-full-access"` |
 | `mcp_servers` | No | table | MCP server configuration for this agent |
@@ -417,7 +417,7 @@ View active servers: `/mcp` in the Codex TUI
 ### Key Settings
 
 ```toml
-model = "gpt-5.3-codex"
+model = "gpt-6-luna"
 model_reasoning_effort = "medium"         # minimal|low|medium|high|xhigh
 sandbox_mode = "workspace-write"          # read-only|workspace-write|danger-full-access
 approval_policy = "on-request"            # untrusted|on-request|never
@@ -436,7 +436,7 @@ hooks = true
 profile = "default"
 
 [profiles.careful]
-model = "gpt-5.4"
+model = "gpt-6.1-sol"
 personality = "pragmatic"
 plan_mode_reasoning_effort = "high"
 ```

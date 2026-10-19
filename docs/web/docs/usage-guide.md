@@ -41,7 +41,7 @@ Sets up a repository so AI coding agents can work with Rosetta context from the 
 2. Shells — generate shell files for skills, agents, and workflows unless plugin mode makes local shells unnecessary
 3. Discovery — analyze project structure and produce `docs/TECHSTACK.md`, `docs/CODEMAP.md`, and `docs/DEPENDENCIES.md`
 4. Rules — optional local rule configuration; present in the workflow but disabled by default
-5. Patterns — extract reusable coding and architecture patterns into `docs/PATTERNS/`
+5. Patterns — optional, disabled by default; runs only if you ask: extract reusable coding and architecture patterns into `docs/PATTERNS/`
 6. Documentation — create or update `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md`, `docs/ASSUMPTIONS.md`, and memory
 7. Questions — ask targeted gap questions and update affected docs through subagents
 8. Verification — validate completeness, report remediation, and require a new chat session
@@ -485,7 +485,7 @@ Add project-specific rules alongside Rosetta without touching its files.
 |-------------|----------------|-----------------|
 | Cursor | `.cursor/rules/agents.mdc` | `.cursor/rules/*.mdc` |
 | Claude Code | `CLAUDE.md` | `.claude/rules/*.md` |
-| GitHub Copilot | `.github/copilot-instructions.md` | |
+| GitHub Copilot | `.github/copilot-instructions.md` | `.github/instructions/*.instructions.md` |
 | Windsurf | `.windsurf/rules/*.md` | All `.md` files auto-load |
 | JetBrains (Junie + AI Assistant) | `.aiassistant/rules/agents.md` | `.junie/guidelines.md` |
 | Antigravity / Google IDX | `.agents/rules/agents.md` | `.agents/rules/*.md` |
@@ -669,6 +669,8 @@ What happens:
 
 </details>
 
+<a id="how-rosetta-protects-you"></a>
+
 <details markdown="1">
 <summary><b>How Rosetta Protects You</b></summary>
 
@@ -715,7 +717,7 @@ See [Plugins](/rosetta/docs/plugins/) for install commands.
 
 - **If AI gets stuck.** Monitor AI if it tries to solve the same problem but gets stuck, going in loops, or diverges. You should provide inputs on how to exactly solve it or ways to tackle the problem. You can also ask AI to spawn a smarter, focused subagent to solve that problem only by filling in this template:
 
-  `Spawn subagent using <Claude Opus 5 | GPT-5.6-sol> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
+  `Spawn subagent using <Claude Opus 5.5 | GPT-6.1-sol> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
 
 - **Run a post-mortem on anything you want improved.** Not just failures — whenever a run disappointed you, fought you, or simply could have gone better, invoke the `post-mortem` skill (`/post-mortem`). It root-causes the behavior across your prompt, workspace files, local config, and Rosetta instructions, and recommends concrete fixes. If a defect is in Rosetta itself, it can also file sanitized feedback as a [Rosetta issue](https://github.com/griddynamics/rosetta/issues) — only with your explicit approval of the exact draft. Nothing is submitted without your sanction; no private code or data leaves your repository.
 - Save cost — add the line below to your workspace AGENTS.md/CLAUDE.md to cut model output tokens:

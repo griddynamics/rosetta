@@ -25,7 +25,7 @@ Phase 6. Requires separate `executor` and `engineer` invocations.
 4. Recommend dispositions and priority
 </phase_steps>
 
-<normalize step="6.1" subagent="executor" role="Lossless deterministic finding converter" subagent_required_model="claude-haiku-4-5, gpt-5.6-terra-low, gemini-3.7-flash-low, composer-2.5, gpt-5.6-luna">
+<normalize step="6.1" subagent="executor" role="Lossless deterministic finding converter" subagent_required_model="claude-haiku-5-5, gpt-6-luna-medium, gemini-3.8-flash-low, composer-2.5">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security` for its normalized-finding contract.
@@ -37,7 +37,7 @@ Phase 6. Requires separate `executor` and `engineer` invocations.
 
 </normalize>
 
-<triage step="6.2" subagent="engineer" role="Security triager correlating evidence without loss" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6">
+<triage step="6.2" subagent="engineer" role="Security triager correlating evidence without loss" subagent_required_model="claude-sonnet-5-5, gpt-6-luna-high, gemini-3.8-flash-low, grok-4.7">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security`.

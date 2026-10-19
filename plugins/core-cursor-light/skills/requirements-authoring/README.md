@@ -1,6 +1,8 @@
 # requirements-authoring
 Turns a request into atomic, testable, implementation-free `<req>` units with per-unit HITL approval and source→goal→req→test traceability, instead of a prose or vague spec.
 
+Precise and atomic requirement units: EARS acceptance criteria, rationale, alternatives, dependencies, traceability. You combine them into stories or features.
+
 ## Why it exists
 Without it a capable model would draft compound/vague/implementation-coupled requirements, bundle several behaviors into one unit, skip boundary/error scenarios, self-mark units `Approved`, leak change rationale into spec text, and lose traceability. Pitfalls section names the failure modes directly: "Bundle multiple behaviors in one unit", "Add scope without explicit approval", "Skip boundary and failure scenarios", "Treat requirement groupings as mere organization when they are requirements themselves". `core_principles_to_enforce` adds "No AI slop", "No scope creep", and a meta-leak test: "Spec statements contain only requirements — never explanations of why a previous draft was wrong... If a sentence would not survive in a spec that was never revised, delete it."
 

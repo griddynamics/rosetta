@@ -2,6 +2,8 @@
 
 Generates and maintains `CODEMAP.md`, a top-level structural map of a workspace (folders, entry points, file counts, short descriptions), and routes to a code-graph backend (LSP/graphify/gitnexus) when one is already requested.
 
+Gives the AI a structural map of the repo to navigate by. Uses your LSP or code-graph tooling when available.
+
 ## Why it exists
 
 Without this skill an agent dropped into an unfamiliar workspace either greps around ad hoc (missing whole modules, wasting turns) or tries to build its own mental map from a partial file listing that goes stale as soon as the codebase changes. It also has no reason to prefer an already-installed graph tool over guessing at file structure, and no shared, greppable artifact that other skills (like large-workspace-handling) can scope work against. codemap fixes this by producing one canonical, regenerable `CODEMAP.md` and by gating tool choice on an explicit precedence order instead of trial-and-error.

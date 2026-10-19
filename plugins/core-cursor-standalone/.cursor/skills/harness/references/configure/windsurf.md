@@ -180,7 +180,7 @@ Reusable prompts invoked with `/command-name`.
 ---
 description: Comprehensive code review for quality, security, and best practices
 allowed-tools: Bash(git diff:*), Bash(git status:*)
-model: claude-3-5-sonnet-20241022
+model: claude-sonnet-5-5-medium
 ---
 
 # Code Review
@@ -221,7 +221,7 @@ Provide specific feedback with line numbers and actionable suggestions.
 ```markdown
 ---
 description: Generate comprehensive unit tests for selected code
-model: claude-3-5-sonnet-20241022
+model: claude-sonnet-5-5-medium
 ---
 
 # Test Generation

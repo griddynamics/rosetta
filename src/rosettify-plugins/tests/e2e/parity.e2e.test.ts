@@ -122,7 +122,8 @@ describe('Parity E2E — per-target structural parity (NFR-0001)', () => {
 
   it('deterministicHooks:false ⇒ no *.js hook bundles in any target output', () => {
     for (const target of TARGETS) {
-      const js = [...actualPaths.get(target)!].filter((p) => p.endsWith('.js'));
+      // Skill assets (e.g. skills/harness/scripts/tester.js) are shipped content, not hook bundles.
+      const js = [...actualPaths.get(target)!].filter((p) => p.endsWith('.js') && !/(^|\/)skills\//.test(p));
       expect(js, `${target} must contain no .js bundles when deterministicHooks is false`).toEqual([]);
     }
   });

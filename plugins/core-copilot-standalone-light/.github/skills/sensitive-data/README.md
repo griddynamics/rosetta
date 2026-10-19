@@ -1,6 +1,8 @@
 # sensitive-data
 Guardrail skill that intercepts regulated/secret-shaped data before it can be read, stored, or output, and forces masking or explicit approval instead.
 
+Secrets, keys, PII, PHI, and payment data never get read, printed, logged, or committed. Masked on sight, and the same care applies to the code it writes.
+
 ## Why it exists
 Without this skill, a model handling PII/PCI/HIPAA/PHI/GDPR/SOC2/FedRAMP data or secrets/API keys/passwords/credentials/tokens/certificates as a routine step of an SDLC task — reading a `.env`, echoing a config value in a diff summary, logging a token to AGENT MEMORY.md — will read/print/log/distribute it, because nothing else in the always-on bootstrap forces a stop-and-mask reflex before touching data that merely might be sensitive. A leaked secret is catastrophic and often irreversible (rotation, breach notification) even though the triggering task was trivial. The skill forces immediate masking and explicit user approval before any raw value crosses the model's output.
 

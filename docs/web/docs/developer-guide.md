@@ -28,7 +28,7 @@ fork/clone → branch → edit → validate → push → PR
 
 2. **Develop using claude code / codex / cursor** or **use the prompting flow.**
    - **Development:** use rosetta plugins to develop rosetta. [TESTING-PLUGINS.md](https://github.com/griddynamics/rosetta/blob/main/docs/TESTING-PLUGINS.md) shows how to install and test plugins locally. Plugins allow contributors to see their in-progress instruction changes reflected almost immediately. End users should use plugins built from `main` or the production MCP endpoints.
-   - **Prompting:** use the [`coding-agents-prompting-flow`](/rosetta/docs/usage-guide/#workflows) with the `coding-agents-prompt-authoring` skill to author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with the Opus 5 model.
+   - **Prompting:** use the [`coding-agents-prompting-flow`](/rosetta/docs/usage-guide/#workflows) with the `coding-agents-prompt-authoring` skill to author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with the Opus 5.5 model.
 
      Example invocations:
 
@@ -283,6 +283,36 @@ venv/bin/pytest src/rosetta-cli/tests
 ```
 
 Run this after any Python code change.
+
+### Git pre-commit hook
+
+The repository ships a native Git pre-commit hook shim in `.githooks/pre-commit`.
+It runs the Python entrypoint at `scripts/pre_commit.py`, which first regenerates all plugin payloads (via `npx -y rosettify-plugins@latest`) and then executes type validation.
+
+Use the root repo virtualenv for hook execution:
+
+```bash
+python3 -m venv venv
+venv/bin/pip install -r requirements.txt
+git config core.hooksPath .githooks
+```
+
+Git does not automatically use the repository's `.githooks/` directory.
+Each developer must run `git config core.hooksPath .githooks` once in their local clone to enable the native pre-commit hook.
+
+On Windows, use the matching root-venv interpreter and pip executable:
+
+```powershell
+py -3 -m venv venv
+venv\Scripts\pip.exe install -r requirements.txt
+git config core.hooksPath .githooks
+```
+
+You can test the hook entrypoint directly:
+
+```bash
+venv/bin/python scripts/pre_commit.py
+```
 
 ---
 

@@ -157,6 +157,14 @@ applyTo: "src/api/**/*.ts"
 
 **Models:**
 - (omitted) - Inherits model from parent agent (default)
+- `Claude Opus 5.5` - Anthropic Claude 5.5 Opus (most capable, with extended reasoning)
+- `Claude Sonnet 5.5` - Anthropic Claude 5.5 Sonnet with thinking
+- `Claude Haiku 5.5` - Anthropic Claude 5.5 Haiku with thinking
+- `GPT-6.1 Sol` - OpenAI GPT 6.1 Sol (architect)
+- `GPT-6 Luna` - OpenAI GPT 6 Luna with high reasoning efforts
+- `Gemini 4 Argon` - Google Gemini 4 Argon
+- `Gemini 3.8 Flash` - Google Gemini 3.8 Flash
+- `Grok 4.7` - xAI Grok 4.7
 - `Claude Opus 4.8` - Anthropic Claude 4.8 Opus (most capable, with extended reasoning)
 - `Claude Opus 4.6` - Anthropic Claude 4.6 Opus prev gen (4.7 existed but was not good)
 - `Claude Sonnet 5` - Anthropic Claude 5 Sonnet with thinking
@@ -173,7 +181,7 @@ applyTo: "src/api/**/*.ts"
 ---
 description: Expert code reviewer for quality, security, and maintainability
 tools: ["read", "search"]
-model: ["Claude Sonnet 5", "GPT-5.4"]
+model: ["Claude Sonnet 5.5", "GPT-6 Luna"]
 handoffs:
   - label: "Send to Implementation"
     agent: implementer

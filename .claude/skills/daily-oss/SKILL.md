@@ -56,9 +56,9 @@ MUST USE SKILL `orchestration`, `hitl`, `load-project-context`.
 11. Work with user, ask one-by-one, short simple sentences, short simple questions, no wall of text. Few sentences max with < 15 words each. No mechanics. Actual problem. Straight to the point. Consider that user did not see your comm with subagents nor PRs, issues, discussions, comments.
 12. Ask questions for user to be able to reliably answer. Do not lead in -> straight to the point. Always provide LOGIC, ALWAYS DIG DEEPER, always provide BASIS for approval, always make it possible for user to act on it. Consider user never saw any of what you are presenting. Examples: "Verified clean. Approve and merge it?" => instead "Issue was about A, X/Y/Z was validated, Unit tests pass, documentation updated.... Approve?", "Issues #000 and #001: approve?" => instead describe what was the LOGICAL problem and LOGICAL solution and ask that for approval per issue, "X deletes, Y writes, Approve?" => Instead describe the LOGIC, NOT MECHANICS, mechanics does NOT provide BASIS to make a true decision.
 13. PREVENT YOUR CONSISTENT FAILURE: STOP RUNNING AHEAD. THERE IS NO URGENCY. TAKE THE TASK SERIOUSLY AND CAREFULLY. QUALITY IS THE PRIORITY. NO jumping to conclusions! Step back and dig into each issue, there IS NO URGENCY TO REPLY AS QUICKLY AS YOU CAN. DO NOT WASTE USER TIME WITH SHALLOW RESTATING. VERIFY your understanding, GROUND in actual issue, DO NOT ACT on assumptions, provide references!
-14. When delegating YOU MUST REQUEST SUBAGENTS FOR THEM TO MUST USE THIS SKILL PLUS ASSETS!
+14. When delegating YOU MUST REQUEST SUBAGENTS FOR THEM TO MUST USE THIS SKILL PLUS ASSETS! On user questions/corrections - prefer to followup / resume original subagents in current session instead of spawning new;
 
-If you learned something new which is reusable, there are process efficiency improvements, you can prevent faiures in the future, update `## Lessons learned` below for self-improvement.
+If you learned something new which is reusable, there are process efficiency improvements, you can prevent failures in the future, update `## Lessons learned` below for self-improvement.
 
 ## Lessons learned (self-improvement, keep updating, first line is template, keep template, follow "<instructions>", high confidence only):
 
@@ -74,4 +74,8 @@ If you learned something new which is reusable, there are process efficiency imp
 - **When the user's own explanation lands, put THAT wording in the artifact.** Wrote a docstring in my framing after a plain numbered list was what finally made the behavior clear. Root cause: preferred my summary to the version proven to work.
 - **Pushback is a prompt to show evidence, not to reverse.** Dropped a correct finding the moment the user disagreed, then had to reinstate it once they saw the full context. Root cause: treated disagreement as refutation. Restate the evidence and let them decide.
 - **Questions carry the logic, never the mechanics.** Asked "verified clean, approve?" and "X deletes, Y writes, which way?" — neither gives the user a basis to answer. State the problem, the solution, and what was proven, then ask.
+- **Trace every fallback branch for silent loss.** Proposed approving a publish fix whose invalid-UTF-8 fallback silently dropped frontmatter tags; user's "how do existing files behave?" exposed it. Ask per branch: what metadata survives?
+- **Worktree reviews need PYTHONPATH set.** Shared `venv` editable-installs the main checkout; pytest from a worktree silently tests `main` code. Set `PYTHONPATH=<worktree>/src/<pkg>` in subagent prompts.
+- **Ask-tool questions must stand alone.** Wrote context as text and called AskUserQuestion in the same turn; user saw only "what about the two gaps?". Put problem, gaps, and options inside the question itself.
+- **Start every PR summary with its task.** Presented #365 defects and options before saying what the PR set out to do or who asked. User could not judge. Order: task/origin → needed? → what it does → gaps → decision.
 - **Talking around, not directly.** If you cannot be specific and clear and short, it means YOU are NOT grounded. DO NOT ASK YET - DIG FIRST!

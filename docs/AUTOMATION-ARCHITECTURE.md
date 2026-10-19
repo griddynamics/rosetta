@@ -113,7 +113,7 @@ Both branches authenticate with **the same `BIFROST_API_KEY`**, on different rou
 | Key input | `anthropic_api_key` | `openai-api-key` |
 | GitHub token | `github_token` input | `GH_TOKEN` step env (no input exists) |
 | Actor gate bypass | `allowed_non_write_users: "*"` | `allow-users: "*"` |
-| Model | `--model opus` / `sonnet` | `model: gpt-5.6-sol` / `gpt-5.6-terra` |
+| Model | `--model opus` / `sonnet` | `model: gpt-6.1-sol` / `gpt-6-luna` |
 | Rosetta instructions | `plugin_marketplaces` + `plugins` inputs | `.github/actions/codex-setup` extracts the `core-codex` release asset into the workspace |
 | Tool boundary | `--allowedTools` / `--disallowedTools` | permission profile + execpolicy deny-list (see below) |
 | Hook trust | n/a | managed hooks in `/etc/codex/requirements.toml` |
@@ -177,24 +177,26 @@ position in each agent's `model:` candidate list:
 
 | Claude | Codex | Seen in |
 |---|---|---|
-| `claude-opus-5` | `gpt-5.6-sol` | `architect`, `planner`, `prompt-engineer` |
-| `claude-sonnet-5` | `gpt-5.6-terra` | `discoverer`, `engineer`, `researcher` |
-| `claude-haiku-4-5` | `gpt-5.6-luna` | `executor` (lightweight profile) |
+| `claude-opus-5-5` | `gpt-6.1-sol` | `architect`, `planner`, `prompt-engineer` |
+| `claude-sonnet-5-5` | `gpt-6-luna` (effort one step higher) | `discoverer`, `engineer`, `researcher` |
+| `claude-haiku-5-5` | `gpt-6-luna` | `executor`, and the light-profile `engineer`, `reviewer`, `validator`, `researcher` |
 
 Effort is a **separate axis** on both, so the suffixed forms in that frontmatter
-(`gpt-5.6-terra-medium`) split into `model:` + `effort:` at the call site — which is also
-how `src/rosettify-plugins/src/spec/model-maps.ts` collapses them.
+(`gpt-6-luna-high`) split into `model:` + `effort:` at the call site — which is also
+how `src/rosettify-plugins/src/spec/model-maps.ts` collapses them. There is no separate
+workhorse GPT model any more: the Sonnet tier maps to `gpt-6-luna` with the effort raised
+one step (medium becomes high), the Haiku tier to `gpt-6-luna` at the authored effort.
 
 Per pipeline:
 
 | Pipeline | Claude | Codex |
 |---|---|---|
-| `repo-analysis` | `opus`, effort high | `gpt-5.6-sol`, effort high |
-| `repo-triage` | `sonnet`, effort high | `gpt-5.6-terra`, effort high |
-| `repo-plan` | `sonnet`, effort high | `gpt-5.6-terra`, effort high |
-| `repo-implement` | `sonnet`, effort medium | `gpt-5.6-terra`, effort medium |
-| `validate-prompts` | `opus`, effort high | `gpt-5.6-sol`, effort high |
-| `validate-test-cases` | `sonnet` (script default) | `gpt-5.6-terra` (script default) |
+| `repo-analysis` | `opus`, effort high | `gpt-6.1-sol`, effort high |
+| `repo-triage` | `sonnet`, effort high | `gpt-6-luna`, effort xhigh |
+| `repo-plan` | `sonnet`, effort high | `gpt-6-luna`, effort xhigh |
+| `repo-implement` | `sonnet`, effort medium | `gpt-6-luna`, effort high |
+| `validate-prompts` | `opus`, effort high | `gpt-6.1-sol`, effort high |
+| `validate-test-cases` | `sonnet` (script default) | `gpt-6-luna` (script default, `CODEX_EFFORT=high`) |
 
 ### Codex permission profiles
 

@@ -260,7 +260,8 @@ describe('Antigravity E2E — real instructions/r3/core', () => {
       expect(raw).not.toContain('bootstrap');
 
       const files = listFilesRecursive(ag());
-      expect(files.some((f) => f.endsWith('.js'))).toBe(false);
+      // Skill assets (e.g. skills/harness/scripts/tester.js) are shipped content, not hook bundles.
+      expect(files.some((f) => f.endsWith('.js') && !/(^|[\\/])skills[\\/]/.test(f))).toBe(false);
     });
 
     it('deterministic-hooks true: PreToolUse dangerous-actions matcher is exactly "run_command|mcp__.*" (bash+MCP only, no file-write tools); no bootstrap payload', () => {

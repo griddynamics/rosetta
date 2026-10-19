@@ -244,10 +244,10 @@ jobs:
           permission-profile: rosetta-read-net
           # Mirrors the Claude branch's `--model sonnet --effort high`. The tier ladder is
           # the one instructions/r3/core/agents/*.md already pairs, position by position:
-          # opus<->gpt-5.6-sol, sonnet<->gpt-5.6-terra, haiku<->gpt-5.6-luna. Effort is a
+          # opus<->gpt-6.1-sol, sonnet<->gpt-6-luna (effort one step higher), haiku<->gpt-6-luna. Effort is a
           # separate axis on Codex, so the `-high` suffix form collapses to model+effort.
-          model: gpt-5.6-terra
-          effort: high
+          model: gpt-6-luna
+          effort: xhigh
           output-file: ${{ runner.temp }}/codex-final-message.md
           prompt: |
             Issue: #${{ matrix.issue_number }} — ${{ matrix.issue_title }}

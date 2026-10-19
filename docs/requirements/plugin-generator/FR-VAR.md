@@ -69,13 +69,13 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
 
 <req id="FR-VAR-0010" type="FR" level="System" ticketId="" classification="technical">
   <title>Claude output</title>
-  <statement>The Claude variant shall contain instruction folders unchanged in name, model values drawn from Claude Code's accepted model vocabulary — either a family short name (`opus`, `sonnet`, `haiku`) or a full model ID (`claude-opus-5`, `claude-sonnet-5`, `claude-haiku-4-5`), both of which Claude Code accepts — generated `rules` and `workflows` indexes, a rendered `hooks/hooks.json`, and a preserved `.claude-plugin` config folder. This unit permits both forms and constrains neither; which form a value takes is determined by the effective `ModelVocabulary` (FR-COPY-0021).</statement>
+  <statement>The Claude variant shall contain instruction folders unchanged in name, model values drawn from Claude Code's accepted model vocabulary — either a family short name (`opus`, `sonnet`, `haiku`) or a full model ID (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`), both of which Claude Code accepts — generated `rules` and `workflows` indexes, a rendered `hooks/hooks.json`, and a preserved `.claude-plugin` config folder. This unit permits both forms and constrains neither; which form a value takes is determined by the effective `ModelVocabulary` (FR-COPY-0021).</statement>
   <rationale>Claude Code consumes native folder names, short model names, and a plugin manifest.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-10-13</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: the Claude variant When: generated Then: `rules/INDEX.md`, `workflows/INDEX.md`, and `hooks/hooks.json` exist and `.claude-plugin` is preserved.</criteria>

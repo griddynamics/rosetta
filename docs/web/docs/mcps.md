@@ -15,7 +15,7 @@ permalink: /docs/mcps/
 > You must receive prior approval from your manager and company to use it.
 
 > [!WARNING]
-> Use **Sonnet 5 medium**, **GPT-5.6-terra-medium**, **gemini-3.7-flash-high** or newer models. Avoid Auto model selection.
+> Use **Sonnet 5.5 medium**, **GPT-6-luna-high**, **gemini-3.8-flash-high** or newer models. Avoid Auto model selection.
 
 > [!NOTE]
 > Rosetta is designed to never use or see data or IP.
@@ -210,7 +210,7 @@ It should use Rosetta MCP to retrieve agents, guardrails, and instructions:
 
 Once the MCP is verified:
 
-- **Run your first session and initialize the repo** — see [QUICKSTART.md](/rosetta/docs/quickstart/).
+- **Run your first session and initialize the repo** — see [Quick Start](/rosetta/docs/quickstart/).
 - **Explore the workflows** (coding, requirements authoring, modernization, and more) — see [USAGE_GUIDE.md — Workflows](/rosetta/docs/usage-guide/#workflows).
 
 ## Links

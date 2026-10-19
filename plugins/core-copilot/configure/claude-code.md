@@ -122,7 +122,7 @@ Filename becomes command name. Content is the prompt to execute. Commands must b
 - `description`: Command description (helps Claude decide when to use)
 - `argument-hint`: Hint for expected arguments
 - `allowed-tools`: Tools Claude can use without permission when this command is active. Dangerous.
-- `model`: Specific Claude model to use (`claude-haiku-4-5`, `claude-sonnet-5`, `claude-opus-4-8`, `inherit`)
+- `model`: Specific Claude model to use (`claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`, `claude-haiku-4-5`, `claude-sonnet-5`, `claude-opus-4-8`, `inherit`)
 - `disable-model-invocation`: Set to `true` to prevent Claude from automatically invoking (only manual `/command`)
 - `user-invocable`: Set to `false` to hide from `/` menu (only Claude can invoke)
 - `context`: Set to `fork` to run in forked subagent context
@@ -204,7 +204,7 @@ Review @src/api.ts
 name: code-reviewer
 description: Reviews code for best practices, security, and maintainability
 tools: ["read", "grep"]
-model: claude-sonnet-5
+model: claude-sonnet-5-5
 ---
 
 You are a senior code reviewer.
@@ -230,7 +230,10 @@ You are a senior code reviewer.
   - MCP and tool-specific names
 - `disallowedTools`: Tools to deny, removed from inherited or specified list
 - `model`: Claude model to use
-  - `"claude-sonnet-5"`: Balanced (default)
+  - `"claude-opus-5-5"`: Most capable
+  - `"claude-sonnet-5-5"`: Balanced
+  - `"claude-haiku-5-5"`: Fastest, more economical
+  - `"claude-sonnet-5"`: Balanced
   - `"claude-opus-4-8"`: Most capable
   - `"claude-haiku-4-5"`: Fastest, more economical
   - `"inherit"`: Use same model as main conversation (default if omitted)
@@ -441,6 +444,9 @@ your-project/
 
 **Model Selection:**
 
+- `claude-haiku-5-5`: Simple, repetitive tasks
+- `claude-sonnet-5-5`: Most general-purpose work
+- `claude-opus-5-5`: Most capable for complex reasoning
 - `claude-haiku-4-5`: Simple, repetitive tasks
 - `claude-sonnet-5`: Most general-purpose work
 - `claude-opus-4-8`: Most capable for complex reasoning

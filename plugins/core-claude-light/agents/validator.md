@@ -2,7 +2,7 @@
 name: validator
 description: "Validate that implementation matches intent via execution and evidence. Full subagent."
 mode: subagent
-model: claude-sonnet-5
+model: claude-haiku-5-5
 effort: high
 color: red
 readonly: false

@@ -2,7 +2,7 @@
 name: prompt-engineer
 description: "Author and adapt prompts — discover, draft, deliver — under HITL approvals. Full subagent."
 mode: subagent
-model: GPT-5.6 Terra
+model: GPT-6 Luna
 effort: xhigh
 color: pink
 readonly: false

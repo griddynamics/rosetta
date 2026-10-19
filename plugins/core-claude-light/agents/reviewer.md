@@ -2,7 +2,7 @@
 name: reviewer
 description: "Review artifacts against intent and contracts, recommend, etc. Full subagent."
 mode: subagent
-model: claude-sonnet-5
+model: claude-haiku-5-5
 effort: high
 color: yellow
 readonly: false

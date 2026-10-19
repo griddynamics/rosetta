@@ -1,6 +1,8 @@
 # load-project-context
 Loads THIS repo's canonical context files (full read of `docs/CONTEXT.md` + `docs/ARCHITECTURE.md`, then grep headers and line-range read across the rest) before acting, instead of answering from ambient/assumed project knowledge.
 
+Gives the AI your project's business context, architecture, and past decisions before any work starts.
+
 ## Why it exists
 The file states no rationale directly; its mechanics fix one failure mode. Without a forced, targeted read of `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/MEMORY.md`, etc., a capable model answers from training-data assumptions about "how projects like this usually work," or — if it does open the files — reads them whole instead of the sections the request needs, burning context and missing this repo's actual conventions. The skill blocks both: `<project-files>` mandates a full read of `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` (the two docs whose whole content is always relevant), then `grep -nE "^#{1,3} "` across the remaining roster, then reading only the relevant sections "by line-range" — including any area-scoped `docs/*-CONTEXT.md` / `docs/*-ARCHITECTURE.md`. Its file-not-found line prevents a second failure mode — treating a missing file as an error instead of an uninitialized workspace. (Intent not documented beyond what the mechanics show.)
 

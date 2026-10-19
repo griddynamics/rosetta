@@ -1,21 +1,21 @@
 {
   "models": {
-    "fast": "anthropic/claude-sonnet-5",
-    "workhorse": "anthropic/claude-sonnet-5",
-    "judge": "anthropic/claude-sonnet-5"
+    "fast": "anthropic/claude-sonnet-5-5",
+    "workhorse": "anthropic/claude-sonnet-5-5",
+    "judge": "anthropic/claude-sonnet-5-5"
   },
   "pricing": {
-    "anthropic/claude-sonnet-5": { "inputPer1M": 3.0, "outputPer1M": 15.0 },
-    "claude-sonnet-5": { "inputPer1M": 3.0, "outputPer1M": 15.0 }
+    "anthropic/claude-sonnet-5-5": { "inputPer1M": 2.0, "outputPer1M": 10.0 },
+    "claude-sonnet-5-5": { "inputPer1M": 2.0, "outputPer1M": 10.0 }
   },
   "codingagents": {
     "claude-code": {
-      "agentModel": "claude-sonnet-5",
+      "agentModel": "claude-sonnet-5-5",
       "agentEffort": "low"
     },
     "codex": {
-      "agentModel": "gpt-5.6-terra",
-      "agentEffort": "low"
+      "agentModel": "gpt-6-luna",
+      "agentEffort": "medium"
     }
   },
   "gate": { "minScore": 60, "minPassRate": 0.8, "maxStddev": 10 },

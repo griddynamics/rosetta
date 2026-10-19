@@ -2,6 +2,8 @@
 
 Reusable security-review method for coding agents: safety gates, evidence contracts, security-area guidance, and remediation-task templates. `security-flow` supplies the ordered orchestration and the mandatory canonical subagent assignments.
 
+Threat modeling plus code, dependency, IaC, container, cloud, and API review. Secrets gated before ingestion, active testing only where authorized. Output is remediation tasks.
+
 ## Why it exists
 
 Without it, a capable model asked to "review security" improvises: it ingests whole repositories (carrying secrets into model context), runs whatever scanner it recognizes, rewrites third-party severities into its own judgment, and drifts from review into fixing. This skill blocks each of those. A filename-only secret gate runs before any target content is ingested. Tool facts must be verified and dated before a tool is called operational. Source findings are preserved unchanged and normalized fields are added alongside, never over, them. Remediation is out of scope by construction — the skill emits concise task inputs for a later user-invoked coding flow.

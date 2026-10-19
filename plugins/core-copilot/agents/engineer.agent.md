@@ -2,7 +2,7 @@
 name: engineer
 description: "Implement and test to high quality under the orchestrator-assigned identity. Full subagent."
 mode: subagent
-model: claude-sonnet-5-medium
+model: Claude Sonnet 5.5
 effort: medium
 color: blue
 readonly: false

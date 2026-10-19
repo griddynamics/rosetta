@@ -2,7 +2,7 @@
 name: reviewer
 description: "Review artifacts against intent and contracts, recommend, etc. Full subagent."
 mode: subagent
-model: gemini-3.7-flash
+model: gemini-3.8-flash
 effort: high
 color: yellow
 readonly: false

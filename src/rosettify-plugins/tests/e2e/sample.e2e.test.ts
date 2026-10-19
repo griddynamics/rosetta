@@ -327,7 +327,7 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     expect(content).toContain('APPLY SKILL FILE `phases/workflow-skill-fixture-flow-phase.md`');
     expect(content).not.toContain('APPLY PHASE');
     // FR-VAR-0042: fileNormalizeCodexModels ran on the main skill doc — gpt-* token found → split
-    expect(content).toContain('model: gpt-5.6-sol');
+    expect(content).toContain('model: gpt-6.1-sol');
     expect(content).toContain('model_reasoning_effort: high');
     expect(content).not.toContain('claude-4.8-opus-high');
   });

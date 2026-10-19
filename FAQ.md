@@ -72,12 +72,10 @@ Rosetta runs prep steps once per session: it loads context and reads relevant pr
 
 **Which model should I use, and why did Rosetta burn through my token budget?**
 
-Pick a **medium** model — **Sonnet 5**, **GPT-5.6-terra-medium**, or **gemini-3.7-flash-high** — and avoid Auto model selection. The two most common cost mistakes:
+Pick a **medium** model — **Sonnet 5.5**, **GPT-6-luna-high**, or **gemini-3.8-flash-high** — and avoid Auto model selection. The two most common cost mistakes:
 
 - **Running everything on a high-reasoning/Opus model.** Opus-class models spend heavily on reasoning and can exhaust a daily balance in one sitting. Rosetta already assigns an appropriate model per subagent and switches automatically, so you do not need to force the most expensive model for the whole session.
 - **Letting Auto pick the model.** Auto often downgrades to a weaker model mid-task, producing low-quality results. Choose the model explicitly.
-
-Use the model guidance in the [Model Selection](#model-selection) section above.
 
 **How do I reduce token cost?**
 
@@ -125,6 +123,10 @@ Most similar tools focus on one meta-flow — usually coding. Rosetta covers ~17
 Rosetta also adds guardrails, HITL approval gates, sensitive-data handling, and risk assessment that apply across all workflows.
 
 If you already have a sophisticated harness for the one workflow you care about, you may not need Rosetta. If you want a broad, consistent foundation across many engineering activities, that's where Rosetta fits.
+
+**Why not just use IDE rules (`.cursorrules`, `CLAUDE.md`, Copilot custom instructions)?**
+
+They are useful, but they are usually local to one tool, one repo, or one developer. Rosetta makes instructions layered, versioned, reusable, and portable across agents and IDEs. Organization standards flow into every project, while project-specific context stays local and customizable. On top of that, Rosetta adds the workflows, guardrails, and approval gates that flat rules files do not provide.
 
 **What's the difference between a skill, workflow, agent, and rule?**
 

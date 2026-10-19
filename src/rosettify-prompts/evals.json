@@ -1,5 +1,5 @@
 {
-  "model": "claude-sonnet-5",
+  "model": "claude-sonnet-5-5",
   "maxOutputTokens": 16384,
   "thinking": { "enabled": true, "mode": "adaptive", "effort": "high" },
   "repetitions": 5,

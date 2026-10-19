@@ -148,7 +148,7 @@ interface AgentProfile {                 // from top-level config `codingagents`
   command: string; args: string[];       // template vars: {prompt}, {sessionId}, {workspace}, {ctrlDir}
   envRemove: string[];                   // glob patterns stripped from agent PTY env — except ANTHROPIC_API_KEY/OPENAI_API_KEY, exempt via the global AGENT_API_KEY_ALLOWLIST (§4)
   envSet?: Record<string, string>;
-  agentModel?: string;                   // model the agent CLI itself runs (claude: --model X; codex: -m X); D13-mergeable, per-case override via agentModels map, CLI --agent-model <agent>=<model>. Cost policy: cheap tier for the majority of testing (claude: Sonnet 5 at LOW reasoning effort — supports auto permission mode, unlike Haiku; codex: gpt-5.4-mini); smarter/full-effort models only for final validation runs.
+  agentModel?: string;                   // model the agent CLI itself runs (claude: --model X; codex: -m X); D13-mergeable, per-case override via agentModels map, CLI --agent-model <agent>=<model>. Cost policy: cheap tier for the majority of testing (claude: Sonnet 5.5 at LOW reasoning effort — supports auto permission mode, unlike Haiku; codex: gpt-6-luna); smarter/full-effort models only for final validation runs.
   agentEffort?: string;                  // reasoning effort — a SEPARATE dimension from the model, same D13/agentEfforts-map/CLI plumbing as agentModel. Rendered per adapter: codex `-c model_reasoning_effort="<v>"`; claude via its effort surface (verify mechanism empirically against the installed CLI; the Stop-hook payload reports `effort`, so record requested vs observed like agentModel). Adapter lacking an effort surface: warn + omit, never fail the trial.
   strategy: 'json-only' | 'screen-reader' | 'hybrid';
   readiness: { bannerPattern?: string; quietMs: number };  // TUI ready-for-input signal
@@ -362,10 +362,10 @@ Per Curion, in order:
 ```jsonc
 {
   "codingagents": { "claude-code": { /* AgentProfile */ }, "codex": { /* AgentProfile */ } },
-  "models": { "fast": "anthropic/claude-haiku-4-5", "workhorse": "anthropic/claude-sonnet-5" },
+  "models": { "fast": "anthropic/claude-haiku-5-5", "workhorse": "anthropic/claude-sonnet-5-5" },
   "pricing": {                                          // optional; enables $ in cost-rollup (§12)
-    "anthropic/claude-haiku-4-5":  { "inputPer1M": 1.00, "outputPer1M": 5.00 },
-    "anthropic/claude-sonnet-5": { "inputPer1M": 3.00, "outputPer1M": 15.00 }
+    "anthropic/claude-haiku-5-5":  { "inputPer1M": 0.10, "outputPer1M": 0.50 },
+    "anthropic/claude-sonnet-5-5": { "inputPer1M": 2.00, "outputPer1M": 10.00 }
   },
   "provision": { "mcps": [], "plugins": [] },           // defaults; case merges by name; P11 applies
   "setup": ["./scripts/install-rosetta-hook.sh"],       // D14: concatenated before case setup
@@ -396,7 +396,7 @@ Per Curion, in order:
     { "use": "llm-judge", "rubric": "evaluation.md", "artifacts": ["plans/**/*.md"], "weight": 1.0 }
   ],
   "combiner": "gated-mean",
-  "models": { "judge": "anthropic/claude-sonnet-5" }
+  "models": { "judge": "anthropic/claude-sonnet-5-5" }
 }
 ```
 
@@ -457,7 +457,7 @@ Built-in evaluators (all params zod-validated at config load):
 | Evaluator | Semantics |
 |---|---|
 | `file-exists` | Globs that must / must-not exist in the final workspace. Typically `gate:true`. |
-| `command` | Run build/test/lint via execa in the workspace; assert exit code. Typically `gate:true`. |
+| `command` | Run build/test/lint via execa in the workspace; assert exit code. Optional `timeoutSec` bounds execution (default 60 seconds); a timeout is a failed evaluator result. Typically `gate:true`. |
 | `trajectory-check` | Assert `tool_call` events matching a pattern occurred — the "did our plugin actually run" gate. `toolPattern` is either one regex or a **per-agent map** (tool vocabularies differ across agents; a single pattern would produce false failures on cross-agent suites). |
 | `hook-transcript-check` | Proves a Claude Code **plugin's own hooks** fired during the run — distinct from Curiocity's always-present capture hooks. **Version-agnostic:** derives the expected hook events dynamically from whatever the live, checked-in `plugins/core-claude/hooks/hooks.json` declares — today just `SessionStart`, so the check verifies `SessionStart` fired the plugin's own command; if the plugin later declares `PreToolUse`/`PostToolUse`/etc., the check adapts automatically with no code or config change. It then scans the run's raw native transcript (`system` entries whose `subtype` ends `_hook_summary`; `hookInfos[].command` lists the commands that ran) and confirms each expected event both fired **and** ran the plugin's own command for it (matched by `.js` script basename, or a `hookSpecificOutput` token for printf-style `SessionStart` hooks). Params: `pluginManifest` (path to `hooks.json`; relative → resolved against `caseDir`), `ignoreEvents` (default `["PostCompact"]` — fires only on compaction), `requireCommands` (default `true`). Emits metrics `hook_events_{declared,checked,fired,plugin_matched}`. The event→subtype mapping (`eventToSubtype`) itself is empirically confirmed **only** for `Stop` → `stop_hook_summary`; other declared event names fall back to the same snake_case + `_hook_summary` pattern. If the transcript yields zero recognizable `*_hook_summary` entries, it fails **loud** with a clear message — a deliberate guard against silently reporting every event as "did not fire" when the transcript's hook-capture shape differs from the assumed one. |
 | `llm-judge` | Judge-role model scores 0–100 with rationale via `generateObject`. **Input (fixed contract):** [1] `evaluation.md` verbatim, [2] distilled trajectory (tool steps, trimmed results, assistant text), [3] produced artifacts — `workspaceDiff` **plus only** files matching the evaluator's `artifacts` globs, each size-capped with explicit truncation markers (never the unbounded workspace), [4] QnA log. The harness interprets no criteria. The judge's output schema additionally requires `confidenceLevel` (0–100, §5.4) — **self-reported, always present**: the model's own estimate of how reliable its verdict is (verbalized confidence — a heuristic, imperfectly calibrated, but provider-independent; expected to track verdict reproducibility across repeats, untested). `perplexityLevel` (0–100, §5.4) is **measured, never asked**: computed from token logprobs over the judge's whole generated output when the provider exposes them (JSON/schema boilerplate tokens dilute the signal — known, accepted limitation); the Anthropic API exposes no logprobs, so with such judge models the field is absent, with a warning once per model per run — never an error (same warn-never-abort posture as P7). |
@@ -470,7 +470,7 @@ Combiner (§5.4 `gated-mean` default) produces the per-trial verdict `{pass, sco
 ## 12. LLM Layer, Cost & Keys
 
 - **Roles → models:** config maps `fast` / `workhorse` / `judge` (defaults to workhorse) to `"provider/model"` strings; a small provider map in `llm/providers.ts` resolves the prefix to an `@ai-sdk/*` factory. Adding a provider = add dependency + one map entry. Per-agent and per-case `models` overrides merge per D13, with the per-agent `AgentProfile.models` rung sitting between top-level `models` and case `models`: `top-level < agent profile < case < CLI`.
-- **Canonical current Anthropic model ids (avoid inventing variants):** Haiku 4.5 = `claude-haiku-4-5`, Sonnet 5 = `claude-sonnet-5`, Opus 4.8 = `claude-opus-4-8`. Harness-role strings (`fast`/`workhorse`/`judge`) take the `anthropic/` provider prefix, e.g. `anthropic/claude-sonnet-5`; `AgentProfile.agentModel` takes the bare id, e.g. `claude-sonnet-5`.
+- **Canonical current Anthropic model ids (avoid inventing variants):** Haiku 5.5 = `claude-haiku-5-5`, Sonnet 5.5 = `claude-sonnet-5-5`, Opus 5.5 = `claude-opus-5-5`. Harness-role strings (`fast`/`workhorse`/`judge`) take the `anthropic/` provider prefix, e.g. `anthropic/claude-sonnet-5-5`; `AgentProfile.agentModel` takes the bare id, e.g. `claude-sonnet-5-5`.
 - **Keys:** resolved once at orchestrator startup — `CURIOCITY_<PROVIDER>_KEY` env, falling back to provider-standard vars, or a `.env` file; typically injected by the CI secret store. Held in memory, shipped to Curions via IPC only (§4 secrets mechanism), masked in logs, never on disk.
 - **Cost meter:** every router call records `{role, model, usage}`; adapter `extractUsage` adds the agent's own tokens from the trajectory. Token counts are always reported. **Dollar amounts are computed only from the config `pricing` map** (`provider/model → {inputPer1M, outputPer1M}`); models missing from the map report tokens-only with a warning. Over configured budget → warn, never abort (P7).
 - **Usage schema (full breakdown, maximal collection):** every usage record — harness-side and agent-side — carries `{ input, output, reasoning, cacheWrite, cacheRead, total }` (fields 0 when the provider doesn't report them) **plus `raw`**, a passthrough of the provider's native usage object so nothing is ever dropped. Sources: Anthropic reports `cache_creation_input_tokens`/`cache_read_input_tokens` (thinking tokens are included in output); OpenAI/Codex report `reasoning_output_tokens` and `cached_input_tokens`; the Claude transcript's per-message `usage` and Codex's `event_msg:token_count` carry the same fields — adapters map ALL of them, not just input/output. Itemization is always **per model × per source** (the agent's own model, and each harness role fast/workhorse/judge), rolled up per trial → per (case×agent) group → suite. `pricing` optionally prices cache tiers (`cacheWritePer1M`, `cacheReadPer1M`, `reasoningPer1M` — falling back to `outputPer1M` for reasoning and `inputPer1M` discounts absent); unpriced components report tokens-only with a warning, never silently. Reporters render the full matrix (suite.md: one table row per model × source with all token classes + $).

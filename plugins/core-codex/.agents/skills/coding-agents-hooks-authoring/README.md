@@ -1,6 +1,8 @@
 # coding-agents-hooks-authoring
 Reference sheet for authoring, registering, and debugging Rosetta's cross-IDE hooks and their SemanticKind taxonomy.
 
+Author, register, and debug hooks that fire on agent actions across every supported IDE.
+
 ## Why it exists
 Without this skill a capable model would place a new hook helper file directly at the top level of `src/hooks/src/hooks/`, assume the bundler recurses into subdirectories, forget to add the hook to every plugin's `hooks.json.tmpl`, or widen a JSON matcher without also updating `lookupToolKind`/`toolKinds` — each of these produces a hook that silently never fires (or produces a dead bundle) with no error at authoring time, only a CI regression-test failure or a runtime no-op.
 

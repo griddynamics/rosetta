@@ -110,7 +110,7 @@ Each subagent is a separate file: `.cursor/agents/subagent-name.md`
 ---
 name: debugger
 description: Debugging specialist for errors and test failures. Use when encountering issues.
-model: fast
+model: composer-2.5
 readonly: false
 is_background: false
 ---
@@ -139,7 +139,7 @@ Focus on fixing the underlying issue, not symptoms.
 |-------|----------|------|-------------|
 | `name` | No | string | Unique identifier (lowercase, hyphens). Defaults to filename without extension. |
 | `description` | No | string | Explains when to use this subagent. Agent reads this to decide delegation. |
-| `model` | No | string | Only one specific model to use: `composer-2-fast` or model id below or (omitted). Omitted means `inherit`. See Models section below. Only one model is allowed. |
+| `model` | No | string | Only one specific model to use: `composer-2.5` or `composer-2-fast` or model id below or (omitted). Omitted means `inherit`. See Models section below. Only one model is allowed. |
 | `readonly` | No | boolean | If `true`, subagent runs with restricted write permissions. |
 | `is_background` | No | boolean | If `true`, subagent runs in background without waiting for completion. |
 
@@ -148,6 +148,15 @@ Focus on fixing the underlying issue, not symptoms.
 The `model` field accepts the following model id values:
 - (omitted) - Inherits model from parent agent (default)
 - `auto` - Selects cheapest matching model, avoid use of it!
+- `composer-2.5` - Uses a very fast and cheap model (for simple tasks, like executing a predefined set of scripts and analyzing the output)
+- `claude-opus-5-5` - Anthropic Claude 5.5 Opus (most capable, with extended reasoning, expensive)
+- `claude-sonnet-5-5` - Anthropic Claude 5.5 Sonnet
+- `claude-haiku-5-5` - Anthropic Claude 5.5 Haiku
+- `gpt-6.1-sol` - OpenAI GPT 6.1 Sol (architect)
+- `gpt-6-luna` - OpenAI GPT 6 Luna with high reasoning efforts
+- `gemini-4-argon` - Google Gemini 4 Argon
+- `gemini-3.8-flash` - Google Gemini 3.8 Flash
+- `grok-4.7` - xAI Grok 4.7
 - `composer-2-fast` - Uses a very fast and cheap model (for simple tasks, like executing a predefined set of scripts and analyzing the output)
 - `claude-4.8-opus-high-thinking` - Anthropic Claude 4.8 Opus (most capable, with extended reasoning, expensive)
 - `claude-5-sonnet` - Anthropic Claude 5 Sonnet

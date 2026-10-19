@@ -68,11 +68,11 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-08-19</changed>
+  <changed>2026-10-13</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: logical key `sonnet` When: normalized Then: Claude→`claude-sonnet-5`, Cursor→`claude-sonnet-5`, Copilot→`Claude Sonnet 5`.</criteria>
-    <criteria>Given: exact source token `claude-5-opus-high` When: normalized Then: Claude→`claude-opus-5`, Cursor→`claude-opus-5`, Copilot→`Claude Opus 5`.</criteria>
+    <criteria>Given: source token `claude-5-sonnet`, which carries the logical key `sonnet` When: normalized Then: Claude→`claude-sonnet-5-5`, Cursor→`claude-sonnet-5-5`, Copilot→`Claude Sonnet 5.5`.</criteria>
+    <criteria>Given: exact source token `claude-5-opus-high` When: normalized Then: Claude→`claude-opus-5-5`, Cursor→`claude-opus-5-5`, Copilot→`Claude Opus 5.5`.</criteria>
     <criteria>Given: a `gpt-*` value When: normalized for Codex Then: a base model and optional reasoning-effort are derived.</criteria>
     <criteria>Given: an active profile declaring a block for a target When: that target's effective vocabulary is resolved Then: the profile block replaces the built-in mapping in full and any model token it does not name is treated as unmapped.</criteria>
   </acceptance>
@@ -104,7 +104,7 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
 
 <req id="DATA-CFG-0006" type="DATA" level="System" ticketId="" classification="technical"
      source="User" priority="Must" verification="Inspection"
-     status="Approved" approved_by="User" changed="2026-08-19"
+     status="Approved" approved_by="User" changed="2026-10-13"
      depends="DATA-CFG-0003, DATA-CFG-0004, DATA-CFG-0005"
      implementation="Implemented">
   <title>Profile descriptor</title>
@@ -143,9 +143,9 @@ Reference valid profile:
   "pluginNameSuffix": "-light",
   "pluginDescriptionSuffix": " (lightweight)",
   "modelOverrides": {
-    "core-claude":  { "opus": "claude-sonnet-5", "sonnet": "claude-sonnet-5" },
+    "core-claude":  { "opus": "claude-sonnet-5-5", "sonnet": "claude-sonnet-5-5" },
     "core-cursor":  { "claude-sonnet-5": "gpt-5.4", "claude-opus-4-8": "gpt-5.4" },
-    "core-copilot": { "claude-opus-4-8": "Claude Sonnet 5" },
+    "core-copilot": { "claude-opus-4-8": "Claude Sonnet 5.5" },
     "core-codex":   { "gpt-5.5-high": "gpt-5.4-medium" }
   }
 }

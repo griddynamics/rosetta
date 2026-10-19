@@ -49,14 +49,14 @@ Known auto-approve issues:
 YOUR INTERNAL KNOWLEDGE ABOUT MODEL NAMES, CLI FLAGS, AND TOOL VERSIONS IS STALE. Use ONLY the names and flags listed in this skill. Do NOT substitute from memory. If unsure about a model name, omit the model flag and let the CLI use its default. The ids below are a dated snapshot and a later vendor release can supersede any of them: on an `unknown model` / `invalid model` rejection, drop the model flag and relaunch on the CLI default — never swap in a name from memory.
 
 Model selection guidance — assign by COST TIER (workhorse / complex / fast); the tier is the contract, the id is a snapshot:
-- Anthropic: `claude-sonnet-5` (workhorse), `claude-opus-5` (complex), `claude-haiku-4-5` (fast)
-- OpenAI: `gpt-5.6-terra` (workhorse), `gpt-5.6-sol` (complex), `gpt-5.6-luna` (fast); reasoning effort is a separate setting (`model_reasoning_effort`), never a suffix on the id
-- Google: `gemini-3.7-flash` (workhorse and fast); no verified current id for a pro/complex tier — omit `-m` there
+- Anthropic: `claude-sonnet-5-5` (workhorse), `claude-opus-5-5` (complex), `claude-haiku-5-5` (fast)
+- OpenAI: `gpt-6-luna` (workhorse at `high` effort; fast at `low`/`medium`), `gpt-6.1-sol` (complex); reasoning effort is a separate setting (`model_reasoning_effort`), never a suffix on the id
+- Google: `gemini-3.8-flash` (workhorse and fast), `gemini-4-argon` (complex)
 - Copilot: select via `--model`; supports claude, gpt, gemini families through GitHub
-- OpenCode: prefix with provider, e.g. `anthropic/claude-sonnet-5`, `openai/gpt-5.6-terra`
+- OpenCode: prefix with provider, e.g. `anthropic/claude-sonnet-5-5`, `openai/gpt-6-luna`
 - Goose: set in `~/.config/goose/profiles.yaml`
 
-OpenCode: prefix with provider, e.g. `anthropic/claude-sonnet-5`, `openai/gpt-5.6-terra`.
+OpenCode: prefix with provider, e.g. `anthropic/claude-sonnet-5-5`, `openai/gpt-6-luna`.
 Copilot: select via `--model`; supports claude, gpt, gemini families through GitHub.
 Goose: set in `~/.config/goose/profiles.yaml`.
 
@@ -97,12 +97,12 @@ Launch each CLI in background using the Shell tool with `block_until_ms: 0` and 
 
 Claude Code:
 ```
-claude -p "PROMPT" --dangerously-skip-permissions --model claude-sonnet-5 --max-turns 30 --output-format json --no-session-persistence
+claude -p "PROMPT" --dangerously-skip-permissions --model claude-sonnet-5-5 --max-turns 30 --output-format json --no-session-persistence
 ```
 
 Codex:
 ```
-codex exec "PROMPT" --yolo -m gpt-5.6-terra --ephemeral -o result.txt
+codex exec "PROMPT" --yolo -m gpt-6-luna --ephemeral -o result.txt
 ```
 
 Copilot:
@@ -112,7 +112,7 @@ copilot -p "PROMPT" --yolo --model MODEL --silent
 
 Gemini (set `GEMINI_YOLO_MODE=true` in env before launch):
 ```
-gemini -p "PROMPT" --yolo -m gemini-3.7-flash --output-format json
+gemini -p "PROMPT" --yolo -m gemini-3.8-flash --output-format json
 ```
 
 OpenCode (set `OPENCODE_YOLO=true` in env before launch):

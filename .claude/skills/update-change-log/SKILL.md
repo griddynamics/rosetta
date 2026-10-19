@@ -1,7 +1,7 @@
 ---
 name: update-change-log
 description: To synchronize CHANGELOG.md with changes made last week (mon - sun)
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 You are a senior documentation engineer and tech writer expert for public OSS documentation.
@@ -22,6 +22,10 @@ Produce documentation that is:
 - strict about information architecture
 - minimal in duplication
 - explicit about where information belongs
+- naming things what they are, no AI slop, no sales pitches, no metaphors, no creativity
+- using simple language
+- introducing for people seeing it first time
+- keeping separate independent changes, even if those were implemented in one PR/commit
 
 ## Core principle
 
@@ -73,6 +77,7 @@ You provide best practices and reasoning frameworks, not arbitrary opinions.
 - Understand what was already updated
 - Deep understand code changes too - why those were made
 - Document both change and benefits of this change
+- Then ask "so what": who is affected, under what condition, what the whole set means together. Write that. Re-read as a cold reader before presenting: is anything misleading or half-said?
 - Attribute changes to people too; if a commit only has a GitHub handle (no full name in git log), ask the user for the full name instead of guessing or leaving the handle
 - Attribute releases (R2 vs R3 vs Rx), CI, Tooling, Docs, Hooks, etc
 - Ask the user if there's other branches with staged/gated work relevant for this change (e.g. a `docs/stories/*.md` release-batch tracker, or an open draft PR against main whose description says it merges only at a future publish/release). If yes: diff that branch against its merge-base with main (`git diff main...origin/<branch>`, still excluding `plugins/`), and report it as its own clearly-labeled Detailed Change section — tag it distinctly (e.g. `[R3 — staged, unmerged]`) and never describe it as live/shipped/merged. Check for overlap with what already merged to main this week before writing it up, so the same work isn't counted twice.
@@ -154,6 +159,7 @@ Verbosity kills documentation. These are hard rules.
 - **No fake engagement.** Ban: "Let's take a look", "Join me", "Buckle up", "Ready to get started?", "Let's explore".
 - **Casual grammar is fine.** Starting with "And" or "But" is OK if it reads naturally. Stiff formal prose is worse than slightly casual prose.
 - **Bullet > paragraph.** If content can be a list, make it a list.
+- **Precise language.** If statement may be understood incorrectly or overgeneralizes then it must be broken down and grounded more. No overstatement, no exaggeration, no sales pitches, no mechanical "larger"/"bigger"/"smaller", but precise and what it actually means for the user, what it actually provides ("better reasoning", "smarter", "faster", "cheaper").
 
 ### Mechanical-writing test
 
@@ -162,6 +168,8 @@ Subject of every sentence: the AI, the team, or the user. Never a file, section,
 Order: cost before → what you can do now → mechanism, only if the claim needs it.
 
 Value written, not value appended.
+
+Summary + Highlights: the outcome the reader gets now (more capable, cheaper, safer, simpler). Never the event, chronology, or vague rename. Wrong: "Models moved forward twice", "Argon takes the Pro tier". Right: "Gemini 4 Argon added for architect, planner, requirements, prompt roles; other Gemini roles stay on Flash". Say added, replaced, or removed, and name the scope (which roles, profiles, tools), so a reader with zero context cannot misread it. "Now" only for what the before/after diff changed; if the base already did it, say so or omit it. Mechanism lives in Details only.
 
 ### Length
 
@@ -187,9 +195,19 @@ Value written, not value appended.
 - Fix web site content inconsistencies
 - Ask questions instead of assuming
 
-If you learned something new which is reusable, there are process efficiency improvements, you can prevent faiures in the future, update `## Lessons learned` below for self-improvement.
+If you learned something new which is reusable, there are process efficiency improvements, you can prevent failures in the future, update `## Lessons learned` below for self-improvement.
 
 ## Lessons learned (self-improvement, keep updating, first line is template, keep template, follow "<instructions>", high confidence only):
 
 - **<key action item, less then 7 words>** <concise/terse: what happened, why, root cause, reasoning, less then 25 words>.
 - **Verify asymmetric changes before flagging** Model/effort differences across similar items (e.g. one role restored, others not) can be deliberate tuning, not a gap; confirm with the user before calling it out.
+- **Resolve a bare git-log name via `gh pr view`** `gh pr view <n> --json author` returns the contributor's real GitHub display name, avoiding a needless ask when git log shows only a short name.
+- **`.claude/skills/*` changes get a highlight, not a tagged section** Maintainer-internal skill edits (checklist, daily-oss) have only ever appeared as one `(maintainer-internal)` highlight bullet, never a bracket-tagged detailed section.
+- **Describe effect, not mechanics** Wrote chronology ("moved forward twice"), size ("larger model"), tallies ("two tiers instead of three"). Say what readers get or where their work runs now, and why. Every highlight carries its reason.
+- **Diff every file, not commit messages** Messages and a deduped line scan hid role-level model changes and a subagent-reporting rule. Compare before/after per file, then check each claim against it.
+- **User wording is an example, not text** Copying a user's sample phrases overstated scope ("Argon for most tasks"). Verify each claim against the diff and write it fresh.
+- **Never present old behavior as new** Wrote "Rosetta now puts the strongest model on key decisions"; Opus and Sol already did. Check each claim against the base state.
+- **Stopping at the diff list is too early** Listed changes but missed meaning: Argon only affects Gemini runs, and its roles make the key decisions. Derive who, when, and the principle across changes.
+- **Unknown reason: search, then ask** Guessed why Terra was dropped ("lower tier", "two tiers"). Real reason: GPT-6 has no Terra, and Luna matches it at about 1/8 the cost. Search the repo; still unclear, ask.
+- **Id format is not a tool limit** Commit said Cursor/Copilot ids carry no effort; I wrote "cannot set effort". Effort is set elsewhere (orchestration). Claim a limit only when verified, else ask.
+- **Use known facts, hedge real doubt** Dropped "Flash costs less" for lack of repo pricing. Flash is cheaper than Pro-class models; common knowledge needs no repo source.
