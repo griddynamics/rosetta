@@ -168,7 +168,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 
 ### Task 2 (large): age-restricted products
 
-**Prompt:**
+**Starter Prompt:**
 
 ```text
 Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
