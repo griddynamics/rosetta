@@ -66,7 +66,7 @@ cd "$BENCH_DIR" && CLAUDE_CONFIG_DIR="$GRILL/claude" claude
 
 Run `/login` with your work account. Then check, in the same session:
 
-- `/plugin` → **Installed**: only the skills `grill-with-docs`, `grilling`, `domain-modeling`. No "claude.ai sync" skills, no project skills, no MCP, built-in plugins switched off;
+- `/plugin` → **Installed**: only the skills `grill-with-docs`, `grilling`, `domain-modeling`. No "claude.ai sync" skills, no project skills, no MCP, built-in plugins switched off except `agents-md` and `diff` (BENCHMARKS.md, section 3.5);
 - `/mcp`: no MCP servers (no claude.ai connectors).
 
 Anything else in these lists means the environment isn't clean: fix it before any run.

@@ -63,7 +63,7 @@ cd "$BENCH_DIR" && CLAUDE_CONFIG_DIR="$BASE/claude" claude
 
 Run `/login` with your work account. Then check, in the same session:
 
-- `/plugin` → **Installed**: nothing, built-in plugins switched off. No "claude.ai sync" skills;
+- `/plugin` → **Installed**: nothing, built-in plugins switched off except `agents-md` and `diff` (BENCHMARKS.md, section 3.5). No "claude.ai sync" skills;
 - `/skills`: no skills (no user, project or synced skills);
 - `/mcp`: no MCP servers (no claude.ai connectors).
 
