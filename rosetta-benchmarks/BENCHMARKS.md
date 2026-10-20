@@ -8,7 +8,7 @@ A run counts only if the result is merge-ready, not a draft that needs cleanup.
 
 | # | Method | What is installed for the run |
 | ---: | --- | --- |
-| 1 | Baseline | Only the shared team rules file (see 3.3). No method, no plugins |
+| 1 | Baseline | Only the shared team rules file (see 3.3). No method, no plugins. Runs start in the runner's built-in plan mode (see 5, "Method steps"). Guide: [saleor/methods/baseline.md](./saleor/methods/baseline.md) |
 | 2 | Grill-with-docs | [mattpocock/skills `grill-with-docs`](https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs) ([docs](https://github.com/mattpocock/skills/blob/main/docs/engineering/grill-with-docs.md)) at commit `447ca70872026d5b79d6073a546dac082117fed7` (2026-08-15) |
 | 3 | Superpowers | [obra/superpowers](https://github.com/obra/superpowers) **v6.4.2** (2026-09-25) |
 | 4 | Spec Kit | [github/spec-kit](https://github.com/github/spec-kit) **v1.0.13** (2026-09-29) + one constitution per repo |
@@ -32,7 +32,7 @@ Methods 1–6 come from the presentation slide "Six approaches, one more if time
 - No other agent products (Codex, Cursor, API scripts, …).
 - Automatic model switching / Auto model selection is OFF.
 - The two runners use different models, so a Claude Code vs Copilot difference is a product + model difference. Methods are compared **within** one runner.
-- **Full-access (YOLO) mode, sandbox disabled**, so permission prompts don't affect the test: Claude Code `claude --dangerously-skip-permissions`; Copilot `chat.tools.autoApprove: true` with terminal confirmations off. **This is not normal usage. Use it only for this test**, only in disposable benchmark clones with synthetic data, and revert it after the study.
+- **Full-access (YOLO) mode, sandbox disabled**, so permission prompts don't affect the test: Claude Code `claude --dangerously-skip-permissions`; Copilot `chat.tools.autoApprove: true` with terminal confirmations off. Baseline starts in plan mode instead and switches to full access when the plan is approved: Claude Code `claude --allow-dangerously-skip-permissions --permission-mode plan`, approved with "Yes, and bypass permissions"; Copilot: the chat's Plan mode (see [saleor/methods/baseline.md](./saleor/methods/baseline.md)). **This is not normal usage. Use it only for this test**, only in disposable benchmark clones with synthetic data, and revert it after the study.
 
 ## 3. Environment setup (once)
 
@@ -90,7 +90,7 @@ The script does this; this section explains what and why. So that no method gets
 
 Then it adds **one simple team rules file** to every repo, as on the presentation slide ("one instruction file per repository"): [saleor/baseline-instructions.md](./saleor/baseline-instructions.md), general team rules only, no hints about the tasks. It is copied as `CLAUDE.md` and `.github/copilot-instructions.md`, so each runner reads it.
 
-The tag `baseline-v1` is the starting point for **every** method, so all 7 methods get the same rules file. Baseline = runner + model + this file; every other method = the same + its own tool. Never change this file during the study. If a method's init step wants to change `CLAUDE.md` or `copilot-instructions.md`, let it, and record that in its protocol.
+The tag `baseline-v1` is the starting point for **every** method, so all 7 methods get the same rules file. Baseline = runner + model + this file (started in the runner's plan mode, which is built in, not installed); every other method = the same + its own tool. Never change this file during the study. If a method's init step wants to change `CLAUDE.md` or `copilot-instructions.md`, let it, and record that in its protocol.
 
 ### 3.5 Set up each method (once)
 
@@ -258,10 +258,11 @@ Rosetta and Rosetta Light runs only: if something is wrong with the implementati
 
 ### Method steps: equal chances for multi-step methods
 
-Some methods need more than one command by design (Spec Kit: specify → plan → tasks → implement; AI-DLC approval gates; Grill-with-docs interview → next stage).
+Some methods need more than one command by design (Spec Kit: specify → plan → tasks → implement; AI-DLC approval gates; Grill-with-docs interview → next stage; Baseline: plan mode → plan approval → implementation).
 
 - The task prompt text is identical for all methods. If the method has an entry command, put it in front of the prompt (for example `/speckit-specify <prompt>`; Spec Kit v1.0.13 flow: `/speckit-constitution` once, then `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`). Record the command in the protocol.
 - When the method stops and waits for its own next step or approval, the programmer sends only that command or the fixed phrase **"Approved, continue."**, with no hints. These are counted as `method_steps`, **not** follow-ups.
+- **Baseline:** same prompt, no entry command; the session starts in plan mode. Approve the plan in the runner's menu with the option that also bypasses permissions, and answer any later permission-only stop with **"Approved, continue."**. Each approval counts as a method step (`method_steps`). Details: [saleor/methods/baseline.md](./saleor/methods/baseline.md).
 - Questions the method asks (including the grill interview) are answered like any other question (step 5).
 - Method steps still count in time and usage. So a method with more ceremony pays for it in time and tokens, but not in the follow-up count.
 
@@ -302,7 +303,7 @@ Then write <RUN_DIR>/agent-report.md containing:
 Do not make any further code changes.
 ```
 
-`<RUN_DIR>` = absolute path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/<method>/`, e.g. `runs/large-age-restriction/claude-code/rosetta/`. The programmer creates this folder before sending the prompt. One folder per run holds everything: `report.md` (operator), `agent-report.md`, `tokens.md`, and `<repo>.diff` for each repo that changed.
+`<RUN_DIR>` = absolute path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/<method>/`, e.g. `runs/large-age-restriction/claude-code/rosetta/`. The programmer creates this folder before sending the prompt. One folder per run holds everything: `report.md` (operator), `agent-report.md`, `tokens.md`, `<repo>.diff` for each repo that changed, and `plan.md` (Baseline: the approved plan, if the runner saved it).
 
 ## 6. How we compare
 
@@ -392,7 +393,7 @@ rosetta-benchmarks/
     ├── methods/<method>.md                     # quick install + run guide per method
     ├── templates/                              # run report templates + metric definitions (README.md)
     ├── prompts/                                # frozen copies of the prompts
-    ├── runs/<task>/<runner>/<method>/          # one folder per run: report.md, agent-report.md, tokens.md, <repo>.diff
+    ├── runs/<task>/<runner>/<method>/          # one folder per run: report.md, agent-report.md, tokens.md, <repo>.diff (+ plan.md for Baseline)
     └── reports/                                # judge outputs, mapping.csv, summary tables
 ```
 
