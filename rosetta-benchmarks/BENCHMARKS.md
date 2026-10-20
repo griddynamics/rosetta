@@ -86,6 +86,7 @@ The script does this; this section explains what and why. So that no method gets
 | `saleor` | `CLAUDE.md`, `AGENTS.md`, `.claude/` |
 | `saleor-dashboard` | `CLAUDE.md`, `AGENTS.md`, `.claude/`, `.agents/`, `.github/instructions/` |
 | `react-storefront` | `AGENTS.md`, `skills/`, `skills-lock.json`, `.cursor/`, `.cursorignore` |
+| all three | every nested `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `*.mdc` anywhere in the tree (e.g. `saleor/graphql/CLAUDE.md`, `src/lib/AGENTS.md`) |
 
 Then it adds **one simple team rules file** to every repo, as on the presentation slide ("one instruction file per repository"): [saleor/baseline-instructions.md](./saleor/baseline-instructions.md), general team rules only, no hints about the tasks. It is copied as `CLAUDE.md` and `.github/copilot-instructions.md`, so each runner reads it.
 
@@ -98,9 +99,29 @@ The tag `baseline-v1` is the starting point for **every** method, so all 7 metho
 Every method runs with no help from any other AI: no other method, no other plugin, skill, MCP server, instruction file or AI tool. What the agent produces must come only from the runner + model + the method under test.
 
 - **Separate environment per method.** Never install a method into the shared user config. Give each method its own:
-  - Claude Code config dir: `export CLAUDE_CONFIG_DIR="$HOME/saleor-benchmark/envs/<method>/claude"` before starting `claude`. Install the method's plugin/skills there. Baseline gets an empty one.
+  - Claude Code config dir: `export CLAUDE_CONFIG_DIR="$HOME/saleor-benchmark/envs/<method>/claude"` before starting `claude`. Install the method's plugin/skills there. Baseline gets only the settings below.
   - VS Code profile: `code --profile bench-<method>`, with only the GitHub Copilot extensions in it, plus that method's plugin.
   - Copilot CLI (Superpowers only): back up and empty `~/.copilot` before installing; restore it after the Superpowers runs.
+- **Common Claude Code settings.** Every method's config dir starts with this `$CLAUDE_CONFIG_DIR/settings.json` (Baseline: nothing else). A work login is a claude.ai org account: without these settings it syncs the org's plugins, skills and connectors into every config dir, and the isolation check fails. Turning skills off in `/skills` does not persist across restarts; these settings do. If the dir was already used with sync on, delete `$CLAUDE_CONFIG_DIR/plugins/synced/`, start `claude` again and re-check.
+
+```json
+{
+  "model": "claude-sonnet-5-5",
+  "effortLevel": "medium",
+  "disableClaudeAiConnectors": true,
+  "syncClaudeAiSkills": false,
+  "syncClaudeAiPlugins": false,
+  "autoMemoryEnabled": false,
+  "disableAllHooks": true,
+  "enabledPlugins": {
+    "cc-plugin-plugin-authoring@builtin": false,
+    "cc-plugin-sec-default@builtin": false,
+    "cc-plugin-telemetry@builtin": false
+  },
+  "env": { "DISABLE_AUTOUPDATER": "1", "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1", "ENABLE_CLAUDEAI_MCP_SERVERS": "false" }
+}
+```
+
 - **Repo tags.** Each method's tag is built directly on `baseline-v1`, never on another method's tag, so repos contain only that method's files.
 - **Nothing global.** No user-level `CLAUDE.md`, agents, commands, hooks or MCP servers; no user-level Copilot instructions or prompt files; Copilot memory off; no other AI extensions in the profile (Codex, Cursor, Continue, Cline, Claude Code extension, …). If a method's installer writes global files or hooks (check AI-DLC), remove them after its runs and before any other method.
 - **No human-side AI.** The programmer answers questions and writes follow-ups themselves. Don't use ChatGPT, another agent, or another session to answer, to review the result, or to write a follow-up.
@@ -109,8 +130,10 @@ Every method runs with no help from any other AI: no other method, no other plug
 ```bash
 claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" "$CLAUDE_CONFIG_DIR/agents" "$CLAUDE_CONFIG_DIR/commands" 2>/dev/null
 code --profile bench-<method> --list-extensions
-for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" describe --tags; done
+for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" describe --tags; git -C "$HOME/saleor-benchmark/$r" status --porcelain; done
 ```
+
+Expected: only the method's plugins (none for Baseline), no MCP servers, the method's tag in all 3 repos, and no `status` lines (repos clean before T0). In the Claude Code session, `/skills` must list only the method's skills: no "claude.ai sync" ones.
 
 #### Install
 
@@ -118,7 +141,7 @@ Install at the pinned version only. Disable auto-update. Run the method's per-re
 
 | Method | Claude Code | Copilot |
 | --- | --- | --- |
-| Grill-with-docs | Copy `skills/engineering/grill-with-docs/` from the pinned commit into `$CLAUDE_CONFIG_DIR/skills/grill-with-docs/` (the Grill environment only) | No official support. **Manual port:** copy the same folder into `.github/skills/grill-with-docs/` in each repo (VS Code agent skills) |
+| Grill-with-docs | Copy 3 skills from the pinned commit into `$CLAUDE_CONFIG_DIR/skills/`: `grill-with-docs` + the two it calls, `grilling` and `domain-modeling`. Step by step: [saleor/methods/grill-with-docs.md](./saleor/methods/grill-with-docs.md) | No official support. **Manual port:** copy the same 3 skills into the workspace root `.github/skills/` after every reset (same guide) |
 | Superpowers | `git clone --branch v6.4.2 https://github.com/obra/superpowers` → `claude plugin marketplace add ./superpowers` → install `superpowers` from it | Official support is **Copilot CLI only**: install the same pinned checkout with `copilot plugin marketplace add ./superpowers` + `copilot plugin install superpowers@…`; run in Copilot CLI with full access and model GPT-6.1 Sol, medium (check the exact flags with `copilot --help` after installing) |
 | Spec Kit | `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@v1.0.13`, then in each repo `specify init --here --integration claude` and write the constitution | Same CLI; `specify init --here --integration copilot` |
 | AWS AI-DLC | `curl -fsSL https://github.com/awslabs/aidlc-workflows/releases/download/v2.10.0/install.sh \| sh`, then in each repo `aidlc config --harness claude` | Same installer; in each repo `aidlc config --harness copilot` (writes the Copilot files into the repo) |
@@ -194,13 +217,44 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | 8 | Birthday boundary and time zone? | A customer who turns the required age today is eligible today. Compare dates, not times; "today" is the current date in the shop's time zone. Someone born on 29 February becomes eligible on 1 March in non-leap years. |
 | 9 | PII: who can see the birthday? | The birthday is personal data. Only the customer (own account) and a super-admin can see it. It is not in any public API, public profile, unauthenticated endpoint, webhook payload or export. Support and sales staff can't see it (at most a yes/no "age eligible" flag). Every change and every staff read of a birthday is audit-logged. |
 
+### Questions that are not in the tables
+
+The prompts are short on purpose, like a real ticket, so agents will also ask things the tables above don't cover (field name, label text, error wording, where a setting goes in the dashboard, …). The programmer decides these as the product owner. To keep all runs fair:
+
+- **One answer per question for all runs.** Before answering, look in the tables below. If the question is there, give that answer, word for word. If not, decide, answer, and add a row right away (with the run ID), so every later run (any method, any runner) gets the same answer.
+- **Never change an answer already given in a run.** If one was wrong, add a note and discuss it with the team.
+- **Answer only what was asked.** Don't add decisions the agent didn't ask about, and don't hint at hidden questions.
+- **Not asked = not a defect.** If an agent didn't ask and chose something else that is still reasonable, it is not a mistake. Only the "Done when" lines and the hidden-question tables are scored; the judge checks each run only against the answers given in that run.
+- Mark these questions as `extra` in the run report; they don't count as hidden questions.
+
+**Task 1 (small): extra answers**
+
+| # | Question | Answer | First asked in |
+| ---: | --- | --- | --- |
+| 1 | Where does the value live: a real field on Product, or metadata / an attribute? | A first-class nullable field on Product. | S-CC-02 |
+| 2 | How is it shown on the storefront: a separate block, or inside the description HTML? | A separate labelled block after the description, hidden when empty. | S-CC-02 |
+| 3 | Name of the field? | `storageConditions` in the API, "Storage conditions" in the UI. | S-CC-02 |
+| 4 | What does "everything passes locally" include? E2E tests? | Unit tests and linters in all three repos, plus a manual check on the local stack. No Playwright e2e tests. | S-CC-02 |
+| 5 | Where is the 250-character limit enforced (DB column, API validation, dashboard input, translation)? | Everywhere: 250 in the column, the API validation and the dashboard input; the translation uses the same limit. | S-CC-02 |
+| 6 | Whitespace-only input: store as empty? | Yes. Trim it, and treat a blank result as empty. | S-CC-02 |
+| 7 | Where does the input go in the dashboard product page? | In the General Information card, under the description. | S-CC-02 |
+| 8 | Empty or missing translation: fall back to the base value? | Yes. An empty or missing translation falls back to the base value. | S-CC-02 |
+| 9 | Settable at product creation? CSV import? | Include it in create, update and the translation mutation. Import is out of scope. (Export and webhooks: hidden question 6.) | S-CC-02 |
+| 10 | ADR? Changelog? | No ADR. Add a short CHANGELOG entry and regenerate the schema where needed. | S-CC-02 |
+
+**Task 2 (large): extra answers**
+
+| # | Question | Answer | First asked in |
+| ---: | --- | --- | --- |
+| | | | |
+
 ## 5. Running one experiment
 
-### No limits, but contact Rosetta if it goes wrong
+### No limits, but contact Rosetta if a Rosetta run goes wrong
 
 There is no time limit and no follow-up limit: keep going until the task is fully done. Time and follow-ups are still measured (T0/T1/T2, `followup_count`).
 
-If something is wrong with the implementation and fixing it takes too much time, contact the Rosetta team before going on. Write that in the protocol.
+Rosetta and Rosetta Light runs only: if something is wrong with the implementation and fixing it takes too much time, contact the Rosetta team before going on. Write that in the run report. Other methods: no outside help; keep going with follow-ups.
 
 ### Method steps: equal chances for multi-step methods
 
@@ -228,27 +282,27 @@ Then start a **new** agent session: Claude Code with no earlier session or memor
 1. Reset (above) and pass the isolation check (3.5). Check the runner, model and effort (section 2). Confirm the method is active, e.g. ask what it can do and check that it lists its own workflows. If it isn't active, reset and retry; this is not a scored failure.
 2. **Start the timer** and send the task prompt (T0).
 3. Don't interrupt or help the agent. Send only method steps when the method asks for them.
-4. If the agent asks a question, **the programmer answers it themselves**, as a normal product owner would. If it matches a hidden question, give the answer from that task's table and mark it **asked**. Write the question and the answer in the protocol.
+4. If the agent asks a question, **the programmer answers it themselves**, as a normal product owner would. If it matches a hidden question, give the answer from that task's table and mark it **asked**. If not, use the extra answers (section 4, "Questions that are not in the tables"). Write the question and the answer in the protocol.
 5. When the agent first says it's done: **stop the first-pass timer (T1)** and save usage at this point.
 6. **Hidden-question check.** For every hidden question not asked yet, ask the AI in one message, without changing anything: *"Don't change any code, just answer: was each of these handled, and where? <list>"*. Mark each one **covered** (handled correctly without being asked) or **not covered**. This gives the first-pass coverage: asked + covered out of the total.
 7. Send follow-ups for not-covered items and anything broken, until the task is fully done. Count each follow-up and each item we had to point out (`missed_questions`).
 8. **Stop the final timer (T2)** when the last follow-up is done.
 9. Send the post-implementation prompt (below). **Only now, never in advance.**
-10. Save usage at the end, straight from the runner: Claude Code `/cost` (and `/usage`); Copilot: the session's premium-request counter. Save it raw, both the T1 and the T2 values, to `saleor/usage/<task>/<runner>/<method>.txt`. Don't recompute it.
-11. Fill the protocol `saleor/protocols/<task>/<runner>/<method>.md`: run ID, date, method version, T0/T1/T2, method steps, questions and answers, hidden-question marks, follow-ups (with reasons), notes. Update the status in EXPERIMENTS.md.
+10. Save usage at the end, straight from the runner: Claude Code `/cost` (and `/usage`); Copilot: the session's premium-request counter. Paste it raw, both the T1 and the T2 values, into Appendix A of the run report. Don't recompute it. Claude Code runs: also run `saleor/scripts/session-usage.py` on the session log; it writes `<RUN_DIR>/tokens.md` (tokens per model, per agent and subagent, per operator message, before / after T1, tool / skill / subagent calls). This shows where the tokens went, not only how many.
+11. Fill the run report `<RUN_DIR>/report.md`, copied from the template for the [small](./saleor/templates/run-report-small.md) or [large](./saleor/templates/run-report-large.md) task. All numbers go into its data block at the top; definitions and measurement rules are in [templates/README.md](./saleor/templates/README.md). Update the status in EXPERIMENTS.md.
 
 ### Post-implementation prompt
 
 ```text
 Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to <RUN_DIR>/<repo>.diff.
-Then write <RUN_DIR>/report.md containing:
+Then write <RUN_DIR>/agent-report.md containing:
 - experiment info: task, method, runner, model, start/end time;
 - a list of the actions you actually performed during this task, for example: wrote code, reviewed the code, wrote tests, ran tests, ran tests multiple times, ran tests in a different order, cleaned up leftovers, updated documentation, started the application, checked the API, took a screenshot of the final result;
 - for each action, whether it was done (yes/no) and short evidence (command, file, or output).
 Do not make any further code changes.
 ```
 
-`<RUN_DIR>` = absolute path to `rosetta-benchmarks/saleor/diffs/<task>/<runner>/<method>/`, e.g. `diffs/large-age-restriction/claude-code/rosetta/`. The programmer creates this folder before sending the prompt. The result is `<repo>.diff` only for repos that changed, plus `report.md`.
+`<RUN_DIR>` = absolute path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/<method>/`, e.g. `runs/large-age-restriction/claude-code/rosetta/`. The programmer creates this folder before sending the prompt. One folder per run holds everything: `report.md` (operator), `agent-report.md`, `tokens.md`, and `<repo>.diff` for each repo that changed.
 
 ## 6. How we compare
 
@@ -274,8 +328,8 @@ Do not make any further code changes.
 
 ```text
 You are verifying a coding-agent run. Do not change any code.
-Inputs: <JUDGE_DIR>/<run_id>/ (diff files + report.md), the task prompt, and the checklist below.
-Spawn one subagent. The subagent must, for each checklist item and for each decision/promise the agent made in report.md:
+Inputs: <JUDGE_DIR>/<run_id>/ (diff files + agent-report.md), the task prompt, the checklist below, and the Q&A from the run protocol (every answer the programmer gave counts as a decision to check).
+Spawn one subagent. The subagent must, for each checklist item and for each decision/promise the agent made in agent-report.md:
 - find the exact place in the diff that implements it (file + hunk), or
 - mark it NOT IMPLEMENTED if there is only a mention, a TODO, or nothing.
 Return a table: item | status (implemented / partially / not implemented / not applicable) | evidence (file:line or "none").
@@ -288,8 +342,9 @@ Checklist:
 ```text
 You are an expert Saleor reviewer. Score ONE run in isolation. Do not compare it to any other run and do not modify any files.
 Task prompt: <PASTE TASK PROMPT>
-Evaluator checklist: <PASTE>
-Run materials: <JUDGE_DIR>/<run_id>/ (all *.diff files, report.md, verification table from step 0.3).
+Evaluator checklist: <PASTE "Done when" + hidden questions with answers>
+Answers the programmer gave in this run: <PASTE the Q&A from the run protocol>. A decision the agent was never told is not a defect if its choice is reasonable.
+Run materials: <JUDGE_DIR>/<run_id>/ (all *.diff files, agent-report.md, verification table from step 0.3).
 For each category give a score 1–5 using these anchors (1 missing/broken, 2 major gaps, 3 works with notable gaps, 4 minor issues only, 5 complete) and a 1–2 sentence justification citing files from the diff:
 1 Requirements coverage, 2 Hidden requirements, 3 Correctness, 4 Security & privacy, 5 Tests, 6 Code quality & conventions, 7 Verification evidence, 8 Merge-readiness.
 Also output: merge_ready (yes/no), blocking defects (list), total score (sum).
@@ -301,8 +356,9 @@ Save the result as <REPORTS_DIR>/<task>/<run_id>.absolute.md and as one JSON lin
 ```text
 You are an expert Saleor reviewer. Below are 7 anonymized solutions (run_ids only) to the SAME task, produced on the SAME runner/model. Read all the code first.
 Task prompt: <PASTE TASK PROMPT>
-Evaluator checklist: <PASTE>
-Solutions: <JUDGE_DIR>/<task>/<runner>/<run_id_1..7>/ (diffs + report.md + step 0.3 verification table).
+Evaluator checklist: <PASTE "Done when" + hidden questions with answers>
+Answers the programmer gave in this run: <PASTE the Q&A from the run protocol>. A decision the agent was never told is not a defect if its choice is reasonable.
+Solutions: <JUDGE_DIR>/<task>/<runner>/<run_id_1..7>/ (diffs + agent-report.md + step 0.3 verification table).
 Now that you have seen every solution, score EACH one again on the same 8 categories, 1–5, with the same anchors. Scores stay absolute (a 5 means "nothing to fix", not "best of the seven"); do not force a ranking and ties are allowed.
 For each solution give per-category scores with one-sentence justifications, merge_ready (yes/no), blocking defects.
 Then produce one Markdown table: run_id | 8 category scores | total | merge_ready.
@@ -312,7 +368,7 @@ Do not modify any files except the output: <REPORTS_DIR>/<task>/<runner>.side-by
 
 ### Final table
 
-One per task, in `saleor/reports/<task>/summary.md`, after de-blinding:
+One per task, built from the data blocks of the run reports after de-blinding with `mapping.csv` (judge scores go into each report's data block: `verified_in_code`, `judge_absolute`, `judge_side_by_side`, `judge_merge_ready`):
 
 | Method | Runner | Time first pass | Time total | Usage first pass | Usage total | Hidden questions: asked / covered / missed | Follow-ups | Method steps | Verified in code | Absolute (/40) | Side-by-side (/40) | Merge-ready |
 | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
@@ -332,10 +388,11 @@ rosetta-benchmarks/
 └── saleor/
     ├── EXPERIMENTS.md                          # the 28 runs + status
     ├── scripts/bench.sh                        # setup, reset, start, stop, health
+    ├── scripts/session-usage.py                # token breakdown of one Claude Code session
+    ├── methods/<method>.md                     # quick install + run guide per method
+    ├── templates/                              # run report templates + metric definitions (README.md)
     ├── prompts/                                # frozen copies of the prompts
-    ├── diffs/<task>/<runner>/<method>/         # <repo>.diff + report.md
-    ├── protocols/<task>/<runner>/<method>.md   # run protocol
-    ├── usage/<task>/<runner>/<method>.txt      # raw usage from the runner
+    ├── runs/<task>/<runner>/<method>/          # one folder per run: report.md, agent-report.md, tokens.md, <repo>.diff
     └── reports/                                # judge outputs, mapping.csv, summary tables
 ```
 

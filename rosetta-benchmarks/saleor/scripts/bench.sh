@@ -4,7 +4,8 @@
 # Usage:
 #   bench.sh setup            # once: fetch pinned repos, strip Saleor AI files, add baseline rules,
 #                             #       tag baseline-v1, build + start backend, migrate, seed, save seed.dump
-#   bench.sh reset <TAG>      # before every run: checkout <TAG> in all 3 repos, clean, restore DB from seed.dump
+#   bench.sh reset <TAG>      # before every run: checkout <TAG> in all 3 repos, clean, clean the workspace root,
+#                             #       restore DB from seed.dump
 #   bench.sh start            # start backend API + storefront (:3000) + dashboard (:9000) in the background
 #   bench.sh stop             # stop storefront, dashboard and the backend containers
 #   bench.sh health           # check API, storefront, dashboard
@@ -47,6 +48,10 @@ die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 compose() { docker compose -p "$PROJECT" -f "$BENCH_DIR/saleor/.devcontainer/docker-compose.yml" "$@"; }
 manage() { compose exec -T -w /app saleor python manage.py "$@"; }
 git_bench() { git -c user.name="saleor-benchmark" -c user.email="saleor-benchmark@localhost" "$@"; }
+
+# Run a command without the caller's environment. Dev tools detect AI agents by env vars
+# (CLAUDECODE, CODEX_*, CURSOR_*, ...); Next.js then writes its own AI rules into CLAUDE.md.
+clean_env() { env -i HOME="$HOME" PATH="$PATH" USER="${USER:-}" LANG="${LANG:-en_US.UTF-8}" TERM="${TERM:-xterm}" "$@"; }
 
 wait_for_db() {
 	for _ in $(seq 1 60); do
@@ -93,12 +98,15 @@ cmd_setup() {
 		log "$r: removing Saleor AI files and adding the baseline rules file"
 		# shellcheck disable=SC2046
 		(cd "$BENCH_DIR/$r" && rm -rf $(repo_ai_files "$r"))
+		# Nested agent instruction files anywhere in the tree (e.g. saleor/graphql/CLAUDE.md, src/lib/AGENTS.md)
+		git -C "$BENCH_DIR/$r" ls-files -z | grep -z -E '(^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|(^|/)\.github/instructions/' |
+			(cd "$BENCH_DIR/$r" && xargs -0 rm -f)
 		cp "$BASELINE_FILE" "$BENCH_DIR/$r/CLAUDE.md"
 		mkdir -p "$BENCH_DIR/$r/.github"
 		cp "$BASELINE_FILE" "$BENCH_DIR/$r/.github/copilot-instructions.md"
 
 		git -C "$BENCH_DIR/$r" add -A
-		git_bench -C "$BENCH_DIR/$r" commit -q -m "Benchmark baseline: remove upstream AI files, add team rules"
+		git_bench -C "$BENCH_DIR/$r" commit --no-verify -q -m "Benchmark baseline: remove upstream AI files, add team rules"
 		git -C "$BENCH_DIR/$r" tag baseline-v1
 	done
 
@@ -120,6 +128,17 @@ cmd_setup() {
 
 	log "installing storefront and dashboard dependencies"
 	install_frontends
+
+	# The dashboard's committed GraphQL schema is older than the pinned API. Regenerate it once
+	# and put it into baseline-v1, so it never shows up in a run's diff.
+	log "dashboard: schema and generated types from the local API"
+	start_api
+	(cd "$BENCH_DIR/saleor-dashboard" && clean_env API_URL="$API_URL" pnpm run fetch-local-schema >/dev/null)
+	if [ -n "$(git -C "$BENCH_DIR/saleor-dashboard" status --porcelain)" ]; then
+		git -C "$BENCH_DIR/saleor-dashboard" add -A
+		git_bench -C "$BENCH_DIR/saleor-dashboard" commit --no-verify -q -m "Benchmark baseline: GraphQL schema and generated types from the local API"
+		git -C "$BENCH_DIR/saleor-dashboard" tag -f baseline-v1 >/dev/null
+	fi
 
 	log "setup done. Next: '$0 start', then '$0 health'"
 }
@@ -146,6 +165,23 @@ install_frontends() {
 	(cd "$BENCH_DIR/saleor-dashboard" && corepack enable && pnpm install --frozen-lockfile)
 }
 
+# The agent runs in $BENCH_DIR, which is not a git repo. Files it writes there
+# (CONTEXT.md, docs/, agents/, .github/, ...) must not leak into the next run.
+clean_workspace_root() {
+	local item name
+	for item in "$BENCH_DIR"/* "$BENCH_DIR"/.[!.]*; do
+		[ -e "$item" ] || continue
+		name="$(basename "$item")"
+		case "$name" in
+			saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs) ;;
+			*)
+				log "workspace root: removing $name"
+				rm -rf "$item"
+				;;
+		esac
+	done
+}
+
 cmd_reset() {
 	local tag="${1:-}"
 	[ -n "$tag" ] || die "usage: $0 reset <TAG>   (e.g. baseline-v1, rosetta-v1)"
@@ -161,6 +197,7 @@ cmd_reset() {
 		git -C "$BENCH_DIR/$r" checkout -q -f "$tag"
 		git -C "$BENCH_DIR/$r" clean -q -fdx -e node_modules -e .venv
 	done
+	clean_workspace_root
 
 	log "database: restore from seed.dump"
 	compose up -d db cache mailpit saleor
@@ -186,14 +223,13 @@ cmd_start() {
 	cmd_stop_frontends
 	log "storefront on :3000 (log: $LOG_DIR/storefront.log)"
 	(cd "$BENCH_DIR/react-storefront" &&
-		NEXT_PUBLIC_SALEOR_API_URL="$API_URL" NEXT_PUBLIC_DEFAULT_CHANNEL=default-channel \
+		clean_env NEXT_PUBLIC_SALEOR_API_URL="$API_URL" NEXT_PUBLIC_DEFAULT_CHANNEL=default-channel \
 			nohup pnpm dev >"$LOG_DIR/storefront.log" 2>&1 &
 		echo $! >"$LOG_DIR/storefront.pid")
 
 	log "dashboard on :9000 (log: $LOG_DIR/dashboard.log)"
 	(cd "$BENCH_DIR/saleor-dashboard" &&
-		API_URL="$API_URL" pnpm run fetch-local-schema >"$LOG_DIR/dashboard.log" 2>&1 &&
-		API_URL="$API_URL" nohup pnpm run dev >>"$LOG_DIR/dashboard.log" 2>&1 &
+		clean_env API_URL="$API_URL" nohup pnpm run dev >"$LOG_DIR/dashboard.log" 2>&1 &
 		echo $! >"$LOG_DIR/dashboard.pid")
 
 	echo "Started. Wait ~1 min for the dev servers, then run '$0 health'."
@@ -229,5 +265,5 @@ case "${1:-}" in
 	start) cmd_start ;;
 	stop) cmd_stop ;;
 	health) cmd_health ;;
-	*) sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+	*) sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
