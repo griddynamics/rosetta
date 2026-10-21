@@ -6,6 +6,8 @@
 #                             #       tag baseline-v1, build + start backend, migrate, seed, save seed.dump
 #   bench.sh reset <TAG>      # before every run: checkout <TAG> in all 3 repos, clean, clean the workspace root,
 #                             #       restore DB from seed.dump
+#   bench.sh from-zips        # Rosetta runs: replace the 3 repos and the workspace-root files with test-library/saleor-initialized-repos.zip
+#                             #       and saleor-initialized-root.zip (files only; then run setup, start, health)
 #   bench.sh start            # start backend API + storefront (:3000) + dashboard (:9000) in the background
 #   bench.sh stop             # stop storefront, dashboard and the backend containers
 #   bench.sh health           # check API, storefront, dashboard
@@ -157,6 +159,38 @@ cmd_setup() {
 	log "setup done. Next: '$0 start', then '$0 health'"
 }
 
+# Rosetta starting point: delete what is there, extract the two zips from test-library/.
+#   repos zip: the entire .git of the 3 repos (init commit); the working files are rebuilt with git reset --hard
+#   root zip:  the files Rosetta created in $BENCH_DIR outside the repos
+# Dependencies (node_modules, .venv), seed.dump, logs and envs are kept. Files only: run setup, start, health after it.
+cmd_from_zips() {
+	local tl repos_zip root_zip
+	tl="${TEST_LIBRARY:-$(git -C "$BENCH_ROOT" rev-parse --show-toplevel)/test-library}"
+	repos_zip="$tl/saleor-initialized-repos.zip"
+	root_zip="$tl/saleor-initialized-root.zip"
+	[ -f "$repos_zip" ] || die "missing $repos_zip"
+	[ -f "$root_zip" ] || die "missing $root_zip"
+
+	if [ -f "$BENCH_DIR/saleor/.devcontainer/docker-compose.yml" ]; then
+		cmd_stop || true   # nothing may run on the folders that are replaced
+	fi
+	for r in "${REPOS[@]}"; do
+		mkdir -p "$BENCH_DIR/$r"
+		log "$r: removing old files (keeping node_modules and .venv)"
+		find "$BENCH_DIR/$r" -mindepth 1 -maxdepth 1 ! -name node_modules ! -name .venv -exec rm -rf {} +
+	done
+	clean_workspace_root   # removes everything outside the repos except seed.dump, logs, envs
+
+	log "extracting $(basename "$repos_zip") and $(basename "$root_zip")"
+	unzip -q -o "$repos_zip" -d "$BENCH_DIR"
+	unzip -q -o "$root_zip" -d "$BENCH_DIR"
+	for r in "${REPOS[@]}"; do
+		git -C "$BENCH_DIR/$r" reset -q --hard HEAD   # the zip has only .git: rebuild the working files
+		echo "$r: $(git -C "$BENCH_DIR/$r" rev-parse --short HEAD) tags: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ') changes: $(git -C "$BENCH_DIR/$r" status --porcelain | wc -l | tr -d ' ')"
+	done
+	log "from-zips done. Next: '$0 setup', '$0 start', '$0 health'"
+}
+
 restore_db() {
 	wait_for_db
 	compose exec -T db dropdb -U saleor --if-exists --force saleor
@@ -276,8 +310,9 @@ cmd_health() {
 case "${1:-}" in
 	setup) cmd_setup ;;
 	reset) shift; cmd_reset "$@" ;;
+	from-zips) cmd_from_zips ;;
 	start) cmd_start ;;
 	stop) cmd_stop ;;
 	health) cmd_health ;;
-	*) sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+	*) sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac

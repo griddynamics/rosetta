@@ -58,22 +58,16 @@ export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git 
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 
-**1.2a Start from the zip** (all Rosetta work starts here, before anything else touches `$BENCH_DIR`; the repos are never cloned. Only the person creating the zip skips this: they do 1.1, run `bench.sh setup` once and then 1.7). `test-library/saleor-initialized.zip` holds the entire `.git` of the three repos at the pinned versions (tag `baseline-v1`, and the init commit tagged `rosetta-v1`, `rosetta-light-v1` and `rosetta-skills-v1`) plus the workspace-root files the init wrote. It is the same for Rosetta, Rosetta Light and Rosetta Skills.
+**1.2a Starting point: the two zips** (the first setup and every Rosetta run begin here; the repos are never cloned). `test-library/` holds two zips, the same for Rosetta, Rosetta Light and Rosetta Skills:
+
+- `saleor-initialized-repos.zip` (40 MB): the entire `.git` of the three repos. HEAD is the init commit, tagged `rosetta-v1`, `rosetta-light-v1` and `rosetta-skills-v1`; its parent is `baseline-v1`.
+- `saleor-initialized-root.zip` (19 KB): the files Rosetta created outside the repos, in `~/saleor-benchmark` (`README.md`, `gain.json`, `docs/`, `agents/`).
+
+`bench.sh from-zips` deletes the old repo files (it keeps `node_modules`) and every other file in the workspace root (it keeps `seed.dump`, `logs` and `envs`), extracts both zips and runs `git reset --hard` in each repo. `bench.sh setup` then restores the database and installs dependencies; it sees `baseline-v1`, so it does not clone. Nothing is copied back. Only the person creating the zips skips this and does 1.7 instead.
 
 ```bash
 nvm use 24
-TL="$(git rev-parse --show-toplevel)/test-library"
-[ -f "$TL/saleor-initialized.zip" ] || echo "ERROR: $TL/saleor-initialized.zip not found: pull it, or create it (1.7)"
-rm -rf "$BENCH_DIR/saleor" "$BENCH_DIR/saleor-dashboard" "$BENCH_DIR/react-storefront"   # cleanup first: no old clone survives
-unzip -q "$TL/saleor-initialized.zip" -d "$BENCH_DIR"
-for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" reset -q --hard HEAD; done      # the zip has only .git: rebuild the working trees from it
-rm -rf "$ENV_DIR/root" && mkdir -p "$ENV_DIR/root"                                       # the workspace-root files, copied back after every reset
-find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
-  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .gitignore) ;;
-  *) cp -R "$f" "$ENV_DIR/root/" ;; esac
-done
-$B setup        # sees baseline-v1 in the extracted repos, so it does not clone: builds Docker, seeds the database, installs dependencies
-for r in saleor saleor-dashboard react-storefront; do echo "$r: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ')"; done   # rosetta-v1 rosetta-light-v1 rosetta-skills-v1 in all three
+$B from-zips && $B setup && $B start && sleep 60 && $B health      # repos at the init commit, root files in place, all three OK
 ```
 
 **1.3 Own config dir with the common settings** (claude.ai sync off, hooks on; BENCHMARKS.md, section 3.5):
@@ -119,13 +113,12 @@ cd "$BENCH_DIR" && claude
 
 In the session: `/login` with your work account, then `/exit`.
 
-**1.7 One-time project preparation: `/init-workspace-flow`** (once per method, after 1.6; it sets up the project context for every run of this method). Its cost is a one-time setup cost: record it in part 7 and never add it to any run. Skip this part if `test-library/saleor-initialized.zip` exists: you already started from it (1.2a), so never run the init again (about 30 minutes).
+**1.7 One-time project preparation: `/init-workspace-flow`** (once per method, after 1.6; it sets up the project context for every run of this method). Its cost is a one-time setup cost: record it in part 7 and never add it to any run. Skip this part if the two zips in `test-library/` exist: you already started from them (1.2a), so never run the init again (about 30 minutes).
 
 ```bash
 # terminal 1: start from a clean workspace on baseline-v1 (same variables as 1.2)
 nvm use 24
 for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" checkout -q -f baseline-v1; done
-mkdir -p "$ENV_DIR/root"
 (
 cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5
 )
@@ -136,36 +129,30 @@ In the session: send `/init-workspace-flow`. Answer its questions as product own
 Then (terminal 2), still before any run:
 
 ```bash
-T_INIT_END=$(date +%Y-%m-%dT%H:%M)
 python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" --out "$ENV_DIR/init-tokens.md"   # per model / agent / subagent
-# files the init wrote inside the repos: commit them and move the method tag onto that commit
+# files the init wrote inside the repos: commit them and tag the commit for all three Rosetta methods
 for r in saleor saleor-dashboard react-storefront; do
-  git -C "$BENCH_DIR/$r" status --porcelain
+  git -C "$BENCH_DIR/$r" status --porcelain --ignored | grep -v "node_modules\|__pycache__\|\.next"   # git-ignored files are not committed: `git add -f` any that the init created
   git -C "$BENCH_DIR/$r" add -A
-  git -C "$BENCH_DIR/$r" -c user.name="saleor-benchmark" -c user.email="saleor-benchmark@localhost" commit -q -m "rosetta-skills: init-workspace-flow" || echo "$r: nothing to commit"
-  for t in rosetta-v1 rosetta-light-v1 rosetta-skills-v1; do git -C "$BENCH_DIR/$r" tag -f "$t"; done   # one init commit, one tag per Rosetta method
+  git -C "$BENCH_DIR/$r" -c user.name="saleor-benchmark" -c user.email="saleor-benchmark@localhost" commit -q -m "rosetta: init-workspace-flow" || echo "$r: nothing to commit"
+  for t in rosetta-v1 rosetta-light-v1 rosetta-skills-v1; do git -C "$BENCH_DIR/$r" tag -f "$t"; done
 done
-# files the init wrote in the workspace root (outside the repos): saved, and copied back after every reset
-find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
-  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .gitignore) ;;
-  *) cp -R "$f" "$ENV_DIR/root/" ;; esac
-done
-ls -la "$ENV_DIR/root"
+ls -A "$BENCH_DIR"     # the files the init wrote outside the repos
 ```
 
-Then `/exit`. `bench.sh reset rosetta-skills-v1` now returns the repos to the init commit, and step 2 of each run copies `$ENV_DIR/root` back into the workspace root. Keep `init-tokens.md` and copy it to `rosetta-benchmarks/saleor/methods/rosetta-skills.init-tokens.md` so it is committed with the results. Every run of this method then starts from the same prepared project.
+Then `/exit`. Keep `init-tokens.md` and copy it to `rosetta-benchmarks/saleor/methods/rosetta-skills.init-tokens.md` so it is committed with the results.
 
-Then save the result as the zip (terminal 2). It holds the entire `.git` of the three repos (the init commit carries all three Rosetta method tags, set above) and the workspace-root files. It does not hold the working trees, installed dependencies, caches or build output: `git reset --hard` rebuilds the trees from `.git` on extraction (1.2a). One zip serves Rosetta, Rosetta Light and Rosetta Skills; the init is run once, with the full `rosetta` plugin. Maximum compression, zip only (`-9`, deflate: the macOS `zip` has no bzip2 build):
+Then save the two zips (terminal 2). Zip only, maximum compression (`-9`, deflate: the macOS `zip` has no bzip2 build). The repos zip holds only the `.git` folders, not the working files, dependencies or caches; `git reset --hard` rebuilds the working files on extraction. One pair of zips serves Rosetta, Rosetta Light and Rosetta Skills; the init is run once, with the full `rosetta` plugin.
 
 ```bash
 TL="$(git rev-parse --show-toplevel)/test-library"
-rm -f "$TL/saleor-initialized.zip"
-(cd "$BENCH_DIR" && for r in saleor saleor-dashboard react-storefront; do git -C "$r" status --porcelain; find "$r/.git"; done | zip -9 -y -X -q -@ "$TL/saleor-initialized.zip")   # status lines must be empty: everything committed
-(cd "$ENV_DIR/root" && find . ! -name .DS_Store ! -name . | sed 's|^\./||' | zip -9 -y -X -q -@ "$TL/saleor-initialized.zip")   # workspace-root files go to the top level of the zip
-ls -lh "$TL/saleor-initialized.zip" && unzip -tq "$TL/saleor-initialized.zip" | tail -1   # GitHub rejects files over 100 MB
+rm -f "$TL/saleor-initialized-repos.zip" "$TL/saleor-initialized-root.zip"
+(cd "$BENCH_DIR" && for r in saleor saleor-dashboard react-storefront; do git -C "$r" status --porcelain; find "$r/.git"; done | zip -9 -y -X -q -@ "$TL/saleor-initialized-repos.zip")   # status lines must be empty: everything committed
+(cd "$BENCH_DIR" && ls -A | grep -v -x -e saleor -e saleor-dashboard -e react-storefront -e seed.dump -e logs -e envs -e run-output -e .DS_Store | zip -9 -r -y -X -q -@ "$TL/saleor-initialized-root.zip" -x '*.DS_Store')   # everything outside the repos
+ls -lh "$TL"/saleor-initialized-*.zip && unzip -tq "$TL/saleor-initialized-repos.zip" | tail -1 && unzip -tq "$TL/saleor-initialized-root.zip" | tail -1   # GitHub rejects files over 100 MB
 ```
 
-Commit the zip with the results. Every later start uses it (1.2a).
+Commit the two zips with the results. Every later start uses them (1.2a).
 
 ## 2. Run S-CC-08: small task: product storage conditions, Claude Code
 
@@ -185,7 +172,7 @@ export RUN="$SB/runs/small-storage-conditions/claude-code/rosetta-skills"   # th
 
 ```bash
 nvm use 24
-$B reset rosetta-skills-v1 && cp -R "$ENV_DIR/root/." "$BENCH_DIR/" && $B start && sleep 60 && $B health      # reset to the init commit, restore the init files, all three OK
+$B from-zips && $B setup && $B start && sleep 60 && $B health      # repos at the init commit, root files in place, all three OK
 rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-small.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
 sed -i '' -e 's|^run_id:.*|run_id: S-CC-08|' -e 's|^method:.*|method: rosetta-skills|' -e 's|^runner:.*|runner: claude-code|' \
   -e 's|^model:.*|model: claude-sonnet-5-5|' -e 's|^start_tag:.*|start_tag: rosetta-skills-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
@@ -302,7 +289,7 @@ export RUN="$SB/runs/large-age-restriction/claude-code/rosetta-skills"   # this 
 
 ```bash
 nvm use 24
-$B reset rosetta-skills-v1 && cp -R "$ENV_DIR/root/." "$BENCH_DIR/" && $B start && sleep 60 && $B health      # reset to the init commit, restore the init files, all three OK
+$B from-zips && $B setup && $B start && sleep 60 && $B health      # repos at the init commit, root files in place, all three OK
 rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-large.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
 sed -i '' -e 's|^run_id:.*|run_id: L-CC-08|' -e 's|^method:.*|method: rosetta-skills|' -e 's|^runner:.*|runner: claude-code|' \
   -e 's|^model:.*|model: claude-sonnet-5-5|' -e 's|^start_tag:.*|start_tag: rosetta-skills-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
@@ -484,12 +471,11 @@ Usage by model:
      claude-opus-5-5:  153.3k input, 321.0k output, 57.5m cache read, 1.6m cache write ($26.55)
 ```
 
-Zip `test-library/saleor-initialized.zip` (size, commit that added it):
+Zips in `test-library/` (size, sha256):
 
 ```text
-40 MB (zip -9, .git of the three repos + workspace-root files)
-sha256 f715f9616c9d35b023159b03e050362bc4bcf69ee65829ad5a5230f180df9daf
-commit: the one that added the file (git log -- test-library/saleor-initialized.zip)
+saleor-initialized-repos.zip  40 MB  sha256 1f3877454a9c503e180d53300ac6a0d0179a9e4d22ed976b4f9a37bc1d0fd4d1
+saleor-initialized-root.zip   19 KB  sha256 f671b7152803fda64d9de6c24dce693c21444ee2378b3a99f9449253d735dd1e
 ```
 
 Copilot, premium-request counter at the end of the init session:
