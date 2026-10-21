@@ -1,0 +1,2075 @@
+diff --git a/.changeset/product-storage-conditions.md b/.changeset/product-storage-conditions.md
+new file mode 100644
+index 0000000..d4276a6
+--- /dev/null
++++ b/.changeset/product-storage-conditions.md
+@@ -0,0 +1,5 @@
++---
++"saleor-dashboard": patch
++---
++
++Added an optional "Storage conditions" field to the product page, product translations and the product export dialog.
+diff --git a/locale/defaultMessages.json b/locale/defaultMessages.json
+index 93af9bf..a638e01 100644
+--- a/locale/defaultMessages.json
++++ b/locale/defaultMessages.json
+@@ -3451,6 +3451,10 @@
+     "context": "button label",
+     "string": "Add reason"
+   },
++  "B3SLYm": {
++    "context": "helper for the product storage conditions field",
++    "string": "Shown to customers on the product page."
++  },
+   "B3TMMF": {
+     "context": "staff delivery mode section description with link to customer emails",
+     "string": "How staff emails are sent. In Saleor, staff communication is separate from customer notifications. For the latter, see {customerEmailsLink}."
+@@ -7308,6 +7312,10 @@
+     "context": "save preset, header",
+     "string": "Save view preset"
+   },
++  "PBRUO8": {
++    "context": "product storage conditions translation field",
++    "string": "Storage conditions"
++  },
+   "PBd/e+": {
+     "context": "dialog header",
+     "string": "Change address for order"
+@@ -11796,6 +11804,10 @@
+     "context": "fixed amount",
+     "string": "Fixed Amount"
+   },
++  "fp8Ua2": {
++    "context": "product field",
++    "string": "Export Storage Conditions"
++  },
+   "fpafCx": {
+     "context": "deleted multiple attributes",
+     "string": "Attributes deleted"
+@@ -12170,6 +12182,10 @@
+   "hAoqp6": {
+     "string": "Failed to save permissions. Refresh the page and try again."
+   },
++  "hCQSOG": {
++    "context": "product storage conditions field label",
++    "string": "Storage conditions"
++  },
+   "hF952H": {
+     "context": "product variant pricing manage channels button",
+     "string": "Manage channels"
+diff --git a/schema-main.graphql b/schema-main.graphql
+index 0565113..714503b 100644
+--- a/schema-main.graphql
++++ b/schema-main.graphql
+@@ -4198,6 +4198,13 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes {
+   """
+   description: JSONString
+ 
++  """
++  Storage conditions of the product, e.g. "Keep refrigerated at 2–8 °C". Plain text, max 250 characters.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """Type of the product."""
+   productType: ProductType!
+ 
+@@ -10647,6 +10654,13 @@ type ProductTranslation implements Node {
+   """
+   description: JSONString
+ 
++  """
++  Translated storage conditions.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """
+   Translated description of the product.
+   
+@@ -10691,6 +10705,13 @@ type ProductTranslatableContent implements Node {
+   """
+   description: JSONString
+ 
++  """
++  Storage conditions to translate.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """
+   Description of the product.
+   
+@@ -25318,6 +25339,13 @@ input TranslationInput {
+   Rich text format. For reference see https://editorjs.io/
+   """
+   description: JSONString
++
++  """
++  Translated storage conditions. Applies to products only; non-empty values are rejected for other entities.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
+ }
+ 
+ """
+@@ -25663,6 +25691,13 @@ input ProductCreateInput {
+   """Product slug."""
+   slug: String
+ 
++  """
++  Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -25894,6 +25929,13 @@ input ProductBulkCreateInput {
+   """Product slug."""
+   slug: String
+ 
++  """
++  Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -26207,6 +26249,13 @@ input ProductInput {
+   """Product slug."""
+   slug: String
+ 
++  """
++  Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -32073,6 +32122,7 @@ enum ProductFieldEnum {
+   COLLECTIONS
+   CHARGE_TAXES
+   PRODUCT_MEDIA
++  STORAGE_CONDITIONS
+   VARIANT_ID
+   VARIANT_SKU
+   VARIANT_WEIGHT
+diff --git a/src/fragments/products.ts b/src/fragments/products.ts
+index c17c983..d18d298 100644
+--- a/src/fragments/products.ts
++++ b/src/fragments/products.ts
+@@ -221,6 +221,7 @@ export const productFragmentDetails = gql`
+     seoTitle
+     seoDescription
+     rating
++    storageConditions @lockSchema(schema: "main")
+     defaultVariant {
+       id
+       sku
+diff --git a/src/fragments/translations.ts b/src/fragments/translations.ts
+index f7b23c7..f3655d8 100644
+--- a/src/fragments/translations.ts
++++ b/src/fragments/translations.ts
+@@ -83,6 +83,7 @@ export const productTranslationFragment = gql`
+       slug
+       seoDescription
+       seoTitle
++      storageConditions @lockSchema(schema: "main")
+     }
+     translation(languageCode: $language) {
+       id
+@@ -91,6 +92,7 @@ export const productTranslationFragment = gql`
+       seoDescription
+       name
+       description
++      storageConditions @lockSchema(schema: "main")
+       language {
+         code
+         language
+diff --git a/src/graphql/fabbrica.generated.ts b/src/graphql/fabbrica.generated.ts
+index 9d7f6c6..7f52eec 100644
+--- a/src/graphql/fabbrica.generated.ts
++++ b/src/graphql/fabbrica.generated.ts
+@@ -25389,6 +25389,12 @@ export type OptionalProduct = {
+   /** Slug of the product. */
+   slug?: Product['slug'] | undefined;
+   /**
++ * Storage conditions of the product, e.g. "Keep refrigerated at 2–8 °C". Plain text, max 250 characters.
++ *
++ * Added in Saleor 3.23.
++ */
++  storageConditions?: Product['storageConditions'] | undefined;
++  /**
+  * Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  *
+  * Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+@@ -25639,6 +25645,12 @@ export type OptionalProductBulkCreateInput = {
+   seo?: Maybe<OptionalSeoInput> | undefined;
+   /** Product slug. */
+   slug?: ProductBulkCreateInput['slug'] | undefined;
++  /**
++ * Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++ *
++ * Added in Saleor 3.23.
++ */
++  storageConditions?: ProductBulkCreateInput['storageConditions'] | undefined;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: ProductBulkCreateInput['taxClass'] | undefined;
+   /**
+@@ -26099,6 +26111,12 @@ export type OptionalProductCreateInput = {
+   seo?: Maybe<OptionalSeoInput> | undefined;
+   /** Product slug. */
+   slug?: ProductCreateInput['slug'] | undefined;
++  /**
++ * Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++ *
++ * Added in Saleor 3.23.
++ */
++  storageConditions?: ProductCreateInput['storageConditions'] | undefined;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: ProductCreateInput['taxClass'] | undefined;
+   /**
+@@ -26381,6 +26399,12 @@ export type OptionalProductInput = {
+   seo?: Maybe<OptionalSeoInput> | undefined;
+   /** Product slug. */
+   slug?: ProductInput['slug'] | undefined;
++  /**
++ * Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++ *
++ * Added in Saleor 3.23.
++ */
++  storageConditions?: ProductInput['storageConditions'] | undefined;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: ProductInput['taxClass'] | undefined;
+   /**
+@@ -27004,6 +27028,12 @@ export type OptionalProductTranslatableContent = {
+  * Added in Saleor 3.21.
+  */
+   slug?: ProductTranslatableContent['slug'] | undefined;
++  /**
++ * Storage conditions to translate.
++ *
++ * Added in Saleor 3.23.
++ */
++  storageConditions?: ProductTranslatableContent['storageConditions'] | undefined;
+   /** Returns translated product fields for the given language code. */
+   translation?: Maybe<OptionalProductTranslation> | undefined;
+ };
+@@ -27073,6 +27103,12 @@ export type OptionalProductTranslation = {
+  * Added in Saleor 3.21.
+  */
+   slug?: ProductTranslation['slug'] | undefined;
++  /**
++ * Translated storage conditions.
++ *
++ * Added in Saleor 3.23.
++ */
++  storageConditions?: ProductTranslation['storageConditions'] | undefined;
+   /** Represents the product fields to translate. */
+   translatableContent?: Maybe<OptionalProductTranslatableContent> | undefined;
+ };
+@@ -37036,6 +37072,12 @@ export type OptionalTranslationInput = {
+   seoDescription?: TranslationInput['seoDescription'] | undefined;
+   seoTitle?: TranslationInput['seoTitle'] | undefined;
+   slug?: TranslationInput['slug'] | undefined;
++  /**
++ * Translated storage conditions. Applies to products only; non-empty values are rejected for other entities.
++ *
++ * Added in Saleor 3.23.
++ */
++  storageConditions?: TranslationInput['storageConditions'] | undefined;
+ };
+ 
+ /**
+diff --git a/src/graphql/fabbricaTypes.generated.ts b/src/graphql/fabbricaTypes.generated.ts
+index ed61f5c..b2c5ffb 100644
+--- a/src/graphql/fabbricaTypes.generated.ts
++++ b/src/graphql/fabbricaTypes.generated.ts
+@@ -22386,6 +22386,12 @@ export type Product = Node & ObjectWithAttributes & ObjectWithMetadata & {
+   seoTitle: Maybe<Scalars['String']['output']>;
+   /** Slug of the product. */
+   slug: Scalars['String']['output'];
++  /**
++   * Storage conditions of the product, e.g. "Keep refrigerated at 2–8 °C". Plain text, max 250 characters.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions: Maybe<Scalars['String']['output']>;
+   /**
+    * Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+    *
+@@ -22684,6 +22690,12 @@ export type ProductBulkCreateInput = {
+   seo: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug: InputMaybe<Scalars['String']['input']>;
++  /**
++   * Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -22974,6 +22986,12 @@ export type ProductCreateInput = {
+   seo: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug: InputMaybe<Scalars['String']['input']>;
++  /**
++   * Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -23114,6 +23132,7 @@ export type ProductFieldEnum =
+   | 'PRODUCT_MEDIA'
+   | 'PRODUCT_TYPE'
+   | 'PRODUCT_WEIGHT'
++  | 'STORAGE_CONDITIONS'
+   | 'VARIANT_ID'
+   | 'VARIANT_MEDIA'
+   | 'VARIANT_SKU'
+@@ -23227,6 +23246,12 @@ export type ProductInput = {
+   seo: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug: InputMaybe<Scalars['String']['input']>;
++  /**
++   * Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -23736,6 +23761,12 @@ export type ProductTranslatableContent = Node & {
+    * Added in Saleor 3.21.
+    */
+   slug: Maybe<Scalars['String']['output']>;
++  /**
++   * Storage conditions to translate.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions: Maybe<Scalars['String']['output']>;
+   /** Returns translated product fields for the given language code. */
+   translation: Maybe<ProductTranslation>;
+ };
+@@ -23797,6 +23828,12 @@ export type ProductTranslation = Node & {
+    * Added in Saleor 3.21.
+    */
+   slug: Maybe<Scalars['String']['output']>;
++  /**
++   * Translated storage conditions.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions: Maybe<Scalars['String']['output']>;
+   /** Represents the product fields to translate. */
+   translatableContent: Maybe<ProductTranslatableContent>;
+ };
+@@ -32205,6 +32242,12 @@ export type TranslationInput = {
+   seoDescription: InputMaybe<Scalars['String']['input']>;
+   seoTitle: InputMaybe<Scalars['String']['input']>;
+   slug: InputMaybe<Scalars['String']['input']>;
++  /**
++   * Translated storage conditions. Applies to products only; non-empty values are rejected for other entities.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions: InputMaybe<Scalars['String']['input']>;
+ };
+ 
+ export type TranslationTypes = AttributeTranslation | AttributeValueTranslation | CategoryTranslation | CollectionTranslation | MenuItemTranslation | PageTranslation | ProductMediaTranslation | ProductTranslation | ProductVariantTranslation | PromotionRuleTranslation | PromotionTranslation | SaleTranslation | ShippingMethodTranslation | VoucherTranslation;
+diff --git a/src/graphql/hooks.generated.ts b/src/graphql/hooks.generated.ts
+index 3bb8791..0ade580 100644
+--- a/src/graphql/hooks.generated.ts
++++ b/src/graphql/hooks.generated.ts
+@@ -3465,6 +3465,7 @@ export const ProductFragmentDoc = gql`
+   seoTitle
+   seoDescription
+   rating
++  storageConditions @lockSchema(schema: "main")
+   defaultVariant {
+     id
+     sku
+@@ -4005,6 +4006,7 @@ export const ProductTranslationFragmentDoc = gql`
+     slug
+     seoDescription
+     seoTitle
++    storageConditions @lockSchema(schema: "main")
+   }
+   translation(languageCode: $language) {
+     id
+@@ -4013,6 +4015,7 @@ export const ProductTranslationFragmentDoc = gql`
+     seoDescription
+     name
+     description
++    storageConditions @lockSchema(schema: "main")
+     language {
+       code
+       language
+@@ -22940,6 +22943,7 @@ export const UpdateProductTranslationsDocument = gql`
+       seoDescription
+       seoTitle
+       slug
++      storageConditions @lockSchema(schema: "main")
+       translation(languageCode: $language) {
+         id
+         description
+@@ -22951,6 +22955,7 @@ export const UpdateProductTranslationsDocument = gql`
+         seoDescription
+         seoTitle
+         slug
++        storageConditions @lockSchema(schema: "main")
+       }
+     }
+   }
+diff --git a/src/graphql/typePolicies.generated.ts b/src/graphql/typePolicies.generated.ts
+index 560c483..44c0676 100644
+--- a/src/graphql/typePolicies.generated.ts
++++ b/src/graphql/typePolicies.generated.ts
+@@ -4594,7 +4594,7 @@ export type PreorderThresholdFieldPolicy = {
+ 	quantity?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	soldUnits?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variant' | 'variants' | 'weight' | ProductKeySpecifier)[];
++export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'storageConditions' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variant' | 'variants' | 'weight' | ProductKeySpecifier)[];
+ export type ProductFieldPolicy = {
+ 	assignedAttribute?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttributes?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4633,6 +4633,7 @@ export type ProductFieldPolicy = {
+ 	seoDescription?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	seoTitle?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	slug?: FieldPolicy<any> | FieldReadFunction<any>,
++	storageConditions?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	taxClass?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	taxType?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	thumbnail?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4928,7 +4929,7 @@ export type ProductReorderAttributeValuesFieldPolicy = {
+ 	product?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	productErrors?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductTranslatableContentKeySpecifier = ('attributeValues' | 'description' | 'descriptionJson' | 'id' | 'name' | 'product' | 'productId' | 'seoDescription' | 'seoTitle' | 'slug' | 'translation' | ProductTranslatableContentKeySpecifier)[];
++export type ProductTranslatableContentKeySpecifier = ('attributeValues' | 'description' | 'descriptionJson' | 'id' | 'name' | 'product' | 'productId' | 'seoDescription' | 'seoTitle' | 'slug' | 'storageConditions' | 'translation' | ProductTranslatableContentKeySpecifier)[];
+ export type ProductTranslatableContentFieldPolicy = {
+ 	attributeValues?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	description?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4940,6 +4941,7 @@ export type ProductTranslatableContentFieldPolicy = {
+ 	seoDescription?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	seoTitle?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	slug?: FieldPolicy<any> | FieldReadFunction<any>,
++	storageConditions?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translation?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+ export type ProductTranslateKeySpecifier = ('errors' | 'product' | 'translationErrors' | ProductTranslateKeySpecifier)[];
+@@ -4948,7 +4950,7 @@ export type ProductTranslateFieldPolicy = {
+ 	product?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translationErrors?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductTranslationKeySpecifier = ('description' | 'descriptionJson' | 'id' | 'language' | 'name' | 'seoDescription' | 'seoTitle' | 'slug' | 'translatableContent' | ProductTranslationKeySpecifier)[];
++export type ProductTranslationKeySpecifier = ('description' | 'descriptionJson' | 'id' | 'language' | 'name' | 'seoDescription' | 'seoTitle' | 'slug' | 'storageConditions' | 'translatableContent' | ProductTranslationKeySpecifier)[];
+ export type ProductTranslationFieldPolicy = {
+ 	description?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	descriptionJson?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4958,6 +4960,7 @@ export type ProductTranslationFieldPolicy = {
+ 	seoDescription?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	seoTitle?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	slug?: FieldPolicy<any> | FieldReadFunction<any>,
++	storageConditions?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translatableContent?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+ export type ProductTypeKeySpecifier = ('assignedVariantAttributes' | 'availableAttributes' | 'hasVariants' | 'id' | 'isDigital' | 'isShippingRequired' | 'kind' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productAttributes' | 'products' | 'slug' | 'taxClass' | 'taxType' | 'variantAttributes' | 'weight' | ProductTypeKeySpecifier)[];
+diff --git a/src/graphql/types.generated.ts b/src/graphql/types.generated.ts
+index 8738069..21de11f 100644
+--- a/src/graphql/types.generated.ts
++++ b/src/graphql/types.generated.ts
+@@ -7079,6 +7079,12 @@ export type ProductBulkCreateInput = {
+   seo?: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug?: InputMaybe<Scalars['String']['input']>;
++  /**
++   * Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -7204,6 +7210,12 @@ export type ProductCreateInput = {
+   seo?: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug?: InputMaybe<Scalars['String']['input']>;
++  /**
++   * Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -7251,6 +7263,7 @@ export enum ProductFieldEnum {
+   PRODUCT_MEDIA = 'PRODUCT_MEDIA',
+   PRODUCT_TYPE = 'PRODUCT_TYPE',
+   PRODUCT_WEIGHT = 'PRODUCT_WEIGHT',
++  STORAGE_CONDITIONS = 'STORAGE_CONDITIONS',
+   VARIANT_ID = 'VARIANT_ID',
+   VARIANT_MEDIA = 'VARIANT_MEDIA',
+   VARIANT_SKU = 'VARIANT_SKU',
+@@ -7345,6 +7358,12 @@ export type ProductInput = {
+   seo?: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug?: InputMaybe<Scalars['String']['input']>;
++  /**
++   * Storage conditions of the product. Plain text, max 250 characters; blank clears it.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -9425,6 +9444,12 @@ export type TranslationInput = {
+   seoDescription?: InputMaybe<Scalars['String']['input']>;
+   seoTitle?: InputMaybe<Scalars['String']['input']>;
+   slug?: InputMaybe<Scalars['String']['input']>;
++  /**
++   * Translated storage conditions. Applies to products only; non-empty values are rejected for other entities.
++   *
++   * Added in Saleor 3.23.
++   */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
+ };
+ 
+ /** Define the filtering options for string fields. */
+@@ -12971,7 +12996,7 @@ export type ProductVariantSiblingFragment = { __typename: 'ProductVariant', id:
+ 
+ export type ProductVariantGeneratorExistingFragment = { __typename: 'ProductVariant', id: string, sku: string | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', id: string }, values: Array<{ __typename: 'AttributeValue', id: string, slug: string | null }> }> };
+ 
+-export type ProductFragment = { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, isAvailable: boolean | null, id: string, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, category: { __typename: 'Category', id: string, name: string } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> };
++export type ProductFragment = { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, storageConditions: string | null, isAvailable: boolean | null, id: string, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, category: { __typename: 'Category', id: string, name: string } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> };
+ 
+ export type VariantAttributeFragment = { __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null };
+ 
+@@ -13037,7 +13062,7 @@ export type CategoryTranslationFragment = { __typename: 'CategoryTranslatableCon
+ 
+ export type CollectionTranslationFragment = { __typename: 'CollectionTranslatableContent', collection: { __typename: 'Collection', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null } | null, translation: { __typename: 'CollectionTranslation', id: string, description: string | null, name: string | null, slug: string | null, seoDescription: string | null, seoTitle: string | null, language: { __typename: 'LanguageDisplay', language: string } } | null };
+ 
+-export type ProductTranslationFragment = { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> };
++export type ProductTranslationFragment = { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null, storageConditions: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, storageConditions: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> };
+ 
+ export type ProductVariantTranslationFragment = { __typename: 'ProductVariantTranslatableContent', name: string, productVariant: { __typename: 'ProductVariant', id: string } | null, translation: { __typename: 'ProductVariantTranslation', id: string, name: string, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> };
+ 
+@@ -14223,7 +14248,7 @@ export type ProductDetailsQueryVariables = Exact<{
+ }>;
+ 
+ 
+-export type ProductDetailsQuery = { __typename: 'Query', product: { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, isAvailable: boolean | null, id: string, category: { __typename: 'Category', id: string, name: string, level: number, parent: { __typename: 'Category', id: string, name: string } | null, ancestors: { __typename: 'CategoryCountableConnection', edges: Array<{ __typename: 'CategoryCountableEdge', node: { __typename: 'Category', id: string, name: string } }> } | null } | null, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> } | null };
++export type ProductDetailsQuery = { __typename: 'Query', product: { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, storageConditions: string | null, isAvailable: boolean | null, id: string, category: { __typename: 'Category', id: string, name: string, level: number, parent: { __typename: 'Category', id: string, name: string } | null, ancestors: { __typename: 'CategoryCountableConnection', edges: Array<{ __typename: 'CategoryCountableEdge', node: { __typename: 'Category', id: string, name: string } }> } | null } | null, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> } | null };
+ 
+ export type ProductTypeQueryVariables = Exact<{
+   id: Scalars['ID']['input'];
+@@ -15018,7 +15043,7 @@ export type UpdateProductTranslationsMutationVariables = Exact<{
+ }>;
+ 
+ 
+-export type UpdateProductTranslationsMutation = { __typename: 'Mutation', productTranslate: { __typename: 'ProductTranslate', errors: Array<{ __typename: 'TranslationError', code: TranslationErrorCode, field: string | null, message: string | null }>, product: { __typename: 'Product', id: string, name: string, description: string | null, seoDescription: string | null, seoTitle: string | null, slug: string, translation: { __typename: 'ProductTranslation', id: string, description: string | null, name: string | null, seoDescription: string | null, seoTitle: string | null, slug: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null } | null } | null };
++export type UpdateProductTranslationsMutation = { __typename: 'Mutation', productTranslate: { __typename: 'ProductTranslate', errors: Array<{ __typename: 'TranslationError', code: TranslationErrorCode, field: string | null, message: string | null }>, product: { __typename: 'Product', id: string, name: string, description: string | null, seoDescription: string | null, seoTitle: string | null, slug: string, storageConditions: string | null, translation: { __typename: 'ProductTranslation', id: string, description: string | null, name: string | null, seoDescription: string | null, seoTitle: string | null, slug: string | null, storageConditions: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null } | null } | null };
+ 
+ export type UpdateProductVariantTranslationsMutationVariables = Exact<{
+   id: Scalars['ID']['input'];
+@@ -15141,7 +15166,7 @@ export type ProductTranslationsQueryVariables = Exact<{
+ }>;
+ 
+ 
+-export type ProductTranslationsQuery = { __typename: 'Query', translations: { __typename: 'TranslatableItemConnection', edges: Array<{ __typename: 'TranslatableItemEdge', node: { __typename: 'AttributeTranslatableContent' } | { __typename: 'AttributeValueTranslatableContent' } | { __typename: 'CategoryTranslatableContent' } | { __typename: 'CollectionTranslatableContent' } | { __typename: 'MenuItemTranslatableContent' } | { __typename: 'PageTranslatableContent' } | { __typename: 'ProductMediaTranslatableContent' } | { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> } | { __typename: 'ProductVariantTranslatableContent' } | { __typename: 'PromotionRuleTranslatableContent' } | { __typename: 'PromotionTranslatableContent' } | { __typename: 'SaleTranslatableContent' } | { __typename: 'ShippingMethodTranslatableContent' } | { __typename: 'VoucherTranslatableContent' } }>, pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null } } | null };
++export type ProductTranslationsQuery = { __typename: 'Query', translations: { __typename: 'TranslatableItemConnection', edges: Array<{ __typename: 'TranslatableItemEdge', node: { __typename: 'AttributeTranslatableContent' } | { __typename: 'AttributeValueTranslatableContent' } | { __typename: 'CategoryTranslatableContent' } | { __typename: 'CollectionTranslatableContent' } | { __typename: 'MenuItemTranslatableContent' } | { __typename: 'PageTranslatableContent' } | { __typename: 'ProductMediaTranslatableContent' } | { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null, storageConditions: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, storageConditions: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> } | { __typename: 'ProductVariantTranslatableContent' } | { __typename: 'PromotionRuleTranslatableContent' } | { __typename: 'PromotionTranslatableContent' } | { __typename: 'SaleTranslatableContent' } | { __typename: 'ShippingMethodTranslatableContent' } | { __typename: 'VoucherTranslatableContent' } }>, pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null } } | null };
+ 
+ export type PageTranslationsQueryVariables = Exact<{
+   language: LanguageCodeEnum;
+@@ -15215,7 +15240,7 @@ export type ProductTranslationDetailsQueryVariables = Exact<{
+ }>;
+ 
+ 
+-export type ProductTranslationDetailsQuery = { __typename: 'Query', translation: { __typename: 'AttributeTranslatableContent' } | { __typename: 'AttributeValueTranslatableContent' } | { __typename: 'CategoryTranslatableContent' } | { __typename: 'CollectionTranslatableContent' } | { __typename: 'MenuItemTranslatableContent' } | { __typename: 'PageTranslatableContent' } | { __typename: 'ProductMediaTranslatableContent' } | { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> } | { __typename: 'ProductVariantTranslatableContent' } | { __typename: 'PromotionRuleTranslatableContent' } | { __typename: 'PromotionTranslatableContent' } | { __typename: 'SaleTranslatableContent' } | { __typename: 'ShippingMethodTranslatableContent' } | { __typename: 'VoucherTranslatableContent' } | null };
++export type ProductTranslationDetailsQuery = { __typename: 'Query', translation: { __typename: 'AttributeTranslatableContent' } | { __typename: 'AttributeValueTranslatableContent' } | { __typename: 'CategoryTranslatableContent' } | { __typename: 'CollectionTranslatableContent' } | { __typename: 'MenuItemTranslatableContent' } | { __typename: 'PageTranslatableContent' } | { __typename: 'ProductMediaTranslatableContent' } | { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null, storageConditions: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, storageConditions: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> } | { __typename: 'ProductVariantTranslatableContent' } | { __typename: 'PromotionRuleTranslatableContent' } | { __typename: 'PromotionTranslatableContent' } | { __typename: 'SaleTranslatableContent' } | { __typename: 'ShippingMethodTranslatableContent' } | { __typename: 'VoucherTranslatableContent' } | null };
+ 
+ export type ProductVariantTranslationDetailsQueryVariables = Exact<{
+   id: Scalars['ID']['input'];
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.stagingSchema.test.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.stagingSchema.test.tsx
+new file mode 100644
+index 0000000..4a4cc7c
+--- /dev/null
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.stagingSchema.test.tsx
+@@ -0,0 +1,45 @@
++import { RichTextContext, type RichTextContextValues } from "@dashboard/utils/richText/context";
++import { render, screen } from "@testing-library/react";
++
++import { ProductDetailsForm } from "./ProductDetailsForm";
++
++jest.mock("@dashboard/graphql/schemaVersion", () => ({
++  isMainSchema: () => false,
++  isStagingSchema: () => true,
++}));
++
++jest.mock("@dashboard/components/RichTextEditor/RichTextEditor", () => ({
++  __esModule: true,
++  default: () => null,
++}));
++
++const richTextContext = {
++  editorRef: { current: null },
++  defaultValue: undefined,
++  isReadyForMount: false,
++  handleChange: jest.fn(),
++} as unknown as RichTextContextValues;
++
++describe("ProductDetailsForm with staging schema", () => {
++  it("does not render the storage conditions field", () => {
++    // Arrange & Act
++    render(
++      <RichTextContext.Provider value={richTextContext}>
++        <ProductDetailsForm
++          data={{
++            description: { blocks: [] },
++            name: "Juice",
++            rating: null,
++            storageConditions: "x",
++          }}
++          errors={[]}
++          onChange={jest.fn()}
++        />
++      </RichTextContext.Provider>,
++    );
++
++    // Assert
++    expect(screen.queryByTestId("product-storage-conditions")).not.toBeInTheDocument();
++    expect(screen.queryByText("Shown to customers on the product page.")).not.toBeInTheDocument();
++  });
++});
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx
+new file mode 100644
+index 0000000..f77f828
+--- /dev/null
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx
+@@ -0,0 +1,132 @@
++import { ProductErrorCode, type ProductErrorFragment } from "@dashboard/graphql";
++import { RichTextContext, type RichTextContextValues } from "@dashboard/utils/richText/context";
++import { fireEvent, render, screen } from "@testing-library/react";
++
++import { ProductDetailsForm } from "./ProductDetailsForm";
++
++jest.mock("@dashboard/graphql/schemaVersion", () => ({
++  isMainSchema: () => true,
++  isStagingSchema: () => false,
++}));
++jest.mock("@dashboard/components/RichTextEditor/RichTextEditor", () => ({
++  __esModule: true,
++  default: () => null,
++}));
++
++const richTextContext = {
++  editorRef: { current: null },
++  defaultValue: undefined,
++  isReadyForMount: false,
++  handleChange: jest.fn(),
++} as unknown as RichTextContextValues;
++
++const baseData = { description: { blocks: [] }, name: "Juice", rating: null };
++
++const setup = (
++  data: { storageConditions?: string } = {},
++  errors: ProductErrorFragment[] = [],
++  onChange = jest.fn(),
++) => {
++  const { unmount } = render(
++    <RichTextContext.Provider value={richTextContext}>
++      <ProductDetailsForm data={{ ...baseData, ...data }} errors={errors} onChange={onChange} />
++    </RichTextContext.Provider>,
++  );
++
++  return { onChange, unmount };
++};
++
++describe("ProductDetailsForm storage conditions (main schema)", () => {
++  it("renders the textarea with the current value and maxLength 250", () => {
++    // Arrange & Act
++    setup({ storageConditions: "Keep dry" });
++
++    // Assert
++    const field = screen.getByDisplayValue("Keep dry");
++
++    expect(field.tagName).toBe("TEXTAREA");
++    expect(field).toHaveAttribute("name", "storageConditions");
++    expect(field).toHaveAttribute("maxlength", "250");
++    expect(screen.getByText("Shown to customers on the product page.")).toBeInTheDocument();
++  });
++
++  it("shows the character counter when the value is non-empty", () => {
++    // Arrange & Act
++    setup({ storageConditions: "Keep dry" });
++
++    // Assert
++    expect(screen.getByText("(8 of 250 characters)")).toBeInTheDocument();
++  });
++
++  it("hides the counter when the value is empty", () => {
++    // Arrange & Act
++    setup({ storageConditions: "" });
++
++    // Assert
++    expect(screen.queryByText(/of 250 characters/)).not.toBeInTheDocument();
++  });
++
++  it("calls onChange when the user types", () => {
++    // Arrange
++    const { onChange } = setup({ storageConditions: "" });
++
++    // Act
++    fireEvent.change(screen.getByRole("textbox", { name: /storage conditions/i }), {
++      target: { value: "Cold" },
++    });
++
++    // Assert
++    expect(onChange).toHaveBeenCalledTimes(1);
++    expect(onChange.mock.calls[0][0].target.name).toBe("storageConditions");
++  });
++
++  it("renders a server error under the field", () => {
++    // Arrange
++    const errors = [
++      {
++        __typename: "ProductError",
++        code: ProductErrorCode.INVALID,
++        field: "storageConditions",
++        message: "Storage conditions are too long",
++      },
++    ] as ProductErrorFragment[];
++
++    // Act
++    setup({ storageConditions: "x" }, errors);
++
++    // Assert
++    expect(screen.getByText("Invalid value")).toBeInTheDocument();
++    expect(screen.queryByText("Shown to customers on the product page.")).not.toBeInTheDocument();
++  });
++
++  it("puts the field in the error state above 250 characters but not at exactly 250", () => {
++    // Arrange - reference classes for the normal and server-error states
++    const getTextarea = (): string =>
++      screen.getByRole("textbox", { name: /storage conditions/i }).className;
++    const normal = setup({ storageConditions: "a" });
++    const normalClass = getTextarea();
++
++    normal.unmount();
++
++    const serverError = setup({ storageConditions: "a" }, [
++      { __typename: "ProductError", code: ProductErrorCode.INVALID, field: "storageConditions" },
++    ] as ProductErrorFragment[]);
++    const errorClass = getTextarea();
++
++    serverError.unmount();
++
++    // Act & Assert - 250 characters is not an error
++    const atLimit = setup({ storageConditions: "a".repeat(250) });
++
++    expect(screen.getByText("(250 of 250 characters)")).toBeInTheDocument();
++    expect(getTextarea()).toBe(normalClass);
++    atLimit.unmount();
++
++    // Act & Assert - 251 characters renders the same error styling as a server error
++    setup({ storageConditions: "a".repeat(251) });
++
++    expect(screen.getByText("(251 of 250 characters)")).toBeInTheDocument();
++    expect(errorClass).not.toBe(normalClass);
++    expect(getTextarea()).toBe(errorClass);
++  });
++});
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
+index f54cb77..c828fae 100644
+--- a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
+@@ -5,19 +5,23 @@ import RichTextEditor from "@dashboard/components/RichTextEditor/RichTextEditor"
+ import { RichTextEditorClamp } from "@dashboard/components/RichTextEditor/RichTextEditorClamp";
+ import { RichTextEditorLoading } from "@dashboard/components/RichTextEditor/RichTextEditorLoading";
+ import { type ProductErrorFragment } from "@dashboard/graphql";
++import { isMainSchema } from "@dashboard/graphql/schemaVersion";
+ import { commonMessages } from "@dashboard/intl";
+ import { getFormErrors, getProductErrorMessage } from "@dashboard/utils/errors";
+ import createNonNegativeValueChangeHandler from "@dashboard/utils/handlers/nonNegativeValueChangeHandler";
+ import { useRichTextContext } from "@dashboard/utils/richText/context";
+ import { type OutputData } from "@editorjs/editorjs";
+-import { Box, Input } from "@saleor/macaw-ui-next";
+-import { useIntl } from "react-intl";
++import { Box, Input, Textarea } from "@saleor/macaw-ui-next";
++import { FormattedMessage, useIntl } from "react-intl";
++
++const STORAGE_CONDITIONS_MAX_LENGTH = 250;
+ 
+ interface ProductDetailsFormProps {
+   data: {
+     description: OutputData;
+     name: string;
+     rating: number | null;
++    storageConditions?: string;
+   };
+   /** Simple products carry weight here. Variants keep it on the variant. */
+   shippingWeight?: {
+@@ -38,7 +42,10 @@ export const ProductDetailsForm = ({
+   onDescriptionChange,
+ }: ProductDetailsFormProps) => {
+   const intl = useIntl();
+-  const formErrors = getFormErrors(["name", "description", "rating", "weight"], errors);
++  const formErrors = getFormErrors(
++    ["name", "description", "storageConditions", "rating", "weight"],
++    errors,
++  );
+   const { editorRef, defaultValue, isReadyForMount, handleChange } = useRichTextContext();
+   const handleWeightChange = createNonNegativeValueChangeHandler(onChange);
+ 
+@@ -90,6 +97,54 @@ export const ProductDetailsForm = ({
+         />
+       )}
+       <FormSpacer />
++      {isMainSchema() && (
++        <>
++          <Textarea
++            label={
++              <Box display="flex" gap={1}>
++                <Box as="span">
++                  <FormattedMessage
++                    id="hCQSOG"
++                    defaultMessage="Storage conditions"
++                    description="product storage conditions field label"
++                  />
++                </Box>
++                {data.storageConditions?.length > 0 && (
++                  <Box as="span">
++                    <FormattedMessage
++                      defaultMessage="({numberOfCharacters} of {maxCharacters} characters)"
++                      id="yi1HSj"
++                      values={{
++                        maxCharacters: STORAGE_CONDITIONS_MAX_LENGTH,
++                        numberOfCharacters: data.storageConditions.length,
++                      }}
++                    />
++                  </Box>
++                )}
++              </Box>
++            }
++            value={data.storageConditions ?? ""}
++            onChange={onChange}
++            error={
++              !!formErrors.storageConditions ||
++              data.storageConditions?.length > STORAGE_CONDITIONS_MAX_LENGTH
++            }
++            name="storageConditions"
++            maxLength={STORAGE_CONDITIONS_MAX_LENGTH}
++            disabled={disabled}
++            data-test-id="product-storage-conditions"
++            helperText={
++              getProductErrorMessage(formErrors.storageConditions, intl) ||
++              intl.formatMessage({
++                id: "B3SLYm",
++                defaultMessage: "Shown to customers on the product page.",
++                description: "helper for the product storage conditions field",
++              })
++            }
++          />
++          <FormSpacer />
++        </>
++      )}
+       <Box display="grid" __gridTemplateColumns="1fr 1fr" gap={4} alignItems="start">
+         <Input
+           label={intl.formatMessage({
+diff --git a/src/products/components/ProductExportDialog/ProductExportDialogInfo.stagingSchema.test.tsx b/src/products/components/ProductExportDialog/ProductExportDialogInfo.stagingSchema.test.tsx
+new file mode 100644
+index 0000000..5a1d7ee
+--- /dev/null
++++ b/src/products/components/ProductExportDialog/ProductExportDialogInfo.stagingSchema.test.tsx
+@@ -0,0 +1,73 @@
++import {
++  type ExportProductsInput,
++  ExportScope,
++  FileTypesEnum,
++  ProductFieldEnum,
++} from "@dashboard/graphql";
++import Wrapper from "@test/wrapper";
++import { render, screen } from "@testing-library/react";
++
++import ProductExportDialogInfo from "./ProductExportDialogInfo";
++
++jest.mock("@dashboard/graphql/schemaVersion", () => ({
++  isMainSchema: () => false,
++  isStagingSchema: () => true,
++}));
++jest.mock("@dashboard/components/Accordion/Accordion", () => ({
++  __esModule: true,
++  default: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
++}));
++
++const data: ExportProductsInput = {
++  exportInfo: {
++    attributes: [],
++    channels: [],
++    fields: [ProductFieldEnum.NAME],
++    warehouses: [],
++  },
++  fileType: FileTypesEnum.CSV,
++  scope: ExportScope.ALL,
++};
++
++const setup = () => {
++  const onChange = jest.fn();
++
++  render(
++    <Wrapper>
++      <ProductExportDialogInfo
++        attributes={[]}
++        channels={[]}
++        selectedChannels={[]}
++        warehouses={[]}
++        selectedAttributes={[]}
++        data={data}
++        hasMore={false}
++        loading={false}
++        onAttrtibuteSelect={jest.fn()}
++        onWarehouseSelect={jest.fn()}
++        onChannelSelect={jest.fn()}
++        onChange={onChange}
++        onFetch={jest.fn()}
++        onFetchMore={jest.fn()}
++        onSelectAllChannels={jest.fn()}
++        onSelectAllWarehouses={jest.fn()}
++      />
++    </Wrapper>,
++  );
++
++  return { onChange };
++};
++
++describe("ProductExportDialogInfo with staging schema", () => {
++  it("does not offer the Export Storage Conditions option", () => {
++    // Arrange & Act
++    setup();
++
++    // Assert
++    expect(screen.queryByText("Export Storage Conditions")).not.toBeInTheDocument();
++    expect(
++      document.querySelector(`input[name="${ProductFieldEnum.STORAGE_CONDITIONS}"]`),
++    ).toBeNull();
++    expect(document.querySelector(`input[name="${ProductFieldEnum.NAME}"]`)).not.toBeNull();
++  });
++});
+diff --git a/src/products/components/ProductExportDialog/ProductExportDialogInfo.test.tsx b/src/products/components/ProductExportDialog/ProductExportDialogInfo.test.tsx
+new file mode 100644
+index 0000000..c9fb35f
+--- /dev/null
++++ b/src/products/components/ProductExportDialog/ProductExportDialogInfo.test.tsx
+@@ -0,0 +1,88 @@
++import {
++  type ExportProductsInput,
++  ExportScope,
++  FileTypesEnum,
++  ProductFieldEnum,
++} from "@dashboard/graphql";
++import Wrapper from "@test/wrapper";
++import { fireEvent, render, screen } from "@testing-library/react";
++
++import ProductExportDialogInfo from "./ProductExportDialogInfo";
++
++jest.mock("@dashboard/graphql/schemaVersion", () => ({
++  isMainSchema: () => true,
++  isStagingSchema: () => false,
++}));
++jest.mock("@dashboard/components/Accordion/Accordion", () => ({
++  __esModule: true,
++  default: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
++}));
++
++const data: ExportProductsInput = {
++  exportInfo: {
++    attributes: [],
++    channels: [],
++    fields: [ProductFieldEnum.NAME],
++    warehouses: [],
++  },
++  fileType: FileTypesEnum.CSV,
++  scope: ExportScope.ALL,
++};
++
++const setup = () => {
++  const onChange = jest.fn();
++
++  render(
++    <Wrapper>
++      <ProductExportDialogInfo
++        attributes={[]}
++        channels={[]}
++        selectedChannels={[]}
++        warehouses={[]}
++        selectedAttributes={[]}
++        data={data}
++        hasMore={false}
++        loading={false}
++        onAttrtibuteSelect={jest.fn()}
++        onWarehouseSelect={jest.fn()}
++        onChannelSelect={jest.fn()}
++        onChange={onChange}
++        onFetch={jest.fn()}
++        onFetchMore={jest.fn()}
++        onSelectAllChannels={jest.fn()}
++        onSelectAllWarehouses={jest.fn()}
++      />
++    </Wrapper>,
++  );
++
++  return { onChange };
++};
++
++describe("ProductExportDialogInfo storage conditions (main schema)", () => {
++  it("offers the Export Storage Conditions option", () => {
++    // Arrange & Act
++    setup();
++
++    // Assert
++    expect(screen.getByText("Export Storage Conditions")).toBeInTheDocument();
++  });
++
++  it("selecting the option sends STORAGE_CONDITIONS in exportInfo.fields", () => {
++    // Arrange
++    const { onChange } = setup();
++    const checkbox = screen.getByLabelText("Export Storage Conditions");
++
++    // Act
++    fireEvent.click(checkbox);
++
++    // Assert
++    expect(onChange).toHaveBeenCalledWith({
++      target: {
++        name: "exportInfo",
++        value: expect.objectContaining({
++          fields: [ProductFieldEnum.NAME, ProductFieldEnum.STORAGE_CONDITIONS],
++        }),
++      },
++    });
++  });
++});
+diff --git a/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx b/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx
+index 0496f67..dcf8333 100644
+--- a/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx
++++ b/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx
+@@ -14,6 +14,7 @@ import {
+   type ExportProductsInput,
+   ProductFieldEnum,
+ } from "@dashboard/graphql";
++import { isMainSchema } from "@dashboard/graphql/schemaVersion";
+ import { type ChangeEvent, type FormChange } from "@dashboard/hooks/useForm";
+ import useSearchQuery from "@dashboard/hooks/useSearchQuery";
+ import { sectionNames } from "@dashboard/intl";
+@@ -593,6 +594,7 @@ const ProductExportDialogInfo = ({
+           ProductFieldEnum.DESCRIPTION,
+           ProductFieldEnum.NAME,
+           ProductFieldEnum.PRODUCT_MEDIA,
++          ...(isMainSchema() ? [ProductFieldEnum.STORAGE_CONDITIONS] : []),
+           ProductFieldEnum.VARIANT_MEDIA,
+         ]}
+         onChange={handleFieldChange}
+diff --git a/src/products/components/ProductExportDialog/messages.ts b/src/products/components/ProductExportDialog/messages.ts
+index de35aa4..e7da2d0 100644
+--- a/src/products/components/ProductExportDialog/messages.ts
++++ b/src/products/components/ProductExportDialog/messages.ts
+@@ -72,6 +72,11 @@ function useProductExportFieldMessages() {
+       defaultMessage: "Product Images",
+       description: "product field",
+     }),
++    [ProductFieldEnum.STORAGE_CONDITIONS]: intl.formatMessage({
++      id: "fp8Ua2",
++      defaultMessage: "Export Storage Conditions",
++      description: "product field",
++    }),
+     [ProductFieldEnum.PRODUCT_TYPE]: intl.formatMessage({
+       id: "Q/Nbku",
+       defaultMessage: "Type",
+diff --git a/src/products/components/ProductUpdatePage/form.test.ts b/src/products/components/ProductUpdatePage/form.test.ts
+index db3d2b4..a40482d 100644
+--- a/src/products/components/ProductUpdatePage/form.test.ts
++++ b/src/products/components/ProductUpdatePage/form.test.ts
+@@ -216,6 +216,73 @@ describe("useProductUpdateForm", () => {
+       expect(result.current.isSaveDisabled).toBe(false);
+     });
+ 
++    it("enables Save and marks details when only storageConditions changes", () => {
++      // Arrange
++      const { result } = renderHook(() =>
++        useProductUpdateForm(productWithName, jest.fn(), false, jest.fn(), formOpts),
++      );
++
++      // Act
++      act(() => {
++        result.current.change({ target: { name: "storageConditions", value: "Keep dry" } });
++      });
++
++      // Assert
++      expect(result.current.data.storageConditions).toBe("Keep dry");
++      expect(result.current.saveComposition.hasDetails).toBe(true);
++      expect(result.current.isSaveDisabled).toBe(false);
++    });
++
++    it("submits only storageConditions when it is the only changed field", async () => {
++      // Arrange
++      const mockOnSubmit = jest.fn().mockResolvedValue([]);
++      const { result } = renderHook(() =>
++        useProductUpdateForm(productWithName, mockOnSubmit, false, jest.fn(), formOpts),
++      );
++
++      // Act
++      act(() => {
++        result.current.change({ target: { name: "storageConditions", value: "Keep dry" } });
++      });
++      await act(async () => {
++        await result.current.submit();
++      });
++
++      // Assert
++      const submitted = mockOnSubmit.mock.calls[0][0];
++
++      expect(submitted.storageConditions).toBe("Keep dry");
++      expect(submitted).not.toHaveProperty("name");
++      expect(submitted).not.toHaveProperty("slug");
++    });
++
++    it("treats clearing a saved value as a change and restoring it as clean", () => {
++      // Arrange
++      const product = { ...productWithName, storageConditions: "Keep dry" } as ProductFragment;
++      const { result } = renderHook(() =>
++        useProductUpdateForm(product, jest.fn(), false, jest.fn(), formOpts),
++      );
++
++      // Assert initial value from the product
++      expect(result.current.data.storageConditions).toBe("Keep dry");
++
++      // Act
++      act(() => {
++        result.current.change({ target: { name: "storageConditions", value: "" } });
++      });
++
++      // Assert cleared value is a change
++      expect(result.current.isSaveDisabled).toBe(false);
++
++      // Act
++      act(() => {
++        result.current.change({ target: { name: "storageConditions", value: "Keep dry" } });
++      });
++
++      // Assert reverted
++      expect(result.current.isSaveDisabled).toBe(true);
++    });
++
+     it("clears Save composition and disables Save after name is reverted", () => {
+       // Arrange
+       const { result } = renderHook(() =>
+diff --git a/src/products/components/ProductUpdatePage/saveComposition.test.ts b/src/products/components/ProductUpdatePage/saveComposition.test.ts
+index 0c730e7..b1b575c 100644
+--- a/src/products/components/ProductUpdatePage/saveComposition.test.ts
++++ b/src/products/components/ProductUpdatePage/saveComposition.test.ts
+@@ -15,6 +15,19 @@ const emptyInput = {
+ };
+ 
+ describe("buildProductSaveComposition", () => {
++  it("treats storageConditions as a productUpdate details field", () => {
++    // Arrange / Act
++    const composition = buildProductSaveComposition({
++      ...emptyInput,
++      changedFieldNames: ["storageConditions"],
++    });
++
++    // Assert
++    expect(PRODUCT_DETAILS_SAVE_FIELDS).toContain("storageConditions");
++    expect(composition.hasDetails).toBe(true);
++    expect(composition.hasAttributes).toBe(false);
++  });
++
+   it.each([...PRODUCT_DETAILS_SAVE_FIELDS])(
+     "marks details when productUpdate field %s changed",
+     field => {
+diff --git a/src/products/components/ProductUpdatePage/saveComposition.ts b/src/products/components/ProductUpdatePage/saveComposition.ts
+index 9e2c6bd..4ef8ae9 100644
+--- a/src/products/components/ProductUpdatePage/saveComposition.ts
++++ b/src/products/components/ProductUpdatePage/saveComposition.ts
+@@ -7,6 +7,7 @@ export const PRODUCT_DETAILS_SAVE_FIELDS: ReadonlyArray<keyof ProductUpdateFormD
+   "seoTitle",
+   "seoDescription",
+   "rating",
++  "storageConditions",
+   "weight",
+   "taxClassId",
+   "category",
+diff --git a/src/products/components/ProductUpdatePage/types.ts b/src/products/components/ProductUpdatePage/types.ts
+index e236f93..9f65511 100644
+--- a/src/products/components/ProductUpdatePage/types.ts
++++ b/src/products/components/ProductUpdatePage/types.ts
+@@ -46,6 +46,7 @@ export interface ProductUpdateFormData {
+   slug: string;
+   seoDescription: string;
+   seoTitle: string;
++  storageConditions: string;
+   sku: string;
+   trackInventory: boolean;
+   weight: string;
+diff --git a/src/products/fixtures.ts b/src/products/fixtures.ts
+index 15487df..e474934 100644
+--- a/src/products/fixtures.ts
++++ b/src/products/fixtures.ts
+@@ -575,6 +575,7 @@ export const product: (
+   rating: 100,
+   seoDescription: "Seo description",
+   seoTitle: "Seo title",
++  storageConditions: null,
+   sku: "59661-34207",
+   slug: "Borders",
+   taxClass: {
+diff --git a/src/products/utils/data.test.ts b/src/products/utils/data.test.ts
+index fb12c7c..9817db4 100644
+--- a/src/products/utils/data.test.ts
++++ b/src/products/utils/data.test.ts
+@@ -1,4 +1,6 @@
+-import { getSelectedMedia } from "./data";
++import { type ProductFragment } from "@dashboard/graphql";
++
++import { getProductUpdatePageFormData, getSelectedMedia } from "./data";
+ 
+ type GetSelectedMediaParams = Parameters<typeof getSelectedMedia>;
+ 
+@@ -72,3 +74,35 @@ describe("Product media utils", () => {
+     expect(result).toEqual([]);
+   });
+ });
++
++describe("getProductUpdatePageFormData storageConditions", () => {
++  it("returns the product storage conditions", () => {
++    // Arrange
++    const product = { storageConditions: "Keep dry" } as ProductFragment;
++
++    // Act
++    const result = getProductUpdatePageFormData(product, []);
++
++    // Assert
++    expect(result.storageConditions).toBe("Keep dry");
++  });
++
++  it.each([null, undefined])("falls back to an empty string for %p", value => {
++    // Arrange
++    const product = { storageConditions: value } as ProductFragment;
++
++    // Act
++    const result = getProductUpdatePageFormData(product, []);
++
++    // Assert
++    expect(result.storageConditions).toBe("");
++  });
++
++  it("returns an empty string when there is no product", () => {
++    // Arrange & Act
++    const result = getProductUpdatePageFormData(undefined as unknown as ProductFragment, []);
++
++    // Assert
++    expect(result.storageConditions).toBe("");
++  });
++});
+diff --git a/src/products/utils/data.ts b/src/products/utils/data.ts
+index fd355af..493e634 100644
+--- a/src/products/utils/data.ts
++++ b/src/products/utils/data.ts
+@@ -209,6 +209,7 @@ export function getProductUpdatePageFormData(
+     rating: maybe(() => product.rating, null),
+     seoDescription: maybe(() => product.seoDescription, ""),
+     seoTitle: maybe(() => product.seoTitle, ""),
++    storageConditions: product?.storageConditions ?? "",
+     sku: maybe(
+       () => (product.productType.hasVariants ? undefined : (variant?.sku ?? undefined)),
+       "",
+diff --git a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
+index fd11549..dfe4169 100644
+--- a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
++++ b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
+@@ -98,6 +98,7 @@ const submitData: ProductUpdateSubmitData = {
+   rating: 0,
+   seoDescription: "",
+   seoTitle: "",
++  storageConditions: "",
+   sku: "",
+   slug: product.slug,
+   taxClassId: "",
+diff --git a/src/products/views/ProductUpdate/handlers/utils.stagingSchema.test.ts b/src/products/views/ProductUpdate/handlers/utils.stagingSchema.test.ts
+new file mode 100644
+index 0000000..01274d1
+--- /dev/null
++++ b/src/products/views/ProductUpdate/handlers/utils.stagingSchema.test.ts
+@@ -0,0 +1,33 @@
++import { type ProductUpdateSubmitData } from "@dashboard/products/components/ProductUpdatePage/types";
++
++import { product } from "../../../fixtures";
++import { getProductUpdateVariables } from "./utils";
++
++jest.mock("@dashboard/graphql/schemaVersion", () => ({
++  isMainSchema: () => false,
++  isStagingSchema: () => true,
++}));
++
++describe("getProductUpdateVariables with staging schema", () => {
++  const baseData = {
++    attributes: [],
++    attributesWithNewFileValue: [],
++    category: null,
++    collections: [],
++    description: null,
++    name: "Test Product",
++    rating: null,
++    slug: "test-product",
++    taxClassId: null,
++    seoDescription: null,
++    seoTitle: null,
++  } as unknown as ProductUpdateSubmitData;
++
++  it("does not send storageConditions when the form did not change it", () => {
++    // Arrange & Act
++    const result = getProductUpdateVariables(product("http://google.com"), baseData, []);
++
++    // Assert
++    expect(result.input).not.toHaveProperty("storageConditions");
++  });
++});
+diff --git a/src/products/views/ProductUpdate/handlers/utils.test.ts b/src/products/views/ProductUpdate/handlers/utils.test.ts
+index f5bcd9c..0d63d04 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.test.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.test.ts
+@@ -558,4 +558,39 @@ describe("getProductUpdateVariables", () => {
+     // Assert
+     expect(result.input.seo).toBeUndefined();
+   });
++
++  describe("storageConditions", () => {
++    it("sends the value when provided", () => {
++      // Arrange
++      const data = { ...baseData, storageConditions: "Keep refrigerated at 2–8 °C" };
++
++      // Act
++      const result = getProductUpdateVariables(baseProduct, data, []);
++
++      // Assert
++      expect(result.input.storageConditions).toBe("Keep refrigerated at 2–8 °C");
++    });
++
++    it("sends null when the field is cleared with an empty string", () => {
++      // Arrange
++      const data = { ...baseData, storageConditions: "" };
++
++      // Act
++      const result = getProductUpdateVariables(baseProduct, data, []);
++
++      // Assert
++      expect(result.input).toHaveProperty("storageConditions", null);
++    });
++
++    it("does not send the key when the field was not changed", () => {
++      // Arrange
++      const data = { ...baseData };
++
++      // Act
++      const result = getProductUpdateVariables(baseProduct, data, []);
++
++      // Assert
++      expect(result.input).not.toHaveProperty("storageConditions");
++    });
++  });
+ });
+diff --git a/src/products/views/ProductUpdate/handlers/utils.ts b/src/products/views/ProductUpdate/handlers/utils.ts
+index 74f714e..defde9b 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.ts
+@@ -73,6 +73,10 @@ export function getProductUpdateVariables(
+     variables.input["rating"] = Number.isFinite(rating) ? rating : null;
+   }
+ 
++  if (data.storageConditions !== undefined) {
++    variables.input["storageConditions"] = data.storageConditions || null;
++  }
++
+   if (data.slug) {
+     variables.input["slug"] = data.slug;
+   }
+diff --git a/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.stagingSchema.test.tsx b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.stagingSchema.test.tsx
+new file mode 100644
+index 0000000..82cce4f
+--- /dev/null
++++ b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.stagingSchema.test.tsx
+@@ -0,0 +1,115 @@
++// @ts-strict-ignore
++import { type ProductTranslationFragment } from "@dashboard/graphql";
++import {
++  TranslationInputFieldName,
++  type TranslationSectionConfig,
++} from "@dashboard/translations/types";
++import { render } from "@testing-library/react";
++
++import { TranslationsProductsPage } from "./TranslationsProductsPage";
++
++let mockSections: TranslationSectionConfig[] = [];
++
++jest.mock("@dashboard/graphql/schemaVersion", () => ({
++  isMainSchema: () => false,
++  isStagingSchema: () => true,
++}));
++jest.mock(
++  "@dashboard/translations/components/TranslationsDetailLayout/TranslationsDetailLayout",
++  () => ({
++    TranslationsDetailLayout: ({ sections }: { sections: TranslationSectionConfig[] }) => {
++      mockSections = sections;
++
++      return null;
++    },
++  }),
++);
++jest.mock("@dashboard/components/AppLayout/TopNav", () => ({
++  TopNav: () => null,
++  TopNavDestinationIcon: { translations: () => null },
++  topNavDestinationMessages: { translations: { id: "x", defaultMessage: "Translations" } },
++}));
++jest.mock("@dashboard/components/LanguageSwitch/LanguageSwitch", () => ({
++  LanguageSwitchWithCaching: () => null,
++}));
++jest.mock("@dashboard/components/Layouts/Detail", () => {
++  const Passthrough = function Passthrough({ children }: { children: React.ReactNode }) {
++    return <div>{children}</div>;
++  };
++  const DetailPageLayout = Object.assign(Passthrough, { Content: Passthrough });
++
++  return { DetailPageLayout };
++});
++jest.mock(
++  "@dashboard/extensions/components/ExtensionsButtonSelector/ExtensionsButtonSelector",
++  () => ({
++    ExtensionsButtonSelector: () => null,
++  }),
++);
++jest.mock("@dashboard/extensions/getExtensionsItems", () => ({
++  getExtensionsItemsForTranslationDetails: () => [],
++}));
++jest.mock("@dashboard/extensions/hooks/useExtensions", () => ({
++  useExtensions: () => ({ TRANSLATIONS_MORE_ACTIONS: [] }),
++}));
++jest.mock(
++  "@dashboard/extensions/components/AppExtensionContext/AppExtensionContextProvider",
++  () => ({
++    useActiveAppExtension: () => ({
++      attachFormState: jest.fn(),
++      active: false,
++      framesByFormType: {},
++    }),
++  }),
++);
++jest.mock("@dashboard/hooks/useNavigator", () => ({
++  __esModule: true,
++  default: () => jest.fn(),
++}));
++jest.mock("../ProductContextSwitcher/ProductContextSwitcher", () => ({
++  ProductContextSwitcher: () => null,
++}));
++
++describe("TranslationsProductsPage with staging schema", () => {
++  it("does not add the storageConditions field", () => {
++    // Arrange
++    const data = {
++      product: {
++        id: "p-1",
++        name: "Juice",
++        description: null,
++        seoDescription: null,
++        seoTitle: null,
++        slug: "juice",
++        storageConditions: "Keep dry",
++      },
++      translation: null,
++      attributeValues: [],
++    } as unknown as ProductTranslationFragment;
++
++    // Act
++    render(
++      <TranslationsProductsPage
++        translationId="p-1"
++        productId="p-1"
++        bulk={false}
++        disabled={false}
++        languageCode="DE"
++        languages={[]}
++        data={data}
++        saveButtonState="default"
++        onBulkChange={jest.fn()}
++        onEdit={jest.fn()}
++        onDiscard={jest.fn()}
++        onSubmit={jest.fn()}
++        onAttributeValueSubmit={jest.fn()}
++      />,
++    );
++
++    // Assert
++    const names = mockSections.flatMap(section => section.fields.map(field => field.name));
++
++    expect(names).toContain(TranslationInputFieldName.name);
++    expect(names).not.toContain(TranslationInputFieldName.storageConditions);
++  });
++});
+diff --git a/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.test.tsx b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.test.tsx
+new file mode 100644
+index 0000000..513695d
+--- /dev/null
++++ b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.test.tsx
+@@ -0,0 +1,194 @@
++// @ts-strict-ignore
++import {
++  LanguageCodeEnum,
++  type LanguageFragment,
++  type ProductTranslationFragment,
++} from "@dashboard/graphql";
++import {
++  type TranslationField,
++  TranslationFieldType,
++  TranslationInputFieldName,
++  type TranslationSectionConfig,
++} from "@dashboard/translations/types";
++import { render } from "@testing-library/react";
++
++import { TranslationsProductsPage } from "./TranslationsProductsPage";
++
++let mockCapturedLayoutProps: {
++  sections: TranslationSectionConfig[];
++  onSubmit: (field: TranslationField, data: string) => unknown;
++};
++
++jest.mock("@dashboard/graphql/schemaVersion", () => ({
++  isMainSchema: () => true,
++  isStagingSchema: () => false,
++}));
++jest.mock(
++  "@dashboard/translations/components/TranslationsDetailLayout/TranslationsDetailLayout",
++  () => ({
++    TranslationsDetailLayout: (props: typeof mockCapturedLayoutProps) => {
++      mockCapturedLayoutProps = props;
++
++      return null;
++    },
++  }),
++);
++jest.mock("@dashboard/components/AppLayout/TopNav", () => ({
++  TopNav: () => null,
++  TopNavDestinationIcon: { translations: () => null },
++  topNavDestinationMessages: { translations: { id: "x", defaultMessage: "Translations" } },
++}));
++jest.mock("@dashboard/components/LanguageSwitch/LanguageSwitch", () => ({
++  LanguageSwitchWithCaching: () => null,
++}));
++jest.mock("@dashboard/components/Layouts/Detail", () => {
++  const Passthrough = function Passthrough({ children }: { children: React.ReactNode }) {
++    return <div>{children}</div>;
++  };
++  const DetailPageLayout = Object.assign(Passthrough, { Content: Passthrough });
++
++  return { DetailPageLayout };
++});
++jest.mock(
++  "@dashboard/extensions/components/ExtensionsButtonSelector/ExtensionsButtonSelector",
++  () => ({
++    ExtensionsButtonSelector: () => null,
++  }),
++);
++jest.mock("@dashboard/extensions/getExtensionsItems", () => ({
++  getExtensionsItemsForTranslationDetails: () => [],
++}));
++jest.mock("@dashboard/extensions/hooks/useExtensions", () => ({
++  useExtensions: () => ({ TRANSLATIONS_MORE_ACTIONS: [] }),
++}));
++jest.mock(
++  "@dashboard/extensions/components/AppExtensionContext/AppExtensionContextProvider",
++  () => ({
++    useActiveAppExtension: () => ({
++      attachFormState: jest.fn(),
++      active: false,
++      framesByFormType: {},
++    }),
++  }),
++);
++jest.mock("@dashboard/hooks/useNavigator", () => ({
++  __esModule: true,
++  default: () => jest.fn(),
++}));
++jest.mock("../ProductContextSwitcher/ProductContextSwitcher", () => ({
++  ProductContextSwitcher: () => null,
++}));
++
++const language: LanguageFragment = {
++  __typename: "LanguageDisplay",
++  code: LanguageCodeEnum.DE,
++  language: "German",
++};
++
++const buildData = (overrides: {
++  storageConditions?: string | null;
++  translationStorageConditions?: string | null;
++}): ProductTranslationFragment =>
++  ({
++    __typename: "ProductTranslatableContent",
++    product: {
++      __typename: "Product",
++      id: "p-1",
++      name: "Juice",
++      description: null,
++      seoDescription: null,
++      seoTitle: null,
++      slug: "juice",
++      storageConditions: overrides.storageConditions ?? null,
++    },
++    translation: {
++      __typename: "ProductTranslation",
++      id: "t-1",
++      name: null,
++      description: null,
++      seoDescription: null,
++      seoTitle: null,
++      slug: null,
++      storageConditions: overrides.translationStorageConditions ?? null,
++      language,
++    },
++    attributeValues: [],
++  }) as unknown as ProductTranslationFragment;
++
++const renderPage = (data: ProductTranslationFragment, onSubmit = jest.fn()) => {
++  render(
++    <TranslationsProductsPage
++      translationId="p-1"
++      productId="p-1"
++      activeField={undefined}
++      bulk={false}
++      disabled={false}
++      languageCode="DE"
++      languages={[language]}
++      data={data}
++      saveButtonState="default"
++      onBulkChange={jest.fn()}
++      onEdit={jest.fn()}
++      onDiscard={jest.fn()}
++      onSubmit={onSubmit}
++      onAttributeValueSubmit={jest.fn()}
++    />,
++  );
++
++  return { onSubmit };
++};
++
++describe("TranslationsProductsPage storage conditions (main schema)", () => {
++  it("appends a LONG storageConditions field after description in the general section", () => {
++    // Arrange & Act
++    renderPage(
++      buildData({
++        storageConditions: "Keep dry",
++        translationStorageConditions: "Trocken lagern",
++      }),
++    );
++
++    // Assert
++    const general = mockCapturedLayoutProps.sections.find(section => section.id === "general");
++    const names = general.fields.map(field => field.name);
++
++    expect(names).toEqual([
++      TranslationInputFieldName.name,
++      TranslationInputFieldName.description,
++      TranslationInputFieldName.storageConditions,
++    ]);
++    expect(general.fields[2]).toEqual(
++      expect.objectContaining({
++        displayName: "Storage conditions",
++        type: TranslationFieldType.LONG,
++        value: "Keep dry",
++        translation: "Trocken lagern",
++      }),
++    );
++  });
++
++  it("falls back to empty source value and null translation", () => {
++    // Arrange & Act
++    renderPage(buildData({}));
++
++    // Assert
++    const general = mockCapturedLayoutProps.sections.find(section => section.id === "general");
++    const field = general.fields.find(f => f.name === TranslationInputFieldName.storageConditions);
++
++    expect(field.value).toBe("");
++    expect(field.translation).toBeNull();
++  });
++
++  it("submits the storageConditions field through onSubmit", () => {
++    // Arrange
++    const { onSubmit } = renderPage(buildData({ storageConditions: "Keep dry" }));
++    const general = mockCapturedLayoutProps.sections.find(section => section.id === "general");
++    const field = general.fields.find(f => f.name === TranslationInputFieldName.storageConditions);
++
++    // Act
++    mockCapturedLayoutProps.onSubmit(field, "Trocken lagern");
++
++    // Assert
++    expect(onSubmit).toHaveBeenCalledWith(field, "Trocken lagern");
++  });
++});
+diff --git a/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
+index 53fbacb..c0c775a 100644
+--- a/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
++++ b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
+@@ -11,6 +11,7 @@ import { ExtensionsButtonSelector } from "@dashboard/extensions/components/Exten
+ import { getExtensionsItemsForTranslationDetails } from "@dashboard/extensions/getExtensionsItems";
+ import { useExtensions } from "@dashboard/extensions/hooks/useExtensions";
+ import { LanguageCodeEnum, type ProductTranslationFragment } from "@dashboard/graphql";
++import { isMainSchema } from "@dashboard/graphql/schemaVersion";
+ import useNavigator from "@dashboard/hooks/useNavigator";
+ import { getStringOrPlaceholder } from "@dashboard/misc";
+ import { TranslationsDetailLayout } from "@dashboard/translations/components/TranslationsDetailLayout/TranslationsDetailLayout";
+@@ -23,6 +24,7 @@ import {
+ } from "@dashboard/translations/translationSectionBuilders";
+ import {
+   type TranslationField,
++  TranslationFieldType,
+   TranslationInputFieldName,
+   type TranslationSectionConfig,
+   type TranslationsEntitiesPageProps,
+@@ -128,26 +130,42 @@ export const TranslationsProductsPage = ({
+   });
+ 
+   const sections = useMemo((): TranslationSectionConfig[] => {
++    const generalSection = createGeneralNameDescriptionSection(
++      intl,
++      {
++        description: data?.product?.description,
++        name: data?.product?.name,
++        translationDescription: data?.translation?.description ?? null,
++        translationName: data?.translation?.name ?? null,
++      },
++      {
++        descriptionLabel: intl.formatMessage({
++          id: "Q8Qw5B",
++          defaultMessage: "Description",
++        }),
++        nameLabel: intl.formatMessage({
++          id: "ZIc5lM",
++          defaultMessage: "Product Name",
++        }),
++      },
++    );
++
++    if (isMainSchema()) {
++      generalSection.fields.push({
++        displayName: intl.formatMessage({
++          id: "PBRUO8",
++          defaultMessage: "Storage conditions",
++          description: "product storage conditions translation field",
++        }),
++        name: TranslationInputFieldName.storageConditions,
++        translation: data?.translation?.storageConditions ?? null,
++        type: TranslationFieldType.LONG,
++        value: data?.product?.storageConditions ?? "",
++      });
++    }
++
+     const productSections: TranslationSectionConfig[] = [
+-      createGeneralNameDescriptionSection(
+-        intl,
+-        {
+-          description: data?.product?.description,
+-          name: data?.product?.name,
+-          translationDescription: data?.translation?.description ?? null,
+-          translationName: data?.translation?.name ?? null,
+-        },
+-        {
+-          descriptionLabel: intl.formatMessage({
+-            id: "Q8Qw5B",
+-            defaultMessage: "Description",
+-          }),
+-          nameLabel: intl.formatMessage({
+-            id: "ZIc5lM",
+-            defaultMessage: "Product Name",
+-          }),
+-        },
+-      ),
++      generalSection,
+       createSeoTranslationSection(intl, {
+         seoDescription: data?.product?.seoDescription,
+         seoTitle: data?.product?.seoTitle,
+diff --git a/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts b/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts
+index cd1527c..4cab514 100644
+--- a/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts
++++ b/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts
+@@ -25,6 +25,7 @@ describe("useTranslationProductFormAppResponse", () => {
+     slug: "original-product-name",
+     seoDescription: "Original SEO Description",
+     seoTitle: "Original SEO Title",
++    storageConditions: null,
+   };
+ 
+   const mockOnEdit = jest.fn();
+diff --git a/src/translations/mutations.ts b/src/translations/mutations.ts
+index f075f27..e8b34d8 100644
+--- a/src/translations/mutations.ts
++++ b/src/translations/mutations.ts
+@@ -17,6 +17,7 @@ export const updateProductTranslations = gql`
+         seoDescription
+         seoTitle
+         slug
++        storageConditions @lockSchema(schema: "main")
+         translation(languageCode: $language) {
+           id
+           description
+@@ -28,6 +29,7 @@ export const updateProductTranslations = gql`
+           seoDescription
+           seoTitle
+           slug
++          storageConditions @lockSchema(schema: "main")
+         }
+       }
+     }
+diff --git a/src/translations/types.ts b/src/translations/types.ts
+index e0880a3..fb997f9 100644
+--- a/src/translations/types.ts
++++ b/src/translations/types.ts
+@@ -13,6 +13,7 @@ export enum TranslationInputFieldName {
+   seoDescription = "seoDescription",
+   seoTitle = "seoTitle",
+   slug = "slug",
++  storageConditions = "storageConditions",
+   richText = "richText",
+ }
+ 
+diff --git a/src/translations/utils.test.ts b/src/translations/utils.test.ts
+index b5a3621..c5465eb 100644
+--- a/src/translations/utils.test.ts
++++ b/src/translations/utils.test.ts
+@@ -41,6 +41,28 @@ describe("getParsedTranslationInputData", () => {
+     // Assert
+     expect(result).toEqual({ seoTitle: "SEO Title" });
+   });
++
++  it("returns raw string for storageConditions field", () => {
++    // Arrange & Act
++    const result = getParsedTranslationInputData({
++      fieldName: TranslationInputFieldName.storageConditions,
++      data: "Gekühlt lagern bei 2–8 °C",
++    });
++
++    // Assert
++    expect(result).toEqual({ storageConditions: "Gekühlt lagern bei 2–8 °C" });
++  });
++
++  it("keeps an empty storageConditions translation as an empty string", () => {
++    // Arrange & Act
++    const result = getParsedTranslationInputData({
++      fieldName: TranslationInputFieldName.storageConditions,
++      data: "",
++    });
++
++    // Assert
++    expect(result).toEqual({ storageConditions: "" });
++  });
+ });
+ 
+ describe("getTranslationFields", () => {
+diff --git a/src/translations/views/EntityLists/utils.stagingSchema.test.ts b/src/translations/views/EntityLists/utils.stagingSchema.test.ts
+new file mode 100644
+index 0000000..3a95feb
+--- /dev/null
++++ b/src/translations/views/EntityLists/utils.stagingSchema.test.ts
+@@ -0,0 +1,35 @@
++import { LanguageCodeEnum } from "@dashboard/graphql";
++
++import { getProductTranslationCompletion } from "./utils";
++
++jest.mock("@dashboard/graphql/schemaVersion", () => ({
++  isMainSchema: () => false,
++  isStagingSchema: () => true,
++}));
++
++describe("getProductTranslationCompletion with staging schema", () => {
++  it("does not count storage conditions in max or current", () => {
++    // Arrange
++    const translation = {
++      __typename: "ProductTranslation" as const,
++      id: "t-1",
++      name: "Product",
++      description: null,
++      seoDescription: null,
++      seoTitle: null,
++      slug: null,
++      storageConditions: "Keep dry",
++      language: {
++        __typename: "LanguageDisplay" as const,
++        code: LanguageCodeEnum.PL,
++        language: "Polish",
++      },
++    };
++
++    // Act
++    const result = getProductTranslationCompletion({ translation, attributeValues: [] });
++
++    // Assert
++    expect(result).toEqual({ current: 1, max: 5 });
++  });
++});
+diff --git a/src/translations/views/EntityLists/utils.test.ts b/src/translations/views/EntityLists/utils.test.ts
+index 179065a..2ce4c0c 100644
+--- a/src/translations/views/EntityLists/utils.test.ts
++++ b/src/translations/views/EntityLists/utils.test.ts
+@@ -232,13 +232,14 @@ describe("getProductTranslationCompletion", () => {
+         seoDescription: null,
+         seoTitle: null,
+         slug: null,
++        storageConditions: null,
+         language: { __typename: "LanguageDisplay", code: LanguageCodeEnum.PL, language: "Polish" },
+       },
+       attributeValues: [],
+     });
+ 
+     // Assert
+-    expect(result).toEqual({ current: 1, max: 5 });
++    expect(result).toEqual({ current: 1, max: 6 });
+   });
+ 
+   it("counts plain text attribute translations toward completion", () => {
+@@ -252,6 +253,7 @@ describe("getProductTranslationCompletion", () => {
+         seoDescription: null,
+         seoTitle: null,
+         slug: null,
++        storageConditions: null,
+         language: { __typename: "LanguageDisplay", code: LanguageCodeEnum.PL, language: "Polish" },
+       },
+       attributeValues: [
+@@ -284,7 +286,7 @@ describe("getProductTranslationCompletion", () => {
+     });
+ 
+     // Assert
+-    expect(result).toEqual({ current: 2, max: 6 });
++    expect(result).toEqual({ current: 2, max: 7 });
+   });
+ 
+   it("does not count rich text attribute with empty blocks as complete", () => {
+@@ -298,6 +300,7 @@ describe("getProductTranslationCompletion", () => {
+         seoDescription: null,
+         seoTitle: null,
+         slug: null,
++        storageConditions: null,
+         language: { __typename: "LanguageDisplay", code: LanguageCodeEnum.PL, language: "Polish" },
+       },
+       attributeValues: [
+@@ -330,6 +333,57 @@ describe("getProductTranslationCompletion", () => {
+     });
+ 
+     // Assert
+-    expect(result).toEqual({ current: 0, max: 6 });
++    expect(result).toEqual({ current: 0, max: 7 });
++  });
++
++  describe("storageConditions", () => {
++    const buildTranslation = (storageConditions: string | null) => ({
++      __typename: "ProductTranslation" as const,
++      id: "t-1",
++      name: null,
++      description: null,
++      seoDescription: null,
++      seoTitle: null,
++      slug: null,
++      storageConditions,
++      language: {
++        __typename: "LanguageDisplay" as const,
++        code: LanguageCodeEnum.PL,
++        language: "Polish",
++      },
++    });
++
++    it("counts a translated storage conditions field as completed", () => {
++      // Arrange & Act
++      const result = getProductTranslationCompletion({
++        translation: buildTranslation("Przechowywać w lodówce"),
++        attributeValues: [],
++      });
++
++      // Assert
++      expect(result).toEqual({ current: 1, max: 6 });
++    });
++
++    it.each([null, "", "   "])("does not count %p as completed", value => {
++      // Arrange & Act
++      const result = getProductTranslationCompletion({
++        translation: buildTranslation(value),
++        attributeValues: [],
++      });
++
++      // Assert
++      expect(result).toEqual({ current: 0, max: 6 });
++    });
++
++    it("adds one to max when there is no translation yet", () => {
++      // Arrange & Act
++      const result = getProductTranslationCompletion({
++        translation: null,
++        attributeValues: [],
++      });
++
++      // Assert
++      expect(result).toEqual({ current: 0, max: 6 });
++    });
+   });
+ });
+diff --git a/src/translations/views/EntityLists/utils.ts b/src/translations/views/EntityLists/utils.ts
+index 7fb9437..140686f 100644
+--- a/src/translations/views/EntityLists/utils.ts
++++ b/src/translations/views/EntityLists/utils.ts
+@@ -2,6 +2,7 @@ import {
+   type ProductTranslationFragment,
+   type ShippingMethodTranslationsQuery,
+ } from "@dashboard/graphql";
++import { isMainSchema } from "@dashboard/graphql/schemaVersion";
+ import { type TranslatableEntity } from "@dashboard/translations/components/TranslationsEntitiesList/TranslationsEntitiesList";
+ import {
+   getTranslationCompletion,
+@@ -127,9 +128,16 @@ export function getProductTranslationCompletion({
+   const generalCompletion = getGeneralEntityTranslationCompletion(translation);
+   const attributeCompleted =
+     attributeValues?.filter(isAttributeValueTranslationComplete).length ?? 0;
++  const storageConditionsCompletion = isMainSchema()
++    ? toListCompletion(
++        getTranslationCompletion([
++          { translation: translation?.storageConditions, type: TranslationFieldType.LONG },
++        ]),
++      )
++    : { current: 0, max: 0 };
+ 
+   return {
+-    current: generalCompletion.current + attributeCompleted,
+-    max: generalCompletion.max + (attributeValues?.length ?? 0),
++    current: generalCompletion.current + attributeCompleted + storageConditionsCompletion.current,
++    max: generalCompletion.max + (attributeValues?.length ?? 0) + storageConditionsCompletion.max,
+   };
+ }
