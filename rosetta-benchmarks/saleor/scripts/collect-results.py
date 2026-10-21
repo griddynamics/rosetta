@@ -21,7 +21,7 @@ from pathlib import Path
 
 SALEOR = Path(__file__).resolve().parents[1]
 RUNS = SALEOR / "runs"
-METHOD_ORDER = ["baseline", "grill-with-docs", "superpowers", "spec-kit", "aws-ai-dlc", "rosetta", "rosetta-light"]
+METHOD_ORDER = ["baseline", "grill-with-docs", "superpowers", "spec-kit", "aws-ai-dlc", "rosetta", "rosetta-skill", "rosetta-light"]
 REQUIRED = ["run_id", "task", "method", "runner", "model", "status", "t0", "t1", "t2",
             "hidden_total", "hidden_asked", "hidden_covered", "hidden_missed", "followups", "method_steps",
             "done_checks_total", "done_checks_passed", "tests_pass", "operator_score", "operator_merge_ready"]
