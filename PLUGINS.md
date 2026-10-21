@@ -160,5 +160,5 @@ See [INSTALLATION.md#upgrading](INSTALLATION.md#upgrading) for upgrade instructi
 Once the plugin is verified:
 
 - **Use Rosetta day to day** — see the [User Guide](user-guide/README.md).
-- **Run your first session and initialize the repo** — see [QUICKSTART.md](QUICKSTART.md).
+- **Run your first session and initialize the repo** — see [Installation — Initialize Repository](INSTALLATION.md#step-4-initialize-repository).
 - **Explore the workflows** (coding, requirements authoring, modernization, and more) — see [USAGE_GUIDE.md — Workflows](USAGE_GUIDE.md#workflows).

@@ -6,7 +6,7 @@ Each doc answers one question for one reader at one moment. If a file answers tw
 
 Four reader types. Every doc serves one primary profile. README is the shared front door that routes all four.
 
-- **User** — wants to use Rosetta on their own project. The primary audience. Path: README → QUICKSTART → install (PLUGINS — recommended / MCPs — optional, secondary / INSTALLATION — full reference) → CONFIGURATION → USAGE_GUIDE, with FAQ and TROUBLESHOOTING for support.
+- **User** — wants to use Rosetta on their own project. The primary audience. Path: README → install (PLUGINS — recommended / MCPs — optional, secondary / INSTALLATION — full reference) → CONFIGURATION → USAGE_GUIDE, with FAQ and TROUBLESHOOTING for support.
 - **AI** — a coding agent reading the repo to learn Rosetta. Path: README points it to `llms-full.txt`, one dense machine-readable source.
 - **Contributor** — develops for Rosetta. Path: CONTRIBUTING → OVERVIEW → CONTEXT → ARCHITECTURE → DEVELOPER_GUIDE → REVIEW. MCP-CONTEXT and MCP-ARCHITECTURE are optional deep-dives reached from CONTEXT/ARCHITECTURE, not separate stops on the main path.
 - **Organization** — wants to roll out Rosetta company-wide. For nearly all organizations this is the User path at scale (plugins distributed via IDE marketplaces) — no server to deploy. Path: INSTALLATION → docs/mcp/DEPLOYMENT_GUIDE → SECURITY exists only for the rare organization that specifically needs self-hosted, centrally-managed MCP; reuses ARCHITECTURE/MCP-ARCHITECTURE.
@@ -15,7 +15,6 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 |---|---|---|---|
 | `README.md` | Orientation + route to the right doc. | Anyone landing on the repo. | Front door (all) |
 | `ELEVATOR_PITCH.md` | 30-second pitch for the unconvinced. | Someone asked "what is Rosetta?" in a hallway. | User |
-| `QUICKSTART.md` | Fastest path to a working setup. | A user who decided to try it. | User |
 | `INSTALLATION.md` | Complete setup reference, all modes and transports. | A user or org with a non-default setup. | User + Organization |
 | `PLUGINS.md` | Plugin install path, per IDE. Recommended default; never mentions MCP. | Users on the plugin install route (nearly everyone). | User |
 | `MCPs.md` | MCP install path — optional, secondary. | Users with no plugin path for their IDE, or a specific centrally-managed-instructions need. | User |
@@ -47,7 +46,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Answers:** "What is this, and where do I go next?"
 - **Owns:** one-paragraph what-it-is, the value proposition in brief, the routing table ("I want to… → read X"), community/license pointers.
 - **Structure:** badges/hero → one-line what-it-is → value proposition → Quick Start teaser (links out) → "I want to… → read X" routing table → who-it's-for → community/license.
-- **Excludes:** full install steps (→ QUICKSTART/INSTALLATION), mental model and concepts (→ OVERVIEW), workflow how-tos (→ USAGE_GUIDE).
+- **Excludes:** full install steps (→ INSTALLATION), mental model and concepts (→ OVERVIEW), workflow how-tos (→ USAGE_GUIDE).
 - **Sources:** ELEVATOR_PITCH + OVERVIEW (value prop), the live doc set (routing table), PyPI badges (`rosetta-mcp`, `rosetta-cli`).
 
 ### OVERVIEW.md
@@ -56,7 +55,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Answers:** "How should I think about Rosetta? What does it do and not do?"
 - **Owns:** problem statement, core mental model, key concepts/terminology, session lifecycle, the "what Rosetta does not do" boundary.
 - **Structure:** problem statement → core mental model → key concepts/terminology → session lifecycle → "what Rosetta does not do".
-- **Excludes:** install/setup steps (→ INSTALLATION/QUICKSTART), per-workflow how-tos (→ USAGE_GUIDE), code-level internals (→ ARCHITECTURE/DEVELOPER_GUIDE).
+- **Excludes:** install/setup steps (→ README/INSTALLATION), per-workflow how-tos (→ USAGE_GUIDE), code-level internals (→ ARCHITECTURE/DEVELOPER_GUIDE).
 - **Sources:** ELEVATOR_PITCH (why), `workflows/` + `skills/` (concepts/terminology), ARCHITECTURE (session lifecycle).
 
 ### docs/CONTEXT.md
@@ -83,17 +82,8 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Answers:** "Why does this exist, in 30 seconds?"
 - **Owns:** the pitch — problem, solution, one-line core idea, proof.
 - **Structure:** hook/problem → solution in one line → how it helps → proof/outcome.
-- **Excludes:** setup/how-to (→ QUICKSTART), conceptual depth (→ OVERVIEW), feature reference (→ USAGE_GUIDE).
+- **Excludes:** setup/how-to (→ README), conceptual depth (→ OVERVIEW), feature reference (→ USAGE_GUIDE).
 - **Sources:** the value-proposition deck/slide, README intro, real proof points/metrics.
-
-### QUICKSTART.md
-- **Profile:** User.
-- **Audience:** a user who decided to try it and wants it working now.
-- **Answers:** "Minimum steps to a working setup?"
-- **Owns:** install one-liner, initialize-once step, a short "next steps" pointing into the workflows. Happy path only.
-- **Structure:** prerequisites → install one-liner → initialize once → run your first workflow → next steps (links into CONFIGURATION/USAGE_GUIDE).
-- **Excludes:** exhaustive install modes/transports (→ INSTALLATION), workspace configuration (→ CONFIGURATION), per-workflow detail (→ USAGE_GUIDE).
-- **Sources:** INSTALLATION (canonical steps), PLUGINS/MCPs (install routes), the actual init prompt/command.
 
 ### INSTALLATION.md
 - **Profile:** User + Organization.
@@ -128,7 +118,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Answers:** "How do I set up my workspace so Rosetta works well here?"
 - **Owns:** capturing CONTEXT.md / ARCHITECTURE.md, providing refsrc, defining patterns, choosing a workspace layout, ecosystem config.
 - **Structure:** capture CONTEXT.md / ARCHITECTURE.md → provide refsrc → define patterns → choose a workspace layout → ecosystem (MCPs/CLIs) config.
-- **Excludes:** install steps (→ INSTALLATION), first-run happy path (→ QUICKSTART), running workflows (→ USAGE_GUIDE), migration principles/prompts (→ docs/MODERNIZATION.md).
+- **Excludes:** install steps and first-run happy path (→ README/INSTALLATION), running workflows (→ USAGE_GUIDE), migration principles/prompts (→ docs/MODERNIZATION.md).
 - **Sources:** `gain.json` schema, the Rosetta file set (CONTEXT.md / ARCHITECTURE.md / refsrc), pattern templates.
 
 ### USAGE_GUIDE.md
@@ -279,7 +269,6 @@ flowchart TD
 
     subgraph USER["User — use Rosetta"]
         ELEV["ELEVATOR_PITCH"]
-        QS["QUICKSTART"]
         PLUG["PLUGINS<br/>(recommended)"]
         MCP["MCPs<br/>(optional, secondary)"]
         INST["INSTALLATION"]
@@ -308,19 +297,17 @@ flowchart TD
         SEC["SECURITY"]
     end
 
-    README -->|user| QS
+    README -->|user| PLUG
+    README -.->|no plugin path, or<br/>specific MCP need| MCP
+    README --> INST
     README -.-> ELEV
     README -->|AI| LLMS
     README -->|contributor| CONT
     README -.->|organization,<br/>only if self-hosting| INSTO
 
-    ELEV --> QS
-    QS --> PLUG
-    QS -.->|no plugin path, or<br/>specific MCP need| MCP
-    QS --> INST
+    ELEV --> README
     PLUG --> INST
     MCP -.-> INST
-    QS --> CONF
     INST --> CONF
     CONF --> USAGE
     USAGE <--> FAQ
@@ -344,7 +331,7 @@ flowchart TD
     classDef org fill:#b45309,stroke:#5a2900,color:#ffffff;
 
     class README entry;
-    class ELEV,QS,PLUG,MCP,INST,CONF,USAGE,FAQ,TRBL user;
+    class ELEV,PLUG,MCP,INST,CONF,USAGE,FAQ,TRBL user;
     class LLMS ai;
     class CONT,OVER,CTX,ARCH,DEV,REV contrib;
     class INSTO,DEP,SEC org;
@@ -352,14 +339,10 @@ flowchart TD
 
 ---
 
-## 5. Known overlaps to clarify at the sync
+## 5. Resolved ownership
 
-Observed today, stated as boundary questions — not deletion proposals. These are the concrete "who owns this fact" decisions to make with Igor.
-
-1. **Setup steps** appear in QUICKSTART, INSTALLATION, CONFIGURATION, and USAGE_GUIDE. Decide the owner per step: install → INSTALLATION, first-run init → QUICKSTART, workspace setup → CONFIGURATION. Others link.
-2. **Bootstrap rule + verify** are spelled out in INSTALLATION, PLUGINS, and MCPs. Decide whether INSTALLATION owns the canonical version and the two children link to it.
-3. **FAQ vs TROUBLESHOOTING** boundary: FAQ = "is this expected?", TROUBLESHOOTING = "fix this break". Sort each existing entry into one.
-4. **README length:** README currently carries a Quick Start section *and* links to QUICKSTART. Decide whether README keeps a 3-line teaser that links out, or the inline steps. (This is the exact Yuriy↔Igor disagreement — resolving #1 resolves it.)
-5. **Video tutorial + links blocks** are repeated across QUICKSTART, MCPs, USAGE_GUIDE. Decide one owner (likely USAGE_GUIDE) and link from the rest.
-
-Resolving overlap #1 dissolves most of the others, because nearly all of them are the same setup facts written in more than one place.
+- **README** owns the concise quick-start route: install, initialize, configure, then use.
+- **INSTALLATION** owns complete installation, bootstrap, and initialization instructions.
+- **CONFIGURATION** owns post-install workspace setup and routes configured users to workflow guidance.
+- **USAGE_GUIDE** owns workflow examples, focused-subagent validation practice, and video tutorials.
+- **FAQ** answers expected-behavior questions; **TROUBLESHOOTING** addresses failures.

@@ -164,5 +164,5 @@ See [INSTALLATION.md#upgrading](/rosetta/docs/installation/#upgrading) for upgra
 
 Once the plugin is verified:
 
-- **Run your first session and initialize the repo** — see [QUICKSTART.md](/rosetta/docs/quickstart/).
+- **Run your first session and initialize the repo** — see [Quick Start](/rosetta/docs/quickstart/).
 - **Explore the workflows** (coding, requirements authoring, modernization, and more) — see [USAGE_GUIDE.md — Workflows](/rosetta/docs/usage-guide/#workflows).
