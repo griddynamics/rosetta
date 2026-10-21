@@ -108,7 +108,7 @@ for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-bench
 
 One row per event, in order. All counts in the data block come from this table.
 
-Types: `prompt` · `method-step` · `question` (agent asked → your answer) · `T1` · `hidden-check` · `follow-up` · `T2` · `post-prompt` · `note` (crash, retry, Rosetta team contacted, …)
+Types: `prompt` · `method-step` · `question` (agent asked → your answer) · `T1` · `hidden-check` · `follow-up` · `extra-work` (anything the protocol does not define; not a follow-up, not counted, cost in Appendix A `## Extra work`) · `T2` · `post-prompt` · `note` (crash, retry, Rosetta team contacted, …)
 
 | # | Time | Type | What happened (short) | Exact text sent by the operator | Hidden # / extra |
 | ---: | --- | --- | --- | --- | --- |
@@ -239,6 +239,9 @@ Evidence: `<one line per ticked item>`
 <paste>
 
 ## T2
+<paste>
+
+## Extra work (only if there was any; paste `/cost` and `/usage` taken after it)
 <paste>
 ```
 

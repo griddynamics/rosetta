@@ -135,7 +135,7 @@ Every method runs with no help from any other AI: no other method, no other plug
 
 - **Repo tags.** Each method's tag is built directly on `baseline-v1`, never on another method's tag, so repos contain only that method's files.
 - **Nothing global.** No user-level `CLAUDE.md`, agents, commands, hooks or MCP servers; no user-level Copilot instructions or prompt files; Copilot memory off; no other AI extensions in the profile (Codex, Cursor, Continue, Cline, Claude Code extension, …). If a method's installer writes global files or hooks (check AI-DLC), remove them after its runs and before any other method.
-- **No human-side AI.** The programmer answers questions and writes follow-ups themselves. Don't use ChatGPT, another agent, or another session to answer, to review the result, or to write a follow-up.
+- **No human-side AI.** The programmer answers questions and writes follow-ups themselves. Don't use ChatGPT, another agent, or another session to answer, to review the result, or to write a follow-up. An AI helper for the operator's bookkeeping (recording the run, copying answer texts from the tables) is fine, but it must not invent follow-ups, questions, hints or checks.
 - **Isolation check before every run.** Save this output into the run protocol. Anything except the method under test means the run must not start:
 
 ```bash
@@ -267,6 +267,7 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 | 16 | May the implementation step add the new field to existing dashboard test fixtures and typed test literals (so typecheck passes)? | Yes, the field only, no new assertions. | S-CC-06 |
 | 17 | Optional extras: count the field in the dashboard translation progress? Edit `.stories.tsx` files? | Count it in the translation progress. No stories edits. | S-CC-06 |
 | 18 | Preserve newlines typed into the field on the storefront (e.g. `whitespace-pre-line`)? | No. Plain text; newlines are not preserved. | S-CC-06 |
+| 19 | Note, not a hidden question: if it asks which dashboard screens must let staff set the field. The dashboard has no routed product create page: `/products/add` redirects to a "create product" dialog on the product list. | The product update page and the create-product dialog on the product list (that dialog is the create flow). | S-CC-08 |
 
 **Task 2 (large): extra answers**
 
@@ -321,7 +322,7 @@ Then start a **new** agent session: Claude Code with no earlier session or memor
 4. If the agent asks a question, **the programmer answers it themselves**, as a normal product owner would. If it matches a hidden question, give the answer from that task's table and mark it **asked**. If not, use the extra answers (section 4, "Questions that are not in the tables"). Write the question and the answer in the protocol.
 5. When the agent first says it's done: **stop the first-pass timer (T1)** and save usage at this point.
 6. **Hidden-question check.** For every hidden question not asked yet, ask the AI in one message, without changing anything: *"Don't change any code, just answer: was each of these handled, and where? "*. Mark each one **covered** (handled correctly without being asked) or **not covered**. This gives the first-pass coverage: asked + covered out of the total.
-7. Send follow-ups for not-covered items and anything broken, until the task is fully done. Count each follow-up and each item we had to point out (`missed_questions`).
+7. Send follow-ups only for (a) hidden questions that the T1 check showed as not covered, and (b) things the operator found broken in their own check against "Done when" (section 4), until the task is fully done. Nothing else is a follow-up: no idea or "improvement", no extra check, no hint, nothing suggested by a helper (an AI assistant or a colleague). Count each follow-up and each item we had to point out (`missed_questions`). If extra work is done anyway, record it as `extra-work` in the timeline: it is not a follow-up, it is not counted in `followups`, and its cost is reported separately from the first-pass and final numbers (templates/README.md).
 8. **Stop the final timer (T2)** when the last follow-up is done.
 9. Send the post-implementation prompt (below). **Only now, never in advance.**
 10. Save usage at the end, straight from the runner: Claude Code `/cost` (and `/usage`); Copilot: the session's premium-request counter. Paste it raw, both the T1 and the T2 values, into Appendix A of the run report. Don't recompute it. Claude Code runs: also run `saleor/scripts/session-usage.py` on the session log; it writes `<RUN_DIR>/tokens.md` (tokens per model, per agent and subagent, per operator message, before / after T1, tool / skill / subagent calls). This shows where the tokens went, not only how many.

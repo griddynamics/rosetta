@@ -17,7 +17,7 @@ Each report has two parts:
 The same rules for every operator, so results are comparable.
 
 1. **Measure, don't estimate.** Copy numbers from the runner or the clock. Unknown → leave empty, never guess.
-2. **Fixed points in time.** T0 = the moment the task prompt is sent. T1 = the agent's first message that says the task is done. T2 = the end of the agent's answer to the last follow-up. Minute precision, local time, ISO 8601 (`2026-10-20T14:05`).
+2. **Fixed points in time.** T0 = the moment the task prompt is sent. T1 = the agent's first message that says the task is done. T2 = the end of the agent's answer to the last protocol follow-up (`extra-work` rows do not move T2). Minute precision, local time, ISO 8601 (`2026-10-20T14:05`).
 3. **Usage is cumulative** for the whole session, read at T1 and again at T2. Don't subtract, add up or convert: the script does that.
 4. **One cell = same conditions.** Same start tag, same seed database, same model and effort, new session, isolation check passed. Anything different goes into "Deviations" in section 8, and the run is marked in the comparison.
 5. **Operator answers come from fixed sources**: the hidden-question tables (BENCHMARKS.md, section 4) and the extra answers in the same section. No other help.
@@ -39,7 +39,7 @@ The same rules for every operator, so results are comparable.
 | `subagents` | count | Subagents launched in the session. |
 | `method_steps` | count | Messages that only move the method to its next step: `Approved, continue.` or the method's own next command. Baseline: also the plan approval in the runner's menu. |
 | `questions_total` | count | Agent questions answered by the operator. `= questions_hidden + questions_extra`. |
-| `followups` | count | Operator messages after T1 that ask for a fix or a missing part. |
+| `followups` | count | Operator messages that ask for a fix or a missing part: hidden questions not covered at the T1 check, and things the operator found broken in their own check. Not counted: `extra-work` rows (any message the protocol does not define, e.g. an extra check or an idea suggested by a helper). Their usage is reported separately in Appendix A, block `## Extra work`. |
 | `retries` | count | Restarts from reset (method didn't activate, infra failure). |
 | `hidden_asked` | count | Hidden questions the agent asked before or during implementation. |
 | `hidden_covered` | count | Hidden questions not asked, but handled correctly by T1. |

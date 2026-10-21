@@ -53,7 +53,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 26 | `L-CP-05` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/large-age-restriction/copilot/aws-ai-dlc/` | planned ⚠ Copilot: via repository files |
 | 27 | `L-CP-06` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Flow | `runs/large-age-restriction/copilot/rosetta-flow/` | planned |
 | 28 | `L-CP-07` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Light | `runs/large-age-restriction/copilot/rosetta-light/` | planned |
-| 29 | `S-CC-08` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/small-storage-conditions/claude-code/rosetta-skills/` | planned |
+| 29 | `S-CC-08` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/small-storage-conditions/claude-code/rosetta-skills/` | done (3 extra messages after T1 were not protocol follow-ups and are not counted, see report section 8) |
 | 30 | `S-CP-08` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Skills | `runs/small-storage-conditions/copilot/rosetta-skills/` | planned |
 | 31 | `L-CC-08` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/large-age-restriction/claude-code/rosetta-skills/` | planned |
 | 32 | `L-CP-08` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Skills | `runs/large-age-restriction/copilot/rosetta-skills/` | planned |
