@@ -349,6 +349,33 @@ Do not make any further code changes.
 
 The agent writes into `~/saleor-benchmark/run-output/` (the same text for every run, so it is copied as is); the programmer then copies that folder into the run folder `rosetta-benchmarks/saleor/runs/<task>/<runner>/<method>/` (`<RUN_DIR>` below) before the next reset. For methods that may commit (Superpowers, Spec Kit, AI-DLC) the method's file uses `git diff <start tag>` instead of `git diff`. One folder per run holds everything: `report.md` (operator), `agent-report.md`, `tokens.md`, and `<repo>.diff` for each repo that changed.
 
+### Working with an AI assistant: the assistant guides, the operator does
+
+The operator may have an AI assistant for **bookkeeping and guidance only** (3.5, "No human-side AI"). The roles are fixed:
+
+**The operator** runs the agent session: starts it, pastes every message, answers every question, approves, and does the own check of the result ("Done when"). Nothing reaches the agent that the operator did not paste.
+
+**The assistant** guides one step at a time and records:
+- Gives the operator the exact text to paste, taken from the tables in section 4 and from the method file, in one code block with nothing else in it. Its own comments stay outside that block, so they are not pasted by accident.
+- When a question touches a hidden question, the answer is the whole key text of that row, plus the matching extra answer if there is one.
+- When a question is in no table, the operator decides it. The decision is added to "Questions that are not in the tables" as a note ("if it asks this, answer that"), so every later run gets the same answer.
+- Reads each spec, brief or plan the agent writes and checks it against the hidden questions and the extra answers. It only tells the operator what is covered and what is not. It never writes a message to the agent on its own, and it never suggests an idea, a check or a hint. Follow-ups follow the rule in step 7 of "Steps".
+- Records every stop, question, answer, approval and follow-up in the run report as soon as it happens, with the exact text sent, in the order it happened. A report describes this run only: no comparison with other runs, and no mention of them.
+- Runs the read-only checks and the bookkeeping commands the protocol defines (health check, isolation check, the "Done when" calls, `session-usage.py`, `collect-results.py`) and commits and pushes only when the operator asks. It never changes the stack, the repos or any config without being asked.
+- Does not decide scores. The operator gives `operator_score`, `operator_merge_ready`, the weak point and the strong point; the assistant writes them as given.
+
+**Asking for the time at every step.** After each message the operator sends, the assistant asks for the time ("tell me the time you sent it"), and records it in the timeline as the real clock time, minute precision. After each stop of the agent that the operator reads, the operator gives the time it was seen. If the operator does not know a time, the assistant reads it once from the session log (`$CLAUDE_CONFIG_DIR/projects/*/*.jsonl`, read-only) and says so in the report. Every time in the report is a real time; the gap-free time below is computed from them and written separately.
+
+**Time without the operator's gaps.** The operator may be away (a meeting, a break), and a long wait for the operator must not count as the agent's time. The run time is:
+
+> T1 − T0 − the time the agent was blocked waiting for the operator, before T1.
+
+- "Blocked waiting for the operator" means the time from the moment the agent asks a question or asks for an approval until the operator's reply. The session log has it: an `AskUserQuestion` call until its answer, or a stop of the agent until the next operator message.
+- A stop of the agent while it waits for its own background subagents is agent time. It is **not** removed.
+- The operator's own question rounds are not added back as counted time. The time shown in the data block and in the results table is the gap-free time.
+- The data block keeps real `t1` and `t2`. `t0` is the effective start: `t1` minus the gap-free time. The real `t0` stays in the timeline row #1, and the report explains the arithmetic in section 8 (waits listed).
+- T2 = T1 unless the protocol allows a follow-up (step 7). Messages after T1 that the protocol does not define are `extra-work` and are not counted.
+
 ## 6. How we compare
 
 | # | Measure | Who |
