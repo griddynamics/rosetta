@@ -1,0 +1,605 @@
+diff --git a/messages/de.json b/messages/de.json
+index cd8d760..706c7ed 100644
+--- a/messages/de.json
++++ b/messages/de.json
+@@ -64,6 +64,7 @@
+ 			"description": "Beschreibung",
+ 			"productDetails": "Produktdetails",
+ 			"careInstructions": "Pflegehinweise",
++			"storageConditions": "Lagerbedingungen",
+ 			"shippingReturns": "Versand & Rückgabe",
+ 			"shippingBody": "Kostenloser Versand bei Bestellungen über {freeShippingThreshold}. Standardlieferung in 3–5 Werktagen.",
+ 			"returnsBody": "Kostenlose Rückgabe innerhalb von {returnsWindowDays} Tagen nach dem Kauf. Artikel müssen ungetragen und mit Etiketten versehen sein.",
+diff --git a/messages/en.json b/messages/en.json
+index 94a1cf3..6764623 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -64,6 +64,7 @@
+ 			"description": "Description",
+ 			"productDetails": "Product Details",
+ 			"careInstructions": "Care Instructions",
++			"storageConditions": "Storage conditions",
+ 			"shippingReturns": "Shipping & Returns",
+ 			"shippingBody": "Free shipping on orders over {freeShippingThreshold}. Standard delivery 3-5 business days.",
+ 			"returnsBody": "Free returns within {returnsWindowDays} days of purchase. Items must be unworn with tags attached.",
+diff --git a/messages/fi.json b/messages/fi.json
+index 4fd92e3..15b2319 100644
+--- a/messages/fi.json
++++ b/messages/fi.json
+@@ -64,6 +64,7 @@
+ 			"description": "Kuvaus",
+ 			"productDetails": "Tuotetiedot",
+ 			"careInstructions": "Hoito-ohjeet",
++			"storageConditions": "Säilytysohjeet",
+ 			"shippingReturns": "Toimitus ja palautukset",
+ 			"shippingBody": "Ilmainen toimitus tilauksille yli {freeShippingThreshold}. Normaali toimitus 3–5 arkipäivää.",
+ 			"returnsBody": "Ilmaiset palautukset {returnsWindowDays} päivän kuluessa ostosta. Tuotteiden on oltava käyttämättömiä ja tunnisteineen.",
+diff --git a/messages/fr.json b/messages/fr.json
+index 6662017..bc2591f 100644
+--- a/messages/fr.json
++++ b/messages/fr.json
+@@ -64,6 +64,7 @@
+ 			"description": "Description",
+ 			"productDetails": "Détails du produit",
+ 			"careInstructions": "Entretien",
++			"storageConditions": "Conditions de conservation",
+ 			"shippingReturns": "Livraison et retours",
+ 			"shippingBody": "Livraison gratuite pour les commandes supérieures à {freeShippingThreshold}. Livraison standard sous 3 à 5 jours ouvrés.",
+ 			"returnsBody": "Retours gratuits sous {returnsWindowDays} jours après l'achat. Les articles doivent être non portés et avec leurs étiquettes.",
+diff --git a/messages/ja.json b/messages/ja.json
+index c8be825..b62b995 100644
+--- a/messages/ja.json
++++ b/messages/ja.json
+@@ -64,6 +64,7 @@
+ 			"description": "商品説明",
+ 			"productDetails": "商品詳細",
+ 			"careInstructions": "お手入れ方法",
++			"storageConditions": "保管条件",
+ 			"shippingReturns": "配送と返品",
+ 			"shippingBody": "{freeShippingThreshold}以上のご注文で送料無料。通常配送は3〜5営業日です。",
+ 			"returnsBody": "ご購入から{returnsWindowDays}日以内は返品無料。タグ付き・未使用の商品に限ります。",
+diff --git a/messages/ko.json b/messages/ko.json
+index 218b88d..bc4e2cd 100644
+--- a/messages/ko.json
++++ b/messages/ko.json
+@@ -56,6 +56,7 @@
+ 			"description": "상세 설명",
+ 			"productDetails": "상품 정보",
+ 			"careInstructions": "세탁 및 관리 방법",
++			"storageConditions": "보관 조건",
+ 			"shippingReturns": "배송 및 반품",
+ 			"shippingBody": "{freeShippingThreshold} 이상 구매 시 무료 배송. 영업일 기준 3~5일 내 배송됩니다.",
+ 			"returnsBody": "구매 후 {returnsWindowDays}일 이내 무료 반품이 가능합니다. 상품은 미착용 상태여야 하며 태그가 부착되어 있어야 합니다.",
+diff --git a/messages/nb.json b/messages/nb.json
+index d1d7039..ecec235 100644
+--- a/messages/nb.json
++++ b/messages/nb.json
+@@ -64,6 +64,7 @@
+ 			"description": "Beskrivelse",
+ 			"productDetails": "Produktdetaljer",
+ 			"careInstructions": "Vaskeanvisning",
++			"storageConditions": "Oppbevaringsforhold",
+ 			"shippingReturns": "Frakt og retur",
+ 			"shippingBody": "Gratis frakt på bestillinger over {freeShippingThreshold}. Standardlevering på 3–5 virkedager.",
+ 			"returnsBody": "Gratis retur innen {returnsWindowDays} dager etter kjøp. Varene må være ubrukte med merkelapper.",
+diff --git a/messages/pl.json b/messages/pl.json
+index ecaf8f2..2a970b3 100644
+--- a/messages/pl.json
++++ b/messages/pl.json
+@@ -64,6 +64,7 @@
+ 			"description": "Opis",
+ 			"productDetails": "Szczegóły produktu",
+ 			"careInstructions": "Instrukcje pielęgnacji",
++			"storageConditions": "Warunki przechowywania",
+ 			"shippingReturns": "Dostawa i zwroty",
+ 			"shippingBody": "Darmowa dostawa przy zamówieniach powyżej {freeShippingThreshold}. Standardowa dostawa w 3–5 dni roboczych.",
+ 			"returnsBody": "Darmowe zwroty w ciągu {returnsWindowDays} dni od zakupu. Produkty muszą być nieużywane i z metkami.",
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+index 51a91eb..beabf5b 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+@@ -21,6 +21,7 @@ import {
+ } from "@/lib/seo";
+ import { toProductView } from "@/lib/storefront/mappers/product";
+ import { buildStorefrontPath } from "@/lib/storefront-path";
++import { readStorageConditions } from "@/lib/product-storage-conditions";
+ import { pickTranslatedSlug } from "@/lib/saleor-translations";
+ import { Breadcrumbs } from "@/ui/components/breadcrumbs";
+ import {
+@@ -214,6 +215,7 @@ async function ProductShell({
+ 			descriptionHtml={view.descriptionHtml}
+ 			attributes={view.attributes}
+ 			careInstructions={view.careInstructions}
++			storageConditions={readStorageConditions(view.extensions)}
+ 			policyLabels={policyLabels}
+ 		/>
+ 	);
+diff --git a/src/config/storefront-view.test.ts b/src/config/storefront-view.test.ts
+new file mode 100644
+index 0000000..0098b00
+--- /dev/null
++++ b/src/config/storefront-view.test.ts
+@@ -0,0 +1,65 @@
++import { describe, expect, it } from "vitest";
++
++import { mapProductExtensions } from "@/config/storefront-view";
++import type { ProductShell } from "@/lib/catalog/get-product-data";
++import { readStorageConditions } from "@/lib/product-storage-conditions";
++import { withTranslatedProductFields } from "@/lib/saleor-translations";
++
++function shell(storageConditions: string | null | undefined): ProductShell {
++	return { id: "p1", slug: "tee", name: "Tee", storageConditions } as unknown as ProductShell;
++}
++
++describe("mapProductExtensions storageConditions", () => {
++	it("maps a stored value", () => {
++		expect(mapProductExtensions(shell("Keep dry, below 25 °C"))).toEqual({
++			storageConditions: "Keep dry, below 25 °C",
++		});
++	});
++
++	it("maps null, empty, and whitespace-only values to null", () => {
++		expect(mapProductExtensions(shell(null))).toEqual({ storageConditions: null });
++		expect(mapProductExtensions(shell(undefined))).toEqual({ storageConditions: null });
++		expect(mapProductExtensions(shell(""))).toEqual({ storageConditions: null });
++		expect(mapProductExtensions(shell(" \n\t "))).toEqual({ storageConditions: null });
++	});
++
++	it("trims surrounding whitespace from the stored value", () => {
++		expect(mapProductExtensions(shell("  Keep dry  "))).toEqual({ storageConditions: "Keep dry" });
++	});
++
++	it("uses the translated value when the product is translated", () => {
++		const translated = withTranslatedProductFields({
++			name: "Tee",
++			storageConditions: "Keep dry",
++			translation: { storageConditions: "Trocken lagern" },
++		});
++
++		expect(mapProductExtensions(translated as unknown as ProductShell)).toEqual({
++			storageConditions: "Trocken lagern",
++		});
++	});
++
++	it("falls back to the primary value when the translation is blank", () => {
++		const translated = withTranslatedProductFields({
++			name: "Tee",
++			storageConditions: "Keep dry",
++			translation: { storageConditions: "  " },
++		});
++
++		expect(mapProductExtensions(translated as unknown as ProductShell)).toEqual({
++			storageConditions: "Keep dry",
++		});
++	});
++});
++
++describe("readStorageConditions", () => {
++	it("reads the value the mapper placed on extensions", () => {
++		expect(readStorageConditions({ storageConditions: "Keep dry" })).toBe("Keep dry");
++	});
++
++	it("returns null when the extension is missing, blank, or not a string", () => {
++		expect(readStorageConditions({})).toBeNull();
++		expect(readStorageConditions({ storageConditions: "   " })).toBeNull();
++		expect(readStorageConditions({ storageConditions: 42 })).toBeNull();
++	});
++});
+diff --git a/src/config/storefront-view.ts b/src/config/storefront-view.ts
+index 924a8d2..30453a9 100644
+--- a/src/config/storefront-view.ts
++++ b/src/config/storefront-view.ts
+@@ -1,6 +1,7 @@
+ import "server-only";
+ 
+ import type { ProductShell } from "@/lib/catalog/get-product-data";
++import { normalizeStorageConditions } from "@/lib/product-storage-conditions";
+ 
+ /**
+  * Fork-owned extras on `ProductView.extensions`.
+@@ -9,6 +10,8 @@ import type { ProductShell } from "@/lib/catalog/get-product-data";
+  * run `pnpm generate`, then map the new field here. Do not edit
+  * `src/lib/storefront/mappers/product.ts` or the product route.
+  */
+-export function mapProductExtensions(_product: ProductShell): Record<string, unknown> {
+-	return {};
++export function mapProductExtensions(product: ProductShell): Record<string, unknown> {
++	return {
++		storageConditions: normalizeStorageConditions(product.storageConditions),
++	};
+ }
+diff --git a/src/graphql/extensions/ProductDetailsExtension.graphql b/src/graphql/extensions/ProductDetailsExtension.graphql
+index 0a67217..8e94c1b 100644
+--- a/src/graphql/extensions/ProductDetailsExtension.graphql
++++ b/src/graphql/extensions/ProductDetailsExtension.graphql
+@@ -1,4 +1,8 @@
+ # Fork-owned fields on the PDP shell. Add selections here; do not edit ProductDetails.graphql.
+ fragment ProductDetailsExtension on Product {
+ 	__typename
++	storageConditions
++	translation(languageCode: $languageCode) {
++		storageConditions
++	}
+ }
+diff --git a/src/lib/product-storage-conditions.ts b/src/lib/product-storage-conditions.ts
+new file mode 100644
+index 0000000..9ae495e
+--- /dev/null
++++ b/src/lib/product-storage-conditions.ts
+@@ -0,0 +1,15 @@
++/**
++ * Product storage conditions are plain text (≤250 chars in Saleor).
++ * Null, empty, whitespace-only, and non-string values all mean "no value",
++ * so the PDP block stays hidden.
++ */
++export function normalizeStorageConditions(value: unknown): string | null {
++	if (typeof value !== "string") return null;
++	const trimmed = value.trim();
++	return trimmed.length > 0 ? trimmed : null;
++}
++
++/** Reads the value that `mapProductExtensions` placed on `ProductView.extensions`. */
++export function readStorageConditions(extensions: Record<string, unknown>): string | null {
++	return normalizeStorageConditions(extensions.storageConditions);
++}
+diff --git a/src/lib/saleor-translations.test.ts b/src/lib/saleor-translations.test.ts
+index 289dd65..fb9ba99 100644
+--- a/src/lib/saleor-translations.test.ts
++++ b/src/lib/saleor-translations.test.ts
+@@ -62,3 +62,43 @@ describe("withTranslatedProductFields", () => {
+ 		expect(product.variants?.[0]?.name).toBe("Średni");
+ 	});
+ });
++
++describe("withTranslatedProductFields storageConditions", () => {
++	it("prefers the translated storage conditions", () => {
++		const product = withTranslatedProductFields({
++			name: "Hoodie",
++			storageConditions: "Keep dry",
++			translation: { storageConditions: "Trocken lagern" },
++		});
++
++		expect(product.storageConditions).toBe("Trocken lagern");
++	});
++
++	it("falls back to the primary storage conditions when the translation is empty or whitespace", () => {
++		expect(
++			withTranslatedProductFields({
++				name: "Hoodie",
++				storageConditions: "Keep dry",
++				translation: { storageConditions: "" },
++			}).storageConditions,
++		).toBe("Keep dry");
++
++		expect(
++			withTranslatedProductFields({
++				name: "Hoodie",
++				storageConditions: "Keep dry",
++				translation: { storageConditions: "   " },
++			}).storageConditions,
++		).toBe("Keep dry");
++	});
++
++	it("keeps null storage conditions when neither source has a value", () => {
++		const product = withTranslatedProductFields({
++			name: "Hoodie",
++			storageConditions: null,
++			translation: null,
++		});
++
++		expect(product.storageConditions).toBeNull();
++	});
++});
+diff --git a/src/lib/saleor-translations.ts b/src/lib/saleor-translations.ts
+index 0182e3a..664dec9 100644
+--- a/src/lib/saleor-translations.ts
++++ b/src/lib/saleor-translations.ts
+@@ -120,16 +120,25 @@ export function withTranslatedPageFields<T extends TranslatablePage>(page: T): T
+ 	};
+ }
+ 
++export function pickTranslatedStorageConditions(entity: {
++	storageConditions?: string | null;
++	translation?: { storageConditions?: string | null } | null;
++}): string | null | undefined {
++	return pickTranslatedField(entity.translation, "storageConditions", entity.storageConditions);
++}
++
+ type TranslatableProduct = {
+ 	name: string;
+ 	description?: string | null;
+ 	seoTitle?: string | null;
+ 	seoDescription?: string | null;
++	storageConditions?: string | null;
+ 	translation?: {
+ 		name?: string | null;
+ 		description?: string | null;
+ 		seoTitle?: string | null;
+ 		seoDescription?: string | null;
++		storageConditions?: string | null;
+ 		slug?: string | null;
+ 	} | null;
+ 	category?: {
+@@ -150,6 +159,7 @@ export function withTranslatedProductFields<T extends TranslatableProduct>(produ
+ 		description: pickTranslatedDescription(product) ?? product.description,
+ 		seoTitle: pickTranslatedSeoTitle(product) ?? product.seoTitle,
+ 		seoDescription: pickTranslatedSeoDescription(product) ?? product.seoDescription,
++		storageConditions: pickTranslatedStorageConditions(product) ?? product.storageConditions,
+ 		category: product.category
+ 			? {
+ 					...product.category,
+diff --git a/src/templates/pdp/product-layout.test.ts b/src/templates/pdp/product-layout.test.ts
+new file mode 100644
+index 0000000..1539818
+--- /dev/null
++++ b/src/templates/pdp/product-layout.test.ts
+@@ -0,0 +1,60 @@
++import { createElement } from "react";
++import { renderToStaticMarkup } from "react-dom/server";
++import { describe, expect, it } from "vitest";
++
++import type { ProductView } from "@/lib/storefront/contract/product";
++import { PdpPresetLayout } from "@/templates/pdp/product-layout";
++import { PDP_LAYOUT_CLASSES } from "@/ui/components/pdp/gallery-layout";
++
++function product(storageConditions: string | null): ProductView {
++	return {
++		id: "p1",
++		slug: "tee",
++		name: "Tee",
++		category: null,
++		descriptionHtml: ["<p>Soft</p>"],
++		attributes: [],
++		careInstructions: null,
++		images: [],
++		priceRange: null,
++		isAvailable: true,
++		isBestseller: false,
++		variantCount: 1,
++		seoTitle: null,
++		seoDescription: null,
++		extensions: { storageConditions },
++	};
++}
++
++function slot(id: string) {
++	return createElement("div", { id });
++}
++
++function renderLayout(gallery: "standard" | "immersive", storageConditions: string | null): string {
++	return renderToStaticMarkup(
++		createElement(PdpPresetLayout, {
++			product: product(storageConditions),
++			layout: PDP_LAYOUT_CLASSES[gallery],
++			slots: {
++				gallery: slot("pdp-slot-gallery"),
++				buyBox: slot("pdp-slot-buybox"),
++				breadcrumbs: slot("pdp-slot-breadcrumbs"),
++				attributes: slot("pdp-slot-attributes"),
++			},
++		}),
++	);
++}
++
++describe("PdpPresetLayout storage conditions", () => {
++	it.each(["standard", "immersive"] as const)(
++		"leaves storage conditions to the attributes slot (%s preset)",
++		(gallery) => {
++			const html = renderLayout(gallery, "Keep dry, below 25 °C");
++
++			// The layout exposes the attributes slot and does not render the value itself,
++			// so the block lands inside the description area rendered by the slot.
++			expect(html).toContain('id="pdp-slot-attributes"');
++			expect(html).not.toContain("Keep dry, below 25 °C");
++		},
++	);
++});
+diff --git a/src/ui/components/pdp/product-attributes.test.ts b/src/ui/components/pdp/product-attributes.test.ts
+new file mode 100644
+index 0000000..037ca4c
+--- /dev/null
++++ b/src/ui/components/pdp/product-attributes.test.ts
+@@ -0,0 +1,65 @@
++import { createElement } from "react";
++import { renderToStaticMarkup } from "react-dom/server";
++import { describe, expect, it, vi } from "vitest";
++
++import type { PolicyLabelValues } from "@/lib/content/policy-format";
++import { ProductAttributes } from "@/ui/components/pdp/product-attributes";
++
++vi.mock("next-intl", async (importOriginal) => ({
++	...(await importOriginal<typeof import("next-intl")>()),
++	useTranslations: () => (key: string) => (key === "storageConditions" ? "Storage conditions" : key),
++}));
++
++const policyLabels = {} as PolicyLabelValues;
++
++function render(
++	storageConditions: string | null | undefined,
++	descriptionHtml: string[] | null = ["<p>Soft cotton</p>"],
++): string {
++	return renderToStaticMarkup(
++		createElement(ProductAttributes, {
++			descriptionHtml,
++			attributes: [{ name: "Material", value: "Cotton" }],
++			careInstructions: null,
++			storageConditions,
++			policyLabels,
++		}),
++	);
++}
++
++describe("ProductAttributes storage conditions", () => {
++	it("renders the block inside the description, after the description and before product details", () => {
++		const html = render("Keep dry, below 25 °C");
++
++		const descriptionAt = html.indexOf("Soft cotton");
++		const blockAt = html.indexOf("Keep dry, below 25 °C");
++		const detailsAt = html.indexOf("productDetails");
++		expect(descriptionAt).toBeGreaterThan(-1);
++		expect(blockAt).toBeGreaterThan(descriptionAt);
++		expect(detailsAt).toBeGreaterThan(blockAt);
++		expect(html).toContain("Storage conditions");
++	});
++
++	it("still renders the block when the product has no description", () => {
++		const html = render("Keep dry", null);
++
++		expect(html).toContain("Storage conditions");
++		expect(html.indexOf("Keep dry")).toBeLessThan(html.indexOf("productDetails"));
++	});
++
++	it("escapes markup in the stored value", () => {
++		const html = render('<script>alert("x")</script>');
++
++		expect(html).toContain("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;");
++		expect(html).not.toContain("<script>alert");
++	});
++
++	it("omits the block when the value is null, undefined, empty, or whitespace-only", () => {
++		for (const value of [null, undefined, "", "   "]) {
++			const html = render(value);
++
++			expect(html).not.toContain("Storage conditions");
++			expect(html).toContain("Soft cotton");
++		}
++	});
++});
+diff --git a/src/ui/components/pdp/product-attributes.tsx b/src/ui/components/pdp/product-attributes.tsx
+index 004d495..f815fcc 100644
+--- a/src/ui/components/pdp/product-attributes.tsx
++++ b/src/ui/components/pdp/product-attributes.tsx
+@@ -9,6 +9,7 @@ import {
+ 	AccordionContent,
+ } from "@/ui/components/ui/accordion";
+ import { Badge } from "@/ui/components/ui/badge";
++import { StorageConditions } from "@/ui/components/pdp/storage-conditions";
+ import type { PolicyLabelValues } from "@/lib/content/policy-format";
+ import { type ReactNode } from "react";
+ 
+@@ -25,6 +26,8 @@ interface ProductAttributesProps {
+ 	descriptionHtml?: string[] | null;
+ 	attributes?: Attribute[];
+ 	careInstructions?: string | null;
++	/** Plain-text storage conditions. Rendered right after the description; hidden when empty. */
++	storageConditions?: string | null;
+ 	policyLabels: PolicyLabelValues;
+ }
+ 
+@@ -41,6 +44,7 @@ export function ProductAttributes({
+ 	descriptionHtml,
+ 	attributes = [],
+ 	careInstructions,
++	storageConditions,
+ 	policyLabels,
+ }: ProductAttributesProps) {
+ 	const t = useTranslations("pdp.attributes");
+@@ -64,23 +68,28 @@ export function ProductAttributes({
+ 	// Filter out variant attributes that are shown elsewhere (Size, Color)
+ 	const displayAttributes = attributes.filter((attr) => !["Size", "Color"].includes(attr.name));
+ 
++	const hasDescription = Boolean(descriptionHtml && descriptionHtml.length > 0);
++
+ 	return (
+ 		<Accordion type="multiple" defaultValue={["description"]} className="w-full">
+-			{descriptionHtml && descriptionHtml.length > 0 && (
++			{hasDescription && (
+ 				<AccordionItemWithContext value="description" className="border-border">
+ 					<AccordionTrigger className="py-4 text-sm font-medium hover:no-underline">
+ 						{t("description")}
+ 					</AccordionTrigger>
+ 					<AccordionContent>
+ 						<div className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-foreground prose-strong:text-foreground">
+-							{descriptionHtml.map((html) => (
++							{descriptionHtml?.map((html) => (
+ 								<div key={html} dangerouslySetInnerHTML={{ __html: html }} />
+ 							))}
+ 						</div>
++						<StorageConditions text={storageConditions} />
+ 					</AccordionContent>
+ 				</AccordionItemWithContext>
+ 			)}
+ 
++			{!hasDescription && <StorageConditions text={storageConditions} />}
++
+ 			{displayAttributes.length > 0 && (
+ 				<AccordionItemWithContext value="details" className="border-border">
+ 					<AccordionTrigger className="py-4 text-sm font-medium hover:no-underline">
+diff --git a/src/ui/components/pdp/storage-conditions.test.ts b/src/ui/components/pdp/storage-conditions.test.ts
+new file mode 100644
+index 0000000..11b3108
+--- /dev/null
++++ b/src/ui/components/pdp/storage-conditions.test.ts
+@@ -0,0 +1,38 @@
++import { createElement } from "react";
++import { renderToStaticMarkup } from "react-dom/server";
++import { describe, expect, it, vi } from "vitest";
++
++import { StorageConditions } from "@/ui/components/pdp/storage-conditions";
++
++vi.mock("next-intl", async (importOriginal) => ({
++	...(await importOriginal<typeof import("next-intl")>()),
++	useTranslations: () => (key: string) => (key === "storageConditions" ? "Storage conditions" : key),
++}));
++
++function render(text: string | null | undefined): string {
++	return renderToStaticMarkup(createElement(StorageConditions, { text }));
++}
++
++describe("StorageConditions", () => {
++	it("renders the translated label and the value as text", () => {
++		const html = render("Keep dry, below 25 °C");
++
++		expect(html).toContain("<h3");
++		expect(html).toContain("Storage conditions");
++		expect(html).toContain("Keep dry, below 25 °C");
++	});
++
++	it("escapes markup so a script tag is shown as text", () => {
++		const html = render('<script>alert("x")</script>');
++
++		expect(html).toContain("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;");
++		expect(html).not.toContain("<script>");
++	});
++
++	it("renders nothing when the value is null, empty, or whitespace-only", () => {
++		expect(render(null)).toBe("");
++		expect(render(undefined)).toBe("");
++		expect(render("")).toBe("");
++		expect(render("   \n\t ")).toBe("");
++	});
++});
+diff --git a/src/ui/components/pdp/storage-conditions.tsx b/src/ui/components/pdp/storage-conditions.tsx
+new file mode 100644
+index 0000000..1e5ee4d
+--- /dev/null
++++ b/src/ui/components/pdp/storage-conditions.tsx
+@@ -0,0 +1,28 @@
++"use client";
++
++import { useTranslations } from "next-intl";
++
++import { normalizeStorageConditions } from "@/lib/product-storage-conditions";
++
++interface StorageConditionsProps {
++	/** Plain text from the product. Rendered as a text node, never as HTML. */
++	text: string | null | undefined;
++}
++
++/**
++ * Labelled storage-conditions block for the PDP.
++ * Renders nothing when the value is null, empty, or whitespace-only.
++ */
++export function StorageConditions({ text }: StorageConditionsProps) {
++	const t = useTranslations("pdp.attributes");
++	const value = normalizeStorageConditions(text);
++
++	if (value === null) return null;
++
++	return (
++		<section className="mt-6 border-t border-border pt-6">
++			<h3 className="text-sm font-medium">{t("storageConditions")}</h3>
++			<p className="mt-2 text-sm leading-relaxed text-muted-foreground">{value}</p>
++		</section>
++	);
++}

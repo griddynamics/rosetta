@@ -46,6 +46,7 @@ Git, Docker Desktop (running) with Docker Compose, Node.js 24 + Corepack.
 ```bash
 brew install git
 brew install --cask docker
+brew install libmagic     # in advance: an agent that runs Saleor's backend tests on the host needs it, so it does not have to install it or ask
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 source ~/.nvm/nvm.sh && nvm install 24 && nvm use 24 && corepack enable
 docker compose version     # must print a version; Docker Desktop includes it
@@ -268,6 +269,13 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 | 17 | Optional extras: count the field in the dashboard translation progress? Edit `.stories.tsx` files? | Count it in the translation progress. No stories edits. | S-CC-06 |
 | 18 | Preserve newlines typed into the field on the storefront (e.g. `whitespace-pre-line`)? | No. Plain text; newlines are not preserved. | S-CC-06 |
 | 19 | Note, not a hidden question: if it asks which dashboard screens must let staff set the field. The dashboard has no routed product create page: `/products/add` redirects to a "create product" dialog on the product list. | The product update page and the create-product dialog on the product list (that dialog is the create flow). | S-CC-08 |
+| 20 | Should staff edit translations on the dashboard's product translation page? | Yes. Staff translate it on the product translations page in the dashboard, the same way as the product name and description. | S-CC-07 |
+| 21 | Run the local tests and refresh the schemas against the local stack? Is refreshing the dashboard schema from the local API OK even if it changes a tracked file? | Yes, run against the local stack. Regenerate the schema where needed, and refresh the dashboard schema from the local API; the tracked schema file may change. The local dev database only. | S-CC-07 (first asked as a schema-refresh question in S-CC-08) |
+| 22 | May the local API be restarted to apply the migration? | Yes, you may restart the local API to apply the migration. | S-CC-08 |
+| 23 | `categoryTranslate` and `collectionTranslate` share `TranslationInput`: reject the field or ignore it there? | Reject it: they must return an INVALID error if `storageConditions` is set. | S-CC-08 |
+| 24 | May it enable the `pl` locale in the local storefront config and restart the dev server, to show a real Polish page? | No. Don't change the local config or restart anything; the evidence shown is enough. | S-CC-08 |
+| 25 | How should the dashboard behave on the staging schema (keep `@lockSchema` on reads only, hide the field on staging builds, or remove `@lockSchema`)? | Keep `@lockSchema` on reads only. The target is the main (3.23) build; the staging schema doesn't matter for this task. | S-CC-07 |
+| 26 | May it install `libmagic` with Homebrew on the host machine (the API or the backend tests do not run without it)? | Yes, installing libmagic is fine. (It should already be installed in advance, see section 3.1.) | S-CC-07 |
 
 **Task 2 (large): extra answers**
 
