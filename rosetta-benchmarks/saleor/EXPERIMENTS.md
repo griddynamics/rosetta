@@ -1,8 +1,8 @@
 # Saleor benchmark — experiment matrix
 
-All scored experiments of the Saleor benchmark: **7 methods × 2 runners × 2 tasks = 28 runs** (one repetition). Rules, prompts and scoring are in [../BENCHMARKS.md](../BENCHMARKS.md).
+All scored experiments of the Saleor benchmark: **8 methods × 2 runners × 2 tasks = 32 runs** (one repetition). Rules, prompts and scoring are in [../BENCHMARKS.md](../BENCHMARKS.md).
 
-Methods come from the presentation slide "Six approaches, one more if time allows" plus Rosetta Light. Not scored: BMAD-METHOD (optional, "if time allows", one task only); GSD (archived upstream in May 2026).
+Methods come from the presentation slide "Six approaches, one more if time allows" plus Rosetta Light and Rosetta Skills. Not scored: BMAD-METHOD (optional, "if time allows", one task only); GSD (archived upstream in May 2026).
 
 ## Overview
 
@@ -15,10 +15,11 @@ Methods come from the presentation slide "Six approaches, one more if time allow
 | AWS AI-DLC | AI-DLC v2.10.0 | Via repository files | `S-CC-05` | `S-CP-05` | `L-CC-05` | `L-CP-05` |
 | Rosetta | plugin `rosetta` 3.1.17 only | Yes | `S-CC-06` | `S-CP-06` | `L-CC-06` | `L-CP-06` |
 | Rosetta Light | plugin `rosetta-light` 3.1.17 only | Yes | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
+| Rosetta Skills | plugin `rosetta` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` | Yes | `S-CC-08` | `S-CP-08` | `L-CC-08` | `L-CP-08` |
 
 Run ID format: `<task>-<runner>-<method#>` — `S`/`L` = small/large task, `CC`/`CP` = Claude Code / Copilot. This ID is for operators only; the judge sees a separate random `run_id` (see `reports/mapping.csv`).
 
-## All 28 runs
+## All 32 runs
 
 Status values: `planned` · `running` · `done` · `not qualifying` (method can't run on that runner after 2 attempts) · `infra-fail` (rerun from a clean reset). One folder per run ID. A new run of the same ID replaces the folder: commit the old run first, then it stays in git history.
 
@@ -52,10 +53,14 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 26 | `L-CP-05` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/large-age-restriction/copilot/aws-ai-dlc/` | planned ⚠ Copilot: via repository files |
 | 27 | `L-CP-06` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta | `runs/large-age-restriction/copilot/rosetta/` | planned |
 | 28 | `L-CP-07` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Light | `runs/large-age-restriction/copilot/rosetta-light/` | planned |
+| 29 | `S-CC-08` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/small-storage-conditions/claude-code/rosetta-skills/` | planned |
+| 30 | `S-CP-08` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Skills | `runs/small-storage-conditions/copilot/rosetta-skills/` | planned |
+| 31 | `L-CC-08` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/large-age-restriction/claude-code/rosetta-skills/` | planned |
+| 32 | `L-CP-08` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Skills | `runs/large-age-restriction/copilot/rosetta-skills/` | planned |
 
 ## Copilot setup per method
 
-All 7 methods are tested on both runners. Details are in BENCHMARKS.md, section 3.5, "All methods on both runners".
+All 8 methods are tested on both runners. Details are in BENCHMARKS.md, section 3.5, "All methods on both runners".
 
 - **Baseline:** starts in the chat's Plan mode, like the Claude Code runs start in plan mode. See [methods/baseline.md](./methods/baseline.md).
 - **Grill-with-docs:** no official Copilot support. **Manual port** of the skill into `.github/skills/`. Mark its Copilot runs `manual port`.
@@ -63,7 +68,7 @@ All 7 methods are tested on both runners. Details are in BENCHMARKS.md, section 
 - **AWS AI-DLC:** supported in Copilot through repository files set up by its installer.
 - If a method still can't be activated after 2 attempts from a clean reset, mark the cell `not qualifying` with the reason.
 
-## Optional (not in the 28)
+## Optional (not in the 32)
 
 | Run ID | Task | Runner | Method | Status |
 | --- | --- | --- | --- | --- |

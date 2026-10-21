@@ -1,24 +1,25 @@
 # Saleor benchmark
 
-Compare seven AI coding approaches on one real e-commerce platform (Saleor: core API, dashboard, storefront), on two tasks, in two agent runners: **7 methods × 2 runners × 2 tasks = 28 runs**. The full run list is in [saleor/EXPERIMENTS.md](./saleor/EXPERIMENTS.md).
+Compare seven AI coding approaches on one real e-commerce platform (Saleor: core API, dashboard, storefront), on two tasks, in two agent runners: **8 methods × 2 runners × 2 tasks = 32 runs**. The full run list is in [saleor/EXPERIMENTS.md](./saleor/EXPERIMENTS.md).
 
 A run counts only if the result is merge-ready, not a draft that needs cleanup.
 
 ## 1. Methods
 
-| # | Method | What is installed for the run |
-| ---: | --- | --- |
-| 1 | Baseline | Only the shared team rules file (see 3.3). No method, no plugins. Runs in the runner's built-in **plan mode** (plan → questions → approve → implement): [saleor/methods/baseline.md](./saleor/methods/baseline.md) |
-| 2 | Grill-with-docs | [mattpocock/skills `grill-with-docs`](https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs) ([docs](https://github.com/mattpocock/skills/blob/main/docs/engineering/grill-with-docs.md)) at commit `447ca70872026d5b79d6073a546dac082117fed7` (2026-08-15) |
-| 3 | Superpowers | [obra/superpowers](https://github.com/obra/superpowers) **v6.4.2** (2026-09-25) |
-| 4 | Spec Kit | [github/spec-kit](https://github.com/github/spec-kit) **v1.0.13** (2026-09-29) + one constitution per repo |
-| 5 | AWS AI-DLC | [awslabs/aidlc-workflows](https://github.com/awslabs/aidlc-workflows) **v2.10.0** (2026-09-24) |
-| 6 | Rosetta | Plugin `rosetta` **3.1.17** (2026-10-19) only |
-| 7 | Rosetta Light | Plugin `rosetta-light` **3.1.17** (2026-10-19) only |
+| #   | Method          | What is installed for the run                                                                                                                                                                                                                                                           |
+| --: | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Baseline        | Only the shared team rules file (see 3.3). No method, no plugins. Runs in the runner's built-in **plan mode** (plan → questions → approve → implement): [saleor/methods/baseline.md](./saleor/methods/baseline.md)                                                                      |
+| 2   | Grill-with-docs | [mattpocock/skills](https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs) `grill-with-docs` ([docs](https://github.com/mattpocock/skills/blob/main/docs/engineering/grill-with-docs.md)) at commit `447ca70872026d5b79d6073a546dac082117fed7` (2026-08-15) |
+| 3   | Superpowers     | [obra/superpowers](https://github.com/obra/superpowers) **v6.4.2** (2026-09-25)                                                                                                                                                                                                         |
+| 4   | Spec Kit        | [github/spec-kit](https://github.com/github/spec-kit) **v1.0.13** (2026-09-29) + one constitution per repo                                                                                                                                                                              |
+| 5   | AWS AI-DLC      | [awslabs/aidlc-workflows](https://github.com/awslabs/aidlc-workflows) **v2.10.0** (2026-09-24)                                                                                                                                                                                          |
+| 6   | Rosetta         | Plugin `rosetta` **3.1.17** (2026-10-19) only                                                                                                                                                                                                                                           |
+| 7   | Rosetta Light   | Plugin `rosetta-light` **3.1.17** (2026-10-19) only                                                                                                                                                                                                                                     |
+| 8   | Rosetta Skills  | Plugin `rosetta` **3.1.17** (2026-10-19) only; skills `hitl` + `tech-specs` named in the prompt, no `/coding-flow`                                                                                                                                                                                                                                     |
 
-Versions were chosen on 2026-10-15 as the newest stable release at least two weeks old. Newer releases (Superpowers v7.0.0, Spec Kit v1.1.x–v1.2.0, AI-DLC v2.11.x) are too fresh, and the AI-DLC v2.11.1 builds are previews. **Exception: Rosetta and Rosetta Light use 3.1.17**, the current release (2026-10-19), although it is newer than the two-week rule allows (3.1.13 would qualify). The study measures the current Rosetta; the exception is stated here so the results can be read with it in mind. Compared with 3.1.13, the gates and phases are the same; the subagent models changed (full: architect `claude-opus-5-5`, reviewers `claude-sonnet-5-5`; light: implementation and reviews on `claude-haiku-5-5`). Do not update any method during the study.
+Versions were chosen on 2026-10-15 as the newest stable release at least two weeks old. Newer releases (Superpowers v7.0.0, Spec Kit v1.1.x–v1.2.0, AI-DLC v2.11.x) are too fresh, and the AI-DLC v2.11.1 builds are previews. **Exception: Rosetta, Rosetta Light and Rosetta Skills use 3.1.17**, the current release (2026-10-19), although it is newer than the two-week rule allows (3.1.13 would qualify). The study measures the current Rosetta; the exception is stated here so the results can be read with it in mind. Compared with 3.1.13, the gates and phases are the same; the subagent models changed (full: architect `claude-opus-5-5`, reviewers `claude-sonnet-5-5`; light: implementation and reviews on `claude-haiku-5-5`). Do not update any method during the study.
 
-Methods 1–6 come from the presentation slide "Six approaches, one more if time allows". BMAD-METHOD is optional (one task, if time allows) and not part of the 28. GSD is not run (archived upstream in May 2026).
+Methods 1–6 come from the presentation slide "Six approaches, one more if time allows". BMAD-METHOD is optional (one task, if time allows) and not part of the 32. GSD is not run (archived upstream in May 2026).
 
 **Isolation:** every method runs alone, with no help from any other AI. See 3.5, "Each method runs in a vacuum".
 
@@ -40,14 +41,25 @@ Everything is done by one script: [saleor/scripts/bench.sh](./saleor/scripts/ben
 
 ### 3.1 Tools (macOS)
 
-Git, Docker Desktop (running), Node.js 24 + Corepack.
+Git, Docker Desktop (running) with Docker Compose, Node.js 24 + Corepack.
 
 ```bash
 brew install git
 brew install --cask docker
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 source ~/.nvm/nvm.sh && nvm install 24 && nvm use 24 && corepack enable
+docker compose version     # must print a version; Docker Desktop includes it
 ```
+
+If `docker compose version` fails (Docker CLI without Docker Desktop, e.g. Colima), install the Compose plugin:
+
+```bash
+brew install docker-compose
+mkdir -p ~/.docker/cli-plugins && ln -sfn "$(brew --prefix)/opt/docker-compose/bin/docker-compose" ~/.docker/cli-plugins/docker-compose
+docker compose version
+```
+
+The script also accepts the standalone `docker-compose` binary if the plugin is missing.
 
 Run `nvm use 24` in every new terminal before the script; it stops with a hint if Node isn't 24.
 
@@ -90,7 +102,7 @@ The script does this; this section explains what and why. So that no method gets
 
 Then it adds **one simple team rules file** to every repo, as on the presentation slide ("one instruction file per repository"): [saleor/baseline-instructions.md](./saleor/baseline-instructions.md), general team rules only, no hints about the tasks. It is copied as `CLAUDE.md` and `.github/copilot-instructions.md`, so each runner reads it.
 
-The tag `baseline-v1` is the starting point for **every** method, so all 7 methods get the same rules file. Baseline = runner + model + this file, in the runner's built-in plan mode; every other method = the same + its own tool. Never change this file during the study. If a method's init step wants to change `CLAUDE.md` or `copilot-instructions.md`, let it, and record that in its protocol.
+The tag `baseline-v1` is the starting point for **every** method, so all 8 methods get the same rules file. Baseline = runner + model + this file, in the runner's built-in plan mode; every other method = the same + its own tool. Never change this file during the study. If a method's init step wants to change `CLAUDE.md` or `copilot-instructions.md`, let it, and record that in its protocol.
 
 ### 3.5 Set up each method (once)
 
@@ -136,7 +148,7 @@ Expected: only the method's plugins (none for Baseline), no MCP servers, the met
 
 #### Install
 
-Install at the pinned version only. Disable auto-update. Run the method's per-repo init step (if any) once on top of `baseline-v1`, commit, and tag it with the same tag name in all three repos (`grill-v1`, `superpowers-v1`, `speckit-v1`, `aidlc-v1`, `rosetta-v1`, `rosetta-light-v1`). Every run of that method starts from that tag. Note the one-time setup time in the method's protocol; it is reported separately and not added to any run.
+Install at the pinned version only. Disable auto-update. Run the method's per-repo init step (if any) once on top of `baseline-v1`, commit, and tag it with the same tag name in all three repos (`grill-v1`, `superpowers-v1`, `speckit-v1`, `aidlc-v1`, `rosetta-v1`, `rosetta-light-v1`, `rosetta-skills-v1`). Every run of that method starts from that tag. Note the one-time setup time in the method's protocol; it is reported separately and not added to any run.
 
 The exact install commands per method (checked at the pinned versions) are in that method's file in [saleor/methods/](./saleor/methods/), part 1 (Claude Code) and part 4 (Copilot). Spec Kit and AI-DLC are set up once in `envs/<method>/root-<runner>/` and copied into the workspace root after every reset, because the agent runs in `$BENCH_DIR` (not a repo) and Claude Code loads project skills and hooks only from its working directory.
 
@@ -146,7 +158,7 @@ Install everything inside that method's own environment (see above). Plugins onl
 
 #### All methods on both runners
 
-Our competitors ran every method, so we test all 7 methods on both runners whenever we can. If a method has no direct support in VS Code Copilot, use the first option that works:
+Our competitors ran every method, so we test all 8 methods on both runners whenever we can. If a method has no direct support in VS Code Copilot, use the first option that works:
 
 1. Official support in VS Code Copilot: use it as is.
 2. Official support in Copilot CLI: run that method's Copilot cells in Copilot CLI with the same model, effort and full-access mode. Mark them `runner: Copilot CLI` (Superpowers).
@@ -288,7 +300,7 @@ $B start
 $B health        # all three OK
 ```
 
-Then start a **new** agent session: Claude Code with no earlier session or memory for this workspace (remove `$CLAUDE_CONFIG_DIR/projects/*saleor-benchmark*`); Copilot with a new chat and cleared chat history. Use the method's own environment (`CLAUDE_CONFIG_DIR` / VS Code profile) and run the isolation check (3.5).
+Then start a **new** agent session: Claude Code with no earlier session or memory for this workspace (remove `$CLAUDE_CONFIG_DIR/projects/*saleor-benchmark`*); Copilot with a new chat and cleared chat history. Use the method's own environment (`CLAUDE_CONFIG_DIR` / VS Code profile) and run the isolation check (3.5).
 
 ### Steps
 
@@ -297,7 +309,7 @@ Then start a **new** agent session: Claude Code with no earlier session or memor
 3. Don't interrupt or help the agent. Send only method steps when the method asks for them.
 4. If the agent asks a question, **the programmer answers it themselves**, as a normal product owner would. If it matches a hidden question, give the answer from that task's table and mark it **asked**. If not, use the extra answers (section 4, "Questions that are not in the tables"). Write the question and the answer in the protocol.
 5. When the agent first says it's done: **stop the first-pass timer (T1)** and save usage at this point.
-6. **Hidden-question check.** For every hidden question not asked yet, ask the AI in one message, without changing anything: *"Don't change any code, just answer: was each of these handled, and where? <list>"*. Mark each one **covered** (handled correctly without being asked) or **not covered**. This gives the first-pass coverage: asked + covered out of the total.
+6. **Hidden-question check.** For every hidden question not asked yet, ask the AI in one message, without changing anything: *"Don't change any code, just answer: was each of these handled, and where? "*. Mark each one **covered** (handled correctly without being asked) or **not covered**. This gives the first-pass coverage: asked + covered out of the total.
 7. Send follow-ups for not-covered items and anything broken, until the task is fully done. Count each follow-up and each item we had to point out (`missed_questions`).
 8. **Stop the final timer (T2)** when the last follow-up is done.
 9. Send the post-implementation prompt (below). **Only now, never in advance.**
@@ -364,7 +376,7 @@ Also output: merge_ready (yes/no), blocking defects (list), total score (sum).
 Save the result as <REPORTS_DIR>/<task>/<run_id>.absolute.md and as one JSON line appended to <REPORTS_DIR>/<task>/absolute.jsonl.
 ```
 
-### Prompt — step 5, side by side (one task × one runner, 7 methods)
+### Prompt — step 5, side by side (one task × one runner, 8 methods)
 
 ```text
 You are an expert Saleor reviewer. Below are 7 anonymized solutions (run_ids only) to the SAME task, produced on the SAME runner/model. Read all the code first.
@@ -393,6 +405,7 @@ One per task, built from the data blocks of the run reports after de-blinding wi
 | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
 
 **Verdict per method:**
+
 - **Acceptable:** merge-ready = yes, Requirements coverage ≥ 4, and no blocking defects.
 - **Preferred:** acceptable, with the fewest follow-ups, the shortest total time and the lowest usage. A method costing more than 1.5× the cheapest acceptable one is not preferred unless it is clearly better on quality.
 - **Not acceptable:** everything else. Say so plainly.
@@ -405,7 +418,7 @@ Everything goes into this folder in the Rosetta repo, on **one branch** (`benchm
 rosetta-benchmarks/
 ├── BENCHMARKS.md                               # this document
 └── saleor/
-    ├── EXPERIMENTS.md                          # the 28 runs + status
+    ├── EXPERIMENTS.md                          # the 32 runs + status
     ├── scripts/bench.sh                        # setup, reset, start, stop, health
     ├── scripts/session-usage.py                # token breakdown of one Claude Code session
     ├── methods/<method>.md                     # one file per method: setup + each run (small/large × Claude Code/Copilot)
@@ -414,7 +427,7 @@ rosetta-benchmarks/
     └── reports/                                # judge outputs, mapping.csv, summary tables
 ```
 
-`<task>`: `small-storage-conditions` · `large-age-restriction`. `<runner>`: `claude-code` · `copilot`. `<method>`: `baseline` · `grill-with-docs` · `superpowers` · `spec-kit` · `aws-ai-dlc` · `rosetta` · `rosetta-light`.
+`<task>`: `small-storage-conditions` · `large-age-restriction`. `<runner>`: `claude-code` · `copilot`. `<method>`: `baseline` · `grill-with-docs` · `superpowers` · `spec-kit` · `aws-ai-dlc` · `rosetta` · `rosetta-light` · `rosetta-skills`.
 
 ## 8. How to improve the benchmark
 

@@ -45,7 +45,16 @@ repo_ai_files() {
 log() { printf '\n==> %s\n' "$*"; }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
-compose() { docker compose -p "$PROJECT" -f "$BENCH_DIR/saleor/.devcontainer/docker-compose.yml" "$@"; }
+# Compose v2 plugin (`docker compose`), else the standalone `docker-compose` binary.
+compose() {
+	if docker compose version >/dev/null 2>&1; then
+		docker compose -p "$PROJECT" -f "$BENCH_DIR/saleor/.devcontainer/docker-compose.yml" "$@"
+	elif command -v docker-compose >/dev/null 2>&1; then
+		docker-compose -p "$PROJECT" -f "$BENCH_DIR/saleor/.devcontainer/docker-compose.yml" "$@"
+	else
+		die "docker compose not found: install the Compose plugin (brew install docker-compose) or Docker Desktop"
+	fi
+}
 manage() { compose exec -T -w /app saleor python manage.py "$@"; }
 git_bench() { git -c user.name="saleor-benchmark" -c user.email="saleor-benchmark@localhost" "$@"; }
 
