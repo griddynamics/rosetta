@@ -1,0 +1,41 @@
+# Saleor benchmark: preliminary results (2026-10-21)
+
+**Status: preliminary.** What has been run so far, end to end with a report: **2 of 28 runs**, both on **Claude Code** (Sonnet 5.5, effort medium), both on the **small task** (product "storage conditions" field across backend, dashboard and storefront). Copilot runs, the large task and the other methods follow; the full version will be published later.
+
+Each run has its own folder with the agent's diffs, its own report and a token breakdown: [`saleor/runs/`](../runs/). Generated table of all runs: [`summary.md`](./summary.md) (`python3 saleor/scripts/collect-results.py`). Method, rules and scoring: [`BENCHMARKS.md`](../../BENCHMARKS.md).
+
+## Small task · Claude Code
+
+| | Baseline (`S-CC-01`) | Grill-with-docs (`S-CC-02`) |
+| --- | --- | --- |
+| How it ran | plain Claude Code in plan mode | `/grill-with-docs` interview, then plain Claude Code |
+| Questions the agent asked | 0 | 14 (2 rounds, ~11 min) |
+| Hidden requirements: asked / covered without asking / missed | 0 / 4 / 3 | 5 / 2 / 0 |
+| First-pass coverage of hidden requirements | 57 % | 100 % |
+| Follow-ups needed after the first "done" | 3 | 0 |
+| Time to first "done" / total | 29 / 70 min | 38 / 38 min |
+| Cost to first "done" / total (`/cost`) | $1.24 / $3.31 | $4.82 / $4.89 |
+| "Done when" checks passed (operator, at the end) | 7 / 8 | 8 / 8 |
+| Red flags | 1 (unrelated files changed) | 0 |
+| Tests at the end (operator) | pass | pass |
+| Operator score (1–5) / merge-ready | 3 / no | 4 / yes |
+
+**Reading it:**
+- Grill's interview caught most of the hidden requirements up front (length limit, translation, webhooks/CSV export); Baseline asked nothing and needed 3 follow-ups for exactly those (length limit, translation, webhooks/export).
+- Baseline was cheaper and faster to its first "done", but 40 % of its total cost went into fixing what it had missed. Grill spent more up front and almost nothing after.
+- Both agents made the same API decision on their own (a new `ProductTranslationInput` type, a breaking change in the translation mutation): worth a reviewer's look in both.
+
+## Caveats (read before quoting the numbers)
+
+- **One run per method (n = 1).** No repetitions yet; differences can be noise. Our rule is at least 3 runs per cell before a conclusion.
+- **Not yet judged.** The scores are the operator's; the independent judge scores (absolute and side by side) are not done yet.
+- **Not identical setups.** `S-CC-02` ran before two setup fixes (some upstream `CLAUDE.md` / `AGENTS.md` files were still in the repos, and the agent's shell used Node 20) and on Claude Code 2.1.304; `S-CC-01` ran on the fixed setup with 2.1.305. Details in each report, section 8.
+- **IDE context.** Both runs used Claude Code in the VS Code terminal, which can pass the open file to the agent; future runs use a standalone terminal. In `S-CC-01` the IDE tools were not used (`tokens.md`).
+- **Superpowers** (`S-CC-03`) was also run; its report will be added to the table as soon as it is in the branch.
+
+## Next
+
+1. Superpowers run added to the table.
+2. The remaining Claude Code runs of the small task (Spec Kit, AI-DLC, Rosetta, Rosetta Light), then the large task (age-restricted products).
+3. Judge scores; repetitions.
+4. Copilot runs once a Copilot seat with the benchmark model is available.
