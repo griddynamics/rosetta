@@ -6,6 +6,7 @@ Runs: `S-CC-04` (small, Claude Code) · `L-CC-04` (large, Claude Code) · `S-CP-
 
 | Command / skill | When | Official doc |
 | --- | --- | --- |
+| `specify init --here --force --integration claude --script sh --non-interactive` | once, at setup (part 1.4), in the workspace root; runs no model | README.md:46 |
 | `/speckit-constitution <principles>` | once, at setup | README.md:77,82 |
 | `/speckit-specify <task>` | T0 | docs/quickstart.md:87 |
 | `/speckit-plan <tech stack>` | spec written | docs/reference/agentic-sdd.md:76 |
@@ -107,7 +108,7 @@ cd "$BENCH_DIR" && claude
 
 In the session: `/login` with your work account, then `/exit`.
 
-**1.7 Constitution** (once, same text for every run; the text from Spec Kit's README):
+**1.7 Constitution** (once, same text for every run; taken from the team rules file):
 
 ```bash
 (
@@ -119,7 +120,7 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 Send this, wait until it's done, run `/cost` and `/usage` and paste both into part 7, then `/exit`:
 
 ```text
-/speckit-constitution Create principles focused on code quality, testing, and maintainability.
+/speckit-constitution Use the team engineering rules in CLAUDE.md as the project principles: follow the existing code style, structure and patterns; keep changes focused on the task; no new dependencies unless really needed; add or update automated tests for every change; run the relevant tests and linters before finishing.
 ```
 
 ```bash
@@ -457,5 +458,3 @@ Copilot, premium-request counter at the end of the setup session:
 
 ```text
 ```
-
-Note: the constitution text was changed to the README example on 2026-10-21. `S-CC-04` was run with the earlier text (the team engineering rules in `CLAUDE.md`).
