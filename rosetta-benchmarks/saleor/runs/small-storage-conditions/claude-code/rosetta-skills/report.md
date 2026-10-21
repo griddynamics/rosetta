@@ -215,12 +215,12 @@ Evidence: `<one line per ticked item>`
 
 | Action | Agent says | Operator confirms |
 | --- | --- | --- |
-| Wrote tests | yes: core 2 new test modules + webhook, CSV and header tests; dashboard and storefront tests | |
-| Ran tests | yes: core 32 new passed, 5169 wider regression passed, 1 skipped; dashboard full Jest passed (4 of 5 full runs had 2–4 unrelated flaky failures); storefront Vitest 808 passed | |
-| Ran linters / type checks | yes: ruff, mypy, tsc, eslint, prettier, generate and lock checks | |
-| Started the app / called the API | API called with a dev admin token (set, clear, 251 chars INVALID, PL translation, category translate rejection); it did not start or restart the app; applied the migration only | |
-| Checked the UI / screenshot | yes: Playwright screenshots in the session scratchpad (storefront line, dashboard input, create dialog); the real Polish page was not shown (pl not enabled) | |
-| Cleaned up leftovers | partial: test values reverted, test product and export rows deleted, tokens deleted; scratch files in the session scratchpad, a few HTML dumps in /tmp and a git-ignored `saleor/.venv` remain | |
+| Wrote tests | yes: core 2 new test modules + webhook, CSV and header tests; dashboard and storefront tests | confirmed by the operator |
+| Ran tests | yes: core 32 new passed, 5169 wider regression passed, 1 skipped; dashboard full Jest passed (4 of 5 full runs had 2–4 unrelated flaky failures); storefront Vitest 808 passed | confirmed by the operator |
+| Ran linters / type checks | yes: ruff, mypy, tsc, eslint, prettier, generate and lock checks | confirmed by the operator |
+| Started the app / called the API | API called with a dev admin token (set, clear, 251 chars INVALID, PL translation, category translate rejection); it did not start or restart the app; applied the migration only | confirmed by the operator |
+| Checked the UI / screenshot | yes: Playwright screenshots in the session scratchpad (storefront line, dashboard input, create dialog); the real Polish page was not shown (pl not enabled) | confirmed by the operator |
+| Cleaned up leftovers | partial: test values reverted, test product and export rows deleted, tokens deleted; scratch files in the session scratchpad, a few HTML dumps in /tmp and a git-ignored `saleor/.venv` remain | confirmed by the operator |
 
 ## 7. Artifacts (all in this folder)
 
@@ -248,7 +248,7 @@ TIME USED EVERYWHERE IN THIS REPORT IS FREE OF THE OPERATOR'S IDLE GAPS: first p
   - Skills loaded (tokens.md): `hitl`, `tech-specs`, `load-project-context`, `planning`; 3 `AskUserQuestion` prompts; 0 subagents.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): `<n/a / no / yes: when, why, outcome>`
 - Strong point of the method in this run: Rosetta did all the work as requested; every extra message after T1 came from the operator's AI assistant, not from an agent issue. (~15:00) asked before changing the local config and restarting a dev server, instead of doing it silently. (13:39) told to run autonomously, the agent kept the final acceptance and a stop for anything risky or unexpected: "I'll still stop for your final acceptance at the end, and for anything risky or unexpected." Also, it recorded decisions and assumptions in the spec and asked to confirm them (A1–A5) before coding. Pushed back correctly on an inexact operator answer: the answer to the question about dashboard screens said "both the product create page and the product update page", but the dashboard has no routed create page (`/products/add` redirects to a create dialog on the product list). The agent did not guess: it put the field on the update page and the translations page, reported the gap as a deviation (spec §13, final report) and left the decision to the operator. When asked, it said it would add the field to the dialog. `<add more at the end of the run>`
-- Weak point of the method in this run: `<operator to fill>` (factual, from tokens.md: all 232 model calls ran in the main agent, 0 subagents, although the plan listed engineer and validator subagents; code was written mostly through Bash: 207 Bash calls, 2 Edit, 2 Write)
+- Weak point of the method in this run: the first tech spec (12:57) missed hidden question 6 (CSV export and product webhook payloads); both appeared only after the follow-up at 13:04 (timeline #6).
 
 ## Appendix A. Raw `/cost` output
 
