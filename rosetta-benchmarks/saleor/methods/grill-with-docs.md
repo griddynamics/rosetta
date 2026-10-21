@@ -1,42 +1,62 @@
-# Grill-with-docs: quick guide
+# Grill-with-docs
 
-How to install Grill-with-docs, keep every other method out, and do one run. General rules are in [BENCHMARKS.md](../../BENCHMARKS.md); this page only adds what is specific to this method.
+Runs: `S-CC-02` (small, Claude Code) · `L-CC-02` (large, Claude Code) · `S-CP-02` (small, Copilot) · `L-CP-02` (large, Copilot). Everything for this method is in this file: setup, then each run step by step. Rules: [BENCHMARKS.md](../../BENCHMARKS.md).
 
-Runs: `S-CC-02`, `S-CP-02`, `L-CC-02`, `L-CP-02` (see [EXPERIMENTS.md](../EXPERIMENTS.md)).
+## The method's commands
 
-## What gets installed
-
-Three skills from [mattpocock/skills](https://github.com/mattpocock/skills) at commit `447ca70872026d5b79d6073a546dac082117fed7`. Nothing else.
-
-| Skill | Path in that repo | Why |
+| Command / skill | When | Official doc |
 | --- | --- | --- |
-| `grill-with-docs` | `skills/engineering/grill-with-docs/` | The entry command. Its `SKILL.md` is one line: it calls the two skills below. |
-| `grilling` | `skills/productivity/grilling/` | The interview: rounds of numbered questions, each with a recommended answer. |
-| `domain-modeling` | `skills/engineering/domain-modeling/` | Writes the glossary (`CONTEXT.md`) and ADRs (`docs/adr/`) during the interview. |
+| `/grill-with-docs <task>` | T0; it loads the skills `grilling` + `domain-modeling` | docs/engineering/grill-with-docs.md:9,27 |
 
-`grill-with-docs` alone does not work, so all three are installed. Don't install the whole `mattpocock-skills` plugin: it adds 15+ other skills (`to-spec`, `implement`, `tdd`, …), which would be a different method.
+**T0 message, small task** (copy as is):
 
-## One-time setup
+```text
+/grill-with-docs Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
 
-Do this once, after `bench.sh setup` (BENCHMARKS.md, section 3).
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+```
+
+**T0 message, large task** (copy as is):
+
+```text
+/grill-with-docs Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
+To make this work, the customer profile should have a birthday field.
+
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+```
+
+Every other reply is written out in each run below (parts 2, 3, 5, 6).
+
+## 1. Setup for Claude Code (once)
+
+Open a terminal **inside your rosetta checkout**. Skip this part if `git -C ~/saleor-benchmark/saleor tag -l grill-v1` already prints the tag.
+
+**1.1 Machine** (once per machine, shared by all methods): Node 24 with Claude Code in it, and the Saleor stack.
+
+```bash
+nvm install 24 && nvm alias default 24 && nvm use 24
+command -v claude || npm install -g @anthropic-ai/claude-code@2.1.304
+claude --version                                   # 2.1.304
+git -C ~/saleor-benchmark/saleor tag -l baseline-v1   # prints baseline-v1; if not: bench.sh setup (BENCHMARKS.md, section 3)
+```
+
+**1.2 Variables** (paste into every new terminal you use for this method):
 
 ```bash
 export BENCH_DIR="$HOME/saleor-benchmark"
-export GRILL="$BENCH_DIR/envs/grill-with-docs"
+export ENV_DIR="$BENCH_DIR/envs/grill-with-docs"
+export CLAUDE_CONFIG_DIR="$ENV_DIR/claude"
+export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor/scripts/bench.sh"   # inside your rosetta checkout
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "!! cd into your rosetta checkout and paste this block again"
+```
 
-# 1. Get the three skills at the pinned commit
-mkdir -p "$GRILL/src" && cd "$GRILL/src"
-git init -q && git remote add origin https://github.com/mattpocock/skills.git
-git fetch --depth 1 origin 447ca70872026d5b79d6073a546dac082117fed7 && git checkout -q FETCH_HEAD
+**1.3 Own config dir with the common settings** (claude.ai sync off, hooks on; BENCHMARKS.md, section 3.5):
 
-# 2. Claude Code: a separate config dir with only these skills
-mkdir -p "$GRILL/claude/skills"
-for s in engineering/grill-with-docs productivity/grilling engineering/domain-modeling; do
-  cp -R "$GRILL/src/skills/$s" "$GRILL/claude/skills/"
-done
-
-# 3. Settings: the common settings from BENCHMARKS.md, section 3.5 (same for every method)
-cat > "$GRILL/claude/settings.json" <<'JSON'
+```bash
+mkdir -p "$CLAUDE_CONFIG_DIR"
+cat > "$CLAUDE_CONFIG_DIR/settings.json" <<'JSON'
 {
   "model": "claude-sonnet-5-5",
   "effortLevel": "medium",
@@ -44,7 +64,6 @@ cat > "$GRILL/claude/settings.json" <<'JSON'
   "syncClaudeAiSkills": false,
   "syncClaudeAiPlugins": false,
   "autoMemoryEnabled": false,
-  "disableAllHooks": true,
   "enabledPlugins": {
     "cc-plugin-plugin-authoring@builtin": false,
     "cc-plugin-sec-default@builtin": false,
@@ -53,85 +72,324 @@ cat > "$GRILL/claude/settings.json" <<'JSON'
   "env": { "DISABLE_AUTOUPDATER": "1", "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1", "ENABLE_CLAUDEAI_MCP_SERVERS": "false" }
 }
 JSON
-
-# 4. Tag grill-v1 (the skills live outside the repos, so it's the same commit as baseline-v1)
-for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag grill-v1 baseline-v1; done
 ```
 
-**Claude Code login (once).** The new config dir has no login yet:
+**1.4 Install Grill-with-docs** (pinned version):
 
 ```bash
-cd "$BENCH_DIR" && CLAUDE_CONFIG_DIR="$GRILL/claude" claude
+(
+mkdir -p "$ENV_DIR/src" && cd "$ENV_DIR/src" && git init -q
+git remote add origin https://github.com/mattpocock/skills.git 2>/dev/null || true
+git fetch -q --depth 1 origin 447ca70872026d5b79d6073a546dac082117fed7 && git checkout -q FETCH_HEAD
+mkdir -p "$CLAUDE_CONFIG_DIR/skills"
+for s in engineering/grill-with-docs productivity/grilling engineering/domain-modeling; do cp -R "$ENV_DIR/src/skills/$s" "$CLAUDE_CONFIG_DIR/skills/"; done
+ls "$CLAUDE_CONFIG_DIR/skills"                                 # domain-modeling  grill-with-docs  grilling
+)                                               # in a subshell: your terminal stays where it is
 ```
 
-Run `/login` with your work account. Then check, in the same session:
+**1.5 Tag** (the method lives outside the repos, so the tag is the same commit as `baseline-v1`):
 
-- `/plugin` → **Installed**: only the skills `grill-with-docs`, `grilling`, `domain-modeling`. No "claude.ai sync" skills, no project skills, no MCP, built-in plugins switched off;
-- `/mcp`: no MCP servers (no claude.ai connectors).
+```bash
+for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -f grill-v1 baseline-v1; done
+```
 
-Anything else in these lists means the environment isn't clean: fix it before any run.
+**1.6 Log in once** (a new config dir has no login):
 
-**Copilot (VS Code), once:**
+```bash
+(
+cd "$BENCH_DIR" && claude
+)                                               # in a subshell: your terminal stays where it is
+```
 
-1. Create a VS Code profile `bench-grill-with-docs` (Profiles → New Profile → Empty). In it, install only GitHub Copilot and GitHub Copilot Chat. No other AI extensions.
-2. Settings in this profile: `chat.tools.autoApprove: true`, `chat.useAgentSkills: true`, Copilot memory off, no user-level instructions or prompt files.
-3. In the chat, choose model **GPT-6.1 Sol**, effort medium, auto model selection off.
-4. Optional: to use `code --profile …` from the terminal, run "Shell Command: Install 'code' command in PATH" in VS Code.
+In the session: `/login` with your work account, then `/exit`.
 
-VS Code doesn't have a separate config dir like Claude Code, so the skills go into the workspace: `$BENCH_DIR/.github/skills/`. Because `bench.sh reset` removes everything in the workspace root, you copy them again after every reset (step 2 below). This is the "manual port" from BENCHMARKS.md, section 3.5. Record it as `manual port` in the protocol.
+## 2. Run S-CC-02: small task: product storage conditions, Claude Code
 
-## Every run
+Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/claude-code/grill-with-docs/`. Two terminals, both **inside your rosetta checkout**: terminal 1 runs the agent, terminal 2 is for the other commands.
 
-1. **Reset.**
-   ```bash
-   nvm use 24
-   B=<rosetta-repo>/rosetta-benchmarks/saleor/scripts/bench.sh
-   $B reset grill-v1 && $B start && $B health
-   ```
-2. **Copilot runs only**, put the skills in the workspace:
-   ```bash
-   mkdir -p "$BENCH_DIR/.github/skills"
-   for s in engineering/grill-with-docs productivity/grilling engineering/domain-modeling; do
-     cp -R "$GRILL/src/skills/$s" "$BENCH_DIR/.github/skills/"
-   done
-   ```
-3. **Start a new session** in the workspace root `$BENCH_DIR`, in a terminal where `node -v` shows v24 (run `nvm use 24` first; the agent inherits this Node):
-   - Claude Code:
-     ```bash
-     rm -rf "$GRILL/claude/projects/"*saleor-benchmark*
-     cd "$BENCH_DIR" && CLAUDE_CONFIG_DIR="$GRILL/claude" claude --dangerously-skip-permissions --model claude-sonnet-5-5
-     ```
-     Check `/model`: Sonnet 5.5, effort medium. Check `/skills`, `/plugin`, `/mcp` as in the one-time setup, and save the output in the protocol.
-   - Copilot: open `$BENCH_DIR` in VS Code with the `bench-grill-with-docs` profile, new chat, Agent mode. Type `/` and check that `grill-with-docs` is in the list.
-4. **Send the task prompt** with the entry command in front. The prompt text is exactly the one from BENCHMARKS.md, section 4:
+**Step 1. Variables** (paste into both terminals):
+
+```bash
+export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
+export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/grill-with-docs"
+export CLAUDE_CONFIG_DIR="$ENV_DIR/claude" B="$SB/scripts/bench.sh"
+export RUN="$SB/runs/small-storage-conditions/claude-code/grill-with-docs"   # this run's folder
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "!! cd into your rosetta checkout and paste this block again"
+```
+
+**Step 2. Reset and open the report** (terminal 2):
+
+```bash
+nvm use 24
+$B reset grill-v1 && $B start && sleep 60 && $B health      # all three OK
+rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-small.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
+sed -i '' -e 's|^run_id:.*|run_id: S-CC-02|' -e 's|^method:.*|method: grill-with-docs|' -e 's|^runner:.*|runner: claude-code|' \
+  -e 's|^model:.*|model: claude-sonnet-5-5|' -e 's|^start_tag:.*|start_tag: grill-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
+```
+
+**Step 3. Isolation check** (terminal 2):
+
+```bash
+{ claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" 2>/dev/null || echo "(no skills dir)"
+  for r in saleor saleor-dashboard react-storefront; do echo "$r: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ')"; git -C "$BENCH_DIR/$r" status --porcelain; done
+} 2>&1 | tee "$RUN/isolation.txt"
+```
+
+Expected: no plugins; skills `domain-modeling`, `grill-with-docs`, `grilling`; no MCP servers; `grill-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1.
+
+**Step 4. Start the agent** (terminal 1):
+
+```bash
+(
+find "$CLAUDE_CONFIG_DIR/projects" -maxdepth 1 -name '*saleor-benchmark*' -exec rm -rf {} + 2>/dev/null || true
+rm -rf "$BENCH_DIR/run-output"
+cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5
+)                                               # in a subshell: your terminal stays where it is
+```
+
+In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `grill-with-docs`. If not: `/exit`, reset, start again.
+
+**Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
+
+```text
+/grill-with-docs Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
+
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+```
+
+**Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
+
+| The agent | You reply |
+| --- | --- |
+| a round of questions | answers from the tables, by number; ~2–3 rounds |
+| summary, waits for confirmation | `Approved, continue.` |
+| asks permission again | `Approved, continue.` |
+
+Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
+
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and paste the output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+
+```text
+Don't change any code, just answer: was each of these handled, and where?
+1. Is it plain text or rich text, and what is the maximum length?
+2. Is it translatable, like the other product texts?
+3. Is it set on the product or on each variant?
+4. Where is the value shown to customers: only on the product page, or also in other places (cart, checkout, order emails)?
+5. Existing products: what value do they get, and is a data migration needed?
+6. Is it in CSV import/export, webhook payloads and API filters?
+7. Who can edit it, and who can read it?
+```
+
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost` again into Appendix A at the end of `report.md` (block `## T2`).
+
+**Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
+
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`:
+
+```text
+Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).
+Then write ~/saleor-benchmark/run-output/agent-report.md containing:
+- experiment info: task, method, runner, model, start/end time;
+- a list of the actions you actually performed during this task, for example: wrote code, reviewed the code, wrote tests, ran tests, ran tests multiple times, ran tests in a different order, cleaned up leftovers, updated documentation, started the application, checked the API, took a screenshot of the final result;
+- for each action, whether it was done (yes/no) and short evidence (command, file, or output).
+Do not make any further code changes.
+```
+
+**Step 10. Save everything** (terminal 2, before the next reset):
+
+```bash
+T1=2026-10-20T14:05            # ← your T1 from the report (time of the first "done")
+cp -R "$BENCH_DIR/run-output/." "$RUN/"
+python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" \
+  --t1 "$T1" --copy-to "$RUN" --out "$RUN/tokens.md"
+mkdir -p "$RUN/workspace-root"
+find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
+  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .specify | .aidlc | .github | .gitignore) ;;
+  *) cp -R "$f" "$RUN/workspace-root/" ;; esac
+done
+rmdir "$RUN/workspace-root" 2>/dev/null || true
+ls -la "$RUN"
+```
+
+The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/` if the method wrote files there. Fill the rest of the report (data block: times, `/cost` numbers, counts) and set `S-CC-02` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
+
+```bash
+python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
+```
+
+## 3. Run L-CC-02: large task: age-restricted products, Claude Code
+
+Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/claude-code/grill-with-docs/`. Two terminals, both **inside your rosetta checkout**: terminal 1 runs the agent, terminal 2 is for the other commands.
+
+**Step 1. Variables** (paste into both terminals):
+
+```bash
+export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
+export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/grill-with-docs"
+export CLAUDE_CONFIG_DIR="$ENV_DIR/claude" B="$SB/scripts/bench.sh"
+export RUN="$SB/runs/large-age-restriction/claude-code/grill-with-docs"   # this run's folder
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "!! cd into your rosetta checkout and paste this block again"
+```
+
+**Step 2. Reset and open the report** (terminal 2):
+
+```bash
+nvm use 24
+$B reset grill-v1 && $B start && sleep 60 && $B health      # all three OK
+rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-large.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
+sed -i '' -e 's|^run_id:.*|run_id: L-CC-02|' -e 's|^method:.*|method: grill-with-docs|' -e 's|^runner:.*|runner: claude-code|' \
+  -e 's|^model:.*|model: claude-sonnet-5-5|' -e 's|^start_tag:.*|start_tag: grill-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
+```
+
+**Step 3. Isolation check** (terminal 2):
+
+```bash
+{ claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" 2>/dev/null || echo "(no skills dir)"
+  for r in saleor saleor-dashboard react-storefront; do echo "$r: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ')"; git -C "$BENCH_DIR/$r" status --porcelain; done
+} 2>&1 | tee "$RUN/isolation.txt"
+```
+
+Expected: no plugins; skills `domain-modeling`, `grill-with-docs`, `grilling`; no MCP servers; `grill-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1.
+
+**Step 4. Start the agent** (terminal 1):
+
+```bash
+(
+find "$CLAUDE_CONFIG_DIR/projects" -maxdepth 1 -name '*saleor-benchmark*' -exec rm -rf {} + 2>/dev/null || true
+rm -rf "$BENCH_DIR/run-output"
+cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5
+)                                               # in a subshell: your terminal stays where it is
+```
+
+In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `grill-with-docs`. If not: `/exit`, reset, start again.
+
+**Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
+
+```text
+/grill-with-docs Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
+To make this work, the customer profile should have a birthday field.
+
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+```
+
+**Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
+
+| The agent | You reply |
+| --- | --- |
+| a round of questions | answers from the tables, by number; more rounds |
+| summary, waits for confirmation | `Approved, continue.` |
+| asks permission again | `Approved, continue.` |
+
+Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
+
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and paste the output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+
+```text
+Don't change any code, just answer: was each of these handled, and where?
+1. Existing customers with no birthday: what happens when they try to buy a restricted product?
+2. Existing products: are they restricted after the change?
+3. Is a data migration or backfill needed?
+4. A guest (not signed in): can they buy a restricted product?
+5. Are restricted products visible in lists, search, discounts and banners?
+6. Emails that recommend products: are restricted products excluded for customers who aren't eligible?
+7. Do the terms or the privacy policy need any change?
+8. Age boundary: a customer who turns the age today, which time zone, and someone born on 29 February?
+9. Who can see the birthday (APIs, webhooks, exports, staff roles), and are changes and staff reads logged?
+```
+
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost` again into Appendix A at the end of `report.md` (block `## T2`).
+
+**Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
+
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`:
+
+```text
+Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).
+Then write ~/saleor-benchmark/run-output/agent-report.md containing:
+- experiment info: task, method, runner, model, start/end time;
+- a list of the actions you actually performed during this task, for example: wrote code, reviewed the code, wrote tests, ran tests, ran tests multiple times, ran tests in a different order, cleaned up leftovers, updated documentation, started the application, checked the API, took a screenshot of the final result;
+- for each action, whether it was done (yes/no) and short evidence (command, file, or output).
+Do not make any further code changes.
+```
+
+**Step 10. Save everything** (terminal 2, before the next reset):
+
+```bash
+T1=2026-10-20T14:05            # ← your T1 from the report (time of the first "done")
+cp -R "$BENCH_DIR/run-output/." "$RUN/"
+python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" \
+  --t1 "$T1" --copy-to "$RUN" --out "$RUN/tokens.md"
+mkdir -p "$RUN/workspace-root"
+find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
+  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .specify | .aidlc | .github | .gitignore) ;;
+  *) cp -R "$f" "$RUN/workspace-root/" ;; esac
+done
+rmdir "$RUN/workspace-root" 2>/dev/null || true
+ls -la "$RUN"
+```
+
+The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/` if the method wrote files there. Fill the rest of the report (data block: times, `/cost` numbers, counts) and set `L-CC-02` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
+
+```bash
+python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
+```
+
+## 4. Setup for Copilot (once)
+
+> ⛔ **Not runnable yet:** Copilot runs need a Copilot seat with GPT-5.6 Terra; the current account has Copilot Free. These steps follow the method's docs and are **not verified**.
+
+**Install and use:** No Copilot install in its docs: after every reset copy the 3 skills into `.github/skills/` (`for s in engineering/grill-with-docs productivity/grilling engineering/domain-modeling; do cp -R "$HOME/saleor-benchmark/envs/grill-with-docs/src/skills/$s" "$HOME/saleor-benchmark/.github/skills/"; done`). Then the same commands as Claude Code.
+
+VS Code profile with only the two Copilot extensions:
+
+```bash
+code --profile bench-grill-with-docs --install-extension GitHub.copilot --install-extension GitHub.copilot-chat
+code --profile bench-grill-with-docs --list-extensions     # only these two
+```
+
+In that profile: Settings → permissions **Allow all** (`chat.permissions.default`), model picker **GPT-5.6 Terra** (not Auto), Copilot memory off. Tag:
+
+```bash
+for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" tag -f grill-v1 baseline-v1; done
+```
+
+## 5. Run S-CP-02: small task: product storage conditions, Copilot
+
+Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/grill-with-docs/`. Not verified (see part 4).
+
+1. Reset as in the Claude Code run, step 2 (with `$RUN` set to this folder), then the Copilot-specific step from part 4.
+2. Open the workspace: `code --profile bench-grill-with-docs "$HOME/saleor-benchmark"`, new chat, **Agent** mode, model GPT-5.6 Terra.
+3. Send the task (T0):
+
    ```text
-   /grill-with-docs <task prompt>
+   /grill-with-docs Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+   Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
+   
+   Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
    ```
-5. **Answer the interview.** The agent asks rounds of questions (`❓ Q1 … ➡️ recommended answer`).
-   - If a question matches a hidden question, give the answer from that task's table in BENCHMARKS.md, section 4, and mark it **asked**.
-   - Other questions: take the answer from the extra answers in BENCHMARKS.md, section 4. If it isn't there, decide as the product owner, answer, and add a row there right away. Don't answer "use your recommendation": recommendations differ between runs, so the answers would too.
-   - Write every question and answer in the protocol.
-6. **Go to implementation.** When the interview ends and the agent waits for your confirmation, send only **`Approved, continue.`**. Count it as a method step, not a follow-up. Send the same phrase if it stops again only to ask for permission to start.
-7. **Continue with BENCHMARKS.md, section 5, steps 5–11**: T1, hidden-question check, follow-ups, T2, post-implementation prompt, usage, protocol.
-8. **Save the token breakdown and session logs** (Claude Code runs). Before the next reset:
-   ```bash
-   python3 <rosetta-repo>/rosetta-benchmarks/saleor/scripts/session-usage.py \
-     "$GRILL/claude/projects/$(echo "$BENCH_DIR" | tr / -)" --t1 <T1> --copy-to <RUN_DIR> --out <RUN_DIR>/tokens.md
+
+4. At each stop reply exactly as in the Claude Code run of this task (part 2, step 6).
+5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 2, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
+6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).
+
+## 6. Run L-CP-02: large task: age-restricted products, Copilot
+
+Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/grill-with-docs/`. Not verified (see part 4).
+
+1. Reset as in the Claude Code run, step 2 (with `$RUN` set to this folder), then the Copilot-specific step from part 4.
+2. Open the workspace: `code --profile bench-grill-with-docs "$HOME/saleor-benchmark"`, new chat, **Agent** mode, model GPT-5.6 Terra.
+3. Send the task (T0):
+
+   ```text
+   /grill-with-docs Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+   Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
+   To make this work, the customer profile should have a birthday field.
+   
+   Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
    ```
-   Check its "Skills loaded" table: `grilling` and `domain-modeling` must be there. If one is missing, note it (see "What to watch for").
-9. **Save the workspace-root files before the next reset.** Grill writes `CONTEXT.md` and `docs/adr/` into the workspace root, which is not in any repo diff:
-   ```bash
-   mkdir -p <RUN_DIR>/workspace-root
-   cd "$BENCH_DIR" && cp -R CONTEXT.md CONTEXT-MAP.md docs <RUN_DIR>/workspace-root/ 2>/dev/null; ls <RUN_DIR>/workspace-root
-   ```
-   `<RUN_DIR>` is e.g. `rosetta-benchmarks/saleor/runs/small-storage-conditions/claude-code/grill-with-docs/`.
 
-## What to watch for
-
-- **Skills didn't load.** If the answer to `/grill-with-docs …` is not an interview at all, the method isn't active: reset and retry (not a scored failure).
-- **Skills loaded only partly.** This is a known problem of this skill. All questions come at once with no recommended answers, so `grilling` didn't load. Or there is a good interview but no `CONTEXT.md` appears, so `domain-modeling` didn't load. Don't fix it: it is the method's result. Write it in the protocol.
-- **Nothing in `CONTEXT.md` or `docs/adr/`** can also be normal: ADRs are written only for hard-to-reverse decisions.
-
-## Turning it off
-
-Nothing is installed globally. The method exists only in `$GRILL/claude` (used only when `CLAUDE_CONFIG_DIR` points to it), in the `bench-grill-with-docs` VS Code profile, and in the workspace root until the next `bench.sh reset`. Other methods use their own config dir and profile, so they never see these skills.
+4. At each stop reply exactly as in the Claude Code run of this task (part 3, step 6).
+5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 3, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
+6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).

@@ -13,31 +13,31 @@ Methods come from the presentation slide "Six approaches, one more if time allow
 | Superpowers | superpowers v6.4.2 | Copilot CLI | `S-CC-03` | `S-CP-03` | `L-CC-03` | `L-CP-03` |
 | Spec Kit | Spec Kit v1.0.13 + constitution per repo | Yes | `S-CC-04` | `S-CP-04` | `L-CC-04` | `L-CP-04` |
 | AWS AI-DLC | AI-DLC v2.10.0 | Via repository files | `S-CC-05` | `S-CP-05` | `L-CC-05` | `L-CP-05` |
-| Rosetta | plugin `rosetta` 3.1.13 only | Yes | `S-CC-06` | `S-CP-06` | `L-CC-06` | `L-CP-06` |
-| Rosetta Light | plugin `rosetta-light` 3.1.13 only | Yes | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
+| Rosetta | plugin `rosetta` 3.1.17 only | Yes | `S-CC-06` | `S-CP-06` | `L-CC-06` | `L-CP-06` |
+| Rosetta Light | plugin `rosetta-light` 3.1.17 only | Yes | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
 
 Run ID format: `<task>-<runner>-<method#>` — `S`/`L` = small/large task, `CC`/`CP` = Claude Code / Copilot. This ID is for operators only; the judge sees a separate random `run_id` (see `reports/mapping.csv`).
 
 ## All 28 runs
 
-Status values: `planned` · `running` · `done` · `not qualifying` (method can't run on that runner after 2 attempts) · `infra-fail` (rerun from a clean reset). A pilot run (setup test, not a result) goes into `<method>.pilot/` and doesn't change the status.
+Status values: `planned` · `running` · `done` · `not qualifying` (method can't run on that runner after 2 attempts) · `infra-fail` (rerun from a clean reset). One folder per run ID. A new run of the same ID replaces the folder: commit the old run first, then it stays in git history.
 
 | # | Run ID | Task | Runner | Model · effort | Method | Run folder | Status |
 | ---: | --- | --- | --- | --- | --- | --- | --- |
 | 1 | `S-CC-01` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Baseline | `runs/small-storage-conditions/claude-code/baseline/` | planned |
-| 2 | `S-CC-02` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Grill-with-docs | `runs/small-storage-conditions/claude-code/grill-with-docs/` | planned (pilot: `grill-with-docs.pilot/`) |
+| 2 | `S-CC-02` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Grill-with-docs | `runs/small-storage-conditions/claude-code/grill-with-docs/` | done (old setup, see report section 8) |
 | 3 | `S-CC-03` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Superpowers | `runs/small-storage-conditions/claude-code/superpowers/` | planned |
 | 4 | `S-CC-04` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Spec Kit | `runs/small-storage-conditions/claude-code/spec-kit/` | planned |
 | 5 | `S-CC-05` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | AWS AI-DLC | `runs/small-storage-conditions/claude-code/aws-ai-dlc/` | planned |
 | 6 | `S-CC-06` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta | `runs/small-storage-conditions/claude-code/rosetta/` | planned |
 | 7 | `S-CC-07` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Light | `runs/small-storage-conditions/claude-code/rosetta-light/` | planned |
-| 8 | `S-CP-01` | Small — product storage conditions | GitHub Copilot | GPT-6.1 Sol · medium | Baseline | `runs/small-storage-conditions/copilot/baseline/` | planned |
-| 9 | `S-CP-02` | Small — product storage conditions | GitHub Copilot | GPT-6.1 Sol · medium | Grill-with-docs | `runs/small-storage-conditions/copilot/grill-with-docs/` | planned ⚠ Copilot: manual port |
-| 10 | `S-CP-03` | Small — product storage conditions | GitHub Copilot | GPT-6.1 Sol · medium | Superpowers | `runs/small-storage-conditions/copilot/superpowers/` | planned ⚠ Copilot: runs in Copilot CLI |
-| 11 | `S-CP-04` | Small — product storage conditions | GitHub Copilot | GPT-6.1 Sol · medium | Spec Kit | `runs/small-storage-conditions/copilot/spec-kit/` | planned |
-| 12 | `S-CP-05` | Small — product storage conditions | GitHub Copilot | GPT-6.1 Sol · medium | AWS AI-DLC | `runs/small-storage-conditions/copilot/aws-ai-dlc/` | planned ⚠ Copilot: via repository files |
-| 13 | `S-CP-06` | Small — product storage conditions | GitHub Copilot | GPT-6.1 Sol · medium | Rosetta | `runs/small-storage-conditions/copilot/rosetta/` | planned |
-| 14 | `S-CP-07` | Small — product storage conditions | GitHub Copilot | GPT-6.1 Sol · medium | Rosetta Light | `runs/small-storage-conditions/copilot/rosetta-light/` | planned |
+| 8 | `S-CP-01` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Baseline | `runs/small-storage-conditions/copilot/baseline/` | planned |
+| 9 | `S-CP-02` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Grill-with-docs | `runs/small-storage-conditions/copilot/grill-with-docs/` | planned ⚠ Copilot: manual port |
+| 10 | `S-CP-03` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Superpowers | `runs/small-storage-conditions/copilot/superpowers/` | planned ⚠ Copilot: runs in Copilot CLI |
+| 11 | `S-CP-04` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Spec Kit | `runs/small-storage-conditions/copilot/spec-kit/` | planned |
+| 12 | `S-CP-05` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/small-storage-conditions/copilot/aws-ai-dlc/` | planned ⚠ Copilot: via repository files |
+| 13 | `S-CP-06` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta | `runs/small-storage-conditions/copilot/rosetta/` | planned |
+| 14 | `S-CP-07` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Light | `runs/small-storage-conditions/copilot/rosetta-light/` | planned |
 | 15 | `L-CC-01` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Baseline | `runs/large-age-restriction/claude-code/baseline/` | planned |
 | 16 | `L-CC-02` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Grill-with-docs | `runs/large-age-restriction/claude-code/grill-with-docs/` | planned |
 | 17 | `L-CC-03` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Superpowers | `runs/large-age-restriction/claude-code/superpowers/` | planned |
@@ -45,13 +45,13 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 19 | `L-CC-05` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | AWS AI-DLC | `runs/large-age-restriction/claude-code/aws-ai-dlc/` | planned |
 | 20 | `L-CC-06` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta | `runs/large-age-restriction/claude-code/rosetta/` | planned |
 | 21 | `L-CC-07` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Light | `runs/large-age-restriction/claude-code/rosetta-light/` | planned |
-| 22 | `L-CP-01` | Large — age-restricted products | GitHub Copilot | GPT-6.1 Sol · medium | Baseline | `runs/large-age-restriction/copilot/baseline/` | planned |
-| 23 | `L-CP-02` | Large — age-restricted products | GitHub Copilot | GPT-6.1 Sol · medium | Grill-with-docs | `runs/large-age-restriction/copilot/grill-with-docs/` | planned ⚠ Copilot: manual port |
-| 24 | `L-CP-03` | Large — age-restricted products | GitHub Copilot | GPT-6.1 Sol · medium | Superpowers | `runs/large-age-restriction/copilot/superpowers/` | planned ⚠ Copilot: runs in Copilot CLI |
-| 25 | `L-CP-04` | Large — age-restricted products | GitHub Copilot | GPT-6.1 Sol · medium | Spec Kit | `runs/large-age-restriction/copilot/spec-kit/` | planned |
-| 26 | `L-CP-05` | Large — age-restricted products | GitHub Copilot | GPT-6.1 Sol · medium | AWS AI-DLC | `runs/large-age-restriction/copilot/aws-ai-dlc/` | planned ⚠ Copilot: via repository files |
-| 27 | `L-CP-06` | Large — age-restricted products | GitHub Copilot | GPT-6.1 Sol · medium | Rosetta | `runs/large-age-restriction/copilot/rosetta/` | planned |
-| 28 | `L-CP-07` | Large — age-restricted products | GitHub Copilot | GPT-6.1 Sol · medium | Rosetta Light | `runs/large-age-restriction/copilot/rosetta-light/` | planned |
+| 22 | `L-CP-01` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Baseline | `runs/large-age-restriction/copilot/baseline/` | planned |
+| 23 | `L-CP-02` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Grill-with-docs | `runs/large-age-restriction/copilot/grill-with-docs/` | planned ⚠ Copilot: manual port |
+| 24 | `L-CP-03` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Superpowers | `runs/large-age-restriction/copilot/superpowers/` | planned ⚠ Copilot: runs in Copilot CLI |
+| 25 | `L-CP-04` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Spec Kit | `runs/large-age-restriction/copilot/spec-kit/` | planned |
+| 26 | `L-CP-05` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/large-age-restriction/copilot/aws-ai-dlc/` | planned ⚠ Copilot: via repository files |
+| 27 | `L-CP-06` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta | `runs/large-age-restriction/copilot/rosetta/` | planned |
+| 28 | `L-CP-07` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Light | `runs/large-age-restriction/copilot/rosetta-light/` | planned |
 
 ## Copilot setup per method
 

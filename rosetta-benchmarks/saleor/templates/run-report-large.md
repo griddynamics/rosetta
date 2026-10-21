@@ -3,20 +3,19 @@
 # Definitions, units and allowed values: templates/README.md. Leave a value empty if unknown; never guess.
 schema: saleor-bench-run/v1
 run_id:                    # L-CC-02, L-CP-06, … (EXPERIMENTS.md)
-repetition: 1              # 1, 2, 3 … for repeated runs of the same cell
 task: large-age-restriction
 method:                    # baseline | grill-with-docs | superpowers | spec-kit | aws-ai-dlc | rosetta | rosetta-light
 method_version:            # e.g. 3.1.13, v6.4.2, 447ca70
-flow:                      # workflow actually used, e.g. coding-flow, coding-light-flow, specify-plan-tasks-implement, none
-entry_command:             # exact text in front of the prompt, e.g. /grill-with-docs ; "none" for Baseline
+flow:                      # workflow actually used, e.g. coding-flow, coding-light-flow, specify-plan-tasks-implement, plan-mode (Baseline)
+entry_command:             # exact text in front of the prompt, e.g. /grill-with-docs ; "none (plan mode)" for Baseline ; "/superpowers:brainstorming" for Superpowers
 runner:                    # claude-code | copilot | copilot-cli
 runner_version:
 setup_mark:                # official | copilot-cli | manual-port
-model:                     # claude-sonnet-5-5 | gpt-6.1-sol
+model:                     # claude-sonnet-5-5 | gpt-5.6-terra
 effort: medium
 start_tag:                 # e.g. grill-v1
 operator:
-status:                    # done | not-qualifying | infra-fail | pilot
+status:                    # done | not-qualifying | infra-fail
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
 t0:
 t1:
@@ -69,7 +68,7 @@ judge_merge_ready:         # yes | no
 <!--
 HOW TO USE
 1. Copy to rosetta-benchmarks/saleor/runs/large-age-restriction/<runner>/<method>/report.md
-   (repetition 2+: folder <method>.r2/, <method>.r3/ …). Everything of the run goes into that folder.
+   Everything of the run goes into that folder. A new run of the same ID replaces it (commit the old one first).
 2. Fill the sections below DURING the run, top to bottom. Fill the data block at the top as numbers become known.
 3. Facts only: paste exact outputs; don't round or recompute. Rules: BENCHMARKS.md, section 5.
 -->
@@ -124,15 +123,7 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 
 Raw `/cost` output at T1 and T2: paste it into Appendix A at the end of this file.
 
-**Claude Code: token breakdown + raw session logs** (run before the next reset):
-
-```bash
-python3 rosetta-benchmarks/saleor/scripts/session-usage.py \
-  "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" --t1 <T1, e.g. 2026-10-20T14:05> \
-  --copy-to <RUN_DIR> --out <RUN_DIR>/tokens.md
-```
-
-It reads the session log Claude Code writes for every run and reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Use its "By model" table for the table above.
+**Claude Code: token breakdown + raw session logs:** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Use its "By model" table for the table above.
 
 
 ## 3. Hidden questions

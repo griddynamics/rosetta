@@ -1,6 +1,6 @@
 # Benchmark runs
 
-One folder per run: `<task>/<runner>/<method>/` (repetitions: `<method>.r2/`, `<method>.r3/` …; pilot runs: `<method>.pilot/`, never compared). Each folder holds:
+One folder per run: `<task>/<runner>/<method>/`. One folder per run ID. A new run of the same ID replaces the folder: commit the old run first, then it stays in git history. Each folder holds:
 
 | File | What |
 | --- | --- |
@@ -8,5 +8,9 @@ One folder per run: `<task>/<runner>/<method>/` (repetitions: `<method>.r2/`, `<
 | `agent-report.md` | The agent's own report (post-implementation prompt). |
 | `tokens.md` | Token breakdown (Claude Code runs), from `../scripts/session-usage.py`. |
 | `<repo>.diff` | The code the agent wrote, one file per changed repo. |
+| `isolation.txt` | Isolation-check output from before T0. |
+| `workspace-root/` | Files the method wrote in the workspace root (specs, plans, glossary), if any. |
 
 Raw session logs (`session/`) stay local and are git-ignored.
+
+Summary of all runs: `python3 saleor/scripts/collect-results.py` (see BENCHMARKS.md, section 6, "Final table").

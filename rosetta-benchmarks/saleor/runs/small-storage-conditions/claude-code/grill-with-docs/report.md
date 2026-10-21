@@ -16,7 +16,7 @@ model: claude-sonnet-5-5
 effort: medium
 start_tag: grill-v1
 operator: Oleksii Poletaiev
-status: pilot              # done | not-qualifying | infra-fail | pilot
+status: done               # done | not-qualifying | infra-fail
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
 t0: 2026-10-20T11:37
 t1: 2026-10-20T12:15
@@ -64,7 +64,7 @@ judge_side_by_side:        # /40
 judge_merge_ready:         # yes | no
 ---
 
-# Run report: S-CC-02 (pilot) · small task · grill-with-docs · claude-code
+# Run report: S-CC-02 · small task · grill-with-docs · claude-code
 
 <!--
 HOW TO USE
@@ -131,7 +131,7 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 29 | `<12:43` | note | `jest CreateModelTypeDialog` alone → 3 passed (73 ms): flaky timeout under load, not related to the change. Done when: 8/8. No follow-ups needed, so T2 = T1 | | |
 | 30 | `12:15` | T2 | No follow-ups: T2 = T1 (the operator's own checks are not part of the run time) | | |
 | 31 | `<12:43` | note | `/cost` at the end of the run (before the post-implementation prompt): $4.89; sonnet-5-5 1.1k in / 102.2k out / 31.7m cache read / 281.6k cache write; haiku-5-5 unchanged. The hidden-question check cost ~$0.07 (1 request) | | |
-| 32 | `12:43` | post-prompt | Post-implementation prompt sent (diffs + report into RUN_DIR; saved as `agent-report.md`) | exact text from BENCHMARKS.md §5, RUN_DIR = `rosetta-benchmarks/saleor/diffs/small-storage-conditions/claude-code/grill-with-docs/` (later moved to `runs/.../grill-with-docs.pilot/`) | |
+| 32 | `12:43` | post-prompt | Post-implementation prompt sent (diffs + report into RUN_DIR; saved as `agent-report.md`) | exact text from BENCHMARKS.md §5, RUN_DIR = `rosetta-benchmarks/saleor/diffs/small-storage-conditions/claude-code/grill-with-docs/` (later moved to `runs/.../grill-with-docs/`) | |
 | 33 | `12:44` | note | Agent wrote `saleor.diff` (24 files), `saleor-dashboard.diff` (33), `react-storefront.diff` (15), `agent-report.md` (23 actions; "partly": random-order test run, code review). Agent's report gives start "about 11:35, estimate" (operator T0 = 11:37). Workspace root: nothing written (glossary went to `saleor-dashboard/CONTEXT.md`) | | |
 | 34 | `~12:50` | note | Agent session closed. `session-usage.py` → `tokens.md`; raw logs kept locally in `session/` (git-ignored) (main log only, no subagents). Log: first call 11:36:55, last 12:44:11, 178 model calls | | |
 
@@ -245,7 +245,7 @@ Evidence: none ticked. Checked: no debug prints, TODOs, `skip`/`xfail` in the 3 
 ## 8. Notes
 
 - Deviations from the protocol, and why:
-  1. **Upstream AI files present.** The baseline removed only root-level AI files. Nested `AGENTS.md` / `CLAUDE.md` stayed in all 3 repos (saleor: `saleor/graphql/{AGENTS,CLAUDE}.md`; dashboard: `src/components/ConditionalFilter/{AGENTS,CLAUDE}.md`, `src/components/ResponsiveTable/AGENTS.md`; storefront: 4 × `AGENTS.md` under `src/`). The agent loaded `saleor/graphql/CLAUDE.md`. `bench.sh setup` is fixed for future runs. **This run counts as a pilot; S-CC-02 is re-run on the fixed baseline.**
+  1. **Upstream AI files present.** The baseline removed only root-level AI files. Nested `AGENTS.md` / `CLAUDE.md` stayed in all 3 repos (saleor: `saleor/graphql/{AGENTS,CLAUDE}.md`; dashboard: `src/components/ConditionalFilter/{AGENTS,CLAUDE}.md`, `src/components/ResponsiveTable/AGENTS.md`; storefront: 4 × `AGENTS.md` under `src/`). The agent loaded `saleor/graphql/CLAUDE.md`. `bench.sh setup` is fixed for future runs. **Counted as the S-CC-02 result**, with this deviation noted: it ran before the fix.
   2. **Node 20 in the agent's shell** (operator terminal default), not Node 24 as required. pnpm failed; the agent worked around it. Future runs: `nvm use 24` (or `nvm alias default 24`) before starting `claude`.
   3. **Pre-flight not recorded.** The `reset` → `start` → `health` result and the isolation-check output (`/skills`, `/plugin`, `/mcp`) were not saved, and the RUN_DIR was still `saleor/diffs/...` (old layout). Future runs: paste them in section 1 before T0.
   4. Home-directory paths in pasted outputs (here and in `agent-report.md`) are shortened to `~`.

@@ -5,9 +5,7 @@
 | [run-report-small.md](./run-report-small.md) | Small: product storage conditions | `saleor/runs/small-storage-conditions/<runner>/<method>/report.md` |
 | [run-report-large.md](./run-report-large.md) | Large: age-restricted products | `saleor/runs/large-age-restriction/<runner>/<method>/report.md` |
 
-Repetitions of the same cell: folders `<method>.r2/`, `<method>.r3/`, and `repetition: 2`, `3` in the data block.
-
-Pilot runs (a trial run to test the setup, not a result): folder `<method>.pilot/` and `status: pilot`. Pilots are kept for reference and never enter the comparison; the real run of the cell goes into `<method>/`.
+One folder per run ID. A new run of the same ID replaces the folder: commit the old run first, then it stays in git history.
 
 Each report has two parts:
 
@@ -57,11 +55,11 @@ The same rules for every operator, so results are comparable.
 | `judge_absolute`, `judge_side_by_side` | /40 | Judge scores (BENCHMARKS.md, section 6). |
 | `judge_merge_ready` | yes / no | Judge's merge-ready verdict. |
 
-Allowed values: `method` is one of `baseline`, `grill-with-docs`, `superpowers`, `spec-kit`, `aws-ai-dlc`, `rosetta`, `rosetta-light`. `runner` is one of `claude-code`, `copilot`, `copilot-cli`. `status` is one of `done`, `not-qualifying`, `infra-fail`, `pilot`. `setup_mark` is one of `official`, `copilot-cli`, `manual-port`.
+Allowed values: `method` is one of `baseline`, `grill-with-docs`, `superpowers`, `spec-kit`, `aws-ai-dlc`, `rosetta`, `rosetta-light`. `runner` is one of `claude-code`, `copilot`, `copilot-cli`. `status` is one of `done`, `not-qualifying`, `infra-fail`. `setup_mark` is one of `official`, `copilot-cli`, `manual-port`.
 
 ## How runs are compared
 
 - **Within one runner only.** The two runners use different models, so Claude Code vs Copilot is a product + model difference, not a method difference.
 - **Like with like.** Light methods (Grill-with-docs, Rosetta Light, Baseline) and full-process methods (Rosetta, Spec Kit, AI-DLC, Superpowers) are also shown as separate groups, because they do different amounts of work.
-- **Repetitions.** With several repetitions per cell, the comparison shows the **median** and the range (min–max) of each metric, and `n`. One run is not a result; three is the minimum for a conclusion.
+- **One run per cell for now.** A re-run replaces the earlier one (it stays in git history); no medians yet.
 - **Quality first, then cost.** A method is compared on cost only among runs that pass (`done_checks_passed` = total, `tests_pass` = yes). A cheap run that doesn't work is not "cheaper".

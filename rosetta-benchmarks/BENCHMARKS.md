@@ -8,15 +8,15 @@ A run counts only if the result is merge-ready, not a draft that needs cleanup.
 
 | # | Method | What is installed for the run |
 | ---: | --- | --- |
-| 1 | Baseline | Only the shared team rules file (see 3.3). No method, no plugins |
+| 1 | Baseline | Only the shared team rules file (see 3.3). No method, no plugins. Runs in the runner's built-in **plan mode** (plan → questions → approve → implement): [saleor/methods/baseline.md](./saleor/methods/baseline.md) |
 | 2 | Grill-with-docs | [mattpocock/skills `grill-with-docs`](https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs) ([docs](https://github.com/mattpocock/skills/blob/main/docs/engineering/grill-with-docs.md)) at commit `447ca70872026d5b79d6073a546dac082117fed7` (2026-08-15) |
 | 3 | Superpowers | [obra/superpowers](https://github.com/obra/superpowers) **v6.4.2** (2026-09-25) |
 | 4 | Spec Kit | [github/spec-kit](https://github.com/github/spec-kit) **v1.0.13** (2026-09-29) + one constitution per repo |
 | 5 | AWS AI-DLC | [awslabs/aidlc-workflows](https://github.com/awslabs/aidlc-workflows) **v2.10.0** (2026-09-24) |
-| 6 | Rosetta | Plugin `rosetta` **3.1.13** only |
-| 7 | Rosetta Light | Plugin `rosetta-light` **3.1.13** only |
+| 6 | Rosetta | Plugin `rosetta` **3.1.17** (2026-10-19) only |
+| 7 | Rosetta Light | Plugin `rosetta-light` **3.1.17** (2026-10-19) only |
 
-Versions were chosen on 2026-10-15 as the newest stable release at least two weeks old. Newer releases (Superpowers v7.0.0, Spec Kit v1.1.x–v1.2.0, AI-DLC v2.11.x) are too fresh, and the AI-DLC v2.11.1 builds are previews. Do not update any method during the study.
+Versions were chosen on 2026-10-15 as the newest stable release at least two weeks old. Newer releases (Superpowers v7.0.0, Spec Kit v1.1.x–v1.2.0, AI-DLC v2.11.x) are too fresh, and the AI-DLC v2.11.1 builds are previews. **Exception: Rosetta and Rosetta Light use 3.1.17**, the current release (2026-10-19), although it is newer than the two-week rule allows (3.1.13 would qualify). The study measures the current Rosetta; the exception is stated here so the results can be read with it in mind. Compared with 3.1.13, the gates and phases are the same; the subagent models changed (full: architect `claude-opus-5-5`, reviewers `claude-sonnet-5-5`; light: implementation and reviews on `claude-haiku-5-5`). Do not update any method during the study.
 
 Methods 1–6 come from the presentation slide "Six approaches, one more if time allows". BMAD-METHOD is optional (one task, if time allows) and not part of the 28. GSD is not run (archived upstream in May 2026).
 
@@ -27,12 +27,12 @@ Methods 1–6 come from the presentation slide "Six approaches, one more if time
 | Runner | Model | Effort |
 | --- | --- | --- |
 | Claude Code | Sonnet 5.5 (`claude-sonnet-5-5`) | medium |
-| GitHub Copilot (VS Code) | GPT-6.1 Sol | medium |
+| GitHub Copilot (VS Code) | GPT-5.6 Terra | medium |
 
 - No other agent products (Codex, Cursor, API scripts, …).
 - Automatic model switching / Auto model selection is OFF.
 - The two runners use different models, so a Claude Code vs Copilot difference is a product + model difference. Methods are compared **within** one runner.
-- **Full-access (YOLO) mode, sandbox disabled**, so permission prompts don't affect the test: Claude Code `claude --dangerously-skip-permissions`; Copilot `chat.tools.autoApprove: true` with terminal confirmations off. **This is not normal usage. Use it only for this test**, only in disposable benchmark clones with synthetic data, and revert it after the study.
+- **Full-access (YOLO) mode, sandbox disabled**, so permission prompts don't affect the test: Claude Code `claude --dangerously-skip-permissions` (Baseline: `--permission-mode plan --allow-dangerously-skip-permissions`, full access is switched on when the plan is approved); Copilot `chat.tools.autoApprove: true` with terminal confirmations off. **This is not normal usage. Use it only for this test**, only in disposable benchmark clones with synthetic data, and revert it after the study.
 
 ## 3. Environment setup (once)
 
@@ -90,7 +90,7 @@ The script does this; this section explains what and why. So that no method gets
 
 Then it adds **one simple team rules file** to every repo, as on the presentation slide ("one instruction file per repository"): [saleor/baseline-instructions.md](./saleor/baseline-instructions.md), general team rules only, no hints about the tasks. It is copied as `CLAUDE.md` and `.github/copilot-instructions.md`, so each runner reads it.
 
-The tag `baseline-v1` is the starting point for **every** method, so all 7 methods get the same rules file. Baseline = runner + model + this file; every other method = the same + its own tool. Never change this file during the study. If a method's init step wants to change `CLAUDE.md` or `copilot-instructions.md`, let it, and record that in its protocol.
+The tag `baseline-v1` is the starting point for **every** method, so all 7 methods get the same rules file. Baseline = runner + model + this file, in the runner's built-in plan mode; every other method = the same + its own tool. Never change this file during the study. If a method's init step wants to change `CLAUDE.md` or `copilot-instructions.md`, let it, and record that in its protocol.
 
 ### 3.5 Set up each method (once)
 
@@ -102,7 +102,7 @@ Every method runs with no help from any other AI: no other method, no other plug
   - Claude Code config dir: `export CLAUDE_CONFIG_DIR="$HOME/saleor-benchmark/envs/<method>/claude"` before starting `claude`. Install the method's plugin/skills there. Baseline gets only the settings below.
   - VS Code profile: `code --profile bench-<method>`, with only the GitHub Copilot extensions in it, plus that method's plugin.
   - Copilot CLI (Superpowers only): back up and empty `~/.copilot` before installing; restore it after the Superpowers runs.
-- **Common Claude Code settings.** Every method's config dir starts with this `$CLAUDE_CONFIG_DIR/settings.json` (Baseline: nothing else). A work login is a claude.ai org account: without these settings it syncs the org's plugins, skills and connectors into every config dir, and the isolation check fails. Turning skills off in `/skills` does not persist across restarts; these settings do. If the dir was already used with sync on, delete `$CLAUDE_CONFIG_DIR/plugins/synced/`, start `claude` again and re-check.
+- **Common Claude Code settings.** Every method's config dir starts with this `$CLAUDE_CONFIG_DIR/settings.json` (Baseline: nothing else). A work login is a claude.ai org account: without these settings it syncs the org's plugins, skills and connectors into every config dir, and the isolation check fails. Turning skills off in `/skills` does not persist across restarts; these settings do. Hooks stay on: Superpowers, Rosetta and AI-DLC start through their own hooks. The config dir has no hooks of its own, so `/hooks` must show only the method's hooks (none for Baseline and Grill). If the dir was already used with sync on, delete `$CLAUDE_CONFIG_DIR/plugins/synced/`, start `claude` again and re-check.
 
 ```json
 {
@@ -112,7 +112,6 @@ Every method runs with no help from any other AI: no other method, no other plug
   "syncClaudeAiSkills": false,
   "syncClaudeAiPlugins": false,
   "autoMemoryEnabled": false,
-  "disableAllHooks": true,
   "enabledPlugins": {
     "cc-plugin-plugin-authoring@builtin": false,
     "cc-plugin-sec-default@builtin": false,
@@ -139,13 +138,9 @@ Expected: only the method's plugins (none for Baseline), no MCP servers, the met
 
 Install at the pinned version only. Disable auto-update. Run the method's per-repo init step (if any) once on top of `baseline-v1`, commit, and tag it with the same tag name in all three repos (`grill-v1`, `superpowers-v1`, `speckit-v1`, `aidlc-v1`, `rosetta-v1`, `rosetta-light-v1`). Every run of that method starts from that tag. Note the one-time setup time in the method's protocol; it is reported separately and not added to any run.
 
-| Method | Claude Code | Copilot |
-| --- | --- | --- |
-| Grill-with-docs | Copy 3 skills from the pinned commit into `$CLAUDE_CONFIG_DIR/skills/`: `grill-with-docs` + the two it calls, `grilling` and `domain-modeling`. Step by step: [saleor/methods/grill-with-docs.md](./saleor/methods/grill-with-docs.md) | No official support. **Manual port:** copy the same 3 skills into the workspace root `.github/skills/` after every reset (same guide) |
-| Superpowers | `git clone --branch v6.4.2 https://github.com/obra/superpowers` → `claude plugin marketplace add ./superpowers` → install `superpowers` from it | Official support is **Copilot CLI only**: install the same pinned checkout with `copilot plugin marketplace add ./superpowers` + `copilot plugin install superpowers@…`; run in Copilot CLI with full access and model GPT-6.1 Sol, medium (check the exact flags with `copilot --help` after installing) |
-| Spec Kit | `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@v1.0.13`, then in each repo `specify init --here --integration claude` and write the constitution | Same CLI; `specify init --here --integration copilot` |
-| AWS AI-DLC | `curl -fsSL https://github.com/awslabs/aidlc-workflows/releases/download/v2.10.0/install.sh \| sh`, then in each repo `aidlc config --harness claude` | Same installer; in each repo `aidlc config --harness copilot` (writes the Copilot files into the repo) |
-| Rosetta / Rosetta Light | `claude plugin marketplace add griddynamics/rosetta` → `claude plugin install rosetta@rosetta` or `rosetta-light@rosetta` | Add `https://github.com/griddynamics/rosetta` to `chat.plugins.marketplaces` → install `rosetta` or `rosetta-light` |
+The exact install commands per method (checked at the pinned versions) are in that method's file in [saleor/methods/](./saleor/methods/), part 1 (Claude Code) and part 4 (Copilot). Spec Kit and AI-DLC are set up once in `envs/<method>/root-<runner>/` and copied into the workspace root after every reset, because the agent runs in `$BENCH_DIR` (not a repo) and Claude Code loads project skills and hooks only from its working directory.
+
+**Project preparation: none, for every method.** No method gets a project-context step before its runs (Rosetta's docs recommend `init-workspace-flow` once per repo and `requirements-authoring-flow` for non-trivial work; Spec Kit only gets its constitution, which is part of its core flow). ⚠ Open decision for the team: whether each method should get its own documented one-time preparation instead.
 
 Install everything inside that method's own environment (see above). Plugins only for Rosetta: no MCP, nothing else.
 
@@ -258,12 +253,21 @@ Rosetta and Rosetta Light runs only: if something is wrong with the implementati
 
 ### Method steps: equal chances for multi-step methods
 
-Some methods need more than one command by design (Spec Kit: specify → plan → tasks → implement; AI-DLC approval gates; Grill-with-docs interview → next stage).
+Some methods need more than one command by design (Spec Kit: specify → plan → tasks → implement; AI-DLC approval gates; Grill-with-docs interview → next stage; Baseline plan mode → plan approval).
 
-- The task prompt text is identical for all methods. If the method has an entry command, put it in front of the prompt (for example `/speckit-specify <prompt>`; Spec Kit v1.0.13 flow: `/speckit-constitution` once, then `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`). Record the command in the protocol.
+- The task prompt text is identical for all methods. Each method is started with **its own slash command** in front of the prompt, exactly as in "Commands per method" below. Record the command in the run report (`entry_command`).
 - When the method stops and waits for its own next step or approval, the programmer sends only that command or the fixed phrase **"Approved, continue."**, with no hints. These are counted as `method_steps`, **not** follow-ups.
 - Questions the method asks (including the grill interview) are answered like any other question (step 5).
 - Method steps still count in time and usage. So a method with more ceremony pays for it in time and tokens, but not in the follow-up count.
+
+### Commands per method
+
+Each method is started with the slash command its own docs give for "build a feature", and at every stop the operator sends a fixed reply. Both are written out per task and per runner in that method's file in [saleor/methods/](./saleor/methods/) (one file per method: setup, then each run step by step). Rules:
+
+- Send only the reply listed there, word for word. Questions are answered from section 4 (hidden questions, then extra answers), never "use your recommendation".
+- Every listed reply is a **method step**, not a follow-up.
+- If a method asks something not listed (another choice or menu), pick its default or recommended option, write the question and the choice in the run report, and add it to the method's file in saleor/methods/ so the next runs reply the same.
+- Methods that may commit (Superpowers, Spec Kit, AI-DLC): committing is not a red flag for them; the post-implementation prompt diffs against the start tag.
 
 ### Reset before every run
 
@@ -294,15 +298,15 @@ Then start a **new** agent session: Claude Code with no earlier session or memor
 ### Post-implementation prompt
 
 ```text
-Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to <RUN_DIR>/<repo>.diff.
-Then write <RUN_DIR>/agent-report.md containing:
+Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).
+Then write ~/saleor-benchmark/run-output/agent-report.md containing:
 - experiment info: task, method, runner, model, start/end time;
 - a list of the actions you actually performed during this task, for example: wrote code, reviewed the code, wrote tests, ran tests, ran tests multiple times, ran tests in a different order, cleaned up leftovers, updated documentation, started the application, checked the API, took a screenshot of the final result;
 - for each action, whether it was done (yes/no) and short evidence (command, file, or output).
 Do not make any further code changes.
 ```
 
-`<RUN_DIR>` = absolute path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/<method>/`, e.g. `runs/large-age-restriction/claude-code/rosetta/`. The programmer creates this folder before sending the prompt. One folder per run holds everything: `report.md` (operator), `agent-report.md`, `tokens.md`, and `<repo>.diff` for each repo that changed.
+The agent writes into `~/saleor-benchmark/run-output/` (the same text for every run, so it is copied as is); the programmer then copies that folder into the run folder `rosetta-benchmarks/saleor/runs/<task>/<runner>/<method>/` (`<RUN_DIR>` below) before the next reset. For methods that may commit (Superpowers, Spec Kit, AI-DLC) the method's file uses `git diff <start tag>` instead of `git diff`. One folder per run holds everything: `report.md` (operator), `agent-report.md`, `tokens.md`, and `<repo>.diff` for each repo that changed.
 
 ## 6. How we compare
 
@@ -368,6 +372,12 @@ Do not modify any files except the output: <REPORTS_DIR>/<task>/<runner>.side-by
 
 ### Final table
 
+Built by one command from the data blocks of all run reports:
+
+```bash
+python3 rosetta-benchmarks/saleor/scripts/collect-results.py --out rosetta-benchmarks/saleor/reports/summary.md --csv rosetta-benchmarks/saleor/reports/runs.csv
+```
+
 One per task, built from the data blocks of the run reports after de-blinding with `mapping.csv` (judge scores go into each report's data block: `verified_in_code`, `judge_absolute`, `judge_side_by_side`, `judge_merge_ready`):
 
 | Method | Runner | Time first pass | Time total | Usage first pass | Usage total | Hidden questions: asked / covered / missed | Follow-ups | Method steps | Verified in code | Absolute (/40) | Side-by-side (/40) | Merge-ready |
@@ -389,9 +399,8 @@ rosetta-benchmarks/
     ├── EXPERIMENTS.md                          # the 28 runs + status
     ├── scripts/bench.sh                        # setup, reset, start, stop, health
     ├── scripts/session-usage.py                # token breakdown of one Claude Code session
-    ├── methods/<method>.md                     # quick install + run guide per method
+    ├── methods/<method>.md                     # one file per method: setup + each run (small/large × Claude Code/Copilot)
     ├── templates/                              # run report templates + metric definitions (README.md)
-    ├── prompts/                                # frozen copies of the prompts
     ├── runs/<task>/<runner>/<method>/          # one folder per run: report.md, agent-report.md, tokens.md, <repo>.diff
     └── reports/                                # judge outputs, mapping.csv, summary tables
 ```
