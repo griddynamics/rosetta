@@ -1,0 +1,22 @@
+# isolation check 2026-10-19 14:00:14
+CLAUDE_CONFIG_DIR=/Users/agavrilita/saleor-benchmark/envs/superpowers/claude (settings env ENABLE_CLAUDEAI_MCP_SERVERS=false; needed because claude.ai login attaches account connectors)
+Installed plugins:
+
+  ❯ superpowers@superpowers-dev
+    Version: 6.4.2
+    Read from: /Users/agavrilita/saleor-benchmark/envs/superpowers/superpowers-src
+    Scope: user
+    Status: ✔ enabled
+
+No MCP servers configured. Use `claude mcp add` to add a server.
+ls: agents: No such file or directory
+ls: commands: No such file or directory
+ls: skills: No such file or directory
+saleor: tags=baseline-v1 superpowers-v1 
+saleor-dashboard: tags=baseline-v1 superpowers-v1 
+react-storefront: tags=baseline-v1 superpowers-v1 
+
+# In-session check (operator paste, after switching to CLAUDE_CODE_OAUTH_TOKEN login), 2026-10-19
+/skills: 15 x superpowers:* (brainstorming, diagnosing-superpowers, dispatching-parallel-agents, executing-plans, finishing-a-development-branch, receiving-code-review, requesting-code-review, subagent-driven-development, systematic-debugging, test-driven-development, using-git-worktrees, using-superpowers, verification-before-completion, writing-plans, writing-skills); nothing else.
+/plugin: superpowers (superpowers-dev, 15 skills) + built-in cc-plugin-agents-md, cc-plugin-diff, cc-plugin-plugin-authoring, cc-plugin-sec-default, cc-plugin-telemetry.
+# Earlier attempt with claude.ai account login was contaminated by 15 synced gd-* plugins + 9 "claude.ai sync" skills; discarded, session deleted.
