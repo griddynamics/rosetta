@@ -50,7 +50,7 @@ export BENCH_DIR="$HOME/saleor-benchmark"
 export ENV_DIR="$BENCH_DIR/envs/rosetta-light"
 export CLAUDE_CONFIG_DIR="$ENV_DIR/claude"
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor/scripts/bench.sh"   # inside your rosetta checkout
-[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "!! cd into your rosetta checkout and paste this block again"
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 
 **1.3 Own config dir with the common settings** (claude.ai sync off, hooks on; BENCHMARKS.md, section 3.5):
@@ -111,7 +111,7 @@ export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # insid
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/rosetta-light"
 export CLAUDE_CONFIG_DIR="$ENV_DIR/claude" B="$SB/scripts/bench.sh"
 export RUN="$SB/runs/small-storage-conditions/claude-code/rosetta-light"   # this run's folder
-[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "!! cd into your rosetta checkout and paste this block again"
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 
 **Step 2. Reset and open the report** (terminal 2):
@@ -227,7 +227,7 @@ export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # insid
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/rosetta-light"
 export CLAUDE_CONFIG_DIR="$ENV_DIR/claude" B="$SB/scripts/bench.sh"
 export RUN="$SB/runs/large-age-restriction/claude-code/rosetta-light"   # this run's folder
-[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "!! cd into your rosetta checkout and paste this block again"
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 
 **Step 2. Reset and open the report** (terminal 2):

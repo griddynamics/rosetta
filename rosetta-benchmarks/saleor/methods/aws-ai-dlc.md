@@ -51,7 +51,7 @@ export ENV_DIR="$BENCH_DIR/envs/aws-ai-dlc"
 export CLAUDE_CONFIG_DIR="$ENV_DIR/claude"
 export ROOT_DIR="$ENV_DIR/root-claude-code"
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor/scripts/bench.sh"   # inside your rosetta checkout
-[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "!! cd into your rosetta checkout and paste this block again"
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 
 **1.3 Own config dir with the common settings** (claude.ai sync off, hooks on; BENCHMARKS.md, section 3.5):
@@ -129,7 +129,7 @@ export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # insid
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/aws-ai-dlc"
 export CLAUDE_CONFIG_DIR="$ENV_DIR/claude" B="$SB/scripts/bench.sh"
 export RUN="$SB/runs/small-storage-conditions/claude-code/aws-ai-dlc"   # this run's folder
-[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "!! cd into your rosetta checkout and paste this block again"
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 
 **Step 2. Reset and open the report** (terminal 2):
@@ -181,9 +181,11 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | --- | --- |
 | "Approve scope? [Yes / …]" | `Yes` |
 | "Choose interaction mode" | `1` (Guide Me) |
+| "Plan size … about 30 approval stops … slim the plan down, or run all of it?" (1 Slim it down / 2 Run everything) | `2` (Run everything: the Feature profile is fixed) |
 | questions in a stage | answers from the tables; no answer there (market, team, mockups…): `No preference, use the existing Saleor setup.` |
 | gate "(1) Approve — Continue to … (2) Request Changes" (also with "Add Market Research") | `1` (~30 times) |
 | phase boundary: proceed or go back? | `proceed` |
+| "Learnings: Anything to add before the approval step?" (1 Nothing to add / 2 Add a note) | `1` (Nothing to add: a note would be a hint) |
 | "Use this command to verify each completed Unit?" | `Approve` |
 | "How should I continue building the remaining work?" | `Continue automatically` |
 | approve the skeleton / a Unit checkpoint | `Approve` |
@@ -255,7 +257,7 @@ export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # insid
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/aws-ai-dlc"
 export CLAUDE_CONFIG_DIR="$ENV_DIR/claude" B="$SB/scripts/bench.sh"
 export RUN="$SB/runs/large-age-restriction/claude-code/aws-ai-dlc"   # this run's folder
-[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "!! cd into your rosetta checkout and paste this block again"
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 
 **Step 2. Reset and open the report** (terminal 2):
@@ -308,9 +310,11 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | --- | --- |
 | "Approve scope? [Yes / …]" | `Yes` |
 | "Choose interaction mode" | `1` |
+| "Plan size … about 30 approval stops … slim the plan down, or run all of it?" (1 Slim it down / 2 Run everything) | `2` |
 | questions in a stage | answers from the tables; no answer there (market, team, mockups…): `No preference, use the existing Saleor setup.` |
 | gate "(1) Approve — Continue to … (2) Request Changes" (also with "Add Market Research") | `1` (~30 times + Unit plans) |
 | phase boundary: proceed or go back? | `proceed` |
+| "Learnings: Anything to add before the approval step?" (1 Nothing to add / 2 Add a note) | `1` |
 | "Use this command to verify each completed Unit?" | `Approve` |
 | "How should I continue building the remaining work?" | `Continue automatically` |
 | approve the skeleton / a Unit checkpoint | `Approve` (several Units) |
