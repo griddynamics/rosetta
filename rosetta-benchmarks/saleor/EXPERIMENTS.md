@@ -14,7 +14,7 @@ Methods come from the presentation slide "Six approaches, one more if time allow
 | Spec Kit | Spec Kit v1.0.13 + constitution per repo | Yes | `S-CC-04` | `S-CP-04` | `L-CC-04` | `L-CP-04` |
 | AWS AI-DLC | AI-DLC v2.10.0 | Via repository files | `S-CC-05` | `S-CP-05` | `L-CC-05` | `L-CP-05` |
 | Rosetta | plugin `rosetta` 3.1.17 only | Yes | `S-CC-06` | `S-CP-06` | `L-CC-06` | `L-CP-06` |
-| Rosetta Light | plugin `rosetta-light` 3.1.17 only | Yes | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
+| Rosetta Light | plugin `rosetta-light` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` and `USE ROSETTA SUBAGENTS.` | Yes | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
 | Rosetta Skills | plugin `rosetta` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` | Yes | `S-CC-08` | `S-CP-08` | `L-CC-08` | `L-CP-08` |
 
 Run ID format: `<task>-<runner>-<method#>` — `S`/`L` = small/large task, `CC`/`CP` = Claude Code / Copilot. This ID is for operators only; the judge sees a separate random `run_id` (see `reports/mapping.csv`).

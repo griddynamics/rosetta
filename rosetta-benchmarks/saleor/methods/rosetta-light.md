@@ -7,26 +7,34 @@ Runs: `S-CC-07` (small, Claude Code) · `L-CC-07` (large, Claude Code) · `S-CP-
 | Command / skill | When | Official doc |
 | --- | --- | --- |
 | `/init-workspace-flow` | **once**, before the first run (part 1.7); its cost is reported separately and never added to a run | docs/web/user-guide/scenarios/ (init workspace); plugins/core-claude*/workflows/init-workspace-flow.md |
-| `/coding-flow <task>` | T0 | plugins/core-claude-light/.claude-plugin/plugin.json ("commands": "./workflows/") |
-| `Yes, I reviewed the design` | its only gate before coding | plugins/core-claude-light/workflows/coding-flow.md:69 |
+| `<task>` + `MUST USE SKILLS hitl, tech-specs.` + `USE ROSETTA SUBAGENTS.` | T0 (no `/coding-flow`: the method is the two skills and the subagents) | plugins/core-claude-light/skills/tech-specs/SKILL.md (description), plugins/core-claude-light/skills/hitl/SKILL.md:35,41; plugins/core-claude-light/agents/ |
+| `Yes, I approve` | each approval stop: only this exact sentence counts | skills/hitl/SKILL.md:35 |
 
 **T0 message, small task** (copy as is):
 
 ```text
-/coding-flow Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
 Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+
+MUST USE SKILLS hitl, tech-specs.
+
+USE ROSETTA SUBAGENTS.
 ```
 
 **T0 message, large task** (copy as is):
 
 ```text
-/coding-flow Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
 Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
 To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+
+MUST USE SKILLS hitl, tech-specs.
+
+USE ROSETTA SUBAGENTS.
 ```
 
 Every other reply is written out in each run below (parts 2, 3, 5, 6).
@@ -193,15 +201,19 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `coding-flow`; `/plugin` shows `rosetta-light`. If not: `/exit`, repeat step 2, start again.
+In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu lists the `hitl` and `tech-specs` skills; `/plugin` shows `rosetta-light`. If not: `/exit`, repeat step 2, start again.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
 ```text
-/coding-flow Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
 Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+
+MUST USE SKILLS hitl, tech-specs.
+
+USE ROSETTA SUBAGENTS.
 ```
 
 **Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
@@ -209,7 +221,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | The agent | You reply |
 | --- | --- |
 | questions | answers from the tables |
-| design gate | `Yes, I reviewed the design` |
+| asks for approval (specs, design, implementation) | `Yes, I approve` |
 | any other "shall I continue?" | `Approved, continue.` |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
@@ -308,24 +320,28 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `coding-flow`; `/plugin` shows `rosetta-light`. If not: `/exit`, repeat step 2, start again.
+In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu lists the `hitl` and `tech-specs` skills; `/plugin` shows `rosetta-light`. If not: `/exit`, repeat step 2, start again.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
 ```text
-/coding-flow Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
 Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
 To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+
+MUST USE SKILLS hitl, tech-specs.
+
+USE ROSETTA SUBAGENTS.
 ```
 
 **Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
 
 | The agent | You reply |
 | --- | --- |
-| questions | answers from the tables, + major-decision questions |
-| design gate | `Yes, I reviewed the design` |
+| questions | answers from the tables, + major-decision questions ("LARGE = MEDIUM + any major decisions", skills/hitl/SKILL.md:41) |
+| asks for approval (specs, design, implementation) | `Yes, I approve` |
 | any other "shall I continue?" | `Approved, continue.` |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
@@ -386,7 +402,7 @@ python3 "$SB/scripts/collect-results.py"                 # your run in the table
 
 > ⛔ **Not runnable yet:** Copilot runs need a Copilot seat with GPT-5.6 Terra; the current account has Copilot Free. These steps follow the method's docs and are **not verified**.
 
-**Install and use:** VS Code settings: add `$HOME/saleor-benchmark/envs/rosetta-light/src` to `chat.plugins.marketplaces` → install `rosetta-light`. Then the same `/coding-flow` and gate phrase.
+**Install and use:** VS Code settings: add `$HOME/saleor-benchmark/envs/rosetta-light/src` to `chat.plugins.marketplaces` → Copilot chat gear → **Browse Marketplaces** → install `rosetta-light`. Then the same task prompt and approval phrase.
 
 VS Code profile with only the two Copilot extensions:
 
@@ -412,10 +428,14 @@ Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/rosetta
 3. Send the task (T0):
 
    ```text
-   /coding-flow Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+   Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
    Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
    
    Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+   
+   MUST USE SKILLS hitl, tech-specs.
+   
+   USE ROSETTA SUBAGENTS.
    ```
 
 4. At each stop reply exactly as in the Claude Code run of this task (part 2, step 6).
@@ -431,11 +451,15 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-li
 3. Send the task (T0):
 
    ```text
-   /coding-flow Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+   Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
    Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
    To make this work, the customer profile should have a birthday field.
    
    Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+   
+   MUST USE SKILLS hitl, tech-specs.
+   
+   USE ROSETTA SUBAGENTS.
    ```
 
 4. At each stop reply exactly as in the Claude Code run of this task (part 3, step 6).
