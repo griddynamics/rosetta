@@ -33,15 +33,14 @@ Every other reply is written out in each run below (parts 2, 3, 5, 6).
 
 ## 1. Setup for Claude Code (once)
 
-Open a terminal **inside your rosetta checkout**. Skip this part if `git -C ~/saleor-benchmark/saleor tag -l rosetta-v1` already prints the tag.
+Open a terminal **inside your rosetta checkout**. Do each step once per machine; skip a step that is already done.
 
-**1.1 Machine** (once per machine, shared by all methods): Node 24 with Claude Code in it, and the Saleor stack.
+**1.1 Machine** (once per machine, shared by all methods): Node 24 with Claude Code in it (the Saleor stack comes from 1.2a).
 
 ```bash
 nvm install 24 && nvm alias default 24 && nvm use 24
 command -v claude || npm install -g @anthropic-ai/claude-code@2.1.305
 claude --version                                   # 2.1.305 (all runs use this version)
-git -C ~/saleor-benchmark/saleor tag -l baseline-v1   # prints baseline-v1 once the zip is extracted (1.2a); do not run a plain bench.sh setup first, it would clone the repos
 ```
 
 **1.2 Variables** (paste into every new terminal you use for this method):
@@ -59,7 +58,7 @@ export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git 
 - `saleor-initialized-repos.zip` (40 MB): the entire `.git` of the three repos. HEAD is the init commit, tagged `rosetta-v1`, `rosetta-light-v1` and `rosetta-skills-v1`; its parent is `baseline-v1`.
 - `saleor-initialized-root.zip` (19 KB): the files Rosetta created outside the repos, in `~/saleor-benchmark` (`README.md`, `gain.json`, `docs/`, `agents/`).
 
-`bench.sh from-zips` deletes the old repo files (it keeps `node_modules`) and every other file in the workspace root (it keeps `seed.dump`, `logs` and `envs`), extracts both zips and runs `git reset --hard` in each repo. `bench.sh setup` then restores the database and installs dependencies; it sees `baseline-v1`, so it does not clone. Nothing is copied back. Only the person creating the zips skips this and does 1.7 instead.
+`bench.sh from-zips` deletes the old repo files (it keeps `node_modules`) and every other file in the workspace root (it keeps `seed.dump`, `logs` and `envs`), extracts both zips and runs `git reset --hard` in each repo. `bench.sh setup` then restores the database and installs dependencies; it sees `baseline-v1`, so it does not clone. Nothing is copied back. Only the person creating the zips skips `from-zips`: they run `bench.sh setup` once (it clones the repos) and then do 1.7.
 
 ```bash
 nvm use 24
@@ -164,7 +163,7 @@ export RUN="$SB/runs/small-storage-conditions/claude-code/rosetta-flow"   # this
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 
-**Step 2. Reset and open the report** (terminal 2):
+**Step 2. Start from the zips and open the report** (terminal 2):
 
 ```bash
 nvm use 24
@@ -182,7 +181,7 @@ sed -i '' -e 's|^run_id:.*|run_id: S-CC-06|' -e 's|^method:.*|method: rosetta|' 
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: only `rosetta@rosetta`; no MCP servers; `rosetta-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
+Expected: only `rosetta@rosetta`; no MCP servers; `rosetta-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix it and repeat step 2. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -194,7 +193,7 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `coding-flow`; `/hooks` shows the Rosetta SessionStart hooks; its first answer says `Context loaded using Rosetta`. If not: `/exit`, reset, start again.
+In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `coding-flow`; `/hooks` shows the Rosetta SessionStart hooks; its first answer says `Context loaded using Rosetta`. If not: `/exit`, repeat step 2, start again.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
@@ -245,7 +244,7 @@ Then write ~/saleor-benchmark/run-output/agent-report.md containing:
 Do not make any further code changes.
 ```
 
-**Step 10. Save everything** (terminal 2, before the next reset):
+**Step 10. Save everything** (terminal 2, before the next start):
 
 ```bash
 T1=2026-10-20T14:05            # ← your T1 from the report (time of the first "done")
@@ -261,7 +260,7 @@ rmdir "$RUN/workspace-root" 2>/dev/null || true
 ls -la "$RUN"
 ```
 
-The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/` if the method wrote files there. Fill the rest of the report (data block: times, `/cost` numbers, counts) and set `S-CC-06` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
+The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/`. It also holds the init files from the root zip (`README.md`, `gain.json`, `docs/`, `agents/`); what the agent added or changed in them is the difference. Fill the rest of the report (data block: times, `/cost` numbers, counts) and set `S-CC-06` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
 
 ```bash
 python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
@@ -281,7 +280,7 @@ export RUN="$SB/runs/large-age-restriction/claude-code/rosetta"   # this run's f
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 
-**Step 2. Reset and open the report** (terminal 2):
+**Step 2. Start from the zips and open the report** (terminal 2):
 
 ```bash
 nvm use 24
@@ -299,7 +298,7 @@ sed -i '' -e 's|^run_id:.*|run_id: L-CC-06|' -e 's|^method:.*|method: rosetta|' 
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: only `rosetta@rosetta`; no MCP servers; `rosetta-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
+Expected: only `rosetta@rosetta`; no MCP servers; `rosetta-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix it and repeat step 2. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -311,7 +310,7 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `coding-flow`; `/hooks` shows the Rosetta SessionStart hooks; its first answer says `Context loaded using Rosetta`. If not: `/exit`, reset, start again.
+In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `coding-flow`; `/hooks` shows the Rosetta SessionStart hooks; its first answer says `Context loaded using Rosetta`. If not: `/exit`, repeat step 2, start again.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
@@ -365,7 +364,7 @@ Then write ~/saleor-benchmark/run-output/agent-report.md containing:
 Do not make any further code changes.
 ```
 
-**Step 10. Save everything** (terminal 2, before the next reset):
+**Step 10. Save everything** (terminal 2, before the next start):
 
 ```bash
 T1=2026-10-20T14:05            # ← your T1 from the report (time of the first "done")
@@ -381,7 +380,7 @@ rmdir "$RUN/workspace-root" 2>/dev/null || true
 ls -la "$RUN"
 ```
 
-The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/` if the method wrote files there. Fill the rest of the report (data block: times, `/cost` numbers, counts) and set `L-CC-06` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
+The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/`. It also holds the init files from the root zip (`README.md`, `gain.json`, `docs/`, `agents/`); what the agent added or changed in them is the difference. Fill the rest of the report (data block: times, `/cost` numbers, counts) and set `L-CC-06` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
 
 ```bash
 python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
@@ -400,10 +399,10 @@ code --profile bench-rosetta --install-extension GitHub.copilot --install-extens
 code --profile bench-rosetta --list-extensions     # only these two
 ```
 
-In that profile: Settings → permissions **Allow all** (`chat.permissions.default`), model picker **GPT-5.6 Terra** (not Auto), Copilot memory off. Tag:
+In that profile: Settings → permissions **Allow all** (`chat.permissions.default`), model picker **GPT-5.6 Terra** (not Auto), Copilot memory off. The method tag comes with the zips (1.2a); check it, do not re-tag:
 
 ```bash
-for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" tag -l rosetta-v1; done   # comes with the zip (1.2a); do not re-tag
+for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" tag -l rosetta-v1; done   # comes with the zip (1.2a)
 ```
 
 One-time preparation for Copilot: as in 1.7, send `/init-workspace-flow` in a new Agent chat of the same profile, then commit the init changes in the three repos and put the three Rosetta method tags on that commit. Usage = the session's premium-request counter; record it in part 7.
@@ -412,7 +411,7 @@ One-time preparation for Copilot: as in 1.7, send `/init-workspace-flow` in a ne
 
 Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/rosetta-flow/`. Not verified (see part 4).
 
-1. Reset as in the Claude Code run, step 2 (with `$RUN` set to this folder).
+1. Start from the zips as in the Claude Code run, step 2 (with `$RUN` set to this folder).
 2. Open the workspace: `code --profile bench-rosetta "$HOME/saleor-benchmark"`, new chat, **Agent** mode, model GPT-5.6 Terra.
 3. Send the task (T0):
 
@@ -431,7 +430,7 @@ Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/rosetta
 
 Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-flow/`. Not verified (see part 4).
 
-1. Reset as in the Claude Code run, step 2 (with `$RUN` set to this folder).
+1. Start from the zips as in the Claude Code run, step 2 (with `$RUN` set to this folder).
 2. Open the workspace: `code --profile bench-rosetta "$HOME/saleor-benchmark"`, new chat, **Agent** mode, model GPT-5.6 Terra.
 3. Send the task (T0):
 
@@ -451,7 +450,7 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-fl
 
 | Runner | Start | End | Operator | Notes |
 | --- | --- | --- | --- | --- |
-| Claude Code | | | | One init for all Rosetta methods (shared zip): its cost is recorded in `rosetta-skills.md` part 7 (about 1 h, 52 min wall time, $31.20). Not repeated here. |
+| Claude Code | | | | One init for all Rosetta methods (shared zips): its cost is recorded in `rosetta-skills.md` part 7 (about 1 h, 52 min wall time, $31.20). Not repeated here. |
 | Copilot | | | | |
 
 Claude Code, paste raw (`/cost`, then `/usage`; per-agent tokens are in `rosetta-flow.init-tokens.md`):
