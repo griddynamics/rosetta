@@ -38,14 +38,14 @@ context_end_pct:
 subagents:                 # number of subagents launched (0 if none)
 # Counts, taken from the timeline (section 2)
 method_steps:
-questions_total:
-questions_hidden:
-questions_extra:
+questions_total: 4  
+questions_hidden: 2  
+questions_extra: 2  
 followups:
 retries:
 # Hidden questions (section 3). asked + covered + missed = hidden_total
 hidden_total: 7
-hidden_asked:
+hidden_asked: 2  
 hidden_covered:
 hidden_missed:
 hidden_matches_answer:     # how many of the 7 the final code follows the answer key (yes = 1, partly = 0.5)
@@ -77,7 +77,7 @@ HOW TO USE
 
 - [ ] `bench.sh reset <TAG>` → `start` → `health`: all three OK
 - [ ] New agent session (no earlier chat or memory for this workspace)
-- [ ] Isolation check passed: only the method under test (output below)
+- [ ] Isolation check passed: only the method under test (output below) — SKIPPED, see section 8
 - [ ] All 3 repos on the method's tag and clean (`git status --porcelain` empty), after `start`
 - [ ] Model and effort checked in the runner (not "auto")
 - [ ] Full-access mode on (Claude Code `--dangerously-skip-permissions` / Copilot auto-approve). Baseline: plan mode on instead, full access picked at plan approval (methods/baseline.md)
@@ -112,8 +112,9 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 
 | # | Time | Type | What happened (short) | Exact text sent by the operator | Hidden # / extra |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | `<HH:MM>` | prompt | Task prompt sent (T0) | `<entry command> Products need a "storage conditions" field …` | |
-| 2 | | | | | |
+| 1 | (operator to fill) | prompt | Task prompt sent (T0). No entry command: the method is `MUST USE SKILLS hitl, tech-specs.` at the end of the prompt | `Products need a "storage conditions" field … MUST USE SKILLS hitl, tech-specs.` | |
+| 2 | 12:39 | question | Round 1, 4 questions answered in one go; counted as 5–15 min of operator time. Q1 where to store it (options: core model field / metadata key / attribute). Q2 translatable? (no, single value / yes, ProductTranslation / type). Q3 which dashboard screens set it (create+update / update only / type). Q4 format and limit (plain text max 255 optional / rich text / type). | Q1: `A first-class nullable field on Product.` · Q2: `Yes. It is translatable the same way as the product name and description. The storefront shows the translation when there is one.` · Q3: `Both the product create page and the product update page.` · Q4: `Plain text, one optional field, max 250 characters. Empty is allowed.` | Q1 extra 1 · Q2 hidden 2 · Q3 NEW extra (not in the BENCHMARKS.md table; decided by the operator in this run) · Q4 hidden 1 (agent proposed 255, answer key says 250) |
+| 3 | | | | | |
 
 **Usage by model** (Claude Code: from `tokens.md`, see below; Copilot: from the runner, if it shows it):
 
@@ -133,8 +134,8 @@ Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` /
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Plain text, max 250 chars | | | |
-| 2 | Translatable | | | |
+| 1 | Plain text, max 250 chars | asked | | Asked in round 1 (timeline #2); answered with the key text |
+| 2 | Translatable | asked | | Asked in round 1 (timeline #2); answered with the key text |
 | 3 | Product level, not variant | | | |
 | 4 | Shown only on the product page | | | |
 | 5 | Existing products: empty, schema migration only | | | |
@@ -212,7 +213,7 @@ Evidence: `<one line per ticked item>`
 
 ## 8. Notes
 
-- Deviations from the protocol, and why: `<none / ...>`
+- Deviations from the protocol, and why: the agent ran from the operator's user profile (`~/.claude`), not the isolated config dir `envs/rosetta-skills/claude`. The isolation check (step 3) was skipped by the operator's decision, so nothing proves that no other plugin, skill, hook or MCP server was active. The start was `bench.sh from-zips` + `setup` (the two Rosetta zips), not `bench.sh reset`.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): `<n/a / no / yes: when, why, outcome>`
 - Strong point of the method in this run: `<...>`
 - Weak point of the method in this run: `<...>`
