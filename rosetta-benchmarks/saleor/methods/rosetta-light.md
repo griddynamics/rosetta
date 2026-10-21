@@ -6,6 +6,7 @@ Runs: `S-CC-07` (small, Claude Code) · `L-CC-07` (large, Claude Code) · `S-CP-
 
 | Command / skill | When | Official doc |
 | --- | --- | --- |
+| `/init-workspace-flow` | **once**, before the first run (part 1.7); its cost is reported separately and never added to a run | docs/web/user-guide/scenarios/ (init workspace); plugins/core-claude*/workflows/init-workspace-flow.md |
 | `/coding-flow <task>` | T0 | plugins/core-claude-light/.claude-plugin/plugin.json ("commands": "./workflows/") |
 | `Yes, I reviewed the design` | its only gate before coding | plugins/core-claude-light/workflows/coding-flow.md:69 |
 
@@ -100,6 +101,42 @@ cd "$BENCH_DIR" && claude
 
 In the session: `/login` with your work account, then `/exit`.
 
+**1.7 One-time project preparation: `/init-workspace-flow`** (once per method, after 1.6; it sets up the project context for every run of this method). Its cost is a one-time setup cost: record it in part 7 and never add it to any run. Skip this part if `git -C ~/saleor-benchmark/saleor describe --tags` already shows `rosetta-light-v1` on a commit with the init changes and `$ENV_DIR/root` exists.
+
+```bash
+# terminal 1: start from a clean workspace on baseline-v1 (same variables as 1.2)
+nvm use 24
+for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" checkout -q -f baseline-v1; done
+mkdir -p "$ENV_DIR/root"
+(
+cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5
+)
+```
+
+In the session: send `/init-workspace-flow`. Answer its questions as product owner, one message per round; reply `Approved, continue.` to any "shall I continue?". Write the start and end time. When it is done: run `/cost` and `/usage` and paste both into part 7; do not `/exit` before that.
+
+Then (terminal 2), still before any run:
+
+```bash
+T_INIT_END=$(date +%Y-%m-%dT%H:%M)
+python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" --out "$ENV_DIR/init-tokens.md"   # per model / agent / subagent
+# files the init wrote inside the repos: commit them and move the method tag onto that commit
+for r in saleor saleor-dashboard react-storefront; do
+  git -C "$BENCH_DIR/$r" status --porcelain
+  git -C "$BENCH_DIR/$r" add -A
+  git -C "$BENCH_DIR/$r" -c user.name="saleor-benchmark" -c user.email="saleor-benchmark@localhost" commit -q -m "rosetta-light: init-workspace-flow" || echo "$r: nothing to commit"
+  git -C "$BENCH_DIR/$r" tag -f rosetta-light-v1
+done
+# files the init wrote in the workspace root (outside the repos): saved, and copied back after every reset
+find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
+  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .gitignore) ;;
+  *) cp -R "$f" "$ENV_DIR/root/" ;; esac
+done
+ls -la "$ENV_DIR/root"
+```
+
+Then `/exit`. `bench.sh reset rosetta-light-v1` now returns the repos to the init commit, and step 2 of each run copies `$ENV_DIR/root` back into the workspace root. Keep `init-tokens.md` and copy it to `rosetta-benchmarks/saleor/methods/rosetta-light.init-tokens.md` so it is committed with the results. Every run of this method then starts from the same prepared project.
+
 ## 2. Run S-CC-07: small task: product storage conditions, Claude Code
 
 Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/claude-code/rosetta-light/`. Two terminals, both **inside your rosetta checkout**: terminal 1 runs the agent, terminal 2 is for the other commands.
@@ -118,8 +155,7 @@ export RUN="$SB/runs/small-storage-conditions/claude-code/rosetta-light"   # thi
 
 ```bash
 nvm use 24
-for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -f rosetta-light-v1 baseline-v1 >/dev/null; done   # method tag = current baseline-v1
-$B reset rosetta-light-v1 && $B start && sleep 60 && $B health      # all three OK
+$B reset rosetta-light-v1 && cp -R "$ENV_DIR/root/." "$BENCH_DIR/" && $B start && sleep 60 && $B health      # reset to the init commit, restore the init files, all three OK
 rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-small.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
 sed -i '' -e 's|^run_id:.*|run_id: S-CC-07|' -e 's|^method:.*|method: rosetta-light|' -e 's|^runner:.*|runner: claude-code|' \
   -e 's|^model:.*|model: claude-sonnet-5-5|' -e 's|^start_tag:.*|start_tag: rosetta-light-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
@@ -234,8 +270,7 @@ export RUN="$SB/runs/large-age-restriction/claude-code/rosetta-light"   # this r
 
 ```bash
 nvm use 24
-for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -f rosetta-light-v1 baseline-v1 >/dev/null; done   # method tag = current baseline-v1
-$B reset rosetta-light-v1 && $B start && sleep 60 && $B health      # all three OK
+$B reset rosetta-light-v1 && cp -R "$ENV_DIR/root/." "$BENCH_DIR/" && $B start && sleep 60 && $B health      # reset to the init commit, restore the init files, all three OK
 rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-large.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
 sed -i '' -e 's|^run_id:.*|run_id: L-CC-07|' -e 's|^method:.*|method: rosetta-light|' -e 's|^runner:.*|runner: claude-code|' \
   -e 's|^model:.*|model: claude-sonnet-5-5|' -e 's|^start_tag:.*|start_tag: rosetta-light-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
@@ -354,6 +389,8 @@ In that profile: Settings → permissions **Allow all** (`chat.permissions.defau
 for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" tag -f rosetta-light-v1 baseline-v1; done
 ```
 
+One-time preparation for Copilot: as in 1.7, send `/init-workspace-flow` in a new Agent chat of the same profile, then commit the init changes in the three repos and move the tag `rosetta-light-v1` onto that commit. Usage = the session's premium-request counter; record it in part 7.
+
 ## 5. Run S-CP-07: small task: product storage conditions, Copilot
 
 Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/rosetta-light/`. Not verified (see part 4).
@@ -392,3 +429,20 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-li
 4. At each stop reply exactly as in the Claude Code run of this task (part 3, step 6).
 5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 3, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
 6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).
+
+## 7. One-time setup cost: `/init-workspace-flow` (reported separately, not added to any run)
+
+| Runner | Start | End | Operator | Notes |
+| --- | --- | --- | --- | --- |
+| Claude Code | | | | |
+| Copilot | | | | |
+
+Claude Code, paste raw (`/cost`, then `/usage`; per-agent tokens are in `rosetta-light.init-tokens.md`):
+
+```text
+```
+
+Copilot, premium-request counter at the end of the init session:
+
+```text
+```

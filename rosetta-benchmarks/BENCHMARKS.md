@@ -152,7 +152,18 @@ Install at the pinned version only. Disable auto-update. Run the method's per-re
 
 The exact install commands per method (checked at the pinned versions) are in that method's file in [saleor/methods/](./saleor/methods/), part 1 (Claude Code) and part 4 (Copilot). Spec Kit and AI-DLC are set up once in `envs/<method>/root-<runner>/` and copied into the workspace root after every reset, because the agent runs in `$BENCH_DIR` (not a repo) and Claude Code loads project skills and hooks only from its working directory.
 
-**Project preparation: none, for every method.** No method gets a project-context step before its runs (Rosetta's docs recommend `init-workspace-flow` once per repo and `requirements-authoring-flow` for non-trivial work; Spec Kit only gets its constitution, which is part of its core flow). ⚠ Open decision for the team: whether each method should get its own documented one-time preparation instead.
+**One-time preparation: only what the method itself requires.** A method gets its own documented one-time preparation if its docs require one. The preparation runs once per method and never per run. Its cost (time, `/cost`, `/usage`) is recorded separately in the method's file and is never added to any run. After it, the agent session is closed and every run starts a new session.
+
+| Method | One-time preparation | Where |
+| --- | --- | --- |
+| Baseline | none | |
+| Grill-with-docs | `/setup-matt-pocock-skills` | [methods/grill-with-docs.md](./saleor/methods/grill-with-docs.md) |
+| Superpowers | none | |
+| Spec Kit | `specify init --integration claude`, then `/speckit-constitution` (one constitution per repo workspace, same text for every run) | [methods/spec-kit.md](./saleor/methods/spec-kit.md) |
+| AWS AI-DLC | `aidlc config --harness claude` and `aidlc doctor` | [methods/aws-ai-dlc.md](./saleor/methods/aws-ai-dlc.md) |
+| Rosetta, Rosetta Light, Rosetta Skills | `/init-workspace-flow` | [methods/rosetta-flow.md](./saleor/methods/rosetta-flow.md), [rosetta-light.md](./saleor/methods/rosetta-light.md), [rosetta-skills.md](./saleor/methods/rosetta-skills.md) |
+
+Nothing else is prepared for any method (for example Rosetta's `requirements-authoring-flow` is not run).
 
 Install everything inside that method's own environment (see above). Plugins only for Rosetta: no MCP, nothing else.
 

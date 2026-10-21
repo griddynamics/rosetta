@@ -30,14 +30,14 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 3 | `S-CC-03` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Superpowers | `runs/small-storage-conditions/claude-code/superpowers/` | done (old setup, plain prompt without the entry command, see report section 8) |
 | 4 | `S-CC-04` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Spec Kit | `runs/small-storage-conditions/claude-code/spec-kit/` | done |
 | 5 | `S-CC-05` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | AWS AI-DLC | `runs/small-storage-conditions/claude-code/aws-ai-dlc/` | planned |
-| 6 | `S-CC-06` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta | `runs/small-storage-conditions/claude-code/rosetta/` | done |
+| 6 | `S-CC-06` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Flow | `runs/small-storage-conditions/claude-code/rosetta-flow/` | done |
 | 7 | `S-CC-07` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Light | `runs/small-storage-conditions/claude-code/rosetta-light/` | planned |
 | 8 | `S-CP-01` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Baseline | `runs/small-storage-conditions/copilot/baseline/` | planned |
 | 9 | `S-CP-02` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Grill-with-docs | `runs/small-storage-conditions/copilot/grill-with-docs/` | planned ⚠ Copilot: manual port |
 | 10 | `S-CP-03` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Superpowers | `runs/small-storage-conditions/copilot/superpowers/` | planned ⚠ Copilot: runs in Copilot CLI |
 | 11 | `S-CP-04` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Spec Kit | `runs/small-storage-conditions/copilot/spec-kit/` | planned |
 | 12 | `S-CP-05` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/small-storage-conditions/copilot/aws-ai-dlc/` | planned ⚠ Copilot: via repository files |
-| 13 | `S-CP-06` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta | `runs/small-storage-conditions/copilot/rosetta/` | planned |
+| 13 | `S-CP-06` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Flow | `runs/small-storage-conditions/copilot/rosetta-flow/` | planned |
 | 14 | `S-CP-07` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Light | `runs/small-storage-conditions/copilot/rosetta-light/` | planned |
 | 15 | `L-CC-01` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Baseline | `runs/large-age-restriction/claude-code/baseline/` | planned |
 | 16 | `L-CC-02` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Grill-with-docs | `runs/large-age-restriction/claude-code/grill-with-docs/` | planned |
@@ -51,7 +51,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 24 | `L-CP-03` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Superpowers | `runs/large-age-restriction/copilot/superpowers/` | planned ⚠ Copilot: runs in Copilot CLI |
 | 25 | `L-CP-04` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Spec Kit | `runs/large-age-restriction/copilot/spec-kit/` | planned |
 | 26 | `L-CP-05` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/large-age-restriction/copilot/aws-ai-dlc/` | planned ⚠ Copilot: via repository files |
-| 27 | `L-CP-06` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta | `runs/large-age-restriction/copilot/rosetta/` | planned |
+| 27 | `L-CP-06` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Flow | `runs/large-age-restriction/copilot/rosetta-flow/` | planned |
 | 28 | `L-CP-07` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Light | `runs/large-age-restriction/copilot/rosetta-light/` | planned |
 | 29 | `S-CC-08` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/small-storage-conditions/claude-code/rosetta-skills/` | planned |
 | 30 | `S-CP-08` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Skills | `runs/small-storage-conditions/copilot/rosetta-skills/` | planned |

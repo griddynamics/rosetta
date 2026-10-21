@@ -6,6 +6,7 @@ Runs: `S-CC-02` (small, Claude Code) · `L-CC-02` (large, Claude Code) · `S-CP-
 
 | Command / skill | When | Official doc |
 | --- | --- | --- |
+| `/setup-matt-pocock-skills` | **once**, before the first run (part 1.7); its cost is reported separately and never added to a run | docs/engineering/setup-matt-pocock-skills.md |
 | `/grill-with-docs <task>` | T0; it loads the skills `grilling` + `domain-modeling` | docs/engineering/grill-with-docs.md:9,27 |
 
 **T0 message, small task** (copy as is):
@@ -81,9 +82,9 @@ JSON
 mkdir -p "$ENV_DIR/src" && cd "$ENV_DIR/src" && git init -q
 git remote add origin https://github.com/mattpocock/skills.git 2>/dev/null || true
 git fetch -q --depth 1 origin 447ca70872026d5b79d6073a546dac082117fed7 && git checkout -q FETCH_HEAD
-mkdir -p "$CLAUDE_CONFIG_DIR/skills"
-for s in engineering/grill-with-docs productivity/grilling engineering/domain-modeling; do cp -R "$ENV_DIR/src/skills/$s" "$CLAUDE_CONFIG_DIR/skills/"; done
-ls "$CLAUDE_CONFIG_DIR/skills"                                 # domain-modeling  grill-with-docs  grilling
+claude plugin marketplace add "$ENV_DIR/src"                   # local marketplace "mattpocock" at the pinned commit (not the official marketplace, which tracks latest)
+claude plugin install mattpocock-skills@mattpocock
+claude plugin list                                             # mattpocock-skills@mattpocock only
 )                                               # in a subshell: your terminal stays where it is
 ```
 
@@ -103,6 +104,39 @@ cd "$BENCH_DIR" && claude
 
 In the session: `/login` with your work account, then `/exit`.
 
+**1.7 One-time setup: `/setup-matt-pocock-skills`** (once, after 1.6; it writes the issue-tracker, triage-label and domain-doc configuration the skills read). Its cost is a one-time setup cost: record it in part 7 and never add it to any run.
+
+```bash
+# terminal 1 (same variables as 1.2)
+nvm use 24
+for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" checkout -q -f baseline-v1; done
+mkdir -p "$ENV_DIR/root"
+(
+cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5
+)
+```
+
+In the session: send `/setup-matt-pocock-skills`. Same answers for every run: issue tracker = local markdown; triage labels = not asked (the `triage` skill is not installed); domain docs = single-context; if it asks which file to create, `CLAUDE.md`. Reply `Approved, continue.` to any "shall I continue?". When it is done: run `/cost` and `/usage`, paste both into part 7, then `/exit`.
+
+Then (terminal 2), still before any run:
+
+```bash
+python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" --out "$ENV_DIR/setup-tokens.md"   # per model / agent / subagent; copy it to rosetta-benchmarks/saleor/methods/grill-with-docs.setup-tokens.md
+for r in saleor saleor-dashboard react-storefront; do
+  git -C "$BENCH_DIR/$r" status --porcelain
+  git -C "$BENCH_DIR/$r" add -A
+  git -C "$BENCH_DIR/$r" -c user.name="saleor-benchmark" -c user.email="saleor-benchmark@localhost" commit -q -m "grill-with-docs: setup-matt-pocock-skills" || echo "$r: nothing to commit"
+  git -C "$BENCH_DIR/$r" tag -f grill-v1
+done
+find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
+  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .gitignore) ;;
+  *) cp -R "$f" "$ENV_DIR/root/" ;; esac
+done
+ls -la "$ENV_DIR/root"
+```
+
+`bench.sh reset grill-v1` now returns the repos to the setup commit, and step 2 of each run copies `$ENV_DIR/root` back into the workspace root. Every run starts a new session, after step 4.
+
 ## 2. Run S-CC-02: small task: product storage conditions, Claude Code
 
 Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/claude-code/grill-with-docs/`. Two terminals, both **inside your rosetta checkout**: terminal 1 runs the agent, terminal 2 is for the other commands.
@@ -121,8 +155,7 @@ export RUN="$SB/runs/small-storage-conditions/claude-code/grill-with-docs"   # t
 
 ```bash
 nvm use 24
-for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -f grill-v1 baseline-v1 >/dev/null; done   # method tag = current baseline-v1
-$B reset grill-v1 && $B start && sleep 60 && $B health      # all three OK
+$B reset grill-v1 && cp -R "$ENV_DIR/root/." "$BENCH_DIR/" && $B start && sleep 60 && $B health      # reset to the setup commit, restore the setup files, all three OK
 rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-small.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
 sed -i '' -e 's|^run_id:.*|run_id: S-CC-02|' -e 's|^method:.*|method: grill-with-docs|' -e 's|^runner:.*|runner: claude-code|' \
   -e 's|^model:.*|model: claude-sonnet-5-5|' -e 's|^start_tag:.*|start_tag: grill-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
@@ -136,7 +169,7 @@ sed -i '' -e 's|^run_id:.*|run_id: S-CC-02|' -e 's|^method:.*|method: grill-with
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: no plugins; skills `domain-modeling`, `grill-with-docs`, `grilling`; no MCP servers; `grill-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
+Expected: only `mattpocock-skills@mattpocock`; no skills dir; no MCP servers; `grill-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -148,7 +181,7 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `grill-with-docs`. If not: `/exit`, reset, start again.
+In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `grill-with-docs` (plugin skills may show as `mattpocock-skills:grill-with-docs`: the same command; type it as shown and note it in the report) and `setup-matt-pocock-skills`. If not: `/exit`, reset, start again.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
@@ -237,8 +270,7 @@ export RUN="$SB/runs/large-age-restriction/claude-code/grill-with-docs"   # this
 
 ```bash
 nvm use 24
-for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -f grill-v1 baseline-v1 >/dev/null; done   # method tag = current baseline-v1
-$B reset grill-v1 && $B start && sleep 60 && $B health      # all three OK
+$B reset grill-v1 && cp -R "$ENV_DIR/root/." "$BENCH_DIR/" && $B start && sleep 60 && $B health      # reset to the setup commit, restore the setup files, all three OK
 rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-large.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
 sed -i '' -e 's|^run_id:.*|run_id: L-CC-02|' -e 's|^method:.*|method: grill-with-docs|' -e 's|^runner:.*|runner: claude-code|' \
   -e 's|^model:.*|model: claude-sonnet-5-5|' -e 's|^start_tag:.*|start_tag: grill-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
@@ -252,7 +284,7 @@ sed -i '' -e 's|^run_id:.*|run_id: L-CC-02|' -e 's|^method:.*|method: grill-with
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: no plugins; skills `domain-modeling`, `grill-with-docs`, `grilling`; no MCP servers; `grill-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
+Expected: only `mattpocock-skills@mattpocock`; no skills dir; no MCP servers; `grill-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -264,7 +296,7 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `grill-with-docs`. If not: `/exit`, reset, start again.
+In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `grill-with-docs` (plugin skills may show as `mattpocock-skills:grill-with-docs`: the same command; type it as shown and note it in the report) and `setup-matt-pocock-skills`. If not: `/exit`, reset, start again.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
@@ -357,6 +389,8 @@ In that profile: Settings → permissions **Allow all** (`chat.permissions.defau
 for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" tag -f grill-v1 baseline-v1; done
 ```
 
+One-time setup for Copilot: as in 1.7 (also copy `engineering/setup-matt-pocock-skills` into `.github/skills/`), send `/setup-matt-pocock-skills` in a new Agent chat, commit the changes in the three repos and move the tag `grill-v1` onto that commit. Record the premium-request counter in part 7.
+
 ## 5. Run S-CP-02: small task: product storage conditions, Copilot
 
 Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/grill-with-docs/`. Not verified (see part 4).
@@ -395,3 +429,20 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/grill-with
 4. At each stop reply exactly as in the Claude Code run of this task (part 3, step 6).
 5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 3, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
 6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).
+
+## 7. One-time setup cost: `/setup-matt-pocock-skills` (reported separately, not added to any run)
+
+| Runner | Start | End | Operator | Notes |
+| --- | --- | --- | --- | --- |
+| Claude Code | | | | |
+| Copilot | | | | |
+
+Claude Code, paste raw (`/cost`, then `/usage`; per-agent tokens are in `grill-with-docs.setup-tokens.md`):
+
+```text
+```
+
+Copilot, premium-request counter at the end of the setup session:
+
+```text
+```

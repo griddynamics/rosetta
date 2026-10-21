@@ -107,7 +107,7 @@ cd "$BENCH_DIR" && claude
 
 In the session: `/login` with your work account, then `/exit`.
 
-**1.7 Constitution** (once, same text for every run; taken from the team rules file):
+**1.7 Constitution** (once, same text for every run; the text from Spec Kit's README):
 
 ```bash
 (
@@ -116,14 +116,20 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-Send this, wait until it's done, then `/exit`:
+Send this, wait until it's done, run `/cost` and `/usage` and paste both into part 7, then `/exit`:
 
 ```text
-/speckit-constitution Use the team engineering rules in CLAUDE.md as the project principles: follow the existing code style, structure and patterns; keep changes focused on the task; no new dependencies unless really needed; add or update automated tests for every change; run the relevant tests and linters before finishing.
+/speckit-constitution Create principles focused on code quality, testing, and maintainability.
 ```
 
 ```bash
 cp "$BENCH_DIR/.specify/memory/constitution.md" "$ROOT_DIR/.specify/memory/constitution.md"
+```
+
+Then save the setup usage, before any run (step 4 of a run deletes this session's log). `specify init` itself runs no model:
+
+```bash
+python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" --out "$ENV_DIR/setup-tokens.md"   # per model / agent / subagent; copy it to rosetta-benchmarks/saleor/methods/spec-kit.setup-tokens.md
 ```
 
 ## 2. Run S-CC-04: small task: product storage conditions, Claude Code
@@ -434,3 +440,22 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/spec-kit/`
 4. At each stop reply exactly as in the Claude Code run of this task (part 3, step 6).
 5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 3, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
 6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).
+
+## 7. One-time setup cost: `/speckit-constitution` (reported separately, not added to any run)
+
+| Runner | Start | End | Operator | Notes |
+| --- | --- | --- | --- | --- |
+| Claude Code | | | | |
+| Copilot | | | | |
+
+Claude Code, paste raw (`/cost`, then `/usage`; per-agent tokens are in `spec-kit.setup-tokens.md`):
+
+```text
+```
+
+Copilot, premium-request counter at the end of the setup session:
+
+```text
+```
+
+Note: the constitution text was changed to the README example on 2026-10-21. `S-CC-04` was run with the earlier text (the team engineering rules in `CLAUDE.md`).

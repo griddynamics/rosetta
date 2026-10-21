@@ -58,7 +58,7 @@ red_flags: 1
 tests_pass: yes
 operator_score: 5
 operator_merge_ready: yes
-# Rosetta only (methods/rosetta.md; plugins/core-claude/workflows/coding-flow.md). Not used by collect-results.py.
+# Rosetta only (methods/rosetta-flow.md; plugins/core-claude/workflows/coding-flow.md). Not used by collect-results.py.
 rosetta_context_loaded: no # yes | no: first answer says "Context loaded using Rosetta" (not in its first answer; skills coding-flow, load-project-context, hitl loaded; section 8)
 rosetta_request_size: MEDIUM-LARGE # SMALL | MEDIUM | LARGE: as written in agents/TEMP/product-storage-conditions/coding-flow-state.md ("3 repos"); not one of the three sizes
 rosetta_gates: 3
@@ -82,14 +82,14 @@ judge_merge_ready:         # yes | no
 HOW TO USE
 1. This report is already in place in rosetta-benchmarks/saleor/runs/small-storage-conditions/claude-code/rosetta/
    (repetition 2+: folder rosetta.r2/, rosetta.r3/ …). Everything of the run goes into that folder.
-   methods/rosetta.md part 2, step 2 ends with `rm -rf "$RUN" && … cp … sed …`: SKIP that line, it would replace this file
+   methods/rosetta-flow.md part 2, step 2 ends with `rm -rf "$RUN" && … cp … sed …`: SKIP that line, it would replace this file
    with the empty template. Run only the tag + reset + start + health lines of step 2.
 2. Fill the sections below DURING the run, top to bottom. Fill the data block at the top as numbers become known.
 3. Facts only: paste exact outputs; don't round or recompute. Rules: BENCHMARKS.md, section 5.
-Step-by-step for this run, texts to paste, and the commands that make tokens.md: methods/rosetta.md, part 2.
+Step-by-step for this run, texts to paste, and the commands that make tokens.md: methods/rosetta-flow.md, part 2.
 -->
 
-Environment for every command in this report (methods/rosetta.md, part 2, step 1; inside the rosetta checkout):
+Environment for every command in this report (methods/rosetta-flow.md, part 2, step 1; inside the rosetta checkout):
 
 ```bash
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"
@@ -101,7 +101,7 @@ export RUN="$SB/runs/small-storage-conditions/claude-code/rosetta"
 ## 1. Pre-flight (all ticked before T0)
 
 - [x] `bench.sh reset rosetta-v1` → `start` → `health`: all three OK (output below)
-- [x] `rosetta-v1` re-tagged on the current `baseline-v1` in all 3 repos (methods/rosetta.md, part 2, step 2): isolation check shows `baseline-v1 rosetta-v1` on HEAD in all 3
+- [x] `rosetta-v1` re-tagged on the current `baseline-v1` in all 3 repos (methods/rosetta-flow.md, part 2, step 2): isolation check shows `baseline-v1 rosetta-v1` on HEAD in all 3
 - [x] New agent session (no earlier chat or memory for this workspace): `$CLAUDE_CONFIG_DIR/projects/*saleor-benchmark*` removed, `$BENCH_DIR/run-output` removed (session log: one session only, `8adfb7bf…`, started 11:25:29)
 - [x] Workspace root has no Rosetta files left from an earlier run (`plans/`, `agents/`, …): `ls -A "$BENCH_DIR"` → `envs logs react-storefront saleor saleor-dashboard seed.dump`
 - [x] `claude --version` = 2.1.305 in the terminal that starts `claude`; auto-update off (`DISABLE_AUTOUPDATER=1` in the env's `settings.json`, in `~/.claude/settings.json` and in `~/.zshrc`; see section 8)
@@ -115,7 +115,7 @@ export RUN="$SB/runs/small-storage-conditions/claude-code/rosetta"
 - [x] BENCHMARKS.md section 4 open: hidden questions + extra answers (all answers taken from it; extra 11–18 added during the run)
 - [x] `RUN` exists (this folder) and EXPERIMENTS.md status of S-CC-06 = `running` (folder yes; EXPERIMENTS.md was set to `running` only after T2, as in S-CC-01)
 
-**Isolation check** (BENCHMARKS.md, section 3.5; methods/rosetta.md, part 2, step 3; Claude Code run, so no `code` line):
+**Isolation check** (BENCHMARKS.md, section 3.5; methods/rosetta-flow.md, part 2, step 3; Claude Code run, so no `code` line):
 
 ```bash
 { claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" 2>/dev/null || echo "(no skills dir)"
@@ -229,11 +229,11 @@ One row per event, in order. All counts in the data block come from this table.
 
 Types: `prompt` · `method-step` · `question` (agent asked → your answer) · `T1` · `hidden-check` · `follow-up` · `T2` · `post-prompt` · `note` (crash, retry, Rosetta team contacted, phase start, …)
 
-Gate replies (methods/rosetta.md, part 2, step 6), word for word, each one a `method-step`: `Yes, I reviewed the design` · `Yes, I reviewed the plan` · `Yes, I approve the implementation` · any other "shall I continue?": `Approved, continue.`. SMALL requests merge the design and plan gates into one checkpoint: send the phrase the agent asks for and write which one in the row.
+Gate replies (methods/rosetta-flow.md, part 2, step 6), word for word, each one a `method-step`: `Yes, I reviewed the design` · `Yes, I reviewed the plan` · `Yes, I approve the implementation` · any other "shall I continue?": `Approved, continue.`. SMALL requests merge the design and plan gates into one checkpoint: send the phrase the agent asks for and write which one in the row.
 
 | # | Time | Type | What happened (short) | Exact text sent by the operator | Hidden # / extra |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | 11:32 | prompt | Task prompt sent (T0). Entry command `/coding-flow`, the only command the operator invoked; no skill called by hand | `/coding-flow Products need a "storage conditions" field …` (exact text: methods/rosetta.md, part 2, step 5) | |
+| 1 | 11:32 | prompt | Task prompt sent (T0). Entry command `/coding-flow`, the only command the operator invoked; no skill called by hand | `/coding-flow Products need a "storage conditions" field …` (exact text: methods/rosetta-flow.md, part 2, step 5) | |
 | 1a | 11:32 | note | Skills loaded by the agent: `rosetta:coding-flow`, `rosetta:load-project-context`, `rosetta:hitl`. First answer: "I'm looking for the Saleor codebase to change. So far this workspace holds only Claude conf[ig and] plugin source. I'll do one quick search before asking you." No `Context loaded using Rosetta` line. Then inline discovery of storefront description rendering and GraphQL schema | | |
 | 2 | 11:37 | note | Request size classified by coding-flow: `MEDIUM-LARGE` ("3 repos: saleor, saleor-dashboard, react-storefront"), written to `agents/TEMP/product-storage-conditions/coding-flow-state.md` in the workspace root. Same file: "Task tool unavailable; this file is the ledger." | | |
 | 3 | 11:33 | question | Agent asked (multiple-choice menu): "Should storage conditions be translatable per language?" Options: 1. No, single value (Recommended) · 2. Yes, add to ProductTranslation · 3. Type something · 4. Chat about this. Operator picked 3 and typed the answer | `Yes. It is translatable the same way as the product name and description. The storefront shows the translation when there is one.` | hidden 2 |
@@ -281,9 +281,9 @@ Gate replies (methods/rosetta.md, part 2, step 6), word for word, each one a `me
 | 6g | 13:30 | note | ⚠ **Operator message to the agent before T1** (not a method step, not an answer): `is it done?` followed by a paste of the benchmark assistant's notes about this report (rows 6b–6d, the bulk-translate spec gap, "In S-CC-01 you saw exactly the same max_length error for name", "Check how the final summary describes it at T1", and advice to the operator). Agent (13:31): "No, it isn't done. The final validation (phase 13) is still running"; listed finished work and 3 open points; "Your pasted timeline is out of date". Section 8, item 11 | | |
 | 6h | 13:31 | note | ⚠ **Operator paste to the agent before T1:** a `/cost` + usage panel from another Claude Code session (Opus 5.5 only, $5.90; not this run's numbers). Agent: "That's a usage readout, not a request, so I haven't acted on it"; warned the session is at 96% of its usage limit (resets 14:10) and the validator could stall. Section 8, item 11 | | |
 | 7 | 13:32 | T1 | Agent's first "done" message (13:32:29, after the final validator finished 13:32:16): "The feature is built and every local test and lint gate passes in all three repos." Backend 4004 passed / 1 skipped / 0 failed; dashboard 937 suites, 6169 tests; storefront 835. Lists "Not verified", "Things to know" and 3 optional "Your call" items (staging gate, `whitespace-pre-line`, `trim()`): not answered (no request). `/cost` + usage panel taken (Appendix A); `/context` at 13:43 (16%, Appendix A) | | |
-| 8 | 14:00 | hidden-check | Hidden questions not asked yet (3, 4, 5, 7) sent at 14:00:15 (operator clock 13:59); agent answered 14:00:31, no code changed (Appendix B). All 4 covered (section 3) | Exact text: methods/rosetta.md, part 2, step 7, questions 3, 4, 5, 7 only | 3, 4, 5, 7 |
+| 8 | 14:00 | hidden-check | Hidden questions not asked yet (3, 4, 5, 7) sent at 14:00:15 (operator clock 13:59); agent answered 14:00:31, no code changed (Appendix B). All 4 covered (section 3) | Exact text: methods/rosetta-flow.md, part 2, step 7, questions 3, 4, 5, 7 only | 3, 4, 5, 7 |
 | 9 | 14:00 | T2 | No follow-ups: nothing missed in the hidden-question check and nothing known broken, so T2 = end of the hidden-check answer (14:00:31). `/cost` + usage panel taken after T2, before the post-implementation prompt (Appendix A) | | |
-| 10 | 14:41 | post-prompt | Post-implementation prompt sent 14:41:16 (session log); agent wrote `saleor.diff` (32 files, +1237 −15), `saleor-dashboard.diff` (38, +1270 −37), `react-storefront.diff` (16, +285 −3) and `agent-report.md`; no code changes. Operator then `/exit` and step 10 (14:43): `tokens.md`, `session/`, `workspace-root/` | exact text: methods/rosetta.md, part 2, step 9 | |
+| 10 | 14:41 | post-prompt | Post-implementation prompt sent 14:41:16 (session log); agent wrote `saleor.diff` (32 files, +1237 −15), `saleor-dashboard.diff` (38, +1270 −37), `react-storefront.diff` (16, +285 −3) and `agent-report.md`; no code changes. Operator then `/exit` and step 10 (14:43): `tokens.md`, `session/`, `workspace-root/` | exact text: methods/rosetta-flow.md, part 2, step 9 | |
 
 **Rosetta phases** (coding-flow; from the agent's messages, its todo list and `agents/TEMP/<FEATURE>/coding-flow-state.md`). `Applies` = the phases coding-flow requires for the size it chose; mark each `ran` / `skipped` / `merged` / `n/a`:
 
@@ -320,7 +320,7 @@ Where the tokens went (`tokens.md`, 54.92M in total, 551 model calls, 17 subagen
 
 Raw `/cost` and `/usage` output at T1 and T2: paste it into Appendix A at the end of this file.
 
-**Claude Code: token breakdown + raw session logs** (close the session with `/exit` first; run before the next reset; methods/rosetta.md, part 2, step 10):
+**Claude Code: token breakdown + raw session logs** (close the session with `/exit` first; run before the next reset; methods/rosetta-flow.md, part 2, step 10):
 
 ```bash
 python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" \
@@ -333,7 +333,7 @@ It reads the session log Claude Code writes for every run and reports tokens per
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
 Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
-Hidden-question check at T1: the exact wordings are in methods/rosetta.md, part 2, step 7 (send only the ones not asked).
+Hidden-question check at T1: the exact wordings are in methods/rosetta-flow.md, part 2, step 7 (send only the ones not asked).
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
@@ -352,7 +352,7 @@ Hidden-question check at T1: the exact wordings are in methods/rosetta.md, part 
 | 1 | 11:33 | 1b HITL (after inline discovery) | Should storage conditions be translatable per language? (menu: 1. No, single value (Recommended) · 2. Yes, add to ProductTranslation · 3. Type something · 4. Chat about this) | Option 3, typed: `Yes. It is translatable the same way as the product name and description. The storefront shows the translation when there is one.` | hidden 2 |
 | 2 | 11:33 | 1b HITL (after inline discovery) | What type and length limit for the field? (menu: 1. Plain text, max 255 (Recommended) · 2. Plain text, unlimited · 3. Rich text (Editor.js) · 4. Type something · 5. Chat about this) | Option 4, typed: `Plain text, one optional field, max 250 characters. Empty is allowed.` | hidden 1 |
 | 3 | 11:33 | 1b HITL (after inline discovery) | Where should customers see it on the storefront? (menu: 1. Labeled line below description (Recommended) · 2. Appended inside description HTML · 3. Type something · 4. Chat about this) | Option 3, typed: `A separate labelled block after the description, hidden when empty.` | extra 2 |
-| 4 | 11:49 | round 2 (design gate, user_review_design) | Where should the translated value go in the GraphQL API? (menu: 1. Shared TranslationInput (Recommended) · 2. New ProductTranslationInput (breaking for existing productTranslate callers) · 3. Type something · 4. Chat about this) | Option 1 (Shared TranslationInput). Not in the tables: recommended option (methods/rosetta.md, part 2, step 6). Earlier runs did not ask; S-CC-01 and S-CC-02 both chose the breaking `ProductTranslationInput` on their own | new → extra 11 (added to BENCHMARKS.md) |
+| 4 | 11:49 | round 2 (design gate, user_review_design) | Where should the translated value go in the GraphQL API? (menu: 1. Shared TranslationInput (Recommended) · 2. New ProductTranslationInput (breaking for existing productTranslate callers) · 3. Type something · 4. Chat about this) | Option 1 (Shared TranslationInput). Not in the tables: recommended option (methods/rosetta-flow.md, part 2, step 6). Earlier runs did not ask; S-CC-01 and S-CC-02 both chose the breaking `ProductTranslationInput` on their own | new → extra 11 (added to BENCHMARKS.md) |
 | 5 | 11:49 | round 2 (design gate, user_review_design) | May I make a one-prop edit to the storefront product page.tsx? (menu: 1. Yes, edit page.tsx (Recommended): block right after the description; a comment in storefront-view.ts says not to edit that route · 2. No, leave page.tsx alone: block after Shipping & Returns · 3. Type something · 4. Chat about this) | Option 1 (Yes, edit page.tsx). Not in the tables: recommended option; consistent with extra 2 (block after the description). Check in review what the storefront-view.ts comment protects | new → extra 12 (added to BENCHMARKS.md) |
 | 6 | 11:49 | round 2 (design gate, user_review_design) | Keep CSV export, search indexing and legacy product webhook payload out of scope? (menu: 1. Yes, out of scope (Recommended) · 2. Include some of them · 3. Type something) | Option 3, typed: `It is part of the product in the API, so it appears in product webhook payloads, and it is included in product CSV export. No filter or search by this field is needed.` | hidden 6 |
 | 7 | 11:49 | round 2 (design gate, user_review_design) | May the implementer apply the migration to the local Docker dev database? (menu: 1. Yes, local dev DB only (Recommended) · 2. No, tests only · 3. Type something) | Option 1 (Yes, local dev DB only). Not in the tables: recommended option; consistent with extra 4 (manual check on the local stack). Safe: `bench.sh reset` restores `seed.dump` | new → extra 13 (added to BENCHMARKS.md) |
@@ -458,8 +458,8 @@ Evidence (operator to confirm; checked against the diffs and the repos at T2):
 ## 8. Notes
 
 - Deviations from the protocol, and why:
-  1. Before T0, `methods/rosetta.md` part 2, step 2 was run in full: its `rm -rf "$RUN" && cp template` line replaced this prepared report with the empty template (11:15). The report was restored from the prepared version, with the pre-flight outputs added. No effect on the run.
-  2. **One-time setup of `envs/rosetta` done on the day of the run**, as in methods/rosetta.md part 1: config dir + common `settings.json`, Rosetta cloned at `v3.1.17` (`6215332c`) into `envs/rosetta/src`, `claude plugin marketplace add` + `claude plugin install rosetta@rosetta`, `rosetta-v1` tagged on `baseline-v1` in all 3 repos, one `/login` session. The rosetta checkout's own branch (`benchmarks/saleor-v2`) has `plugin.json` 3.1.13, so the plugin is installed from the `v3.1.17` clone, not from the working tree. `setup_min` not measured.
+  1. Before T0, `methods/rosetta-flow.md` part 2, step 2 was run in full: its `rm -rf "$RUN" && cp template` line replaced this prepared report with the empty template (11:15). The report was restored from the prepared version, with the pre-flight outputs added. No effect on the run.
+  2. **One-time setup of `envs/rosetta` done on the day of the run**, as in methods/rosetta-flow.md part 1: config dir + common `settings.json`, Rosetta cloned at `v3.1.17` (`6215332c`) into `envs/rosetta/src`, `claude plugin marketplace add` + `claude plugin install rosetta@rosetta`, `rosetta-v1` tagged on `baseline-v1` in all 3 repos, one `/login` session. The rosetta checkout's own branch (`benchmarks/saleor-v2`) has `plugin.json` 3.1.13, so the plugin is installed from the `v3.1.17` clone, not from the working tree. `setup_min` not measured.
   3. **Claude Code auto-updated itself to 2.1.306 before T0** (from a `claude` process running on the default `~/.claude`, which had no auto-update setting; the npm global binary is shared by all config dirs). Reinstalled `npm install -g @anthropic-ai/claude-code@2.1.305`, and auto-update switched off globally: `~/.claude/settings.json` (`env.DISABLE_AUTOUPDATER=1`, `autoUpdates: false`) and `export DISABLE_AUTOUPDATER=1` in `~/.zshrc`. `claude --version` = 2.1.305 before T0. No run started on 2.1.306. npm skipped the package's `postinstall` script (allow-scripts policy); `claude` starts and reports the right version.
   4. **Operator answer time is inside the run time.** Question round 1 (3 questions: hidden 2, hidden 1, extra 2) was shown at 11:33; the operator submitted all answers at 11:37 (~4 min looking them up). Not subtracted from `t1 − t0` (templates/README.md, rule 1: measure, don't estimate); listed here so time comparisons can allow for it.
   5. **No `Context loaded using Rosetta` line** in the first answer, although the agent loaded `coding-flow`, `load-project-context` and `hitl`. `/hooks` and `/plugin` were not run in the run session (only `/model`, `/skills`, `/mcp`), so the hooks were not checked there. The session log shows all 5 Rosetta SessionStart hooks ran at 11:25:29 (exit 0) and injected the Rosetta bootstrap, so the plugin was active; only the confirmation line was missing.
@@ -478,9 +478,9 @@ Evidence (operator to confirm; checked against the diffs and the repos at T2):
 - HITL gates (text sent, time, what was shown for review): design: 2 question rounds (11:33, 11:49; answered 11:37, 11:54), revised design shown 11:57 (backend column + migration 0211, shared `TranslationInput`, webhook payload + CSV export, dashboard textarea / translation / export option, storefront block after the description; 2 alternatives rejected, 5 risks; Appendix B), `Yes, I reviewed the design` sent 11:58 · plan: plan review shown 12:05 (19 claims checked; 0 blockers, 3 major, 5 minor) with 4 decisions (D1–D4, answered 12:07), revised specs + plan shown 12:17, `Yes, I reviewed the plan` sent 12:19 · implementation: review shown 12:50 (built in 3 repos; reviews 0 blockers / 0 majors; V1 passes with caveats; 1 open question on newlines, default kept), `Yes, I approve the implementation.` sent 12:53 (trailing full stop; accepted)
 - Other approvals (`Approved, continue.`, counted as `method_steps`): none. `method_steps` = 3 gate phrases (design 11:58, plan 12:19, implementation 12:53)
 - Phases skipped or merged against coding-flow for that size: none. All 13 phases ran (discovery inline, partial); design and plan gates kept separate (size MEDIUM-LARGE)
-- Todo tool not available; ledger kept in `agents/TEMP/product-storage-conditions/coding-flow-state.md` (item 8 above). After the run: check this file is in `workspace-root/agents/TEMP/product-storage-conditions/` (methods/rosetta.md, part 2, step 10 copies it): copied: yes (`workspace-root/agents/TEMP/product-storage-conditions/coding-flow-state.md`)
+- Todo tool not available; ledger kept in `agents/TEMP/product-storage-conditions/coding-flow-state.md` (item 8 above). After the run: check this file is in `workspace-root/agents/TEMP/product-storage-conditions/` (methods/rosetta-flow.md, part 2, step 10 copies it): copied: yes (`workspace-root/agents/TEMP/product-storage-conditions/coding-flow-state.md`)
 - Rosetta suggested project preparation (`init-workspace-flow`, `requirements-authoring-flow`, …) and what was replied: no (not suggested; none run)
-- Rosetta asked something not in methods/rosetta.md, step 6 (default / recommended option picked, added to methods/rosetta.md): round 2 at the design gate (11:49, answered 11:54), Q1 shared `TranslationInput`, Q2 edit storefront `page.tsx`, Q4 migrate the local Docker DB: recommended option picked for each (questions table, rows 4, 5, 7); Q3 was hidden 6, answered from the table. Answer time for round 2: ~5 min, inside `t1 − t0` (as item 4 above). Round 3 at the plan review (12:05, answered 12:07): D1 dev-DB test data with snapshot + restore, D2 browser checks only if available, D3 dashboard fixtures in phase 7, D4 keep translation progress count, drop stories: recommended option picked for each (questions table, rows 8–11; extra 14–17). None of rounds 2–3 are hidden questions except Q3 (hidden 6); none are method steps. Implementation gate (12:50): newline question, agent's default kept (no reply; extra 18)
+- Rosetta asked something not in methods/rosetta-flow.md, step 6 (default / recommended option picked, added to methods/rosetta-flow.md): round 2 at the design gate (11:49, answered 11:54), Q1 shared `TranslationInput`, Q2 edit storefront `page.tsx`, Q4 migrate the local Docker DB: recommended option picked for each (questions table, rows 4, 5, 7); Q3 was hidden 6, answered from the table. Answer time for round 2: ~5 min, inside `t1 − t0` (as item 4 above). Round 3 at the plan review (12:05, answered 12:07): D1 dev-DB test data with snapshot + restore, D2 browser checks only if available, D3 dashboard fixtures in phase 7, D4 keep translation progress count, drop stories: recommended option picked for each (questions table, rows 8–11; extra 14–17). None of rounds 2–3 are hidden questions except Q3 (hidden 6); none are method steps. Implementation gate (12:50): newline question, agent's default kept (no reply; extra 18)
 - Strong point of the method in this run: asked the right product questions up front (hidden 1, 2, 6 before any code) and covered the other 4 on its own: 7/7 on the first pass, 0 follow-ups, all 8 Done-when checks passed; independent plan, code and test reviews caught real issues (DB-safety and test-setup majors, missing error-state test) before the operator saw them; honest reporting of what it could not verify and of its own DB slip.
 - Weak point of the method in this run: cost and time: $21.37 and 148 min for the small task (S-CC-01 $3.31 / 70 min, S-CC-02 $4.89 / 38 min), 55% of the cost on the Opus architect; heavy operator load (3 question rounds, 12 questions of which 9 outside the answer tables, 3 gates); validator wrote dev-DB data beyond what was approved; no browser check of the dashboard.
 - Operator score and merge-ready, why: 5, merge-ready yes. Works end to end in all 3 repos (8/8 Done-when checks), the code follows all 7 answer-key decisions, tests pass in all 3 repos (only load-timeout flakes in untouched dashboard files), no leftovers or unrelated changes, CHANGELOG and changeset included. The agent's open items (staging gate in `getProductUpdateVariables`, `trim()` in the storefront reader, collapsed newlines, 105 mypy errors in test files) are optional hardening, outside the answer key.
@@ -1016,7 +1016,7 @@ The full notes and reports are in `agents/TEMP/product-storage-conditions/`, and
 
 <details><summary>Hidden-question check: agent's answer (S-CC-06, 14:00)</summary>
 
-From the session log (`8adfb7bf-d023-45ac-bb7e-f5dc2b735285.jsonl`, 12:00:31 UTC), as is. Sent: questions 3, 4, 5, 7 (methods/rosetta.md, part 2, step 7).
+From the session log (`8adfb7bf-d023-45ac-bb7e-f5dc2b735285.jsonl`, 12:00:31 UTC), as is. Sent: questions 3, 4, 5, 7 (methods/rosetta-flow.md, part 2, step 7).
 
 ````markdown
 I'm answering from the specs and the 0211 migration, and I changed no code. Only items 3, 4, 5 and 7 came through, so I haven't covered the others.

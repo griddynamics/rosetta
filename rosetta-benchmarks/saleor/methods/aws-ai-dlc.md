@@ -116,7 +116,13 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: `/hooks` → approve the AI-DLC project hooks → `/exit`. Start it again the same way, check that `/` shows `aidlc`, `/exit`. After the AI-DLC runs, remove `~/.local/bin/aidlc` and `~/.local/share/aidlc` before any other method.
+In the session: `/hooks` → approve the AI-DLC project hooks → `/exit`. Start it again the same way, check that `/` shows `aidlc`. Before each `/exit` run `/cost` and `/usage` and paste both into part 7 (this is the whole setup cost: `aidlc config` and `aidlc doctor` run no model). Then `/exit`. Save the setup usage before any run (step 4 of a run deletes these sessions' logs):
+
+```bash
+python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" --out "$ENV_DIR/setup-tokens.md"   # per model / agent / subagent; copy it to rosetta-benchmarks/saleor/methods/aws-ai-dlc.setup-tokens.md
+```
+
+After the AI-DLC runs, remove `~/.local/bin/aidlc` and `~/.local/share/aidlc` before any other method.
 
 ## 2. Run S-CC-05: small task: product storage conditions, Claude Code
 
@@ -434,3 +440,20 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/aws-ai-dlc
 4. At each stop reply exactly as in the Claude Code run of this task (part 3, step 6).
 5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 3, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
 6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).
+
+## 7. One-time setup cost: `aidlc config`, `aidlc doctor`, hooks approval (reported separately, not added to any run)
+
+| Runner | Start | End | Operator | Notes |
+| --- | --- | --- | --- | --- |
+| Claude Code | | | | |
+| Copilot | | | | |
+
+Claude Code, paste raw (`/cost`, then `/usage`; per-agent tokens are in `aws-ai-dlc.setup-tokens.md`):
+
+```text
+```
+
+Copilot, premium-request counter at the end of the setup session:
+
+```text
+```

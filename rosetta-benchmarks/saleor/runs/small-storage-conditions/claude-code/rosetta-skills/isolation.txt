@@ -1,0 +1,6 @@
+No plugins installed. Use `claude plugin install` to install a plugin.
+No MCP servers configured. Use `claude mcp add` to add a server.
+(no skills dir)
+saleor: baseline-v1 rosetta-skills-v1 
+saleor-dashboard: baseline-v1 rosetta-skills-v1 
+react-storefront: baseline-v1 rosetta-skills-v1 
