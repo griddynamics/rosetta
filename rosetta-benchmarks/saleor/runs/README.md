@@ -10,6 +10,7 @@ One folder per run: `<task>/<runner>/<method>/`. One folder per run ID. A new ru
 | `<repo>.diff` | The code the agent wrote, one file per changed repo. |
 | `isolation.txt` | Isolation-check output from before T0. |
 | `workspace-root/` | Files the method wrote in the workspace root (specs, plans, glossary), if any. |
+| `plan.md` | Baseline only: the plan approved at the start (plan mode), if the runner saved it to a file. |
 
 Raw session logs (`session/`) stay local and are git-ignored.
 

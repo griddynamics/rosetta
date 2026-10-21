@@ -42,8 +42,8 @@ Open a terminal **inside your rosetta checkout**. Skip this part if `git -C ~/sa
 
 ```bash
 nvm install 24 && nvm alias default 24 && nvm use 24
-command -v claude || npm install -g @anthropic-ai/claude-code@2.1.304
-claude --version                                   # 2.1.304
+command -v claude || npm install -g @anthropic-ai/claude-code@2.1.305
+claude --version                                   # 2.1.305 (all runs use this version)
 git -C ~/saleor-benchmark/saleor tag -l baseline-v1   # prints baseline-v1; if not: bench.sh setup (BENCHMARKS.md, section 3)
 ```
 
@@ -144,6 +144,7 @@ export RUN="$SB/runs/small-storage-conditions/claude-code/spec-kit"   # this run
 
 ```bash
 nvm use 24
+for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -f speckit-v1 baseline-v1 >/dev/null; done   # method tag = current baseline-v1
 $B reset speckit-v1 && $B start && sleep 60 && $B health      # all three OK
 cp -R "$ENV_DIR/root-claude-code/." "$BENCH_DIR/"      # Spec Kit files into the workspace root
 rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-small.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
@@ -159,7 +160,7 @@ sed -i '' -e 's|^run_id:.*|run_id: S-CC-04|' -e 's|^method:.*|method: spec-kit|'
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: no plugins; no MCP servers; `speckit-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: no plugins; no MCP servers; `speckit-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -197,24 +198,24 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and paste the output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and `/usage` and paste both outputs into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
-1. Is it plain text or rich text, and what is the maximum length?
+1. Is the storage conditions value plain text or rich text, and what is its maximum length?
 2. Is it translatable, like the other product texts?
-3. Is it set on the product or on each variant?
-4. Where is the value shown to customers: only on the product page, or also in other places (cart, checkout, order emails)?
-5. Existing products: what value do they get, and is a data migration needed?
-6. Is it in CSV import/export, webhook payloads and API filters?
+3. Is it set per product or per variant?
+4. Where is the storage conditions value shown to customers: only on the product page, or also in other places (cart, checkout, order emails)?
+5. Existing products: what value do they get after the change, and is a data migration needed for them?
+6. Is it included in import/export, in webhook payloads, and in API filters?
 7. Who can edit it, and who can read it?
 ```
 
-Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost` again into Appendix A at the end of `report.md` (block `## T2`).
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost`, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
 
 **Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
 
-**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`:
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && claude --resume <session id> --permission-mode bypassPermissions --model claude-sonnet-5-5)` and send it there (note it in section 8):
 
 ```text
 Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff speckit-v1`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).
@@ -267,6 +268,7 @@ export RUN="$SB/runs/large-age-restriction/claude-code/spec-kit"   # this run's 
 
 ```bash
 nvm use 24
+for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -f speckit-v1 baseline-v1 >/dev/null; done   # method tag = current baseline-v1
 $B reset speckit-v1 && $B start && sleep 60 && $B health      # all three OK
 cp -R "$ENV_DIR/root-claude-code/." "$BENCH_DIR/"      # Spec Kit files into the workspace root
 rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-large.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
@@ -282,7 +284,7 @@ sed -i '' -e 's|^run_id:.*|run_id: L-CC-04|' -e 's|^method:.*|method: spec-kit|'
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: no plugins; no MCP servers; `speckit-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: no plugins; no MCP servers; `speckit-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -321,7 +323,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and paste the output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and `/usage` and paste both outputs into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
@@ -336,11 +338,11 @@ Don't change any code, just answer: was each of these handled, and where?
 9. Who can see the birthday (APIs, webhooks, exports, staff roles), and are changes and staff reads logged?
 ```
 
-Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost` again into Appendix A at the end of `report.md` (block `## T2`).
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost`, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
 
 **Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
 
-**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`:
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && claude --resume <session id> --permission-mode bypassPermissions --model claude-sonnet-5-5)` and send it there (note it in section 8):
 
 ```text
 Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff speckit-v1`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).

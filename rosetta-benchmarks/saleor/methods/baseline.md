@@ -7,7 +7,7 @@ Runs: `S-CC-01` (small, Claude Code) · `L-CC-01` (large, Claude Code) · `S-CP-
 | Command / skill | When | Official doc |
 | --- | --- | --- |
 | plan mode: `claude --permission-mode plan` | start the session | [permission-modes](https://code.claude.com/docs/en/permission-modes) |
-| **Yes, and switch to BYPASS PERMISSIONS (no further prompts) for this session** | approve the final plan; Claude then starts coding | [permission-modes](https://code.claude.com/docs/en/permission-modes) |
+| **Yes, and bypass permissions** | approve the final plan; Claude then starts coding (the docs call it "Yes, and switch to BYPASS PERMISSIONS …") | [permission-modes](https://code.claude.com/docs/en/permission-modes) |
 
 **T0 message, small task** (copy as is):
 
@@ -38,8 +38,8 @@ Open a terminal **inside your rosetta checkout**. Skip this part if `git -C ~/sa
 
 ```bash
 nvm install 24 && nvm alias default 24 && nvm use 24
-command -v claude || npm install -g @anthropic-ai/claude-code@2.1.304
-claude --version                                   # 2.1.304
+command -v claude || npm install -g @anthropic-ai/claude-code@2.1.305
+claude --version                                   # 2.1.305 (all runs use this version)
 git -C ~/saleor-benchmark/saleor tag -l baseline-v1   # prints baseline-v1; if not: bench.sh setup (BENCHMARKS.md, section 3)
 ```
 
@@ -123,7 +123,7 @@ sed -i '' -e 's|^run_id:.*|run_id: S-CC-01|' -e 's|^method:.*|method: baseline|'
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: no plugins, no skills; no MCP servers; `baseline-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: no plugins, no skills; no MCP servers; `baseline-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -152,29 +152,36 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | --- | --- |
 | asks questions | answers from the tables (few expected) |
 | shows a plan while its questions are still open | **"No, keep planning"**, answer, wait |
-| shows the final plan | **"Yes, and switch to BYPASS PERMISSIONS …"** (1 method step) |
+| shows the final plan | **"Yes, and bypass permissions"** (1 method step) |
 | stops again only to ask permission | `Approved, continue.` |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and paste the output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and `/usage` and paste both outputs into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
-1. Is it plain text or rich text, and what is the maximum length?
+1. Is the storage conditions value plain text or rich text, and what is its maximum length?
 2. Is it translatable, like the other product texts?
-3. Is it set on the product or on each variant?
-4. Where is the value shown to customers: only on the product page, or also in other places (cart, checkout, order emails)?
-5. Existing products: what value do they get, and is a data migration needed?
-6. Is it in CSV import/export, webhook payloads and API filters?
+3. Is it set per product or per variant?
+4. Where is the storage conditions value shown to customers: only on the product page, or also in other places (cart, checkout, order emails)?
+5. Existing products: what value do they get after the change, and is a data migration needed for them?
+6. Is it included in import/export, in webhook payloads, and in API filters?
 7. Who can edit it, and who can read it?
 ```
 
-Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost` again into Appendix A at the end of `report.md` (block `## T2`).
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost`, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+
+**Save the approved plan** (Baseline): if the runner wrote it to a file during this run, keep a copy:
+
+```bash
+P=$(find "$CLAUDE_CONFIG_DIR/plans" -name "*.md" -newer "$RUN/report.md" 2>/dev/null | head -1 || true)   # written during this run
+[ -n "$P" ] && cp "$P" "$RUN/plan.md" && echo "saved $P" || echo "no plan file: the plan is in the session log"
+```
 
 **Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
 
-**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`:
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && claude --resume <session id> --permission-mode bypassPermissions --model claude-sonnet-5-5)` and send it there (note it in section 8):
 
 ```text
 Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).
@@ -239,7 +246,7 @@ sed -i '' -e 's|^run_id:.*|run_id: L-CC-01|' -e 's|^method:.*|method: baseline|'
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: no plugins, no skills; no MCP servers; `baseline-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: no plugins, no skills; no MCP servers; `baseline-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -269,12 +276,12 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | --- | --- |
 | asks questions | answers from the tables (more: birthday, guests, PII) |
 | shows a plan while its questions are still open | **"No, keep planning"**, answer, wait |
-| shows the final plan | **"Yes, and switch to BYPASS PERMISSIONS …"** (1 method step) |
+| shows the final plan | **"Yes, and bypass permissions"** (1 method step) |
 | stops again only to ask permission | `Approved, continue.` |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and paste the output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and `/usage` and paste both outputs into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
@@ -289,11 +296,18 @@ Don't change any code, just answer: was each of these handled, and where?
 9. Who can see the birthday (APIs, webhooks, exports, staff roles), and are changes and staff reads logged?
 ```
 
-Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost` again into Appendix A at the end of `report.md` (block `## T2`).
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost`, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+
+**Save the approved plan** (Baseline): if the runner wrote it to a file during this run, keep a copy:
+
+```bash
+P=$(find "$CLAUDE_CONFIG_DIR/plans" -name "*.md" -newer "$RUN/report.md" 2>/dev/null | head -1 || true)   # written during this run
+[ -n "$P" ] && cp "$P" "$RUN/plan.md" && echo "saved $P" || echo "no plan file: the plan is in the session log"
+```
 
 **Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
 
-**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`:
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && claude --resume <session id> --permission-mode bypassPermissions --model claude-sonnet-5-5)` and send it there (note it in section 8):
 
 ```text
 Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).

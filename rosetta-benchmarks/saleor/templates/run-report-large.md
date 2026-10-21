@@ -80,7 +80,7 @@ HOW TO USE
 - [ ] Isolation check passed: only the method under test (output below)
 - [ ] All 3 repos on the method's tag and clean (`git status --porcelain` empty), after `start`
 - [ ] Model and effort checked in the runner (not "auto")
-- [ ] Full-access mode on (Claude Code `--dangerously-skip-permissions` / Copilot auto-approve)
+- [ ] Full-access mode on (Claude Code `--dangerously-skip-permissions` / Copilot auto-approve). Baseline: plan mode on instead, full access picked at plan approval (methods/baseline.md)
 - [ ] Method is active (its command is listed / it shows its workflow)
 - [ ] BENCHMARKS.md section 4 open: hidden questions + extra answers
 
@@ -220,6 +220,7 @@ Evidence: `<one line per ticked item>`
 - [ ] `tokens.md` (Claude Code): token breakdown from `session-usage.py`. Raw session logs stay local in `session/` (git-ignored)
 - [ ] Appendix A below: raw `/cost` output at T1 and T2
 - [ ] Appendix B below: agent messages copied from the terminal, if any
+- [ ] `plan.md` (Baseline): the approved plan, if the runner saved it to a file
 - [ ] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: `workspace-root/`
 
 ## 8. Notes

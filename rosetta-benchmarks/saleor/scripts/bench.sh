@@ -134,6 +134,7 @@ cmd_setup() {
 	log "dashboard: schema and generated types from the local API"
 	start_api
 	(cd "$BENCH_DIR/saleor-dashboard" && clean_env API_URL="$API_URL" pnpm run fetch-local-schema >/dev/null)
+	(cd "$BENCH_DIR/saleor-dashboard" && clean_env pnpm run generate >/dev/null)   # what `predev` runs on every start
 	if [ -n "$(git -C "$BENCH_DIR/saleor-dashboard" status --porcelain)" ]; then
 		git -C "$BENCH_DIR/saleor-dashboard" add -A
 		git_bench -C "$BENCH_DIR/saleor-dashboard" commit --no-verify -q -m "Benchmark baseline: GraphQL schema and generated types from the local API"

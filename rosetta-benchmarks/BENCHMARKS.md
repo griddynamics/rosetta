@@ -26,7 +26,7 @@ Methods 1–6 come from the presentation slide "Six approaches, one more if time
 
 | Runner | Model | Effort |
 | --- | --- | --- |
-| Claude Code | Sonnet 5.5 (`claude-sonnet-5-5`) | medium |
+| Claude Code **2.1.305** (`npm install -g @anthropic-ai/claude-code@2.1.305`, under Node 24) | Sonnet 5.5 (`claude-sonnet-5-5`) | medium |
 | GitHub Copilot (VS Code) | GPT-5.6 Terra | medium |
 
 - No other agent products (Codex, Cursor, API scripts, …).
@@ -102,7 +102,7 @@ Every method runs with no help from any other AI: no other method, no other plug
   - Claude Code config dir: `export CLAUDE_CONFIG_DIR="$HOME/saleor-benchmark/envs/<method>/claude"` before starting `claude`. Install the method's plugin/skills there. Baseline gets only the settings below.
   - VS Code profile: `code --profile bench-<method>`, with only the GitHub Copilot extensions in it, plus that method's plugin.
   - Copilot CLI (Superpowers only): back up and empty `~/.copilot` before installing; restore it after the Superpowers runs.
-- **Common Claude Code settings.** Every method's config dir starts with this `$CLAUDE_CONFIG_DIR/settings.json` (Baseline: nothing else). A work login is a claude.ai org account: without these settings it syncs the org's plugins, skills and connectors into every config dir, and the isolation check fails. Turning skills off in `/skills` does not persist across restarts; these settings do. Hooks stay on: Superpowers, Rosetta and AI-DLC start through their own hooks. The config dir has no hooks of its own, so `/hooks` must show only the method's hooks (none for Baseline and Grill). If the dir was already used with sync on, delete `$CLAUDE_CONFIG_DIR/plugins/synced/`, start `claude` again and re-check.
+- **Common Claude Code settings.** Every method's config dir starts with this `$CLAUDE_CONFIG_DIR/settings.json` (Baseline: nothing else). A work login is a claude.ai org account: without these settings it syncs the org's plugins, skills and connectors into every config dir, and the isolation check fails. Turning skills off in `/skills` does not persist across restarts; these settings do. Hooks stay on: Superpowers, Rosetta and AI-DLC start through their own hooks. The config dir has no hooks of its own, so `/hooks` must show only the method's hooks (none for Baseline and Grill). If the dir was already used with sync on, delete `$CLAUDE_CONFIG_DIR/plugins/synced/`, start `claude` again and re-check. Two built-in plugins stay on: `agents-md` (reads `AGENTS.md` only where a repo has no `CLAUDE.md`) and `diff` (the diff panel).
 
 ```json
 {
@@ -132,7 +132,7 @@ code --profile bench-<method> --list-extensions
 for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" describe --tags; git -C "$HOME/saleor-benchmark/$r" status --porcelain; done
 ```
 
-Expected: only the method's plugins (none for Baseline), no MCP servers, the method's tag in all 3 repos, and no `status` lines (repos clean before T0). In the Claude Code session, `/skills` must list only the method's skills: no "claude.ai sync" ones.
+Expected: only the method's plugins (none for Baseline), no MCP servers, the method's tag in all 3 repos, and no `status` lines (repos clean before T0). In the Claude Code session, `/skills` must list only the method's skills: no "claude.ai sync" ones. `/context` shows more, and that is not a leak: the runner's bundled skills (17 in 2.1.305) and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools. Start every run from the same kind of terminal.
 
 #### Install
 
@@ -253,10 +253,11 @@ Rosetta and Rosetta Light runs only: if something is wrong with the implementati
 
 ### Method steps: equal chances for multi-step methods
 
-Some methods need more than one command by design (Spec Kit: specify → plan → tasks → implement; AI-DLC approval gates; Grill-with-docs interview → next stage; Baseline plan mode → plan approval).
+Some methods need more than one command by design (Spec Kit: specify → plan → tasks → implement; AI-DLC approval gates; Grill-with-docs interview → next stage; Baseline: plan mode → plan approval → implementation).
 
 - The task prompt text is identical for all methods. Each method is started with **its own slash command** in front of the prompt, exactly as in "Commands per method" below. Record the command in the run report (`entry_command`).
 - When the method stops and waits for its own next step or approval, the programmer sends only that command or the fixed phrase **"Approved, continue."**, with no hints. These are counted as `method_steps`, **not** follow-ups.
+- **Baseline:** same prompt, no entry command; the session starts in plan mode. Approve the plan in the runner's menu with the option that also bypasses permissions, and answer any later permission-only stop with **"Approved, continue."**. Each approval counts as a method step (`method_steps`). Details: [saleor/methods/baseline.md](./saleor/methods/baseline.md).
 - Questions the method asks (including the grill interview) are answered like any other question (step 5).
 - Method steps still count in time and usage. So a method with more ceremony pays for it in time and tokens, but not in the follow-up count.
 
@@ -401,7 +402,7 @@ rosetta-benchmarks/
     ├── scripts/session-usage.py                # token breakdown of one Claude Code session
     ├── methods/<method>.md                     # one file per method: setup + each run (small/large × Claude Code/Copilot)
     ├── templates/                              # run report templates + metric definitions (README.md)
-    ├── runs/<task>/<runner>/<method>/          # one folder per run: report.md, agent-report.md, tokens.md, <repo>.diff
+    ├── runs/<task>/<runner>/<method>/          # one folder per run: report.md, agent-report.md, tokens.md, <repo>.diff (+ plan.md for Baseline)
     └── reports/                                # judge outputs, mapping.csv, summary tables
 ```
 

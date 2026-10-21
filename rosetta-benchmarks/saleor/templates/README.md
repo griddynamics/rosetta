@@ -37,7 +37,7 @@ The same rules for every operator, so results are comparable.
 | `tokens_total` *(computed when comparing)* | tokens | `t2` input + output + cache write. Cache reads are listed separately (they are cheaper). |
 | `rework_share` *(computed when comparing)* | % | Usage after T1 ÷ usage at T2 (cost, or premium requests for Copilot). How much was spent to fix a "done" that wasn't done. |
 | `subagents` | count | Subagents launched in the session. |
-| `method_steps` | count | Messages that only move the method to its next step: `Approved, continue.` or the method's own next command. |
+| `method_steps` | count | Messages that only move the method to its next step: `Approved, continue.` or the method's own next command. Baseline: also the plan approval in the runner's menu. |
 | `questions_total` | count | Agent questions answered by the operator. `= questions_hidden + questions_extra`. |
 | `followups` | count | Operator messages after T1 that ask for a fix or a missing part. |
 | `retries` | count | Restarts from reset (method didn't activate, infra failure). |
