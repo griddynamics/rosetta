@@ -138,16 +138,20 @@ cmd_setup() {
 	log "installing storefront and dashboard dependencies"
 	install_frontends
 
-	# The dashboard's committed GraphQL schema is older than the pinned API. Regenerate it once
-	# and put it into baseline-v1, so it never shows up in a run's diff.
-	log "dashboard: schema and generated types from the local API"
-	start_api
-	(cd "$BENCH_DIR/saleor-dashboard" && clean_env API_URL="$API_URL" pnpm run fetch-local-schema >/dev/null)
-	(cd "$BENCH_DIR/saleor-dashboard" && clean_env pnpm run generate >/dev/null)   # what `predev` runs on every start
-	if [ -n "$(git -C "$BENCH_DIR/saleor-dashboard" status --porcelain)" ]; then
-		git -C "$BENCH_DIR/saleor-dashboard" add -A
-		git_bench -C "$BENCH_DIR/saleor-dashboard" commit --no-verify -q -m "Benchmark baseline: GraphQL schema and generated types from the local API"
-		git -C "$BENCH_DIR/saleor-dashboard" tag -f baseline-v1 >/dev/null
+	if [ "$(git -C "$BENCH_DIR/saleor-dashboard" rev-parse HEAD)" = "$(git -C "$BENCH_DIR/saleor-dashboard" rev-parse baseline-v1)" ]; then
+		# The dashboard's committed GraphQL schema is older than the pinned API. Regenerate it once
+		# and put it into baseline-v1, so it never shows up in a run's diff.
+		log "dashboard: schema and generated types from the local API"
+		start_api
+		(cd "$BENCH_DIR/saleor-dashboard" && clean_env API_URL="$API_URL" pnpm run fetch-local-schema >/dev/null)
+		(cd "$BENCH_DIR/saleor-dashboard" && clean_env pnpm run generate >/dev/null)   # what `predev` runs on every start
+		if [ -n "$(git -C "$BENCH_DIR/saleor-dashboard" status --porcelain)" ]; then
+			git -C "$BENCH_DIR/saleor-dashboard" add -A
+			git_bench -C "$BENCH_DIR/saleor-dashboard" commit --no-verify -q -m "Benchmark baseline: GraphQL schema and generated types from the local API"
+			git -C "$BENCH_DIR/saleor-dashboard" tag -f baseline-v1 >/dev/null
+		fi
+	else
+		log "dashboard: HEAD is not baseline-v1 (extracted initialized repo), skipping schema regeneration"
 	fi
 
 	log "setup done. Next: '$0 start', then '$0 health'"

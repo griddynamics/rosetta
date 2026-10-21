@@ -45,7 +45,7 @@ Open a terminal **inside your rosetta checkout**. Skip this part if `git -C ~/sa
 nvm install 24 && nvm alias default 24 && nvm use 24
 command -v claude || npm install -g @anthropic-ai/claude-code@2.1.305
 claude --version                                   # 2.1.305 (all runs use this version)
-git -C ~/saleor-benchmark/saleor tag -l baseline-v1   # prints baseline-v1; if not: bench.sh setup (BENCHMARKS.md, section 3)
+git -C ~/saleor-benchmark/saleor tag -l baseline-v1   # prints baseline-v1 once the zip is extracted (1.2a); do not run a plain bench.sh setup first, it would clone the repos
 ```
 
 **1.2 Variables** (paste into every new terminal you use for this method):
@@ -56,6 +56,24 @@ export ENV_DIR="$BENCH_DIR/envs/rosetta-skills"
 export CLAUDE_CONFIG_DIR="$ENV_DIR/claude"
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor/scripts/bench.sh"   # inside your rosetta checkout
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
+```
+
+**1.2a Start from the zip** (all Rosetta work starts here, before anything else touches `$BENCH_DIR`; the repos are never cloned. Only the person creating the zip skips this: they do 1.1, run `bench.sh setup` once and then 1.7). `test-library/saleor-initialized.zip` holds the entire `.git` of the three repos at the pinned versions (tag `baseline-v1`, and the init commit tagged `rosetta-v1`, `rosetta-light-v1` and `rosetta-skills-v1`) plus the workspace-root files the init wrote. It is the same for Rosetta, Rosetta Light and Rosetta Skills.
+
+```bash
+nvm use 24
+TL="$(git rev-parse --show-toplevel)/test-library"
+[ -f "$TL/saleor-initialized.zip" ] || echo "ERROR: $TL/saleor-initialized.zip not found: pull it, or create it (1.7)"
+rm -rf "$BENCH_DIR/saleor" "$BENCH_DIR/saleor-dashboard" "$BENCH_DIR/react-storefront"   # cleanup first: no old clone survives
+unzip -q "$TL/saleor-initialized.zip" -d "$BENCH_DIR"
+for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" reset -q --hard HEAD; done      # the zip has only .git: rebuild the working trees from it
+rm -rf "$ENV_DIR/root" && mkdir -p "$ENV_DIR/root"                                       # the workspace-root files, copied back after every reset
+find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
+  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .gitignore) ;;
+  *) cp -R "$f" "$ENV_DIR/root/" ;; esac
+done
+$B setup        # sees baseline-v1 in the extracted repos, so it does not clone: builds Docker, seeds the database, installs dependencies
+for r in saleor saleor-dashboard react-storefront; do echo "$r: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ')"; done   # rosetta-v1 rosetta-light-v1 rosetta-skills-v1 in all three
 ```
 
 **1.3 Own config dir with the common settings** (claude.ai sync off, hooks on; BENCHMARKS.md, section 3.5):
@@ -89,11 +107,7 @@ claude plugin install rosetta@rosetta
 claude plugin list                                             # rosetta@rosetta 3.1.17 only
 ```
 
-**1.5 Tag** (the method lives outside the repos, so the tag is the same commit as `baseline-v1`):
-
-```bash
-for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -f rosetta-skills-v1 baseline-v1; done
-```
+**1.5 Tag**: nothing to do. The method tag `rosetta-skills-v1` comes with the zip, on the init commit (1.2a). Never re-tag it to `baseline-v1`: that would remove the init.
 
 **1.6 Log in once** (a new config dir has no login):
 
@@ -105,7 +119,7 @@ cd "$BENCH_DIR" && claude
 
 In the session: `/login` with your work account, then `/exit`.
 
-**1.7 One-time project preparation: `/init-workspace-flow`** (once per method, after 1.6; it sets up the project context for every run of this method). Its cost is a one-time setup cost: record it in part 7 and never add it to any run. Skip this part if `git -C ~/saleor-benchmark/saleor describe --tags` already shows `rosetta-skills-v1` on a commit with the init changes and `$ENV_DIR/root` exists.
+**1.7 One-time project preparation: `/init-workspace-flow`** (once per method, after 1.6; it sets up the project context for every run of this method). Its cost is a one-time setup cost: record it in part 7 and never add it to any run. Skip this part if `test-library/saleor-initialized.zip` exists: you already started from it (1.2a), so never run the init again (about 30 minutes).
 
 ```bash
 # terminal 1: start from a clean workspace on baseline-v1 (same variables as 1.2)
@@ -129,7 +143,7 @@ for r in saleor saleor-dashboard react-storefront; do
   git -C "$BENCH_DIR/$r" status --porcelain
   git -C "$BENCH_DIR/$r" add -A
   git -C "$BENCH_DIR/$r" -c user.name="saleor-benchmark" -c user.email="saleor-benchmark@localhost" commit -q -m "rosetta-skills: init-workspace-flow" || echo "$r: nothing to commit"
-  git -C "$BENCH_DIR/$r" tag -f rosetta-skills-v1
+  for t in rosetta-v1 rosetta-light-v1 rosetta-skills-v1; do git -C "$BENCH_DIR/$r" tag -f "$t"; done   # one init commit, one tag per Rosetta method
 done
 # files the init wrote in the workspace root (outside the repos): saved, and copied back after every reset
 find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
@@ -140,6 +154,18 @@ ls -la "$ENV_DIR/root"
 ```
 
 Then `/exit`. `bench.sh reset rosetta-skills-v1` now returns the repos to the init commit, and step 2 of each run copies `$ENV_DIR/root` back into the workspace root. Keep `init-tokens.md` and copy it to `rosetta-benchmarks/saleor/methods/rosetta-skills.init-tokens.md` so it is committed with the results. Every run of this method then starts from the same prepared project.
+
+Then save the result as the zip (terminal 2). It holds the entire `.git` of the three repos (the init commit carries all three Rosetta method tags, set above) and the workspace-root files. It does not hold the working trees, installed dependencies, caches or build output: `git reset --hard` rebuilds the trees from `.git` on extraction (1.2a). One zip serves Rosetta, Rosetta Light and Rosetta Skills; the init is run once, with the full `rosetta` plugin. Maximum compression, zip only (`-9`, deflate: the macOS `zip` has no bzip2 build):
+
+```bash
+TL="$(git rev-parse --show-toplevel)/test-library"
+rm -f "$TL/saleor-initialized.zip"
+(cd "$BENCH_DIR" && for r in saleor saleor-dashboard react-storefront; do git -C "$r" status --porcelain; find "$r/.git"; done | zip -9 -y -X -q -@ "$TL/saleor-initialized.zip")   # status lines must be empty: everything committed
+(cd "$ENV_DIR/root" && find . ! -name .DS_Store ! -name . | sed 's|^\./||' | zip -9 -y -X -q -@ "$TL/saleor-initialized.zip")   # workspace-root files go to the top level of the zip
+ls -lh "$TL/saleor-initialized.zip" && unzip -tq "$TL/saleor-initialized.zip" | tail -1   # GitHub rejects files over 100 MB
+```
+
+Commit the zip with the results. Every later start uses it (1.2a).
 
 ## 2. Run S-CC-08: small task: product storage conditions, Claude Code
 
@@ -394,10 +420,10 @@ code --profile bench-rosetta-skills --list-extensions     # only these two
 In that profile: Settings → permissions **Allow all** (`chat.permissions.default`), model picker **GPT-5.6 Terra** (not Auto), Copilot memory off. Tag:
 
 ```bash
-for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" tag -f rosetta-skills-v1 baseline-v1; done
+for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" tag -l rosetta-skills-v1; done   # comes with the zip (1.2a); do not re-tag
 ```
 
-One-time preparation for Copilot: as in 1.7, send `/init-workspace-flow` in a new Agent chat of the same profile, then commit the init changes in the three repos and move the tag `rosetta-skills-v1` onto that commit. Usage = the session's premium-request counter; record it in part 7.
+One-time preparation for Copilot: as in 1.7, send `/init-workspace-flow` in a new Agent chat of the same profile, then commit the init changes in the three repos and put the three Rosetta method tags on that commit. Usage = the session's premium-request counter; record it in part 7.
 
 ## 5. Run S-CP-08: small task: product storage conditions, Copilot
 
@@ -446,12 +472,24 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-sk
 
 | Runner | Start | End | Operator | Notes |
 | --- | --- | --- | --- | --- |
-| Claude Code | | | | |
+| Claude Code | | | isolomatov | `/init-workspace-flow` run once for all Rosetta methods (shared zip). About 1 h including answering its questions; 52 min wall time. Total cost $31.20 (Sonnet $3.36 + Haiku $1.29 + Opus $26.55). |
 | Copilot | | | | |
 
 Claude Code, paste raw (`/cost`, then `/usage`; per-agent tokens are in `rosetta-skills.init-tokens.md`):
 
 ```text
+Usage by model:
+   claude-sonnet-5-5:  38.7k input, 95.7k output, 11.2m cache read, 484.2k cache write ($3.36)
+    claude-haiku-5-5:  116.6k input, 250.1k output, 22.8m cache read, 909.3k cache write ($1.29)
+     claude-opus-5-5:  153.3k input, 321.0k output, 57.5m cache read, 1.6m cache write ($26.55)
+```
+
+Zip `test-library/saleor-initialized.zip` (size, commit that added it):
+
+```text
+40 MB (zip -9, .git of the three repos + workspace-root files)
+sha256 f715f9616c9d35b023159b03e050362bc4bcf69ee65829ad5a5230f180df9daf
+commit: the one that added the file (git log -- test-library/saleor-initialized.zip)
 ```
 
 Copilot, premium-request counter at the end of the init session:

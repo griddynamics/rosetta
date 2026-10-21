@@ -83,7 +83,7 @@ What `setup` does:
 4. Saves the database to `$BENCH_DIR/seed.dump`, so every run starts from exactly the same data (`populatedb` makes random data).
 5. Installs storefront and dashboard dependencies.
 
-Running `setup` again is safe: repos that already have `baseline-v1` and an existing `seed.dump` are reused.
+Running `setup` again is safe: repos that already have `baseline-v1` and an existing `seed.dump` are reused. This is also how the Rosetta zip is used: extract it into `$BENCH_DIR` first, and `setup` then skips the clone.
 
 **Login:** dashboard `admin@example.com` / `admin` (local only).
 
@@ -152,7 +152,7 @@ Install at the pinned version only. Disable auto-update. Run the method's per-re
 
 The exact install commands per method (checked at the pinned versions) are in that method's file in [saleor/methods/](./saleor/methods/), part 1 (Claude Code) and part 4 (Copilot). Spec Kit and AI-DLC are set up once in `envs/<method>/root-<runner>/` and copied into the workspace root after every reset, because the agent runs in `$BENCH_DIR` (not a repo) and Claude Code loads project skills and hooks only from its working directory.
 
-**One-time preparation: only what the method itself requires.** A method gets its own documented one-time preparation if its docs require one. The preparation runs once per method and never per run. Its cost (time, `/cost`, `/usage`) is recorded separately in the method's file and is never added to any run. After it, the agent session is closed and every run starts a new session.
+**One-time preparation: only what the method itself requires.** A method gets its own documented one-time preparation if its docs require one. The preparation runs once per method and never per run. Its cost (time, `/cost`, `/usage`) is recorded separately in the method's file and is never added to any run. After it, the agent session is closed and every run starts a new session. Rosetta's `/init-workspace-flow` takes about 30 minutes, so it is run once and its result is saved as one zip, `test-library/saleor-initialized.zip`: the entire `.git` of the three repos (the init commit tagged for all three Rosetta methods) plus the workspace-root files, compressed with `zip -9`; the working trees are rebuilt from `.git` on extraction. The zip is shared by Rosetta, Rosetta Light and Rosetta Skills. All Rosetta work starts by cleaning the three repo folders and extracting the zip; the repos are not cloned (see 1.2a in the method files).
 
 | Method | One-time preparation | Where |
 | --- | --- | --- |
