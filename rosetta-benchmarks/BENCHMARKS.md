@@ -133,7 +133,7 @@ code --profile bench-<method> --list-extensions
 for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" describe --tags; git -C "$HOME/saleor-benchmark/$r" status --porcelain; done
 ```
 
-Expected: only the method's plugins (none for Baseline), no MCP servers, the method's tag in all 3 repos, and no `status` lines (repos clean before T0). In the Claude Code session, `/skills` must list only the method's skills: no "claude.ai sync" ones.
+Expected: only the method's plugins (none for Baseline), no MCP servers, the method's tag in all 3 repos, and no `status` lines (repos clean before T0). In the Claude Code session, `/skills` must list only the method's skills: no "claude.ai sync" ones. `/context` shows more, and that is not a leak: the runner's bundled skills (17 in 2.1.305) and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools. Start every run from the same kind of terminal.
 
 #### Install
 
