@@ -236,6 +236,14 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 | 8 | Empty or missing translation: fall back to the base value? | Yes. An empty or missing translation falls back to the base value. | S-CC-02 |
 | 9 | Settable at product creation? CSV import? | Include it in create, update and the translation mutation. Import is out of scope. (Export and webhooks: hidden question 6.) | S-CC-02 |
 | 10 | ADR? Changelog? | No ADR. Add a short CHANGELOG entry and regenerate the schema where needed. | S-CC-02 |
+| 11 | Translation API: add the field to the shared `TranslationInput`, or a new product-only input (breaking for existing `productTranslate` callers)? | The shared `TranslationInput`. No breaking change to `productTranslate`. | S-CC-06 |
+| 12 | May the storefront product page (`page.tsx`) be edited to place the block? | Yes. | S-CC-06 |
+| 13 | May the migration be applied to the local Docker dev database? | Yes, the local dev database only. | S-CC-06 |
+| 14 | May the agent write test data to the local dev database during validation (with snapshot and restore)? | Yes, with a snapshot first and a full restore after. | S-CC-06 |
+| 15 | Should validation use a browser tool on the dashboard and storefront? | Only if one is available without new credentials; otherwise automated tests and API checks. | S-CC-06 |
+| 16 | May the implementation step add the new field to existing dashboard test fixtures and typed test literals (so typecheck passes)? | Yes, the field only, no new assertions. | S-CC-06 |
+| 17 | Optional extras: count the field in the dashboard translation progress? Edit `.stories.tsx` files? | Count it in the translation progress. No stories edits. | S-CC-06 |
+| 18 | Preserve newlines typed into the field on the storefront (e.g. `whitespace-pre-line`)? | No. Plain text; newlines are not preserved. | S-CC-06 |
 
 **Task 2 (large): extra answers**
 
