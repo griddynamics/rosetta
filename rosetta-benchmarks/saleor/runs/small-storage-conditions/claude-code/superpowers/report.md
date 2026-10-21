@@ -53,7 +53,7 @@ hidden_matches_answer:     # how many of the 7 the final code follows the answer
 done_checks_total: 8
 done_checks_passed: 7
 red_flags:                 # number of ticked red flags
-tests_pass:                # yes | no (operator ran them at T2)
+tests_pass: yes # yes | no (operator ran them at T2)
 operator_score: 3
 operator_merge_ready:      # yes | no
 # Filled later by the evaluator from the judge reports
@@ -240,6 +240,7 @@ The operator did not verify these (see section 4). Agent's own report, in short:
   - **Session log lost.** The cleanup before L-CC-03 deleted `$CLAUDE_CONFIG_DIR/projects/*saleor-benchmark*` before `session-usage.py` had been run for this run. So there is no `session/` and no `session-usage.py` breakdown: `tokens.md` is a reduced, per-model file built from the `/cost` readings, and the token fields of the data block use the `/cost` Sonnet line. Timeline times come from the session log read before it was deleted.
   - **T0 corrected from the log.** The operator first reported T0 as 14:53; the session log showed the prompt at 14:43:55.
   - **Operator waits.** The hidden-question check was sent 4 minutes after T1; the other replies took 1 to 2 minutes each.
+  - **Tests (check 7):** passed, reported by the operator on 2026-10-21 via Oleksii Poletaiev (`tests_pass: yes`); commands and counts not recorded.
   - **Operator checks (section 4):** 7 of 8 passed according to the operator; the per-row detail was not recorded, and `tests_pass` and `operator_merge_ready` were not reported.
   - **Operator score 3** (works with notable gaps), given by the operator because the first follow-up showed that a large part of the requirements had not been handled and the run cost more than the Baseline run. Cost is not part of the score anchors in `templates/README.md`.
   - **`/context` at T2** was not taken (`context_end_pct` empty); `subagents` not counted (the Opus reviewer ran as a subagent; the `/cost` skills panel shows `general-purpose` at 18%).
