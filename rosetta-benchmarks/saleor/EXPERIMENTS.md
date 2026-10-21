@@ -24,7 +24,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 
 | # | Run ID | Task | Runner | Model · effort | Method | Run folder | Status |
 | ---: | --- | --- | --- | --- | --- | --- | --- |
-| 1 | `S-CC-01` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Baseline | `runs/small-storage-conditions/claude-code/baseline/` | planned |
+| 1 | `S-CC-01` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Baseline | `runs/small-storage-conditions/claude-code/baseline/` | done |
 | 2 | `S-CC-02` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Grill-with-docs | `runs/small-storage-conditions/claude-code/grill-with-docs/` | planned (pilot: `grill-with-docs.pilot/`) |
 | 3 | `S-CC-03` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Superpowers | `runs/small-storage-conditions/claude-code/superpowers/` | planned |
 | 4 | `S-CC-04` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Spec Kit | `runs/small-storage-conditions/claude-code/spec-kit/` | planned |
