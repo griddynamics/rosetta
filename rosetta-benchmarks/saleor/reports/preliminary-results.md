@@ -1,6 +1,6 @@
-# Saleor benchmark: preliminary results (2026-10-21)
+# Saleor benchmark: preliminary results (2026-10-22)
 
-**Status: preliminary.** What has been run so far, end to end with a report: **5 runs** on **Claude Code** (Sonnet 5.5, effort medium), all on the **small task** (product "storage conditions" field across backend, dashboard and storefront). Copilot runs, the large task and the other methods follow; the full version will be published later.
+**Status: preliminary.** What has been run so far, end to end with a report, on **Claude Code** (Sonnet 5.5, effort medium): **5 runs on the small task** (product "storage conditions" field across backend, dashboard and storefront) and **1 run on the large task** (age-restricted products: Grill-with-docs `L-CC-02`, a task variant, see caveats). Copilot runs, the large task and the other methods follow; the full version will be published later.
 
 Each run has its own folder with the agent's diffs, its own report and a token breakdown: [`saleor/runs/`](../runs/). Generated table of all runs: [`summary.md`](./summary.md) (`python3 saleor/scripts/collect-results.py`). Method, rules and scoring: [`BENCHMARKS.md`](../../BENCHMARKS.md).
 
@@ -62,7 +62,7 @@ Each run has its own folder with the agent's diffs, its own report and a token b
 
 ## Next
 
-1. Large task: Superpowers (`L-CC-03`) is in the branch (operator checks not filled yet); other methods follow.
+1. Large task: Grill-with-docs (`L-CC-02`) is done as a task variant (hidden key #5 replaced; to be re-run on the original key for comparison); Superpowers (`L-CC-03`) is in the branch (operator checks not filled yet); other methods follow.
 2. The remaining Claude Code runs of the small task (AI-DLC: in progress today; Rosetta Light: to be re-run), then the large task (age-restricted products).
 3. Judge scores; repetitions.
 4. Copilot runs once a Copilot seat with the benchmark model is available.
