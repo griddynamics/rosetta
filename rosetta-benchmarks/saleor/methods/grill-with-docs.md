@@ -75,18 +75,16 @@ cat > "$CLAUDE_CONFIG_DIR/settings.json" <<'JSON'
 JSON
 ```
 
-**1.4 Install Grill-with-docs** (pinned version):
+**1.4 Install Grill-with-docs** (the official way, as its README says: the whole plugin from Claude Code's official marketplace; never copy single skills):
 
 ```bash
-(
-mkdir -p "$ENV_DIR/src" && cd "$ENV_DIR/src" && git init -q
-git remote add origin https://github.com/mattpocock/skills.git 2>/dev/null || true
-git fetch -q --depth 1 origin 447ca70872026d5b79d6073a546dac082117fed7 && git checkout -q FETCH_HEAD
-claude plugin marketplace add "$ENV_DIR/src"                   # local marketplace "mattpocock" at the pinned commit (not the official marketplace, which tracks latest)
-claude plugin install mattpocock-skills@mattpocock
-claude plugin list                                             # mattpocock-skills@mattpocock only
-)                                               # in a subshell: your terminal stays where it is
+claude plugin marketplace update claude-plugins-official   # current listing; the marketplace pins the plugin to a commit
+claude plugin install mattpocock-skills@claude-plugins-official
+claude plugin list                                         # mattpocock-skills@claude-plugins-official only; write its Version into the report (method_version)
+python3 -I -c 'import json,os;d=json.load(open(os.environ["CLAUDE_CONFIG_DIR"]+"/plugins/marketplaces/claude-plugins-official/.claude-plugin/marketplace.json"));print([p["source"].get("sha") for p in d["plugins"] if p["name"]=="mattpocock-skills"])'   # the commit, e.g. 49dd158
 ```
+
+Switching an existing environment from the earlier local install (`mattpocock-skills@mattpocock`): `claude plugin uninstall mattpocock-skills@mattpocock && claude plugin marketplace remove mattpocock`, then the block above. Runs before 2026-10-22 (S-CC-02) used the local marketplace at `447ca70`; their reports say so.
 
 **1.5 Tag** (the method lives outside the repos, so the tag is the same commit as `baseline-v1`):
 
@@ -169,7 +167,7 @@ sed -i '' -e 's|^run_id:.*|run_id: S-CC-02|' -e 's|^method:.*|method: grill-with
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: only `mattpocock-skills@mattpocock`; no skills dir; no MCP servers; `grill-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
+Expected: only `mattpocock-skills@claude-plugins-official`; no skills dir; no MCP servers; `grill-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -284,7 +282,7 @@ sed -i '' -e 's|^run_id:.*|run_id: L-CC-02|' -e 's|^method:.*|method: grill-with
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: only `mattpocock-skills@mattpocock`; no skills dir; no MCP servers; `grill-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
+Expected: only `mattpocock-skills@claude-plugins-official`; no skills dir; no MCP servers; `grill-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix and reset. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -374,7 +372,7 @@ python3 "$SB/scripts/collect-results.py"                 # your run in the table
 
 > ⛔ **Not runnable yet:** Copilot runs need a Copilot seat with GPT-5.6 Terra; the current account has Copilot Free. These steps follow the method's docs and are **not verified**.
 
-**Install and use:** No Copilot install in its docs: after every reset copy the 3 skills into `.github/skills/` (`for s in engineering/grill-with-docs productivity/grilling engineering/domain-modeling; do cp -R "$HOME/saleor-benchmark/envs/grill-with-docs/src/skills/$s" "$HOME/saleor-benchmark/.github/skills/"; done`). Then the same commands as Claude Code.
+**Install and use:** the method's README installs it on other agents with its own installer, never by copying single skills: in `~/saleor-benchmark` run `npx skills@latest add mattpocock/skills`, select **all** skills (at least `setup-matt-pocock-skills`, as the README requires) and **GitHub Copilot** as the agent. Write the installer version and the skills it wrote into the report. The files it writes are outside the three repos and `bench.sh reset` removes them: after the install, copy them to `$HOME/saleor-benchmark/envs/grill-with-docs/root-copilot/` and copy them back after every reset, like `root/` for Claude Code. Mark these runs `skills.sh installer`. Then the same commands as Claude Code.
 
 VS Code profile with only the two Copilot extensions:
 
@@ -389,7 +387,7 @@ In that profile: Settings → permissions **Allow all** (`chat.permissions.defau
 for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" tag -f grill-v1 baseline-v1; done
 ```
 
-One-time setup for Copilot: as in 1.7 (also copy `engineering/setup-matt-pocock-skills` into `.github/skills/`), send `/setup-matt-pocock-skills` in a new Agent chat, commit the changes in the three repos and move the tag `grill-v1` onto that commit. Record the premium-request counter in part 7.
+One-time setup for Copilot: as in 1.7 (`setup-matt-pocock-skills` comes with the installer above), send `/setup-matt-pocock-skills` in a new Agent chat, commit the changes in the three repos and move the tag `grill-v1` onto that commit. Record the premium-request counter in part 7.
 
 ## 5. Run S-CP-02: small task: product storage conditions, Copilot
 

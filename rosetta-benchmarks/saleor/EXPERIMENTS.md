@@ -9,7 +9,7 @@ Methods come from the presentation slide "Six approaches, one more if time allow
 | Method | What is installed for the run | In Copilot | Small · Claude Code | Small · Copilot | Large · Claude Code | Large · Copilot |
 | --- | --- | --- | --- | --- | --- | --- |
 | Baseline | only the shared team rules file (`baseline-instructions.md`); starts in the runner's plan mode | Yes | `S-CC-01` | `S-CP-01` | `L-CC-01` | `L-CP-01` |
-| Grill-with-docs | mattpocock/skills `grill-with-docs` @ `447ca70` | Manual port | `S-CC-02` | `S-CP-02` | `L-CC-02` | `L-CP-02` |
+| Grill-with-docs | plugin `mattpocock-skills` @ `claude-plugins-official` (`49dd158`; S-CC-02: `447ca70`) | skills.sh installer | `S-CC-02` | `S-CP-02` | `L-CC-02` | `L-CP-02` |
 | Superpowers | superpowers v6.4.2 | Copilot CLI | `S-CC-03` | `S-CP-03` | `L-CC-03` | `L-CP-03` |
 | Spec Kit | Spec Kit v1.0.13 + constitution per repo | Yes | `S-CC-04` | `S-CP-04` | `L-CC-04` | `L-CP-04` |
 | AWS AI-DLC | AI-DLC v2.10.0 | Via repository files | `S-CC-05` | `S-CP-05` | `L-CC-05` | `L-CP-05` |
@@ -63,7 +63,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 All 8 methods are tested on both runners. Details are in BENCHMARKS.md, section 3.5, "All methods on both runners".
 
 - **Baseline:** starts in the chat's Plan mode, like the Claude Code runs start in plan mode. See [methods/baseline.md](./methods/baseline.md).
-- **Grill-with-docs:** no official Copilot support. **Manual port** of the skill into `.github/skills/`. Mark its Copilot runs `manual port`.
+- **Grill-with-docs:** no Copilot plugin; the README installs it on other agents with `npx skills@latest add mattpocock/skills` (all skills, agent GitHub Copilot). Never copy single skills. Mark its Copilot runs `skills.sh installer`.
 - **Superpowers:** officially Copilot **CLI** only. Its Copilot runs use Copilot CLI with the same model, effort and full access. Mark them `runner: Copilot CLI`.
 - **AWS AI-DLC:** supported in Copilot through repository files set up by its installer.
 - If a method still can't be activated after 2 attempts from a clean reset, mark the cell `not qualifying` with the reason.

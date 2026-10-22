@@ -250,6 +250,7 @@ Evidence: none ticked. Checked: no debug prints, TODOs, `skip`/`xfail` in the 3 
   3. **Pre-flight not recorded.** The `reset` → `start` → `health` result and the isolation-check output (`/skills`, `/plugin`, `/mcp`) were not saved, and the RUN_DIR was still `saleor/diffs/...` (old layout). Future runs: paste them in section 1 before T0.
   4. Home-directory paths in pasted outputs (here and in `agent-report.md`) are shortened to `~`.
   5. **Claude Code 2.1.304.** Later runs use 2.1.305 (S-CC-01 and the method guides); a patch-level difference.
+  6. **Plugin installed from a local marketplace** at `447ca70` (`mattpocock-skills@mattpocock`), not from Claude Code's official marketplace. From 2026-10-22 the method installs `mattpocock-skills@claude-plugins-official` (commit `49dd158`), as a user would.
 - Rosetta team contacted: n/a (not a Rosetta run)
 - Observations so far (operator, from the terminal):
   - Grill: 2 interview rounds, 14 questions, ~11 min to a full plan; `CONTEXT.md` updated during the interview (in `saleor-dashboard/CONTEXT.md`, an upstream glossary file).
