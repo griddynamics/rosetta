@@ -17,7 +17,7 @@ Each report has two parts:
 The same rules for every operator, so results are comparable.
 
 1. **Measure, don't estimate.** Copy numbers from the runner or the clock. Unknown → leave empty, never guess.
-2. **Fixed points in time.** T0 = the moment the task prompt is sent. T1 = the agent's first message that says the task is done. T2 = the end of the agent's answer to the last protocol follow-up (`extra-work` rows do not move T2). Minute precision, local time, ISO 8601 (`2026-10-20T14:05`).
+2. **Fixed points in time.** T0 = the moment the task prompt is sent. T1 = the agent's first message that says the task is done. T2 = the end of the agent's answer to the last protocol follow-up (`extra-work` rows do not move T2). Minute precision, local time, ISO 8601 (`2026-10-20T14:05`). Run time is gap-free: `t1` − `t0` minus the time the agent was blocked waiting for the operator (BENCHMARKS.md, section 5, "Time without the operator's gaps"). `t0` in the data block is the effective start; the real `t0` is timeline row #1.
 3. **Usage is cumulative** for the whole session, read at T1 and again at T2. Don't subtract, add up or convert: the script does that.
 4. **One cell = same conditions.** Same start tag, same seed database, same model and effort, new session, isolation check passed. Anything different goes into "Deviations" in section 8, and the run is marked in the comparison.
 5. **Operator answers come from fixed sources**: the hidden-question tables (BENCHMARKS.md, section 4) and the extra answers in the same section. No other help.
