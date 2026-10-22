@@ -28,6 +28,26 @@ Each run has its own folder with the agent's diffs, its own report and a token b
 - Rosetta asked the right product questions up front (length limit, translation, webhooks/CSV) and covered the other 4 on its own: 7/7 on the first pass, 0 follow-ups, 8/8 checks, the only operator score of 5, and the only run where the agent kept the shared `TranslationInput` (no breaking API change). Its independent plan, code and test reviews caught real issues. The price: the most expensive and one of the slowest runs ($21.37, 148 min; 55 % of the cost on the Opus architect) and the heaviest operator load in questions (12, of which 9 outside the answer tables).
 - Baseline and Grill made the same API decision on their own (a new `ProductTranslationInput` type, a breaking change in the translation mutation): worth a reviewer's look in both.
 
+## Large task · Claude Code
+
+| | Grill-with-docs (`L-CC-02`) |
+| --- | --- |
+| How it ran | `/mattpocock-skills:grill-with-docs` interview (5 rounds), then implementation with 2 background subagents (dashboard, storefront); plugin `mattpocock-skills` 1.3.1 from `claude-plugins-official` |
+| Questions the agent asked | 29 in 5 rounds (13 touching hidden requirements, 16 extra) + 1 summary approval |
+| Hidden requirements: asked / covered without asking / missed | 6 / 3 / 0 (of 9; #5 replaced by the operator's variant, see caveats) |
+| First-pass coverage of hidden requirements | 100 % (9 / 9, #5 as the variant) |
+| Follow-ups needed after the first "done" | 2 (migrations not applied to the running database; dashboard UI hidden behind `FF_USE_STAGING_SCHEMA`) |
+| Time to first "done" / total | 53 min without operator waits (1 h 51 min wall) / 2 h 21 min wall to the last follow-up |
+| Cost to first "done" / total (`/cost`) | $9.46 / $10.17 (subagents ≈ 40 %) |
+| "Done when" checks passed (operator, at the end) | pending operator (backend blocking for under-age, no birthday and guest; adult and turns-18-today orders; dashboard and storefront after follow-ups: all checked, see report §4) |
+| Red flags | 1 (said "done" while the feature was not usable in the running app) |
+| Tests at the end (operator) | pass (changed areas: backend 83, storefront 817, dashboard 77) |
+| Operator score (1–5) / merge-ready | pending operator |
+
+**Reading it:**
+- The interview was long (29 questions in 5 rounds, ~58 min of the agent waiting for answers) and asked 6 of the 9 hidden requirements; the other 3 (migration, marketing emails, legal review) were handled correctly without asking.
+- The first "done" was not usable in the running app: the agent tested against pytest's own database and gated the dashboard UI behind a staging flag. Both were fixed by one-line follow-ups; backend enforcement, privacy (birthday hidden, audit-logged reads) and the storefront were correct when checked.
+
 ## Caveats (read before quoting the numbers)
 
 - **One run per method (n = 1).** No repetitions yet; differences can be noise. Our rule is at least 3 runs per cell before a conclusion.
@@ -35,6 +55,7 @@ Each run has its own folder with the agent's diffs, its own report and a token b
 - **Superpowers run notes** (`S-CC-03`, section 8): ran before the method guide (plain prompt instead of `/superpowers:brainstorming`, some replies not the fixed ones), old setup like `S-CC-02`; the operator's per-check results, tests and merge-ready were not recorded; the session log was lost, so `tokens.md` is built from `/cost`; the operator used an AI assistant to suggest replies (BENCHMARKS.md §3.5 says no human-side AI).
 - **Rosetta run notes** (`S-CC-06`, section 8): two operator messages reached the agent before T1 (`is it done?` with a paste of the benchmark assistant's notes), which breaks the "don't interrupt" rule; the operator's answer time (~4 + 5 min) is inside the run time; 9 of the 12 questions were not in the answer tables and were answered by the operator (now added to BENCHMARKS.md §4, rows 11–18).
 - **Spec Kit run notes** (`S-CC-04`, section 8): with setup, one restarted first attempt and saving the results, the operator spent about 4 h on this run (the table counts only T0 → end); after the follow-ups the operator finished with Spec Kit's own `implement`/`converge` loop (3 extra rounds); the session was interrupted during follow-up 2 and resumed after a re-login, so the total cost is an estimate (`/cost` restarted; Appendix A of the report); "Done when" checks: the operator confirmed the result works overall, per-check detail from the agent's live checks.
+- **`L-CC-02` is a task variant, not comparable with other large runs.** During the interview the operator replaced hidden key #5 ("visible everywhere with an age label") with an own rule (restricted products hidden from ineligible viewers, product page blurred) and changed one own answer (EU 18 / US 21 → one store-wide 18). Other notes: one round answered yes/no, one follow-up pasted with the assistant's notes, the operator restarted the storefront after the agent's dashboard restart (report §8).
 - **Not identical setups.** `S-CC-02` ran before two setup fixes (some upstream `CLAUDE.md` / `AGENTS.md` files were still in the repos, and the agent's shell used Node 20) and on Claude Code 2.1.304; `S-CC-01` ran on the fixed setup with 2.1.305. Details in each report, section 8.
 - **IDE context.** Both runs used Claude Code in the VS Code terminal, which can pass the open file to the agent; future runs use a standalone terminal. In `S-CC-01` the IDE tools were not used (`tokens.md`).
 

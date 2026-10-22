@@ -40,7 +40,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 13 | `S-CP-06` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Flow | `runs/small-storage-conditions/copilot/rosetta-flow/` | planned |
 | 14 | `S-CP-07` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Light | `runs/small-storage-conditions/copilot/rosetta-light/` | planned |
 | 15 | `L-CC-01` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Baseline | `runs/large-age-restriction/claude-code/baseline/` | planned |
-| 16 | `L-CC-02` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Grill-with-docs | `runs/large-age-restriction/claude-code/grill-with-docs/` | planned |
+| 16 | `L-CC-02` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Grill-with-docs | `runs/large-age-restriction/claude-code/grill-with-docs/` | done (task variant: key #5 replaced, report §8) |
 | 17 | `L-CC-03` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Superpowers | `runs/large-age-restriction/claude-code/superpowers/` | done (old setup, plain prompt without the entry command; closed without the post-implementation prompt and the Done-when checks, see report section 8) |
 | 18 | `L-CC-04` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Spec Kit | `runs/large-age-restriction/claude-code/spec-kit/` | planned |
 | 19 | `L-CC-05` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | AWS AI-DLC | `runs/large-age-restriction/claude-code/aws-ai-dlc/` | planned |
