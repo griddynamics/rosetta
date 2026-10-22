@@ -39,9 +39,10 @@ Each run has its own folder with the agent's diffs, its own report and a token b
 | Follow-ups needed after the first "done" | 2 (migrations not applied to the running database; dashboard UI hidden behind `FF_USE_STAGING_SCHEMA`) |
 | Time to first "done" / total | 53 min without operator waits (1 h 51 min wall) / 2 h 21 min wall to the last follow-up |
 | Cost to first "done" / total (`/cost`) | $9.46 / $10.17 (subagents ≈ 40 %) |
-| "Done when" checks passed (operator, at the end) | pending operator (backend blocking for under-age, no birthday and guest; adult and turns-18-today orders; dashboard and storefront after follow-ups: all checked, see report §4) |
+| "Done when" checks passed (operator, at the end) | 12 / 12 (dashboard items only after the 2 follow-ups) |
 | Red flags | 1 (said "done" while the feature was not usable in the running app) |
 | Tests at the end (operator) | pass (changed areas: backend 83, storefront 817, dashboard 77) |
+| Hidden answers followed in the final code | 8 / 8 applicable (#5 replaced by the variant) |
 | Operator score (1–5) / merge-ready | pending operator |
 
 **Reading it:**
