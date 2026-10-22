@@ -432,12 +432,23 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/grill-with
 
 | Runner | Start | End | Operator | Notes |
 | --- | --- | --- | --- | --- |
-| Claude Code | | | | |
+| Claude Code | 2026-10-22T12:08 | 2026-10-22T12:17 | Oleksii Poletaiev | Plugin `mattpocock-skills@claude-plugins-official` **1.3.1** @ `49dd158`, Claude Code 2.1.305, Sonnet 5.5, effort medium. Run in `~/saleor-benchmark` (not a git repo), repos at `baseline-v1`, new config dir history. Sent (times from the session log): 12:08:16 `/mattpocock-skills:setup-matt-pocock-skills` (it found no git, no `CLAUDE.md`, no `docs/agents/`; recommended local markdown) · 12:10:09 `Local markdown.` · 12:15:29 `Yes, keep the five defaults.` (triage labels; asked because the whole plugin includes `triage`) · 12:17:04 `1. CLAUDE.md. 2. Yes, the root /Users/olepoletaiev/saleor-benchmark is right.` Domain docs were not asked: single-context (`GLOSSARY.md` + `docs/adr/` at the root). It showed the draft and wrote it without another approval. Wrote `CLAUDE.md` (## Agent skills block) and `docs/agents/{issue-tracker,triage-labels,domain}.md` in the workspace root, saved to `envs/grill-with-docs/root/`; nothing changed inside the 3 repos, so `grill-v1` = `baseline-v1`. Before it, `/model` (kept Sonnet 5.5) and `/effort` (cancelled) were run as local commands, no model calls. Replaces the setup of 2026-10-21 17:20–17:24 on 1.2.3 (local marketplace at `447ca70`, $0.1106), whose files differ (root `CONTEXT.md` instead of `GLOSSARY.md`); that one was used by S-CC-02 only. |
 | Copilot | | | | |
 
 Claude Code, paste raw (`/cost`, then `/usage`; per-agent tokens are in `grill-with-docs.setup-tokens.md`):
 
 ```text
+/cost and /usage (one screen: Usage › Session), at 12:17–12:18:
+Total cost:            $0.1077
+Total duration (API):  32s
+Total duration (wall): 13m 52s
+Total code changes:    0 lines added, 0 lines removed
+Usage by model:
+    claude-sonnet-5-5:  1.6k input, 2.8k output, 423.4k cache read, 13.7k cache write ($0.1076)
+     claude-haiku-5-5:  1.2k input, 14 output, 0 cache read, 0 cache write ($0.0001)
+Prompt cache (main):   7 requests · 95% of input tokens from cache · no misses
+Current session: 15% used (resets 3:49pm Europe/Warsaw) · Current week (all models): 22% used
+Skills, % of usage: /mattpocock-skills:setup-matt-pocock-skills 39% · Plugins: mattpocock-skills 39%
 ```
 
 Copilot, premium-request counter at the end of the setup session:

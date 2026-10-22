@@ -298,6 +298,9 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 | 13 | Birthday audit log: a separate model or the existing customer events? | Reuse the existing `CustomerEvent`. | L-CC-02 |
 | 14 | Does showing the "age eligible" flag to staff count as a read of the birthday? | Yes, it is audit-logged like a read of the date. | L-CC-02 |
 | 15 | Who sees the "age eligible" flag on `order.user` / `checkout.user`? | Only the owner and staff with the customer-management permission; null for everyone else. | L-CC-02 |
+| 16 | Who can see the birthday audit events? | Only super-admins. The birthday event types (changed, read) are hidden from the customer events for everyone else; they are still written. | L-CC-02 |
+| 17 | Deleting a customer: what happens to the birthday audit events? | They are kept, even if it needs a bigger migration (stop the cascade for these event types). | L-CC-02 |
+| 18 | How many read events for the "age eligible" flag? | One per customer per request, only when the field is actually resolved. | L-CC-02 |
 
 ## 5. Running one experiment
 
