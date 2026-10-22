@@ -28,19 +28,19 @@ Every run done so far: **9 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIME
 
 ### Small task · Claude Code
 
-| | Baseline (`S-CC-01`) | Grill-with-docs (`S-CC-02`) | Superpowers (`S-CC-03`) | Spec Kit (`S-CC-04`) | Rosetta (`S-CC-06`) |
-| --- | --- | --- | --- | --- | --- |
-| How it ran | plain Claude Code in plan mode | `/grill-with-docs` interview, then plain Claude Code | plain prompt; Superpowers loaded brainstorming → writing-plans → executing-plans + TDD by itself | `/speckit-specify` → plan → tasks → implement, then implement/converge until "Converged" | `/coding-flow`: design, plan and implementation gates; 17 subagents (architect on Opus, engineers, reviewers, validators) |
-| Questions the agent asked | 0 | 14 (2 rounds, ~11 min) | 1 (+ 4 design/plan approvals) | 0 (14 method commands typed by the operator) | 12 in 3 rounds (3 on hidden requirements, 9 extra) + 3 gate approvals |
-| Hidden requirements: asked / covered without asking / missed | 0 / 4 / 3 | 5 / 2 / 0 | 1 / 5 / 1 | 0 / 4 / 3 | 3 / 4 / 0 |
-| First-pass coverage of hidden requirements | 57 % | 100 % | 86 % | 57 % | 100 % |
-| Follow-ups needed after the first "done" | 3 | 0 | 1 | 3 | 0 |
-| Time to first "done" / total | 29 min / 1 h 10 min | 38 min / 38 min | 44 min / 1 h 2 min | 1 h 45 min / **3 h 23 min** | 2 h / 2 h 28 min |
-| Cost to first "done" / total (`/cost`) | $1.24 / $3.31 | $4.82 / $4.89 | $6.76 / $8.08 (incl. $2.19 Opus reviewer subagent) | $4.58 / ≈ $12.65 | $21.30 / $21.37 (incl. $11.71 Opus architect subagent) |
-| "Done when" checks passed (operator, at the end) | 7 / 8 | 8 / 8 | 7 / 8 | 8 / 8 | 8 / 8 |
-| Red flags | 1 (unrelated files changed) | 0 | not assessed | 0 | 1 (validator changed dev-DB data outside its snapshot) |
-| Tests at the end (operator) | pass | pass | pass | pass | pass |
-| Operator score (1–5) / merge-ready | 3 / no | 4 / yes | 3 / not reported | 3 / not stated | 5 / yes |
+| | Baseline (`S-CC-01`) | Grill-with-docs (`S-CC-02`) | Superpowers (`S-CC-03`) | Spec Kit (`S-CC-04`) | Rosetta (`S-CC-06`) | Rosetta Light (`S-CC-07`) | Rosetta Skills (`S-CC-08`) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| How it ran | plain Claude Code in plan mode | `/grill-with-docs` interview, then plain Claude Code | plain prompt; Superpowers loaded brainstorming → writing-plans → executing-plans + TDD by itself | `/speckit-specify` → plan → tasks → implement, then implement/converge until "Converged" | `/coding-flow`: design, plan and implementation gates; 17 subagents (architect on Opus, engineers, reviewers, validators) | plain prompt naming skills `hitl`, `tech-specs` and `USE ROSETTA SUBAGENTS.` (no `/coding-flow`); 12 subagents on Haiku 5.5 (discoverers, engineers, reviewer, validators) | plain prompt naming skills `hitl`, `tech-specs` (no `/coding-flow`); all work in the main agent, no subagents |
+| Questions the agent asked | 0 | 14 (2 rounds, ~11 min) | 1 (+ 4 design/plan approvals) | 0 (14 method commands typed by the operator) | 12 in 3 rounds (3 on hidden requirements, 9 extra) + 3 gate approvals | 12 (5 on hidden requirements, 7 extra) + 2 approvals | 10 (3 on hidden requirements, 7 extra) + 4 approvals |
+| Hidden requirements: asked / covered without asking / missed | 0 / 4 / 3 | 5 / 2 / 0 | 1 / 5 / 1 | 0 / 4 / 3 | 3 / 4 / 0 | 4 / 3 / 0 | 3 / 3 / 1 |
+| First-pass coverage of hidden requirements | 57 % | 100 % | 86 % | 57 % | 100 % | 100 % | 86 % |
+| Follow-ups needed after the first "done" | 3 | 0 | 1 | 3 | 0 | 0 | 1 |
+| Time to first "done" / total | 29 min / 1 h 10 min | 38 min / 38 min | 44 min / 1 h 2 min | 1 h 45 min / **3 h 23 min** | 2 h / 2 h 28 min | 1 h 32 min / 1 h 32 min | 56 min / 56 min |
+| Cost to first "done" / total (`/cost`) | $1.24 / $3.31 | $4.82 / $4.89 | $6.76 / $8.08 (incl. $2.19 Opus reviewer subagent) | $4.58 / ≈ $12.65 | $21.30 / $21.37 (incl. $11.71 Opus architect subagent) | $5.48 / $5.48 | $5.64 / $5.64 |
+| "Done when" checks passed (operator, at the end) | 7 / 8 | 8 / 8 | 7 / 8 | 8 / 8 | 8 / 8 | 8 / 8 | 8 / 8 |
+| Red flags | 1 (unrelated files changed) | 0 | not assessed | 0 | 1 (validator changed dev-DB data outside its snapshot) | 0 | 0 |
+| Tests at the end (operator) | pass | pass | pass | pass | pass | pass | pass |
+| Operator score (1–5) / merge-ready | 3 / no | 4 / yes | 3 / not reported | 3 / not stated | 5 / yes | 5 / yes | 5 / yes |
 
 **Reading it:**
 - Grill's interview caught most of the hidden requirements up front (length limit, translation, webhooks/CSV export); Baseline asked nothing and needed 3 follow-ups for exactly those (length limit, translation, webhooks/export).
