@@ -283,7 +283,16 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 
 | # | Question | Answer | First asked in |
 | ---: | --- | --- | --- |
-| | | | |
+| 1 | Where does the minimum age live: Product, ProductType or variant? Per region? | A flag on Product marks it age-restricted. The minimum age is one setting per store, 18, stored in the database. No regions or markets. | L-CC-02 |
+| 2 | Where is the rule enforced? | Both when a line is added or updated in the checkout and when the checkout is completed. The check at completion is the authority. | L-CC-02 |
+| 3 | Staff draft orders: exempt? | No, they are checked the same way. A draft with an age-restricted product and no linked Customer is allowed and can be completed. | L-CC-02 |
+| 4 | Can the customer set and change their own birthday? Verification? | Yes, at any time, through their account. No identity verification. | L-CC-02 |
+| 5 | Scope: which repos? | All three: backend, dashboard and storefront, with tests in each. | L-CC-02 |
+| 6 | Terms / glossary names? | Customer, Birthday, Minimum age, Age-restricted product. | L-CC-02 |
+| 7 | "Super-admin": Saleor's `is_superuser`? What do other staff see? | Yes, `is_superuser`. Other staff see only a yes/no "age eligible" flag (hidden #9). | L-CC-02 |
+| 8 | Audit log: what is stored? | Only the actor, the time and the action (read or change), no birthday values. The customer's own changes, staff changes and every staff read are logged. | L-CC-02 |
+| 9 | Nested objects (`order.user`, `checkout.user`) and leak tests? | The owner-or-super-admin check applies on every route including nested user objects, with leak tests for webhooks, exports and nested objects. | L-CC-02 |
+| 10 | Existing carts and orders when a product becomes restricted? | Carts that hold it fail at checkout completion with an error that names the product. Orders already placed stay unchanged. | L-CC-02 |
 
 ## 5. Running one experiment
 
