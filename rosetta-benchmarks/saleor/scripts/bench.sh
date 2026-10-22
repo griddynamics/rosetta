@@ -8,6 +8,8 @@
 #                             #       restore DB from seed.dump
 #   bench.sh from-zips        # Rosetta runs: replace the 3 repos and the workspace-root files with test-library/saleor-initialized-repos.zip
 #                             #       and saleor-initialized-root.zip (files only; then run setup, start, health)
+#   bench.sh from-zips not-initialized  # all other methods: the same with test-library/saleor-not-initialized-repos.zip (repos at baseline-v1,
+#                             #       no Rosetta; no root zip), instead of cloning in setup
 #   bench.sh start            # start backend API + storefront (:3000) + dashboard (:9000) in the background
 #   bench.sh stop             # stop storefront, dashboard and the backend containers
 #   bench.sh health           # check API, storefront, dashboard
@@ -140,7 +142,10 @@ cmd_setup() {
 	log "installing storefront and dashboard dependencies"
 	install_frontends
 
-	if [ "$(git -C "$BENCH_DIR/saleor-dashboard" rev-parse HEAD)" = "$(git -C "$BENCH_DIR/saleor-dashboard" rev-parse baseline-v1)" ]; then
+	if [ -n "$(git -C "$BENCH_DIR/saleor-dashboard" status --porcelain)" ]; then
+		# The commit below takes everything (add -A): never fold a run's leftovers into baseline-v1.
+		log "dashboard: uncommitted changes, skipping schema regeneration (run '$0 reset <TAG>' or 'from-zips' first)"
+	elif [ "$(git -C "$BENCH_DIR/saleor-dashboard" rev-parse HEAD)" = "$(git -C "$BENCH_DIR/saleor-dashboard" rev-parse baseline-v1)" ]; then
 		# The dashboard's committed GraphQL schema is older than the pinned API. Regenerate it once
 		# and put it into baseline-v1, so it never shows up in a run's diff.
 		log "dashboard: schema and generated types from the local API"
@@ -166,10 +171,13 @@ cmd_setup() {
 cmd_from_zips() {
 	local tl repos_zip root_zip
 	tl="${TEST_LIBRARY:-$(git -C "$BENCH_ROOT" rev-parse --show-toplevel)/test-library}"
-	repos_zip="$tl/saleor-initialized-repos.zip"
-	root_zip="$tl/saleor-initialized-root.zip"
+	case "${1:-initialized}" in
+		initialized) repos_zip="$tl/saleor-initialized-repos.zip"; root_zip="$tl/saleor-initialized-root.zip" ;;
+		not-initialized) repos_zip="$tl/saleor-not-initialized-repos.zip"; root_zip="" ;;   # baseline-v1 only, nothing outside the repos
+		*) die "usage: $0 from-zips [not-initialized]" ;;
+	esac
 	[ -f "$repos_zip" ] || die "missing $repos_zip"
-	[ -f "$root_zip" ] || die "missing $root_zip"
+	[ -z "$root_zip" ] || [ -f "$root_zip" ] || die "missing $root_zip"
 
 	if [ -f "$BENCH_DIR/saleor/.devcontainer/docker-compose.yml" ]; then
 		cmd_stop || true   # nothing may run on the folders that are replaced
@@ -181,9 +189,9 @@ cmd_from_zips() {
 	done
 	clean_workspace_root   # removes everything outside the repos except seed.dump, logs, envs
 
-	log "extracting $(basename "$repos_zip") and $(basename "$root_zip")"
+	log "extracting $(basename "$repos_zip")${root_zip:+ and $(basename "$root_zip")}"
 	unzip -q -o "$repos_zip" -d "$BENCH_DIR"
-	unzip -q -o "$root_zip" -d "$BENCH_DIR"
+	[ -z "$root_zip" ] || unzip -q -o "$root_zip" -d "$BENCH_DIR"
 	for r in "${REPOS[@]}"; do
 		git -C "$BENCH_DIR/$r" reset -q --hard HEAD   # the zip has only .git: rebuild the working files
 		echo "$r: $(git -C "$BENCH_DIR/$r" rev-parse --short HEAD) tags: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ') changes: $(git -C "$BENCH_DIR/$r" status --porcelain | wc -l | tr -d ' ')"
@@ -310,7 +318,7 @@ cmd_health() {
 case "${1:-}" in
 	setup) cmd_setup ;;
 	reset) shift; cmd_reset "$@" ;;
-	from-zips) cmd_from_zips ;;
+	from-zips) shift; cmd_from_zips "$@" ;;
 	start) cmd_start ;;
 	stop) cmd_stop ;;
 	health) cmd_health ;;

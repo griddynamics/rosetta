@@ -86,6 +86,8 @@ What `setup` does:
 
 Running `setup` again is safe: repos that already have `baseline-v1` and an existing `seed.dump` are reused. This is also how the Rosetta zip is used: extract it into `$BENCH_DIR` first, and `setup` then skips the clone.
 
+**Faster start without cloning:** `$B from-zips not-initialized && $B setup` extracts `test-library/saleor-not-initialized-repos.zip` (the `.git` of the three repos at `baseline-v1`, no Rosetta files, commits or tags; made from `saleor-initialized-repos.zip` by resetting to `baseline-v1` and pruning the rest), rebuilds the files with `git reset --hard`, and `setup` then only seeds the database and installs dependencies. Then tag your method as in its file (e.g. `grill-v1`).
+
 **Login:** dashboard `admin@example.com` / `admin` (local only).
 
 **Seed data:** nothing extra to create. You get a product catalog, 20 customers (password `password`), staff groups including Customer Support (useful for the PII check), and the admin above. Birthday, minimum age and storage conditions don't exist before the task, so test data for them comes from the agent's own tests and the programmer's check.
