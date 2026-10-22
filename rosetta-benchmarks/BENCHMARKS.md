@@ -283,7 +283,7 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 
 | # | Question | Answer | First asked in |
 | ---: | --- | --- | --- |
-| 1 | Where does the minimum age live: Product, ProductType or variant? Per region? | A flag on Product marks it age-restricted. The minimum age is one setting per store, 18, stored in the database. No regions or markets. | L-CC-02 |
+| 1 | Where does the minimum age live: Product, ProductType or variant? Per region? | A flag on Product marks it age-restricted. The minimum age is one setting per store, 18, stored in the database (see 11). No regions or markets. | L-CC-02 |
 | 2 | Where is the rule enforced? | Both when a line is added or updated in the checkout and when the checkout is completed. The check at completion is the authority. | L-CC-02 |
 | 3 | Staff draft orders: exempt? | No, they are checked the same way. A draft with an age-restricted product and no linked Customer is allowed and can be completed. | L-CC-02 |
 | 4 | Can the customer set and change their own birthday? Verification? | Yes, at any time, through their account. No identity verification. | L-CC-02 |
@@ -293,6 +293,11 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 | 8 | Audit log: what is stored? | Only the actor, the time and the action (read or change), no birthday values. The customer's own changes, staff changes and every staff read are logged. | L-CC-02 |
 | 9 | Nested objects (`order.user`, `checkout.user`) and leak tests? | The owner-or-super-admin check applies on every route including nested user objects, with leak tests for webhooks, exports and nested objects. | L-CC-02 |
 | 10 | Existing carts and orders when a product becomes restricted? | Carts that hold it fail at checkout completion with an error that names the product. Orders already placed stay unchanged. | L-CC-02 |
+| 11 | Who changes the store-wide minimum age, and how? | A field in the site settings, default 18, editable in the dashboard by staff with the site-settings permission. A change applies to all later checks. | L-CC-02 |
+| 12 | Draft order with a linked Customer who has no birthday? | Not eligible: the draft can't be completed until the Customer's birthday is set or the Customer link is removed. | L-CC-02 |
+| 13 | Birthday audit log: a separate model or the existing customer events? | Reuse the existing `CustomerEvent`. | L-CC-02 |
+| 14 | Does showing the "age eligible" flag to staff count as a read of the birthday? | Yes, it is audit-logged like a read of the date. | L-CC-02 |
+| 15 | Who sees the "age eligible" flag on `order.user` / `checkout.user`? | Only the owner and staff with the customer-management permission; null for everyone else. | L-CC-02 |
 
 ## 5. Running one experiment
 
