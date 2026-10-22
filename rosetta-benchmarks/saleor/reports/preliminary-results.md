@@ -43,7 +43,7 @@ Each run has its own folder with the agent's diffs, its own report and a token b
 | Red flags | 1 (said "done" while the feature was not usable in the running app) |
 | Tests at the end (operator) | pass (changed areas: backend 83, storefront 817, dashboard 77) |
 | Hidden answers followed in the final code | 8 / 8 applicable (#5 replaced by the variant) |
-| Operator score (1–5) / merge-ready | pending operator |
+| Operator score (1–5) / merge-ready | 4 / no (dashboard UI only on the staging-schema build; translations to review) |
 
 **Reading it:**
 - The interview was long (29 questions in 5 rounds, ~58 min of the agent waiting for answers) and asked 6 of the 9 hidden requirements; the other 3 (migration, marketing emails, legal review) were handled correctly without asking.

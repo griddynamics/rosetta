@@ -54,8 +54,8 @@ done_checks_total: 12
 done_checks_passed: 12
 red_flags: 1
 tests_pass: yes
-operator_score:            # 1–5, anchors in templates/README.md
-operator_merge_ready:      # yes | no
+operator_score: 4
+operator_merge_ready: no
 # Filled later by the evaluator from the judge reports
 verified_in_code: 8/8
 judge_absolute:            # /40
@@ -269,7 +269,7 @@ Evidence: at T1 (14:20) the three new migrations were not applied to the running
 - **Time without the operator's gaps:** T0 12:29:08 → T1 14:20:21 = 111.2 min. The agent waited for the operator 58.1 min before T1 (session log: 12:29:31→13:05:56 36.4, 13:06:20→13:13:47 7.5, 13:14:04→13:14:33 0.5, 13:14:49→13:17:13 2.4, 13:17:21→13:24:13 6.9, 13:24:23→13:28:49 4.4). Gap-free time 53.2 min; effective t0 = 13:27. Waits for its own background subagents (13:55) are agent time and are not removed.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a (not a Rosetta run)
 - Strong point of the method in this run: `<...>`
-- Weak point of the method in this run: `<...>`
+- Weak point of the method in this run: the first "done" had errors: the feature was not usable in the running app (database not migrated, dashboard UI behind a staging flag) until 2 follow-ups. Not merge-ready (operator): dashboard UI only on the staging-schema build, 10 `test_tasks.py` tests excluded without the operator's verification, agent-written translations in 8 locales need review.
 
 ## Appendix A. Raw `/cost` output
 
