@@ -1,24 +1,47 @@
 # Saleor benchmark: preliminary results (2026-10-22)
 
-**Status: preliminary.** What has been run so far, end to end with a report, on **Claude Code** (Sonnet 5.5, effort medium): **7 runs on the small task** (product "storage conditions" field across backend, dashboard and storefront) and **2 runs on the large task** (age-restricted products). Copilot runs and the other methods follow; the full version will be published later.
+**Status: preliminary, 9 of 32 runs done.** What has been run so far, end to end with a report, on **Claude Code** (Sonnet 5.5, effort medium): **7 runs on the small task** (product "storage conditions" field across backend, dashboard and storefront) and **2 runs on the large task** (age-restricted products). Copilot runs and the other methods follow; the full version will be published later.
 
 Each run has its own folder with the agent's diffs, its own report and a token breakdown: [`saleor/runs/`](../runs/). Generated table of all runs: [`summary.md`](./summary.md) (`python3 saleor/scripts/collect-results.py`). Method, rules and scoring: [`BENCHMARKS.md`](../../BENCHMARKS.md).
 
-## All runs · Claude Code
+## All runs (32 cells)
 
-One row per run. Numbers come from each run's report (data block); [`summary.md`](./summary.md) and [`runs.csv`](./runs.csv) are generated from the same reports. Hidden requirements: 7 in the small task, 9 in the large one. Time is to the first "done" (T1) and to the end of the last follow-up (T2), without the time the agent waited for the operator where the report computes it.
+The full matrix from [`EXPERIMENTS.md`](../EXPERIMENTS.md): 8 methods × 2 tasks × 2 runners (28 cells for the 7 slide methods + 4 for Rosetta Skills). Filled: **9 of 32** (all Claude Code). Numbers come from each run's report (data block); [`summary.md`](./summary.md) and [`runs.csv`](./runs.csv) are generated from the same reports. Hidden requirements: 7 in the small task, 9 in the large one. Time is to the first "done" (T1) and to the end of the last follow-up (T2), without the time the agent waited for the operator where the report computes it. Copilot cells wait for a Copilot seat with GPT-5.6 Terra.
 
-| Task | Run | Method | Operator | Questions asked (hidden / extra) | Hidden: asked / covered / missed | First-pass coverage | Follow-ups | Time to first "done" / total | Cost to first "done" / total | "Done when" passed | Red flags | Tests at the end | Score / merge-ready |
-| --- | --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | --- | --- |
-| Small | `S-CC-01` | Baseline (plan mode) | Nina Jakovljevic | 0 | 0 / 4 / 3 | 57 % | 3 | 29 min / 1 h 10 min | $1.24 / $3.31 | 7 / 8 | 1 | pass | 3 / no |
-| Small | `S-CC-02` | Grill-with-docs | Oleksii Poletaiev | 14 (5 / 9) | 5 / 2 / 0 | 100 % | 0 | 38 min / 38 min | $4.82 / $4.89 | 8 / 8 | 0 | pass | 4 / yes |
-| Small | `S-CC-03` | Superpowers | agavrilita | 1 (1 / 0) | 1 / 5 / 1 | 86 % | 1 | 44 min / 1 h 2 min | $6.76 / $8.08 | 7 / 8 | not assessed | pass | 3 / not reported |
-| Small | `S-CC-04` | Spec Kit | Oleksii Poletaiev | 0 | 0 / 4 / 3 | 57 % | 3 | 1 h 45 min / 3 h 23 min | $4.58 / ≈ $12.65 | 8 / 8 | 0 | pass | 3 / not stated |
-| Small | `S-CC-06` | Rosetta (`/coding-flow`) | Nina Jakovljevic | 12 (3 / 9) | 3 / 4 / 0 | 100 % | 0 | 2 h / 2 h 28 min | $21.30 / $21.37 | 8 / 8 | 1 | pass | 5 / yes |
-| Small | `S-CC-07` | Rosetta Light | Igor Solomatov | 12 (5 / 7) | 4 / 3 / 0 | 100 % | 0 | 1 h 32 min / 1 h 32 min | $5.48 / $5.48 | 8 / 8 | 0 | pass | 5 / yes |
-| Small | `S-CC-08` | Rosetta Skills | Igor Solomatov | 10 (3 / 7) | 3 / 3 / 1 | 86 % | 1 | 56 min / 56 min | $5.64 / $5.64 | 8 / 8 | 0 | pass | 5 / yes |
-| Large | `L-CC-02` | Grill-with-docs (task variant) | Oleksii Poletaiev | 29 (13 / 16) | 6 / 3 / 0 | 100 % | 2 | 53 min / 1 h 23 min | $9.46 / $10.17 | 12 / 12 | 1 | pass | 4 / no |
-| Large | `L-CC-03` | Superpowers | agavrilita | 3 (1 / 2) | 1 / 4 / 4 | 56 % | 1 | 1 h 48 min / 8 h 46 min | $14.31 / $35.11 | not filled | not filled | not filled | not filled |
+| Task | Runner | Run | Method | Status | Operator | Questions asked (hidden / extra) | Hidden: asked / covered / missed | First-pass coverage | Follow-ups | Time to first "done" / total | Cost to first "done" / total | "Done when" passed | Red flags | Tests at the end | Score / merge-ready |
+| --- | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| Small | Claude Code | `S-CC-01` | Baseline | done | Nina Jakovljevic | 0 | 0 / 4 / 3 | 57 % | 3 | 29 min / 1 h 10 min | $1.24 / $3.31 | 7 / 8 | 1 | pass | 3 / no |
+| Small | Claude Code | `S-CC-02` | Grill-with-docs (old setup) | done | Oleksii Poletaiev | 14 (5 / 9) | 5 / 2 / 0 | 100 % | 0 | 38 min / 38 min | $4.82 / $4.89 | 8 / 8 | 0 | pass | 4 / yes |
+| Small | Claude Code | `S-CC-03` | Superpowers (old setup) | done | agavrilita | 1 (1 / 0) | 1 / 5 / 1 | 86 % | 1 | 44 min / 1 h 2 min | $6.76 / $8.08 | 7 / 8 | not assessed | pass | 3 / not reported |
+| Small | Claude Code | `S-CC-04` | Spec Kit | done | Oleksii Poletaiev | 0 | 0 / 4 / 3 | 57 % | 3 | 1 h 45 min / 3 h 23 min | $4.58 / ≈ $12.65 | 8 / 8 | 0 | pass | 3 / not stated |
+| Small | Claude Code | `S-CC-05` | AWS AI-DLC | planned | | | | | | | | | | | |
+| Small | Claude Code | `S-CC-06` | Rosetta | done | Nina Jakovljevic | 12 (3 / 9) | 3 / 4 / 0 | 100 % | 0 | 2 h / 2 h 28 min | $21.30 / $21.37 | 8 / 8 | 1 | pass | 5 / yes |
+| Small | Claude Code | `S-CC-07` | Rosetta Light | done | Igor Solomatov | 12 (5 / 7) | 4 / 3 / 0 | 100 % | 0 | 1 h 32 min / 1 h 32 min | $5.48 / $5.48 | 8 / 8 | 0 | pass | 5 / yes |
+| Small | Claude Code | `S-CC-08` | Rosetta Skills | done | Igor Solomatov | 10 (3 / 7) | 3 / 3 / 1 | 86 % | 1 | 56 min / 56 min | $5.64 / $5.64 | 8 / 8 | 0 | pass | 5 / yes |
+| Small | Copilot | `S-CP-01` | Baseline | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Small | Copilot | `S-CP-02` | Grill-with-docs | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Small | Copilot | `S-CP-03` | Superpowers | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Small | Copilot | `S-CP-04` | Spec Kit | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Small | Copilot | `S-CP-05` | AWS AI-DLC | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Small | Copilot | `S-CP-06` | Rosetta | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Small | Copilot | `S-CP-07` | Rosetta Light | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Small | Copilot | `S-CP-08` | Rosetta Skills | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Large | Claude Code | `L-CC-01` | Baseline | planned | | | | | | | | | | | |
+| Large | Claude Code | `L-CC-02` | Grill-with-docs (task variant) | done | Oleksii Poletaiev | 29 (13 / 16) | 6 / 3 / 0 | 100 % | 2 | 53 min / 1 h 23 min | $9.46 / $10.17 | 12 / 12 | 1 | pass | 4 / no |
+| Large | Claude Code | `L-CC-03` | Superpowers (old setup) | done | agavrilita | 3 (1 / 2) | 1 / 4 / 4 | 56 % | 1 | 1 h 48 min / 8 h 46 min | $14.31 / $35.11 | not filled | not filled | not filled | not filled |
+| Large | Claude Code | `L-CC-04` | Spec Kit | planned | | | | | | | | | | | |
+| Large | Claude Code | `L-CC-05` | AWS AI-DLC | planned | | | | | | | | | | | |
+| Large | Claude Code | `L-CC-06` | Rosetta | planned | | | | | | | | | | | |
+| Large | Claude Code | `L-CC-07` | Rosetta Light | planned | | | | | | | | | | | |
+| Large | Claude Code | `L-CC-08` | Rosetta Skills | planned | | | | | | | | | | | |
+| Large | Copilot | `L-CP-01` | Baseline | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Large | Copilot | `L-CP-02` | Grill-with-docs | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Large | Copilot | `L-CP-03` | Superpowers | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Large | Copilot | `L-CP-04` | Spec Kit | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Large | Copilot | `L-CP-05` | AWS AI-DLC | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Large | Copilot | `L-CP-06` | Rosetta | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Large | Copilot | `L-CP-07` | Rosetta Light | planned (needs a Copilot seat) | | | | | | | | | | | |
+| Large | Copilot | `L-CP-08` | Rosetta Skills | planned (needs a Copilot seat) | | | | | | | | | | | |
 
 **Reading it:**
 - **Small task:** the methods that interview before coding (Grill-with-docs, Rosetta, Rosetta Light) reached 100 % first-pass coverage and needed no follow-ups; Baseline and Spec Kit asked nothing and missed the same 3 hidden requirements. Rosetta Light and Rosetta Skills got the same top operator score as full Rosetta (5 / merge-ready) at about a quarter of its cost ($5.48 and $5.64 against $21.37). Rosetta Skills missed one hidden requirement (CSV export and webhook payloads) in its first spec and needed 1 follow-up.
