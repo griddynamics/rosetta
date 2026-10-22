@@ -81,7 +81,7 @@ What `setup` does:
 1. Downloads the three repos at pinned commits that work together (current `main` branches don't): `saleor` 3.23.41 (`28a1227b…`), `saleor-dashboard` 3.23.39 (`bc75e988…`), `react-storefront` Paper (`05641e1f…`). Don't use the deprecated `saleor/saleor-storefront`.
 2. Removes Saleor's own AI instructions and adds our rules file (3.3), commits, and tags `baseline-v1` in all three repos.
 3. Builds and starts the backend in Docker, runs migrations and `populatedb --createsuperuser`.
-4. Saves the database to `$BENCH_DIR/seed.dump`, so every run starts from exactly the same data (`populatedb` makes random data).
+4. Puts the shared database `test-library/saleor-seed.dump` into `$BENCH_DIR/seed.dump` and restores it, so every run of every operator starts from exactly the same data (`populatedb` makes random data, so a dump made on each machine would differ). `setup`, `from-zips` and `reset` all check this: a different local `seed.dump` is moved to `$BENCH_DIR/logs/seed.dump.own-<time>` and replaced by the shared one. Only without the shared file does `setup` run `populatedb` and save its own dump.
 5. Installs storefront and dashboard dependencies.
 
 Running `setup` again is safe: repos that already have `baseline-v1` and an existing `seed.dump` are reused. This is also how the Rosetta zip is used: extract it into `$BENCH_DIR` first, and `setup` then skips the clone.

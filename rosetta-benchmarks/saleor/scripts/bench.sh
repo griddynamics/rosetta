@@ -23,6 +23,7 @@ BENCH_DIR="${BENCH_DIR:-$HOME/saleor-benchmark}"
 BENCH_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # rosetta-benchmarks/saleor
 BASELINE_FILE="$BENCH_ROOT/baseline-instructions.md"
 SEED_DUMP="$BENCH_DIR/seed.dump"
+SHARED_SEED_NAME="saleor-seed.dump"   # in test-library/: one database for every operator and machine
 LOG_DIR="$BENCH_DIR/logs"
 PROJECT="saleor-benchmark"
 API_CONTAINER="saleor-benchmark-api"
@@ -128,6 +129,7 @@ cmd_setup() {
 	compose up -d db cache mailpit saleor
 	wait_for_db
 
+	sync_shared_seed
 	if [ -f "$SEED_DUMP" ]; then
 		log "seed.dump already exists, restoring it instead of seeding again"
 		restore_db
@@ -167,10 +169,31 @@ cmd_setup() {
 # Rosetta starting point: delete what is there, extract the two zips from test-library/.
 #   repos zip: the entire .git of the 3 repos (init commit); the working files are rebuilt with git reset --hard
 #   root zip:  the files Rosetta created in $BENCH_DIR outside the repos
+test_library() {
+	echo "${TEST_LIBRARY:-$(git -C "$BENCH_ROOT" rev-parse --show-toplevel)/test-library}"
+}
+
+# populatedb makes random data, so a dump made on one machine differs from another's.
+# Everyone uses the shared test-library dump; an own, different dump is moved to logs/.
+sync_shared_seed() {
+	local shared
+	shared="$(test_library)/$SHARED_SEED_NAME"
+	[ -f "$shared" ] || { log "no shared $SHARED_SEED_NAME in test-library, keeping the local seed.dump"; return 0; }
+	cmp -s "$shared" "$SEED_DUMP" 2>/dev/null && return 0
+	if [ -f "$SEED_DUMP" ]; then
+		mkdir -p "$LOG_DIR"
+		mv "$SEED_DUMP" "$LOG_DIR/seed.dump.own-$(date +%Y%m%d-%H%M%S)"
+		log "seed.dump differs from the shared one: moved it to $LOG_DIR"
+	fi
+	mkdir -p "$BENCH_DIR"
+	cp "$shared" "$SEED_DUMP"
+	log "seed.dump = test-library/$SHARED_SEED_NAME"
+}
+
 # Dependencies (node_modules, .venv), seed.dump, logs and envs are kept. Files only: run setup, start, health after it.
 cmd_from_zips() {
 	local tl repos_zip root_zip
-	tl="${TEST_LIBRARY:-$(git -C "$BENCH_ROOT" rev-parse --show-toplevel)/test-library}"
+	tl="$(test_library)"
 	case "${1:-initialized}" in
 		initialized) repos_zip="$tl/saleor-initialized-repos.zip"; root_zip="$tl/saleor-initialized-root.zip" ;;
 		not-initialized) repos_zip="$tl/saleor-not-initialized-repos.zip"; root_zip="" ;;   # baseline-v1 only, nothing outside the repos
@@ -188,6 +211,7 @@ cmd_from_zips() {
 		find "$BENCH_DIR/$r" -mindepth 1 -maxdepth 1 ! -name node_modules ! -name .venv -exec rm -rf {} +
 	done
 	clean_workspace_root   # removes everything outside the repos except seed.dump, logs, envs
+	sync_shared_seed
 
 	log "extracting $(basename "$repos_zip")${root_zip:+ and $(basename "$root_zip")}"
 	unzip -q -o "$repos_zip" -d "$BENCH_DIR"
@@ -241,6 +265,7 @@ clean_workspace_root() {
 cmd_reset() {
 	local tag="${1:-}"
 	[ -n "$tag" ] || die "usage: $0 reset <TAG>   (e.g. baseline-v1, rosetta-v1)"
+	sync_shared_seed
 	[ -f "$SEED_DUMP" ] || die "no $SEED_DUMP; run '$0 setup' first"
 
 	for r in "${REPOS[@]}"; do
