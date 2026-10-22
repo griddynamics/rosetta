@@ -10,7 +10,7 @@ One folder per run ID. A new run of the same ID replaces the folder: commit the 
 Each report has two parts:
 
 - **Data block** (YAML front matter at the top): every number of the run, with fixed names. It is the only place for numbers.
-- **Evidence** (sections below it): timeline, hidden questions, "Done when" checks, red flags, and appendices with the raw `/cost` output and agent messages. Every number in the data block must be traceable to a row here.
+- **Evidence** (sections below it): timeline, hidden questions, "Done when" checks, red flags, and appendices with the raw `/usage` output and agent messages. Every number in the data block must be traceable to a row here.
 
 ## Measurement rules
 
@@ -32,10 +32,10 @@ The same rules for every operator, so results are comparable.
 | `time_total_min` *(computed when comparing)* | min | `t2 − t0`. Time until the task is really done. |
 | `setup_min` | min | One-time method installation and init. Not part of any run. |
 | `t1_*`, `t2_*` tokens | tokens | Input, output, cache read, cache write, as the runner reports them. |
-| `t1_cost_usd`, `t2_cost_usd` | USD | Claude Code `/cost` total. Copilot: leave empty. |
-| `t1_premium_requests`, `t2_premium_requests` | requests | Copilot premium-request counter for the session. Claude Code: leave empty. |
+| `t1_cost_usd`, `t2_cost_usd` | USD | Claude Code: the `Total cost` line of `/usage`. Copilot: leave empty. |
+| `t1_ai_credits`, `t2_ai_credits` | AI credits | Copilot CLI: AI credits for the session, from `/usage` or `tokens.md`. Claude Code: leave empty. |
 | `tokens_total` *(computed when comparing)* | tokens | `t2` input + output + cache write. Cache reads are listed separately (they are cheaper). |
-| `rework_share` *(computed when comparing)* | % | Usage after T1 ÷ usage at T2 (cost, or premium requests for Copilot). How much was spent to fix a "done" that wasn't done. |
+| `rework_share` *(computed when comparing)* | % | Usage after T1 ÷ usage at T2 (cost for Claude Code, AI credits for Copilot CLI). How much was spent to fix a "done" that wasn't done. |
 | `subagents` | count | Subagents launched in the session. |
 | `method_steps` | count | Messages that only move the method to its next step: `Approved, continue.` or the method's own next command. Baseline: also the plan approval in the runner's menu. |
 | `questions_total` | count | Agent questions answered by the operator. `= questions_hidden + questions_extra`. |
@@ -55,7 +55,7 @@ The same rules for every operator, so results are comparable.
 | `judge_absolute`, `judge_side_by_side` | /40 | Judge scores (BENCHMARKS.md, section 6). |
 | `judge_merge_ready` | yes / no | Judge's merge-ready verdict. |
 
-Allowed values: `method` is one of `baseline`, `grill-with-docs`, `superpowers`, `spec-kit`, `aws-ai-dlc`, `rosetta`, `rosetta-light`. `runner` is one of `claude-code`, `copilot`, `copilot-cli`. `status` is one of `done`, `not-qualifying`, `infra-fail`. `setup_mark` is one of `official`, `copilot-cli`, `manual-port`.
+Allowed values: `method` is one of `baseline`, `grill-with-docs`, `superpowers`, `spec-kit`, `aws-ai-dlc`, `rosetta`, `rosetta-light`, `rosetta-skills`. `runner` is one of `claude-code`, `copilot`. `status` is one of `done`, `not-qualifying`, `infra-fail`. `setup_mark` is one of `official`, `manual-port`.
 
 ## How runs are compared
 

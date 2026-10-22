@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Break down where the tokens of one Claude Code session went.
+"""Break down where the tokens of one Claude Code or GitHub Copilot CLI session went.
 
 Claude Code writes every session to $CLAUDE_CONFIG_DIR/projects/<workspace>/<session-id>.jsonl, and every
-subagent to <session-id>/subagents/agent-<id>.jsonl (+ .meta.json). This script reads them and reports
-tokens per model, per agent (main + each subagent), per operator message (prompt, answers, follow-ups),
-and tool / skill / subagent calls.
+subagent to <session-id>/subagents/agent-<id>.jsonl (+ .meta.json). Copilot CLI writes every session to
+$COPILOT_HOME/session-state/<session-id>/events.jsonl, with one `session.usage_record` per model call.
+This script reads either and reports tokens per model, per agent (main + each subagent), per operator message
+(prompt, answers, follow-ups), and tool / skill / subagent calls. The format is recognized from the path.
 
 Usage:
-  session-usage.py <session.jsonl | projects dir>             # a dir → its newest session
+  session-usage.py <session.jsonl | projects dir>             # Claude Code; a dir → its newest session
+  session-usage.py <events.jsonl | session dir | session-state dir>   # Copilot CLI; session-state → newest session
       [--t1 2026-10-20T14:05]                                  # split usage at T1 (local time)
       [--copy-to <RUN_DIR>]                                    # also save the raw logs into the run's artifacts
       [--out <RUN_DIR>/tokens.md]                              # write the report to a file (default: stdout)
@@ -129,6 +131,76 @@ def find_session(arg):
     return p
 
 
+def find_copilot_session(arg):
+    """The events.jsonl of a Copilot CLI session, or None when the path is a Claude Code log."""
+    p = Path(arg).expanduser()
+    if p.is_file():
+        return p if p.name == "events.jsonl" else None
+    if (p / "events.jsonl").is_file():
+        return p / "events.jsonl"
+    files = sorted(p.glob("*/events.jsonl"), key=lambda f: f.stat().st_mtime)
+    return files[-1] if files else None
+
+
+def copilot_session(events_file):
+    """Copilot CLI events → the same shapes the report uses for Claude Code.
+
+    Copilot's inputTokens include the cached tokens; Claude Code's input_tokens don't. The cached tokens are
+    taken out, so the columns mean the same for both runners. Output tokens include reasoning tokens."""
+    rows = read_jsonl(events_file)
+    calls, prompts, reasoning = [], [], 0
+    tools, skills, subagent_types = Counter(), Counter(), Counter()
+    checkpoint = {}
+    for e in rows:
+        kind, data, ts = e.get("type"), e.get("data") or {}, parse_ts(e.get("timestamp"))
+        if kind == "session.usage_record":
+            u = data.get("usage") or {}
+            read, write = u.get("cacheReadTokens") or 0, u.get("cacheWriteTokens") or 0
+            reasoning += u.get("reasoningTokens") or 0
+            calls.append({"model": u.get("model"), "ts": ts, "tools": [],
+                          "usage": {"input_tokens": max((u.get("inputTokens") or 0) - read - write, 0),
+                                    "output_tokens": u.get("outputTokens") or 0,
+                                    "cache_read_input_tokens": read, "cache_creation_input_tokens": write}})
+        elif kind == "user.message":
+            text = data.get("content") if isinstance(data.get("content"), str) else ""
+            text = text.strip()
+            if text and not (text.startswith("/") and text.split()[0] in LOCAL_COMMANDS):
+                prompts.append((ts, text))
+        elif kind == "tool.execution_start":
+            tools[data.get("toolName")] += 1
+            if calls:
+                calls[-1]["tools"].append({"name": data.get("toolName")})
+        elif kind == "skill.invoked":
+            skills[data.get("name") or "?"] += 1
+        elif kind == "subagent.started":
+            subagent_types[f"{data.get('agentName') or data.get('name') or '?'} ({data.get('model') or 'default model'})"] += 1
+        elif kind == "session.usage_checkpoint":
+            checkpoint = data
+    acc = checkpoint.get("accountingSnapshot") or {}
+    agent_rows = []
+    for name, metrics in (acc.get("agentMetrics") or {"main": {}}).items():
+        t, n, models = Counter(), 0, []
+        for model, m in (metrics.get("modelMetrics") or {}).items():
+            u = m.get("usage") or {}
+            read, write = u.get("cacheReadTokens") or 0, u.get("cacheWriteTokens") or 0
+            add(t, {"input_tokens": max((u.get("inputTokens") or 0) - read - write, 0), "output_tokens": u.get("outputTokens") or 0,
+                    "cache_read_input_tokens": read, "cache_creation_input_tokens": write})
+            n += (m.get("requests") or {}).get("count") or 0
+            models.append(model)
+        agent_rows.append((name, "main agent" if name == "main" else "subagent", ", ".join(sorted(models)) or "–", n, t))
+    totals = []
+    if "totalPremiumRequests" in checkpoint:
+        totals.append(f"premium requests {checkpoint['totalPremiumRequests']}")
+    if "totalNanoAiu" in checkpoint:
+        totals.append(f"AI credits {checkpoint['totalNanoAiu'] / 1e9:g} (total_nano_aiu {checkpoint['totalNanoAiu']})")
+    note = ("Token counts are taken from the log as they are. Input excludes cached tokens, as for Claude Code; "
+            f"output includes {fmt(reasoning)} reasoning tokens. Usage from the log: {', '.join(totals) or 'not recorded'}. "
+            "The runner's own figure: `/usage`.")
+    return {"id": events_file.parent.name, "log": events_file, "agents": [("main", "main agent", None, calls)],
+            "agent_rows": agent_rows, "prompts": prompts, "tools": tools, "skills": skills,
+            "subagent_types": subagent_types, "note": note}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("session")
@@ -137,8 +209,14 @@ def main():
     ap.add_argument("--out", type=Path)
     args = ap.parse_args()
 
+    copilot_file = find_copilot_session(args.session)
+    if copilot_file:
+        report_copilot(args, copilot_session(copilot_file))
+        return
     main_file = find_session(args.session)
     sub_dir = main_file.with_suffix("") / "subagents"
+    if not sub_dir.is_dir():            # a log saved with --copy-to keeps its subagents next to it
+        sub_dir = main_file.parent / "subagents"
     main_rows = read_jsonl(main_file)
 
     agents = [("main", "main agent", None, model_calls(main_rows))]
@@ -168,7 +246,7 @@ def main():
         f"- Tokens: input {fmt(total['input_tokens'])} · output {fmt(total['output_tokens'])} · cache read {fmt(total['cache_read_input_tokens'])} · cache write {fmt(total['cache_creation_input_tokens'])}",
         f"- Largest single request (context size): {fmt(peak)} tokens",
         "",
-        "Token counts are taken from the logs as they are. Cost: use `/cost` from the runner.",
+        "Token counts are taken from the logs as they are. Cost: use `/usage` from the runner.",
         "",
     ]
 
@@ -254,6 +332,77 @@ def main():
         if sub_dir.is_dir():
             shutil.copytree(sub_dir, dest / "subagents", dirs_exist_ok=True)
         print(f"raw logs → {dest}")
+
+
+def report_copilot(args, d):
+    calls = d["agents"][0][3]
+    times = [c["ts"] for c in calls if c["ts"]]
+    t1 = local_ts(args.t1) if args.t1 else None
+    log_ref = f"session/{d['id']}/events.jsonl" if args.copy_to else d["log"].name
+    total = Counter()
+    for c in calls:
+        add(total, c["usage"])
+    peak = max((sum(c["usage"].get(k) or 0 for k in ("input_tokens", "cache_read_input_tokens",
+                                                     "cache_creation_input_tokens")) for c in calls), default=0)
+    out = [f"# Session usage: `{d['id']}` (GitHub Copilot CLI)", "",
+           f"- Log: `{log_ref}`",
+           f"- First / last model call: {min(times).astimezone():%Y-%m-%d %H:%M:%S} / {max(times).astimezone():%H:%M:%S}" if times else "- No model calls",
+           f"- Model calls: {len(calls)}; subagents launched: {sum(d['subagent_types'].values())}",
+           f"- Tokens: input {fmt(total['input_tokens'])} · output {fmt(total['output_tokens'])} · cache read {fmt(total['cache_read_input_tokens'])} · cache write {fmt(total['cache_creation_input_tokens'])}",
+           f"- Largest single request (context size): {fmt(peak)} tokens", "", d["note"], ""]
+    if t1:
+        before, after = Counter(), Counter()
+        for c in calls:
+            add(before if c["ts"] and c["ts"] <= t1 else after, c["usage"])
+        out += ["## Before / after T1", ""] + header("Part")
+        out += [row(f"Until T1 ({args.t1})", before), row("After T1 (rework)", after), row("Total", total), ""]
+    by_model, n_model = defaultdict(Counter), Counter()
+    for c in calls:
+        add(by_model[c["model"]], c["usage"])
+        n_model[c["model"]] += 1
+    out += ["## By model", ""] + header("Model", ("Calls",))
+    for model, t in sorted(by_model.items(), key=lambda kv: -sum(kv[1].values())):
+        out.append(row(f"`{model}`", t, (str(n_model[model]),)))
+    out.append("")
+    out += ["## By agent", "", "From the session's last usage checkpoint.", ""] + header("Agent", ("Type", "Model(s)", "Calls"))
+    for name, kind, models, n, t in d["agent_rows"]:
+        out.append(row(name, t, (kind, models, str(n))))
+    out.append("")
+    turns = []
+    prompts = d["prompts"]
+    for i, (ts, txt) in enumerate(prompts):
+        end = prompts[i + 1][0] if i + 1 < len(prompts) else None
+        t, n = Counter(), 0
+        for c in calls:
+            if c["ts"] and ts and c["ts"] >= ts and (end is None or c["ts"] < end):
+                add(t, c["usage"])
+                n += 1
+        turns.append((ts, txt, t, n))
+    if turns:
+        out += ["## By operator message", "", "Tokens spent (main agent + subagents) after each message the operator sent, until the next one.", ""]
+        out += header("#", ("Time", "Operator message (start)", "Calls"))
+        for i, (ts, txt, t, n) in enumerate(turns, 1):
+            short = txt.replace("|", "/").replace("\n", " ")[:60]
+            out.append(row(str(i), t, (f"{ts.astimezone():%H:%M:%S}" if ts else "–", short, str(n))))
+        out.append("")
+    out += ["## Tool calls", "", "| Tool | Calls |", "|---|---|"] + [f"| `{k}` | {v} |" for k, v in d["tools"].most_common()] + [""]
+    if d["skills"]:
+        out += ["### Skills loaded", "", "| Skill | Calls |", "|---|---|"] + [f"| `{k}` | {v} |" for k, v in d["skills"].most_common()] + [""]
+    if d["subagent_types"]:
+        out += ["### Subagents launched", "", "| Type (model) | Count |", "|---|---|"] + [f"| {k} | {v} |" for k, v in d["subagent_types"].most_common()] + [""]
+    text = "\n".join(out)
+    if args.out:
+        args.out.write_text(text, encoding="utf-8")
+        print(f"report → {args.out}")
+    else:
+        print(text)
+    if args.copy_to:
+        dest = args.copy_to / "session" / d["id"]
+        dest.mkdir(parents=True, exist_ok=True)
+        for f in ("events.jsonl", "workspace.yaml"):
+            if (d["log"].parent / f).exists():
+                shutil.copy2(d["log"].parent / f, dest / f)
+        print(f"raw log → {dest}")
 
 
 if __name__ == "__main__":
