@@ -12,7 +12,7 @@ baseSchema: docs/schemas/phase.md
 ## Context
 
 **PREREQUISITES:** 
-- Complete Phase 7 (final cross-project review)
+- Complete Phase 7 (final cross-project review). EXCEPTION — on the reduced route recorded in the state file, Phase 7 is skipped: complete Phase 6 instead; the single-project scope note in the state file replaces the cross-project review.
 - **EXPLICIT HUMAN APPROVAL** of all target specs
 
 ## Requirements

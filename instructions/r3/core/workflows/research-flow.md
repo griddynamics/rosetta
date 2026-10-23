@@ -45,7 +45,7 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 <execute_research phase="3" subagent="researcher" role="Deep research executor" subagent_required_model="claude-sonnet-5-5, gpt-6-luna-high, gemini-3.8-flash-high, grok-4.7">
 
-1. Execute the approved research prompt as a separate subagent.
+1. Execute the approved research prompt directly in this researcher context (no nested subagent; the workflow owns dispatch).
 2. Input: approved `research-prompt.md`. Output: `docs/<feature>-research.md`.
 3. Required skills: `research`
 4. Update `research-flow-state.md`.
