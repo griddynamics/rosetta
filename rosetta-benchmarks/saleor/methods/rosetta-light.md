@@ -203,6 +203,8 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 
 In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu lists the `hitl` and `tech-specs` skills; `/plugin` shows `rosetta-light`. If not: `/exit`, repeat step 2, start again.
 
+**When the checks pass: `/exit`, then start `claude` again WITHOUT the cleanup lines** (`find … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5)`. This is a NEW session (never `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
+
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
 ```text
@@ -321,6 +323,8 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 ```
 
 In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu lists the `hitl` and `tech-specs` skills; `/plugin` shows `rosetta-light`. If not: `/exit`, repeat step 2, start again.
+
+**When the checks pass: `/exit`, then start `claude` again WITHOUT the cleanup lines** (`find … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5)`. This is a NEW session (never `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
