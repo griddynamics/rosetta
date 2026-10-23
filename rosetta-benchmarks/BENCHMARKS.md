@@ -162,7 +162,9 @@ copilot config model gpt-5.6-terra         # fixed model, never Auto
 copilot config effortLevel medium
 copilot config continueOnAutoMode false    # no switch to Auto on rate limits
 copilot config sandbox.enabled false     # sandbox off (section 2)
-copilot config ignoredSkillsLocations "$HOME/.agents/skills"   # shared skill folder outside COPILOT_HOME: skip it
+copilot config ignoredSkillsLocations "$HOME/.agents/skills"   # skill folders outside COPILOT_HOME that Copilot reads anyway: skip them
+copilot config ignoredSkillsLocations "$HOME/.claude/skills"
+copilot config ignoredSkillsLocations "$HOME/.github/skills"
 ```
 
 - **Login and folder trust, once per environment.** Each method file has a one-time login and folder-trust step for both runners (part 1 for Claude Code, part 4 for Copilot CLI). Repository skills, agents and hooks load only in a trusted folder.
@@ -176,7 +178,7 @@ copilot config ignoredSkillsLocations "$HOME/.agents/skills"   # shared skill fo
   - `--plan --dynamic-retrieval skills=off` are for Baseline only. The other methods need their own skills, so they never get them.
 
 - **Repo tags.** Each method's tag is built directly on `baseline-v1`, never on another method's tag, so repos contain only that method's files.
-- **Nothing global.** Neither runner gets user-level instructions, agents, commands, skills, hooks or MCP servers. Claude Code reads only the method's `CLAUDE_CONFIG_DIR` and Copilot CLI only the method's `COPILOT_HOME` (see above), so `~/.claude` and `~/.copilot` are never used. One exception: Copilot CLI also reads personal skills from `~/.agents/skills`, a folder several AI tools share, which `COPILOT_HOME` doesn't move. The common Copilot settings tell it to skip that folder (`ignoredSkillsLocations`). Claude Code doesn't read it. Memory is off in both runners. The isolation check flags user-level files as `user-level:` lines. If a method's installer writes global files or hooks, remove them after its runs and before any other method (AI-DLC: `~/.local/bin/aidlc` and `~/.local/share/aidlc`).
+- **Nothing global.** Neither runner gets user-level instructions, agents, commands, skills, hooks or MCP servers. Claude Code reads only the method's `CLAUDE_CONFIG_DIR` and Copilot CLI only the method's `COPILOT_HOME` (see above), so `~/.claude` and `~/.copilot` are never used. One exception: Copilot CLI also reads skills from the parent folders of `$BENCH_DIR`, because `$BENCH_DIR` is not a git repository. It walks up to `$HOME` and loads `.agents/skills`, `.claude/skills` and `.github/skills` from each folder as "Inherited skills", whatever `COPILOT_HOME` is. The common Copilot settings tell it to skip the three `$HOME` folders (`ignoredSkillsLocations`), and the isolation check expects no "Inherited skills" section in `skill list`. Claude Code reads none of them. Memory is off in both runners. The isolation check flags user-level files as `user-level:` lines. If a method's installer writes global files or hooks, remove them after its runs and before any other method (AI-DLC: `~/.local/bin/aidlc` and `~/.local/share/aidlc`).
 - **No human-side AI.** The programmer answers questions and writes follow-ups themselves. Don't use ChatGPT, another agent, or another session to answer, to review the result, or to write a follow-up. An AI helper for the operator's bookkeeping (recording the run, copying answer texts from the tables) is fine, but it must not invent follow-ups, questions, hints or checks.
 - **Isolation check before every run.** It proves that the run has the runner, the model and the method under test, and nothing else. The exact commands are in step 3 of each Claude Code run and in part 4.8 (Copilot CLI) of each method file. The output is saved as `isolation.txt` and pasted into the run report. Both runners check the same things:
 

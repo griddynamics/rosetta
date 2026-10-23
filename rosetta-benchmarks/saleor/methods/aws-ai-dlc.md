@@ -439,7 +439,9 @@ copilot config model gpt-5.6-terra                   # never Auto
 copilot config effortLevel medium
 copilot config continueOnAutoMode false
 copilot config sandbox.enabled false
-copilot config ignoredSkillsLocations "$HOME/.agents/skills"   # shared skill folder outside COPILOT_HOME: skip it
+copilot config ignoredSkillsLocations "$HOME/.agents/skills"   # skill folders outside COPILOT_HOME that Copilot reads anyway: skip them
+copilot config ignoredSkillsLocations "$HOME/.claude/skills"
+copilot config ignoredSkillsLocations "$HOME/.github/skills"
 copilot config --list
 ```
 
@@ -485,7 +487,7 @@ In the session: accept the folder-trust prompt with the option that remembers th
   copilot -C "$BENCH_DIR" plugin list; copilot -C "$BENCH_DIR" skill list; copilot -C "$BENCH_DIR" mcp list; copilot -C "$BENCH_DIR" instruction list
   copilot config hooks 2>/dev/null || echo "(no inline hooks)"
   echo "sandbox.enabled=$(copilot config sandbox.enabled)"
-  for p in "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json; do [ -e "$p" ] && echo "user-level: $p"; done
+  for p in "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/instructions "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json "$COPILOT_HOME"/lsp-config.json; do [ -e "$p" ] && echo "user-level: $p"; done
   RULES="$SB/baseline-instructions.md"   # the team rules file (BENCHMARKS.md 3.3)
   tail -n +4 "$SB/copilot-rules/.github/instructions/team-rules.instructions.md" | cmp -s - "$RULES" && echo "copilot-rules: team-rules.instructions.md = baseline rules" || echo "copilot-rules: team-rules.instructions.md DIFFERS"
   for r in saleor saleor-dashboard react-storefront; do
@@ -497,7 +499,7 @@ In the session: accept the folder-trust prompt with the option that remembers th
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: `COPILOT_HOME` = `envs/aws-ai-dlc/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, and `skill list` shows none of that folder's skills; no plugins; `skill list` shows the `aidlc*` skills and the CLI's built-in ones only; `instruction list` shows `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`) plus AI-DLC's root `AGENTS.md`; no MCP servers except the CLI's built-in GitHub ones (`--disable-builtin-mcps` turns them off in the session); no inline hooks; no `user-level:` lines; `aidlc-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: `COPILOT_HOME` = `envs/aws-ai-dlc/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; no plugins; `skill list` shows the `aidlc*` skills and the CLI's built-in ones only; `instruction list` shows `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`) plus AI-DLC's root `AGENTS.md`; no MCP servers except the CLI's built-in GitHub ones (`--disable-builtin-mcps` turns them off in the session); no inline hooks; no `user-level:` lines; `aidlc-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
 
 ## 5. Run S-CP-05: small task: product storage conditions, Copilot
 
