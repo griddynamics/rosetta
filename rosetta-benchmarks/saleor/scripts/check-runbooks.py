@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Check the 7 method files in saleor/methods/: run their shell blocks in a sandbox and check the texts.
+"""Check the 8 method files in saleor/methods/: run their shell blocks in a sandbox and check the texts.
 
-    python3 saleor/scripts/check-runbooks.py                 # all 7 methods
+    python3 saleor/scripts/check-runbooks.py                 # all 8 methods
     python3 saleor/scripts/check-runbooks.py spec-kit rosetta  # only these
 
 For each method file:
@@ -9,8 +9,8 @@ For each method file:
   against a sandbox workspace (3 small git repos tagged baseline-v1) and a stub bench.sh (reset = checkout tag +
   clean workspace root; start / health = no-op). Downloads and installs are real, into the sandbox.
   Skipped, because they need a person or Docker: /login, the agent session and its replies, nvm, sleep.
-- every text box for the agent is checked: the T0 text is "<command> + the Starter Prompt" from BENCHMARKS.md
-  section 4, word for word; the post-implementation prompt uses the right `git diff`.
+- every text box for the agent is checked: the T0 text is "<command> + the Starter Prompt (+ the method's own
+  closing lines)" from BENCHMARKS.md section 4, word for word; the post-implementation prompt uses the right `git diff`.
 - parts 4–6 (Copilot) are only checked for being there (Copilot is not runnable yet).
 """
 import json
@@ -27,10 +27,14 @@ BENCH_MD = SALEOR.parent / "BENCHMARKS.md"
 REPO = SALEOR.parents[1]
 SANDBOX = Path(os.environ.get("RB_SANDBOX", Path(tempfile.gettempdir()) / "rb-check"))
 REPOS = ["saleor", "saleor-dashboard", "react-storefront"]
-METHODS = {"baseline": ("01", "baseline-v1", ""), "grill-with-docs": ("02", "grill-v1", "/grill-with-docs"),
-           "superpowers": ("03", "superpowers-v1", "/superpowers:brainstorming"), "spec-kit": ("04", "speckit-v1", "/speckit-specify"),
-           "aws-ai-dlc": ("05", "aidlc-v1", "/aidlc feature"), "rosetta": ("06", "rosetta-v1", "/coding-flow"),
-           "rosetta-light": ("07", "rosetta-light-v1", "/coding-flow")}
+# key: (method number, start tag, T0 command, text after the Starter Prompt)
+SKILLS_LINE = "\n\nMUST USE SKILLS hitl, tech-specs."
+METHODS = {"baseline": ("01", "baseline-v1", "", ""), "grill-with-docs": ("02", "grill-v1", "/grill-with-docs", ""),
+           "superpowers": ("03", "superpowers-v1", "/superpowers:brainstorming", ""), "spec-kit": ("04", "speckit-v1", "/speckit-specify", ""),
+           "aws-ai-dlc": ("05", "aidlc-v1", "/aidlc feature", ""), "rosetta": ("06", "rosetta-v1", "/coding-flow", ""),
+           "rosetta-light": ("07", "rosetta-light-v1", "", SKILLS_LINE + "\n\nUSE ROSETTA SUBAGENTS."),
+           "rosetta-skills": ("08", "rosetta-skills-v1", "", SKILLS_LINE)}
+FILES = {"rosetta": "rosetta-flow.md"}   # method key -> file name, where they differ
 COMMITS = {"superpowers", "spec-kit", "aws-ai-dlc"}
 
 STUB_BENCH = r"""#!/bin/bash
@@ -45,7 +49,12 @@ case "${1:-}" in
       [ -e "$item" ] || continue
       case "$(basename "$item")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs) ;; *) rm -rf "$item" ;; esac
     done ;;
-  start | health | stop) echo "stub $1: ok" ;;
+  from-zips)   # stands in for the Rosetta zips: baseline-v1 plus the three Rosetta method tags
+    for r in saleor saleor-dashboard react-storefront; do
+      git -C "$BENCH_DIR/$r" checkout -q -f baseline-v1
+      for t in rosetta-v1 rosetta-light-v1 rosetta-skills-v1; do git -C "$BENCH_DIR/$r" tag -f "$t" >/dev/null; done
+    done ;;
+  setup | start | health | stop) echo "stub $1: ok" ;;
   *) echo "stub: unknown $1"; exit 1 ;;
 esac
 """
@@ -106,13 +115,15 @@ def make_sandbox():
 
 
 def check_method(key, bench, stub, prompts):
-    num, tag, t0cmd = METHODS[key]
-    md = (SALEOR / "methods" / f"{key}.md").read_text()
+    num, tag, t0cmd, t0end = METHODS[key]
+    md = (SALEOR / "methods" / FILES.get(key, f"{key}.md")).read_text()
     fails = []
     pre = (f'cd "{REPO}"\nexport AIDLC_BIN_DIR="{SANDBOX}/local/bin" AIDLC_INSTALL_ROOT="{SANDBOX}/local/share/aidlc"\n'
            f'export PATH="{SANDBOX}/local/bin:$PATH"\nsetopt errexit pipefail\n')
     script = [pre]
     setup = part(md, 1)
+    if "**1.7 One-time project preparation" in setup:   # Rosetta init: skipped, as when the zips exist; it rewrites test-library/
+        setup = setup[:setup.index("**1.7 One-time project preparation")]
     for b in blocks(setup, "bash"):
         script.append(adapt(b, bench, stub, ""))
     runs = {}
@@ -133,9 +144,9 @@ def check_method(key, bench, stub, prompts):
                               f"echo '{row}' > \"$P/check.jsonl\"")
             script.append(adapt(b, bench, stub, run))
         texts = blocks(p, "text")
-        want_t0 = (t0cmd + " " if t0cmd else "") + prompts[task]
+        want_t0 = (t0cmd + " " if t0cmd else "") + prompts[task] + t0end
         if want_t0 not in texts:
-            fails.append(f"{task}: T0 text is not '<command> + Starter Prompt' from BENCHMARKS.md")
+            fails.append(f"{task}: T0 text is not '<command> + Starter Prompt' from BENCHMARKS.md (+ the method's closing lines)")
         post = [t for t in texts if t.startswith("Do not commit anything.")]
         want_diff = f"`git diff {tag}`" if key in COMMITS else "`git diff`"
         if not post or want_diff not in post[0] or "~/saleor-benchmark/run-output/" not in post[0]:
@@ -164,9 +175,10 @@ def check_method(key, bench, stub, prompts):
               "spec-kit": [bench / f".claude/skills/speckit-{s}/SKILL.md" for s in ("specify", "plan", "tasks", "implement", "converge")],
               "aws-ai-dlc": [bench / ".claude/settings.json", glob1(bench / ".claude/skills", "aidlc*/SKILL.md")],
               "rosetta": [glob1(cfg / "plugins/cache", "rosetta/rosetta/3.1.17/workflows/coding-flow.md")],
-              "rosetta-light": [glob1(cfg / "plugins/cache", "rosetta/rosetta-light/3.1.17/workflows/coding-flow.md")]}.get(key, []):
+              "rosetta-light": [glob1(cfg / "plugins/cache", f"rosetta/rosetta-light/3.1.17/skills/{s}/SKILL.md") for s in ("hitl", "tech-specs")],
+              "rosetta-skills": [glob1(cfg / "plugins/cache", f"rosetta/rosetta/3.1.17/skills/{s}/SKILL.md") for s in ("hitl", "tech-specs")]}.get(key, []):
         if not Path(p).exists():
-            fails.append(f"missing T0 command file: {p}")
+            fails.append(f"missing T0 command or skill file: {p}")
     for task, run in runs.items():
         for f in ("report.md", "isolation.txt", "tokens.md", "agent-report.md", "saleor.diff"):
             if not (run / f).exists():
@@ -179,7 +191,8 @@ def check_method(key, bench, stub, prompts):
                 if not re.search(rf"^{k}: {re.escape(v)}\s*$", head, re.M):
                     fails.append(f"{task}: report.md {k} is not {v}")
         iso = (run / "isolation.txt").read_text() if (run / "isolation.txt").exists() else ""
-        plug = {"superpowers": "superpowers@superpowers-dev", "rosetta": "rosetta@rosetta", "rosetta-light": "rosetta-light@rosetta"}.get(key)
+        plug = {"superpowers": "superpowers@superpowers-dev", "rosetta": "rosetta@rosetta", "rosetta-light": "rosetta-light@rosetta",
+                "rosetta-skills": "rosetta@rosetta"}.get(key)
         if plug and plug not in iso:
             fails.append(f"{task}: isolation.txt doesn't list {plug}")
         if not plug and "No plugins installed" not in iso:
@@ -195,7 +208,7 @@ def main():
     for key in keys:
         fails = check_method(key, bench, stub, prompts)
         bad += bool(fails)
-        print(("PASS " if not fails else "FAIL ") + f"methods/{key}.md  (setup + S-CC + L-CC executed; Copilot parts present)", flush=True)
+        print(("PASS " if not fails else "FAIL ") + f"methods/{FILES.get(key, key + '.md')}  (setup + S-CC + L-CC executed; Copilot parts present)", flush=True)
         for f in fails:
             print("     - " + f, flush=True)
     print(f"\n{len(keys) - bad}/{len(keys)} method files passed. Sandbox: {SANDBOX}")
