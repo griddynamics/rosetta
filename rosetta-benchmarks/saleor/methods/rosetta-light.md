@@ -7,7 +7,7 @@ Runs: `S-CC-07` (small, Claude Code) · `L-CC-07` (large, Claude Code) · `S-CP-
 | Command / skill | When | Official doc |
 | --- | --- | --- |
 | `/init-workspace-flow` | **once**, before the first run (part 1.7); its cost is reported separately and never added to a run | docs/web/user-guide/scenarios/ (init workspace); plugins/core-claude*/workflows/init-workspace-flow.md |
-| `<task>` + `MUST USE SKILLS hitl, tech-specs.` + `USE ROSETTA SUBAGENTS.` | T0 (no `/coding-flow`: the method is the two skills and the subagents) | plugins/core-claude-light/skills/tech-specs/SKILL.md (description), plugins/core-claude-light/skills/hitl/SKILL.md:35,41; plugins/core-claude-light/agents/ |
+| `<task>` + `MUST USE SKILLS hitl, tech-specs.` (large task: `MUST USE SKILLS hitl, tech-specs, orchestration.`) + `USE ROSETTA SUBAGENTS.` | T0 (no `/coding-flow`: the method is the named skills and the subagents; the large task adds `orchestration`) | plugins/core-claude-light/skills/tech-specs/SKILL.md (description), plugins/core-claude-light/skills/hitl/SKILL.md:35,41; plugins/core-claude-light/agents/ |
 | `Yes, I approve` | each approval stop: only this exact sentence counts | skills/hitl/SKILL.md:35 |
 
 **T0 message, small task** (copy as is):
@@ -32,7 +32,7 @@ To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
 
-MUST USE SKILLS hitl, tech-specs.
+MUST USE SKILLS hitl, tech-specs, orchestration.
 
 USE ROSETTA SUBAGENTS.
 ```
@@ -331,7 +331,7 @@ To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
 
-MUST USE SKILLS hitl, tech-specs.
+MUST USE SKILLS hitl, tech-specs, orchestration.
 
 USE ROSETTA SUBAGENTS.
 ```
@@ -343,6 +343,7 @@ USE ROSETTA SUBAGENTS.
 | questions | answers from the tables, + major-decision questions ("LARGE = MEDIUM + any major decisions", skills/hitl/SKILL.md:41) |
 | asks for approval (specs, design, implementation) | `Yes, I approve` |
 | any other "shall I continue?" | `Approved, continue.` |
+| the agent asks for its own approval sentence (e.g. `Yes, I approve the specs with PR-1..7 as proposed.`) | the assistant writes one message: `Please improve: (1) …, (2) ….` for spec items covered only partly (key texts word for word), then `Yes, I approve with those corrections` + the agent's own sentence; items the spec does not mention at all are not raised (they are found at T1). Its own proposals (PR-n) are approved as proposed unless a table answer contradicts one |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
@@ -457,7 +458,7 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-li
    
    Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
    
-   MUST USE SKILLS hitl, tech-specs.
+   MUST USE SKILLS hitl, tech-specs, orchestration.
    
    USE ROSETTA SUBAGENTS.
    ```
