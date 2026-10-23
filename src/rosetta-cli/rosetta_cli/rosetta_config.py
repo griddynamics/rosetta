@@ -317,53 +317,6 @@ class RosettaConfig:
         
         return True
     
-    def save_credentials(self, env_file: str = ".env") -> None:
-        """
-        Save credentials to .env file.
-        
-        Args:
-            env_file: Path to .env file to create/update
-            
-        Examples:
-            >>> config = RosettaConfig(...)
-            >>> config.save_credentials("ragflow.env")
-        """
-        env_path = Path(env_file)
-        
-        # Read existing content if file exists
-        existing_lines: list[str] = []
-        ragflow_keys = {
-            "RAGFLOW_BASE_URL",
-            "RAGFLOW_API_KEY",
-            "RAGFLOW_DATASET_DEFAULT",
-            "RAGFLOW_DATASET_TEMPLATE",
-            "ENVIRONMENT"
-        }
-        
-        if env_path.exists():
-            with open(env_path, 'r') as f:
-                for line in f:
-                    # Keep lines that don't set RAGFlow variables
-                    if not any(line.startswith(f"{key}=") for key in ragflow_keys):
-                        existing_lines.append(line.rstrip())
-        
-        # Build new content
-        new_lines = existing_lines + [
-            "",
-            "# RAGFlow Configuration",
-            f"RAGFLOW_BASE_URL={self.base_url}",
-            f"RAGFLOW_API_KEY={self.api_key}",
-            f"RAGFLOW_DATASET_DEFAULT={self.dataset_default}",
-            f"RAGFLOW_DATASET_TEMPLATE={self.dataset_template}",
-            f"ENVIRONMENT={self.environment}",
-        ]
-        
-        # Write to file
-        with open(env_path, 'w') as f:
-            f.write('\n'.join(new_lines) + '\n')
-        
-        print(f"Saved configuration to {env_file}")
-    
     def __str__(self) -> str:
         """String representation (masks API key)"""
         # Show only the 8-char "ragflow-" prefix. A 10-char excerpt would expose two
