@@ -485,7 +485,7 @@ cp "$BENCH_DIR/.specify/memory/constitution.md" "$ENV_DIR/root-copilot/.specify/
 
 ```bash
 { echo "COPILOT_HOME=$COPILOT_HOME"; copilot --version; node -v; copilot config --list
-  copilot plugin list; copilot skill list; copilot mcp list; copilot -C "$BENCH_DIR" instruction list
+  copilot -C "$BENCH_DIR" plugin list; copilot -C "$BENCH_DIR" skill list; copilot -C "$BENCH_DIR" mcp list; copilot -C "$BENCH_DIR" instruction list
   copilot config hooks 2>/dev/null || echo "(no inline hooks)"
   echo "sandbox.enabled=$(copilot config sandbox.enabled)"
   for p in "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json; do [ -e "$p" ] && echo "user-level: $p"; done
