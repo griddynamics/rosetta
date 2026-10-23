@@ -121,7 +121,7 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 1 | `<HH:MM>` | prompt | Task prompt sent (T0) | `<entry command> Some of our products can only be sold to customers above a certain age …` | |
 | 2 | | | | | |
 
-**Usage by model** (Claude Code: from `tokens.md`, see below; Copilot: from the runner, if it shows it):
+**Usage by model** (from `tokens.md`, see below; both runners):
 
 | Model | Role (main / subagent) | Input | Output | Cache read | Cache write | Cost, USD |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
@@ -129,7 +129,7 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 
 Raw `/usage` output at T1 and T2: paste it into Appendix A at the end of this file.
 
-**Claude Code: token breakdown + raw session logs:** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Use its "By model" table for the table above.
+**Token breakdown + raw session logs (both runners):** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Use its "By model" table for the table above.
 
 
 ## 3. Hidden questions
@@ -223,7 +223,7 @@ Evidence: `<one line per ticked item>`
 
 - [ ] `<repo>.diff` for every changed repo (repos: `<...>`)
 - [ ] `agent-report.md`: the agent's own report (post-implementation prompt)
-- [ ] `tokens.md` (Claude Code): token breakdown from `session-usage.py`. Raw session logs stay local in `session/` (git-ignored)
+- [ ] `tokens.md` (both runners): token breakdown from `session-usage.py`. Raw session logs stay local in `session/` (git-ignored)
 - [ ] Appendix A below: raw `/usage` output at T1 and T2
 - [ ] Appendix B below: agent messages copied from the terminal, if any
 - [ ] `plan.md` (Baseline): the approved plan, if the runner saved it to a file
