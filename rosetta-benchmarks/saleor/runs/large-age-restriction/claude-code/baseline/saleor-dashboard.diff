@@ -1,0 +1,1975 @@
+diff --git a/.changeset/age-restricted-products.md b/.changeset/age-restricted-products.md
+new file mode 100644
+index 0000000..24be42e
+--- /dev/null
++++ b/.changeset/age-restricted-products.md
+@@ -0,0 +1,5 @@
++---
++"saleor-dashboard": patch
++---
++
++Staff can set a minimum customer age on a product (product details) and edit a customer's birthday (customer details). The product list has a "Minimum age" column. Customers younger than the minimum age can't buy age-restricted products.
+diff --git a/locale/defaultMessages.json b/locale/defaultMessages.json
+index 93af9bf..6c42a80 100644
+--- a/locale/defaultMessages.json
++++ b/locale/defaultMessages.json
+@@ -7068,6 +7068,10 @@
+     "context": "button",
+     "string": "Create Channel"
+   },
++  "OHZiAa": {
++    "context": "product minimum customer age column",
++    "string": "Minimum age"
++  },
+   "OK5+Fh": {
+     "string": "Variant"
+   },
+@@ -7772,6 +7776,10 @@
+   "QqnNUm": {
+     "string": "Visible in listing"
+   },
++  "Qr/WYZ": {
++    "context": "customer date of birth",
++    "string": "Birthday"
++  },
+   "QslFl8": {
+     "context": "add new refund button",
+     "string": "New refund"
+@@ -11919,6 +11927,10 @@
+   "g9PCqW": {
+     "string": "Warehouse created and assigned"
+   },
++  "g9m8J1": {
++    "context": "minimum customer age required to buy the product",
++    "string": "Minimum age"
++  },
+   "gCZYcl": {
+     "context": "tooltip shown when shipping method is selected but no other options exist",
+     "string": "No alternative shipping methods available"
+@@ -14542,6 +14554,10 @@
+   "pJ5/7G": {
+     "string": "Close and hide all hints"
+   },
++  "pJca2j": {
++    "context": "helper beside the product minimum age field",
++    "string": "Customers younger than this age can't buy the product. Leave empty for no restriction."
++  },
+   "pKywOt": {
+     "context": "customer type a11y label prefix",
+     "string": "Customer type"
+diff --git a/schema-main.graphql b/schema-main.graphql
+index 0565113..72f34f4 100644
+--- a/schema-main.graphql
++++ b/schema-main.graphql
+@@ -3410,6 +3410,32 @@ enum AppProblemDismissedByEnum {
+ 
+ """Represents user data."""
+ type User implements Node & ObjectWithMetadata & ObjectWithAttributes {
++  """
++  Date of birth of the user. Personal data: only visible to the user themselves and to super-admins, `null` for everyone else (including apps). Reading it as a super-admin is recorded in an audit log.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
++  """
++  Whether the requestor can read and change this user's birthday: true for the user themselves and for super-admins.
++  
++  Added in Saleor 3.23.
++  """
++  canAccessBirthday: Boolean!
++
++  """
++  Whether the user is old enough, `false` when the birthday is not set. Exposes only a yes/no answer, never the birthday. Every check made by someone other than the user is recorded in an audit log.
++  
++  Added in Saleor 3.23.
++  
++  Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF.
++  """
++  ageEligible(
++    """Minimum age (in years) to check the user against."""
++    minimumAge: Int!
++  ): Boolean
++
+   """The ID of the user."""
+   id: ID!
+ 
+@@ -4129,6 +4155,13 @@ type ProductCountableEdge {
+ 
+ """Represents an individual item for sale in the storefront."""
+ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes {
++  """
++  Minimum age (in years) a customer must have to buy this product. `null` means the product is not age restricted.
++  
++  Added in Saleor 3.23.
++  """
++  minimumAge: Int
++
+   """The ID of the product."""
+   id: ID!
+ 
+@@ -25634,6 +25667,13 @@ type ProductCreate {
+ }
+ 
+ input ProductCreateInput {
++  """
++  Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++  
++  Added in Saleor 3.23.
++  """
++  minimumAge: Int
++
+   """List of attributes."""
+   attributes: [AttributeValueInput!]
+ 
+@@ -25865,6 +25905,13 @@ enum ProductBulkCreateErrorCode {
+ }
+ 
+ input ProductBulkCreateInput {
++  """
++  Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++  
++  Added in Saleor 3.23.
++  """
++  minimumAge: Int
++
+   """List of attributes."""
+   attributes: [AttributeValueInput!]
+ 
+@@ -26178,6 +26225,13 @@ type ProductUpdate {
+ }
+ 
+ input ProductInput {
++  """
++  Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++  
++  Added in Saleor 3.23.
++  """
++  minimumAge: Int
++
+   """List of attributes."""
+   attributes: [AttributeValueInput!]
+ 
+@@ -32219,6 +32273,7 @@ type CheckoutError {
+ }
+ 
+ enum CheckoutErrorCode {
++  AGE_RESTRICTED
+   BILLING_ADDRESS_NOT_SET
+   CHECKOUT_NOT_FULLY_PAID
+   GRAPHQL_ERROR
+@@ -32842,6 +32897,7 @@ type OrderCreateFromCheckoutError {
+ }
+ 
+ enum OrderCreateFromCheckoutErrorCode {
++  AGE_RESTRICTED
+   GRAPHQL_ERROR
+   CHECKOUT_NOT_FOUND
+   CHANNEL_INACTIVE
+@@ -34848,6 +34904,13 @@ type AccountRegister {
+ 
+ """Fields required to create a user."""
+ input AccountRegisterInput {
++  """
++  Date of birth. Used to verify age-restricted purchases.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
+   """Given name."""
+   firstName: String
+ 
+@@ -34898,6 +34961,13 @@ type AccountUpdate {
+ 
+ """Fields required to update the user."""
+ input AccountInput {
++  """
++  Date of birth. Used to verify age-restricted purchases.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
+   """Given name."""
+   firstName: String
+ 
+@@ -35030,6 +35100,13 @@ type CustomerCreate {
+ }
+ 
+ input UserCreateInput {
++  """
++  Date of birth. Used to verify age-restricted purchases.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
+   """Billing address of the customer."""
+   defaultBillingAddress: AddressInput
+ 
+@@ -35121,6 +35198,13 @@ type CustomerUpdate {
+ }
+ 
+ input CustomerInput {
++  """
++  Date of birth. Used to verify age-restricted purchases.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
+   """Billing address of the customer."""
+   defaultBillingAddress: AddressInput
+ 
+diff --git a/schema-staging.graphql b/schema-staging.graphql
+index 4a82da5..ced44ad 100644
+--- a/schema-staging.graphql
++++ b/schema-staging.graphql
+@@ -3332,6 +3332,32 @@ enum AppProblemDismissedByEnum @doc(category: "Apps") {
+ 
+ """Represents user data."""
+ type User implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Users") {
++  """
++  Date of birth of the user. Personal data: only visible to the user themselves and to super-admins, `null` for everyone else (including apps). Reading it as a super-admin is recorded in an audit log.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
++  """
++  Whether the requestor can read and change this user's birthday: true for the user themselves and for super-admins.
++  
++  Added in Saleor 3.23.
++  """
++  canAccessBirthday: Boolean!
++
++  """
++  Whether the user is old enough, `false` when the birthday is not set. Exposes only a yes/no answer, never the birthday. Every check made by someone other than the user is recorded in an audit log.
++  
++  Added in Saleor 3.23.
++  
++  Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF.
++  """
++  ageEligible(
++    """Minimum age (in years) to check the user against."""
++    minimumAge: Int!
++  ): Boolean
++
+   """The ID of the user."""
+   id: ID!
+ 
+@@ -4018,6 +4044,13 @@ type ProductCountableEdge @doc(category: "Products") {
+ 
+ """Represents an individual item for sale in the storefront."""
+ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Products") {
++  """
++  Minimum age (in years) a customer must have to buy this product. `null` means the product is not age restricted.
++  
++  Added in Saleor 3.23.
++  """
++  minimumAge: Int
++
+   """The ID of the product."""
+   id: ID!
+ 
+@@ -24969,6 +25002,13 @@ type ProductCreate @doc(category: "Products") {
+ }
+ 
+ input ProductCreateInput @doc(category: "Products") {
++  """
++  Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++  
++  Added in Saleor 3.23.
++  """
++  minimumAge: Int
++
+   """List of attributes."""
+   attributes: [AttributeValueInput!]
+ 
+@@ -25186,6 +25226,13 @@ enum ProductBulkCreateErrorCode @doc(category: "Products") {
+ }
+ 
+ input ProductBulkCreateInput @doc(category: "Products") {
++  """
++  Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++  
++  Added in Saleor 3.23.
++  """
++  minimumAge: Int
++
+   """List of attributes."""
+   attributes: [AttributeValueInput!]
+ 
+@@ -25448,6 +25495,13 @@ type ProductUpdate @doc(category: "Products") {
+ }
+ 
+ input ProductInput @doc(category: "Products") {
++  """
++  Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++  
++  Added in Saleor 3.23.
++  """
++  minimumAge: Int
++
+   """List of attributes."""
+   attributes: [AttributeValueInput!]
+ 
+@@ -31204,6 +31258,7 @@ type CheckoutError @doc(category: "Checkout") {
+ }
+ 
+ enum CheckoutErrorCode @doc(category: "Checkout") {
++  AGE_RESTRICTED
+   BILLING_ADDRESS_NOT_SET
+   CHECKOUT_NOT_FULLY_PAID
+   GRAPHQL_ERROR
+@@ -31798,6 +31853,7 @@ type OrderCreateFromCheckoutError @doc(category: "Orders") {
+ }
+ 
+ enum OrderCreateFromCheckoutErrorCode @doc(category: "Orders") {
++  AGE_RESTRICTED
+   GRAPHQL_ERROR
+   CHECKOUT_NOT_FOUND
+   CHANNEL_INACTIVE
+@@ -33710,6 +33766,13 @@ type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CU
+ 
+ """Fields required to create a user."""
+ input AccountRegisterInput @doc(category: "Users") {
++  """
++  Date of birth. Used to verify age-restricted purchases.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
+   """Given name."""
+   firstName: String
+ 
+@@ -33760,6 +33823,13 @@ type AccountUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUST
+ 
+ """Fields required to update the user."""
+ input AccountInput @doc(category: "Users") {
++  """
++  Date of birth. Used to verify age-restricted purchases.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
+   """Given name."""
+   firstName: String
+ 
+@@ -33892,6 +33962,13 @@ type CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUS
+ }
+ 
+ input UserCreateInput @doc(category: "Users") {
++  """
++  Date of birth. Used to verify age-restricted purchases.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
+   """Billing address of the customer."""
+   defaultBillingAddress: AddressInput
+ 
+@@ -33977,6 +34054,13 @@ type CustomerUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUS
+ }
+ 
+ input CustomerInput @doc(category: "Users") {
++  """
++  Date of birth. Used to verify age-restricted purchases.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
+   """Billing address of the customer."""
+   defaultBillingAddress: AddressInput
+ 
+diff --git a/src/config.ts b/src/config.ts
+index 24254be..fc2a597 100644
+--- a/src/config.ts
++++ b/src/config.ts
+@@ -75,7 +75,8 @@ export type ProductListColumns =
+   | "date"
+   | "created"
+   | "productCategory"
+-  | "productCollections";
++  | "productCollections"
++  | "minimumAge";
+ 
+ export interface AppListViewSettings {
+   [ListViews.APPS_LIST]: ListSettings;
+@@ -157,7 +158,16 @@ export const defaultListSettings: AppListViewSettings = {
+     rowNumber: PAGINATE_BY,
+   },
+   [ListViews.PRODUCT_LIST]: {
+-    columns: ["name", "availability", "price", "productCategory", "productType", "date", "created"],
++    columns: [
++      "name",
++      "availability",
++      "price",
++      "productCategory",
++      "productType",
++      "minimumAge",
++      "date",
++      "created",
++    ],
+     rowNumber: PAGINATE_BY,
+   },
+   [ListViews.SALES_LIST]: {
+diff --git a/src/customers/components/CustomerDetailsPage/CustomerDetailsPage.tsx b/src/customers/components/CustomerDetailsPage/CustomerDetailsPage.tsx
+index 822d10d..8267469 100644
+--- a/src/customers/components/CustomerDetailsPage/CustomerDetailsPage.tsx
++++ b/src/customers/components/CustomerDetailsPage/CustomerDetailsPage.tsx
+@@ -84,6 +84,7 @@ interface CustomerDetailsPageFormData {
+   lastName: string;
+   email: string;
+   note: string;
++  birthday: string;
+   customerTypeId: string;
+ }
+ 
+@@ -272,6 +273,7 @@ const CustomerDetailsPage = ({
+     firstName: customer.firstName || "",
+     lastName: customer.lastName || "",
+     note: customer.note || "",
++    birthday: customer.birthday || "",
+   };
+   const checkIfSaveIsDisabled = (data: CustomerDetailsPageFormData): boolean => {
+     if (disabled || isReadOnly) {
+@@ -391,6 +393,7 @@ const CustomerDetailsPage = ({
+                         data={data}
+                         disabled={disabled || isReadOnly}
+                         errors={errors}
++                        showBirthday={customer.canAccessBirthday}
+                         onChange={change}
+                       />
+                       <CustomerAddresses
+diff --git a/src/customers/components/CustomerDetailsPage/saveComposition.test.ts b/src/customers/components/CustomerDetailsPage/saveComposition.test.ts
+index 27291f3..ae3a4f6 100644
+--- a/src/customers/components/CustomerDetailsPage/saveComposition.test.ts
++++ b/src/customers/components/CustomerDetailsPage/saveComposition.test.ts
+@@ -6,6 +6,7 @@ const initial = {
+   firstName: "Tom",
+   lastName: "Cooper",
+   note: "",
++  birthday: "",
+ };
+ 
+ describe("buildCustomerSaveComposition", () => {
+@@ -21,6 +22,22 @@ describe("buildCustomerSaveComposition", () => {
+     expect(hasCustomerSaveComposition(composition)).toBe(false);
+   });
+ 
++  it("flags a changed birthday as a general change", () => {
++    // Arrange & Act
++    const composition = buildCustomerSaveComposition({
++      attributesDirty: false,
++      data: { ...initial, birthday: "1990-05-17" },
++      initial,
++    });
++
++    // Assert
++    expect(composition).toEqual({
++      hasAttributes: false,
++      hasGeneral: true,
++      hasType: false,
++    });
++  });
++
+   it("flags general identity fields separately from type and attributes", () => {
+     // Arrange & Act
+     const composition = buildCustomerSaveComposition({
+diff --git a/src/customers/components/CustomerDetailsPage/saveComposition.ts b/src/customers/components/CustomerDetailsPage/saveComposition.ts
+index bc01d0b..6e1b8da 100644
+--- a/src/customers/components/CustomerDetailsPage/saveComposition.ts
++++ b/src/customers/components/CustomerDetailsPage/saveComposition.ts
+@@ -4,6 +4,7 @@ interface CustomerDetailsIdentityForm {
+   firstName: string;
+   lastName: string;
+   note: string;
++  birthday: string;
+ }
+ 
+ export interface CustomerSaveComposition {
+@@ -32,7 +33,8 @@ export const buildCustomerSaveComposition = ({
+     data.email !== initial.email ||
+     data.firstName !== initial.firstName ||
+     data.lastName !== initial.lastName ||
+-    data.note !== initial.note,
++    data.note !== initial.note ||
++    data.birthday !== initial.birthday,
+   hasType: data.customerTypeId !== initial.customerTypeId,
+ });
+ 
+diff --git a/src/customers/components/CustomerInfo/CustomerInfo.test.tsx b/src/customers/components/CustomerInfo/CustomerInfo.test.tsx
+new file mode 100644
+index 0000000..06a45de
+--- /dev/null
++++ b/src/customers/components/CustomerInfo/CustomerInfo.test.tsx
+@@ -0,0 +1,78 @@
++import { AccountErrorCode, type AccountErrorFragment } from "@dashboard/graphql";
++import Wrapper from "@test/wrapper";
++import { fireEvent, render, screen } from "@testing-library/react";
++import type * as React from "react";
++
++import CustomerInfo from "./CustomerInfo";
++
++const wrapper = ({ children }: { children: React.ReactNode }) => <Wrapper>{children}</Wrapper>;
++
++describe("CustomerInfo", () => {
++  const defaultProps = {
++    data: {
++      firstName: "Tom",
++      lastName: "Cooper",
++      email: "tom@example.com",
++      note: "",
++      birthday: "1990-05-17",
++    },
++    disabled: false,
++    errors: [] as AccountErrorFragment[],
++    onChange: jest.fn(),
++  };
++
++  it("renders the customer birthday as a date input", () => {
++    // Arrange & Act
++    render(<CustomerInfo {...defaultProps} showBirthday />, { wrapper });
++
++    // Assert
++    const input = screen.getByTestId("customer-birthday");
++
++    expect(input).toHaveAttribute("type", "date");
++    expect(input).toHaveValue("1990-05-17");
++  });
++
++  it("hides the birthday from viewers who can't access it", () => {
++    // Arrange & Act
++    render(<CustomerInfo {...defaultProps} />, { wrapper });
++
++    // Assert
++    expect(screen.queryByTestId("customer-birthday")).not.toBeInTheDocument();
++    expect(screen.queryByDisplayValue("1990-05-17")).not.toBeInTheDocument();
++  });
++
++  it("calls onChange when the birthday is edited", () => {
++    // Arrange
++    const onChange = jest.fn();
++
++    render(<CustomerInfo {...defaultProps} showBirthday onChange={onChange} />, { wrapper });
++
++    // Act
++    const input = screen.getByTestId("customer-birthday");
++
++    fireEvent.change(input, { target: { name: "birthday", value: "1985-01-02" } });
++
++    // Assert
++    expect(onChange).toHaveBeenCalled();
++  });
++
++  it("shows the birthday error returned by the API", () => {
++    // Arrange
++    const errors: AccountErrorFragment[] = [
++      {
++        __typename: "AccountError",
++        code: AccountErrorCode.INVALID,
++        field: "birthday",
++        message: null,
++        addressType: null,
++        attributes: null,
++      },
++    ];
++
++    // Act
++    render(<CustomerInfo {...defaultProps} showBirthday errors={errors} />, { wrapper });
++
++    // Assert
++    expect(screen.getByText(/invalid/i)).toBeInTheDocument();
++  });
++});
+diff --git a/src/customers/components/CustomerInfo/CustomerInfo.tsx b/src/customers/components/CustomerInfo/CustomerInfo.tsx
+index 85a4f24..4511133 100644
+--- a/src/customers/components/CustomerInfo/CustomerInfo.tsx
++++ b/src/customers/components/CustomerInfo/CustomerInfo.tsx
+@@ -16,16 +16,19 @@ interface CustomerInfoProps {
+     lastName: string;
+     email: string;
+     note: string;
++    birthday: string;
+   };
+   disabled: boolean;
+   errors: AccountErrorFragment[];
++  /** The birthday is personal data: only shown to the customer and super-admins. */
++  showBirthday?: boolean;
+   onChange: (event: React.ChangeEvent<any>) => void;
+ }
+ 
+ const CustomerInfo = (props: CustomerInfoProps) => {
+-  const { data, disabled, errors, onChange } = props;
++  const { data, disabled, errors, showBirthday = false, onChange } = props;
+   const intl = useIntl();
+-  const formErrors = getFormErrors(["firstName", "lastName", "email", "note"], errors);
++  const formErrors = getFormErrors(["firstName", "lastName", "email", "birthday", "note"], errors);
+ 
+   return (
+     <DetailSettingsCard data-test-id="customer-details" title={intl.formatMessage(messages.title)}>
+@@ -61,6 +64,23 @@ const CustomerInfo = (props: CustomerInfoProps) => {
+           value={data.email}
+           onChange={onChange}
+         />
++        {showBirthday && (
++          <Input
++            data-test-id="customer-birthday"
++            disabled={disabled}
++            error={!!formErrors.birthday}
++            helperText={getAccountErrorMessage(formErrors.birthday, intl)}
++            name="birthday"
++            type="date"
++            label={intl.formatMessage({
++              id: "Qr/WYZ",
++              defaultMessage: "Birthday",
++              description: "customer date of birth",
++            })}
++            value={data.birthday}
++            onChange={onChange}
++          />
++        )}
+         <Textarea
+           data-test-id="customer-note"
+           disabled={disabled}
+diff --git a/src/customers/fixtures.ts b/src/customers/fixtures.ts
+index 3c3fd2c..9e2e296 100644
+--- a/src/customers/fixtures.ts
++++ b/src/customers/fixtures.ts
+@@ -1006,6 +1006,8 @@ export const customerList: Customers = [
+ export const customer: NonNullable<CustomerDetailsQuery["user"]> &
+   NonNullable<CustomerAddressesQuery["user"]> = {
+   __typename: "User",
++  birthday: null,
++  canAccessBirthday: false,
+   addresses: [
+     {
+       __typename: "Address",
+diff --git a/src/customers/utils/birthday.test.ts b/src/customers/utils/birthday.test.ts
+new file mode 100644
+index 0000000..42efcb0
+--- /dev/null
++++ b/src/customers/utils/birthday.test.ts
+@@ -0,0 +1,41 @@
++import { getCustomerBirthdayInput } from "./birthday";
++
++describe("getCustomerBirthdayInput", () => {
++  it("never sends the birthday when the viewer can't access it", () => {
++    // Arrange
++    const customer = { birthday: null, canAccessBirthday: false };
++
++    // Act & Assert
++    expect(getCustomerBirthdayInput(customer, "")).toEqual({});
++    expect(getCustomerBirthdayInput(customer, "1990-05-17")).toEqual({});
++  });
++
++  it("does not send an unchanged birthday", () => {
++    // Arrange
++    const customer = { birthday: "1990-05-17", canAccessBirthday: true };
++
++    // Act & Assert
++    expect(getCustomerBirthdayInput(customer, "1990-05-17")).toEqual({});
++    expect(getCustomerBirthdayInput({ birthday: null, canAccessBirthday: true }, "")).toEqual({});
++  });
++
++  it("sends a changed birthday", () => {
++    // Arrange
++    const customer = { birthday: "1990-05-17", canAccessBirthday: true };
++
++    // Act & Assert
++    expect(getCustomerBirthdayInput(customer, "1985-01-02")).toEqual({ birthday: "1985-01-02" });
++  });
++
++  it("sends null to remove the birthday", () => {
++    // Arrange
++    const customer = { birthday: "1990-05-17", canAccessBirthday: true };
++
++    // Act & Assert
++    expect(getCustomerBirthdayInput(customer, "")).toEqual({ birthday: null });
++  });
++
++  it("sends nothing without a customer", () => {
++    expect(getCustomerBirthdayInput(null, "1990-05-17")).toEqual({});
++  });
++});
+diff --git a/src/customers/utils/birthday.ts b/src/customers/utils/birthday.ts
+new file mode 100644
+index 0000000..0054ff1
+--- /dev/null
++++ b/src/customers/utils/birthday.ts
+@@ -0,0 +1,25 @@
++interface BirthdayCustomer {
++  birthday?: string | null;
++  canAccessBirthday?: boolean;
++}
++
++/**
++ * The birthday is personal data: the API only returns it, and only accepts changes,
++ * for super-admins and the customer. Everybody else gets `null`, so sending the
++ * empty form value back would be rejected (or look like a request to remove it).
++ * Send the birthday only when the viewer can access it and the value changed.
++ */
++export function getCustomerBirthdayInput(
++  customer: BirthdayCustomer | null | undefined,
++  birthday: string,
++): { birthday: string | null } | Record<string, never> {
++  if (!customer?.canAccessBirthday) {
++    return {};
++  }
++
++  if (birthday === (customer.birthday ?? "")) {
++    return {};
++  }
++
++  return { birthday: birthday || null };
++}
+diff --git a/src/customers/views/CustomerDetails.tsx b/src/customers/views/CustomerDetails.tsx
+index 8a35474..0928756 100644
+--- a/src/customers/views/CustomerDetails.tsx
++++ b/src/customers/views/CustomerDetails.tsx
+@@ -38,6 +38,7 @@ import { messages as customerTypeMessages } from "../components/CustomerTypeCard
+ import { useCustomerDetails } from "../hooks/useCustomerDetails";
+ import { CustomerDetailsProvider } from "../providers/CustomerDetailsProvider";
+ import { customerListUrl, customerUrl, type CustomerUrlQueryParams } from "../urls";
++import { getCustomerBirthdayInput } from "../utils/birthday";
+ import {
+   getAttributeInputFromCustomer,
+   getCustomerUpdateAttributesInput,
+@@ -177,6 +178,7 @@ const CustomerDetailsViewInner = ({ id, params }: CustomerDetailsViewProps) => {
+         id,
+         input: {
+           ...(attributes ? { attributes } : {}),
++          ...getCustomerBirthdayInput(user, data.birthday),
+           customerType: data.customerTypeId || undefined,
+           email: data.email,
+           firstName: data.firstName,
+diff --git a/src/fragments/customers.ts b/src/fragments/customers.ts
+index fa91228..59cc94e 100644
+--- a/src/fragments/customers.ts
++++ b/src/fragments/customers.ts
+@@ -159,6 +159,8 @@ export const customerDetailsFragment = gql`
+       ...Address
+     }
+     note
++    birthday
++    canAccessBirthday
+     isActive
+     isConfirmed
+     isStaff
+diff --git a/src/fragments/products.ts b/src/fragments/products.ts
+index c17c983..eebe17f 100644
+--- a/src/fragments/products.ts
++++ b/src/fragments/products.ts
+@@ -221,6 +221,7 @@ export const productFragmentDetails = gql`
+     seoTitle
+     seoDescription
+     rating
++    minimumAge
+     defaultVariant {
+       id
+       sku
+diff --git a/src/graphql/fabbrica.generated.ts b/src/graphql/fabbrica.generated.ts
+index 9d7f6c6..25f212d 100644
+--- a/src/graphql/fabbrica.generated.ts
++++ b/src/graphql/fabbrica.generated.ts
+@@ -1588,6 +1588,12 @@ export const defineAccountErrorFactory: DefineTypeFactoryInterface<
+ /** Fields required to update the user. */
+ export type OptionalAccountInput = {
+   __typename?: 'AccountInput';
++  /**
++ * Date of birth. Used to verify age-restricted purchases.
++ *
++ * Added in Saleor 3.23.
++ */
++  birthday?: AccountInput['birthday'] | undefined;
+   /** Billing address of the customer. */
+   defaultBillingAddress?: Maybe<OptionalAddressInput> | undefined;
+   /** Shipping address of the customer. */
+@@ -1648,6 +1654,12 @@ export const defineAccountRegisterFactory: DefineTypeFactoryInterface<
+ /** Fields required to create a user. */
+ export type OptionalAccountRegisterInput = {
+   __typename?: 'AccountRegisterInput';
++  /**
++ * Date of birth. Used to verify age-restricted purchases.
++ *
++ * Added in Saleor 3.23.
++ */
++  birthday?: AccountRegisterInput['birthday'] | undefined;
+   /** Slug of a channel which will be used to notify users. Optional when only one channel exists. */
+   channel?: AccountRegisterInput['channel'] | undefined;
+   /** The email address of the user. */
+@@ -10403,6 +10415,12 @@ export type OptionalCustomerInput = {
+  */
+   attributes?: Maybe<OptionalAttributeValueInput[]> | undefined;
+   /**
++ * Date of birth. Used to verify age-restricted purchases.
++ *
++ * Added in Saleor 3.23.
++ */
++  birthday?: CustomerInput['birthday'] | undefined;
++  /**
+  * ID of the customer type to assign to the user. If not provided when creating a customer, the default customer type is assigned.
+  *
+  * Added in Saleor 3.23.
+@@ -25358,6 +25376,12 @@ export type OptionalProduct = {
+   metafield?: Product['metafield'] | undefined;
+   /** Public metadata. Use `keys` to control which fields you want to include. The default is to include everything. */
+   metafields?: Product['metafields'] | undefined;
++  /**
++ * Minimum age (in years) a customer must have to buy this product. `null` means the product is not age restricted.
++ *
++ * Added in Saleor 3.23.
++ */
++  minimumAge?: Product['minimumAge'] | undefined;
+   /** SEO description of the product. */
+   name?: Product['name'] | undefined;
+   /** Lists the storefront product's pricing, the current price and discounts, only meant for displaying. */
+@@ -25619,6 +25643,12 @@ export type OptionalProductBulkCreateInput = {
+  * Warning: never store sensitive information, including financial data such as credit card details.
+  */
+   metadata?: Maybe<OptionalMetadataInput[]> | undefined;
++  /**
++ * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++ *
++ * Added in Saleor 3.23.
++ */
++  minimumAge?: ProductBulkCreateInput['minimumAge'] | undefined;
+   /** Product name. */
+   name?: ProductBulkCreateInput['name'] | undefined;
+   /**
+@@ -26079,6 +26109,12 @@ export type OptionalProductCreateInput = {
+  * Warning: never store sensitive information, including financial data such as credit card details.
+  */
+   metadata?: Maybe<OptionalMetadataInput[]> | undefined;
++  /**
++ * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++ *
++ * Added in Saleor 3.23.
++ */
++  minimumAge?: ProductCreateInput['minimumAge'] | undefined;
+   /** Product name. */
+   name?: ProductCreateInput['name'] | undefined;
+   /**
+@@ -26363,6 +26399,12 @@ export type OptionalProductInput = {
+  * Warning: never store sensitive information, including financial data such as credit card details.
+  */
+   metadata?: Maybe<OptionalMetadataInput[]> | undefined;
++  /**
++ * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++ *
++ * Added in Saleor 3.23.
++ */
++  minimumAge?: ProductInput['minimumAge'] | undefined;
+   /** Product name. */
+   name?: ProductInput['name'] | undefined;
+   /**
+@@ -37203,6 +37245,14 @@ export type OptionalUser = {
+   /** List of all user's addresses. */
+   addresses?: OptionalAddress[] | undefined;
+   /**
++ * Whether the user is old enough, `false` when the birthday is not set. Exposes only a yes/no answer, never the birthday. Every check made by someone other than the user is recorded in an audit log.
++ *
++ * Added in Saleor 3.23.
++ *
++ * Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF.
++ */
++  ageEligible?: User['ageEligible'] | undefined;
++  /**
+  * Get a single attribute assigned to the user by attribute slug. The attribute is looked up among the attributes of the user's customer type. Requires one of the following permissions: MANAGE_USERS, OWNER. The owner can access only attributes that are visible in the storefront.
+  *
+  * Added in Saleor 3.23.
+@@ -37216,6 +37266,18 @@ export type OptionalUser = {
+   assignedAttributes?: OptionalAssignedAttribute[] | undefined;
+   /** The avatar of the user. */
+   avatar?: Maybe<OptionalImage> | undefined;
++  /**
++ * Date of birth of the user. Personal data: only visible to the user themselves and to super-admins, `null` for everyone else (including apps). Reading it as a super-admin is recorded in an audit log.
++ *
++ * Added in Saleor 3.23.
++ */
++  birthday?: User['birthday'] | undefined;
++  /**
++ * Whether the requestor can read and change this user's birthday: true for the user themselves and for super-admins.
++ *
++ * Added in Saleor 3.23.
++ */
++  canAccessBirthday?: User['canAccessBirthday'] | undefined;
+   /** Returns the last open checkout of this user. */
+   checkout?: Maybe<OptionalCheckout> | undefined;
+   /** Returns the checkout ID's assigned to this user. */
+@@ -37438,6 +37500,12 @@ export type OptionalUserCreateInput = {
+  * Added in Saleor 3.23.
+  */
+   attributes?: Maybe<OptionalAttributeValueInput[]> | undefined;
++  /**
++ * Date of birth. Used to verify age-restricted purchases.
++ *
++ * Added in Saleor 3.23.
++ */
++  birthday?: UserCreateInput['birthday'] | undefined;
+   /** Slug of a channel which will be used for notify user. Optional when only one channel exists. */
+   channel?: UserCreateInput['channel'] | undefined;
+   /**
+diff --git a/src/graphql/fabbricaTypes.generated.ts b/src/graphql/fabbricaTypes.generated.ts
+index ed61f5c..a7d6cec 100644
+--- a/src/graphql/fabbricaTypes.generated.ts
++++ b/src/graphql/fabbricaTypes.generated.ts
+@@ -366,6 +366,12 @@ export type AccountErrorCode =
+ 
+ /** Fields required to update the user. */
+ export type AccountInput = {
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday: InputMaybe<Scalars['Date']['input']>;
+   /** Billing address of the customer. */
+   defaultBillingAddress: InputMaybe<AddressInput>;
+   /** Shipping address of the customer. */
+@@ -405,6 +411,12 @@ export type AccountRegister = {
+ 
+ /** Fields required to create a user. */
+ export type AccountRegisterInput = {
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday: InputMaybe<Scalars['Date']['input']>;
+   /** Slug of a channel which will be used to notify users. Optional when only one channel exists. */
+   channel: InputMaybe<Scalars['String']['input']>;
+   /** The email address of the user. */
+@@ -5199,6 +5211,7 @@ export type CheckoutError = {
+ };
+ 
+ export type CheckoutErrorCode =
++  | 'AGE_RESTRICTED'
+   | 'BILLING_ADDRESS_NOT_SET'
+   | 'CHANNEL_INACTIVE'
+   | 'CHECKOUT_NOT_FULLY_PAID'
+@@ -7284,6 +7297,12 @@ export type CustomerInput = {
+    * Added in Saleor 3.23.
+    */
+   attributes: InputMaybe<Array<AttributeValueInput>>;
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday: InputMaybe<Scalars['Date']['input']>;
+   /**
+    * ID of the customer type to assign to the user. If not provided when creating a customer, the default customer type is assigned.
+    *
+@@ -18451,6 +18470,7 @@ export type OrderCreateFromCheckoutError = {
+ };
+ 
+ export type OrderCreateFromCheckoutErrorCode =
++  | 'AGE_RESTRICTED'
+   | 'BILLING_ADDRESS_NOT_SET'
+   | 'CHANNEL_INACTIVE'
+   | 'CHECKOUT_NOT_FOUND'
+@@ -22353,6 +22373,12 @@ export type Product = Node & ObjectWithAttributes & ObjectWithMetadata & {
+   metafield: Maybe<Scalars['String']['output']>;
+   /** Public metadata. Use `keys` to control which fields you want to include. The default is to include everything. */
+   metafields: Maybe<Scalars['Metadata']['output']>;
++  /**
++   * Minimum age (in years) a customer must have to buy this product. `null` means the product is not age restricted.
++   *
++   * Added in Saleor 3.23.
++   */
++  minimumAge: Maybe<Scalars['Int']['output']>;
+   /** SEO description of the product. */
+   name: Scalars['String']['output'];
+   /** Lists the storefront product's pricing, the current price and discounts, only meant for displaying. */
+@@ -22664,6 +22690,12 @@ export type ProductBulkCreateInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata: InputMaybe<Array<MetadataInput>>;
++  /**
++   * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++   *
++   * Added in Saleor 3.23.
++   */
++  minimumAge: InputMaybe<Scalars['Int']['input']>;
+   /** Product name. */
+   name: InputMaybe<Scalars['String']['input']>;
+   /**
+@@ -22954,6 +22986,12 @@ export type ProductCreateInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata: InputMaybe<Array<MetadataInput>>;
++  /**
++   * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++   *
++   * Added in Saleor 3.23.
++   */
++  minimumAge: InputMaybe<Scalars['Int']['input']>;
+   /** Product name. */
+   name: InputMaybe<Scalars['String']['input']>;
+   /**
+@@ -23209,6 +23247,12 @@ export type ProductInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata: InputMaybe<Array<MetadataInput>>;
++  /**
++   * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++   *
++   * Added in Saleor 3.23.
++   */
++  minimumAge: InputMaybe<Scalars['Int']['input']>;
+   /** Product name. */
+   name: InputMaybe<Scalars['String']['input']>;
+   /**
+@@ -32299,6 +32343,14 @@ export type User = Node & ObjectWithAttributes & ObjectWithMetadata & {
+   accessibleChannels: Maybe<Array<Channel>>;
+   /** List of all user's addresses. */
+   addresses: Array<Address>;
++  /**
++   * Whether the user is old enough, `false` when the birthday is not set. Exposes only a yes/no answer, never the birthday. Every check made by someone other than the user is recorded in an audit log.
++   *
++   * Added in Saleor 3.23.
++   *
++   * Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF.
++   */
++  ageEligible: Maybe<Scalars['Boolean']['output']>;
+   /**
+    * Get a single attribute assigned to the user by attribute slug. The attribute is looked up among the attributes of the user's customer type. Requires one of the following permissions: MANAGE_USERS, OWNER. The owner can access only attributes that are visible in the storefront.
+    *
+@@ -32313,6 +32365,18 @@ export type User = Node & ObjectWithAttributes & ObjectWithMetadata & {
+   assignedAttributes: Array<AssignedAttribute>;
+   /** The avatar of the user. */
+   avatar: Maybe<Image>;
++  /**
++   * Date of birth of the user. Personal data: only visible to the user themselves and to super-admins, `null` for everyone else (including apps). Reading it as a super-admin is recorded in an audit log.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday: Maybe<Scalars['Date']['output']>;
++  /**
++   * Whether the requestor can read and change this user's birthday: true for the user themselves and for super-admins.
++   *
++   * Added in Saleor 3.23.
++   */
++  canAccessBirthday: Scalars['Boolean']['output'];
+   /**
+    * Returns the last open checkout of this user.
+    * @deprecated Use the `checkoutTokens` field to fetch the user checkouts.
+@@ -32415,6 +32479,12 @@ export type User = Node & ObjectWithAttributes & ObjectWithMetadata & {
+ };
+ 
+ 
++/** Represents user data. */
++export type UserAgeEligibleArgs = {
++  minimumAge: Scalars['Int']['input'];
++};
++
++
+ /** Represents user data. */
+ export type UserAssignedAttributeArgs = {
+   slug: Scalars['String']['input'];
+@@ -32576,6 +32646,12 @@ export type UserCreateInput = {
+    * Added in Saleor 3.23.
+    */
+   attributes: InputMaybe<Array<AttributeValueInput>>;
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday: InputMaybe<Scalars['Date']['input']>;
+   /** Slug of a channel which will be used for notify user. Optional when only one channel exists. */
+   channel: InputMaybe<Scalars['String']['input']>;
+   /**
+diff --git a/src/graphql/hooks.generated.ts b/src/graphql/hooks.generated.ts
+index 3bb8791..83aa129 100644
+--- a/src/graphql/hooks.generated.ts
++++ b/src/graphql/hooks.generated.ts
+@@ -816,6 +816,8 @@ export const CustomerDetailsFragmentDoc = gql`
+     ...Address
+   }
+   note
++  birthday
++  canAccessBirthday
+   isActive
+   isConfirmed
+   isStaff
+@@ -3465,6 +3467,7 @@ export const ProductFragmentDoc = gql`
+   seoTitle
+   seoDescription
+   rating
++  minimumAge
+   defaultVariant {
+     id
+     sku
+@@ -18460,6 +18463,7 @@ export const ProductListDocument = gql`
+         updatedAt
+         created
+         description
++        minimumAge
+         attributes {
+           ...ProductListAttribute
+         }
+diff --git a/src/graphql/typePolicies.generated.ts b/src/graphql/typePolicies.generated.ts
+index 560c483..54ad6e9 100644
+--- a/src/graphql/typePolicies.generated.ts
++++ b/src/graphql/typePolicies.generated.ts
+@@ -4594,7 +4594,7 @@ export type PreorderThresholdFieldPolicy = {
+ 	quantity?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	soldUnits?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variant' | 'variants' | 'weight' | ProductKeySpecifier)[];
++export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'minimumAge' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variant' | 'variants' | 'weight' | ProductKeySpecifier)[];
+ export type ProductFieldPolicy = {
+ 	assignedAttribute?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttributes?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4622,6 +4622,7 @@ export type ProductFieldPolicy = {
+ 	metadata?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	metafield?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	metafields?: FieldPolicy<any> | FieldReadFunction<any>,
++	minimumAge?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	name?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	pricing?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	privateMetadata?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -7054,13 +7055,16 @@ export type UploadErrorFieldPolicy = {
+ 	field?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	message?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type UserKeySpecifier = ('accessibleChannels' | 'addresses' | 'assignedAttribute' | 'assignedAttributes' | 'avatar' | 'checkout' | 'checkoutIds' | 'checkoutTokens' | 'checkouts' | 'customerType' | 'dateJoined' | 'defaultBillingAddress' | 'defaultShippingAddress' | 'editableGroups' | 'email' | 'events' | 'externalReference' | 'firstName' | 'giftCards' | 'id' | 'isActive' | 'isConfirmed' | 'isStaff' | 'languageCode' | 'lastLogin' | 'lastName' | 'metadata' | 'metafield' | 'metafields' | 'note' | 'orders' | 'permissionGroups' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'restrictedAccessToChannels' | 'storedPaymentMethods' | 'storedPaymentSources' | 'updatedAt' | 'userPermissions' | UserKeySpecifier)[];
++export type UserKeySpecifier = ('accessibleChannels' | 'addresses' | 'ageEligible' | 'assignedAttribute' | 'assignedAttributes' | 'avatar' | 'birthday' | 'canAccessBirthday' | 'checkout' | 'checkoutIds' | 'checkoutTokens' | 'checkouts' | 'customerType' | 'dateJoined' | 'defaultBillingAddress' | 'defaultShippingAddress' | 'editableGroups' | 'email' | 'events' | 'externalReference' | 'firstName' | 'giftCards' | 'id' | 'isActive' | 'isConfirmed' | 'isStaff' | 'languageCode' | 'lastLogin' | 'lastName' | 'metadata' | 'metafield' | 'metafields' | 'note' | 'orders' | 'permissionGroups' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'restrictedAccessToChannels' | 'storedPaymentMethods' | 'storedPaymentSources' | 'updatedAt' | 'userPermissions' | UserKeySpecifier)[];
+ export type UserFieldPolicy = {
+ 	accessibleChannels?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	addresses?: FieldPolicy<any> | FieldReadFunction<any>,
++	ageEligible?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttribute?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttributes?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	avatar?: FieldPolicy<any> | FieldReadFunction<any>,
++	birthday?: FieldPolicy<any> | FieldReadFunction<any>,
++	canAccessBirthday?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	checkout?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	checkoutIds?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	checkoutTokens?: FieldPolicy<any> | FieldReadFunction<any>,
+diff --git a/src/graphql/typePoliciesStaging.generated.ts b/src/graphql/typePoliciesStaging.generated.ts
+index 6c66497..c0cd780 100644
+--- a/src/graphql/typePoliciesStaging.generated.ts
++++ b/src/graphql/typePoliciesStaging.generated.ts
+@@ -4526,7 +4526,7 @@ export type PluginUpdateFieldPolicy = {
+ 	plugin?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	pluginsErrors?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variants' | 'weight' | ProductKeySpecifier)[];
++export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'minimumAge' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variants' | 'weight' | ProductKeySpecifier)[];
+ export type ProductFieldPolicy = {
+ 	assignedAttribute?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttributes?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4554,6 +4554,7 @@ export type ProductFieldPolicy = {
+ 	metadata?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	metafield?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	metafields?: FieldPolicy<any> | FieldReadFunction<any>,
++	minimumAge?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	name?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	pricing?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	privateMetadata?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -6988,13 +6989,16 @@ export type UploadErrorFieldPolicy = {
+ 	field?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	message?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type UserKeySpecifier = ('accessibleChannels' | 'addresses' | 'assignedAttribute' | 'assignedAttributes' | 'avatar' | 'checkout' | 'checkoutIds' | 'checkoutTokens' | 'checkouts' | 'customerType' | 'dateJoined' | 'defaultBillingAddress' | 'defaultShippingAddress' | 'editableGroups' | 'email' | 'events' | 'externalReference' | 'firstName' | 'giftCards' | 'id' | 'isActive' | 'isConfirmed' | 'isStaff' | 'languageCode' | 'lastLogin' | 'lastName' | 'metadata' | 'metafield' | 'metafields' | 'note' | 'orders' | 'permissionGroups' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'restrictedAccessToChannels' | 'storedPaymentMethods' | 'storedPaymentSources' | 'updatedAt' | 'userPermissions' | UserKeySpecifier)[];
++export type UserKeySpecifier = ('accessibleChannels' | 'addresses' | 'ageEligible' | 'assignedAttribute' | 'assignedAttributes' | 'avatar' | 'birthday' | 'canAccessBirthday' | 'checkout' | 'checkoutIds' | 'checkoutTokens' | 'checkouts' | 'customerType' | 'dateJoined' | 'defaultBillingAddress' | 'defaultShippingAddress' | 'editableGroups' | 'email' | 'events' | 'externalReference' | 'firstName' | 'giftCards' | 'id' | 'isActive' | 'isConfirmed' | 'isStaff' | 'languageCode' | 'lastLogin' | 'lastName' | 'metadata' | 'metafield' | 'metafields' | 'note' | 'orders' | 'permissionGroups' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'restrictedAccessToChannels' | 'storedPaymentMethods' | 'storedPaymentSources' | 'updatedAt' | 'userPermissions' | UserKeySpecifier)[];
+ export type UserFieldPolicy = {
+ 	accessibleChannels?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	addresses?: FieldPolicy<any> | FieldReadFunction<any>,
++	ageEligible?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttribute?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttributes?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	avatar?: FieldPolicy<any> | FieldReadFunction<any>,
++	birthday?: FieldPolicy<any> | FieldReadFunction<any>,
++	canAccessBirthday?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	checkout?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	checkoutIds?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	checkoutTokens?: FieldPolicy<any> | FieldReadFunction<any>,
+diff --git a/src/graphql/types.generated.ts b/src/graphql/types.generated.ts
+index 8738069..d8ad979 100644
+--- a/src/graphql/types.generated.ts
++++ b/src/graphql/types.generated.ts
+@@ -140,6 +140,12 @@ export enum AccountErrorCode {
+ 
+ /** Fields required to update the user. */
+ export type AccountInput = {
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday?: InputMaybe<Scalars['Date']['input']>;
+   /** Billing address of the customer. */
+   defaultBillingAddress?: InputMaybe<AddressInput>;
+   /** Shipping address of the customer. */
+@@ -160,6 +166,12 @@ export type AccountInput = {
+ 
+ /** Fields required to create a user. */
+ export type AccountRegisterInput = {
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday?: InputMaybe<Scalars['Date']['input']>;
+   /** Slug of a channel which will be used to notify users. Optional when only one channel exists. */
+   channel?: InputMaybe<Scalars['String']['input']>;
+   /** The email address of the user. */
+@@ -1449,6 +1461,7 @@ export type CheckoutCreateInput = {
+ };
+ 
+ export enum CheckoutErrorCode {
++  AGE_RESTRICTED = 'AGE_RESTRICTED',
+   BILLING_ADDRESS_NOT_SET = 'BILLING_ADDRESS_NOT_SET',
+   CHANNEL_INACTIVE = 'CHANNEL_INACTIVE',
+   CHECKOUT_NOT_FULLY_PAID = 'CHECKOUT_NOT_FULLY_PAID',
+@@ -2412,6 +2425,12 @@ export type CustomerInput = {
+    * Added in Saleor 3.23.
+    */
+   attributes?: InputMaybe<Array<AttributeValueInput>>;
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday?: InputMaybe<Scalars['Date']['input']>;
+   /**
+    * ID of the customer type to assign to the user. If not provided when creating a customer, the default customer type is assigned.
+    *
+@@ -5644,6 +5663,7 @@ export type OrderChargeStatusEnumFilterInput = {
+ };
+ 
+ export enum OrderCreateFromCheckoutErrorCode {
++  AGE_RESTRICTED = 'AGE_RESTRICTED',
+   BILLING_ADDRESS_NOT_SET = 'BILLING_ADDRESS_NOT_SET',
+   CHANNEL_INACTIVE = 'CHANNEL_INACTIVE',
+   CHECKOUT_NOT_FOUND = 'CHECKOUT_NOT_FOUND',
+@@ -7059,6 +7079,12 @@ export type ProductBulkCreateInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata?: InputMaybe<Array<MetadataInput>>;
++  /**
++   * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++   *
++   * Added in Saleor 3.23.
++   */
++  minimumAge?: InputMaybe<Scalars['Int']['input']>;
+   /** Product name. */
+   name?: InputMaybe<Scalars['String']['input']>;
+   /**
+@@ -7184,6 +7210,12 @@ export type ProductCreateInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata?: InputMaybe<Array<MetadataInput>>;
++  /**
++   * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++   *
++   * Added in Saleor 3.23.
++   */
++  minimumAge?: InputMaybe<Scalars['Int']['input']>;
+   /** Product name. */
+   name?: InputMaybe<Scalars['String']['input']>;
+   /**
+@@ -7327,6 +7359,12 @@ export type ProductInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata?: InputMaybe<Array<MetadataInput>>;
++  /**
++   * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++   *
++   * Added in Saleor 3.23.
++   */
++  minimumAge?: InputMaybe<Scalars['Int']['input']>;
+   /** Product name. */
+   name?: InputMaybe<Scalars['String']['input']>;
+   /**
+@@ -9467,6 +9505,12 @@ export type UserCreateInput = {
+    * Added in Saleor 3.23.
+    */
+   attributes?: InputMaybe<Array<AttributeValueInput>>;
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday?: InputMaybe<Scalars['Date']['input']>;
+   /** Slug of a channel which will be used for notify user. Optional when only one channel exists. */
+   channel?: InputMaybe<Scalars['String']['input']>;
+   /**
+@@ -11831,7 +11875,7 @@ export type UpdateCustomerMutationVariables = Exact<{
+ }>;
+ 
+ 
+-export type UpdateCustomerMutation = { __typename: 'Mutation', customerUpdate: { __typename: 'CustomerUpdate', errors: Array<{ __typename: 'AccountError', code: AccountErrorCode, field: string | null, addressType: AddressTypeEnum | null, message: string | null, attributes: Array<string> | null }>, user: { __typename: 'User', dateJoined: any, lastLogin: any | null, note: string | null, isActive: boolean, isConfirmed: boolean, isStaff: boolean, externalReference: string | null, id: string, email: string, firstName: string, lastName: string, defaultShippingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, defaultBillingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, customerType: { __typename: 'CustomerType', id: string, name: string, slug: string, isDefault: boolean, attributes: Array<{ __typename: 'Attribute', entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null } | null, assignedAttributes: Array<{ __typename: 'AssignedBooleanAttribute', booleanValue: boolean | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateAttribute', dateValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateTimeAttribute', dateTimeValue: any | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedFileAttribute', fileValue: { __typename: 'File', url: string, contentType: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCategoryReferenceAttribute', categoryValues: Array<{ __typename: 'Category', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiChoiceAttribute', choiceValues: Array<{ __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCollectionReferenceAttribute', collectionValues: Array<{ __typename: 'Collection', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiPageReferenceAttribute', pageValues: Array<{ __typename: 'Page', id: string, title: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductReferenceAttribute', productValues: Array<{ __typename: 'Product', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductVariantReferenceAttribute', variantValues: Array<{ __typename: 'ProductVariant', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedNumericAttribute', numericValue: number | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedPlainTextAttribute', plainTextValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCategoryReferenceAttribute', categoryValue: { __typename: 'Category', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleChoiceAttribute', choiceValue: { __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCollectionReferenceAttribute', collectionValue: { __typename: 'Collection', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSinglePageReferenceAttribute', pageValue: { __typename: 'Page', id: string, title: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductReferenceAttribute', productValue: { __typename: 'Product', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductVariantReferenceAttribute', variantValue: { __typename: 'ProductVariant', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSwatchAttribute', swatchValue: { __typename: 'AssignedSwatchAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedTextAttribute', richTextValue: unknown | null, attribute: { __typename: 'Attribute', id: string, slug: string } }> } | null } | null };
++export type UpdateCustomerMutation = { __typename: 'Mutation', customerUpdate: { __typename: 'CustomerUpdate', errors: Array<{ __typename: 'AccountError', code: AccountErrorCode, field: string | null, addressType: AddressTypeEnum | null, message: string | null, attributes: Array<string> | null }>, user: { __typename: 'User', dateJoined: any, lastLogin: any | null, note: string | null, birthday: string | null, canAccessBirthday: boolean, isActive: boolean, isConfirmed: boolean, isStaff: boolean, externalReference: string | null, id: string, email: string, firstName: string, lastName: string, defaultShippingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, defaultBillingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, customerType: { __typename: 'CustomerType', id: string, name: string, slug: string, isDefault: boolean, attributes: Array<{ __typename: 'Attribute', entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null } | null, assignedAttributes: Array<{ __typename: 'AssignedBooleanAttribute', booleanValue: boolean | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateAttribute', dateValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateTimeAttribute', dateTimeValue: any | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedFileAttribute', fileValue: { __typename: 'File', url: string, contentType: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCategoryReferenceAttribute', categoryValues: Array<{ __typename: 'Category', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiChoiceAttribute', choiceValues: Array<{ __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCollectionReferenceAttribute', collectionValues: Array<{ __typename: 'Collection', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiPageReferenceAttribute', pageValues: Array<{ __typename: 'Page', id: string, title: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductReferenceAttribute', productValues: Array<{ __typename: 'Product', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductVariantReferenceAttribute', variantValues: Array<{ __typename: 'ProductVariant', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedNumericAttribute', numericValue: number | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedPlainTextAttribute', plainTextValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCategoryReferenceAttribute', categoryValue: { __typename: 'Category', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleChoiceAttribute', choiceValue: { __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCollectionReferenceAttribute', collectionValue: { __typename: 'Collection', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSinglePageReferenceAttribute', pageValue: { __typename: 'Page', id: string, title: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductReferenceAttribute', productValue: { __typename: 'Product', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductVariantReferenceAttribute', variantValue: { __typename: 'ProductVariant', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSwatchAttribute', swatchValue: { __typename: 'AssignedSwatchAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedTextAttribute', richTextValue: unknown | null, attribute: { __typename: 'Attribute', id: string, slug: string } }> } | null } | null };
+ 
+ export type CreateCustomerMutationVariables = Exact<{
+   input: UserCreateInput;
+@@ -11909,7 +11953,7 @@ export type CustomerDetailsQueryVariables = Exact<{
+ }>;
+ 
+ 
+-export type CustomerDetailsQuery = { __typename: 'Query', user: { __typename: 'User', dateJoined: any, lastLogin: any | null, note: string | null, isActive: boolean, isConfirmed: boolean, isStaff: boolean, externalReference: string | null, id: string, email: string, firstName: string, lastName: string, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata?: Array<{ __typename: 'MetadataItem', key: string, value: string }>, orders?: { __typename: 'OrderCountableConnection', totalCount: number | null, edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, created: any, number: string, status: OrderStatus, total: { __typename: 'TaxedMoney', gross: { __typename: 'Money', currency: string, amount: number } }, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiOrderChannels?: { __typename: 'OrderCountableConnection', edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, status: OrderStatus, created: any, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiOrders?: { __typename: 'OrderCountableConnection', edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, status: OrderStatus, created: any, subtotal: { __typename: 'TaxedMoney', net: { __typename: 'Money', amount: number, currency: string } }, shippingPrice: { __typename: 'TaxedMoney', gross: { __typename: 'Money', amount: number, currency: string } }, totalRefunded: { __typename: 'Money', amount: number, currency: string }, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiNonCancelledOrderCount?: { __typename: 'OrderCountableConnection', totalCount: number | null } | null, defaultShippingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, defaultBillingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, customerType: { __typename: 'CustomerType', id: string, name: string, slug: string, isDefault: boolean, attributes: Array<{ __typename: 'Attribute', entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null } | null, assignedAttributes: Array<{ __typename: 'AssignedBooleanAttribute', booleanValue: boolean | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateAttribute', dateValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateTimeAttribute', dateTimeValue: any | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedFileAttribute', fileValue: { __typename: 'File', url: string, contentType: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCategoryReferenceAttribute', categoryValues: Array<{ __typename: 'Category', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiChoiceAttribute', choiceValues: Array<{ __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCollectionReferenceAttribute', collectionValues: Array<{ __typename: 'Collection', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiPageReferenceAttribute', pageValues: Array<{ __typename: 'Page', id: string, title: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductReferenceAttribute', productValues: Array<{ __typename: 'Product', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductVariantReferenceAttribute', variantValues: Array<{ __typename: 'ProductVariant', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedNumericAttribute', numericValue: number | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedPlainTextAttribute', plainTextValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCategoryReferenceAttribute', categoryValue: { __typename: 'Category', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleChoiceAttribute', choiceValue: { __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCollectionReferenceAttribute', collectionValue: { __typename: 'Collection', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSinglePageReferenceAttribute', pageValue: { __typename: 'Page', id: string, title: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductReferenceAttribute', productValue: { __typename: 'Product', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductVariantReferenceAttribute', variantValue: { __typename: 'ProductVariant', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSwatchAttribute', swatchValue: { __typename: 'AssignedSwatchAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedTextAttribute', richTextValue: unknown | null, attribute: { __typename: 'Attribute', id: string, slug: string } }> } | null };
++export type CustomerDetailsQuery = { __typename: 'Query', user: { __typename: 'User', dateJoined: any, lastLogin: any | null, note: string | null, birthday: string | null, canAccessBirthday: boolean, isActive: boolean, isConfirmed: boolean, isStaff: boolean, externalReference: string | null, id: string, email: string, firstName: string, lastName: string, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata?: Array<{ __typename: 'MetadataItem', key: string, value: string }>, orders?: { __typename: 'OrderCountableConnection', totalCount: number | null, edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, created: any, number: string, status: OrderStatus, total: { __typename: 'TaxedMoney', gross: { __typename: 'Money', currency: string, amount: number } }, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiOrderChannels?: { __typename: 'OrderCountableConnection', edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, status: OrderStatus, created: any, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiOrders?: { __typename: 'OrderCountableConnection', edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, status: OrderStatus, created: any, subtotal: { __typename: 'TaxedMoney', net: { __typename: 'Money', amount: number, currency: string } }, shippingPrice: { __typename: 'TaxedMoney', gross: { __typename: 'Money', amount: number, currency: string } }, totalRefunded: { __typename: 'Money', amount: number, currency: string }, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiNonCancelledOrderCount?: { __typename: 'OrderCountableConnection', totalCount: number | null } | null, defaultShippingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, defaultBillingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, customerType: { __typename: 'CustomerType', id: string, name: string, slug: string, isDefault: boolean, attributes: Array<{ __typename: 'Attribute', entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null } | null, assignedAttributes: Array<{ __typename: 'AssignedBooleanAttribute', booleanValue: boolean | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateAttribute', dateValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateTimeAttribute', dateTimeValue: any | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedFileAttribute', fileValue: { __typename: 'File', url: string, contentType: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCategoryReferenceAttribute', categoryValues: Array<{ __typename: 'Category', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiChoiceAttribute', choiceValues: Array<{ __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCollectionReferenceAttribute', collectionValues: Array<{ __typename: 'Collection', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiPageReferenceAttribute', pageValues: Array<{ __typename: 'Page', id: string, title: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductReferenceAttribute', productValues: Array<{ __typename: 'Product', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductVariantReferenceAttribute', variantValues: Array<{ __typename: 'ProductVariant', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedNumericAttribute', numericValue: number | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedPlainTextAttribute', plainTextValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCategoryReferenceAttribute', categoryValue: { __typename: 'Category', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleChoiceAttribute', choiceValue: { __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCollectionReferenceAttribute', collectionValue: { __typename: 'Collection', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSinglePageReferenceAttribute', pageValue: { __typename: 'Page', id: string, title: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductReferenceAttribute', productValue: { __typename: 'Product', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductVariantReferenceAttribute', variantValue: { __typename: 'ProductVariant', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSwatchAttribute', swatchValue: { __typename: 'AssignedSwatchAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedTextAttribute', richTextValue: unknown | null, attribute: { __typename: 'Attribute', id: string, slug: string } }> } | null };
+ 
+ export type CustomerAddressesQueryVariables = Exact<{
+   id: Scalars['ID']['input'];
+@@ -12567,7 +12611,7 @@ type CustomerAssignedAttribute_AssignedTextAttribute_Fragment = { __typename: 'A
+ 
+ export type CustomerAssignedAttributeFragment = CustomerAssignedAttribute_AssignedBooleanAttribute_Fragment | CustomerAssignedAttribute_AssignedDateAttribute_Fragment | CustomerAssignedAttribute_AssignedDateTimeAttribute_Fragment | CustomerAssignedAttribute_AssignedFileAttribute_Fragment | CustomerAssignedAttribute_AssignedMultiCategoryReferenceAttribute_Fragment | CustomerAssignedAttribute_AssignedMultiChoiceAttribute_Fragment | CustomerAssignedAttribute_AssignedMultiCollectionReferenceAttribute_Fragment | CustomerAssignedAttribute_AssignedMultiPageReferenceAttribute_Fragment | CustomerAssignedAttribute_AssignedMultiProductReferenceAttribute_Fragment | CustomerAssignedAttribute_AssignedMultiProductVariantReferenceAttribute_Fragment | CustomerAssignedAttribute_AssignedNumericAttribute_Fragment | CustomerAssignedAttribute_AssignedPlainTextAttribute_Fragment | CustomerAssignedAttribute_AssignedSingleCategoryReferenceAttribute_Fragment | CustomerAssignedAttribute_AssignedSingleChoiceAttribute_Fragment | CustomerAssignedAttribute_AssignedSingleCollectionReferenceAttribute_Fragment | CustomerAssignedAttribute_AssignedSinglePageReferenceAttribute_Fragment | CustomerAssignedAttribute_AssignedSingleProductReferenceAttribute_Fragment | CustomerAssignedAttribute_AssignedSingleProductVariantReferenceAttribute_Fragment | CustomerAssignedAttribute_AssignedSwatchAttribute_Fragment | CustomerAssignedAttribute_AssignedTextAttribute_Fragment;
+ 
+-export type CustomerDetailsFragment = { __typename: 'User', dateJoined: any, lastLogin: any | null, note: string | null, isActive: boolean, isConfirmed: boolean, isStaff: boolean, externalReference: string | null, id: string, email: string, firstName: string, lastName: string, defaultShippingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, defaultBillingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, customerType: { __typename: 'CustomerType', id: string, name: string, slug: string, isDefault: boolean, attributes: Array<{ __typename: 'Attribute', entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null } | null, assignedAttributes: Array<{ __typename: 'AssignedBooleanAttribute', booleanValue: boolean | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateAttribute', dateValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateTimeAttribute', dateTimeValue: any | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedFileAttribute', fileValue: { __typename: 'File', url: string, contentType: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCategoryReferenceAttribute', categoryValues: Array<{ __typename: 'Category', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiChoiceAttribute', choiceValues: Array<{ __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCollectionReferenceAttribute', collectionValues: Array<{ __typename: 'Collection', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiPageReferenceAttribute', pageValues: Array<{ __typename: 'Page', id: string, title: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductReferenceAttribute', productValues: Array<{ __typename: 'Product', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductVariantReferenceAttribute', variantValues: Array<{ __typename: 'ProductVariant', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedNumericAttribute', numericValue: number | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedPlainTextAttribute', plainTextValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCategoryReferenceAttribute', categoryValue: { __typename: 'Category', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleChoiceAttribute', choiceValue: { __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCollectionReferenceAttribute', collectionValue: { __typename: 'Collection', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSinglePageReferenceAttribute', pageValue: { __typename: 'Page', id: string, title: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductReferenceAttribute', productValue: { __typename: 'Product', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductVariantReferenceAttribute', variantValue: { __typename: 'ProductVariant', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSwatchAttribute', swatchValue: { __typename: 'AssignedSwatchAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedTextAttribute', richTextValue: unknown | null, attribute: { __typename: 'Attribute', id: string, slug: string } }> };
++export type CustomerDetailsFragment = { __typename: 'User', dateJoined: any, lastLogin: any | null, note: string | null, birthday: string | null, canAccessBirthday: boolean, isActive: boolean, isConfirmed: boolean, isStaff: boolean, externalReference: string | null, id: string, email: string, firstName: string, lastName: string, defaultShippingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, defaultBillingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, customerType: { __typename: 'CustomerType', id: string, name: string, slug: string, isDefault: boolean, attributes: Array<{ __typename: 'Attribute', entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null } | null, assignedAttributes: Array<{ __typename: 'AssignedBooleanAttribute', booleanValue: boolean | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateAttribute', dateValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateTimeAttribute', dateTimeValue: any | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedFileAttribute', fileValue: { __typename: 'File', url: string, contentType: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCategoryReferenceAttribute', categoryValues: Array<{ __typename: 'Category', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiChoiceAttribute', choiceValues: Array<{ __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCollectionReferenceAttribute', collectionValues: Array<{ __typename: 'Collection', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiPageReferenceAttribute', pageValues: Array<{ __typename: 'Page', id: string, title: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductReferenceAttribute', productValues: Array<{ __typename: 'Product', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductVariantReferenceAttribute', variantValues: Array<{ __typename: 'ProductVariant', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedNumericAttribute', numericValue: number | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedPlainTextAttribute', plainTextValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCategoryReferenceAttribute', categoryValue: { __typename: 'Category', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleChoiceAttribute', choiceValue: { __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCollectionReferenceAttribute', collectionValue: { __typename: 'Collection', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSinglePageReferenceAttribute', pageValue: { __typename: 'Page', id: string, title: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductReferenceAttribute', productValue: { __typename: 'Product', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductVariantReferenceAttribute', variantValue: { __typename: 'ProductVariant', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSwatchAttribute', swatchValue: { __typename: 'AssignedSwatchAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedTextAttribute', richTextValue: unknown | null, attribute: { __typename: 'Attribute', id: string, slug: string } }> };
+ 
+ export type CustomerAddressesFragment = { __typename: 'User', id: string, email: string, firstName: string, lastName: string, addresses: Array<{ __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } }>, defaultBillingAddress: { __typename: 'Address', id: string } | null, defaultShippingAddress: { __typename: 'Address', id: string } | null };
+ 
+@@ -12971,7 +13015,7 @@ export type ProductVariantSiblingFragment = { __typename: 'ProductVariant', id:
+ 
+ export type ProductVariantGeneratorExistingFragment = { __typename: 'ProductVariant', id: string, sku: string | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', id: string }, values: Array<{ __typename: 'AttributeValue', id: string, slug: string | null }> }> };
+ 
+-export type ProductFragment = { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, isAvailable: boolean | null, id: string, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, category: { __typename: 'Category', id: string, name: string } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> };
++export type ProductFragment = { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, minimumAge: number | null, isAvailable: boolean | null, id: string, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, category: { __typename: 'Category', id: string, name: string } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> };
+ 
+ export type VariantAttributeFragment = { __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null };
+ 
+@@ -14202,7 +14246,7 @@ export type ProductListQueryVariables = Exact<{
+ }>;
+ 
+ 
+-export type ProductListQuery = { __typename: 'Query', products: { __typename: 'ProductCountableConnection', totalCount: number | null, edges: Array<{ __typename: 'ProductCountableEdge', node: { __typename: 'Product', updatedAt: any, created: any, description: string | null, id: string, name: string, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', id: string }, values: Array<{ __typename: 'AttributeValue', id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, thumbnail: { __typename: 'Image', url: string } | null, productType: { __typename: 'ProductType', id: string, name: string, hasVariants: boolean }, category?: { __typename: 'Category', id: string, name: string } | null, collections?: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, pricing?: { __typename: 'ProductPricingInfo', priceRange: { __typename: 'TaxedMoneyRange', start: { __typename: 'TaxedMoney', net: { __typename: 'Money', amount: number, currency: string } } | null, stop: { __typename: 'TaxedMoney', net: { __typename: 'Money', amount: number, currency: string } } | null } | null } | null, channel: { __typename: 'Channel', id: string, name: string, slug: string, currencyCode: string, isActive: boolean } }> | null } }>, pageInfo: { __typename: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor: string | null, endCursor: string | null } } | null };
++export type ProductListQuery = { __typename: 'Query', products: { __typename: 'ProductCountableConnection', totalCount: number | null, edges: Array<{ __typename: 'ProductCountableEdge', node: { __typename: 'Product', updatedAt: any, created: any, description: string | null, minimumAge: number | null, id: string, name: string, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', id: string }, values: Array<{ __typename: 'AttributeValue', id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, thumbnail: { __typename: 'Image', url: string } | null, productType: { __typename: 'ProductType', id: string, name: string, hasVariants: boolean }, category?: { __typename: 'Category', id: string, name: string } | null, collections?: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, pricing?: { __typename: 'ProductPricingInfo', priceRange: { __typename: 'TaxedMoneyRange', start: { __typename: 'TaxedMoney', net: { __typename: 'Money', amount: number, currency: string } } | null, stop: { __typename: 'TaxedMoney', net: { __typename: 'Money', amount: number, currency: string } } | null } | null } | null, channel: { __typename: 'Channel', id: string, name: string, slug: string, currencyCode: string, isActive: boolean } }> | null } }>, pageInfo: { __typename: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor: string | null, endCursor: string | null } } | null };
+ 
+ export type ProductCountQueryVariables = Exact<{
+   filter?: InputMaybe<ProductFilterInput>;
+@@ -14223,7 +14267,7 @@ export type ProductDetailsQueryVariables = Exact<{
+ }>;
+ 
+ 
+-export type ProductDetailsQuery = { __typename: 'Query', product: { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, isAvailable: boolean | null, id: string, category: { __typename: 'Category', id: string, name: string, level: number, parent: { __typename: 'Category', id: string, name: string } | null, ancestors: { __typename: 'CategoryCountableConnection', edges: Array<{ __typename: 'CategoryCountableEdge', node: { __typename: 'Category', id: string, name: string } }> } | null } | null, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> } | null };
++export type ProductDetailsQuery = { __typename: 'Query', product: { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, minimumAge: number | null, isAvailable: boolean | null, id: string, category: { __typename: 'Category', id: string, name: string, level: number, parent: { __typename: 'Category', id: string, name: string } | null, ancestors: { __typename: 'CategoryCountableConnection', edges: Array<{ __typename: 'CategoryCountableEdge', node: { __typename: 'Category', id: string, name: string } }> } | null } | null, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> } | null };
+ 
+ export type ProductTypeQueryVariables = Exact<{
+   id: Scalars['ID']['input'];
+diff --git a/src/graphql/typesStaging.generated.ts b/src/graphql/typesStaging.generated.ts
+index a04df26..2fae629 100644
+--- a/src/graphql/typesStaging.generated.ts
++++ b/src/graphql/typesStaging.generated.ts
+@@ -139,6 +139,12 @@ export enum AccountErrorCode {
+ 
+ /** Fields required to update the user. */
+ export type AccountInput = {
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday?: InputMaybe<Scalars['Date']['input']>;
+   /** Billing address of the customer. */
+   defaultBillingAddress?: InputMaybe<AddressInput>;
+   /** Shipping address of the customer. */
+@@ -159,6 +165,12 @@ export type AccountInput = {
+ 
+ /** Fields required to create a user. */
+ export type AccountRegisterInput = {
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday?: InputMaybe<Scalars['Date']['input']>;
+   /** Slug of a channel which will be used to notify users. Optional when only one channel exists. */
+   channel?: InputMaybe<Scalars['String']['input']>;
+   /** The email address of the user. */
+@@ -1308,6 +1320,7 @@ export type CheckoutCreateInput = {
+ };
+ 
+ export enum CheckoutErrorCode {
++  AGE_RESTRICTED = 'AGE_RESTRICTED',
+   BILLING_ADDRESS_NOT_SET = 'BILLING_ADDRESS_NOT_SET',
+   CHANNEL_INACTIVE = 'CHANNEL_INACTIVE',
+   CHECKOUT_NOT_FULLY_PAID = 'CHECKOUT_NOT_FULLY_PAID',
+@@ -2259,6 +2272,12 @@ export type CustomerInput = {
+    * Added in Saleor 3.23.
+    */
+   attributes?: InputMaybe<Array<AttributeValueInput>>;
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday?: InputMaybe<Scalars['Date']['input']>;
+   /**
+    * ID of the customer type to assign to the user. If not provided when creating a customer, the default customer type is assigned.
+    *
+@@ -5383,6 +5402,7 @@ export type OrderChargeStatusEnumFilterInput = {
+ };
+ 
+ export enum OrderCreateFromCheckoutErrorCode {
++  AGE_RESTRICTED = 'AGE_RESTRICTED',
+   BILLING_ADDRESS_NOT_SET = 'BILLING_ADDRESS_NOT_SET',
+   CHANNEL_INACTIVE = 'CHANNEL_INACTIVE',
+   CHECKOUT_NOT_FOUND = 'CHECKOUT_NOT_FOUND',
+@@ -6720,6 +6740,12 @@ export type ProductBulkCreateInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata?: InputMaybe<Array<MetadataInput>>;
++  /**
++   * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++   *
++   * Added in Saleor 3.23.
++   */
++  minimumAge?: InputMaybe<Scalars['Int']['input']>;
+   /** Product name. */
+   name?: InputMaybe<Scalars['String']['input']>;
+   /**
+@@ -6840,6 +6866,12 @@ export type ProductCreateInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata?: InputMaybe<Array<MetadataInput>>;
++  /**
++   * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++   *
++   * Added in Saleor 3.23.
++   */
++  minimumAge?: InputMaybe<Scalars['Int']['input']>;
+   /** Product name. */
+   name?: InputMaybe<Scalars['String']['input']>;
+   /**
+@@ -6971,6 +7003,12 @@ export type ProductInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata?: InputMaybe<Array<MetadataInput>>;
++  /**
++   * Minimum age (in years) a customer must have to buy this product. Set to `null` to remove the restriction.
++   *
++   * Added in Saleor 3.23.
++   */
++  minimumAge?: InputMaybe<Scalars['Int']['input']>;
+   /** Product name. */
+   name?: InputMaybe<Scalars['String']['input']>;
+   /**
+@@ -8992,6 +9030,12 @@ export type UserCreateInput = {
+    * Added in Saleor 3.23.
+    */
+   attributes?: InputMaybe<Array<AttributeValueInput>>;
++  /**
++   * Date of birth. Used to verify age-restricted purchases.
++   *
++   * Added in Saleor 3.23.
++   */
++  birthday?: InputMaybe<Scalars['Date']['input']>;
+   /** Slug of a channel which will be used for notify user. Optional when only one channel exists. */
+   channel?: InputMaybe<Scalars['String']['input']>;
+   /**
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
+index f54cb77..2b4311a 100644
+--- a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
+@@ -18,6 +18,7 @@ interface ProductDetailsFormProps {
+     description: OutputData;
+     name: string;
+     rating: number | null;
++    minimumAge?: string;
+   };
+   /** Simple products carry weight here. Variants keep it on the variant. */
+   shippingWeight?: {
+@@ -38,9 +39,13 @@ export const ProductDetailsForm = ({
+   onDescriptionChange,
+ }: ProductDetailsFormProps) => {
+   const intl = useIntl();
+-  const formErrors = getFormErrors(["name", "description", "rating", "weight"], errors);
++  const formErrors = getFormErrors(
++    ["name", "description", "rating", "weight", "minimumAge"],
++    errors,
++  );
+   const { editorRef, defaultValue, isReadyForMount, handleChange } = useRichTextContext();
+   const handleWeightChange = createNonNegativeValueChangeHandler(onChange);
++  const handleMinimumAgeChange = createNonNegativeValueChangeHandler(onChange);
+ 
+   return (
+     <DetailSettingsCard
+@@ -116,6 +121,31 @@ export const ProductDetailsForm = ({
+             })
+           }
+         />
++        <Input
++          label={intl.formatMessage({
++            id: "g9m8J1",
++            defaultMessage: "Minimum age",
++            description: "minimum customer age required to buy the product",
++          })}
++          size="small"
++          width="100%"
++          value={data.minimumAge ?? ""}
++          onChange={handleMinimumAgeChange}
++          error={!!formErrors.minimumAge}
++          name="minimumAge"
++          type="number"
++          disabled={disabled}
++          data-test-id="product-minimum-age"
++          helperText={
++            getProductErrorMessage(formErrors.minimumAge, intl) ||
++            intl.formatMessage({
++              id: "pJca2j",
++              defaultMessage:
++                "Customers younger than this age can't buy the product. Leave empty for no restriction.",
++              description: "helper beside the product minimum age field",
++            })
++          }
++        />
+         {shippingWeight ? (
+           <Input
+             label={intl.formatMessage({
+diff --git a/src/products/components/ProductListDatagrid/datagrid.test.ts b/src/products/components/ProductListDatagrid/datagrid.test.ts
+index fa5526a..4fc28fb 100644
+--- a/src/products/components/ProductListDatagrid/datagrid.test.ts
++++ b/src/products/components/ProductListDatagrid/datagrid.test.ts
+@@ -1,7 +1,7 @@
+ import { ProductListUrlSortField } from "@dashboard/products/urls";
+ import { testIntlInstance } from "@test/intl";
+ 
+-import { getDescriptionValue, productListStaticColumnAdapter } from "./datagrid";
++import { formatMinimumAge, getDescriptionValue, productListStaticColumnAdapter } from "./datagrid";
+ 
+ describe("productListStaticColumnAdapter", () => {
+   it("keeps merchandising columns compact and grows the product name", () => {
+@@ -22,6 +22,7 @@ describe("productListStaticColumnAdapter", () => {
+     ).toEqual([
+       { id: "name", width: 280, grow: 1 },
+       { id: "productType", width: 160, grow: undefined },
++      { id: "minimumAge", width: 140, grow: undefined },
+       { id: "description", width: 240, grow: undefined },
+       { id: "availability", width: 200, grow: undefined },
+       { id: "date", width: 200, grow: undefined },
+@@ -80,3 +81,14 @@ describe("getDescriptionValue", () => {
+     );
+   });
+ });
++
++describe("formatMinimumAge", () => {
++  it("formats a restricted product as an age label", () => {
++    expect(formatMinimumAge(18)).toBe("18+");
++    expect(formatMinimumAge(21)).toBe("21+");
++  });
++
++  it.each([null, undefined, 0])("returns an empty label for %s", minimumAge => {
++    expect(formatMinimumAge(minimumAge)).toBe("");
++  });
++});
+diff --git a/src/products/components/ProductListDatagrid/datagrid.ts b/src/products/components/ProductListDatagrid/datagrid.ts
+index 0222704..580b352 100644
+--- a/src/products/components/ProductListDatagrid/datagrid.ts
++++ b/src/products/components/ProductListDatagrid/datagrid.ts
+@@ -61,6 +61,11 @@ export const productListStaticColumnAdapter = ({
+       title: intl.formatMessage(columnsMessages.type),
+       width: 160,
+     },
++    {
++      id: "minimumAge",
++      title: intl.formatMessage(columnsMessages.minimumAge),
++      width: 140,
++    },
+     {
+       id: "description",
+       title: intl.formatMessage(commonMessages.description),
+@@ -221,6 +226,8 @@ export function createGetCellContent({
+         return getCategoryCellContent(theme, rowData);
+       case "productCollections":
+         return getCollectionsCellContent(theme, rowData);
++      case "minimumAge":
++        return getMinimumAgeCellContent(rowData);
+     }
+ 
+     if (columnId.startsWith("attribute")) {
+@@ -243,6 +250,20 @@ function getCreatedCellContent(rowData: RelayToFlat<ProductListQuery["products"]
+   return dateCell(rowData?.created, COMMON_CELL_PROPS);
+ }
+ 
++export function formatMinimumAge(minimumAge: number | null | undefined): string {
++  return typeof minimumAge === "number" && minimumAge > 0 ? `${minimumAge}+` : "";
++}
++
++function getMinimumAgeCellContent(rowData: RelayToFlat<ProductListQuery["products"]>[number]) {
++  const label = formatMinimumAge(rowData?.minimumAge);
++
++  if (!label) {
++    return readonlyTextCell("-", true);
++  }
++
++  return readonlyTextCell(label, true);
++}
++
+ function getProductTypeCellContent(
+   theme: DefaultTheme,
+   rowData: RelayToFlat<ProductListQuery["products"]>[number],
+diff --git a/src/products/components/ProductListDatagrid/messages.ts b/src/products/components/ProductListDatagrid/messages.ts
+index b284a6f..fa53138 100644
+--- a/src/products/components/ProductListDatagrid/messages.ts
++++ b/src/products/components/ProductListDatagrid/messages.ts
+@@ -50,6 +50,11 @@ export const columnsMessages = defineMessages({
+     defaultMessage: "Created at",
+     description: "product created at",
+   },
++  minimumAge: {
++    id: "OHZiAa",
++    defaultMessage: "Minimum age",
++    description: "product minimum customer age column",
++  },
+   category: {
+     id: "9qKFTA",
+     defaultMessage: "Category",
+diff --git a/src/products/components/ProductUpdatePage/saveComposition.ts b/src/products/components/ProductUpdatePage/saveComposition.ts
+index 9e2c6bd..b937f36 100644
+--- a/src/products/components/ProductUpdatePage/saveComposition.ts
++++ b/src/products/components/ProductUpdatePage/saveComposition.ts
+@@ -7,6 +7,7 @@ export const PRODUCT_DETAILS_SAVE_FIELDS: ReadonlyArray<keyof ProductUpdateFormD
+   "seoTitle",
+   "seoDescription",
+   "rating",
++  "minimumAge",
+   "weight",
+   "taxClassId",
+   "category",
+diff --git a/src/products/components/ProductUpdatePage/types.ts b/src/products/components/ProductUpdatePage/types.ts
+index e236f93..b93b671 100644
+--- a/src/products/components/ProductUpdatePage/types.ts
++++ b/src/products/components/ProductUpdatePage/types.ts
+@@ -43,6 +43,7 @@ export interface ProductUpdateFormData {
+   isAvailable: boolean;
+   name: string;
+   rating: number;
++  minimumAge: string;
+   slug: string;
+   seoDescription: string;
+   seoTitle: string;
+diff --git a/src/products/fixtures.ts b/src/products/fixtures.ts
+index 15487df..e01d8b7 100644
+--- a/src/products/fixtures.ts
++++ b/src/products/fixtures.ts
+@@ -573,6 +573,7 @@ export const product: (
+     },
+   },
+   rating: 100,
++  minimumAge: null,
+   seoDescription: "Seo description",
+   seoTitle: "Seo title",
+   sku: "59661-34207",
+@@ -1170,6 +1171,7 @@ export const product: (
+ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery["products"]> => [
+   {
+     __typename: "Product",
++    minimumAge: null,
+     description:
+       "Fell straight from the tree, on to Newton's head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+@@ -1272,6 +1274,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     attributes: [],
+@@ -1374,6 +1377,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     attributes: [],
+@@ -1476,6 +1480,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -1600,6 +1605,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -1724,6 +1730,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -1849,6 +1856,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -1973,6 +1981,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -2097,6 +2106,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -2221,6 +2231,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     description:
+       "Fell straight from the tree, on to Newton's head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+@@ -2345,6 +2356,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -2469,6 +2481,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -2593,6 +2606,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -2717,6 +2731,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -2841,6 +2856,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -2965,6 +2981,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -3089,6 +3106,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -3213,6 +3231,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -3337,6 +3356,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+@@ -3461,6 +3481,7 @@ export const products = (placeholderImage: string): RelayToFlat<ProductListQuery
+   },
+   {
+     __typename: "Product",
++    minimumAge: null,
+     updatedAt: "2020-06-22T13:52:05.094636+00:00",
+     created: "2020-06-22T13:52:05.094636+00:00",
+     description:
+diff --git a/src/products/queries.ts b/src/products/queries.ts
+index 4fa2d5b..009f228 100644
+--- a/src/products/queries.ts
++++ b/src/products/queries.ts
+@@ -32,6 +32,7 @@ export const productListQuery = gql`
+           updatedAt
+           created
+           description
++          minimumAge
+           attributes {
+             ...ProductListAttribute
+           }
+diff --git a/src/products/utils/data.test.ts b/src/products/utils/data.test.ts
+index fb12c7c..58911e7 100644
+--- a/src/products/utils/data.test.ts
++++ b/src/products/utils/data.test.ts
+@@ -1,4 +1,5 @@
+-import { getSelectedMedia } from "./data";
++import { product as productFixture } from "../fixtures";
++import { getProductUpdatePageFormData, getSelectedMedia } from "./data";
+ 
+ type GetSelectedMediaParams = Parameters<typeof getSelectedMedia>;
+ 
+@@ -72,3 +73,38 @@ describe("Product media utils", () => {
+     expect(result).toEqual([]);
+   });
+ });
++
++describe("getProductUpdatePageFormData", () => {
++  it("maps the product minimum age to a string for the form", () => {
++    // Arrange
++    const product = { ...productFixture(""), minimumAge: 18 };
++
++    // Act
++    const result = getProductUpdatePageFormData(product, []);
++
++    // Assert
++    expect(result.minimumAge).toBe("18");
++  });
++
++  it("keeps a zero minimum age", () => {
++    // Arrange
++    const product = { ...productFixture(""), minimumAge: 0 };
++
++    // Act
++    const result = getProductUpdatePageFormData(product, []);
++
++    // Assert
++    expect(result.minimumAge).toBe("0");
++  });
++
++  it("uses an empty string when the product is not age restricted", () => {
++    // Arrange
++    const product = { ...productFixture(""), minimumAge: null };
++
++    // Act
++    const result = getProductUpdatePageFormData(product, []);
++
++    // Assert
++    expect(result.minimumAge).toBe("");
++  });
++});
+diff --git a/src/products/utils/data.ts b/src/products/utils/data.ts
+index fd355af..ac6e9df 100644
+--- a/src/products/utils/data.ts
++++ b/src/products/utils/data.ts
+@@ -207,6 +207,7 @@ export function getProductUpdatePageFormData(
+     isAvailable: !!product?.isAvailable,
+     name: maybe(() => product.name, ""),
+     rating: maybe(() => product.rating, null),
++    minimumAge: product?.minimumAge?.toString() ?? "",
+     seoDescription: maybe(() => product.seoDescription, ""),
+     seoTitle: maybe(() => product.seoTitle, ""),
+     sku: maybe(
+diff --git a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
+index fd11549..fa3feca 100644
+--- a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
++++ b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
+@@ -96,6 +96,7 @@ const submitData: ProductUpdateSubmitData = {
+   isAvailable: true,
+   name: product.name,
+   rating: 0,
++  minimumAge: "",
+   seoDescription: "",
+   seoTitle: "",
+   sku: "",
+diff --git a/src/products/views/ProductUpdate/handlers/utils.test.ts b/src/products/views/ProductUpdate/handlers/utils.test.ts
+index f5bcd9c..5272782 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.test.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.test.ts
+@@ -473,6 +473,42 @@ describe("getProductUpdateVariables", () => {
+     expect(result.input.rating).toBe(4.5);
+   });
+ 
++  it("should include minimumAge as a number when provided", () => {
++    // Arrange - number inputs report string values
++    const data = {
++      ...baseData,
++      minimumAge: "18",
++    } as unknown as ProductUpdateSubmitData;
++
++    // Act
++    const result = getProductUpdateVariables(baseProduct, data, []);
++
++    // Assert
++    expect(result.input.minimumAge).toBe(18);
++  });
++
++  it("should include null when minimumAge input is cleared", () => {
++    // Arrange
++    const data = {
++      ...baseData,
++      minimumAge: "",
++    } as unknown as ProductUpdateSubmitData;
++
++    // Act
++    const result = getProductUpdateVariables(baseProduct, data, []);
++
++    // Assert
++    expect(result.input.minimumAge).toBeNull();
++  });
++
++  it("should not send minimumAge when the field was not changed", () => {
++    // Act
++    const result = getProductUpdateVariables(baseProduct, baseData, []);
++
++    // Assert
++    expect(result.input).not.toHaveProperty("minimumAge");
++  });
++
+   it("should include zero rating when provided", () => {
+     // Arrange
+     const data = {
+diff --git a/src/products/views/ProductUpdate/handlers/utils.ts b/src/products/views/ProductUpdate/handlers/utils.ts
+index 74f714e..b3688ce 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.ts
+@@ -73,6 +73,12 @@ export function getProductUpdateVariables(
+     variables.input["rating"] = Number.isFinite(rating) ? rating : null;
+   }
+ 
++  if (data.minimumAge !== undefined) {
++    const minimumAge = parseInt(String(data.minimumAge), 10);
++
++    variables.input["minimumAge"] = Number.isFinite(minimumAge) ? minimumAge : null;
++  }
++
+   if (data.slug) {
+     variables.input["slug"] = data.slug;
+   }
