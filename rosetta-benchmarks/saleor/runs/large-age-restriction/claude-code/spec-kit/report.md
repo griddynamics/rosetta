@@ -48,16 +48,16 @@ hidden_total: 9
 hidden_asked: 0
 hidden_covered: 4
 hidden_missed: 4
-hidden_matches_answer: 5  # how many of the 9 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: not run   # needs a code check of the final diff (judge step); the earlier 5 was based on T1 answers
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 11
-red_flags:                 # number of ticked red flags
+red_flags: 4                 # number of ticked red flags
 tests_pass: yes  # yes | no (operator ran them at T2)
 operator_score: 3                # 1–5, anchors in templates/README.md (operator)
 operator_merge_ready: no   # yes | no
 # Filled later by the evaluator from the judge reports
-verified_in_code:          # items verified in code / items checked (e.g. 8/9)
+verified_in_code: 9/9   # operator read the code; all 9 hidden items checked (count per operator)
 judge_absolute: not run
 judge_side_by_side: not run
 judge_merge_ready: not run
@@ -227,17 +227,21 @@ Tick every one you see; one line of evidence each.
 
 - [ ] Logic only in the UI, not enforced in the backend
 - [ ] Model changed but no migration, or the migration fails on a clean DB
-- [ ] GraphQL schema / dashboard codegen not updated
-- [ ] Tests skipped, deleted, weakened or marked `xfail` to pass
+- [x] GraphQL schema / dashboard codegen not updated
+- [x] Tests skipped, deleted, weakened or marked `xfail` to pass
 - [ ] Tests written but never run by the agent
-- [ ] Unrelated files changed or refactored
+- [x] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
 - [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
-- [ ] Other: `<...>`
+- [x] Other: dashboard customer queries request `birthday`; for non-superuser staff this returns a permission error, not tested in the dashboard by the agent
 
-Evidence: `<one line per ticked item>`
+Evidence:
+- Tests weakened: `customerCreate` and `customerUpdate` birthday tests were changed to read the saved DB value instead of the mutation response (agent report, follow-up 1).
+- GraphQL / codegen: the agent reports the dashboard's copy of `schema.graphql` still has the old description and lacks the two new event types (agent report, follow-up 2).
+- Unrelated change: the future-birthday check was switched to the shop's date, which was not in follow-up 5 (timeline row 32).
+- Other: dashboard birthday field returns a permission error for non-superuser staff; the agent did not test this in the dashboard (agent report, follow-up 1).
 
 ## 6. Agent's claims vs reality (from `agent-report.md`)
 
@@ -269,8 +273,8 @@ Evidence: `<one line per ticked item>`
 
 - Deviations from the protocol, and why: (1) follow-up messages 1–5 were drafted by the assistant at the operator's request, so this run is not comparable with operator-written runs; (2) the operator's reply to the time-zone question was "pick the recommended option: New SHOP_TIME_ZONE setting (Recommended)", which the protocol forbids in wording; the decision itself is the operator's; (3) items 10–12 of the Done-when list were decided by the operator (item 10 support-staff check not tested; item 11 dashboard flake counted as pass with a note); (4) the command templates in section 4 keep their placeholders, because the checks were run through the UI and the API calls listed in the table.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
-- Strong point of the method in this run: operator to fill
-- Weak point of the method in this run: operator to fill
+- Strong point of the method in this run: the backend enforces the age rule on every purchase path, and all nine UI checks passed on the first delivery
+- Weak point of the method in this run: it needed five follow-ups, and the dashboard schema and browser checks were left undone
 
 ## Appendix A. Raw `/cost` output
 
