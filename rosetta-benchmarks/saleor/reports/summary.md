@@ -1,6 +1,6 @@
 # Benchmark results
 
-10 reports in `saleor/runs/`. Compare methods only within one task and one runner (templates/README.md).
+11 reports in `saleor/runs/`. Compare methods only within one task and one runner (templates/README.md).
 
 ## Every run
 
@@ -8,6 +8,7 @@
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | --- | --- | ---: | --- | ---: | ---: |
 | `L-CC-02` | `large-age-restriction/claude-code/grill-with-docs` | run | done | 53 | 83 | $9.46 | $10.17 | 7% | 6 / 3 / 0 | 100% | 2 | 1 | 12/12 | yes | 4 | no | – | – |
 | `L-CC-03` | `large-age-restriction/claude-code/superpowers` | run | done | 108 | 526 | $14.31 | $35.11 | 59% | 1 / 4 / 4 | 56% | 1 | 6 | –/12 | – | – | – | – | – |
+| `L-CC-08` | `large-age-restriction/claude-code/rosetta-skills` | run | done | 119 | 243 | $62.50 | $67.47 | 7% | 4 / 4 / 1 | 89% | 1 | 2 | 12/12 | yes | 5 | yes | – | – |
 | `S-CC-01` | `small-storage-conditions/claude-code/baseline` | run | done | 29 | 70 | $1.24 | $3.31 | 63% | 0 / 4 / 3 | 57% | 3 | 1 | 7/8 | yes | 3 | no | – | – |
 | `S-CC-02` | `small-storage-conditions/claude-code/grill-with-docs` | run | done | 38 | 38 | $4.82 | $4.89 | 1% | 5 / 2 / 0 | 100% | 0 | 1 | 8/8 | yes | 4 | yes | – | – |
 | `S-CC-03` | `small-storage-conditions/claude-code/superpowers` | run | done | 44 | 62 | $6.76 | $8.08 | 16% | 1 / 5 / 1 | 86% | 1 | 5 | 7/8 | yes | 3 | – | – | – |
@@ -37,6 +38,7 @@
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | grill-with-docs | 1 | 53 | 83 | $10.17 | 100% | 2 | 1 | 12 | 4 | – |
 | superpowers | 1 | 108 | 526 | $35.11 | 56% | 1 | 6 | – | – | – |
+| rosetta-skills | 1 | 119 | 243 | $67.47 | 89% | 1 | 2 | 12 | 5 | – |
 
 ## Missing values (fill them in the report)
 

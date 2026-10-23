@@ -1,12 +1,12 @@
 # Saleor benchmark: preliminary results (2026-10-22)
 
-**Status: preliminary, 9 of 32 runs done.** What has been run so far, end to end with a report, on **Claude Code** (Sonnet 5.5, effort medium): **7 runs on the small task** (product "storage conditions" field across backend, dashboard and storefront) and **2 runs on the large task** (age-restricted products). Copilot runs and the other methods follow; the full version will be published later.
+**Status: preliminary, 10 of 32 runs done.** What has been run so far, end to end with a report, on **Claude Code** (Sonnet 5.5, effort medium): **7 runs on the small task** (product "storage conditions" field across backend, dashboard and storefront) and **3 runs on the large task** (age-restricted products). Copilot runs and the other methods follow; the full version will be published later.
 
 Each run has its own folder with the agent's diffs, its own report and a token breakdown: [`saleor/runs/`](../runs/). Generated table of all runs: [`summary.md`](./summary.md) (`python3 saleor/scripts/collect-results.py`). Method, rules and scoring: [`BENCHMARKS.md`](../../BENCHMARKS.md).
 
 ## All runs
 
-Every run done so far: **9 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIMENTS.md) (8 methods × 2 tasks × 2 runners), all on Claude Code; new runs are added as rows when they are committed. Numbers come from each run's report (data block); [`summary.md`](./summary.md) and [`runs.csv`](./runs.csv) are generated from the same reports. Hidden requirements: 7 in the small task, 9 in the large one. Time is to the first "done" (T1) and to the end of the last follow-up (T2), without the time the agent waited for the operator where the report computes it.
+Every run done so far: **10 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIMENTS.md) (8 methods × 2 tasks × 2 runners), all on Claude Code; new runs are added as rows when they are committed. Numbers come from each run's report (data block); [`summary.md`](./summary.md) and [`runs.csv`](./runs.csv) are generated from the same reports. Hidden requirements: 7 in the small task, 9 in the large one. Time is to the first "done" (T1) and to the end of the last follow-up (T2), without the time the agent waited for the operator where the report computes it.
 
 | Task | Runner | Run | Method | Status | Operator | Questions asked (hidden / extra) | Hidden: asked / covered / missed | First-pass coverage | Follow-ups | Time to first "done" / total | Cost to first "done" / total | "Done when" passed | Red flags | Tests at the end | Score / merge-ready |
 | --- | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | --- |
@@ -19,10 +19,11 @@ Every run done so far: **9 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIME
 | Small | Claude Code | `S-CC-08` | Rosetta Skills | done | Igor Solomatov | 10 (3 / 7) | 3 / 3 / 1 | 86 % | 1 | 56 min / 56 min | $5.64 / $5.64 | 8 / 8 | 0 | pass | 5 / yes |
 | Large | Claude Code | `L-CC-02` | Grill-with-docs (task variant) | done | Oleksii Poletaiev | 29 (13 / 16) | 6 / 3 / 0 | 100 % | 2 | 53 min / 1 h 23 min | $9.46 / $10.17 | 12 / 12 | 1 | pass | 4 / no |
 | Large | Claude Code | `L-CC-03` | Superpowers (old setup) | done | agavrilita | 3 (1 / 2) | 1 / 4 / 4 | 56 % | 1 | 1 h 48 min / 8 h 46 min | $14.31 / $35.11 | not filled | not filled | not filled | not filled |
+| Large | Claude Code | `L-CC-08` | Rosetta Skills | done | Igor Solomatov | 20 (5 / 15) | 4 / 4 / 1 | 89 % | 1 | 1 h 59 min / 4 h 3 min | $62.50 / $67.47 | 12 / 12 | 0 | pass | 5 / yes |
 
 **Reading it:**
 - **Small task:** the methods that interview before coding (Grill-with-docs, Rosetta, Rosetta Light) reached 100 % first-pass coverage and needed no follow-ups; Baseline and Spec Kit asked nothing and missed the same 3 hidden requirements. Rosetta Light and Rosetta Skills got the same top operator score as full Rosetta (5 / merge-ready) at about a quarter of its cost ($5.48 and $5.64 against $21.37). Rosetta Skills missed one hidden requirement (CSV export and webhook payloads) in its first spec and needed 1 follow-up.
-- **Large task:** the two runs are not comparable with each other: `L-CC-02` is a task variant (the operator replaced hidden key #5, see caveats). Grill-with-docs asked or handled all 9 hidden requirements but needed 2 follow-ups because the first "done" was not usable in the running app; Superpowers missed 4 of 9 at first pass and needed a second implementation round (most of its $35.11).
+- **Large task:** `L-CC-02` is a task variant and is not comparable with the others (the operator replaced hidden key #5, see caveats). Grill-with-docs asked or handled all 9 hidden requirements but needed 2 follow-ups because the first "done" was not usable in the running app; Superpowers missed 4 of 9 at first pass and needed a second implementation round (most of its $35.11). Rosetta Skills (`L-CC-08`) asked the most (20 questions, 15 outside the answer tables), covered 8 of 9 at first pass, needed 1 follow-up and got 5 / merge-ready, but was by far the most expensive run so far ($67.47).
 
 ## Details per task
 
@@ -52,20 +53,20 @@ Every run done so far: **9 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIME
 
 ### Large task · Claude Code
 
-| | Grill-with-docs (`L-CC-02`) |
-| --- | --- |
-| How it ran | `/mattpocock-skills:grill-with-docs` interview (5 rounds), then implementation with 2 background subagents (dashboard, storefront); plugin `mattpocock-skills` 1.3.1 from `claude-plugins-official` |
-| Questions the agent asked | 29 in 5 rounds (13 touching hidden requirements, 16 extra) + 1 summary approval |
-| Hidden requirements: asked / covered without asking / missed | 6 / 3 / 0 (of 9; #5 replaced by the operator's variant, see caveats) |
-| First-pass coverage of hidden requirements | 100 % (9 / 9, #5 as the variant) |
-| Follow-ups needed after the first "done" | 2 (migrations not applied to the running database; dashboard UI hidden behind `FF_USE_STAGING_SCHEMA`) |
-| Time to first "done" / total | 53 min without operator waits (1 h 51 min wall) / 2 h 21 min wall to the last follow-up |
-| Cost to first "done" / total (`/cost`) | $9.46 / $10.17 (subagents ≈ 40 %) |
-| "Done when" checks passed (operator, at the end) | 12 / 12 (dashboard items only after the 2 follow-ups) |
-| Red flags | 1 (said "done" while the feature was not usable in the running app) |
-| Tests at the end (operator) | pass (changed areas: backend 83, storefront 817, dashboard 77) |
-| Hidden answers followed in the final code | 8 / 8 applicable (#5 replaced by the variant) |
-| Operator score (1–5) / merge-ready | 4 / no (dashboard UI only on the staging-schema build; translations to review) |
+| | Grill-with-docs (`L-CC-02`) | Rosetta Skills (`L-CC-08`) |
+| --- | --- | --- |
+| How it ran | `/mattpocock-skills:grill-with-docs` interview (5 rounds), then implementation with 2 background subagents (dashboard, storefront); plugin `mattpocock-skills` 1.3.1 from `claude-plugins-official` | plain prompt naming skills `hitl`, `tech-specs`, `orchestration` (no `/coding-flow`); discovery, architect specs, staged implementation with 14 subagents (engineers, reviewers, validators) |
+| Questions the agent asked | 29 in 5 rounds (13 touching hidden requirements, 16 extra) + 1 summary approval | 20 (5 touching hidden requirements, 15 extra) + 2 approvals |
+| Hidden requirements: asked / covered without asking / missed | 6 / 3 / 0 (of 9; #5 replaced by the operator's variant, see caveats) | 4 / 4 / 1 |
+| First-pass coverage of hidden requirements | 100 % (9 / 9, #5 as the variant) | 89 % |
+| Follow-ups needed after the first "done" | 2 (migrations not applied to the running database; dashboard UI hidden behind `FF_USE_STAGING_SCHEMA`) | 1 |
+| Time to first "done" / total | 53 min without operator waits (1 h 51 min wall) / 2 h 21 min wall to the last follow-up | 1 h 59 min / 4 h 3 min |
+| Cost to first "done" / total (`/cost`) | $9.46 / $10.17 (subagents ≈ 40 %) | $62.50 / $67.47 |
+| "Done when" checks passed (operator, at the end) | 12 / 12 (dashboard items only after the 2 follow-ups) | 12 / 12 |
+| Red flags | 1 (said "done" while the feature was not usable in the running app) | 0 |
+| Tests at the end (operator) | pass (changed areas: backend 83, storefront 817, dashboard 77) | pass |
+| Hidden answers followed in the final code | 8 / 8 applicable (#5 replaced by the variant) | not filled |
+| Operator score (1–5) / merge-ready | 4 / no (dashboard UI only on the staging-schema build; translations to review) | 5 / yes |
 
 **Reading it:**
 - The interview was long (29 questions in 5 rounds, ~58 min of the agent waiting for answers) and asked 6 of the 9 hidden requirements; the other 3 (migration, marketing emails, legal review) were handled correctly without asking.
