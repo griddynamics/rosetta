@@ -319,6 +319,7 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 | 34 | May the migrations be applied to the local dev database and the local API restarted (so the operator can try the feature)? | Yes, you may apply the migrations to the local dev database only, and restart the local API to apply them. (As small-task extras 13 and 22.) | L-CC-08 |
 
 Rule for composed answers (rows 21–23): when the agent's question touches several rows, the answer is those rows' key texts in full, in this order. Open point for the team: extra row 1 (a flag on Product, one store-wide minimum age) and hidden question 2 ("minimum age is empty by default") read as two different models; the answers were sent word for word, and the judge rule is not decided.
+| 35 | Which time zone does the shop use for the age check (and the future-birthday check)? Saleor has only Django's global TIME_ZONE (UTC). | A new `SHOP_TIME_ZONE` setting (environment variable, IANA name, default UTC) used for the age check and the future-birthday check. Nothing else in Saleor changes. | L-CC-04 |
 
 ## 5. Running one experiment
 
