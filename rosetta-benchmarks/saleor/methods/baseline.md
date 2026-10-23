@@ -384,6 +384,7 @@ command -v copilot                                 # the npm install, not VS Cod
 export BENCH_DIR="$HOME/saleor-benchmark"
 export ENV_DIR="$BENCH_DIR/envs/baseline"
 export COPILOT_HOME="$ENV_DIR/copilot"
+export COPILOT_AUTO_UPDATE=false   # every copilot command runs the installed 1.0.101, never a newer cached package
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor/scripts/bench.sh"   # inside your rosetta checkout
 export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI (BENCHMARKS.md 3.3)
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
@@ -405,10 +406,11 @@ copilot config ignoredSkillsLocations "$HOME/.claude/skills"
 copilot config ignoredSkillsLocations "$HOME/.github/skills"
 copilot config disableAllHooks true                   # Baseline only: no hooks
 copilot config defaultMode plan                       # Baseline only: new sessions start in plan mode
+copilot config dynamicRetrieval.skills false          # Baseline only: no embeddings-based skill retrieval (the launch flag saves the same)
 copilot config --list
 ```
 
-Both `autoUpdate=false` and `--no-auto-update` (in every session start) are needed: the setting only stops further downloads, and the launch flag makes the CLI run its installed version instead of an update it downloaded earlier.
+`autoUpdate=false`, `COPILOT_AUTO_UPDATE=false` (4.2) and `--no-auto-update` (in every session start) do different jobs: the setting stops new downloads; the variable and the flag make the CLI run its installed version, never a newer package from the shared cache (`~/Library/Caches/copilot/pkg`); the variable also covers the setup and check commands.
 
 **4.4 Install**: nothing (Baseline has no method).
 
@@ -450,7 +452,7 @@ In the session: accept the folder-trust prompt with the option that remembers th
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: `COPILOT_HOME` = `envs/baseline/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; no plugins and no skills except the CLI's built-in ones; `config --list` also shows `disableAllHooks=true` and `defaultMode=plan`; `instruction list` shows only `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`); no MCP servers except the CLI's built-in GitHub ones (`--disable-builtin-mcps` turns them off in the session); no inline hooks; no `user-level:` lines; `baseline-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`. Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: `COPILOT_HOME` = `envs/baseline/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; no plugins and no skills except the CLI's built-in ones; `config --list` also shows `disableAllHooks=true`, `defaultMode=plan` and `dynamicRetrieval.skills=false`; `instruction list` shows only `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`); no MCP servers except the CLI's built-in GitHub ones (`--disable-builtin-mcps` turns them off in the session); no inline hooks; no `user-level:` lines; `baseline-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`. Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
 
 ## 5. Run S-CP-01: small task: product storage conditions, Copilot
 
@@ -461,7 +463,7 @@ Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/baselin
 ```bash
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/baseline"
-export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh"
+export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh" COPILOT_AUTO_UPDATE=false   # no newer cached CLI package
 export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI
 export RUN="$SB/runs/small-storage-conditions/copilot/baseline"   # this run's folder
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
@@ -584,7 +586,7 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/baseline/`
 ```bash
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/baseline"
-export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh"
+export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh" COPILOT_AUTO_UPDATE=false   # no newer cached CLI package
 export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI
 export RUN="$SB/runs/large-age-restriction/copilot/baseline"   # this run's folder
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"

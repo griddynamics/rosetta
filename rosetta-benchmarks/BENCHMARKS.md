@@ -32,7 +32,7 @@ Methods 1–6 come from the presentation slide "Six approaches, one more if time
 | Claude Code **2.1.305**, CLI (`claude`; `npm install -g @anthropic-ai/claude-code@2.1.305`, under Node 24) | Sonnet 5.5 (`claude-sonnet-5-5`) | medium |
 | GitHub Copilot CLI **1.0.101** (`copilot`; `npm install -g @github/copilot@1.0.101`, under Node 24) | GPT-5.6 Terra (`gpt-5.6-terra`) | medium |
 
-Both runner versions were released on the same day, 2026-10-20, per npm. Neither runner is updated during the study, and the settings in 3.5 make sure of it. Claude Code has `DISABLE_AUTOUPDATER=1`. Copilot CLI has `autoUpdate=false` and starts every session with `--no-auto-update`. Every run records `claude --version` or `copilot --version`.
+Both runner versions were released on the same day, 2026-10-20, per npm. Neither runner is updated during the study, and the settings in 3.5 make sure of it. Claude Code has `DISABLE_AUTOUPDATER=1`. Copilot CLI has `autoUpdate=false`, `COPILOT_AUTO_UPDATE=false` in every terminal, and starts every session with `--no-auto-update`. Every run records `claude --version` or `copilot --version`.
 
 - Both runners run only as CLIs in a terminal, `claude` for Claude Code and `copilot` for GitHub Copilot CLI. We never use an IDE extension, a desktop app or a web version. In run IDs, folders and reports, "Claude Code" (`CC`, `claude-code`) and "Copilot" (`CP`, `copilot`) always mean these CLIs.
 - Both CLIs run in a standalone terminal such as Terminal or iTerm2, never in an IDE's integrated terminal. Neither connects to an IDE. Claude Code has `CLAUDE_CODE_AUTO_CONNECT_IDE=false`, so it gets no `mcp__ide__*` tools. Copilot CLI has `ide.autoConnect=false`. Use the same kind of terminal for every run and name it in the run report.
@@ -128,9 +128,9 @@ Every method runs with no help from any other AI: no other method, no other plug
 
 - **Separate environment per method.** Never install a method into the shared user config. Give each method its own:
   - Claude Code: `export CLAUDE_CONFIG_DIR="$HOME/saleor-benchmark/envs/<method>/claude"` before every `claude` command.
-  - Copilot CLI: `export COPILOT_HOME="$HOME/saleor-benchmark/envs/<method>/copilot"` before every `copilot` command.
+  - Copilot CLI: `export COPILOT_HOME="$HOME/saleor-benchmark/envs/<method>/copilot"` and `export COPILOT_AUTO_UPDATE=false` before every `copilot` command.
 
-  That folder replaces `~/.claude` or `~/.copilot`, so the runner keeps its settings, login, plugins, personal skills and agents, MCP servers and session history there. Install the method there. Baseline installs nothing. Its folder gets the common settings below plus two Baseline settings on each runner, hooks off and plan mode as the default (Claude Code `"disableAllHooks": true`, `"permissions": { "defaultMode": "plan" }`; Copilot CLI `disableAllHooks=true`, `defaultMode=plan`). Plan mode is also set at launch with a flag (`--permission-mode plan` or `--plan`).
+  That folder replaces `~/.claude` or `~/.copilot`, so the runner keeps its settings, login, plugins, personal skills and agents, MCP servers and session history there. Install the method there. Baseline installs nothing. Its folder gets the common settings below plus two Baseline settings on each runner, hooks off and plan mode as the default (Claude Code `"disableAllHooks": true`, `"permissions": { "defaultMode": "plan" }`; Copilot CLI `disableAllHooks=true`, `defaultMode=plan`, plus `dynamicRetrieval.skills=false`). Plan mode is also set at launch with a flag (`--permission-mode plan` or `--plan`).
 - **Common Claude Code settings.** Every method's config dir starts with this `$CLAUDE_CONFIG_DIR/settings.json`. Baseline adds `"disableAllHooks": true` and `"permissions": { "defaultMode": "plan" }` and starts with the launch flags `--permission-mode plan --allow-dangerously-skip-permissions` (section 2, [methods/baseline.md](./saleor/methods/baseline.md)). A work login is a claude.ai org account: without these settings it syncs the org's plugins, skills and connectors into every config dir, and the isolation check fails. Turning skills off in `/skills` does not persist across restarts; these settings do. Hooks stay on: Superpowers, Rosetta and AI-DLC start through their own hooks. The config dir has no hooks of its own, so `/hooks` must show only the method's hooks (none for Baseline and Grill). If the dir was already used with sync on, delete `$CLAUDE_CONFIG_DIR/plugins/synced/`, start `claude` again and re-check. Two built-in plugins stay on: `agents-md` (reads `AGENTS.md` only where a repo has no `CLAUDE.md`) and `diff` (the diff panel).
 
 ```json
@@ -151,10 +151,10 @@ Every method runs with no help from any other AI: no other method, no other plug
 }
 ```
 
-- **Common Copilot CLI settings.** Every method's `COPILOT_HOME` starts with these settings, written to `$COPILOT_HOME/settings.json` by `copilot config` (Baseline adds two more, see its file).
+- **Common Copilot CLI settings.** Every method's `COPILOT_HOME` starts with these settings, written to `$COPILOT_HOME/settings.json` by `copilot config` (Baseline adds three more, see its file).
 
 ```bash
-export COPILOT_HOME="$HOME/saleor-benchmark/envs/<method>/copilot" && mkdir -p "$COPILOT_HOME"
+export COPILOT_HOME="$HOME/saleor-benchmark/envs/<method>/copilot" COPILOT_AUTO_UPDATE=false && mkdir -p "$COPILOT_HOME"
 copilot config autoUpdate false            # no new CLI downloads
 copilot config memory false                # no cross-session memory
 copilot config ide.autoConnect false       # no IDE context
@@ -172,10 +172,10 @@ copilot config ignoredSkillsLocations "$HOME/.github/skills"
 - **Common Claude Code session start.** Every Claude Code run starts a **new** session from the workspace root, after the earlier session logs are removed. The command is in step 4 of each run in the method files: `claude --dangerously-skip-permissions --model claude-sonnet-5-5`, or for Baseline `--permission-mode plan --allow-dangerously-skip-permissions` instead of `--dangerously-skip-permissions`.
 
 - **Common Copilot CLI session start.** Every Copilot run starts a **new** session (never `--resume` or `--continue`) from the workspace root, after the earlier session logs are removed, with `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` set to `saleor/copilot-rules/` (3.3). The command is in step 4 of each run in the method files: `copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps`, plus `--plan --dynamic-retrieval skills=off` for Baseline.
-  - `autoUpdate=false` and `--no-auto-update` do different jobs. The setting stops new downloads. The flag stops the CLI from running an update it already downloaded.
+  - `autoUpdate=false`, `COPILOT_AUTO_UPDATE=false` and `--no-auto-update` do different jobs. The setting stops new downloads. The variable and the flag stop the CLI from running a newer package from the shared cache (`~/Library/Caches/copilot/pkg`, which any Copilot install on the machine fills); the variable also covers the setup and check commands, which run without the flag.
   - `COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"` loads the team rules file (3.3). For each folder it names, Copilot CLI 1.0.101 loads only `AGENTS.md` and `.github/instructions/**/*.instructions.md`, never `.github/copilot-instructions.md`. Without it a Copilot run starts with no rules at all (checked with `copilot instruction list`). Never use `--no-custom-instructions`.
   - `--disable-builtin-mcps` turns off the GitHub MCP servers that ship with the CLI. No method ships or needs an MCP server at the pinned versions, so this applies to all 8 methods. Claude Code ships no built-in MCP servers; its settings turn off the claude.ai connectors instead.
-  - `--plan --dynamic-retrieval skills=off` are for Baseline only. The other methods need their own skills, so they never get them.
+  - `--plan --dynamic-retrieval skills=off` are for Baseline only. The other methods need their own skills, so they never get them. `--dynamic-retrieval skills=off` turns off only embeddings-based skill retrieval (the built-in skills stay) and is saved as `dynamicRetrieval.skills=false`, so Baseline's Copilot home also sets it with `copilot config`. Claude Code has no such switch.
 
 - **Repo tags.** Each method's tag is built directly on `baseline-v1`, never on another method's tag, so repos contain only that method's files.
 - **Nothing global.** Neither runner gets user-level instructions, agents, commands, skills, hooks or MCP servers. Claude Code reads only the method's `CLAUDE_CONFIG_DIR` and Copilot CLI only the method's `COPILOT_HOME` (see above), so `~/.claude` and `~/.copilot` are never used. One exception: Copilot CLI also reads skills from the parent folders of `$BENCH_DIR`, because `$BENCH_DIR` is not a git repository. It walks up to `$HOME` and loads `.agents/skills`, `.claude/skills` and `.github/skills` from each folder as "Inherited skills", whatever `COPILOT_HOME` is. The common Copilot settings tell it to skip the three `$HOME` folders (`ignoredSkillsLocations`), and the isolation check expects no "Inherited skills" section in `skill list`. Claude Code reads none of them. Memory is off in both runners. The isolation check flags user-level files as `user-level:` lines. If a method's installer writes global files or hooks, remove them after its runs and before any other method (AI-DLC: `~/.local/bin/aidlc` and `~/.local/share/aidlc`).
@@ -185,7 +185,7 @@ copilot config ignoredSkillsLocations "$HOME/.github/skills"
 | What is checked | Why |
 | --- | --- |
 | Environment (`CLAUDE_CONFIG_DIR` or `COPILOT_HOME`), runner version, Node version | the method's own environment and the pinned versions |
-| All settings | the common settings above are in place, plus Baseline's two |
+| All settings | the common settings above are in place, plus Baseline's own |
 | Plugins, skills, MCP servers, hooks | only the method's own |
 | User-level files | nothing global |
 | Sandbox | off, and no policy forces it on |

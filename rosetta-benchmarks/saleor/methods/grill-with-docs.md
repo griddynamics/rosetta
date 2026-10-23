@@ -408,6 +408,7 @@ command -v copilot                                 # the npm install, not VS Cod
 export BENCH_DIR="$HOME/saleor-benchmark"
 export ENV_DIR="$BENCH_DIR/envs/grill-with-docs"
 export COPILOT_HOME="$ENV_DIR/copilot"
+export COPILOT_AUTO_UPDATE=false   # every copilot command runs the installed 1.0.101, never a newer cached package
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor/scripts/bench.sh"   # inside your rosetta checkout
 export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI (BENCHMARKS.md 3.3)
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
@@ -430,7 +431,7 @@ copilot config ignoredSkillsLocations "$HOME/.github/skills"
 copilot config --list
 ```
 
-Both `autoUpdate=false` and `--no-auto-update` (in every session start) are needed: the setting only stops further downloads, and the launch flag makes the CLI run its installed version instead of an update it downloaded earlier.
+`autoUpdate=false`, `COPILOT_AUTO_UPDATE=false` (4.2) and `--no-auto-update` (in every session start) do different jobs: the setting stops new downloads; the variable and the flag make the CLI run its installed version, never a newer package from the shared cache (`~/Library/Caches/copilot/pkg`); the variable also covers the setup and check commands.
 
 Hooks and skills stay on: the method's own hooks and skills must load. Never set `disableAllHooks` or `--dynamic-retrieval skills=off` in this home.
 
@@ -504,7 +505,7 @@ Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/grill-w
 ```bash
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/grill-with-docs"
-export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh"
+export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh" COPILOT_AUTO_UPDATE=false   # no newer cached CLI package
 export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI
 export RUN="$SB/runs/small-storage-conditions/copilot/grill-with-docs"   # this run's folder
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
@@ -612,7 +613,7 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/grill-with
 ```bash
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/grill-with-docs"
-export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh"
+export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh" COPILOT_AUTO_UPDATE=false   # no newer cached CLI package
 export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI
 export RUN="$SB/runs/large-age-restriction/copilot/grill-with-docs"   # this run's folder
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
