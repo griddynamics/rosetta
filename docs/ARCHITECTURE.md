@@ -195,14 +195,16 @@ Instructions live in `/instructions/r3/` in the instructions repository, using a
 │   │   └── <name>-<phase>.md
 │   ├── rules/
 │   │   └── <name>.md
-│   └── commands/
+│   ├── configure/         ← per-IDE configure specs
+│   │   └── <tool>.md
+│   └── templates/
+│       └── shell-schemas/
 │
 └── <org>/                 ← Optional organization extensions (e.g., acme/)
     ├── skills/
     ├── agents/
     ├── workflows/
-    ├── rules/
-    └── commands/
+    └── rules/
 ```
 
 **Layered customization.** Core provides the universal foundation. Organization folders extend or override it. Files at the same resource path get merged: in Plugin mode, the generator merges core + organization layers at build time. In MCP mode, files at the same VFS resource path are bundled together at request time by the Bundler (see [MCP-ARCHITECTURE.md — Bundler](MCP-ARCHITECTURE.md#bundler)). `INSTRUCTION_ROOT_FILTER` controls which layers are included in MCP mode (e.g., `CORE,GRID`).
@@ -291,7 +293,7 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are the primary delivery mechanism for Rosetta. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-Each plugin contains core instructions: 42 skills, 10 agents, 17 workflow types, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
+Each plugin contains core instructions: 42 skills, 10 agents, 18 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
 
 | Plugin                    | IDE                                               | Mode                                                              |
 | ------------------------- | ------------------------------------------------- | ----------------------------------------------------------------- |
@@ -302,6 +304,8 @@ Each plugin contains core instructions: 42 skills, 10 agents, 17 workflow types,
 | `core-antigravity`        | Antigravity 2.0, Antigravity CLI, Antigravity IDE | Direct extraction into plugin folder (`.agents/plugins/rosetta/`) |
 | `core-cursor-standalone`  | Cursor                                            | Direct extraction into repo (`.cursor/`)                          |
 | `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot                | Direct extraction into repo (`.github/`)                          |
+
+Each plugin above also ships a `-light` sibling (e.g. `core-claude-light`, `core-cursor-standalone-light`) built with the `lightweight` build profile: simpler workflows, smaller models, same layout.
 
 All plugins are generated from the **release-selected** source tree (`instructions/<release>/core/`) by the plugin generator (`rosettify-plugins`, `npx -y rosettify-plugins@latest`). **Requirements-first:** spec-before-code from `docs/requirements/plugin-generator/` (authoritative FRs/NFRs; code follows). The release is chosen by `--release` (default **r3**, matching rosetta-mcp's `DEFAULT_VERSION`); each release descriptor carries its hook posture (r2: SessionStart bootstrap only; r3: deterministic advisory hooks by default), overridable per run with `--deterministic-hooks true|false` (e.g. `--release r3 --deterministic-hooks false` builds r3 without advisory hooks); when omitted, the release's default applies. **Shipped plugins are built with `false`** (FR-CLI-0012): advisory hooks run before and after every tool call, adding per-call overhead, so they are opt-in and enabled progressively. The generator builds main plugins then derives standalone variants. `.tmpl` files are Handlebars templates rendered by the generator.
 
@@ -365,6 +369,8 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 | `loose-files.js`          | PostToolUse (Write)       | Nudges agent when `.py`/`.js` files are created without a module marker (`__init__.py` / `package.json`)                                                                                                                                                                                                                                                                                                                                    |
 | `md-file-advisory.js`     | PostToolUse (Write\|Edit) | Advises on markdown formatting/placement after `.md` edits                                                                                                                                                                                                                                                                                                                                                                                  |
 | `lint-format-advisory.js` | PostToolUse (Write\|Edit) | Suggests a syntax/type/lint/format check step after code edits                                                                                                                                                                                                                                                                                                                                                                              |
+| `read-once.js`            | PreRead / PreToolUse (Read, shell) | Flags a repeated full read of a file whose modification time has not changed since this session last read it. TTL from `READ_ONCE_TTL` (seconds, default 20 min). Advises by default; `READ_ONCE_MODE=deny` soft-denies, a shell retry carrying `# READ-OVERRIDE` bypasses it, `READ_ONCE_DISABLED=1` turns it off. |
+| `read-once-reset.js`      | PreCompact / PostCompact  | Clears the session's read-once state on context compaction so files can be read again. |
 | `codemap-refresh.js`      | PostToolUse (Write\|Edit) | Refreshes the active code-map backend when source files change. Detects GitNexus (`.gitnexus/` marker, runs `npx -y gitnexus@latest analyze --force`) and Graphify (`graphify-out/graph.json` marker, runs `graphify update .`); no-op when neither is installed. When both are present, each backend gets an independent debounced refresh. Manager must review the GitNexus license before use; Graphify is the MIT-licensed alternative. |
 
 **`dangerous-actions` registration scope.** The hook evaluates five tool kinds — `bash`, `mcp-call`, `write`, `edit`, `multi-edit` (`toolKinds` in `src/hooks/src/hooks/dangerous-actions.ts`; `evalWrite`, `evalEdit`, and `evalMultiEdit` in `dangerous-actions/evaluate.ts` check both the target path and the content being written). Registration is deliberately narrower as a release step: every IDE `hooks.json` matcher names shell and MCP tools only — `Bash|mcp__.*` for Claude, Codex, and Copilot, `Bash|Shell|mcp__.*` for Cursor, `run_command|mcp__.*` for Antigravity. Matchers filter by tool name, so `Write`, `Edit`, and `MultiEdit` calls never reach the hook as shipped. The write and edit evaluation is implemented and held back, not missing. There is no `hard-deny` tier: every match is either a non-blocking `advise` notice or an overridable `reconsider` soft-deny.

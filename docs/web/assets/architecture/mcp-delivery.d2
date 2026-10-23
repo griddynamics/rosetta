@@ -1,0 +1,48 @@
+# Optional MCP delivery pipeline (secondary to plugins).
+# Legend: solid arrows = instruction content moving toward the coding agent;
+# dashed arrows = authentication and optional server state.
+# Evidence: src/rosetta-cli/rosetta_cli/commands/, src/rosetta-mcp-server/rosetta_mcp/server.py,
+# src/rosetta-mcp-server/rosetta_mcp/auth/, src/rosetta-mcp-server/rosetta_mcp/migrations.py.
+direction: down
+
+repo: "Instructions repo\ninstructions/r3/"
+
+cli: "rosetta-cli" {
+  pub: "publish · parse\nverify · cleanup"
+}
+
+ragflow: "RAGFlow" {
+  ds: "datasets aia-<release>\nparse · chunk · embed · index" {
+    shape: cylinder
+  }
+}
+
+mcp: "rosetta-mcp (FastMCP v3)" {
+  tools: "tools\nget_context_instructions\nquery_instructions · list_instructions"
+  res: "resource rosetta://{path}"
+  svc: "Bundler · tags · VFS paths\ncontext headers"
+  oauth: "OAuth 2.1 proxy\n(Streamable HTTP)"
+  apikey: "API key\n(STDIO)"
+  tools -> svc
+  res -> svc
+}
+
+redis: "Redis (optional)\nOAuth proxy client state\nschema version + migration lock" {
+  shape: cylinder
+}
+
+ide: "Coding agent\n(target repo)"
+
+repo -> cli.pub: read .md + frontmatter
+cli.pub -> ragflow.ds: "upsert by deterministic\nUUID (MD5 changed only)"
+ragflow.ds -> mcp.svc: retrieve by tags
+mcp.tools -> ide: "bundled instructions"
+ide -> mcp.oauth: "auth (HTTP)" {
+  style.stroke-dash: 4
+}
+ide -> mcp.apikey: "auth (STDIO)" {
+  style.stroke-dash: 4
+}
+mcp.oauth -> redis: "persist client state\n(when REDIS_URL is set)" {
+  style.stroke-dash: 4
+}

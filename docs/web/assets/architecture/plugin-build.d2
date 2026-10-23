@@ -1,0 +1,34 @@
+# Plugin generation: inputs, generator stages and outputs of `npx rosettify-plugins`.
+# Arrows = data flowing into the next stage. Stage names follow
+# src/rosettify-plugins/src/plugin-processors/*.ts (grouped, not one box per file).
+direction: down
+
+inputs: Inputs {
+  instr: "instructions/<release>/core\n(+ <org>/ overlays)"
+  tmpl: "src/rosettify-plugins/plugins/core-*\n(manifests, hooks.json.tmpl)"
+  bundles: "src/hooks/dist/bundles/<plugin>/*.js"
+  profile: "profiles/<name>.json\n(optional, e.g. lightweight)"
+}
+
+gen: rosettify-plugins {
+  direction: down
+  select: "1. Select release + layers\nfilename directives (~overwrite~, ~core-x-only~)"
+  adapt: "2. Adapt per target\nmodel rewriting · agent format\nfolder layout · reference rewriting"
+  assemble: "3. Assemble\nbootstrap · INDEX.md · templates\nhook bundle sync (if enabled)"
+  derive: "4. Derive standalone variants\nfrom built main plugins"
+  select -> adapt -> assemble -> derive
+}
+
+out: "plugins/ (committed, zipped on release)" {
+  main: "Main plugins\ncore-claude · core-cursor · core-copilot\ncore-codex · core-antigravity"
+  standalone: "Standalone\ncore-cursor-standalone (.cursor/)\ncore-copilot-standalone (.github/)"
+  light: "*-light variants\n(--profile lightweight)"
+}
+
+inputs.instr -> gen.select
+inputs.profile -> gen.select
+inputs.tmpl -> gen.assemble
+inputs.bundles -> gen.assemble: "only with\n--deterministic-hooks true"
+gen.assemble -> out.main
+gen.derive -> out.standalone
+gen -> out.light: "same pipeline,\nsuffixed destination"
