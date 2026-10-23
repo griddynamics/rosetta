@@ -42,7 +42,7 @@ Both runner versions were released on the same day, 2026-10-20, per npm. Neither
 - The two runners use different models, so a Claude Code vs Copilot difference is a product + model difference. Methods are compared **within** one runner.
 - **Full access (YOLO mode), sandbox off**, so permission prompts don't affect the test. Both runners end up the same way. Baseline can't edit files while it plans and has full access once the plan is approved. They get there differently.
   - Claude Code runs with `--dangerously-skip-permissions` and `"sandbox": { "enabled": false }`. Baseline starts with `--permission-mode plan --allow-dangerously-skip-permissions`. Plan mode is read only, and full access switches on when the plan is approved.
-  - Copilot CLI runs with `--allow-all` (all tools, paths and URLs) and `sandbox.enabled=false`, never `--sandbox`. Baseline starts with `--plan --allow-all`, so full access is on from the start. Plan mode is a separate agent mode that blocks file edits until the plan is accepted and the session leaves plan mode.
+  - Copilot CLI runs with `--allow-all` (all tools, paths and URLs) and `sandbox.enabled=false`, never `--sandbox`. Baseline starts with `--plan --allow-all`, so full access is on from the start. Plan mode is a separate agent mode: until the plan is accepted and the session leaves plan mode, it blocks file edits and shell commands that change files, except its own plan file in the session folder.
 
   **This is not normal usage. Use it only for this test**, only in disposable benchmark clones with synthetic data, and revert it after the study.
 
@@ -192,7 +192,7 @@ copilot config ignoredSkillsLocations "$HOME/.github/skills"
 | Team rules file | the only AI file in each repo, and unchanged (3.3) |
 | Repo tags and status | the method's tag, clean repos before T0 |
 
-Expected: only the method's plugins, skills and hooks (none for Baseline); no MCP servers; no user-level files; the sandbox off, also in `/sandbox` in the session; the rules file unchanged and the only AI file in every repo, apart from the method's own files at its tag; the method's tag in all 3 repos and no `status` lines. These are not leaks: the skills and plugins each CLI ships itself (Claude Code's 17 bundled skills in `/context`, Copilot's "Builtin" ones) and Copilot's own GitHub MCP servers in `copilot mcp list`, which the session turns off. Claude Code also: `/skills` lists no "claude.ai sync" skills, and `/context` shows no `mcp__ide__*` tools (section 2). If a managed or org policy forces the sandbox on, or anything else differs, the run must not start: fix it and reset.
+Expected: only the method's plugins, skills and hooks (none for Baseline); no MCP servers; no user-level files; the sandbox off, also in `/sandbox` in the session; the rules file unchanged and the only AI file in every repo, apart from the method's own files at its tag; the method's tag in all 3 repos and no `status` lines. These are not leaks: the skills and plugins each CLI ships itself (Claude Code's 17 bundled skills in `/context`, Copilot's "Builtin" ones) and Copilot's own GitHub MCP servers, which `copilot mcp list` does not show and `--disable-builtin-mcps` turns off in the session. Claude Code also: `/skills` lists no "claude.ai sync" skills, and `/context` shows no `mcp__ide__*` tools (section 2). If a managed or org policy forces the sandbox on, or anything else differs, the run must not start: fix it and reset.
 
 #### Install
 

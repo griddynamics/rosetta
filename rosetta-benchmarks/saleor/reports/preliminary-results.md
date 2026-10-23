@@ -87,4 +87,4 @@ Every run done so far: **9 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIME
 1. Large task: Grill-with-docs (`L-CC-02`) is done as a task variant (hidden key #5 replaced; to be re-run on the original key for comparison); Superpowers (`L-CC-03`) is in the branch (operator checks not filled yet); other methods follow.
 2. The remaining Claude Code runs of the small task (AI-DLC: in progress today; Rosetta Light: to be re-run), then the large task (age-restricted products).
 3. Judge scores; repetitions.
-4. Copilot runs once a Copilot seat with the benchmark model is available.
+4. Copilot CLI runs (methods/<method>.md, parts 4–6).

@@ -420,7 +420,7 @@ copilot config --list
 for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -f baseline-v1 baseline-v1; done
 ```
 
-**4.6 Log in and trust the workspace once** (a new `COPILOT_HOME` has no login and no trusted folders):
+**4.6 Log in and trust the workspace once** (a new `COPILOT_HOME` has no saved account and no trusted folders; the login token itself goes to the macOS Keychain):
 
 ```bash
 copilot login
@@ -429,7 +429,7 @@ cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: accept the folder-trust prompt with the option that remembers the folder, then `/exit`.
+In the session: accept the folder-trust prompt with **Yes, and remember this folder for future sessions**, then `/exit`.
 
 **4.7 One-time preparation**: none.
 
@@ -440,6 +440,7 @@ In the session: accept the folder-trust prompt with the option that remembers th
   copilot -C "$BENCH_DIR" plugin list; copilot -C "$BENCH_DIR" skill list; copilot -C "$BENCH_DIR" mcp list; copilot -C "$BENCH_DIR" instruction list
   copilot config hooks 2>/dev/null || echo "(no inline hooks)"
   echo "sandbox.enabled=$(copilot config sandbox.enabled)"
+  env | grep -qE '^(COPILOT_GITHUB_TOKEN|GH_TOKEN|GITHUB_TOKEN)=' && echo "token env set: unset it (it overrides the saved login)"
   for p in "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/instructions "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json "$COPILOT_HOME"/lsp-config.json; do [ -e "$p" ] && echo "user-level: $p"; done
   RULES="$SB/baseline-instructions.md"   # the team rules file (BENCHMARKS.md 3.3)
   tail -n +4 "$SB/copilot-rules/.github/instructions/team-rules.instructions.md" | cmp -s - "$RULES" && echo "copilot-rules: team-rules.instructions.md = baseline rules" || echo "copilot-rules: team-rules.instructions.md DIFFERS"
@@ -452,7 +453,7 @@ In the session: accept the folder-trust prompt with the option that remembers th
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: `COPILOT_HOME` = `envs/baseline/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; no plugins and no skills except the CLI's built-in ones; `config --list` also shows `disableAllHooks=true`, `defaultMode=plan` and `dynamicRetrieval.skills=false`; `instruction list` shows only `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`); no MCP servers except the CLI's built-in GitHub ones (`--disable-builtin-mcps` turns them off in the session); no inline hooks; no `user-level:` lines; `baseline-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`. Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: `COPILOT_HOME` = `envs/baseline/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; no plugins and no skills except the CLI's built-in ones; `config --list` also shows `disableAllHooks=true`, `defaultMode=plan` and `dynamicRetrieval.skills=false`; `instruction list` shows only `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`); no MCP servers (the CLI's built-in GitHub servers are not listed here; `--disable-builtin-mcps` turns them off in the session, and `/env` there must show none); no inline hooks; no `user-level:` lines; no `token env set` line; `baseline-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`. Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
 
 ## 5. Run S-CP-01: small task: product storage conditions, Copilot
 
@@ -515,7 +516,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | --- | --- |
 | asks questions | answers from the tables (few expected) |
 | shows a plan while its questions are still open | **Suggest changes**, answer, wait |
-| shows the final plan | **Accept plan and continue in Interactive execution mode** (1 method step; never an Autopilot option). If the mode indicator still shows plan mode: Shift+Tab to the normal interactive mode (not autopilot), then `Approved, continue.` to permit implementation (same method step) |
+| shows the final plan | **Accept plan and continue in Interactive execution mode** (1 method step; never an Autopilot option; the label ends with "(… for this session; future defaults unchanged)", and the option the agent recommends is listed first, so read before you press Enter). If the mode indicator still shows plan mode: Shift+Tab to the normal interactive mode (not autopilot), then `Approved, continue.` to permit implementation (same method step) |
 | stops again only to ask permission | `Approved, continue.` |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
@@ -639,7 +640,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | --- | --- |
 | asks questions | answers from the tables (more: birthday, guests, PII) |
 | shows a plan while its questions are still open | **Suggest changes**, answer, wait |
-| shows the final plan | **Accept plan and continue in Interactive execution mode** (1 method step; never an Autopilot option). If the mode indicator still shows plan mode: Shift+Tab to the normal interactive mode (not autopilot), then `Approved, continue.` to permit implementation (same method step) |
+| shows the final plan | **Accept plan and continue in Interactive execution mode** (1 method step; never an Autopilot option; the label ends with "(… for this session; future defaults unchanged)", and the option the agent recommends is listed first, so read before you press Enter). If the mode indicator still shows plan mode: Shift+Tab to the normal interactive mode (not autopilot), then `Approved, continue.` to permit implementation (same method step) |
 | stops again only to ask permission | `Approved, continue.` |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.

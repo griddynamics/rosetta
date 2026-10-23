@@ -442,8 +442,10 @@ Hooks and skills stay on: the method's own hooks and skills must load. Never set
 [ -d "$ENV_DIR/src/.git" ] || git clone -q --branch v6.4.2 https://github.com/obra/superpowers "$ENV_DIR/src"
 copilot plugin marketplace add "$ENV_DIR/src"                 # local marketplace "superpowers-dev" (.claude-plugin/marketplace.json)
 copilot plugin install superpowers@superpowers-dev
-copilot plugin list                                           # superpowers 6.4.2 only
+copilot plugin list                                           # superpowers@superpowers-dev (v6.4.2) enabled; built-in browser-use disabled
 ```
+
+Copilot CLI reads a local marketplace plugin live from `$ENV_DIR/src` and copies nothing: keep that clone at the pinned tag and never edit it during the study.
 
 **4.5 Tag** (the method lives outside the repos, so the tag is the same commit as `baseline-v1`):
 
@@ -451,7 +453,7 @@ copilot plugin list                                           # superpowers 6.4.
 for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -f superpowers-v1 baseline-v1; done
 ```
 
-**4.6 Log in and trust the workspace once** (a new `COPILOT_HOME` has no login and no trusted folders):
+**4.6 Log in and trust the workspace once** (a new `COPILOT_HOME` has no saved account and no trusted folders; the login token itself goes to the macOS Keychain):
 
 ```bash
 copilot login
@@ -460,7 +462,7 @@ cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: accept the folder-trust prompt with the option that remembers the folder, then `/exit`.
+In the session: accept the folder-trust prompt with **Yes, and remember this folder for future sessions**, then `/exit`.
 
 **4.7 Check that it triggers** (once, as in 1.7): start a fresh session as in step 4 of a run and send `Let's make a react todo list`; it must answer with "Using brainstorming …" and a question, not code. Then `/exit`.
 
@@ -471,6 +473,7 @@ In the session: accept the folder-trust prompt with the option that remembers th
   copilot -C "$BENCH_DIR" plugin list; copilot -C "$BENCH_DIR" skill list; copilot -C "$BENCH_DIR" mcp list; copilot -C "$BENCH_DIR" instruction list
   copilot config hooks 2>/dev/null || echo "(no inline hooks)"
   echo "sandbox.enabled=$(copilot config sandbox.enabled)"
+  env | grep -qE '^(COPILOT_GITHUB_TOKEN|GH_TOKEN|GITHUB_TOKEN)=' && echo "token env set: unset it (it overrides the saved login)"
   for p in "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/instructions "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json "$COPILOT_HOME"/lsp-config.json; do [ -e "$p" ] && echo "user-level: $p"; done
   RULES="$SB/baseline-instructions.md"   # the team rules file (BENCHMARKS.md 3.3)
   tail -n +4 "$SB/copilot-rules/.github/instructions/team-rules.instructions.md" | cmp -s - "$RULES" && echo "copilot-rules: team-rules.instructions.md = baseline rules" || echo "copilot-rules: team-rules.instructions.md DIFFERS"
@@ -483,7 +486,7 @@ In the session: accept the folder-trust prompt with the option that remembers th
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: `COPILOT_HOME` = `envs/superpowers/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; `plugin list` shows `superpowers` only; `skill list` shows its skills and the CLI's built-in ones only; `instruction list` shows only `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`); no MCP servers except the CLI's built-in GitHub ones (`--disable-builtin-mcps` turns them off in the session); no inline hooks; no `user-level:` lines; `superpowers-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: `COPILOT_HOME` = `envs/superpowers/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; `plugin list` shows `superpowers` only; `skill list` shows its skills and the CLI's built-in ones only; `instruction list` shows only `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`); no MCP servers (the CLI's built-in GitHub servers are not listed here; `--disable-builtin-mcps` turns them off in the session, and `/env` there must show none); no inline hooks; no `user-level:` lines; no `token env set` line; `superpowers-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
 
 ## 5. Run S-CP-03: small task: product storage conditions, Copilot
 
