@@ -426,8 +426,8 @@ command -v copilot                                 # the npm install, not VS Cod
 export BENCH_DIR="$HOME/saleor-benchmark"
 export ENV_DIR="$BENCH_DIR/envs/rosetta"
 export COPILOT_HOME="$ENV_DIR/copilot"
-export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$BENCH_DIR/saleor,$BENCH_DIR/saleor-dashboard,$BENCH_DIR/react-storefront"   # loads each repo's .github/copilot-instructions.md
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor/scripts/bench.sh"   # inside your rosetta checkout
+export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI (BENCHMARKS.md 3.3)
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 
@@ -482,11 +482,12 @@ In the session: accept the folder-trust prompt with the option that remembers th
 
 ```bash
 { echo "COPILOT_HOME=$COPILOT_HOME"; copilot --version; node -v; copilot config --list
-  copilot plugin list; copilot skill list; copilot mcp list; copilot instruction list
+  copilot plugin list; copilot skill list; copilot mcp list; copilot -C "$BENCH_DIR" instruction list
   copilot config hooks 2>/dev/null || echo "(no inline hooks)"
   echo "sandbox.enabled=$(copilot config sandbox.enabled)"
   for p in "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json; do [ -e "$p" ] && echo "user-level: $p"; done
   RULES="$SB/baseline-instructions.md"   # the team rules file (BENCHMARKS.md 3.3)
+  tail -n +4 "$SB/copilot-rules/.github/instructions/team-rules.instructions.md" | cmp -s - "$RULES" && echo "copilot-rules: team-rules.instructions.md = baseline rules" || echo "copilot-rules: team-rules.instructions.md DIFFERS"
   for r in saleor saleor-dashboard react-storefront; do
     cmp -s "$RULES" "$BENCH_DIR/$r/CLAUDE.md" && echo "$r: CLAUDE.md = baseline rules" || echo "$r: CLAUDE.md DIFFERS"
     cmp -s "$RULES" "$BENCH_DIR/$r/.github/copilot-instructions.md" && echo "$r: copilot-instructions.md = baseline rules" || echo "$r: copilot-instructions.md DIFFERS"
@@ -496,7 +497,7 @@ In the session: accept the folder-trust prompt with the option that remembers th
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: `COPILOT_HOME` = `envs/rosetta/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, and `skill list` shows none of that folder's skills; `plugin list` shows `rosetta` only; `skill list` shows its skills and the CLI's built-in ones only; `instruction list` shows the three repos' `.github/copilot-instructions.md` plus only the files the Rosetta init wrote (zips); no MCP servers except the CLI's built-in GitHub ones (`--disable-builtin-mcps` turns them off in the session); no inline hooks; no `user-level:` lines; `rosetta-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: `COPILOT_HOME` = `envs/rosetta/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, and `skill list` shows none of that folder's skills; `plugin list` shows `rosetta` only; `skill list` shows its skills and the CLI's built-in ones only; `instruction list` shows `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`) plus only the files the Rosetta init wrote (zips); no MCP servers except the CLI's built-in GitHub ones (`--disable-builtin-mcps` turns them off in the session); no inline hooks; no `user-level:` lines; `rosetta-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
 
 ## 5. Run S-CP-06: small task: product storage conditions, Copilot
 
@@ -508,7 +509,7 @@ Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/rosetta
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/rosetta"
 export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh"
-export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$BENCH_DIR/saleor,$BENCH_DIR/saleor-dashboard,$BENCH_DIR/react-storefront"
+export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI
 export RUN="$SB/runs/small-storage-conditions/copilot/rosetta-flow"   # this run's folder
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
@@ -618,7 +619,7 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-fl
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/rosetta"
 export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh"
-export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$BENCH_DIR/saleor,$BENCH_DIR/saleor-dashboard,$BENCH_DIR/react-storefront"
+export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI
 export RUN="$SB/runs/large-age-restriction/copilot/rosetta-flow"   # this run's folder
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```

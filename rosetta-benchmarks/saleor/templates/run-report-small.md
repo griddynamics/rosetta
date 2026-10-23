@@ -90,7 +90,7 @@ HOW TO USE
 claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" "$CLAUDE_CONFIG_DIR/agents" "$CLAUDE_CONFIG_DIR/commands" 2>/dev/null
 grep -o '"sandbox": *{[^}]*}' "$CLAUDE_CONFIG_DIR/settings.json" || echo "sandbox: NOT SET"; [ -e "/Library/Application Support/ClaudeCode/managed-settings.json" ] && echo "managed settings present: /Library/Application Support/ClaudeCode/managed-settings.json"
 echo "COPILOT_HOME=$COPILOT_HOME"; copilot --version; copilot config --list
-copilot plugin list; copilot skill list; copilot mcp list; copilot instruction list
+copilot plugin list; copilot skill list; copilot mcp list; copilot -C "$BENCH_DIR" instruction list
 copilot config hooks 2>/dev/null || echo "(no inline hooks)"
 echo "sandbox.enabled=$(copilot config sandbox.enabled)"
 for p in "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json; do [ -e "$p" ] && echo "user-level: $p"; done
