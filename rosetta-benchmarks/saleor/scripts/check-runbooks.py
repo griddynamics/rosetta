@@ -27,12 +27,12 @@ BENCH_MD = SALEOR.parent / "BENCHMARKS.md"
 REPO = SALEOR.parents[1]
 SANDBOX = Path(os.environ.get("RB_SANDBOX", Path(tempfile.gettempdir()) / "rb-check"))
 REPOS = ["saleor", "saleor-dashboard", "react-storefront"]
-# key: (method number, start tag, T0 command, text after the Starter Prompt)
-SKILLS_LINE = "\n\nMUST USE SKILLS hitl, tech-specs."
+# key: (method number, start tag, T0 command, text after the Starter Prompt: one text, or one per task)
+SKILLS_LINE = {"small": "\n\nMUST USE SKILLS hitl, tech-specs.", "large": "\n\nMUST USE SKILLS hitl, tech-specs, orchestration."}
 METHODS = {"baseline": ("01", "baseline-v1", "", ""), "grill-with-docs": ("02", "grill-v1", "/grill-with-docs", ""),
            "superpowers": ("03", "superpowers-v1", "/superpowers:brainstorming", ""), "spec-kit": ("04", "speckit-v1", "/speckit-specify", ""),
            "aws-ai-dlc": ("05", "aidlc-v1", "/aidlc feature", ""), "rosetta": ("06", "rosetta-v1", "/coding-flow", ""),
-           "rosetta-light": ("07", "rosetta-light-v1", "", SKILLS_LINE + "\n\nUSE ROSETTA SUBAGENTS."),
+           "rosetta-light": ("07", "rosetta-light-v1", "", {t: v + "\n\nUSE ROSETTA SUBAGENTS." for t, v in SKILLS_LINE.items()}),
            "rosetta-skills": ("08", "rosetta-skills-v1", "", SKILLS_LINE)}
 FILES = {"rosetta": "rosetta-flow.md"}   # method key -> file name, where they differ
 COMMITS = {"superpowers", "spec-kit", "aws-ai-dlc"}
@@ -144,7 +144,7 @@ def check_method(key, bench, stub, prompts):
                               f"echo '{row}' > \"$P/check.jsonl\"")
             script.append(adapt(b, bench, stub, run))
         texts = blocks(p, "text")
-        want_t0 = (t0cmd + " " if t0cmd else "") + prompts[task] + t0end
+        want_t0 = (t0cmd + " " if t0cmd else "") + prompts[task] + (t0end[task] if isinstance(t0end, dict) else t0end)
         if want_t0 not in texts:
             fails.append(f"{task}: T0 text is not '<command> + Starter Prompt' from BENCHMARKS.md (+ the method's closing lines)")
         post = [t for t in texts if t.startswith("Do not commit anything.")]
