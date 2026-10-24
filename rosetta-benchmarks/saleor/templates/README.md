@@ -45,7 +45,7 @@ The same rules for every operator, so results are comparable.
 | `hidden_covered` | count | Hidden questions not asked, but handled correctly by T1. |
 | `hidden_missed` | count | Hidden questions that needed a follow-up. `asked + covered + missed = hidden_total`. |
 | `first_pass_coverage` *(computed when comparing)* | % | `(hidden_asked + hidden_covered) ÷ hidden_total`. |
-| `hidden_matches_answer` | count | Hidden questions where the final code follows the answer key. yes = 1, partly = 0.5. |
+| `hidden_matches_answer` | count | Hidden questions where the original result (the first pass, before any follow-up) follows the answer key: asked and answered correctly, or covered at T1; a miss that needed a follow-up does not count. yes = 1, partly = 0.5. |
 | `done_checks_passed` | count | "Done when" checks passed at T2, checked by the operator (section 4). |
 | `red_flags` | count | Ticked items in section 5. |
 | `tests_pass` | yes / no | The operator ran the tests at T2 and they passed. |

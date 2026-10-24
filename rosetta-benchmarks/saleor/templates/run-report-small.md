@@ -48,7 +48,7 @@ hidden_total: 7
 hidden_asked:
 hidden_covered:
 hidden_missed:
-hidden_matches_answer:     # how many of the 7 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer:     # how many of the 7 the ORIGINAL result (first pass, before follow-ups) follows the answer key (yes = 1, partly = 0.5)
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed:
@@ -129,7 +129,7 @@ Raw `/cost` output at T1 and T2: paste it into Appendix A at the end of this fil
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
