@@ -52,7 +52,7 @@ hidden_matches_answer: 8     # of 9, the ORIGINAL result (first pass, before fol
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12       # check 11 failed once (two time-dependent tests), fixed by follow-up 2, then passed
-red_flags:                 # number of ticked red flags
+red_flags: 0
 tests_pass: yes
 operator_score: 4            # operator
 operator_merge_ready: yes
@@ -277,8 +277,8 @@ Evidence: no red flag ticked by the assistant (the operator decides). Checked: t
 - Deviations from the protocol, and why: T0 was sent without the skill `orchestration` (see timeline row 1); the operator continued the run. Not a restart. Second deviation: at 12:42:16 the operator sent `Please continue all sessions fully autonomous.` (timeline row 20); from then on the agent skipped its gates G1 (migration review), G2 (schema contract freeze) and G3 (final delivery, restore of the dev stack, commit question) and ran on without stopping to ask. Time and usage after this point are the agent's autonomous work; they are not separable from the rest of the run.`
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): `<n/a / no / yes: when, why, outcome>`
 - Agent behaviour after the "fully autonomous" message (13:37, status message, not a stop): session 02 (core account API) finished; the agent decided an open question itself ("accountRegister takes a birthday only from anonymous requests; logged-in users, staff and apps get a permission error; the spec has no row for registration") and kept going. Core sessions 01–04 and 06 were done, session 05 still running, session 07 next.
-- Strong point of the method in this run: `<...>`
-- Weak point of the method in this run: `<...>`
+- Strong point of the method in this run: a full, gated flow with subagents. The agent ran discovery, asked 13 questions in four rounds (including ones no table covered: the `isSuperuser` field, how audit rows are filed, retention and the deletion job), wrote an architect spec with a risk list and a test plan, then a planner wrote 24 sessions with file ownership and hard gates, and engineers, reviewers and a validator did the work. The reviews found real defects that were fixed (an open-redirect blocker in the storefront, a Stripe webhook that would have captured a payment without creating an order, a voucher usage left consumed after an age failure, per the agent's report). It ran 64 live checks on a cloned database, listed its own gaps and limitations honestly, and left everything uncommitted. First pass: 8 of 9 hidden questions asked or covered; all 12 "Done when" checks pass; the backend enforcement was correct in the assistant's API checks.
+- Weak point of the method in this run: hidden #5 (age label in lists, search, discounts and banners) was only partly built at first (cards, search and the product page) and needed a follow-up; two of the agent's own tests used a hard-coded frozen date and broke once the real clock passed it (follow-up 2), and its validation had run before that date and missed it; the agent left the dev API container stopped and did not migrate the dev database (it asked the operator to restore the stack, which the assistant then did); most subagent work ran on a small model (Haiku, about 70% of the cost); the T0 lacked the `orchestration` skill and a "fully autonomous" message was sent mid-run, so the agent skipped its own gates G1–G3 (section 2, row 20).
 
 ## Appendix A. Raw `/cost` output
 
