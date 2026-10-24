@@ -1,0 +1,488 @@
+# Rosetta Skills
+
+Runs: `S-CC-08` (small, Claude Code) · `L-CC-08` (large, Claude Code) · `S-CP-08` (small, Copilot) · `L-CP-08` (large, Copilot). Everything for this method is in this file: setup, then each run step by step. Rules: [BENCHMARKS.md](../../BENCHMARKS.md).
+
+## The method's commands
+
+| Command / skill | When | Official doc |
+| --- | --- | --- |
+| `/init-workspace-flow` | **once**, before the first run (part 1.7); its cost is reported separately and never added to a run | docs/web/user-guide/scenarios/ (init workspace); plugins/core-claude*/workflows/init-workspace-flow.md |
+| `<task> MUST USE SKILLS hitl, tech-specs.` (large task: `MUST USE SKILLS hitl, tech-specs, orchestration.`) | T0 (no `/coding-flow`: the method is the named skills only; the large task adds `orchestration`, so the agent can delegate to subagents) | skills/tech-specs/SKILL.md (description), skills/hitl/SKILL.md:35,41 |
+| `Yes, I approve` | each approval stop: only this exact sentence counts | skills/hitl/SKILL.md:35 |
+
+**T0 message, small task** (copy as is):
+
+```text
+Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
+
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+
+MUST USE SKILLS hitl, tech-specs.
+```
+
+**T0 message, large task** (copy as is):
+
+```text
+Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
+To make this work, the customer profile should have a birthday field.
+
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+
+MUST USE SKILLS hitl, tech-specs, orchestration.
+```
+
+Every other reply is written out in each run below (parts 2, 3, 5, 6).
+
+## 1. Setup for Claude Code (once)
+
+Open a terminal **inside your rosetta checkout**. Do each step once per machine; skip a step that is already done.
+
+**1.1 Machine** (once per machine, shared by all methods): Node 24 with Claude Code in it (the Saleor stack comes from 1.2a).
+
+```bash
+nvm install 24 && nvm alias default 24 && nvm use 24
+command -v claude || npm install -g @anthropic-ai/claude-code@2.1.305
+claude --version                                   # 2.1.305 (all runs use this version)
+```
+
+**1.2 Variables** (paste into every new terminal you use for this method):
+
+```bash
+export BENCH_DIR="$HOME/saleor-benchmark"
+export ENV_DIR="$BENCH_DIR/envs/rosetta-skills"
+export CLAUDE_CONFIG_DIR="$ENV_DIR/claude"
+export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor/scripts/bench.sh"   # inside your rosetta checkout
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
+```
+
+**1.2a Starting point: the two zips** (the first setup and every Rosetta run begin here; the repos are never cloned). `test-library/` holds two zips, the same for Rosetta, Rosetta Light and Rosetta Skills:
+
+- `saleor-initialized-repos.zip` (40 MB): the entire `.git` of the three repos. HEAD is the init commit, tagged `rosetta-v1`, `rosetta-light-v1` and `rosetta-skills-v1`; its parent is `baseline-v1`.
+- `saleor-initialized-root.zip` (19 KB): the files Rosetta created outside the repos, in `~/saleor-benchmark` (`README.md`, `gain.json`, `docs/`, `agents/`).
+
+`bench.sh from-zips` deletes the old repo files (it keeps `node_modules`) and every other file in the workspace root (it keeps `seed.dump`, `logs` and `envs`), extracts both zips and runs `git reset --hard` in each repo. `bench.sh setup` then restores the database and installs dependencies; it sees `baseline-v1`, so it does not clone. Nothing is copied back. Only the person creating the zips skips `from-zips`: they run `bench.sh setup` once (it clones the repos) and then do 1.7.
+
+```bash
+nvm use 24
+$B from-zips && $B setup && $B start && sleep 60 && $B health      # repos at the init commit, root files in place, all three OK
+```
+
+**1.3 Own config dir with the common settings** (claude.ai sync off, hooks on; BENCHMARKS.md, section 3.5):
+
+```bash
+mkdir -p "$CLAUDE_CONFIG_DIR"
+cat > "$CLAUDE_CONFIG_DIR/settings.json" <<'JSON'
+{
+  "model": "claude-sonnet-5-5",
+  "effortLevel": "medium",
+  "disableClaudeAiConnectors": true,
+  "syncClaudeAiSkills": false,
+  "syncClaudeAiPlugins": false,
+  "autoMemoryEnabled": false,
+  "enabledPlugins": {
+    "cc-plugin-plugin-authoring@builtin": false,
+    "cc-plugin-sec-default@builtin": false,
+    "cc-plugin-telemetry@builtin": false
+  },
+  "env": { "DISABLE_AUTOUPDATER": "1", "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1", "ENABLE_CLAUDEAI_MCP_SERVERS": "false" }
+}
+JSON
+```
+
+**1.4 Install Rosetta** (pinned version):
+
+```bash
+[ -d "$ENV_DIR/src/.git" ] || git clone -q --branch v3.1.17 https://github.com/griddynamics/rosetta "$ENV_DIR/src"
+claude plugin marketplace add "$ENV_DIR/src"
+claude plugin install rosetta@rosetta
+claude plugin list                                             # rosetta@rosetta 3.1.17 only
+```
+
+**1.5 Tag**: nothing to do. The method tag `rosetta-skills-v1` comes with the zip, on the init commit (1.2a). Never re-tag it to `baseline-v1`: that would remove the init.
+
+**1.6 Log in once** (a new config dir has no login):
+
+```bash
+(
+cd "$BENCH_DIR" && claude
+)                                               # in a subshell: your terminal stays where it is
+```
+
+In the session: `/login` with your work account, then `/exit`.
+
+**1.7 One-time project preparation: `/init-workspace-flow`** (once per method, after 1.6; it sets up the project context for every run of this method). Its cost is a one-time setup cost: record it in part 7 and never add it to any run. Skip this part if the two zips in `test-library/` exist: you already started from them (1.2a), so never run the init again (about 30 minutes).
+
+```bash
+# terminal 1: start from a clean workspace on baseline-v1 (same variables as 1.2)
+nvm use 24
+for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" checkout -q -f baseline-v1; done
+(
+cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5
+)
+```
+
+In the session: send `/init-workspace-flow`. Answer its questions as product owner, one message per round; reply `Approved, continue.` to any "shall I continue?". Write the start and end time. When it is done: run `/cost` and `/usage` and paste both into part 7; do not `/exit` before that.
+
+Then (terminal 2), still before any run:
+
+```bash
+python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" --out "$ENV_DIR/init-tokens.md"   # per model / agent / subagent
+# files the init wrote inside the repos: commit them and tag the commit for all three Rosetta methods
+for r in saleor saleor-dashboard react-storefront; do
+  git -C "$BENCH_DIR/$r" status --porcelain --ignored | grep -v "node_modules\|__pycache__\|\.next"   # git-ignored files are not committed: `git add -f` any that the init created
+  git -C "$BENCH_DIR/$r" add -A
+  git -C "$BENCH_DIR/$r" -c user.name="saleor-benchmark" -c user.email="saleor-benchmark@localhost" commit -q -m "rosetta: init-workspace-flow" || echo "$r: nothing to commit"
+  for t in rosetta-v1 rosetta-light-v1 rosetta-skills-v1; do git -C "$BENCH_DIR/$r" tag -f "$t"; done
+done
+ls -A "$BENCH_DIR"     # the files the init wrote outside the repos
+```
+
+Then `/exit`. Keep `init-tokens.md` and copy it to `rosetta-benchmarks/saleor/methods/rosetta-skills.init-tokens.md` so it is committed with the results.
+
+Then save the two zips (terminal 2). Zip only, maximum compression (`-9`, deflate: the macOS `zip` has no bzip2 build). The repos zip holds only the `.git` folders, not the working files, dependencies or caches; `git reset --hard` rebuilds the working files on extraction. One pair of zips serves Rosetta, Rosetta Light and Rosetta Skills; the init is run once, with the full `rosetta` plugin.
+
+```bash
+TL="$(git rev-parse --show-toplevel)/test-library"
+rm -f "$TL/saleor-initialized-repos.zip" "$TL/saleor-initialized-root.zip"
+(cd "$BENCH_DIR" && for r in saleor saleor-dashboard react-storefront; do git -C "$r" status --porcelain; find "$r/.git"; done | zip -9 -y -X -q -@ "$TL/saleor-initialized-repos.zip")   # status lines must be empty: everything committed
+(cd "$BENCH_DIR" && ls -A | grep -v -x -e saleor -e saleor-dashboard -e react-storefront -e seed.dump -e logs -e envs -e run-output -e .DS_Store | zip -9 -r -y -X -q -@ "$TL/saleor-initialized-root.zip" -x '*.DS_Store')   # everything outside the repos
+ls -lh "$TL"/saleor-initialized-*.zip && unzip -tq "$TL/saleor-initialized-repos.zip" | tail -1 && unzip -tq "$TL/saleor-initialized-root.zip" | tail -1   # GitHub rejects files over 100 MB
+```
+
+Commit the two zips with the results. Every later start uses them (1.2a).
+
+## 2. Run S-CC-08: small task: product storage conditions, Claude Code
+
+Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/claude-code/rosetta-skills/`. Two terminals, both **inside your rosetta checkout**: terminal 1 runs the agent, terminal 2 is for the other commands.
+
+**Step 1. Variables** (paste into both terminals):
+
+```bash
+export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
+export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/rosetta-skills"
+export CLAUDE_CONFIG_DIR="$ENV_DIR/claude" B="$SB/scripts/bench.sh"
+export RUN="$SB/runs/small-storage-conditions/claude-code/rosetta-skills"   # this run's folder
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
+```
+
+**Step 2. Start from the zips and open the report** (terminal 2):
+
+```bash
+nvm use 24
+$B from-zips && $B setup && $B start && sleep 60 && $B health      # repos at the init commit, root files in place, all three OK
+rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-small.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
+sed -i '' -e 's|^run_id:.*|run_id: S-CC-08|' -e 's|^method:.*|method: rosetta-skills|' -e 's|^runner:.*|runner: claude-code|' \
+  -e 's|^model:.*|model: claude-sonnet-5-5|' -e 's|^start_tag:.*|start_tag: rosetta-skills-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
+```
+
+**Step 3. Isolation check** (terminal 2):
+
+```bash
+{ claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" 2>/dev/null || echo "(no skills dir)"
+  for r in saleor saleor-dashboard react-storefront; do echo "$r: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ')"; git -C "$BENCH_DIR/$r" status --porcelain; done
+} 2>&1 | tee "$RUN/isolation.txt"
+```
+
+Expected: only `rosetta@rosetta`; no MCP servers; `rosetta-skills-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix it and repeat step 2. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
+
+**Step 4. Start the agent** (terminal 1):
+
+```bash
+(
+find "$CLAUDE_CONFIG_DIR/projects" -maxdepth 1 -name '*saleor-benchmark*' -exec rm -rf {} + 2>/dev/null || true
+rm -rf "$BENCH_DIR/run-output"
+cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5
+)                                               # in a subshell: your terminal stays where it is
+```
+
+In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu lists the `hitl` and `tech-specs` skills; `/hooks` shows the Rosetta SessionStart hooks. The `Context loaded using Rosetta` message is not a check: it appears only after the first message, when the skills and hooks load, and you send nothing before T0. If not: `/exit`, repeat step 2, start again.
+
+**When the checks pass: `/exit`, then start `claude` again WITHOUT the cleanup lines** (`find … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5)`. This is a NEW session (never `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
+
+**Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
+
+```text
+Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
+
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+
+MUST USE SKILLS hitl, tech-specs.
+```
+
+**Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
+
+| The agent | You reply |
+| --- | --- |
+| questions | answers from the tables |
+| asks for approval (specs, design, implementation) | `Yes, I approve` |
+| any other "shall I continue?" | `Approved, continue.` |
+
+Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
+
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and `/usage` and paste both outputs into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+
+```text
+Don't change any code, just answer: was each of these handled, and where?
+1. Is the storage conditions value plain text or rich text, and what is its maximum length?
+2. Is it translatable, like the other product texts?
+3. Is it set per product or per variant?
+4. Where is the storage conditions value shown to customers: only on the product page, or also in other places (cart, checkout, order emails)?
+5. Existing products: what value do they get after the change, and is a data migration needed for them?
+6. Is it included in import/export, in webhook payloads, and in API filters?
+7. Who can edit it, and who can read it?
+```
+
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost`, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+
+**Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
+
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && claude --resume <session id> --permission-mode bypassPermissions --model claude-sonnet-5-5)` and send it there (note it in section 8):
+
+```text
+Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).
+Then write ~/saleor-benchmark/run-output/agent-report.md containing:
+- experiment info: task, method, runner, model, start/end time;
+- a list of the actions you actually performed during this task, for example: wrote code, reviewed the code, wrote tests, ran tests, ran tests multiple times, ran tests in a different order, cleaned up leftovers, updated documentation, started the application, checked the API, took a screenshot of the final result;
+- for each action, whether it was done (yes/no) and short evidence (command, file, or output).
+Do not make any further code changes.
+```
+
+**Step 10. Save everything** (terminal 2, before the next start):
+
+```bash
+T1=2026-10-20T14:05            # ← your T1 from the report (time of the first "done")
+cp -R "$BENCH_DIR/run-output/." "$RUN/"
+python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" \
+  --t1 "$T1" --copy-to "$RUN" --out "$RUN/tokens.md"
+mkdir -p "$RUN/workspace-root"
+find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
+  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .specify | .aidlc | .github | .gitignore) ;;
+  *) cp -R "$f" "$RUN/workspace-root/" ;; esac
+done
+rmdir "$RUN/workspace-root" 2>/dev/null || true
+ls -la "$RUN"
+```
+
+The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/`. It also holds the init files from the root zip (`README.md`, `gain.json`, `docs/`, `agents/`); what the agent added or changed in them is the difference. Fill the rest of the report (data block: times, `/cost` numbers, counts) and set `S-CC-08` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
+
+```bash
+python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
+```
+
+## 3. Run L-CC-08: large task: age-restricted products, Claude Code
+
+Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/claude-code/rosetta-skills/`. Two terminals, both **inside your rosetta checkout**: terminal 1 runs the agent, terminal 2 is for the other commands.
+
+**Step 1. Variables** (paste into both terminals):
+
+```bash
+export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
+export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/rosetta-skills"
+export CLAUDE_CONFIG_DIR="$ENV_DIR/claude" B="$SB/scripts/bench.sh"
+export RUN="$SB/runs/large-age-restriction/claude-code/rosetta-skills"   # this run's folder
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
+```
+
+**Step 2. Start from the zips and open the report** (terminal 2):
+
+```bash
+nvm use 24
+$B from-zips && $B setup && $B start && sleep 60 && $B health      # repos at the init commit, root files in place, all three OK
+rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-large.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
+sed -i '' -e 's|^run_id:.*|run_id: L-CC-08|' -e 's|^method:.*|method: rosetta-skills|' -e 's|^runner:.*|runner: claude-code|' \
+  -e 's|^model:.*|model: claude-sonnet-5-5|' -e 's|^start_tag:.*|start_tag: rosetta-skills-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
+```
+
+**Step 3. Isolation check** (terminal 2):
+
+```bash
+{ claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" 2>/dev/null || echo "(no skills dir)"
+  for r in saleor saleor-dashboard react-storefront; do echo "$r: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ')"; git -C "$BENCH_DIR/$r" status --porcelain; done
+} 2>&1 | tee "$RUN/isolation.txt"
+```
+
+Expected: only `rosetta@rosetta`; no MCP servers; `rosetta-skills-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix it and repeat step 2. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
+
+**Step 4. Start the agent** (terminal 1):
+
+```bash
+(
+find "$CLAUDE_CONFIG_DIR/projects" -maxdepth 1 -name '*saleor-benchmark*' -exec rm -rf {} + 2>/dev/null || true
+rm -rf "$BENCH_DIR/run-output"
+cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5
+)                                               # in a subshell: your terminal stays where it is
+```
+
+In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu lists the `hitl` and `tech-specs` skills; `/hooks` shows the Rosetta SessionStart hooks. The `Context loaded using Rosetta` message is not a check: it appears only after the first message, when the skills and hooks load, and you send nothing before T0. If not: `/exit`, repeat step 2, start again.
+
+**When the checks pass: `/exit`, then start `claude` again WITHOUT the cleanup lines** (`find … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5)`. This is a NEW session (never `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
+
+**Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
+
+```text
+Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
+To make this work, the customer profile should have a birthday field.
+
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+
+MUST USE SKILLS hitl, tech-specs, orchestration.
+```
+
+**Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
+
+| The agent | You reply |
+| --- | --- |
+| questions | answers from the tables, + major-decision questions ("LARGE = MEDIUM + any major decisions", skills/hitl/SKILL.md:41) |
+| asks for approval (specs, design, implementation) | `Yes, I approve` |
+| any other "shall I continue?" | `Approved, continue.` |
+| the agent asks for its own approval sentence (e.g. `Yes, I approve the specs with PR-1..7 as proposed.`) | the assistant writes one message: `Please improve: (1) …, (2) ….` for spec items covered only partly (key texts word for word), then `Yes, I approve with those corrections` + the agent's own sentence; items the spec does not mention at all are not raised (they are found at T1). Its own proposals (PR-n) are approved as proposed unless a table answer contradicts one |
+
+Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
+
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and `/usage` and paste both outputs into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+
+```text
+Don't change any code, just answer: was each of these handled, and where?
+1. Existing customers with no birthday: what happens when they try to buy a restricted product?
+2. Existing products: are they restricted after the change?
+3. Is a data migration or backfill needed?
+4. A guest (not signed in): can they buy a restricted product?
+5. Are restricted products visible in lists, search, discounts and banners?
+6. Emails that recommend products: are restricted products excluded for customers who aren't eligible?
+7. Do the terms or the privacy policy need any change?
+8. Age boundary: a customer who turns the age today, which time zone, and someone born on 29 February?
+9. Who can see the birthday (APIs, webhooks, exports, staff roles), and are changes and staff reads logged?
+```
+
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost`, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+
+**Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
+
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && claude --resume <session id> --permission-mode bypassPermissions --model claude-sonnet-5-5)` and send it there (note it in section 8):
+
+```text
+Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).
+Then write ~/saleor-benchmark/run-output/agent-report.md containing:
+- experiment info: task, method, runner, model, start/end time;
+- a list of the actions you actually performed during this task, for example: wrote code, reviewed the code, wrote tests, ran tests, ran tests multiple times, ran tests in a different order, cleaned up leftovers, updated documentation, started the application, checked the API, took a screenshot of the final result;
+- for each action, whether it was done (yes/no) and short evidence (command, file, or output).
+Do not make any further code changes.
+```
+
+**Step 10. Save everything** (terminal 2, before the next start):
+
+```bash
+T1=2026-10-20T14:05            # ← your T1 from the report (time of the first "done")
+cp -R "$BENCH_DIR/run-output/." "$RUN/"
+python3 "$SB/scripts/session-usage.py" "$CLAUDE_CONFIG_DIR/projects/$(echo "$BENCH_DIR" | tr / -)" \
+  --t1 "$T1" --copy-to "$RUN" --out "$RUN/tokens.md"
+mkdir -p "$RUN/workspace-root"
+find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
+  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .specify | .aidlc | .github | .gitignore) ;;
+  *) cp -R "$f" "$RUN/workspace-root/" ;; esac
+done
+rmdir "$RUN/workspace-root" 2>/dev/null || true
+ls -la "$RUN"
+```
+
+The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/`. It also holds the init files from the root zip (`README.md`, `gain.json`, `docs/`, `agents/`); what the agent added or changed in them is the difference. Fill the rest of the report (data block: times, `/cost` numbers, counts) and set `L-CC-08` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
+
+```bash
+python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
+```
+
+## 4. Setup for Copilot (once)
+
+> ⛔ **Not runnable yet:** Copilot runs need a Copilot seat with GPT-5.6 Terra; the current account has Copilot Free. These steps follow the method's docs and are **not verified**.
+
+**Install and use:** VS Code settings: add `$HOME/saleor-benchmark/envs/rosetta-skills/src` to `chat.plugins.marketplaces` → Copilot chat gear → **Browse Marketplaces** → install `rosetta`. Then the same task prompt and approval phrase.
+
+VS Code profile with only the two Copilot extensions:
+
+```bash
+code --profile bench-rosetta-skills --install-extension GitHub.copilot --install-extension GitHub.copilot-chat
+code --profile bench-rosetta-skills --list-extensions     # only these two
+```
+
+In that profile: Settings → permissions **Allow all** (`chat.permissions.default`), model picker **GPT-5.6 Terra** (not Auto), Copilot memory off. The method tag comes with the zips (1.2a); check it, do not re-tag:
+
+```bash
+for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" tag -l rosetta-skills-v1; done   # comes with the zip (1.2a)
+```
+
+One-time preparation for Copilot: as in 1.7, send `/init-workspace-flow` in a new Agent chat of the same profile, then commit the init changes in the three repos and put the three Rosetta method tags on that commit. Usage = the session's premium-request counter; record it in part 7.
+
+## 5. Run S-CP-08: small task: product storage conditions, Copilot
+
+Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/rosetta-skills/`. Not verified (see part 4).
+
+1. Start from the zips as in the Claude Code run, step 2 (with `$RUN` set to this folder).
+2. Open the workspace: `code --profile bench-rosetta-skills "$HOME/saleor-benchmark"`, new chat, **Agent** mode, model GPT-5.6 Terra.
+3. Send the task (T0):
+
+   ```text
+   Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+   Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
+   
+   Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+   
+   MUST USE SKILLS hitl, tech-specs.
+   ```
+
+4. At each stop reply exactly as in the Claude Code run of this task (part 2, step 6).
+5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 2, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
+6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).
+
+## 6. Run L-CP-08: large task: age-restricted products, Copilot
+
+Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-skills/`. Not verified (see part 4).
+
+1. Start from the zips as in the Claude Code run, step 2 (with `$RUN` set to this folder).
+2. Open the workspace: `code --profile bench-rosetta-skills "$HOME/saleor-benchmark"`, new chat, **Agent** mode, model GPT-5.6 Terra.
+3. Send the task (T0):
+
+   ```text
+   Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+   Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
+   To make this work, the customer profile should have a birthday field.
+   
+   Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+   
+   MUST USE SKILLS hitl, tech-specs, orchestration.
+   ```
+
+4. At each stop reply exactly as in the Claude Code run of this task (part 3, step 6).
+5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 3, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
+6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).
+
+## 7. One-time setup cost: `/init-workspace-flow` (reported separately, not added to any run)
+
+| Runner | Start | End | Operator | Notes |
+| --- | --- | --- | --- | --- |
+| Claude Code | | | isolomatov | `/init-workspace-flow` run once for all Rosetta methods (shared zips). About 1 h including answering its questions; 52 min wall time. Total cost $31.20 (Sonnet $3.36 + Haiku $1.29 + Opus $26.55). |
+| Copilot | | | | |
+
+Claude Code, paste raw (`/cost`, then `/usage`; per-agent tokens are in `rosetta-skills.init-tokens.md`):
+
+```text
+Usage by model:
+   claude-sonnet-5-5:  38.7k input, 95.7k output, 11.2m cache read, 484.2k cache write ($3.36)
+    claude-haiku-5-5:  116.6k input, 250.1k output, 22.8m cache read, 909.3k cache write ($1.29)
+     claude-opus-5-5:  153.3k input, 321.0k output, 57.5m cache read, 1.6m cache write ($26.55)
+```
+
+Zips in `test-library/` (size, sha256):
+
+```text
+saleor-initialized-repos.zip  40 MB  sha256 1f3877454a9c503e180d53300ac6a0d0179a9e4d22ed976b4f9a37bc1d0fd4d1
+saleor-initialized-root.zip   19 KB  sha256 f671b7152803fda64d9de6c24dce693c21444ee2378b3a99f9449253d735dd1e
+```
+
+Copilot, premium-request counter at the end of the init session:
+
+```text
+```

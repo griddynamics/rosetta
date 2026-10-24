@@ -1,0 +1,478 @@
+diff --git a/messages/de.json b/messages/de.json
+index cd8d760..f4c2f7f 100644
+--- a/messages/de.json
++++ b/messages/de.json
+@@ -64,6 +64,7 @@
+ 			"description": "Beschreibung",
+ 			"productDetails": "Produktdetails",
+ 			"careInstructions": "Pflegehinweise",
++			"storageConditions": "Lagerungshinweise",
+ 			"shippingReturns": "Versand & Rückgabe",
+ 			"shippingBody": "Kostenloser Versand bei Bestellungen über {freeShippingThreshold}. Standardlieferung in 3–5 Werktagen.",
+ 			"returnsBody": "Kostenlose Rückgabe innerhalb von {returnsWindowDays} Tagen nach dem Kauf. Artikel müssen ungetragen und mit Etiketten versehen sein.",
+diff --git a/messages/en.json b/messages/en.json
+index 94a1cf3..b66d7a1 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -64,6 +64,7 @@
+ 			"description": "Description",
+ 			"productDetails": "Product Details",
+ 			"careInstructions": "Care Instructions",
++			"storageConditions": "Storage Conditions",
+ 			"shippingReturns": "Shipping & Returns",
+ 			"shippingBody": "Free shipping on orders over {freeShippingThreshold}. Standard delivery 3-5 business days.",
+ 			"returnsBody": "Free returns within {returnsWindowDays} days of purchase. Items must be unworn with tags attached.",
+diff --git a/messages/fi.json b/messages/fi.json
+index 4fd92e3..15b2319 100644
+--- a/messages/fi.json
++++ b/messages/fi.json
+@@ -64,6 +64,7 @@
+ 			"description": "Kuvaus",
+ 			"productDetails": "Tuotetiedot",
+ 			"careInstructions": "Hoito-ohjeet",
++			"storageConditions": "Säilytysohjeet",
+ 			"shippingReturns": "Toimitus ja palautukset",
+ 			"shippingBody": "Ilmainen toimitus tilauksille yli {freeShippingThreshold}. Normaali toimitus 3–5 arkipäivää.",
+ 			"returnsBody": "Ilmaiset palautukset {returnsWindowDays} päivän kuluessa ostosta. Tuotteiden on oltava käyttämättömiä ja tunnisteineen.",
+diff --git a/messages/fr.json b/messages/fr.json
+index 6662017..6717960 100644
+--- a/messages/fr.json
++++ b/messages/fr.json
+@@ -64,6 +64,7 @@
+ 			"description": "Description",
+ 			"productDetails": "Détails du produit",
+ 			"careInstructions": "Entretien",
++			"storageConditions": "Conservation",
+ 			"shippingReturns": "Livraison et retours",
+ 			"shippingBody": "Livraison gratuite pour les commandes supérieures à {freeShippingThreshold}. Livraison standard sous 3 à 5 jours ouvrés.",
+ 			"returnsBody": "Retours gratuits sous {returnsWindowDays} jours après l'achat. Les articles doivent être non portés et avec leurs étiquettes.",
+diff --git a/messages/ja.json b/messages/ja.json
+index c8be825..6e83e5c 100644
+--- a/messages/ja.json
++++ b/messages/ja.json
+@@ -64,6 +64,7 @@
+ 			"description": "商品説明",
+ 			"productDetails": "商品詳細",
+ 			"careInstructions": "お手入れ方法",
++			"storageConditions": "保存方法",
+ 			"shippingReturns": "配送と返品",
+ 			"shippingBody": "{freeShippingThreshold}以上のご注文で送料無料。通常配送は3〜5営業日です。",
+ 			"returnsBody": "ご購入から{returnsWindowDays}日以内は返品無料。タグ付き・未使用の商品に限ります。",
+diff --git a/messages/ko.json b/messages/ko.json
+index 218b88d..2e3b83f 100644
+--- a/messages/ko.json
++++ b/messages/ko.json
+@@ -56,6 +56,7 @@
+ 			"description": "상세 설명",
+ 			"productDetails": "상품 정보",
+ 			"careInstructions": "세탁 및 관리 방법",
++			"storageConditions": "보관 방법",
+ 			"shippingReturns": "배송 및 반품",
+ 			"shippingBody": "{freeShippingThreshold} 이상 구매 시 무료 배송. 영업일 기준 3~5일 내 배송됩니다.",
+ 			"returnsBody": "구매 후 {returnsWindowDays}일 이내 무료 반품이 가능합니다. 상품은 미착용 상태여야 하며 태그가 부착되어 있어야 합니다.",
+diff --git a/messages/nb.json b/messages/nb.json
+index d1d7039..334fc12 100644
+--- a/messages/nb.json
++++ b/messages/nb.json
+@@ -64,6 +64,7 @@
+ 			"description": "Beskrivelse",
+ 			"productDetails": "Produktdetaljer",
+ 			"careInstructions": "Vaskeanvisning",
++			"storageConditions": "Oppbevaring",
+ 			"shippingReturns": "Frakt og retur",
+ 			"shippingBody": "Gratis frakt på bestillinger over {freeShippingThreshold}. Standardlevering på 3–5 virkedager.",
+ 			"returnsBody": "Gratis retur innen {returnsWindowDays} dager etter kjøp. Varene må være ubrukte med merkelapper.",
+diff --git a/messages/pl.json b/messages/pl.json
+index ecaf8f2..2a970b3 100644
+--- a/messages/pl.json
++++ b/messages/pl.json
+@@ -64,6 +64,7 @@
+ 			"description": "Opis",
+ 			"productDetails": "Szczegóły produktu",
+ 			"careInstructions": "Instrukcje pielęgnacji",
++			"storageConditions": "Warunki przechowywania",
+ 			"shippingReturns": "Dostawa i zwroty",
+ 			"shippingBody": "Darmowa dostawa przy zamówieniach powyżej {freeShippingThreshold}. Standardowa dostawa w 3–5 dni roboczych.",
+ 			"returnsBody": "Darmowe zwroty w ciągu {returnsWindowDays} dni od zakupu. Produkty muszą być nieużywane i z metkami.",
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+index 51a91eb..9bc9c2d 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
+ import { ErrorBoundary } from "react-error-boundary";
+ 
+ import { resolveLocaleFromSlug } from "@/config/locale";
++import { getStorageConditions } from "@/config/storefront-view";
+ import { templates } from "@/config/templates";
+ import { resolveChannelCurrency } from "@/lib/channels/resolve-channel-currency";
+ import { catalogPathSuffix, redirectToCanonicalCatalogSlug } from "@/lib/catalog/canonical-slug";
+@@ -214,6 +215,7 @@ async function ProductShell({
+ 			descriptionHtml={view.descriptionHtml}
+ 			attributes={view.attributes}
+ 			careInstructions={view.careInstructions}
++			storageConditions={getStorageConditions(view.extensions)}
+ 			policyLabels={policyLabels}
+ 		/>
+ 	);
+diff --git a/src/config/storefront-view.test.ts b/src/config/storefront-view.test.ts
+new file mode 100644
+index 0000000..d096c68
+--- /dev/null
++++ b/src/config/storefront-view.test.ts
+@@ -0,0 +1,75 @@
++import { describe, expect, it } from "vitest";
++
++import type { ProductShell } from "@/lib/catalog/get-product-data";
++import { getStorageConditions, mapProductExtensions } from "./storefront-view";
++
++function shell(storageConditions: string | null, translation: string | null | undefined): ProductShell {
++	return {
++		storageConditions,
++		translation: translation === undefined ? null : { storageConditions: translation },
++	} as unknown as ProductShell;
++}
++
++describe("mapProductExtensions storageConditions", () => {
++	it("returns the base value when there is no translation", () => {
++		expect(mapProductExtensions(shell("Keep dry", undefined))).toEqual({ storageConditions: "Keep dry" });
++	});
++
++	it("prefers a non-blank translation over the base value", () => {
++		expect(mapProductExtensions(shell("Keep dry", "Trocken lagern"))).toEqual({
++			storageConditions: "Trocken lagern",
++		});
++	});
++
++	it.each([null, "", "   "])("falls back to the base value for blank translation %j", (translation) => {
++		expect(mapProductExtensions(shell("Keep dry", translation))).toEqual({ storageConditions: "Keep dry" });
++	});
++
++	it.each([null, "", "  \n\t "])("returns null for blank base %j without translation", (base) => {
++		expect(mapProductExtensions(shell(base, null))).toEqual({ storageConditions: null });
++	});
++
++	it.each([null, "", "   "])("uses the translation when the base is blank %j", (base) => {
++		expect(mapProductExtensions(shell(base, "Trocken"))).toEqual({ storageConditions: "Trocken" });
++	});
++
++	it("returns null when base and translation are both blank", () => {
++		expect(mapProductExtensions(shell("  ", "  "))).toEqual({ storageConditions: null });
++	});
++
++	it("trims surrounding whitespace from base and translation", () => {
++		expect(mapProductExtensions(shell("  Keep dry  ", null))).toEqual({ storageConditions: "Keep dry" });
++		expect(mapProductExtensions(shell("Keep dry", "  Trocken  "))).toEqual({ storageConditions: "Trocken" });
++	});
++
++	it("preserves unicode text", () => {
++		expect(mapProductExtensions(shell("保存方法: 冷蔵 2–8 °C", null))).toEqual({
++			storageConditions: "保存方法: 冷蔵 2–8 °C",
++		});
++	});
++});
++
++describe("getStorageConditions", () => {
++	it("reads a non-empty string", () => {
++		expect(getStorageConditions({ storageConditions: "Keep dry" })).toBe("Keep dry");
++	});
++
++	it.each([[null], [""], [undefined], [42], [{}]])("returns null for %j", (value) => {
++		expect(getStorageConditions({ storageConditions: value })).toBeNull();
++	});
++
++	// Documents current behavior: the reader only checks length, so a whitespace-only string passes.
++	// SF-03 holds because mapProductExtensions trims before the reader sees the value.
++	it("passes a whitespace-only string through (the mapper is responsible for trimming)", () => {
++		expect(getStorageConditions({ storageConditions: "   " })).toBe("   ");
++	});
++
++	it("returns null when the key is absent", () => {
++		expect(getStorageConditions({})).toBeNull();
++	});
++
++	it("round-trips the mapper output", () => {
++		expect(getStorageConditions(mapProductExtensions(shell("  x ", null)))).toBe("x");
++		expect(getStorageConditions(mapProductExtensions(shell(null, null)))).toBeNull();
++	});
++});
+diff --git a/src/config/storefront-view.ts b/src/config/storefront-view.ts
+index 924a8d2..a242ada 100644
+--- a/src/config/storefront-view.ts
++++ b/src/config/storefront-view.ts
+@@ -1,6 +1,7 @@
+ import "server-only";
+ 
+ import type { ProductShell } from "@/lib/catalog/get-product-data";
++import { pickTranslatedField } from "@/lib/saleor-translations";
+ 
+ /**
+  * Fork-owned extras on `ProductView.extensions`.
+@@ -9,6 +10,16 @@ import type { ProductShell } from "@/lib/catalog/get-product-data";
+  * run `pnpm generate`, then map the new field here. Do not edit
+  * `src/lib/storefront/mappers/product.ts` or the product route.
+  */
+-export function mapProductExtensions(_product: ProductShell): Record<string, unknown> {
+-	return {};
++export function mapProductExtensions(product: ProductShell): Record<string, unknown> {
++	return {
++		storageConditions:
++			pickTranslatedField(product.translation, "storageConditions", product.storageConditions)?.trim() ||
++			null,
++	};
++}
++
++/** Storage conditions from `ProductView.extensions`: a non-empty string or null. */
++export function getStorageConditions(extensions: Record<string, unknown>): string | null {
++	const value = extensions.storageConditions;
++	return typeof value === "string" && value.length > 0 ? value : null;
+ }
+diff --git a/src/graphql/extensions/ProductDetailsExtension.graphql b/src/graphql/extensions/ProductDetailsExtension.graphql
+index 0a67217..8e94c1b 100644
+--- a/src/graphql/extensions/ProductDetailsExtension.graphql
++++ b/src/graphql/extensions/ProductDetailsExtension.graphql
+@@ -1,4 +1,8 @@
+ # Fork-owned fields on the PDP shell. Add selections here; do not edit ProductDetails.graphql.
+ fragment ProductDetailsExtension on Product {
+ 	__typename
++	storageConditions
++	translation(languageCode: $languageCode) {
++		storageConditions
++	}
+ }
+diff --git a/src/graphql/extensions/product-details-extension.contract.test.ts b/src/graphql/extensions/product-details-extension.contract.test.ts
+new file mode 100644
+index 0000000..9dc7807
+--- /dev/null
++++ b/src/graphql/extensions/product-details-extension.contract.test.ts
+@@ -0,0 +1,39 @@
++import { readFileSync, readdirSync } from "node:fs";
++import { join } from "node:path";
++import { describe, expect, it } from "vitest";
++
++const ROOT = join(import.meta.dirname, "../../..");
++const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
++
++describe("ProductDetailsExtension fragment contract", () => {
++	const fragment = read("src/graphql/extensions/ProductDetailsExtension.graphql");
++
++	it("is a fragment on Product that keeps __typename", () => {
++		expect(fragment).toMatch(/fragment\s+ProductDetailsExtension\s+on\s+Product\s*\{/);
++		expect(fragment).toMatch(/^\s*__typename\s*$/m);
++	});
++
++	it("selects the base storageConditions field", () => {
++		expect(fragment).toMatch(/^\s*storageConditions\s*$/m);
++	});
++
++	it("selects the translated storageConditions with $languageCode", () => {
++		expect(fragment).toMatch(/translation\(languageCode:\s*\$languageCode\)\s*\{\s*storageConditions\s*\}/);
++	});
++
++	it("is spread exactly once, by ProductDetails, which declares $languageCode", () => {
++		const spreads: string[] = [];
++		for (const file of readdirSync(join(ROOT, "src/graphql"), { recursive: true })) {
++			if (typeof file !== "string" || !file.endsWith(".graphql")) continue;
++			if (read(join("src/graphql", file)).includes("...ProductDetailsExtension")) spreads.push(file);
++		}
++		expect(spreads).toEqual(["ProductDetails.graphql"]);
++		const details = read("src/graphql/ProductDetails.graphql");
++		expect(details).toMatch(/\$languageCode:\s*LanguageCodeEnum!/);
++		expect(details).toMatch(/translation\(languageCode:\s*\$languageCode\)/);
++	});
++
++	it("leaves ProductDetails.graphql free of the fork field (ADR 0006)", () => {
++		expect(read("src/graphql/ProductDetails.graphql")).not.toContain("storageConditions");
++	});
++});
+diff --git a/src/lib/storefront/mappers/product.test.ts b/src/lib/storefront/mappers/product.test.ts
+index 6d7cf17..dc61903 100644
+--- a/src/lib/storefront/mappers/product.test.ts
++++ b/src/lib/storefront/mappers/product.test.ts
+@@ -80,4 +80,18 @@ describe("toProductView", () => {
+ 		});
+ 		expect(view.images[0]?.srcSet).toContain("512w");
+ 	});
++
++	it("wires storage conditions into extensions, preferring a non-blank translation", () => {
++		const base = { ...shell(), storageConditions: "  Keep dry  " } as unknown as ProductShell;
++		expect(toProductView(base).extensions).toEqual({ storageConditions: "Keep dry" });
++
++		const translated = {
++			...base,
++			translation: { storageConditions: "Trocken lagern" },
++		} as unknown as ProductShell;
++		expect(toProductView(translated).extensions).toEqual({ storageConditions: "Trocken lagern" });
++
++		const blank = { ...base, storageConditions: "  " } as unknown as ProductShell;
++		expect(toProductView(blank).extensions).toEqual({ storageConditions: null });
++	});
+ });
+diff --git a/src/ui/components/pdp/product-attributes.test.ts b/src/ui/components/pdp/product-attributes.test.ts
+new file mode 100644
+index 0000000..77002e1
+--- /dev/null
++++ b/src/ui/components/pdp/product-attributes.test.ts
+@@ -0,0 +1,116 @@
++import { readFileSync, readdirSync } from "node:fs";
++import { join } from "node:path";
++import { createElement, type ComponentProps, type ComponentType } from "react";
++import { renderToStaticMarkup } from "react-dom/server";
++import { NextIntlClientProvider } from "next-intl";
++import { describe, expect, it } from "vitest";
++
++import enMessages from "../../../../messages/en.json";
++import { ProductAttributes } from "./product-attributes";
++
++const MESSAGES_DIR = join(import.meta.dirname, "../../../../messages");
++const LABEL = enMessages.pdp.attributes.storageConditions;
++
++const policyLabels = { shippingDays: "3", returnDays: "30" } as unknown as Parameters<
++	typeof ProductAttributes
++>[0]["policyLabels"];
++
++// Children are passed as createElement arguments (react/no-children-prop), so loosen the prop type.
++const IntlProvider = NextIntlClientProvider as ComponentType<
++	Omit<ComponentProps<typeof NextIntlClientProvider>, "children">
++>;
++
++function render(props: Partial<Parameters<typeof ProductAttributes>[0]> = {}): string {
++	return renderToStaticMarkup(
++		createElement(
++			IntlProvider,
++			{ locale: "en", messages: enMessages, onError: () => undefined },
++			createElement(ProductAttributes, {
++				descriptionHtml: ["<p>Soft cotton</p>"],
++				attributes: [{ name: "Material", value: "Cotton" }],
++				policyLabels,
++				...props,
++			}),
++		),
++	);
++}
++
++describe("ProductAttributes storage conditions", () => {
++	it("uses the label from the messages file", () => {
++		expect(LABEL).toBe("Storage Conditions");
++		expect(render({ storageConditions: "Keep dry" })).toContain(LABEL);
++	});
++
++	it("renders the item directly after Description and before Product Details", () => {
++		const html = render({ storageConditions: "Keep dry" });
++		const triggerIndex = (label: string) =>
++			html.search(new RegExp(`<button[^>]*aria-expanded="(?:true|false)"[^>]*>${label}`));
++		const description = triggerIndex(enMessages.pdp.attributes.description);
++		const storage = triggerIndex(LABEL);
++		const details = triggerIndex(enMessages.pdp.attributes.productDetails);
++		expect(description).toBeGreaterThanOrEqual(0);
++		expect(storage).toBeGreaterThan(description);
++		expect(details).toBeGreaterThan(storage);
++		expect(html).toContain("Keep dry");
++	});
++
++	it("opens the storage item by default", () => {
++		const html = render({ storageConditions: "Keep dry" });
++		const trigger = (label: string) =>
++			html.match(new RegExp(`<button[^>]*aria-expanded="(true|false)"[^>]*>${label}`))?.[1];
++		expect(trigger(LABEL)).toBe("true");
++		// control: items outside defaultValue stay collapsed
++		expect(trigger(enMessages.pdp.attributes.productDetails)).toBe("false");
++	});
++
++	it.each([null, undefined, ""])("hides the item and label when value is %j", (value) => {
++		const html = render({ storageConditions: value });
++		expect(html).not.toContain(LABEL);
++		expect(html).toContain(enMessages.pdp.attributes.description);
++	});
++
++	// Documents current behavior: the component only checks truthiness and does not trim, so a
++	// whitespace-only prop renders an item. SF-03 relies on the mapper trimming first (see storefront-view.test.ts).
++	it("renders an item for a whitespace-only prop (mapper must trim upstream)", () => {
++		expect(render({ storageConditions: "   " })).toContain(LABEL);
++	});
++
++	it("renders HTML in the value as escaped plain text", () => {
++		const html = render({ storageConditions: "<b>x</b>" });
++		expect(html).toContain("&lt;b&gt;x&lt;/b&gt;");
++		expect(html).not.toContain("<b>x</b>");
++	});
++
++	it("escapes script payloads", () => {
++		const html = render({ storageConditions: "<script>alert(1)</script>" });
++		expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
++		expect(html).not.toContain("<script>alert(1)");
++	});
++
++	it("keeps the description HTML path separate from the storage text", () => {
++		const html = render({ descriptionHtml: ["<p>Soft cotton</p>"], storageConditions: "<i>y</i>" });
++		expect(html).toContain("<p>Soft cotton</p>");
++		expect(html).toContain("&lt;i&gt;y&lt;/i&gt;");
++		expect(html).not.toContain("<i>y</i>");
++	});
++});
++
++describe("pdp.attributes.storageConditions messages", () => {
++	const files = readdirSync(MESSAGES_DIR).filter((f) => f.endsWith(".json"));
++
++	it("covers all 8 locale files", () => {
++		expect(files.sort()).toEqual(["de", "en", "fi", "fr", "ja", "ko", "nb", "pl"].map((l) => `${l}.json`));
++	});
++
++	it.each(["de", "en", "fi", "fr", "ja", "ko", "nb", "pl"])(
++		"defines a non-empty label in %s.json",
++		(locale) => {
++			const json = JSON.parse(readFileSync(join(MESSAGES_DIR, `${locale}.json`), "utf8")) as {
++				pdp?: { attributes?: { storageConditions?: unknown } };
++			};
++			const value = json?.pdp?.attributes?.storageConditions;
++			expect(typeof value).toBe("string");
++			expect((value as string).trim().length).toBeGreaterThan(0);
++		},
++	);
++});
+diff --git a/src/ui/components/pdp/product-attributes.tsx b/src/ui/components/pdp/product-attributes.tsx
+index 004d495..07c2de1 100644
+--- a/src/ui/components/pdp/product-attributes.tsx
++++ b/src/ui/components/pdp/product-attributes.tsx
+@@ -25,6 +25,7 @@ interface ProductAttributesProps {
+ 	descriptionHtml?: string[] | null;
+ 	attributes?: Attribute[];
+ 	careInstructions?: string | null;
++	storageConditions?: string | null;
+ 	policyLabels: PolicyLabelValues;
+ }
+ 
+@@ -41,6 +42,7 @@ export function ProductAttributes({
+ 	descriptionHtml,
+ 	attributes = [],
+ 	careInstructions,
++	storageConditions,
+ 	policyLabels,
+ }: ProductAttributesProps) {
+ 	const t = useTranslations("pdp.attributes");
+@@ -65,7 +67,7 @@ export function ProductAttributes({
+ 	const displayAttributes = attributes.filter((attr) => !["Size", "Color"].includes(attr.name));
+ 
+ 	return (
+-		<Accordion type="multiple" defaultValue={["description"]} className="w-full">
++		<Accordion type="multiple" defaultValue={["description", "storage"]} className="w-full">
+ 			{descriptionHtml && descriptionHtml.length > 0 && (
+ 				<AccordionItemWithContext value="description" className="border-border">
+ 					<AccordionTrigger className="py-4 text-sm font-medium hover:no-underline">
+@@ -81,6 +83,17 @@ export function ProductAttributes({
+ 				</AccordionItemWithContext>
+ 			)}
+ 
++			{storageConditions && (
++				<AccordionItemWithContext value="storage" className="border-border">
++					<AccordionTrigger className="py-4 text-sm font-medium hover:no-underline">
++						{t("storageConditions")}
++					</AccordionTrigger>
++					<AccordionContent className="leading-relaxed text-muted-foreground">
++						{storageConditions}
++					</AccordionContent>
++				</AccordionItemWithContext>
++			)}
++
+ 			{displayAttributes.length > 0 && (
+ 				<AccordionItemWithContext value="details" className="border-border">
+ 					<AccordionTrigger className="py-4 text-sm font-medium hover:no-underline">
