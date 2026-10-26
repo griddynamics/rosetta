@@ -122,11 +122,11 @@ Every run done so far: **16 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIM
 - **"Total code changes" in `/cost` is not the size of the change.** It counts only lines written with Claude Code's `Edit`/`Write` tools; agents that write code through the shell, generators or subagents show almost nothing there (`L-CC-02`: "18 lines added" against ≈ 3 976 added lines in 131 files in its diffs). Use the run's `<repo>.diff` files for size.
 - **`L-CC-04` follow-ups were drafted by the operator's AI assistant**, not written by the operator (report §8). `L-CC-02` sent 2 follow-ups worded from the assistant's description of what the operator saw (its report §8). Both depart from "follow-ups in the operator's own words".
 - **Not identical setups.** `S-CC-02` ran before two setup fixes (some upstream `CLAUDE.md` / `AGENTS.md` files were still in the repos, and the agent's shell used Node 20) and on Claude Code 2.1.304; `S-CC-01` ran on the fixed setup with 2.1.305. Details in each report, section 8.
-- **IDE context.** Both runs used Claude Code in the VS Code terminal, which can pass the open file to the agent; future runs use a standalone terminal. In `S-CC-01` the IDE tools were not used (`tokens.md`).
+- **IDE context.** `S-CC-01` and `S-CC-06` ran Claude Code in the VS Code integrated terminal, so the IDE tools were available; no run used them (0 IDE tool calls in every `tokens.md`, and no open file or selection sent to the agent). New runs use a standalone terminal with no IDE connection. Why, and the settings: [BENCHMARKS.md, section 2](../../BENCHMARKS.md#2-runners-models-permissions).
 
 ## Next
 
 1. Claude Code: Rosetta coding flow large (`L-CC-06`), from the initialized workspace. AWS AI-DLC: run reports for `S-CC-05` and `L-CC-05` (what happened, cost), no further attempt planned.
 2. Reruns: Rosetta coding flow small (`S-CC-06`) with `/init-workspace-flow`; Grill-with-docs large (`L-CC-02`) on the original hidden key; Superpowers large (`L-CC-03`) or its missing final checks and score; Rosetta Skills (Igor).
-3. Copilot CLI: merge the Copilot setup (PR #375), one pilot, then the remaining 15 runs (methods/<method>.md, parts 4–6).
+3. Copilot CLI: one pilot, then the remaining 15 runs (methods/<method>.md, parts 4–6).
 4. Judge scores; repetitions.

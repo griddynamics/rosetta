@@ -1,8 +1,10 @@
 # Saleor benchmark
 
-Compare seven AI coding approaches on one real e-commerce platform (Saleor: core API, dashboard, storefront), on two tasks, in two agent runners: **8 methods × 2 runners × 2 tasks = 32 runs**. The full run list is in [saleor/EXPERIMENTS.md](./saleor/EXPERIMENTS.md).
+Compare eight AI coding approaches on one real e-commerce platform (Saleor: core API, dashboard, storefront), on two tasks, in two agent runners: **8 methods × 2 runners × 2 tasks = 32 runs**. The full run list is in [saleor/EXPERIMENTS.md](./saleor/EXPERIMENTS.md).
 
 A run counts only if the result is merge-ready, not a draft that needs cleanup.
+
+**This document and the method files.** This document has the rules, the reasons and what every run shares. The exact commands are in the method files in [saleor/methods/](./saleor/methods/), step by step for each runner and task, so every operator runs the same commands in the same order. Each file has the same layout. Part 1 sets up Claude Code and parts 2 and 3 are its small and large runs, part 4 sets up Copilot CLI and parts 5 and 6 are its runs, and part 7 records the setup costs. `saleor/scripts/check-runbooks.py` tests those commands.
 
 ## 1. Methods
 
@@ -27,13 +29,22 @@ Methods 1–6 come from the presentation slide "Six approaches, one more if time
 
 | Runner | Model | Effort |
 | --- | --- | --- |
-| Claude Code **2.1.305** (`npm install -g @anthropic-ai/claude-code@2.1.305`, under Node 24) | Sonnet 5.5 (`claude-sonnet-5-5`) | medium |
-| GitHub Copilot (VS Code) | GPT-5.6 Terra | medium |
+| Claude Code **2.1.305**, CLI (`claude`; `npm install -g @anthropic-ai/claude-code@2.1.305`, under Node 24) | Sonnet 5.5 (`claude-sonnet-5-5`) | medium |
+| GitHub Copilot CLI **1.0.101** (`copilot`; `npm install -g @github/copilot@1.0.101`, under Node 24) | GPT-5.6 Terra (`gpt-5.6-terra`) | medium |
 
+Both runner versions were released on the same day, 2026-10-20, per npm. Neither runner is updated during the study, and the settings in 3.5 make sure of it. Claude Code has `DISABLE_AUTOUPDATER=1`. Copilot CLI has `autoUpdate=false`, `COPILOT_AUTO_UPDATE=false` in every terminal, and starts every session with `--no-auto-update`. Every run records `claude --version` or `copilot --version`.
+
+- Both runners run only as CLIs in a terminal, `claude` for Claude Code and `copilot` for GitHub Copilot CLI. We never use an IDE extension, a desktop app or a web version. In run IDs, folders and reports, "Claude Code" (`CC`, `claude-code`) and "Copilot" (`CP`, `copilot`) always mean these CLIs.
+- Both CLIs run in a standalone terminal such as Terminal or iTerm2, never in an IDE's integrated terminal. Neither connects to an IDE. Claude Code has `CLAUDE_CODE_AUTO_CONNECT_IDE=false`, so it gets no `mcp__ide__*` tools. Copilot CLI has `ide.autoConnect=false`. Use the same kind of terminal for every run and name it in the run report.
+- **Why no IDE connection.** We chose this on purpose, knowing most developers work inside an IDE. IDE context depends on the operator, so with it off every run gets the same input. Within one runner every method pays the same price. Between runners it looks similar but is not proven equal. Both lose the same kinds of help (IDE diagnostics, the open file and selection, IDE diffs), and neither has a language server set up to replace them, but we have not measured how much each would use them. Two earlier Claude Code runs, `S-CC-01` and `S-CC-06`, ran in the VS Code integrated terminal with the IDE tools available but unused ([reports/preliminary-results.md](./saleor/reports/preliminary-results.md)). Read the results with this in mind.
 - No other agent products (Codex, Cursor, API scripts, …).
 - Automatic model switching / Auto model selection is OFF.
 - The two runners use different models, so a Claude Code vs Copilot difference is a product + model difference. Methods are compared **within** one runner.
-- **Full-access (YOLO) mode, sandbox disabled**, so permission prompts don't affect the test: Claude Code `claude --dangerously-skip-permissions` (Baseline: `--permission-mode plan --allow-dangerously-skip-permissions`, full access is switched on when the plan is approved); Copilot `chat.tools.autoApprove: true` with terminal confirmations off. **This is not normal usage. Use it only for this test**, only in disposable benchmark clones with synthetic data, and revert it after the study.
+- **Full access (YOLO mode), sandbox off**, so permission prompts don't affect the test. Both runners end up the same way. Baseline can't edit files while it plans and has full access once the plan is approved. They get there differently.
+  - Claude Code runs with `--dangerously-skip-permissions` and `"sandbox": { "enabled": false }`. Baseline starts with `--permission-mode plan --allow-dangerously-skip-permissions`. Plan mode is read only, and full access switches on when the plan is approved.
+  - Copilot CLI runs with `--allow-all` (all tools, paths and URLs) and `sandbox.enabled=false`, never `--sandbox`. Baseline starts with `--plan --allow-all`, so full access is on from the start. Plan mode is a separate agent mode: until the plan is accepted and the session leaves plan mode, it blocks file edits and shell commands that change files, except its own plan file in the session folder.
+
+  **This is not normal usage. Use it only for this test**, only in disposable benchmark clones with synthetic data, and revert it after the study.
 
 ## 3. Environment setup (once)
 
@@ -105,6 +116,8 @@ The script does this; this section explains what and why. So that no method gets
 
 Then it adds **one simple team rules file** to every repo, as on the presentation slide ("one instruction file per repository"): [saleor/baseline-instructions.md](./saleor/baseline-instructions.md), general team rules only, no hints about the tasks. It is copied as `CLAUDE.md` and `.github/copilot-instructions.md`, so each runner reads it.
 
+**Copilot CLI reads the rules file from outside the repos.** The agent starts in `$BENCH_DIR`, which is not a git repository, so Copilot CLI 1.0.101 loads no repo instruction file, also not `.github/copilot-instructions.md`. It reads the same text from [saleor/copilot-rules/](./saleor/copilot-rules/.github/instructions/team-rules.instructions.md) instead: `baseline-instructions.md` with one `applyTo: "**"` header, loaded at session start through `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` (3.5). Claude Code reads each repo's `CLAUDE.md` when it works in that repo. The file is not put into the repos, because that would change `baseline-v1`, every method tag and the Rosetta zips. All copies must stay the same as `baseline-instructions.md`; the isolation check compares them. The repos keep their `.github/copilot-instructions.md`; if Copilot CLI also reads it when it works in a repo, it is the same text.
+
 The tag `baseline-v1` is the starting point for **every** method, so all 8 methods get the same rules file. Baseline = runner + model + this file, in the runner's built-in plan mode; every other method = the same + its own tool. Never change this file during the study. If a method's init step wants to change `CLAUDE.md` or `copilot-instructions.md`, let it, and record that in its protocol.
 
 ### 3.5 Set up each method (once)
@@ -114,10 +127,11 @@ The tag `baseline-v1` is the starting point for **every** method, so all 8 metho
 Every method runs with no help from any other AI: no other method, no other plugin, skill, MCP server, instruction file or AI tool. What the agent produces must come only from the runner + model + the method under test.
 
 - **Separate environment per method.** Never install a method into the shared user config. Give each method its own:
-  - Claude Code config dir: `export CLAUDE_CONFIG_DIR="$HOME/saleor-benchmark/envs/<method>/claude"` before starting `claude`. Install the method's plugin/skills there. Baseline gets only the settings below.
-  - VS Code profile: `code --profile bench-<method>`, with only the GitHub Copilot extensions in it, plus that method's plugin.
-  - Copilot CLI (Superpowers only): back up and empty `~/.copilot` before installing; restore it after the Superpowers runs.
-- **Common Claude Code settings.** Every method's config dir starts with this `$CLAUDE_CONFIG_DIR/settings.json` (Baseline: nothing else). A work login is a claude.ai org account: without these settings it syncs the org's plugins, skills and connectors into every config dir, and the isolation check fails. Turning skills off in `/skills` does not persist across restarts; these settings do. Hooks stay on: Superpowers, Rosetta and AI-DLC start through their own hooks. The config dir has no hooks of its own, so `/hooks` must show only the method's hooks (none for Baseline and Grill). If the dir was already used with sync on, delete `$CLAUDE_CONFIG_DIR/plugins/synced/`, start `claude` again and re-check. Two built-in plugins stay on: `agents-md` (reads `AGENTS.md` only where a repo has no `CLAUDE.md`) and `diff` (the diff panel).
+  - Claude Code: `export CLAUDE_CONFIG_DIR="$HOME/saleor-benchmark/envs/<method>/claude"` before every `claude` command.
+  - Copilot CLI: `export COPILOT_HOME="$HOME/saleor-benchmark/envs/<method>/copilot"` and `export COPILOT_AUTO_UPDATE=false` before every `copilot` command.
+
+  That folder replaces `~/.claude` or `~/.copilot`, so the runner keeps its settings, login, plugins, personal skills and agents, MCP servers and session history there. Install the method there. Baseline installs nothing. Its folder gets the common settings below plus two Baseline settings on each runner, hooks off and plan mode as the default (Claude Code `"disableAllHooks": true`, `"permissions": { "defaultMode": "plan" }`; Copilot CLI `disableAllHooks=true`, `defaultMode=plan`, plus `dynamicRetrieval.skills=false`). Plan mode is also set at launch with a flag (`--permission-mode plan` or `--plan`).
+- **Common Claude Code settings.** Every method's config dir starts with this `$CLAUDE_CONFIG_DIR/settings.json`. Baseline adds `"disableAllHooks": true` and `"permissions": { "defaultMode": "plan" }` and starts with the launch flags `--permission-mode plan --allow-dangerously-skip-permissions` (section 2, [methods/baseline.md](./saleor/methods/baseline.md)). A work login is a claude.ai org account: without these settings it syncs the org's plugins, skills and connectors into every config dir, and the isolation check fails. Turning skills off in `/skills` does not persist across restarts; these settings do. Hooks stay on: Superpowers, Rosetta and AI-DLC start through their own hooks. The config dir has no hooks of its own, so `/hooks` must show only the method's hooks (none for Baseline and Grill). If the dir was already used with sync on, delete `$CLAUDE_CONFIG_DIR/plugins/synced/`, start `claude` again and re-check. Two built-in plugins stay on: `agents-md` (reads `AGENTS.md` only where a repo has no `CLAUDE.md`) and `diff` (the diff panel).
 
 ```json
 {
@@ -127,35 +141,80 @@ Every method runs with no help from any other AI: no other method, no other plug
   "syncClaudeAiSkills": false,
   "syncClaudeAiPlugins": false,
   "autoMemoryEnabled": false,
+  "sandbox": { "enabled": false },
   "enabledPlugins": {
     "cc-plugin-plugin-authoring@builtin": false,
     "cc-plugin-sec-default@builtin": false,
     "cc-plugin-telemetry@builtin": false
   },
-  "env": { "DISABLE_AUTOUPDATER": "1", "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1", "ENABLE_CLAUDEAI_MCP_SERVERS": "false" }
+  "env": { "DISABLE_AUTOUPDATER": "1", "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1", "ENABLE_CLAUDEAI_MCP_SERVERS": "false", "CLAUDE_CODE_AUTO_CONNECT_IDE": "false" }
 }
 ```
 
-- **Repo tags.** Each method's tag is built directly on `baseline-v1`, never on another method's tag, so repos contain only that method's files.
-- **Nothing global.** No user-level `CLAUDE.md`, agents, commands, hooks or MCP servers; no user-level Copilot instructions or prompt files; Copilot memory off; no other AI extensions in the profile (Codex, Cursor, Continue, Cline, Claude Code extension, …). If a method's installer writes global files or hooks (check AI-DLC), remove them after its runs and before any other method.
-- **No human-side AI.** The programmer answers questions and writes follow-ups themselves. Don't use ChatGPT, another agent, or another session to answer, to review the result, or to write a follow-up. An AI helper for the operator's bookkeeping (recording the run, copying answer texts from the tables) is fine, but it must not invent follow-ups, questions, hints or checks.
-- **Isolation check before every run.** Save this output into the run protocol. Anything except the method under test means the run must not start:
+- **Common Copilot CLI settings.** Every method's `COPILOT_HOME` starts with these settings, written to `$COPILOT_HOME/settings.json` by `copilot config` (Baseline adds three more, see its file).
 
 ```bash
-claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" "$CLAUDE_CONFIG_DIR/agents" "$CLAUDE_CONFIG_DIR/commands" 2>/dev/null
-code --profile bench-<method> --list-extensions
-for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" describe --tags; git -C "$HOME/saleor-benchmark/$r" status --porcelain; done
+export COPILOT_HOME="$HOME/saleor-benchmark/envs/<method>/copilot" COPILOT_AUTO_UPDATE=false && mkdir -p "$COPILOT_HOME"
+copilot config autoUpdate false            # no new CLI downloads
+copilot config memory false                # no cross-session memory
+copilot config ide.autoConnect false       # no IDE context
+copilot config model gpt-5.6-terra         # fixed model, never Auto
+copilot config effortLevel medium
+copilot config continueOnAutoMode false    # no switch to Auto on rate limits
+copilot config sandbox.enabled false     # sandbox off (section 2)
+copilot config ignoredSkillsLocations "$HOME/.agents/skills"   # skill folders outside COPILOT_HOME that Copilot reads anyway: skip them
+copilot config ignoredSkillsLocations "$HOME/.claude/skills"
+copilot config ignoredSkillsLocations "$HOME/.github/skills"
+python3 -I - "$COPILOT_HOME/settings.json" <<'PY'   # built-in subagents use the session's model and effort; rubber-duck (another model family) off
+import json, os, sys
+p = sys.argv[1]; s = json.load(open(p)) if os.path.exists(p) else {}
+sub = s.setdefault("subagents", {})
+for a in ("explore", "task", "general-purpose", "code-review", "research", "security-review"):
+    sub.setdefault("agents", {})[a] = {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}
+sub["disabledSubagents"] = sorted(set(sub.get("disabledSubagents", [])) | {"rubber-duck"})
+json.dump(s, open(p, "w"), indent=2)
+PY
 ```
 
-Expected: only the method's plugins (none for Baseline), no MCP servers, the method's tag in all 3 repos, and no `status` lines (repos clean before T0). In the Claude Code session, `/skills` must list only the method's skills: no "claude.ai sync" ones. `/context` shows more, and that is not a leak: the runner's bundled skills (17 in 2.1.305) and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools. Start every run from the same kind of terminal.
+- **Subagents run on the session's model, unless the method chooses another.** `--model` and `copilot config model` set only the main session. Copilot CLI's built-in subagents can run on other models: each agent type has its own default (since 1.0.52 `general-purpose` uses GPT-5.4 or GPT-5.5 when available), and the server can route subagents to another model ([copilot-cli #3824](https://github.com/github/copilot-cli/issues/3824)). Since 1.0.62 the user setting `subagents.agents.<name>` takes `"inherit"` for `model`, `effortLevel` and `contextTier` ("use the parent session's value at dispatch time", [Copilot CLI config reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference)). The common settings set it for the six built-in subagents (`explore`, `task`, `general-purpose`, `code-review`, `research`, `security-review`) and turn off `rubber-duck`, which by design asks a model of another family for a second opinion.
+  - `inherit` does not override a model that the main agent passes explicitly when it starts a subagent. A method can do that: in `S-CP-03` Superpowers' `subagent-driven-development` skill ("use the least powerful model that can handle each role") started its implementers and reviewers on `gpt-5.3-codex` (session log: `modelSelectionSource: explicit_override`). That is the method's own choice, like Superpowers' Opus reviewer and Rosetta's Opus and Haiku agents in Claude Code, so it stays and the report names it.
+  - Claude Code needs no setting: its built-in subagents (Explore, general-purpose) ran on the session model in every run.
+  - The isolation check prints the setting. In the session the timeline shows each subagent's model as `AgentType(model)`. A built-in subagent on another model that the method did not choose means the run does not count.
+
+- **Login and folder trust, once per environment.** Each method file has a one-time login and folder-trust step for both runners (part 1 for Claude Code, part 4 for Copilot CLI). Repository skills, agents and hooks load only in a trusted folder.
+
+- **Common Claude Code session start.** Every Claude Code run starts a **new** session from the workspace root, after the earlier session logs are removed. The command is in step 4 of each run in the method files: `claude --dangerously-skip-permissions --model claude-sonnet-5-5`, or for Baseline `--permission-mode plan --allow-dangerously-skip-permissions` instead of `--dangerously-skip-permissions`.
+
+- **Common Copilot CLI session start.** Every Copilot run starts a **new** session (never `--resume` or `--continue`) from the workspace root, after the earlier session logs are removed, with `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` set to `saleor/copilot-rules/` (3.3). The command is in step 4 of each run in the method files: `copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps`, plus `--plan --dynamic-retrieval skills=off` for Baseline.
+  - `autoUpdate=false`, `COPILOT_AUTO_UPDATE=false` and `--no-auto-update` do different jobs. The setting stops new downloads. The variable and the flag stop the CLI from running a newer package from the shared cache (`~/Library/Caches/copilot/pkg`, which any Copilot install on the machine fills); the variable also covers the setup and check commands, which run without the flag.
+  - `COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"` loads the team rules file (3.3). For each folder it names, Copilot CLI 1.0.101 loads only `AGENTS.md` and `.github/instructions/**/*.instructions.md`, never `.github/copilot-instructions.md`. Without it a Copilot run starts with no rules at all (checked with `copilot instruction list`). Never use `--no-custom-instructions`.
+  - `--disable-builtin-mcps` turns off the GitHub MCP servers that ship with the CLI. No method ships or needs an MCP server at the pinned versions, so this applies to all 8 methods. Claude Code ships no built-in MCP servers; its settings turn off the claude.ai connectors instead.
+  - `--plan --dynamic-retrieval skills=off` are for Baseline only. The other methods need their own skills, so they never get them. `--dynamic-retrieval skills=off` turns off only embeddings-based skill retrieval (the built-in skills stay) and is saved as `dynamicRetrieval.skills=false`, so Baseline's Copilot home also sets it with `copilot config`. Claude Code has no such switch.
+
+- **Repo tags.** Each method's tag is built directly on `baseline-v1`, never on another method's tag, so repos contain only that method's files.
+- **Nothing global.** Neither runner gets user-level instructions, agents, commands, skills, hooks or MCP servers. Claude Code reads only the method's `CLAUDE_CONFIG_DIR` and Copilot CLI only the method's `COPILOT_HOME` (see above), so `~/.claude` and `~/.copilot` are never used. One exception: Copilot CLI also reads skills from the parent folders of `$BENCH_DIR`, because `$BENCH_DIR` is not a git repository. It walks up to `$HOME` and loads `.agents/skills`, `.claude/skills` and `.github/skills` from each folder as "Inherited skills", whatever `COPILOT_HOME` is. The common Copilot settings tell it to skip the three `$HOME` folders (`ignoredSkillsLocations`), and the isolation check expects no "Inherited skills" section in `skill list`. Claude Code reads none of them. Memory is off in both runners. The isolation check flags user-level files as `user-level:` lines. If a method's installer writes global files or hooks, remove them after its runs and before any other method (AI-DLC: `~/.local/bin/aidlc` and `~/.local/share/aidlc`).
+- **No human-side AI.** The programmer answers questions and writes follow-ups themselves. Don't use ChatGPT, another agent, or another session to answer, to review the result, or to write a follow-up. An AI helper for the operator's bookkeeping (recording the run, copying answer texts from the tables) is fine, but it must not invent follow-ups, questions, hints or checks.
+- **Isolation check before every run.** It proves that the run has the runner, the model and the method under test, and nothing else. The exact commands are in step 3 of each Claude Code run and in part 4.8 (Copilot CLI) of each method file. The output is saved as `isolation.txt` and pasted into the run report. Both runners check the same things:
+
+| What is checked | Why |
+| --- | --- |
+| Environment (`CLAUDE_CONFIG_DIR` or `COPILOT_HOME`), runner version, Node version | the method's own environment and the pinned versions |
+| All settings | the common settings above are in place, plus Baseline's own |
+| Plugins, skills, MCP servers, hooks | only the method's own |
+| User-level files | nothing global |
+| Sandbox | off, and no policy forces it on |
+| Team rules file | the only AI file in each repo, and unchanged (3.3) |
+| Repo tags and status | the method's tag, clean repos before T0 |
+
+Expected: only the method's plugins, skills and hooks (none for Baseline); no MCP servers; no user-level files; the sandbox off, also in `/sandbox` in the session; the rules file unchanged and the only AI file in every repo, apart from the method's own files at its tag; the method's tag in all 3 repos and no `status` lines. These are not leaks: the skills and plugins each CLI ships itself (Claude Code's 17 bundled skills in `/context`, Copilot's "Builtin" ones) and Copilot's own GitHub MCP servers, which `copilot mcp list` does not show and `--disable-builtin-mcps` turns off in the session. Claude Code also: `/skills` lists no "claude.ai sync" skills, and `/context` shows no `mcp__ide__*` tools (section 2). If a managed or org policy forces the sandbox on, or anything else differs, the run must not start: fix it and reset.
 
 #### Install
 
 Install at the pinned version only. Disable auto-update. Run the method's per-repo init step (if any) once on top of `baseline-v1`, commit, and tag it with the same tag name in all three repos (`grill-v1`, `superpowers-v1`, `speckit-v1`, `aidlc-v1`, `rosetta-v1`, `rosetta-light-v1`, `rosetta-skills-v1`). Every run of that method starts from that tag. Note the one-time setup time in the method's protocol; it is reported separately and not added to any run.
 
-The exact install commands per method (checked at the pinned versions) are in that method's file in [saleor/methods/](./saleor/methods/), part 1 (Claude Code) and part 4 (Copilot). Spec Kit and AI-DLC are set up once in `envs/<method>/root-<runner>/` and copied into the workspace root after every reset, because the agent runs in `$BENCH_DIR` (not a repo) and Claude Code loads project skills and hooks only from its working directory.
+The install commands for each method are in part 1 (Claude Code) and part 4 (Copilot CLI) of its method file. Some methods also keep files in the workspace root. The agent runs in `$BENCH_DIR`, which is not a repo, and both runners load project files from their working directory (Claude Code `.claude/`, Copilot CLI `.github/` and `AGENTS.md`). `bench.sh reset` removes these files, so they are kept in `envs/<method>/` and copied back after every reset; the method file says which folder. Copilot also reads `.claude/skills/`, so a run's workspace must never hold the other runner's files, and the reset makes sure of it.
 
-**One-time preparation: only what the method itself requires.** A method gets its own documented one-time preparation if its docs require one. The preparation runs once per method and never per run. Its cost (time, `/cost`, `/usage`) is recorded separately in the method's file and is never added to any run. After it, the agent session is closed and every run starts a new session. Rosetta's `/init-workspace-flow` takes about 30 minutes, so it is run once and its result is saved as two zips in `test-library/`, shared by Rosetta, Rosetta Light and Rosetta Skills: `saleor-initialized-repos.zip` (the entire `.git` of the three repos, HEAD = the init commit tagged for all three methods) and `saleor-initialized-root.zip` (the files Rosetta created outside the repos). All Rosetta work starts with `bench.sh from-zips`: it deletes the old files, extracts both zips and rebuilds the working files with `git reset --hard`. The repos are not cloned and nothing is copied back. The zip is shared by Rosetta, Rosetta Light and Rosetta Skills. All Rosetta work starts by cleaning the three repo folders and extracting the zip; the repos are not cloned (see 1.2a in the method files).
+**One-time preparation: only what the method itself requires.** A method gets its own documented one-time preparation if its docs require one. The preparation runs once per method and never per run. Its cost (time, `/usage`) is recorded separately in the method's file and is never added to any run. After it, the agent session is closed and every run starts a new session. Rosetta's `/init-workspace-flow` takes about 30 minutes, so it is run once and its result is saved as two zips in `test-library/`, shared by Rosetta, Rosetta Light and Rosetta Skills: `saleor-initialized-repos.zip` (the entire `.git` of the three repos, HEAD = the init commit tagged for all three methods) and `saleor-initialized-root.zip` (the files Rosetta created outside the repos). All Rosetta work starts with `bench.sh from-zips`: it deletes the old files, extracts both zips and rebuilds the working files with `git reset --hard`. The repos are not cloned and nothing is copied back. The zip is shared by Rosetta, Rosetta Light and Rosetta Skills. All Rosetta work starts by cleaning the three repo folders and extracting the zip; the repos are not cloned (see 1.2a in the method files).
 
 | Method | One-time preparation | Where |
 | --- | --- | --- |
@@ -172,14 +231,26 @@ Install everything inside that method's own environment (see above). Plugins onl
 
 #### All methods on both runners
 
-Our competitors ran every method, so we test all 8 methods on both runners whenever we can. If a method has no direct support in VS Code Copilot, use the first option that works:
+Our competitors ran every method, so we run all 8 methods on both runners.
 
-1. Official support in VS Code Copilot: use it as is.
-2. Official support in Copilot CLI: run that method's Copilot cells in Copilot CLI with the same model, effort and full-access mode. Mark them `runner: Copilot CLI` (Superpowers).
-3. Only skill/instruction files: port them by hand into `.github/skills/` or `.github/copilot-instructions.md`. Mark them `manual port`. A method's own installer for other agents is not a manual port (Grill-with-docs: `npx skills@latest add mattpocock/skills`).
-4. Nothing works (the method doesn't activate after 2 attempts from a clean reset): mark the cell `not qualifying` in EXPERIMENTS.md with the reason and what was tried. It stays in the report as a result; it is not silently dropped.
+On each runner, a method is installed the way its own docs say for that runner. Claude Code and Copilot CLI each get their own setup, and one runner never uses files made for the other. Every method has both setups (part 1 and part 4 of its method file):
 
-Results from options 2 and 3 are reported with that mark, so readers know the setup was not identical.
+| Method | Copilot CLI setup |
+| --- | --- |
+| Baseline | nothing to install |
+| Superpowers, Rosetta, Rosetta Light, Rosetta Skills | the method's Copilot plugin |
+| Spec Kit | `specify init --integration copilot` |
+| AWS AI-DLC | `aidlc config --harness copilot` |
+| Grill-with-docs | its own installer, `npx skills@latest add mattpocock/skills`, with GitHub Copilot as the agent |
+
+Spec Kit, AI-DLC and Grill-with-docs install as files in the workspace (`.github/`, `AGENTS.md`) instead of a plugin. EXPERIMENTS.md notes this.
+
+If a method can't run on a runner:
+
+- **It has no setup for that runner, only skill or instruction files.** Copy them in by hand and mark the cells `manual port`. No method needs this now.
+- **It still doesn't start after 2 tries from a clean reset.** Mark the cell `not qualifying` in EXPERIMENTS.md, with the reason and what was tried. The cell stays in the results.
+
+Both marks stay in every result, so readers know the setup was not the method's own.
 
 ## 4. Tasks
 
@@ -343,7 +414,11 @@ Some methods need more than one command by design (Spec Kit: specify → plan �
 
 - The task prompt text is identical for all methods. Each method is started with **its own slash command** in front of the prompt, exactly as in "Commands per method" below. Record the command in the run report (`entry_command`).
 - When the method stops and waits for its own next step or approval, the programmer sends only that command or the fixed phrase **"Approved, continue."**, with no hints. These are counted as `method_steps`, **not** follow-ups.
-- **Baseline:** same prompt, no entry command; the session starts in plan mode. Approve the plan in the runner's menu with the option that also bypasses permissions, and answer any later permission-only stop with **"Approved, continue."**. Each approval counts as a method step (`method_steps`). Details: [saleor/methods/baseline.md](./saleor/methods/baseline.md).
+- **Baseline:** the same prompt, with no entry command. Only Baseline starts in plan mode; every other method starts in the runner's normal mode and follows its own workflow. When the final plan is shown, approve it in the runner's plan menu:
+  - Claude Code: **Yes, and bypass permissions**.
+  - Copilot CLI: **Accept plan and continue in Interactive execution mode** (not an Autopilot option).
+
+  Answer any later stop that only asks for permission with **"Approved, continue."**. Each approval counts as a method step (`method_steps`). The exact replies are in step 6 of each run in [saleor/methods/baseline.md](./saleor/methods/baseline.md).
 - Questions the method asks (including the grill interview) are answered like any other question (step 5).
 - Method steps still count in time and usage. So a method with more ceremony pays for it in time and tokens, but not in the follow-up count.
 
@@ -366,7 +441,7 @@ $B start
 $B health        # all three OK
 ```
 
-Then start a **new** agent session: Claude Code with no earlier session or memory for this workspace (remove `$CLAUDE_CONFIG_DIR/projects/*saleor-benchmark`*); Copilot with a new chat and cleared chat history. Use the method's own environment (`CLAUDE_CONFIG_DIR` / VS Code profile) and run the isolation check (3.5).
+Then run the isolation check (3.5) and start a **new** agent session in the method's own environment, as in steps 3 and 4 of the run in its method file. Neither runner may continue an earlier session, and memory is off in both. Each runner also removes its earlier session logs for this workspace first, so `session-usage.py` reads only this run's log.
 
 ### Steps
 
@@ -379,7 +454,7 @@ Then start a **new** agent session: Claude Code with no earlier session or memor
 7. Send follow-ups only for (a) hidden questions that the T1 check showed as not covered, and (b) things the operator found broken in their own check against "Done when" (section 4), until the task is fully done. Nothing else is a follow-up: no idea or "improvement", no extra check, no hint, nothing suggested by a helper (an AI assistant or a colleague). Count each follow-up and each item we had to point out (`missed_questions`). If extra work is done anyway, record it as `extra-work` in the timeline: it is not a follow-up, it is not counted in `followups`, and its cost is reported separately from the first-pass and final numbers (templates/README.md).
 8. **Stop the final timer (T2)** when the last follow-up is done.
 9. Send the post-implementation prompt (below). **Only now, never in advance.**
-10. Save usage at the end, straight from the runner: Claude Code `/cost` (and `/usage`); Copilot: the session's premium-request counter. Paste it raw, both the T1 and the T2 values, into Appendix A of the run report. Don't recompute it. **`/cost` and `/usage` are cumulative for the whole session by default**, never per step: the T1 reading holds everything up to the first "done", the T2 reading everything up to the end. The cost of the follow-up phase is the difference (T2 − T1, computed and labelled as computed). If there was no agent work after T1 (e.g. only the operator's own check), T2 = the last reading taken after the last agent work; a later reading with the same total is the same value. In the data block, the token fields are the sum over the models listed in `/cost` (as the runner shows them); the cost field is the runner's total. Claude Code runs: also run `saleor/scripts/session-usage.py` on the session log; it writes `<RUN_DIR>/tokens.md` (tokens per model, per agent and subagent, per operator message, before / after T1, tool / skill / subagent calls). This shows where the tokens went, not only how many.
+10. Save usage at the end, straight from the runner, with `/usage` in both. Claude Code's `/usage` shows tokens by model, time, code changes, its plan limits, and a cost estimate in USD at list price. Copilot CLI's shows the session's usage counted in AI credits, its billing unit, and gives no dollar cost. Use `/context` in both for the context used. Paste the raw T1 and T2 values into Appendix A of the run report. Don't recompute them. **`/usage` is cumulative for the whole session in both runners**, never per step: the T1 reading holds everything up to the first "done", the T2 reading everything up to the end. The cost of the follow-up phase is the difference (T2 − T1, computed and labelled as computed). If there was no agent work after T1 (e.g. only the operator's own check), T2 = the last reading taken after the last agent work; a later reading with the same total is the same value. In the data block, the token fields are the sum over the models listed in `/usage` (as the runner shows them); `t*_cost_usd` (Claude Code) or `t*_ai_credits` (Copilot CLI) is the runner's total. Both runners also run `saleor/scripts/session-usage.py` on the session log; it writes `<RUN_DIR>/tokens.md` with tokens by model for both runners (tokens per model, per agent and subagent, per operator message, before / after T1, tool / skill / subagent calls). This shows where the tokens went, not only how many. It reads Claude Code's and Copilot CLI's logs and reports them in the same columns.
 11. Fill the run report `<RUN_DIR>/report.md`, copied from the template for the [small](./saleor/templates/run-report-small.md) or [large](./saleor/templates/run-report-large.md) task. All numbers go into its data block at the top; definitions and measurement rules are in [templates/README.md](./saleor/templates/README.md). Update the status in EXPERIMENTS.md.
 
 ### Post-implementation prompt
@@ -446,7 +521,7 @@ The operator may have an AI assistant for **bookkeeping and guidance only** (3.5
 | 1 | Usage at first pass and in total (from the runner) | Operator |
 | 3 | git diff + action report (post-implementation prompt) | Agent under test |
 | 4 | Absolute score per run, 1–5 per category, without comparing runs | Opus 5.5 |
-| 5 | All 7 diffs for one task × one runner side by side, re-scored 1–5 on the same categories | Opus 5.5 |
+| 5 | All diffs for one task × one runner side by side (one per method, up to 8), re-scored 1–5 on the same categories | Opus 5.5 |
 
 **Categories (1–5):** 1 Requirements coverage · 2 Hidden requirements (hidden questions) · 3 Correctness · 4 Security & privacy · 5 Tests · 6 Code quality & Saleor conventions · 7 Verification evidence · 8 Merge-readiness.
 
@@ -484,12 +559,12 @@ Save the result as <REPORTS_DIR>/<task>/<run_id>.absolute.md and as one JSON lin
 ### Prompt — step 5, side by side (one task × one runner, 8 methods)
 
 ```text
-You are an expert Saleor reviewer. Below are 7 anonymized solutions (run_ids only) to the SAME task, produced on the SAME runner/model. Read all the code first.
+You are an expert Saleor reviewer. Below are up to 8 anonymized solutions (run_ids only, one per method; a not-qualifying method has none) to the SAME task, produced on the SAME runner/model. Read all the code first.
 Task prompt: <PASTE TASK PROMPT>
 Evaluator checklist: <PASTE "Done when" + hidden questions with answers>
 Answers the programmer gave in this run: <PASTE the Q&A from the run protocol>. A decision the agent was never told is not a defect if its choice is reasonable.
-Solutions: <JUDGE_DIR>/<task>/<runner>/<run_id_1..7>/ (diffs + agent-report.md + step 0.3 verification table).
-Now that you have seen every solution, score EACH one again on the same 8 categories, 1–5, with the same anchors. Scores stay absolute (a 5 means "nothing to fix", not "best of the seven"); do not force a ranking and ties are allowed.
+Solutions: <JUDGE_DIR>/<task>/<runner>/<run_id_1..8>/ (diffs + agent-report.md + step 0.3 verification table).
+Now that you have seen every solution, score EACH one again on the same 8 categories, 1–5, with the same anchors. Scores stay absolute (a 5 means "nothing to fix", not "best of the group"); do not force a ranking and ties are allowed.
 For each solution give per-category scores with one-sentence justifications, merge_ready (yes/no), blocking defects.
 Then produce one Markdown table: run_id | 8 category scores | total | merge_ready.
 Finally list the differences between solutions that most influenced the scores.
@@ -525,7 +600,7 @@ rosetta-benchmarks/
 └── saleor/
     ├── EXPERIMENTS.md                          # the 32 runs + status
     ├── scripts/bench.sh                        # setup, reset, start, stop, health
-    ├── scripts/session-usage.py                # token breakdown of one Claude Code session
+    ├── scripts/session-usage.py                # token breakdown of one Claude Code or Copilot CLI session
     ├── methods/<method>.md                     # one file per method: setup + each run (small/large × Claude Code/Copilot)
     ├── templates/                              # run report templates + metric definitions (README.md)
     ├── runs/<task>/<runner>/<method>/          # one folder per run: report.md, agent-report.md, tokens.md, <repo>.diff (+ plan.md for Baseline)

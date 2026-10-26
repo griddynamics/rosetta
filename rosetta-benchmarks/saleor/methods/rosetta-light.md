@@ -85,12 +85,13 @@ cat > "$CLAUDE_CONFIG_DIR/settings.json" <<'JSON'
   "syncClaudeAiSkills": false,
   "syncClaudeAiPlugins": false,
   "autoMemoryEnabled": false,
+  "sandbox": { "enabled": false },
   "enabledPlugins": {
     "cc-plugin-plugin-authoring@builtin": false,
     "cc-plugin-sec-default@builtin": false,
     "cc-plugin-telemetry@builtin": false
   },
-  "env": { "DISABLE_AUTOUPDATER": "1", "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1", "ENABLE_CLAUDEAI_MCP_SERVERS": "false" }
+  "env": { "DISABLE_AUTOUPDATER": "1", "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1", "ENABLE_CLAUDEAI_MCP_SERVERS": "false", "CLAUDE_CODE_AUTO_CONNECT_IDE": "false" }
 }
 JSON
 ```
@@ -114,7 +115,7 @@ cd "$BENCH_DIR" && claude
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: `/login` with your work account, then `/exit`.
+In the session: accept the folder-trust prompt, `/login` with your work account, then `/exit`.
 
 **1.7 One-time project preparation: `/init-workspace-flow`** (once per method, after 1.6; it sets up the project context for every run of this method). Its cost is a one-time setup cost: record it in part 7 and never add it to any run. Skip this part if the two zips in `test-library/` exist: you already started from them (1.2a), so never run the init again (about 30 minutes).
 
@@ -127,7 +128,7 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 )
 ```
 
-In the session: send `/init-workspace-flow`. Answer its questions as product owner, one message per round; reply `Approved, continue.` to any "shall I continue?". Write the start and end time. When it is done: run `/cost` and `/usage` and paste both into part 7; do not `/exit` before that.
+In the session: send `/init-workspace-flow`. Answer its questions as product owner, one message per round; reply `Approved, continue.` to any "shall I continue?". Write the start and end time. When it is done: run `/usage` and paste it into part 7; do not `/exit` before that.
 
 Then (terminal 2), still before any run:
 
@@ -184,12 +185,21 @@ sed -i '' -e 's|^run_id:.*|run_id: S-CC-07|' -e 's|^method:.*|method: rosetta-li
 **Step 3. Isolation check** (terminal 2):
 
 ```bash
-{ claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" 2>/dev/null || echo "(no skills dir)"
+{ echo "CLAUDE_CONFIG_DIR=$CLAUDE_CONFIG_DIR"; claude --version; node -v; cat "$CLAUDE_CONFIG_DIR/settings.json"
+  claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" 2>/dev/null || echo "(no skills dir)"
+  for p in "$CLAUDE_CONFIG_DIR"/CLAUDE.md "$CLAUDE_CONFIG_DIR"/agents "$CLAUDE_CONFIG_DIR"/commands "$CLAUDE_CONFIG_DIR"/hooks; do [ -e "$p" ] && echo "user-level: $p"; done
+  grep -o '"sandbox": *{[^}]*}' "$CLAUDE_CONFIG_DIR/settings.json" || echo "sandbox: NOT SET"; [ -e "/Library/Application Support/ClaudeCode/managed-settings.json" ] && echo "managed settings present: /Library/Application Support/ClaudeCode/managed-settings.json"
+  RULES="$SB/baseline-instructions.md"   # the team rules file (BENCHMARKS.md 3.3)
+  for r in saleor saleor-dashboard react-storefront; do
+    cmp -s "$RULES" "$BENCH_DIR/$r/CLAUDE.md" && echo "$r: CLAUDE.md = baseline rules" || echo "$r: CLAUDE.md DIFFERS"
+    cmp -s "$RULES" "$BENCH_DIR/$r/.github/copilot-instructions.md" && echo "$r: copilot-instructions.md = baseline rules" || echo "$r: copilot-instructions.md DIFFERS"
+    git -C "$BENCH_DIR/$r" ls-files | grep -E '(^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/' | sed "s|^|$r: ai-file: |" || true
+  done
   for r in saleor saleor-dashboard react-storefront; do echo "$r: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ')"; git -C "$BENCH_DIR/$r" status --porcelain; done
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: only `rosetta-light@rosetta`; no MCP servers; `rosetta-light-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix it and repeat step 2. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
+Expected: only `rosetta-light@rosetta`; no MCP servers; `rosetta-light-v1` among each repo's tags; no `status` lines. `CLAUDE_CONFIG_DIR` is `envs/rosetta-light/claude`; Claude Code 2.1.305 and Node v24; the settings from part 1.3; no `user-level:` lines; in the session, `/hooks` shows only the method's hooks. Rules file: `= baseline rules` for both files in every repo, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Claude Code sandbox: `"sandbox": { "enabled": false }` and no `managed settings present` line; in the session, `/sandbox` shows sandboxing off (a managed or org policy can force it on: then don't start). Anything else: don't start, fix it and repeat step 2. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code: that is not a leak. It must list no `mcp__ide__*` tools (standalone terminal, BENCHMARKS.md section 2).
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -228,7 +238,7 @@ USE ROSETTA SUBAGENTS.
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and `/usage` and paste both outputs into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
@@ -241,7 +251,7 @@ Don't change any code, just answer: was each of these handled, and where?
 7. Who can edit it, and who can read it?
 ```
 
-Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost`, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
 
 **Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
 
@@ -272,7 +282,7 @@ rmdir "$RUN/workspace-root" 2>/dev/null || true
 ls -la "$RUN"
 ```
 
-The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/`. It also holds the init files from the root zip (`README.md`, `gain.json`, `docs/`, `agents/`); what the agent added or changed in them is the difference. Fill the rest of the report (data block: times, `/cost` numbers, counts) and set `S-CC-07` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
+The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/`. It also holds the init files from the root zip (`README.md`, `gain.json`, `docs/`, `agents/`); what the agent added or changed in them is the difference. Fill the rest of the report (data block: times, `/usage` numbers, counts) and set `S-CC-07` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
 
 ```bash
 python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
@@ -305,12 +315,21 @@ sed -i '' -e 's|^run_id:.*|run_id: L-CC-07|' -e 's|^method:.*|method: rosetta-li
 **Step 3. Isolation check** (terminal 2):
 
 ```bash
-{ claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" 2>/dev/null || echo "(no skills dir)"
+{ echo "CLAUDE_CONFIG_DIR=$CLAUDE_CONFIG_DIR"; claude --version; node -v; cat "$CLAUDE_CONFIG_DIR/settings.json"
+  claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" 2>/dev/null || echo "(no skills dir)"
+  for p in "$CLAUDE_CONFIG_DIR"/CLAUDE.md "$CLAUDE_CONFIG_DIR"/agents "$CLAUDE_CONFIG_DIR"/commands "$CLAUDE_CONFIG_DIR"/hooks; do [ -e "$p" ] && echo "user-level: $p"; done
+  grep -o '"sandbox": *{[^}]*}' "$CLAUDE_CONFIG_DIR/settings.json" || echo "sandbox: NOT SET"; [ -e "/Library/Application Support/ClaudeCode/managed-settings.json" ] && echo "managed settings present: /Library/Application Support/ClaudeCode/managed-settings.json"
+  RULES="$SB/baseline-instructions.md"   # the team rules file (BENCHMARKS.md 3.3)
+  for r in saleor saleor-dashboard react-storefront; do
+    cmp -s "$RULES" "$BENCH_DIR/$r/CLAUDE.md" && echo "$r: CLAUDE.md = baseline rules" || echo "$r: CLAUDE.md DIFFERS"
+    cmp -s "$RULES" "$BENCH_DIR/$r/.github/copilot-instructions.md" && echo "$r: copilot-instructions.md = baseline rules" || echo "$r: copilot-instructions.md DIFFERS"
+    git -C "$BENCH_DIR/$r" ls-files | grep -E '(^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/' | sed "s|^|$r: ai-file: |" || true
+  done
   for r in saleor saleor-dashboard react-storefront; do echo "$r: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ')"; git -C "$BENCH_DIR/$r" status --porcelain; done
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: only `rosetta-light@rosetta`; no MCP servers; `rosetta-light-v1` among each repo's tags; no `status` lines. Anything else: don't start, fix it and repeat step 2. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code and, if `claude` runs in an IDE terminal, 2 `mcp__ide__*` tools: that is not a leak.
+Expected: only `rosetta-light@rosetta`; no MCP servers; `rosetta-light-v1` among each repo's tags; no `status` lines. `CLAUDE_CONFIG_DIR` is `envs/rosetta-light/claude`; Claude Code 2.1.305 and Node v24; the settings from part 1.3; no `user-level:` lines; in the session, `/hooks` shows only the method's hooks. Rules file: `= baseline rules` for both files in every repo, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Claude Code sandbox: `"sandbox": { "enabled": false }` and no `managed settings present` line; in the session, `/sandbox` shows sandboxing off (a managed or org policy can force it on: then don't start). Anything else: don't start, fix it and repeat step 2. Paste it into report section 1. In the session, `/context` also lists about 17 skills bundled with Claude Code: that is not a leak. It must list no `mcp__ide__*` tools (standalone terminal, BENCHMARKS.md section 2).
 
 **Step 4. Start the agent** (terminal 1):
 
@@ -351,7 +370,7 @@ USE ROSETTA SUBAGENTS.
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/cost` and `/usage` and paste both outputs into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
@@ -366,7 +385,7 @@ Don't change any code, just answer: was each of these handled, and where?
 9. Who can see the birthday (APIs, webhooks, exports, staff roles), and are changes and staff reads logged?
 ```
 
-Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/cost`, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
 
 **Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
 
@@ -397,79 +416,353 @@ rmdir "$RUN/workspace-root" 2>/dev/null || true
 ls -la "$RUN"
 ```
 
-The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/`. It also holds the init files from the root zip (`README.md`, `gain.json`, `docs/`, `agents/`); what the agent added or changed in them is the difference. Fill the rest of the report (data block: times, `/cost` numbers, counts) and set `L-CC-07` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
+The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/`. It also holds the init files from the root zip (`README.md`, `gain.json`, `docs/`, `agents/`); what the agent added or changed in them is the difference. Fill the rest of the report (data block: times, `/usage` numbers, counts) and set `L-CC-07` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
 
 ```bash
 python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
 ```
 
-## 4. Setup for Copilot (once)
+## 4. Setup for Copilot CLI (once)
 
-> ⛔ **Not runnable yet:** Copilot runs need a Copilot seat with GPT-5.6 Terra; the current account has Copilot Free. These steps follow the method's docs and are **not verified**.
+> ⚠️ **Not verified yet:** these steps follow the method's docs and Copilot CLI 1.0.101's own help, not a real run.
 
-**Install and use:** VS Code settings: add `$HOME/saleor-benchmark/envs/rosetta-light/src` to `chat.plugins.marketplaces` → Copilot chat gear → **Browse Marketplaces** → install `rosetta-light`. Then the same task prompt and approval phrase.
+**Install and use:** plugin `rosetta-light` from the pinned clone's Copilot marketplace (`.github/plugin/marketplace.json`, marketplace `rosetta`). Its skills, agents, commands and session-start hook must load. Then the same task prompt and approval phrase.
 
-VS Code profile with only the two Copilot extensions:
-
-```bash
-code --profile bench-rosetta-light --install-extension GitHub.copilot --install-extension GitHub.copilot-chat
-code --profile bench-rosetta-light --list-extensions     # only these two
-```
-
-In that profile: Settings → permissions **Allow all** (`chat.permissions.default`), model picker **GPT-5.6 Terra** (not Auto), Copilot memory off. The method tag comes with the zips (1.2a); check it, do not re-tag:
+**4.1 Copilot CLI** (once per machine, shared by all methods):
 
 ```bash
-for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" tag -l rosetta-light-v1; done   # comes with the zip (1.2a)
+nvm use 24
+npm install -g @github/copilot@1.0.101
+copilot --version                                  # GitHub Copilot CLI 1.0.101 (all Copilot runs use this version)
+command -v copilot                                 # the npm install, not VS Code's copilotCli shim
 ```
 
-One-time preparation for Copilot: as in 1.7, send `/init-workspace-flow` in a new Agent chat of the same profile, then commit the init changes in the three repos and put the three Rosetta method tags on that commit. Usage = the session's premium-request counter; record it in part 7.
+**4.2 Variables** (paste into every new terminal you use for this method's Copilot runs; every `copilot` command needs `COPILOT_HOME`):
+
+```bash
+export BENCH_DIR="$HOME/saleor-benchmark"
+export ENV_DIR="$BENCH_DIR/envs/rosetta-light"
+export COPILOT_HOME="$ENV_DIR/copilot"
+export COPILOT_AUTO_UPDATE=false   # every copilot command runs the installed 1.0.101, never a newer cached package
+export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor" B="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor/scripts/bench.sh"   # inside your rosetta checkout
+export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI (BENCHMARKS.md 3.3)
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
+```
+
+**4.3 Own Copilot home with the common settings** (BENCHMARKS.md, section 3.5):
+
+```bash
+mkdir -p "$COPILOT_HOME"
+copilot config autoUpdate false                      # no new CLI downloads
+copilot config memory false
+copilot config ide.autoConnect false
+copilot config model gpt-5.6-terra                   # never Auto
+copilot config effortLevel medium
+copilot config continueOnAutoMode false
+copilot config sandbox.enabled false
+copilot config ignoredSkillsLocations "$HOME/.agents/skills"   # skill folders outside COPILOT_HOME that Copilot reads anyway: skip them
+copilot config ignoredSkillsLocations "$HOME/.claude/skills"
+copilot config ignoredSkillsLocations "$HOME/.github/skills"
+python3 -I - "$COPILOT_HOME/settings.json" <<'PY'   # built-in subagents use the session's model and effort; rubber-duck (another model family) off
+import json, os, sys
+p = sys.argv[1]; s = json.load(open(p)) if os.path.exists(p) else {}
+sub = s.setdefault("subagents", {})
+for a in ("explore", "task", "general-purpose", "code-review", "research", "security-review"):
+    sub.setdefault("agents", {})[a] = {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}
+sub["disabledSubagents"] = sorted(set(sub.get("disabledSubagents", [])) | {"rubber-duck"})
+json.dump(s, open(p, "w"), indent=2)
+PY
+copilot config --list
+```
+
+`autoUpdate=false`, `COPILOT_AUTO_UPDATE=false` (4.2) and `--no-auto-update` (in every session start) do different jobs: the setting stops new downloads; the variable and the flag make the CLI run its installed version, never a newer package from the shared cache (`~/Library/Caches/copilot/pkg`); the variable also covers the setup and check commands.
+
+Hooks and skills stay on: the method's own hooks and skills must load. Never set `disableAllHooks` or `--dynamic-retrieval skills=off` in this home.
+
+**4.4 Install Rosetta Light** (pinned version, the clone from part 1.4):
+
+```bash
+[ -d "$ENV_DIR/src/.git" ] || git clone -q --branch v3.1.17 https://github.com/griddynamics/rosetta "$ENV_DIR/src"
+copilot plugin marketplace add "$ENV_DIR/src"                 # marketplace "rosetta" (.github/plugin/marketplace.json)
+copilot plugin install rosetta-light@rosetta
+copilot plugin list                                           # rosetta-light@rosetta (v3.1.17) enabled; rosetta listed as disabled; built-in browser-use disabled
+```
+
+Copilot CLI reads a local marketplace plugin live from `$ENV_DIR/src` and copies nothing: keep that clone at the pinned tag and never edit it during the study.
+
+**4.5 Tag**: The method tag comes with the zips (part 1.2a); check it, do not re-tag:
+
+```bash
+for r in saleor saleor-dashboard react-storefront; do git -C "$BENCH_DIR/$r" tag -l rosetta-light-v1; done   # comes with the zip (1.2a)
+```
+
+**4.6 Log in and trust the workspace once** (a new `COPILOT_HOME` has no saved account and no trusted folders; the login token itself goes to the macOS Keychain):
+
+```bash
+copilot login
+(
+cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update
+)                                               # in a subshell: your terminal stays where it is
+```
+
+In the session: accept the folder-trust prompt with **Yes, and remember this folder for future sessions**, then `/exit`.
+
+**4.7 One-time preparation** (as in 1.7; skip it if you start from the zips in `test-library/`, part 1.2a): start a fresh session as in step 4 of a run, send `/init-workspace-flow`, then commit the init changes in the three repos and put the three Rosetta method tags on that commit (the commands after 1.7). Record its `/usage` in part 7. Then `/exit`.
+
+**4.8 Isolation check** (before every run, step 3; `$RUN` = that run's folder):
+
+```bash
+{ echo "COPILOT_HOME=$COPILOT_HOME"; copilot --version; node -v; copilot config --list
+  python3 -I -c 'import json,os;print("subagents:", json.dumps(json.load(open(os.environ["COPILOT_HOME"]+"/settings.json")).get("subagents")))'
+  copilot -C "$BENCH_DIR" plugin list; copilot -C "$BENCH_DIR" skill list; copilot -C "$BENCH_DIR" mcp list; copilot -C "$BENCH_DIR" instruction list
+  copilot config hooks 2>/dev/null || echo "(no inline hooks)"
+  echo "sandbox.enabled=$(copilot config sandbox.enabled)"
+  env | grep -qE '^(COPILOT_GITHUB_TOKEN|GH_TOKEN|GITHUB_TOKEN)=' && echo "token env set: unset it (it overrides the saved login)"
+  for p in "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/instructions "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json "$COPILOT_HOME"/lsp-config.json; do [ -e "$p" ] && echo "user-level: $p"; done
+  RULES="$SB/baseline-instructions.md"   # the team rules file (BENCHMARKS.md 3.3)
+  tail -n +4 "$SB/copilot-rules/.github/instructions/team-rules.instructions.md" | cmp -s - "$RULES" && echo "copilot-rules: team-rules.instructions.md = baseline rules" || echo "copilot-rules: team-rules.instructions.md DIFFERS"
+  for r in saleor saleor-dashboard react-storefront; do
+    cmp -s "$RULES" "$BENCH_DIR/$r/CLAUDE.md" && echo "$r: CLAUDE.md = baseline rules" || echo "$r: CLAUDE.md DIFFERS"
+    cmp -s "$RULES" "$BENCH_DIR/$r/.github/copilot-instructions.md" && echo "$r: copilot-instructions.md = baseline rules" || echo "$r: copilot-instructions.md DIFFERS"
+    git -C "$BENCH_DIR/$r" ls-files | grep -E '(^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/' | sed "s|^|$r: ai-file: |" || true
+  done
+  for r in saleor saleor-dashboard react-storefront; do echo "$r: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ')"; git -C "$BENCH_DIR/$r" status --porcelain; done
+} 2>&1 | tee "$RUN/isolation.txt"
+```
+
+Expected: `COPILOT_HOME` = `envs/rosetta-light/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; `subagents:` shows `explore`, `task`, `general-purpose`, `code-review`, `research` and `security-review` with `model`, `effortLevel` and `contextTier` set to `inherit`, and `disabledSubagents` = `["rubber-duck"]`; in the session, `/subagents` shows "Inherit session model" for those six; `plugin list` shows `rosetta-light` only; `skill list` shows its skills and the CLI's built-in ones only; `instruction list` shows `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`) plus only the files the Rosetta init wrote (zips); no MCP servers (the CLI's built-in GitHub servers are not listed here; `--disable-builtin-mcps` turns them off in the session, and `/env` there must show none); no inline hooks; no `user-level:` lines; no `token env set` line; `rosetta-light-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
 
 ## 5. Run S-CP-07: small task: product storage conditions, Copilot
 
-Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/rosetta-light/`. Not verified (see part 4).
+Folder: `rosetta-benchmarks/saleor/runs/small-storage-conditions/copilot/rosetta-light/`. Not verified (see part 4). Two terminals, both **inside your rosetta checkout**: terminal 1 runs the agent, terminal 2 is for the other commands.
 
-1. Start from the zips as in the Claude Code run, step 2 (with `$RUN` set to this folder).
-2. Open the workspace: `code --profile bench-rosetta-light "$HOME/saleor-benchmark"`, new chat, **Agent** mode, model GPT-5.6 Terra.
-3. Send the task (T0):
+**Step 1. Variables** (paste into both terminals):
 
-   ```text
-   Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
-   Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
-   
-   Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
-   
-   MUST USE SKILLS hitl, tech-specs.
-   
-   USE ROSETTA SUBAGENTS.
-   ```
+```bash
+export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
+export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/rosetta-light"
+export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh" COPILOT_AUTO_UPDATE=false   # no newer cached CLI package
+export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI
+export RUN="$SB/runs/small-storage-conditions/copilot/rosetta-light"   # this run's folder
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
+```
 
-4. At each stop reply exactly as in the Claude Code run of this task (part 2, step 6).
-5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 2, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
-6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).
+**Step 2. Start from the zips and open the report** (terminal 2):
+
+```bash
+nvm use 24
+$B from-zips && $B setup && $B start && sleep 60 && $B health      # repos at the init commit, root files in place, all three OK
+rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-small.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
+sed -i '' -e 's|^run_id:.*|run_id: S-CP-07|' -e 's|^method:.*|method: rosetta-light|' -e 's|^runner:.*|runner: copilot|' \
+  -e 's|^model:.*|model: gpt-5.6-terra|' -e 's|^start_tag:.*|start_tag: rosetta-light-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
+```
+
+**Step 3. Isolation check** (terminal 2): the block in part 4.8. Expected output as listed there.
+
+**Step 4. Start the agent** (terminal 1), a new session (never `--resume` or `--continue`):
+
+```bash
+(
+grep -l "^cwd: $BENCH_DIR$" "$COPILOT_HOME"/session-state/*/workspace.yaml 2>/dev/null | while read -r w; do rm -rf "$(dirname "$w")"; done   # earlier sessions of this workspace
+rm -rf "$BENCH_DIR/run-output"
+cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps
+)                                               # in a subshell: your terminal stays where it is
+```
+
+In the session: `/model` shows GPT-5.6 Terra, effort medium; the normal interactive mode (not plan, not autopilot). If not: `/exit`, reset, start again.
+
+**When the checks pass: `/exit`, then start `copilot` again WITHOUT the cleanup lines** (`grep … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps)`. This is a NEW session (never `--resume` or `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
+
+**Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
+
+```text
+Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
+
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+
+MUST USE SKILLS hitl, tech-specs.
+
+USE ROSETTA SUBAGENTS.
+```
+
+**Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
+
+| The agent | You reply |
+| --- | --- |
+| questions | answers from the tables |
+| asks for approval (specs, design, implementation) | `Yes, I approve` |
+| any other "shall I continue?" | `Approved, continue.` |
+
+Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
+
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+
+```text
+Don't change any code, just answer: was each of these handled, and where?
+1. Is the storage conditions value plain text or rich text, and what is its maximum length?
+2. Is it translatable, like the other product texts?
+3. Is it set per product or per variant?
+4. Where is the storage conditions value shown to customers: only on the product page, or also in other places (cart, checkout, order emails)?
+5. Existing products: what value do they get after the change, and is a data migration needed for them?
+6. Is it included in import/export, in webhook payloads, and in API filters?
+7. Who can edit it, and who can read it?
+```
+
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+
+**Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
+
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --resume <session id> --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps)` and send it there (note it in section 8):
+
+```text
+Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).
+Then write ~/saleor-benchmark/run-output/agent-report.md containing:
+- experiment info: task, method, runner, model, start/end time;
+- a list of the actions you actually performed during this task, for example: wrote code, reviewed the code, wrote tests, ran tests, ran tests multiple times, ran tests in a different order, cleaned up leftovers, updated documentation, started the application, checked the API, took a screenshot of the final result;
+- for each action, whether it was done (yes/no) and short evidence (command, file, or output).
+Do not make any further code changes.
+```
+
+**Step 10. Save everything** (terminal 2, before the next start):
+
+```bash
+T1=2026-10-20T14:05            # ← your T1 from the report (time of the first "done")
+cp -R "$BENCH_DIR/run-output/." "$RUN/"
+python3 "$SB/scripts/session-usage.py" "$COPILOT_HOME/session-state" \
+  --t1 "$T1" --copy-to "$RUN" --out "$RUN/tokens.md"
+mkdir -p "$RUN/workspace-root"
+find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
+  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .specify | .aidlc | .github | .gitignore) ;;
+  *) cp -R "$f" "$RUN/workspace-root/" ;; esac
+done
+rmdir "$RUN/workspace-root" 2>/dev/null || true
+ls -la "$RUN"
+```
+
+The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/`. It also holds the init files from the root zip (`README.md`, `gain.json`, `docs/`, `agents/`); what the agent added or changed in them is the difference. Fill the rest of the report (data block: times, `/usage` numbers, counts) and set `S-CP-07` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
+
+```bash
+python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
+```
 
 ## 6. Run L-CP-07: large task: age-restricted products, Copilot
 
-Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-light/`. Not verified (see part 4).
+Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-light/`. Not verified (see part 4). Two terminals, both **inside your rosetta checkout**: terminal 1 runs the agent, terminal 2 is for the other commands.
 
-1. Start from the zips as in the Claude Code run, step 2 (with `$RUN` set to this folder).
-2. Open the workspace: `code --profile bench-rosetta-light "$HOME/saleor-benchmark"`, new chat, **Agent** mode, model GPT-5.6 Terra.
-3. Send the task (T0):
+**Step 1. Variables** (paste into both terminals):
 
-   ```text
-   Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
-   Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
-   To make this work, the customer profile should have a birthday field.
-   
-   Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
-   
-   MUST USE SKILLS hitl, tech-specs, orchestration.
-   
-   USE ROSETTA SUBAGENTS.
-   ```
+```bash
+export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
+export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/rosetta-light"
+export COPILOT_HOME="$ENV_DIR/copilot" B="$SB/scripts/bench.sh" COPILOT_AUTO_UPDATE=false   # no newer cached CLI package
+export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="$SB/copilot-rules"   # the team rules file for Copilot CLI
+export RUN="$SB/runs/large-age-restriction/copilot/rosetta-light"   # this run's folder
+[ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
+```
 
-4. At each stop reply exactly as in the Claude Code run of this task (part 3, step 6).
-5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 3, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
-6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).
+**Step 2. Start from the zips and open the report** (terminal 2):
+
+```bash
+nvm use 24
+$B from-zips && $B setup && $B start && sleep 60 && $B health      # repos at the init commit, root files in place, all three OK
+rm -rf "$RUN" && mkdir -p "$RUN" && cp "$SB/templates/run-report-large.md" "$RUN/report.md"   # replaces an earlier run of this ID (commit it first)
+sed -i '' -e 's|^run_id:.*|run_id: L-CP-07|' -e 's|^method:.*|method: rosetta-light|' -e 's|^runner:.*|runner: copilot|' \
+  -e 's|^model:.*|model: gpt-5.6-terra|' -e 's|^start_tag:.*|start_tag: rosetta-light-v1|' -e 's|^setup_mark:.*|setup_mark: official|' "$RUN/report.md"
+```
+
+**Step 3. Isolation check** (terminal 2): the block in part 4.8. Expected output as listed there.
+
+**Step 4. Start the agent** (terminal 1), a new session (never `--resume` or `--continue`):
+
+```bash
+(
+grep -l "^cwd: $BENCH_DIR$" "$COPILOT_HOME"/session-state/*/workspace.yaml 2>/dev/null | while read -r w; do rm -rf "$(dirname "$w")"; done   # earlier sessions of this workspace
+rm -rf "$BENCH_DIR/run-output"
+cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps
+)                                               # in a subshell: your terminal stays where it is
+```
+
+In the session: `/model` shows GPT-5.6 Terra, effort medium; the normal interactive mode (not plan, not autopilot). If not: `/exit`, reset, start again.
+
+**When the checks pass: `/exit`, then start `copilot` again WITHOUT the cleanup lines** (`grep … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps)`. This is a NEW session (never `--resume` or `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
+
+**Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
+
+```text
+Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
+To make this work, the customer profile should have a birthday field.
+
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+
+MUST USE SKILLS hitl, tech-specs, orchestration.
+
+USE ROSETTA SUBAGENTS.
+```
+
+**Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
+
+| The agent | You reply |
+| --- | --- |
+| questions | answers from the tables, + major-decision questions ("LARGE = MEDIUM + any major decisions", skills/hitl/SKILL.md:41) |
+| asks for approval (specs, design, implementation) | `Yes, I approve` |
+| any other "shall I continue?" | `Approved, continue.` |
+| the agent asks for its own approval sentence (e.g. `Yes, I approve the specs with PR-1..7 as proposed.`) | the assistant writes one message: `Please improve: (1) …, (2) ….` for spec items covered only partly (key texts word for word), then `Yes, I approve with those corrections` + the agent's own sentence; items the spec does not mention at all are not raised (they are found at T1). Its own proposals (PR-n) are approved as proposed unless a table answer contradicts one |
+
+Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
+
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+
+```text
+Don't change any code, just answer: was each of these handled, and where?
+1. Existing customers with no birthday: what happens when they try to buy a restricted product?
+2. Existing products: are they restricted after the change?
+3. Is a data migration or backfill needed?
+4. A guest (not signed in): can they buy a restricted product?
+5. Are restricted products visible in lists, search, discounts and banners?
+6. Emails that recommend products: are restricted products excluded for customers who aren't eligible?
+7. Do the terms or the privacy policy need any change?
+8. Age boundary: a customer who turns the age today, which time zone, and someone born on 29 February?
+9. Who can see the birthday (APIs, webhooks, exports, staff roles), and are changes and staff reads logged?
+```
+
+Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+
+**Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
+
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --resume <session id> --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps)` and send it there (note it in section 8):
+
+```text
+Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).
+Then write ~/saleor-benchmark/run-output/agent-report.md containing:
+- experiment info: task, method, runner, model, start/end time;
+- a list of the actions you actually performed during this task, for example: wrote code, reviewed the code, wrote tests, ran tests, ran tests multiple times, ran tests in a different order, cleaned up leftovers, updated documentation, started the application, checked the API, took a screenshot of the final result;
+- for each action, whether it was done (yes/no) and short evidence (command, file, or output).
+Do not make any further code changes.
+```
+
+**Step 10. Save everything** (terminal 2, before the next start):
+
+```bash
+T1=2026-10-20T14:05            # ← your T1 from the report (time of the first "done")
+cp -R "$BENCH_DIR/run-output/." "$RUN/"
+python3 "$SB/scripts/session-usage.py" "$COPILOT_HOME/session-state" \
+  --t1 "$T1" --copy-to "$RUN" --out "$RUN/tokens.md"
+mkdir -p "$RUN/workspace-root"
+find "$BENCH_DIR" -mindepth 1 -maxdepth 1 | while read -r f; do
+  case "$(basename "$f")" in saleor | saleor-dashboard | react-storefront | seed.dump | logs | envs | run-output | .claude | .specify | .aidlc | .github | .gitignore) ;;
+  *) cp -R "$f" "$RUN/workspace-root/" ;; esac
+done
+rmdir "$RUN/workspace-root" 2>/dev/null || true
+ls -la "$RUN"
+```
+
+The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed repo, `isolation.txt`, `tokens.md`, `session/` (git-ignored), and `workspace-root/`. It also holds the init files from the root zip (`README.md`, `gain.json`, `docs/`, `agents/`); what the agent added or changed in them is the difference. Fill the rest of the report (data block: times, `/usage` numbers, counts) and set `L-CP-07` to `done` in EXPERIMENTS.md. Then check that your run shows up and nothing is missing:
+
+```bash
+python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
+```
 
 ## 7. One-time setup cost: `/init-workspace-flow` (reported separately, not added to any run)
 
@@ -478,7 +771,7 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/copilot/rosetta-li
 | Claude Code | | | | One init for all Rosetta methods (shared zips): its cost is recorded in `rosetta-skills.md` part 7 (about 1 h, 52 min wall time, $31.20). Not repeated here. |
 | Copilot | | | | |
 
-Claude Code, paste raw (`/cost`, then `/usage`; per-agent tokens are in `rosetta-light.init-tokens.md`):
+Claude Code, paste raw (`/usage`; per-agent tokens are in `rosetta-light.init-tokens.md`):
 
 ```text
 ```
@@ -488,7 +781,7 @@ Zips in `test-library/` (size, sha256):
 ```text
 ```
 
-Copilot, premium-request counter at the end of the init session:
+Copilot, `/usage` at the end of the init session (AI credits):
 
 ```text
 ```

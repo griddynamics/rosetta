@@ -73,8 +73,8 @@ def load():
             warnings.append(f"{rel}/report.md: empty {', '.join(missing)}")
         d["time_first_min"] = minutes(d.get("t0"), d.get("t1"))
         d["time_total_min"] = minutes(d.get("t0"), d.get("t2"))
-        u1 = num(d.get("t1_cost_usd")) if d.get("runner") == "claude-code" else num(d.get("t1_premium_requests"))
-        u2 = num(d.get("t2_cost_usd")) if d.get("runner") == "claude-code" else num(d.get("t2_premium_requests"))
+        field, d["usage_unit"] = ("cost_usd", "usd") if d.get("runner") == "claude-code" else ("ai_credits", "cr")
+        u1, u2 = num(d.get(f"t1_{field}")), num(d.get(f"t2_{field}"))
         d["usage_first"], d["usage_total"] = u1, u2
         d["rework_share"] = (u2 - u1) / u2 * 100 if u1 is not None and u2 else None
         ht, ha, hc = num(d.get("hidden_total")), num(d.get("hidden_asked")), num(d.get("hidden_covered"))
@@ -93,9 +93,14 @@ def fmt(v, unit=""):
     return f"{v}{unit}"
 
 
+def usage_text(v, unit):
+    if v is None:
+        return "–"
+    return f"${v:.2f}" if unit == "usd" else f"{v:.1f} cr"
+
+
 def usage(d, key):
-    v = d.get(key)
-    return "–" if v is None else (f"${v:.2f}" if d.get("runner") == "claude-code" else f"{v:.0f} req")
+    return usage_text(d.get(key), d.get("usage_unit"))
 
 
 def per_run_table(rows):
@@ -135,7 +140,7 @@ def summary_tables(rows):
                     [x for x in (num(r.get(k)) if not isinstance(r.get(k), float) else r[k] for r in rs) if x is not None])
                 cost = med("usage_total")
                 out.append("| " + " | ".join([m, str(len(rs)), fmt(med("time_first_min")), fmt(med("time_total_min")),
-                                               ("–" if cost is None else (f"${cost:.2f}" if runner == "claude-code" else f"{cost:.0f} req")),
+                                               usage_text(cost, "usd" if runner == "claude-code" else "cr"),
                                                fmt(med("first_pass_coverage"), "%"), fmt(med("followups")), fmt(med("method_steps")),
                                                fmt(med("done_checks_passed")), fmt(med("operator_score")), fmt(med("judge_absolute"))]) + " |")
     return out or ["", "_No runs with `status: done` yet._"]

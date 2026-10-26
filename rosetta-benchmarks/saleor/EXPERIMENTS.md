@@ -1,23 +1,23 @@
 # Saleor benchmark — experiment matrix
 
-All scored experiments of the Saleor benchmark: **8 methods × 2 runners × 2 tasks = 32 runs** (one repetition). Rules, prompts and scoring are in [../BENCHMARKS.md](../BENCHMARKS.md).
+All scored experiments of the Saleor benchmark: **8 methods × 2 runners × 2 tasks = 32 runs** (one repetition). Rules, prompts and scoring are in [../BENCHMARKS.md](../BENCHMARKS.md). The two runners are Claude Code and GitHub Copilot **CLI**: every Copilot cell (`CP`) runs in Copilot CLI 1.0.101, never in VS Code.
 
 Methods come from the presentation slide "Six approaches, one more if time allows" plus Rosetta Light and Rosetta Skills. Not scored: BMAD-METHOD (optional, "if time allows", one task only); GSD (archived upstream in May 2026).
 
 ## Overview
 
-| Method | What is installed for the run | In Copilot | Small · Claude Code | Small · Copilot | Large · Claude Code | Large · Copilot |
-| --- | --- | --- | --- | --- | --- | --- |
-| Baseline | only the shared team rules file (`baseline-instructions.md`); starts in the runner's plan mode | Yes | `S-CC-01` | `S-CP-01` | `L-CC-01` | `L-CP-01` |
-| Grill-with-docs | plugin `mattpocock-skills` @ `claude-plugins-official` (`49dd158`; S-CC-02: `447ca70`) | skills.sh installer | `S-CC-02` | `S-CP-02` | `L-CC-02` | `L-CP-02` |
-| Superpowers | superpowers v6.4.2 | Copilot CLI | `S-CC-03` | `S-CP-03` | `L-CC-03` | `L-CP-03` |
-| Spec Kit | Spec Kit v1.0.13 + constitution per repo | Yes | `S-CC-04` | `S-CP-04` | `L-CC-04` | `L-CP-04` |
-| AWS AI-DLC | AI-DLC v2.10.0 | Via repository files | `S-CC-05` | `S-CP-05` | `L-CC-05` | `L-CP-05` |
-| Rosetta | plugin `rosetta` 3.1.17 only | Yes | `S-CC-06` | `S-CP-06` | `L-CC-06` | `L-CP-06` |
-| Rosetta Light | plugin `rosetta-light` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (large task also `orchestration`) and `USE ROSETTA SUBAGENTS.` | Yes | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
-| Rosetta Skills | plugin `rosetta` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (large task also `orchestration`) | Yes | `S-CC-08` | `S-CP-08` | `L-CC-08` | `L-CP-08` |
+| Method | What is installed for the run | In Claude Code | In Copilot CLI | Small · Claude Code | Small · Copilot | Large · Claude Code | Large · Copilot |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Baseline | only the shared team rules file (`baseline-instructions.md`); starts in the runner's plan mode | Yes (plan mode) | Yes (plan mode) | `S-CC-01` | `S-CP-01` | `L-CC-01` | `L-CP-01` |
+| Grill-with-docs | plugin `mattpocock-skills` @ `claude-plugins-official` (`49dd158`; S-CC-02: `447ca70`) | Plugin (official marketplace) | skills.sh installer (repository files) | `S-CC-02` | `S-CP-02` | `L-CC-02` | `L-CP-02` |
+| Superpowers | superpowers v6.4.2 | Plugin | Plugin | `S-CC-03` | `S-CP-03` | `L-CC-03` | `L-CP-03` |
+| Spec Kit | Spec Kit v1.0.13 + constitution per repo | `specify init --integration claude` (repository files) | `specify init --integration copilot` (repository files) | `S-CC-04` | `S-CP-04` | `L-CC-04` | `L-CP-04` |
+| AWS AI-DLC | AI-DLC v2.10.0 | `aidlc config --harness claude` (repository files) | `aidlc config --harness copilot` (repository files) | `S-CC-05` | `S-CP-05` | `L-CC-05` | `L-CP-05` |
+| Rosetta | plugin `rosetta` 3.1.17 only | Plugin | Plugin | `S-CC-06` | `S-CP-06` | `L-CC-06` | `L-CP-06` |
+| Rosetta Light | plugin `rosetta-light` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (large task also `orchestration`) and `USE ROSETTA SUBAGENTS.` | Plugin | Plugin | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
+| Rosetta Skills | plugin `rosetta` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (large task also `orchestration`) | Plugin | Plugin | `S-CC-08` | `S-CP-08` | `L-CC-08` | `L-CP-08` |
 
-Run ID format: `<task>-<runner>-<method#>` — `S`/`L` = small/large task, `CC`/`CP` = Claude Code / Copilot. This ID is for operators only; the judge sees a separate random `run_id` (see `reports/mapping.csv`).
+Run ID format: `<task>-<runner>-<method#>` — `S`/`L` = small/large task, `CC`/`CP` = Claude Code / Copilot CLI. This ID is for operators only; the judge sees a separate random `run_id` (see `reports/mapping.csv`).
 
 ## All 32 runs
 
@@ -32,13 +32,13 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 5 | `S-CC-05` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | AWS AI-DLC | `runs/small-storage-conditions/claude-code/aws-ai-dlc/` | stopped by the operator during Construction (incomplete: no T1, partial diff, see report section 8) |
 | 6 | `S-CC-06` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Flow | `runs/small-storage-conditions/claude-code/rosetta-flow/` | done |
 | 7 | `S-CC-07` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Light | `runs/small-storage-conditions/claude-code/rosetta-light/` | done |
-| 8 | `S-CP-01` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Baseline | `runs/small-storage-conditions/copilot/baseline/` | planned |
-| 9 | `S-CP-02` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Grill-with-docs | `runs/small-storage-conditions/copilot/grill-with-docs/` | planned ⚠ Copilot: manual port |
-| 10 | `S-CP-03` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Superpowers | `runs/small-storage-conditions/copilot/superpowers/` | planned ⚠ Copilot: runs in Copilot CLI |
-| 11 | `S-CP-04` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Spec Kit | `runs/small-storage-conditions/copilot/spec-kit/` | planned |
-| 12 | `S-CP-05` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/small-storage-conditions/copilot/aws-ai-dlc/` | planned ⚠ Copilot: via repository files |
-| 13 | `S-CP-06` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Flow | `runs/small-storage-conditions/copilot/rosetta-flow/` | planned |
-| 14 | `S-CP-07` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Light | `runs/small-storage-conditions/copilot/rosetta-light/` | planned |
+| 8 | `S-CP-01` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Baseline | `runs/small-storage-conditions/copilot/baseline/` | planned |
+| 9 | `S-CP-02` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Grill-with-docs | `runs/small-storage-conditions/copilot/grill-with-docs/` | planned (Copilot: skills.sh installer) |
+| 10 | `S-CP-03` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Superpowers | `runs/small-storage-conditions/copilot/superpowers/` | planned |
+| 11 | `S-CP-04` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Spec Kit | `runs/small-storage-conditions/copilot/spec-kit/` | planned |
+| 12 | `S-CP-05` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/small-storage-conditions/copilot/aws-ai-dlc/` | planned (Copilot: via repository files) |
+| 13 | `S-CP-06` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Flow | `runs/small-storage-conditions/copilot/rosetta-flow/` | planned |
+| 14 | `S-CP-07` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Light | `runs/small-storage-conditions/copilot/rosetta-light/` | planned |
 | 15 | `L-CC-01` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Baseline | `runs/large-age-restriction/claude-code/baseline/` | done |
 | 16 | `L-CC-02` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Grill-with-docs | `runs/large-age-restriction/claude-code/grill-with-docs/` | done (task variant: key #5 replaced, report §8) |
 | 17 | `L-CC-03` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Superpowers | `runs/large-age-restriction/claude-code/superpowers/` | done (old setup, plain prompt without the entry command; closed without the post-implementation prompt and the Done-when checks, see report section 8) |
@@ -46,26 +46,38 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 19 | `L-CC-05` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | AWS AI-DLC | `runs/large-age-restriction/claude-code/aws-ai-dlc/` | no result: stopped after more than 6 h and about $160 of usage without a first "done" (report to follow) |
 | 20 | `L-CC-06` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta | `runs/large-age-restriction/claude-code/rosetta/` | planned |
 | 21 | `L-CC-07` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Light | `runs/large-age-restriction/claude-code/rosetta-light/` | done (T0 sent without the `orchestration` skill; "fully autonomous" message sent mid-run; report sections 2 and 8) |
-| 22 | `L-CP-01` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Baseline | `runs/large-age-restriction/copilot/baseline/` | planned |
-| 23 | `L-CP-02` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Grill-with-docs | `runs/large-age-restriction/copilot/grill-with-docs/` | planned ⚠ Copilot: manual port |
-| 24 | `L-CP-03` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Superpowers | `runs/large-age-restriction/copilot/superpowers/` | planned ⚠ Copilot: runs in Copilot CLI |
-| 25 | `L-CP-04` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Spec Kit | `runs/large-age-restriction/copilot/spec-kit/` | planned |
-| 26 | `L-CP-05` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/large-age-restriction/copilot/aws-ai-dlc/` | planned ⚠ Copilot: via repository files |
-| 27 | `L-CP-06` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Flow | `runs/large-age-restriction/copilot/rosetta-flow/` | planned |
-| 28 | `L-CP-07` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Light | `runs/large-age-restriction/copilot/rosetta-light/` | planned |
+| 22 | `L-CP-01` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Baseline | `runs/large-age-restriction/copilot/baseline/` | planned |
+| 23 | `L-CP-02` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Grill-with-docs | `runs/large-age-restriction/copilot/grill-with-docs/` | planned (Copilot: skills.sh installer) |
+| 24 | `L-CP-03` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Superpowers | `runs/large-age-restriction/copilot/superpowers/` | planned |
+| 25 | `L-CP-04` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Spec Kit | `runs/large-age-restriction/copilot/spec-kit/` | planned |
+| 26 | `L-CP-05` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/large-age-restriction/copilot/aws-ai-dlc/` | planned (Copilot: via repository files) |
+| 27 | `L-CP-06` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Flow | `runs/large-age-restriction/copilot/rosetta-flow/` | planned |
+| 28 | `L-CP-07` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Light | `runs/large-age-restriction/copilot/rosetta-light/` | planned |
 | 29 | `S-CC-08` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/small-storage-conditions/claude-code/rosetta-skills/` | done (3 extra messages after T1 were not protocol follow-ups and are not counted, see report section 8) |
-| 30 | `S-CP-08` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Skills | `runs/small-storage-conditions/copilot/rosetta-skills/` | planned |
+| 30 | `S-CP-08` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Skills | `runs/small-storage-conditions/copilot/rosetta-skills/` | planned |
 | 31 | `L-CC-08` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/large-age-restriction/claude-code/rosetta-skills/` | done |
-| 32 | `L-CP-08` | Large — age-restricted products | GitHub Copilot | GPT-5.6 Terra · medium | Rosetta Skills | `runs/large-age-restriction/copilot/rosetta-skills/` | planned |
+| 32 | `L-CP-08` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Skills | `runs/large-age-restriction/copilot/rosetta-skills/` | planned |
+
+## Claude Code setup per method
+
+All 8 methods are tested on both runners. Every Claude Code cell runs with the method's own `CLAUDE_CONFIG_DIR` (`envs/<method>/claude`), model `claude-sonnet-5-5`, medium effort, `--dangerously-skip-permissions`. Details are in BENCHMARKS.md, section 3.5; the commands are in part 1 of each method file.
+
+- **Baseline:** starts in Claude Code's plan mode (`--permission-mode plan`), full access switched on once the plan is approved; no hooks and no skills. See [methods/baseline.md](./methods/baseline.md).
+- **Grill-with-docs:** official plugin `mattpocock-skills`, installed from the `claude-plugins-official` marketplace with `claude plugin install`.
+- **Superpowers:** plugin, installed with `claude plugin install` from the pinned v6.4.2 clone.
+- **Spec Kit, AWS AI-DLC:** repository files written by the method's own installer (`specify init --integration claude`, `aidlc config --harness claude`) and copied into the workspace root after every reset.
+- **Rosetta, Rosetta Light, Rosetta Skills:** plugin `rosetta` / `rosetta-light`, installed with `claude plugin install` from the pinned 3.1.17 clone.
+- If a method still can't be activated after 2 attempts from a clean reset, mark the cell `not qualifying` with the reason.
 
 ## Copilot setup per method
 
-All 8 methods are tested on both runners. Details are in BENCHMARKS.md, section 3.5, "All methods on both runners".
+All 8 methods are tested on both runners. Every Copilot cell runs in **GitHub Copilot CLI** with the method's own `COPILOT_HOME` (`envs/<method>/copilot`), model `gpt-5.6-terra`, medium effort, `--allow-all` and `--no-auto-update`. Details are in BENCHMARKS.md, section 3.5; the commands are in part 4 of each method file.
 
-- **Baseline:** starts in the chat's Plan mode, like the Claude Code runs start in plan mode. See [methods/baseline.md](./methods/baseline.md).
-- **Grill-with-docs:** no Copilot plugin; the README installs it on other agents with `npx skills@latest add mattpocock/skills` (all skills, agent GitHub Copilot). Never copy single skills. Mark its Copilot runs `skills.sh installer`.
-- **Superpowers:** officially Copilot **CLI** only. Its Copilot runs use Copilot CLI with the same model, effort and full access. Mark them `runner: Copilot CLI`.
-- **AWS AI-DLC:** supported in Copilot through repository files set up by its installer.
+- **Baseline:** starts in Copilot CLI's plan mode, like the Claude Code runs; no hooks and no skill retrieval. See [methods/baseline.md](./methods/baseline.md).
+- **Grill-with-docs:** no Copilot plugin; the README installs it on other agents with `npx skills@latest add mattpocock/skills` (all skills, agent GitHub Copilot), which writes repository files. Never copy single skills. Mark its Copilot runs `skills.sh installer`.
+- **Superpowers:** plugin, installed with `copilot plugin install` from the pinned v6.4.2 clone.
+- **Spec Kit, AWS AI-DLC:** repository files written by the method's own installer (`specify init --integration copilot`, `aidlc config --harness copilot`) and copied into the workspace root after every reset.
+- **Rosetta, Rosetta Light, Rosetta Skills:** plugin `rosetta` / `rosetta-light`, installed with `copilot plugin install` from the pinned 3.1.17 clone.
 - If a method still can't be activated after 2 attempts from a clean reset, mark the cell `not qualifying` with the reason.
 
 ## Optional (not in the 32)

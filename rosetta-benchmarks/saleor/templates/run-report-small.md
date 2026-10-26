@@ -8,9 +8,9 @@ method:                    # baseline | grill-with-docs | superpowers | spec-kit
 method_version:            # e.g. 3.1.13, v6.4.2, 447ca70
 flow:                      # workflow actually used, e.g. coding-flow, coding-light-flow, specify-plan-tasks-implement, plan-mode (Baseline)
 entry_command:             # exact text in front of the prompt, e.g. /grill-with-docs ; "none (plan mode)" for Baseline ; "/superpowers:brainstorming" for Superpowers
-runner:                    # claude-code | copilot | copilot-cli
+runner:                    # claude-code | copilot
 runner_version:
-setup_mark:                # official | copilot-cli | manual-port
+setup_mark:                # official | manual-port
 model:                     # claude-sonnet-5-5 | gpt-5.6-terra
 effort: medium
 start_tag:                 # e.g. grill-v1
@@ -27,13 +27,13 @@ t1_output_tokens:
 t1_cache_read_tokens:
 t1_cache_write_tokens:
 t1_cost_usd:
-t1_premium_requests:       # Copilot only
+t1_ai_credits:             # Copilot only: AI credits from /usage or tokens.md
 t2_input_tokens:
 t2_output_tokens:
 t2_cache_read_tokens:
 t2_cache_write_tokens:
 t2_cost_usd:
-t2_premium_requests:       # Copilot only
+t2_ai_credits:             # Copilot only: AI credits from /usage or tokens.md
 context_end_pct:
 subagents:                 # number of subagents launched (0 if none)
 # Counts, taken from the timeline (section 2)
@@ -80,21 +80,27 @@ HOW TO USE
 - [ ] Isolation check passed: only the method under test (output below)
 - [ ] All 3 repos on the method's tag and clean (`git status --porcelain` empty), after `start`
 - [ ] Model and effort checked in the runner (not "auto")
-- [ ] Full-access mode on (Claude Code `--dangerously-skip-permissions` / Copilot auto-approve). Baseline: plan mode on instead, full access picked at plan approval (methods/baseline.md)
+- [ ] Full-access mode on (Claude Code `--dangerously-skip-permissions` / Copilot CLI `--allow-all`). Baseline: plan mode on (Claude Code: full access picked at plan approval; Copilot CLI: `--plan` with `--allow-all`; methods/baseline.md)
 - [ ] Method is active (its command is listed / it shows its workflow)
 - [ ] BENCHMARKS.md section 4 open: hidden questions + extra answers
 
-**Isolation check** (BENCHMARKS.md, section 3.5). Claude Code: skip the `code` line; Copilot: skip the `claude` lines.
+**Isolation check** (BENCHMARKS.md, section 3.5). Claude Code: skip the `copilot`, `echo "sandbox.enabled` and `for p` lines; Copilot CLI (method's `COPILOT_HOME` exported): skip the `claude` and `grep -o '"sandbox"` lines.
 
 ```bash
 claude plugin list; claude mcp list; ls "$CLAUDE_CONFIG_DIR/skills" "$CLAUDE_CONFIG_DIR/agents" "$CLAUDE_CONFIG_DIR/commands" 2>/dev/null
-code --profile bench-<method> --list-extensions
+grep -o '"sandbox": *{[^}]*}' "$CLAUDE_CONFIG_DIR/settings.json" || echo "sandbox: NOT SET"; [ -e "/Library/Application Support/ClaudeCode/managed-settings.json" ] && echo "managed settings present: /Library/Application Support/ClaudeCode/managed-settings.json"
+echo "COPILOT_HOME=$COPILOT_HOME"; copilot --version; copilot config --list
+copilot -C "$BENCH_DIR" plugin list; copilot -C "$BENCH_DIR" skill list; copilot -C "$BENCH_DIR" mcp list; copilot -C "$BENCH_DIR" instruction list
+copilot config hooks 2>/dev/null || echo "(no inline hooks)"
+echo "sandbox.enabled=$(copilot config sandbox.enabled)"
+for p in "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/instructions "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json "$COPILOT_HOME"/lsp-config.json; do [ -e "$p" ] && echo "user-level: $p"; done
 for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-benchmark/$r" describe --tags; git -C "$HOME/saleor-benchmark/$r" status --porcelain; done
 ```
 
 - Result: `<PASS / FAIL>` (FAIL = the run must not start: fix, reset, check again)
 - Cause, if FAIL: `<...>`
 - In-session `/skills` (Claude Code): `<only the method's skills / list>`
+- In-session `/sandbox` (both runners): `<sandboxing off / on>` (on = the run must not start)
 
 <details><summary>Isolation check output</summary>
 
@@ -115,15 +121,15 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 1 | `<HH:MM>` | prompt | Task prompt sent (T0) | `<entry command> Products need a "storage conditions" field …` | |
 | 2 | | | | | |
 
-**Usage by model** (Claude Code: from `tokens.md`, see below; Copilot: from the runner, if it shows it):
+**Usage by model** (from `tokens.md`, see below; both runners):
 
 | Model | Role (main / subagent) | Input | Output | Cache read | Cache write | Cost, USD |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
 | | | | | | | |
 
-Raw `/cost` output at T1 and T2: paste it into Appendix A at the end of this file.
+Raw `/usage` output at T1 and T2: paste it into Appendix A at the end of this file.
 
-**Claude Code: token breakdown + raw session logs:** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Use its "By model" table for the table above.
+**Token breakdown + raw session logs (both runners):** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Use its "By model" table for the table above.
 
 
 ## 3. Hidden questions
@@ -204,8 +210,8 @@ Evidence: `<one line per ticked item>`
 
 - [ ] `<repo>.diff` for every changed repo (repos: `<...>`)
 - [ ] `agent-report.md`: the agent's own report (post-implementation prompt)
-- [ ] `tokens.md` (Claude Code): token breakdown from `session-usage.py`. Raw session logs stay local in `session/` (git-ignored)
-- [ ] Appendix A below: raw `/cost` output at T1 and T2
+- [ ] `tokens.md` (both runners): token breakdown from `session-usage.py`. Raw session logs stay local in `session/` (git-ignored)
+- [ ] Appendix A below: raw `/usage` output at T1 and T2
 - [ ] Appendix B below: agent messages copied from the terminal, if any
 - [ ] `plan.md` (Baseline): the approved plan, if the runner saved it to a file
 - [ ] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: `workspace-root/`
@@ -217,7 +223,7 @@ Evidence: `<one line per ticked item>`
 - Strong point of the method in this run: `<...>`
 - Weak point of the method in this run: `<...>`
 
-## Appendix A. Raw `/cost` output
+## Appendix A. Raw `/usage` output
 
 <details><summary>T1 and T2, exactly as the runner shows them</summary>
 
@@ -228,7 +234,7 @@ Evidence: `<one line per ticked item>`
 ## T2
 <paste>
 
-## Extra work (only if there was any; paste `/cost` and `/usage` taken after it)
+## Extra work (only if there was any; paste `/usage` taken after it)
 <paste>
 ```
 
