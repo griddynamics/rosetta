@@ -46,7 +46,7 @@ retries: 0
 # Hidden questions (section 3). asked + covered + missed = hidden_total
 hidden_total: 9
 hidden_asked: 0
-hidden_covered: 4
+hidden_covered: 5   # section 3: #1, #2, #3, #4, #7 (#4 covered, final code matches partly); was 4, so the sum was 8 of 9 (corrected 2026-10-26)
 hidden_missed: 4
 hidden_matches_answer: not run   # needs a code check of the final diff (judge step); the earlier 5 was based on T1 answers
 # Outcome (sections 4–5)
