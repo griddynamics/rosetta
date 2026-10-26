@@ -14,7 +14,7 @@ Methods come from the presentation slide "Six approaches, one more if time allow
 | Spec Kit | Spec Kit v1.0.13 + constitution per repo | `specify init --integration claude` (repository files) | `specify init --integration copilot` (repository files) | `S-CC-04` | `S-CP-04` | `L-CC-04` | `L-CP-04` |
 | AWS AI-DLC | AI-DLC v2.10.0 | `aidlc config --harness claude` (repository files) | `aidlc config --harness copilot` (repository files) | `S-CC-05` | `S-CP-05` | `L-CC-05` | `L-CP-05` |
 | Rosetta | plugin `rosetta` 3.1.17 only | Plugin | Plugin | `S-CC-06` | `S-CP-06` | `L-CC-06` | `L-CP-06` |
-| Rosetta Light | plugin `rosetta-light` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (large task also `orchestration`) and `USE ROSETTA SUBAGENTS.` | Plugin | Plugin | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
+| Rosetta Light | plugin `rosetta-light` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (both tasks) and `USE ROSETTA SUBAGENTS.` | Plugin | Plugin | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
 | Rosetta Skills | plugin `rosetta` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (both tasks) | Plugin | Plugin | `S-CC-08` | `S-CP-08` | `L-CC-08` | `L-CP-08` |
 
 Run ID format: `<task>-<runner>-<method#>` — `S`/`L` = small/large task, `CC`/`CP` = Claude Code / Copilot CLI. This ID is for operators only; the judge sees a separate random `run_id` (see `reports/mapping.csv`).
@@ -45,7 +45,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 18 | `L-CC-04` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Spec Kit | `runs/large-age-restriction/claude-code/spec-kit/` | done |
 | 19 | `L-CC-05` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | AWS AI-DLC | `runs/large-age-restriction/claude-code/aws-ai-dlc/` | no result: stopped after more than 6 h and about $160 of usage without a first "done" (report to follow) |
 | 20 | `L-CC-06` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta | `runs/large-age-restriction/claude-code/rosetta/` | planned |
-| 21 | `L-CC-07` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Light | `runs/large-age-restriction/claude-code/rosetta-light/` | done (T0 sent without the `orchestration` skill; "fully autonomous" message sent mid-run; report sections 2 and 8) |
+| 21 | `L-CC-07` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Light | `runs/large-age-restriction/claude-code/rosetta-light/` | done (T0 without the `orchestration` skill, as the current protocol; "fully autonomous" message sent mid-run; report sections 2 and 8) |
 | 22 | `L-CP-01` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Baseline | `runs/large-age-restriction/copilot/baseline/` | planned |
 | 23 | `L-CP-02` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Grill-with-docs | `runs/large-age-restriction/copilot/grill-with-docs/` | planned (Copilot: skills.sh installer) |
 | 24 | `L-CP-03` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Superpowers | `runs/large-age-restriction/copilot/superpowers/` | planned |

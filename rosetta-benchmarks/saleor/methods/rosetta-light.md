@@ -7,7 +7,7 @@ Runs: `S-CC-07` (small, Claude Code) · `L-CC-07` (large, Claude Code) · `S-CP-
 | Command / skill | When | Official doc |
 | --- | --- | --- |
 | `/init-workspace-flow` | **once**, before the first run (part 1.7); its cost is reported separately and never added to a run | docs/web/user-guide/scenarios/ (init workspace); plugins/core-claude*/workflows/init-workspace-flow.md |
-| `<task>` + `MUST USE SKILLS hitl, tech-specs.` (large task: `MUST USE SKILLS hitl, tech-specs, orchestration.`) + `USE ROSETTA SUBAGENTS.` | T0 (no `/coding-flow`: the method is the named skills and the subagents; the large task adds `orchestration`) | plugins/core-claude-light/skills/tech-specs/SKILL.md (description), plugins/core-claude-light/skills/hitl/SKILL.md:35,41; plugins/core-claude-light/agents/ |
+| `<task>` + `MUST USE SKILLS hitl, tech-specs.` + `USE ROSETTA SUBAGENTS.` | T0, small and large task (no `/coding-flow`: the method is the named skills and the subagents). `orchestration` was earlier set for the large task; it was removed (L-CC-07 already ran without it) | plugins/core-claude-light/skills/tech-specs/SKILL.md (description), plugins/core-claude-light/skills/hitl/SKILL.md:35,41; plugins/core-claude-light/agents/ |
 | `Yes, I approve` | each approval stop: only this exact sentence counts | skills/hitl/SKILL.md:35 |
 
 **T0 message, small task** (copy as is):
@@ -32,7 +32,7 @@ To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
 
-MUST USE SKILLS hitl, tech-specs, orchestration.
+MUST USE SKILLS hitl, tech-specs.
 
 USE ROSETTA SUBAGENTS.
 ```
@@ -354,7 +354,7 @@ To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
 
-MUST USE SKILLS hitl, tech-specs, orchestration.
+MUST USE SKILLS hitl, tech-specs.
 
 USE ROSETTA SUBAGENTS.
 ```
@@ -696,7 +696,7 @@ To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
 
-MUST USE SKILLS hitl, tech-specs, orchestration.
+MUST USE SKILLS hitl, tech-specs.
 
 USE ROSETTA SUBAGENTS.
 ```
