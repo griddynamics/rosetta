@@ -4,12 +4,15 @@
 
 ## Progress
 
-| | Claude Code | Copilot CLI | Total |
+The plan started with **28 runs**: 7 methods (Baseline, Grill-with-docs, Superpowers, Spec Kit, AWS AI-DLC, Rosetta coding flow, Rosetta Light) × 2 tasks × 2 runners. Then we decided to test three ways of using Rosetta (coding flow, Rosetta Light, Rosetta Skills), which added **4 Rosetta Skills runs: 32 in total**.
+
+| | Original plan (28) | Added: Rosetta Skills (4) | All (32) |
 | --- | ---: | ---: | ---: |
-| Planned (8 methods × 2 tasks) | 16 | 16 | 32 |
-| Run, report in GitHub | 13 (81 %) | 1 (6 %) | **14 (44 %)** |
-| Usable now (reliable + with caveats) | 10 (63 %) | 1 (6 %) | **11 (34 %)** |
-| Not yet run | 3 | 15 | **18 (56 %)** |
+| Run, report in GitHub | **12 (43 %)** | 2 (50 %) | **14 (44 %)** |
+| Usable now (reliable + with caveats) | 9 (32 %) | 2 (50 %) | 11 (34 %) |
+| Not yet run | 16 (57 %) | 2 (50 %) | **18 (56 %)** |
+
+By runner: Claude Code 13 of 16 (81 %), Copilot CLI 1 of 16 (6 %).
 
 How far each run can be trusted (the reasons are in "Caveats" below):
 
