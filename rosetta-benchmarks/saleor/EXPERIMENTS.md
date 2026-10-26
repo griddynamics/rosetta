@@ -29,7 +29,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 2 | `S-CC-02` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Grill-with-docs | `runs/small-storage-conditions/claude-code/grill-with-docs/` | done (old setup, see report section 8) |
 | 3 | `S-CC-03` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Superpowers | `runs/small-storage-conditions/claude-code/superpowers/` | done (old setup, plain prompt without the entry command, see report section 8) |
 | 4 | `S-CC-04` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Spec Kit | `runs/small-storage-conditions/claude-code/spec-kit/` | done |
-| 5 | `S-CC-05` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | AWS AI-DLC | `runs/small-storage-conditions/claude-code/aws-ai-dlc/` | planned |
+| 5 | `S-CC-05` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | AWS AI-DLC | `runs/small-storage-conditions/claude-code/aws-ai-dlc/` | stopped by the operator during Construction (incomplete: no T1, partial diff, see report section 8) |
 | 6 | `S-CC-06` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Flow | `runs/small-storage-conditions/claude-code/rosetta-flow/` | done |
 | 7 | `S-CC-07` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Light | `runs/small-storage-conditions/claude-code/rosetta-light/` | done |
 | 8 | `S-CP-01` | Small — product storage conditions | GitHub Copilot | GPT-5.6 Terra · medium | Baseline | `runs/small-storage-conditions/copilot/baseline/` | planned |
