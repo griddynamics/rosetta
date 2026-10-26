@@ -130,8 +130,9 @@ def summary_tables(rows):
                 rs = [d for d in cell if d.get("method") == m]
                 if not rs:
                     continue
-                med = lambda k: (statistics.median([x for x in (num(r[k]) if not isinstance(r[k], float) else r[k] for r in rs) if x is not None])
-                                 if any((r.get(k) not in (None, "")) for r in rs) else None)
+                # Text values such as "not run" are skipped, not a crash
+                med = lambda k: (lambda xs: statistics.median(xs) if xs else None)(
+                    [x for x in (num(r.get(k)) if not isinstance(r.get(k), float) else r[k] for r in rs) if x is not None])
                 cost = med("usage_total")
                 out.append("| " + " | ".join([m, str(len(rs)), fmt(med("time_first_min")), fmt(med("time_total_min")),
                                                ("–" if cost is None else (f"${cost:.2f}" if runner == "claude-code" else f"{cost:.0f} req")),
