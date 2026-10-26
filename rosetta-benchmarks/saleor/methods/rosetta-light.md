@@ -459,6 +459,15 @@ copilot config sandbox.enabled false
 copilot config ignoredSkillsLocations "$HOME/.agents/skills"   # skill folders outside COPILOT_HOME that Copilot reads anyway: skip them
 copilot config ignoredSkillsLocations "$HOME/.claude/skills"
 copilot config ignoredSkillsLocations "$HOME/.github/skills"
+python3 -I - "$COPILOT_HOME/settings.json" <<'PY'   # built-in subagents use the session's model and effort; rubber-duck (another model family) off
+import json, os, sys
+p = sys.argv[1]; s = json.load(open(p)) if os.path.exists(p) else {}
+sub = s.setdefault("subagents", {})
+for a in ("explore", "task", "general-purpose", "code-review"):
+    sub.setdefault("agents", {})[a] = {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}
+sub["disabledSubagents"] = sorted(set(sub.get("disabledSubagents", [])) | {"rubber-duck"})
+json.dump(s, open(p, "w"), indent=2)
+PY
 copilot config --list
 ```
 
@@ -500,6 +509,7 @@ In the session: accept the folder-trust prompt with **Yes, and remember this fol
 
 ```bash
 { echo "COPILOT_HOME=$COPILOT_HOME"; copilot --version; node -v; copilot config --list
+  python3 -I -c 'import json,os;print("subagents:", json.dumps(json.load(open(os.environ["COPILOT_HOME"]+"/settings.json")).get("subagents")))'
   copilot -C "$BENCH_DIR" plugin list; copilot -C "$BENCH_DIR" skill list; copilot -C "$BENCH_DIR" mcp list; copilot -C "$BENCH_DIR" instruction list
   copilot config hooks 2>/dev/null || echo "(no inline hooks)"
   echo "sandbox.enabled=$(copilot config sandbox.enabled)"
@@ -516,7 +526,7 @@ In the session: accept the folder-trust prompt with **Yes, and remember this fol
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: `COPILOT_HOME` = `envs/rosetta-light/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; `plugin list` shows `rosetta-light` only; `skill list` shows its skills and the CLI's built-in ones only; `instruction list` shows `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`) plus only the files the Rosetta init wrote (zips); no MCP servers (the CLI's built-in GitHub servers are not listed here; `--disable-builtin-mcps` turns them off in the session, and `/env` there must show none); no inline hooks; no `user-level:` lines; no `token env set` line; `rosetta-light-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: `COPILOT_HOME` = `envs/rosetta-light/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; `subagents:` shows `explore`, `task`, `general-purpose` and `code-review` with `model`, `effortLevel` and `contextTier` set to `inherit`, and `disabledSubagents` = `["rubber-duck"]`; in the session, `/subagents` shows "Inherit session model" for those four; `plugin list` shows `rosetta-light` only; `skill list` shows its skills and the CLI's built-in ones only; `instruction list` shows `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`) plus only the files the Rosetta init wrote (zips); no MCP servers (the CLI's built-in GitHub servers are not listed here; `--disable-builtin-mcps` turns them off in the session, and `/env` there must show none); no inline hooks; no `user-level:` lines; no `token env set` line; `rosetta-light-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
 
 ## 5. Run S-CP-07: small task: product storage conditions, Copilot
 

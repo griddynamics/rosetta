@@ -165,7 +165,18 @@ copilot config sandbox.enabled false     # sandbox off (section 2)
 copilot config ignoredSkillsLocations "$HOME/.agents/skills"   # skill folders outside COPILOT_HOME that Copilot reads anyway: skip them
 copilot config ignoredSkillsLocations "$HOME/.claude/skills"
 copilot config ignoredSkillsLocations "$HOME/.github/skills"
+python3 -I - "$COPILOT_HOME/settings.json" <<'PY'   # built-in subagents use the session's model and effort; rubber-duck (another model family) off
+import json, os, sys
+p = sys.argv[1]; s = json.load(open(p)) if os.path.exists(p) else {}
+sub = s.setdefault("subagents", {})
+for a in ("explore", "task", "general-purpose", "code-review"):
+    sub.setdefault("agents", {})[a] = {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}
+sub["disabledSubagents"] = sorted(set(sub.get("disabledSubagents", [])) | {"rubber-duck"})
+json.dump(s, open(p, "w"), indent=2)
+PY
 ```
+
+- **Subagents run on the session's model.** Copilot CLI picks its own model for its built-in subagents unless told otherwise: in one of our Copilot sessions a `General-purpose` subagent ran on `gpt-5.3-codex` while the session was on another model. Since 1.0.62 the user setting `subagents.agents.<name>` takes `"inherit"` for `model`, `effortLevel` and `contextTier` ("use the parent session's value at dispatch time", [Copilot CLI config reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference)). The common settings set it for the four built-in subagents (`explore`, `task`, `general-purpose`, `code-review`) and turn off `rubber-duck`, which by design asks a model of another family for a second opinion. Claude Code needs no such setting: its runs used the session model for subagents, except where a method sets its own (Rosetta's architect, Superpowers' reviewer). The same holds for Copilot: a subagent that a method's plugin defines with its own `model` keeps it, because that is part of the method; note it in the report. The isolation check prints the setting, and in the session the timeline shows each subagent's model as `AgentType(model)`; a built-in subagent on any model other than `gpt-5.6-terra` means the run does not count.
 
 - **Login and folder trust, once per environment.** Each method file has a one-time login and folder-trust step for both runners (part 1 for Claude Code, part 4 for Copilot CLI). Repository skills, agents and hooks load only in a trusted folder.
 
