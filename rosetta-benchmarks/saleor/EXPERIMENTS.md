@@ -15,7 +15,7 @@ Methods come from the presentation slide "Six approaches, one more if time allow
 | AWS AI-DLC | AI-DLC v2.10.0 | `aidlc config --harness claude` (repository files) | `aidlc config --harness copilot` (repository files) | `S-CC-05` | `S-CP-05` | `L-CC-05` | `L-CP-05` |
 | Rosetta | plugin `rosetta` 3.1.17 only | Plugin | Plugin | `S-CC-06` | `S-CP-06` | `L-CC-06` | `L-CP-06` |
 | Rosetta Light | plugin `rosetta-light` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (large task also `orchestration`) and `USE ROSETTA SUBAGENTS.` | Plugin | Plugin | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
-| Rosetta Skills | plugin `rosetta` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (large task also `orchestration`) | Plugin | Plugin | `S-CC-08` | `S-CP-08` | `L-CC-08` | `L-CP-08` |
+| Rosetta Skills | plugin `rosetta` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (both tasks) | Plugin | Plugin | `S-CC-08` | `S-CP-08` | `L-CC-08` | `L-CP-08` |
 
 Run ID format: `<task>-<runner>-<method#>` — `S`/`L` = small/large task, `CC`/`CP` = Claude Code / Copilot CLI. This ID is for operators only; the judge sees a separate random `run_id` (see `reports/mapping.csv`).
 
@@ -55,7 +55,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 28 | `L-CP-07` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Light | `runs/large-age-restriction/copilot/rosetta-light/` | planned |
 | 29 | `S-CC-08` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/small-storage-conditions/claude-code/rosetta-skills/` | done (3 extra messages after T1 were not protocol follow-ups and are not counted, see report section 8) |
 | 30 | `S-CP-08` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Skills | `runs/small-storage-conditions/copilot/rosetta-skills/` | planned |
-| 31 | `L-CC-08` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/large-age-restriction/claude-code/rosetta-skills/` | done |
+| 31 | `L-CC-08` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/large-age-restriction/claude-code/rosetta-skills/` | planned (rerun without the `orchestration` skill). ⚠ TODO: delete the old run `runs/large-age-restriction/claude-code/rosetta-skills-orchestration.old/` when the rerun is done |
 | 32 | `L-CP-08` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Skills | `runs/large-age-restriction/copilot/rosetta-skills/` | planned |
 
 ## Claude Code setup per method

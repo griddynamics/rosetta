@@ -7,7 +7,7 @@ Runs: `S-CC-08` (small, Claude Code) · `L-CC-08` (large, Claude Code) · `S-CP-
 | Command / skill | When | Official doc |
 | --- | --- | --- |
 | `/init-workspace-flow` | **once**, before the first run (part 1.7); its cost is reported separately and never added to a run | docs/web/user-guide/scenarios/ (init workspace); plugins/core-claude*/workflows/init-workspace-flow.md |
-| `<task> MUST USE SKILLS hitl, tech-specs.` (large task: `MUST USE SKILLS hitl, tech-specs, orchestration.`) | T0 (no `/coding-flow`: the method is the named skills only; the large task adds `orchestration`, so the agent can delegate to subagents) | skills/tech-specs/SKILL.md (description), skills/hitl/SKILL.md:35,41 |
+| `<task> MUST USE SKILLS hitl, tech-specs.` | T0, small and large task (no `/coding-flow`: the method is the named skills only). The first L-CC-08 run also named `orchestration`; it was removed for the rerun | skills/tech-specs/SKILL.md (description), skills/hitl/SKILL.md:35,41 |
 | `Yes, I approve` | each approval stop: only this exact sentence counts | skills/hitl/SKILL.md:35 |
 
 **T0 message, small task** (copy as is):
@@ -30,7 +30,7 @@ To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
 
-MUST USE SKILLS hitl, tech-specs, orchestration.
+MUST USE SKILLS hitl, tech-specs.
 ```
 
 Every other reply is written out in each run below (parts 2, 3, 5, 6).
@@ -348,7 +348,7 @@ To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
 
-MUST USE SKILLS hitl, tech-specs, orchestration.
+MUST USE SKILLS hitl, tech-specs.
 ```
 
 **Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
@@ -686,7 +686,7 @@ To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
 
-MUST USE SKILLS hitl, tech-specs, orchestration.
+MUST USE SKILLS hitl, tech-specs.
 ```
 
 **Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):

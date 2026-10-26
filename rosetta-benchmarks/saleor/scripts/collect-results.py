@@ -58,6 +58,8 @@ def kind(folder):
         return "pilot"
     if folder.endswith(".ref"):
         return "reference"
+    if folder.endswith(".old"):
+        return "old"
     return "run"
 
 
