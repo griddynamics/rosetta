@@ -171,7 +171,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | shows the final plan | **"Yes, and bypass permissions"** (1 method step), with no corrections: the BENCHMARKS.md §5 Spec review rule does not apply to Baseline |
 | stops again only to ask permission | `Approved, continue.` |
 
-Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
+Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
 **Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
@@ -306,7 +306,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | shows the final plan | **"Yes, and bypass permissions"** (1 method step), with no corrections: the BENCHMARKS.md §5 Spec review rule does not apply to Baseline |
 | stops again only to ask permission | `Approved, continue.` |
 
-Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
+Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
 **Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
