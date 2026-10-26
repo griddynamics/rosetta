@@ -48,7 +48,7 @@ hidden_total: 9
 hidden_asked: 4              # #1, #4, #8, #9
 hidden_covered: 4            # #2, #3, #6, #7 (checked at T1)
 hidden_missed: 1             # #5
-hidden_matches_answer:     # how many of the 9 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: 8     # of 9, the ORIGINAL result (first pass, before follow-ups) follows the answer key; one miss (#5)
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
@@ -171,19 +171,19 @@ Raw `/cost` output at T1 and T2: paste it into Appendix A at the end of this fil
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Existing customers with no birthday | asked | | |
-| 2 | Existing products unrestricted by default | covered | | T1 answer: flag default off, `saleor/product/models.py:214`, migration `product/0211` |
-| 3 | Schema migration only, no backfill | covered | | T1 answer: three schema-only migrations (product/0211, site/0053, account/0106), no backfill |
-| 4 | Guest: can browse, can't buy restricted | asked | | |
-| 5 | Lists / search / discounts / banners: visible with age label | missed | | T1 answer: lists and search handled and tested, discounts and banners not checked; follow-up 1 sent 20:13 (timeline row 25) |
-| 6 | Marketing emails checked | covered | | T1 clarification (row 24): core sends no marketing or recommendation emails, checked `saleor/core/notify.py`; apps out of scope |
-| 7 | Legal policies flagged for review | covered | | T1 clarification (row 24): legal review recommended, with facts and four points for the reviewer |
-| 8 | Birthday boundary + shop time zone | asked | | asked in the first-pass question rounds (rows 14, 17) |
-| 9 | PII: only customer + super-admin see birthday; audit log | asked | | |
+| 1 | Existing customers with no birthday | asked | yes | |
+| 2 | Existing products unrestricted by default | covered | yes | T1 answer: flag default off, `saleor/product/models.py:214`, migration `product/0211` |
+| 3 | Schema migration only, no backfill | covered | yes | T1 answer: three schema-only migrations (product/0211, site/0053, account/0106), no backfill |
+| 4 | Guest: can browse, can't buy restricted | asked | yes | |
+| 5 | Lists / search / discounts / banners: visible with age label | missed | no (first pass; fixed by follow-up 1) | T1 answer: lists and search handled and tested, discounts and banners not checked; follow-up 1 sent 20:13 (timeline row 25) |
+| 6 | Marketing emails checked | covered | yes | T1 clarification (row 24): core sends no marketing or recommendation emails, checked `saleor/core/notify.py`; apps out of scope |
+| 7 | Legal policies flagged for review | covered | yes | T1 clarification (row 24): legal review recommended, with facts and four points for the reviewer |
+| 8 | Birthday boundary + shop time zone | asked | yes | asked in the first-pass question rounds (rows 14, 17) |
+| 9 | PII: only customer + super-admin see birthday; audit log | asked | yes | |
 
 ## 4. Done when: checked by the operator at T2
 

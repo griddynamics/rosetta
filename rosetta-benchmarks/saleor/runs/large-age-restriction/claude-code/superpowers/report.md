@@ -17,7 +17,7 @@ start_tag: superpowers-v1
 operator: agavrilita (with Claude AI assistance, see section 8)
 status: done
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
-t0: 2026-10-20T11:31
+t0: 2026-10-20T12:03
 t1: 2026-10-20T13:19
 t2: 2026-10-20T20:17
 setup_min:                 # one-time method setup, minutes (not part of the run)
@@ -77,7 +77,7 @@ HOW TO USE
 
 - [x] `bench.sh reset superpowers-v1` → `start` → `health`: all three OK
 - [x] New agent session: old session history deleted before the run. The operator ran `/skills` and `/plugin` in the same session before sending the task; the task prompt was the first message to the agent (session log)
-- [x] Isolation check passed: only the method under test. The operator reported `/skills` and `/plugin` clean; the output was not saved for this run, the output below is from the identical environment (same config dir and tags) taken before S-CC-03
+- [x] Isolation check passed: only the method under test. The operator reported `/skills` and `/plugin` clean; the output was not saved for this run, the output below is from the identical environment (same config dir and tags) taken on 2026-10-19
 - [ ] All 3 repos on the method's tag and clean (`git status --porcelain` empty), after `start`: **not clean.** Tags correct; after `start` the dashboard had 5 modified generated files and the storefront `CLAUDE.md` 1 change, written by the dev servers
 - [ ] Model and effort checked in the runner: model `claude-sonnet-5-5` (session log); effort was not verified in the session
 - [x] Full-access mode on (`--dangerously-skip-permissions`)
@@ -126,7 +126,7 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 
 | # | Time | Type | What happened (short) | Exact text sent by the operator | Hidden # / extra |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | `11:31` | prompt | Task prompt sent (T0 11:31:08 in the session log). `superpowers:brainstorming` loaded 1 s later, by itself | `Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.). Staff need to be able to mark a product with a minimum age. … (plain prompt, no entry command)` |  |
+| 1 | `11:31` | prompt | Task prompt sent (real T0 11:31:08 in the session log; the data block uses the effective start 12:03, see section 8). `superpowers:brainstorming` loaded 1 s later, by itself | `Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.). Staff need to be able to mark a product with a minimum age. … (plain prompt, no entry command)` |  |
 | 2 | `11:56` | question | Agent (first message 11:31, answered after 25 min): where should the age check be enforced? 1 completion only / 2 add-to-cart + completion (recommended) / 3 every checkout mutation | `Use your recommendation.` | extra 1 (not in the tables; the Task 2 extra-answers table is empty) |
 | 3 | `11:58` | question | Agent: how should guest checkout work? (1 block guests, recommended / 2 self-declare / 3 treat as no birthday) | `A guest can browse and see restricted products but can't buy them: guest checkout with a restricted product is blocked by the backend, and the storefront asks the user to sign in.` | hidden 4 |
 | 4 | `12:00` | method-step | Design section 1 (backend data model and API); agent asks if it looks right; flags the open edit-birthday rule | `Approved, continue.` |  |
@@ -245,15 +245,15 @@ Not assessed (see section 4); nothing ticked. The agent-made post-implementation
 - **Hidden-question check wording** differs from the guide's version (older wording, listed in the timeline).
 - **Operator.** The programmer sent every message, but Claude (AI) advised which answer or phrase to send at most stops and prepared this report. BENCHMARKS.md §3.5 says "no human-side AI".
 - **Older environment.** Repos at the old `baseline-v1` / `superpowers-v1` tags from before the setup fixes of 2026-10-21 (for example "setup puts dashboard codegen output into baseline-v1"; so the dashboard schema and generated files were already modified at T0), old `bench.sh`, config dir with only `ENABLE_CLAUDEAI_MCP_SERVERS=false` (no common `settings.json`), login with a `claude setup-token` token (the first claude.ai login pulled in 15 synced org plugins, 9 org skills and ~40 connector MCP servers; that environment was discarded). `/skills` and `/plugin` in the session showed only the 15 `superpowers:*` skills and the 5 built-in `cc-plugin-*`.
-- **Reviewer subagents ran on a stronger model than the session.** Superpowers dispatches its final reviewer "on the most capable model" (`skills/executing-plans/SKILL.md:357`): Opus 5.5 in S-CC-03, Fable 5.1 in L-CC-03, while the session model is Sonnet 5.5.
+- **Reviewer subagents ran on a stronger model than the session.** Superpowers dispatches its final reviewer "on the most capable model" (`skills/executing-plans/SKILL.md:357`): here `claude-fable-5-1`, while the session model is Sonnet 5.5.
   - **Questions answered with "Use your recommendation."** Extra 1 (where to enforce the age check) and extra 2 (bulk reads of the birthday) were answered that way. The rule is: decide, answer and add a row to the Task 2 extra answers. No row was added; the table is still empty.
-  - **Operator waits dominate the clock.** Raw `T2 − T0` is 8h 45m; 5h 24m of it was the agent waiting for the operator: 25 min before the first answer, 1h 50m between T1 and the hidden-question check, 2h 29m between the check answer and follow-up 1, 28 min before the second "Use your recommendation". Without waits: about 3h 22m. The first pass was 1h 48m raw (about 1h 16m without waits). The prompt cache went cold several times, so T2 usage includes re-caching.
+  - **Time without the operator's gaps (BENCHMARKS.md, "Time without the operator's gaps").** Real T0 11:31:08, T1 13:19:37: first pass 1h 48m 29s. The agent was blocked waiting for the operator before T1: 11:31:21→11:56:34 (25m 12s), 11:56:38→11:58:27 (1m 48s), 11:58:41→12:00:37 (1m 56s), 12:00:46→12:02:15 (1m 28s), 12:02:29→12:03:34 (1m 04s), 12:04:53→12:05:54 (1m 01s); total 32m 31s. Gap-free first pass = 1h 48m 29s − 32m 31s = 1h 15m 57s, so `t0` in the data block is the effective start, T1 − 1h 15m 57s = 12:03; `t1` (13:19) and `t2` (20:17) are real. After T1 and before T2 the agent was blocked by the operator for another 4h 51m 10s (13:19:37→15:09:31 1h 49m 53s; 15:10:05→17:39:17 2h 29m 11s; 17:40:26→18:08:51 28m 24s; 18:09:41→18:10:31 0m 50s; 18:12:02→18:14:53 2m 50s); that time is inside `t2 − t0`. The prompt cache went cold several times, so T2 usage includes re-caching.
   - **Follow-up 1 had four items in one message** (not one message per item).
   - **Closed without the post-implementation prompt and the Done-when checks (section 4).** Status is `done` because the agent finished the task and its follow-up (T1 and T2 are measured); the operator's checks, the red-flag review, the agent's own action report and the operator score were not done, so those fields are empty and the quality of the code is unverified. The code is kept in the `<repo>.diff` files.
   - **Same session for `/skills` and the task:** the operator ran `/skills`, `/plugin` and `/context` in the session; only the task prompt was a message to the agent.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
-- Strong point of the method in this run: it loaded brainstorming → writing-plans → executing-plans + TDD by itself, asked only 2 product questions, produced a spec, a plan and test-first code, ran two independent whole-change reviews and a 31-check live API run, and handled the PII follow-up as a design addendum (super-admin-only birthday, audit events, isAgeEligible flag, shop time zone, age label).
-- Weak point of the method in this run: four of the nine hidden questions were missed at T1 (age label, marketing emails, shop time zone, PII visibility and audit), so a design addendum and a second implementation round were needed (about $20 of the $35.11); the reviewer subagents ran on Fable 5.1 ($10.00); and the long idle gaps made the session expensive to resume.
+- Strong point of the method in this run: (to be given by the operator)
+- Weak point of the method in this run: (to be given by the operator)
 
 ## Appendix A. Raw `/cost` output
 

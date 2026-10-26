@@ -173,6 +173,8 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 
 In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `superpowers:brainstorming`; `/hooks` shows its SessionStart hook. After T0 its first answer says "Using brainstorming …". If not: `/exit`, reset, start again.
 
+**When the checks pass: `/exit`, then start `claude` again WITHOUT the cleanup lines** (`find … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5)`. This is a NEW session (never `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
+
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
 ```text
@@ -306,6 +308,8 @@ cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5
 ```
 
 In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `superpowers:brainstorming`; `/hooks` shows its SessionStart hook. After T0 its first answer says "Using brainstorming …". If not: `/exit`, reset, start again.
+
+**When the checks pass: `/exit`, then start `claude` again WITHOUT the cleanup lines** (`find … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && claude --dangerously-skip-permissions --model claude-sonnet-5-5)`. This is a NEW session (never `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
@@ -737,3 +741,17 @@ The folder must have `report.md`, `agent-report.md`, a `<repo>.diff` per changed
 python3 "$SB/scripts/collect-results.py"                 # your run in the table; "Missing values" lists empty fields
 ```
 
+4. At each stop reply exactly as in the Claude Code run of this task (part 3, step 6).
+5. T1, hidden-question check, follow-ups, T2, check the result, post-implementation prompt: as in part 3, steps 7–9. Usage = the session's premium-request counter instead of `/cost`.
+6. Save: copy `~/saleor-benchmark/run-output/` into the run folder (no `session-usage.py` for Copilot).
+
+## 7. Notes
+
+### Questions the agent asked that are not in the tables
+
+Superpowers' own questions that BENCHMARKS.md, section 4 does not cover (hidden questions and extra answers) and that this file's reply tables do not cover. The operator decided each answer once; if a later run is asked the same, send the same answer. Each row has the run ID where it was first asked. Mark such a question `extra` in the run report.
+
+| # | If it asks this | Answer | First asked in |
+| ---: | --- | --- | --- |
+| 1 | No question: the agent ends its turn in the middle of the subagent-driven run with a status such as "Still pending: its required scoped re-review, then the storefront implementation, end-to-end validation, and final branch review." and waits at an empty input box (nothing is running) | `Approved, continue.` (a method step, not a follow-up; BENCHMARKS.md section 5, "Method steps") | S-CP-03 |
+| 2 | No menu: after saving a new plan, the agent asks in plain chat "Please review the plan and confirm it captures the requested scope; I'll use the previously selected subagent-driven execution method." (it does not ask which execution approach) | `Approved. Subagent-driven.` (the plan-review reply of the reply table; chosen by the operator) | S-CP-03 |

@@ -17,7 +17,7 @@ start_tag: superpowers-v1
 operator: agavrilita (with Claude AI assistance, see section 8)
 status: done
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
-t0: 2026-10-19T14:43
+t0: 2026-10-19T14:51
 t1: 2026-10-19T15:27
 t2: 2026-10-19T15:45
 setup_min:                 # one-time method setup, minutes (not part of the run)
@@ -126,7 +126,7 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 
 | # | Time | Type | What happened (short) | Exact text sent by the operator | Hidden # / extra |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | `14:43` | prompt | Task prompt sent (T0 14:43:55 in the session log). `superpowers:brainstorming` loaded 3 s later, by itself | `Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C"). Staff should be able to set it … (plain prompt, no entry command)` |  |
+| 1 | `14:43` | prompt | Task prompt sent (real T0 14:43:55 in the session log; the data block uses the effective start 14:51, see section 8). `superpowers:brainstorming` loaded 3 s later, by itself | `Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C"). Staff should be able to set it … (plain prompt, no entry command)` |  |
 | 2 | `14:45` | question | Agent assumed plain text, optional, product level; asked: translatable? (A untranslated / B translatable) | `Yes. It is translatable the same way as the product name and description. The storefront shows the translation when there is one.` | hidden 2 |
 | 3 | `14:47` | method-step | Backend design (part 1 of 3), agent asks "does this look right" (it chose CharField(250)) | `Approved, continue.` |  |
 | 4 | `14:48` | method-step | Dashboard + storefront design (parts 2 and 3) | `Approved, continue.` |  |
@@ -141,7 +141,7 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 13 | `15:45` | T2 | Agent finished the follow-up (last agent message 15:45:42; operator reported 15:48). `/cost` at T2 ~15:46: $8.08 |  |  |
 | 14 | `15:50` | post-prompt | Post-implementation prompt sent (older wording: diffs of the working tree against HEAD into `diffs/<task>/…`, moved to this folder) | `Do not commit anything. For every repository you changed, run git add -N . and then git diff, and save it …` |  |
 
-**Usage by model** (T2 `/cost`; token counts are the runner's `/cost` numbers; `tokens.md` is a reduced file built from them). The token fields of the data block use the `claude-sonnet-5-5` line of `/cost` (main model, as displayed: rounded to 0.1k / 0.1m, same convention as S-CC-02); the Opus reviewer is not included in them:
+**Usage by model** (T2 `/cost`; token counts are the runner's `/cost` numbers; `tokens.md` is a reduced file built from them). The token fields of the data block use the `claude-sonnet-5-5` line of `/cost` (main model, as displayed: rounded to 0.1k / 0.1m); the Opus reviewer is not included in them:
 
 | Model | Role (main / subagent) | Input | Output | Cache read | Cache write | Cost, USD |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
@@ -236,17 +236,17 @@ The operator did not verify these (see section 4). Agent's own report, in short:
 - **Hidden-question check wording** differs from the guide's version (older wording, listed in the timeline).
 - **Operator.** The programmer sent every message, but Claude (AI) advised which answer or phrase to send at most stops and prepared this report. BENCHMARKS.md §3.5 says "no human-side AI".
 - **Older environment.** Repos at the old `baseline-v1` / `superpowers-v1` tags from before the setup fixes of 2026-10-21 (for example "setup puts dashboard codegen output into baseline-v1"; so the dashboard schema and generated files were already modified at T0), old `bench.sh`, config dir with only `ENABLE_CLAUDEAI_MCP_SERVERS=false` (no common `settings.json`), login with a `claude setup-token` token (the first claude.ai login pulled in 15 synced org plugins, 9 org skills and ~40 connector MCP servers; that environment was discarded). `/skills` and `/plugin` in the session showed only the 15 `superpowers:*` skills and the 5 built-in `cc-plugin-*`.
-- **Reviewer subagents ran on a stronger model than the session.** Superpowers dispatches its final reviewer "on the most capable model" (`skills/executing-plans/SKILL.md:357`): Opus 5.5 in S-CC-03, Fable 5.1 in L-CC-03, while the session model is Sonnet 5.5.
-  - **Session log lost.** The cleanup before L-CC-03 deleted `$CLAUDE_CONFIG_DIR/projects/*saleor-benchmark*` before `session-usage.py` had been run for this run. So there is no `session/` and no `session-usage.py` breakdown: `tokens.md` is a reduced, per-model file built from the `/cost` readings, and the token fields of the data block use the `/cost` Sonnet line. Timeline times come from the session log read before it was deleted.
+- **Reviewer subagents ran on a stronger model than the session.** Superpowers dispatches its final reviewer "on the most capable model" (`skills/executing-plans/SKILL.md:357`): here `claude-opus-5-5`, while the session model is Sonnet 5.5.
+  - **Session log lost.** A cleanup done before the next run deleted `$CLAUDE_CONFIG_DIR/projects/*saleor-benchmark*` before `session-usage.py` had been run for this run. So there is no `session/` and no `session-usage.py` breakdown: `tokens.md` is a reduced, per-model file built from the `/cost` readings, and the token fields of the data block use the `/cost` Sonnet line. Timeline times come from the session log read before it was deleted.
   - **T0 corrected from the log.** The operator first reported T0 as 14:53; the session log showed the prompt at 14:43:55.
-  - **Operator waits.** The hidden-question check was sent 4 minutes after T1; the other replies took 1 to 2 minutes each.
+  - **Time without the operator's gaps (BENCHMARKS.md, "Time without the operator's gaps").** Real T0 14:43:55, T1 15:27:13: first pass 43m 18s. The agent was blocked waiting for the operator before T1: 14:44:11→14:45:50 (1m 39s), 14:46:03→14:47:22 (1m 19s), 14:47:34→14:48:42 (1m 08s), 14:48:51→14:49:38 (0m 47s), 14:50:18→14:52:41 (2m 23s); total 7m 16s. Gap-free first pass = 43m 18s − 7m 16s = 36m 02s, so `t0` in the data block is the effective start, T1 − 36m 02s = 14:51; `t1` (15:27) and `t2` (15:45) are real. After T1 and before T2 the agent was blocked by the operator for another 13m 26s (15:27:13→15:31:34 4m 21s; 15:31:51→15:34:41 2m 50s; 15:34:45→15:35:07 0m 22s; 15:35:13→15:40:03 4m 50s; 15:40:34→15:41:37 1m 03s); that time is inside `t2 − t0`. The waits were read from the session log before it was deleted.
   - **Tests (check 7):** passed, reported by the operator on 2026-10-21 via Oleksii Poletaiev (`tests_pass: yes`); commands and counts not recorded.
   - **Operator checks (section 4):** 7 of 8 passed according to the operator; the per-row detail was not recorded, and `tests_pass` and `operator_merge_ready` were not reported.
-  - **Operator score 3** (works with notable gaps), given by the operator because the first follow-up showed that a large part of the requirements had not been handled and the run cost more than the Baseline run. Cost is not part of the score anchors in `templates/README.md`.
+  - **Operator score 3** (works with notable gaps), given by the operator: the first follow-up showed that a large part of the requirements had not been handled, and the cost weighed in. Cost is not part of the score anchors in `templates/README.md`.
   - **`/context` at T2** was not taken (`context_end_pct` empty); `subagents` not counted (the Opus reviewer ran as a subagent; the `/cost` skills panel shows `general-purpose` at 18%).
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
-- Strong point of the method in this run: it loaded `brainstorming`, `writing-plans`, `executing-plans` and `test-driven-development` by itself and worked through a spec, a plan and test-first implementation; it stated its assumptions (plain text, 250, product level) up front, so 5 of the 6 other hidden questions were covered at T1.
-- Weak point of the method in this run: the first pass left the product webhook payload and the CSV export out ("by omission", hidden #6), and it needed a follow-up; the whole run cost $8.08, of which $2.19 was the Opus reviewer.
+- Strong point of the method in this run: (to be given by the operator)
+- Weak point of the method in this run: (to be given by the operator)
 
 ## Appendix A. Raw `/cost` output
 

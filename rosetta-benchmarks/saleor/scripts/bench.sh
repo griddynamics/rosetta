@@ -16,6 +16,7 @@
 #
 # Settings (environment variables):
 #   BENCH_DIR   where the Saleor repos live (default: $HOME/saleor-benchmark)
+#   BENCH_PROJECT  Compose project name (default: saleor-benchmark); set it to run a second workspace with its own containers and database
 
 set -euo pipefail
 
@@ -25,8 +26,8 @@ BASELINE_FILE="$BENCH_ROOT/baseline-instructions.md"
 SEED_DUMP="$BENCH_DIR/seed.dump"
 SHARED_SEED_NAME="saleor-seed.dump"   # in test-library/: one database for every operator and machine
 LOG_DIR="$BENCH_DIR/logs"
-PROJECT="saleor-benchmark"
-API_CONTAINER="saleor-benchmark-api"
+PROJECT="${BENCH_PROJECT:-saleor-benchmark}"   # Compose project: names the containers and volumes (a second workspace needs its own)
+API_CONTAINER="$PROJECT-api"
 API_URL="http://localhost:8000/graphql/"
 
 REPOS=(saleor saleor-dashboard react-storefront)
