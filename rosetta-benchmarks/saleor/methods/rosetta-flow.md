@@ -558,6 +558,8 @@ cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terr
 
 In the session: `/model` shows GPT-5.6 Terra, effort medium; the normal interactive mode (not plan, not autopilot). If not: `/exit`, reset, start again.
 
+**When the checks pass: `/exit`, then start `copilot` again WITHOUT the cleanup lines** (`grep … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps)`. This is a NEW session (never `--resume` or `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
+
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
 ```text
@@ -667,6 +669,8 @@ cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terr
 ```
 
 In the session: `/model` shows GPT-5.6 Terra, effort medium; the normal interactive mode (not plan, not autopilot). If not: `/exit`, reset, start again.
+
+**When the checks pass: `/exit`, then start `copilot` again WITHOUT the cleanup lines** (`grep … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps)`. This is a NEW session (never `--resume` or `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
