@@ -19,7 +19,7 @@
 | `S-CC-06` | `small-storage-conditions/claude-code/rosetta-flow` | run | done | 120 | 148 | $21.30 | $21.37 | 0% | 3 / 4 / 0 | 100% | 0 | 3 | 8/8 | yes | 5 | yes | – | – |
 | `S-CC-08` | `small-storage-conditions/claude-code/rosetta-skills` | run | done | 56 | 56 | $5.64 | $5.64 | 0% | 3 / 3 / 1 | 86% | 1 | 4 | 8/8 | yes | 5 | yes | – | – |
 | `S-CC-07` | `small-storage-conditions/claude-code/rosetta-light` | run | done | 92 | 92 | $5.48 | $5.48 | 0% | 4 / 3 / 0 | 100% | 0 | 2 | 8/8 | yes | 5 | yes | – | – |
-| `S-CP-03` | `small-storage-conditions/copilot/superpowers` | run | – | 107 | 5174 | 1407 req | 1976 req | 29% | 3 / 3 / 1 | 86% | 2 | 16 | 8/8 | yes | – | – | – | – |
+| `S-CP-03` | `small-storage-conditions/copilot/superpowers` | run | – | 107 | 5174 | – | – | – | 3 / 3 / 1 | 86% | 2 | 16 | 8/8 | yes | – | – | – | – |
 
 ## Comparison
 

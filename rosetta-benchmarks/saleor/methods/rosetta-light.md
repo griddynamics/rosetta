@@ -594,7 +594,7 @@ USE ROSETTA SUBAGENTS.
 | asks for approval (specs, design, implementation) | `Yes, I approve` |
 | any other "shall I continue?" | `Approved, continue.` |
 
-Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
+Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
 **Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
@@ -708,9 +708,9 @@ USE ROSETTA SUBAGENTS.
 | questions | answers from the tables, + major-decision questions ("LARGE = MEDIUM + any major decisions", skills/hitl/SKILL.md:41) |
 | asks for approval (specs, design, implementation) | `Yes, I approve` |
 | any other "shall I continue?" | `Approved, continue.` |
-| the agent asks for its own approval sentence (e.g. `Yes, I approve the specs with PR-1..7 as proposed.`) | the assistant writes one message: `Please improve: (1) …, (2) ….` for spec items covered only partly (key texts word for word), then `Yes, I approve with those corrections` + the agent's own sentence; items the spec does not mention at all are not raised (they are found at T1). Its own proposals (PR-n) are approved as proposed unless a table answer contradicts one |
+| the agent asks for its own approval sentence (e.g. `Yes, I approve the specs with PR-1..7 as proposed.`) | the assistant writes one message: `Please improve: (1) …, (2) ….` for spec items covered only partly (each with the full decision of the matching rows), then `Yes, I approve with those corrections` + the agent's own sentence; items the spec does not mention at all are not raised (they are found at T1). Its own proposals (PR-n) are approved as proposed unless a table answer contradicts one |
 
-Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; copy the answer text, one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
+Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
 **Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
