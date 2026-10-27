@@ -766,7 +766,7 @@ python3 "$SB/scripts/collect-results.py"                 # your run in the table
 | Runner | Start | End | Operator | Notes |
 | --- | --- | --- | --- | --- |
 | Claude Code | | | | |
-| Copilot | | | | |
+| Copilot | 2026-10-26T20:00 | 2026-10-26T20:03 | operator | Setup session: `/speckit-constitution` sent at 20:02; setup began with the variables at 19:25 (troubleshooting in between). Copilot CLI 1.0.103, not 1.0.101 (operator's choice). |
 
 Claude Code, paste raw (`/usage`; per-agent tokens are in `spec-kit.setup-tokens.md`):
 
@@ -776,4 +776,10 @@ Claude Code, paste raw (`/usage`; per-agent tokens are in `spec-kit.setup-tokens
 Copilot, `/usage` at the end of the setup session (AI credits):
 
 ```text
+AI Credits 9.76 (1m 58s)
+Tokens     ↑ 125.8k (102.4k cached, 23.4k written) • ↓ 1.6k (345 reasoning)
+  GitHub Copilot • GPT-5.6 Terra ↑ 125.8k (102.4k cached, 23.4k written) • ↓ 1.6k (345 reasoning)
+• 9.76 AIC
+Plan       0% used • resets in 5 days
+           0 / 5,000 AIC
 ```
