@@ -9,7 +9,7 @@ method_version: specify 1.0.13          # e.g. 3.1.13, v6.4.2, 447ca70
 flow:                      # workflow actually used, e.g. coding-flow, coding-light-flow, specify-plan-tasks-implement, plan-mode (Baseline)
 entry_command:             # exact text in front of the prompt, e.g. /grill-with-docs ; "none (plan mode)" for Baseline ; "/superpowers:brainstorming" for Superpowers
 runner: copilot
-runner_version: 1.0.103 (protocol: 1.0.101; kept by operator decision, see section 8)
+runner_version: "1.0.103 (protocol: 1.0.101; kept by operator decision, see section 8)"
 setup_mark: official
 model: gpt-5.6-terra
 effort: medium
