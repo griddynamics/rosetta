@@ -6,8 +6,8 @@ run_id: S-CP-04
 task: small-storage-conditions
 method: spec-kit
 method_version: specify 1.0.13          # e.g. 3.1.13, v6.4.2, 447ca70
-flow:                      # workflow actually used, e.g. coding-flow, coding-light-flow, specify-plan-tasks-implement, plan-mode (Baseline)
-entry_command:             # exact text in front of the prompt, e.g. /grill-with-docs ; "none (plan mode)" for Baseline ; "/superpowers:brainstorming" for Superpowers
+flow:                      specify-plan-tasks-implement   # workflow actually used, e.g. coding-flow, coding-light-flow, specify-plan-tasks-implement, plan-mode (Baseline)
+entry_command:             /speckit-specify   # exact text in front of the prompt, e.g. /grill-with-docs ; "none (plan mode)" for Baseline ; "/superpowers:brainstorming" for Superpowers
 runner: copilot
 runner_version: "1.0.103 (protocol: 1.0.101; kept by operator decision, see section 8)"
 setup_mark: official
@@ -22,18 +22,18 @@ t1: 2026-10-26T20:57   # log time of the first "done"; operator saw 20:58
 t2: 2026-10-26T21:45   # log time when the last follow-up was done (operator saw 21:45)
 setup_min: 38   # Copilot home, specify, tag, login, trust and constitution, 19:25 to 20:03 (operator's times, incl. troubleshooting)                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
-t1_input_tokens:
-t1_output_tokens:
-t1_cache_read_tokens:
-t1_cache_write_tokens:
-t1_cost_usd:
+t1_input_tokens: 23.3m   # runner /usage at 21:00; includes 22.9m cached
+t1_output_tokens: 101.0k   # includes 29.5k reasoning
+t1_cache_read_tokens: 22.9m
+t1_cache_write_tokens: 480.8k
+t1_cost_usd: n/a   # Copilot reports AI credits only (t1_ai_credits)
 t1_ai_credits: 698.7   # /usage at 21:00 (operator): 48m 33s; tokens in 23.3m (22.9m cached, 480.8k written), out 101.0k (29.5k reasoning); context 69%
 #             # Copilot only: AI credits from /usage or tokens.md
 t2_input_tokens: 28.1m (runner /usage at 21:52)
 t2_output_tokens: 110.8k (33.4k reasoning)
 t2_cache_read_tokens: 27.4m
 t2_cache_write_tokens: 759.3k
-t2_cost_usd:
+t2_cost_usd: n/a   # Copilot reports AI credits only (t2_ai_credits)
 t2_ai_credits: 870.42   # runner /usage at 21:52; session log says 885.224 after the post-implementation prompt             # Copilot only: AI credits from /usage or tokens.md
 context_end_pct: 17   # 47k of 272k at 21:52; was 69% at T1, so the session was probably compacted
 subagents:                 3   # number of subagents launched (0 if none): three background agents (backend, dashboard, storefront) during implement
@@ -235,7 +235,7 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 
 | Model | Role (main / subagent) | Input | Output | Cache read | Cache write | Cost, USD |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| | | | | | | |
+| `gpt-5.6-terra` | main (125 calls) + 3 subagents (180 calls) | 915 | 112 684 | 27 523 941 | 797 365 | n/a (AI credits: 870.42) |
 
 Raw `/usage` output at T1 and T2: paste it into Appendix A at the end of this file.
 
