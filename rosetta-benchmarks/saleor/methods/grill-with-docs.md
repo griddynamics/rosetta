@@ -739,7 +739,7 @@ python3 "$SB/scripts/collect-results.py"                 # your run in the table
 | Runner | Start | End | Operator | Notes |
 | --- | --- | --- | --- | --- |
 | Claude Code | 2026-10-22T12:08 | 2026-10-22T12:17 | Oleksii Poletaiev | Plugin `mattpocock-skills@claude-plugins-official` **1.3.1** @ `49dd158`, Claude Code 2.1.305, Sonnet 5.5, effort medium. Run in `~/saleor-benchmark` (not a git repo), repos at `baseline-v1`, new config dir history. Sent (times from the session log): 12:08:16 `/mattpocock-skills:setup-matt-pocock-skills` (it found no git, no `CLAUDE.md`, no `docs/agents/`; recommended local markdown) · 12:10:09 `Local markdown.` · 12:15:29 `Yes, keep the five defaults.` (triage labels; asked because the whole plugin includes `triage`) · 12:17:04 `1. CLAUDE.md. 2. Yes, the root /Users/olepoletaiev/saleor-benchmark is right.` Domain docs were not asked: single-context (`GLOSSARY.md` + `docs/adr/` at the root). It showed the draft and wrote it without another approval. Wrote `CLAUDE.md` (## Agent skills block) and `docs/agents/{issue-tracker,triage-labels,domain}.md` in the workspace root, saved to `envs/grill-with-docs/root/`; nothing changed inside the 3 repos, so `grill-v1` = `baseline-v1`. Before it, `/model` (kept Sonnet 5.5) and `/effort` (cancelled) were run as local commands, no model calls. Replaces the setup of 2026-10-21 17:20–17:24 on 1.2.3 (local marketplace at `447ca70`, $0.1106), whose files differ (root `CONTEXT.md` instead of `GLOSSARY.md`); that one was used by S-CC-02 only. |
-| Copilot | | | | |
+| Copilot | 2026-10-26T15:52 | 2026-10-26T16:42 | Oleksii Poletaiev | Copilot CLI 1.0.101, GPT-5.6 Terra, effort medium, own `COPILOT_HOME` (`envs/grill-with-docs/copilot`). Workspace from `saleor-not-initialized-repos.zip` (`bench.sh from-zips not-initialized` + `setup`). Installer: `npx skills@latest add mattpocock/skills`, `skills@1.7.4`, `mattpocock/skills` @ `5beb35b` (main, 2026-10-19), all 38 skills, agents: the "Universal (.agents/skills)" group that includes GitHub Copilot (no additional agents), scope Project, `find-skills`: No. Wrote `~/saleor-benchmark/.agents/skills/` (38) and `skills-lock.json`; nothing in `~/.agents` or `~/.claude`. Folder-trust session (no message, 5.15 AIC). Setup session (log 15:52:45 → 16:42:30 local, mostly the agent waiting on the answer forms): `/setup-matt-pocock-skills`; it first logged `skill(setup-matt-pocock-skills) Skill not found` and then worked from the command's skill text. Answers: issue tracker = Local markdown (a second form field, needed only for "Other", got `Not applicable: Local markdown.`); triage labels = Yes, defaults (`triage` is installed here); domain docs = single-context (not asked); instruction file = `AGENTS.md`; draft = `Approved, continue.` Wrote `AGENTS.md` (## Agent skills) and `docs/agents/{issue-tracker,triage-labels,domain}.md`; nothing changed in the 3 repos, so `grill-v1` = `baseline-v1` as for Claude Code. Root files saved to `envs/grill-with-docs/root-copilot/` (`.agents`, `AGENTS.md`, `docs`, `skills-lock.json`). Session logs: `envs/grill-with-docs/setup-session-copilot/`. |
 
 Claude Code, paste raw (`/usage`; per-agent tokens are in `grill-with-docs.setup-tokens.md`):
 
@@ -757,7 +757,16 @@ Current session: 15% used (resets 3:49pm Europe/Warsaw) · Current week (all mod
 Skills, % of usage: /mattpocock-skills:setup-matt-pocock-skills 39% · Plugins: mattpocock-skills 39%
 ```
 
-Copilot, `/usage` at the end of the setup session (AI credits):
+Copilot, `/usage` at the end of the setup session (AI credits), transcribed from the operator's terminal:
 
 ```text
+Folder-trust session (no message sent):
+  AI Credits 5.15 (2m 2s)
+  Tokens     ↑ 52.3k (34.8k cached, 17.5k written) • ↓ 70 (14 reasoning)
+
+/setup-matt-pocock-skills session:
+  Changes    +113 -0
+  AI Credits 19.11 (50m 31s)
+  Tokens     ↑ 178.5k (129.7k cached, 48.8k written) • ↓ 3.6k (421 reasoning)
+    GitHub Copilot • GPT-5.6 Terra ↑ 178.5k (129.7k cached, 48.8k written) • ↓ 3.6k (421 reasoning) • 19.11 AIC
 ```

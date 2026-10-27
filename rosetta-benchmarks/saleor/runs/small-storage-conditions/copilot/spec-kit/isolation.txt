@@ -1,0 +1,79 @@
+COPILOT_HOME=/Users/rcimendur/saleor-benchmark/envs/spec-kit/copilot
+GitHub Copilot CLI 1.0.103.
+Run 'copilot update' to check for updates.
+v24.21.0
+autoUpdate=false
+memory=false
+ide.autoConnect=false
+model=gpt-5.6-terra
+effortLevel=medium
+continueOnAutoMode=false
+sandbox.enabled=false
+ignoredSkillsLocations=/Users/rcimendur/.agents/skills
+ignoredSkillsLocations=/Users/rcimendur/.claude/skills
+ignoredSkillsLocations=/Users/rcimendur/.github/skills
+subagents.agents.explore.model=inherit
+subagents.agents.explore.effortLevel=inherit
+subagents.agents.explore.contextTier=inherit
+subagents.agents.task.model=inherit
+subagents.agents.task.effortLevel=inherit
+subagents.agents.task.contextTier=inherit
+subagents.agents.general-purpose.model=inherit
+subagents.agents.general-purpose.effortLevel=inherit
+subagents.agents.general-purpose.contextTier=inherit
+subagents.agents.code-review.model=inherit
+subagents.agents.code-review.effortLevel=inherit
+subagents.agents.code-review.contextTier=inherit
+subagents.agents.research.model=inherit
+subagents.agents.research.effortLevel=inherit
+subagents.agents.research.contextTier=inherit
+subagents.agents.security-review.model=inherit
+subagents.agents.security-review.effortLevel=inherit
+subagents.agents.security-review.contextTier=inherit
+subagents.disabledSubagents=rubber-duck
+subagents: {"agents": {"explore": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "task": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "general-purpose": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "code-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "research": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "security-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}}, "disabledSubagents": ["rubber-duck"]}
+No plugins installed.
+
+Use 'copilot plugin install <source>' to install a plugin.
+Built-in plugins:
+  • browser-use (v0.0.4) [disabled]
+Project skills:
+  speckit-analyze - Perform a non-destructive cross-artifact consistency and quality analysis across spec.md, plan.md, and tasks.md after task generation.
+  speckit-checklist - Generate a custom checklist for the current feature based on user requirements.
+  speckit-clarify - Identify underspecified areas in the current feature spec by asking up to 5 highly targeted clarification questions and encoding answers back into the spec.
+  speckit-constitution - Create or update the project constitution from interactive or provided principle inputs.
+  speckit-converge - Assess the current codebase against the feature's spec, plan, and tasks, then append any remaining unbuilt work as new tasks to tasks.md so implement can complete it.
+  speckit-implement - Execute the implementation plan by processing and executing all tasks defined in tasks.md
+  speckit-plan - Execute the implementation planning workflow using the plan template to generate design artifacts.
+  speckit-specify - Create or update the feature specification from a natural language feature description.
+  speckit-tasks - Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
+  speckit-taskstoissues - Convert existing tasks into actionable, dependency-ordered GitHub issues for the feature based on available design artifacts.
+
+Builtin skills:
+  customize-cloud-agent - Skill for customizing the Copilot cloud agent (formerly known as Copilot coding agent) environment, including copilot-setup-steps.yml configuration, preinstalling tools and dependencies, runners, and settings. Use when the user mentions copilot-setup-steps, copilot setup steps, or wants to configure the cloud agent environment.
+  github-pr-media - Upload an image or video to GitHub's user attachments API and embed it in a pull request description or comment. Use when asked to add screenshots, diagrams, recordings, or other media to a PR or GitHub comment.
+
+Builtin servers:
+  github-mcp-server (http)
+
+Repository instructions:
+  • team-rules.instructions.md [external]
+      from /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md
+(no inline hooks)
+sandbox.enabled=false
+copilot-rules: team-rules.instructions.md = baseline rules
+saleor: CLAUDE.md = baseline rules
+saleor: copilot-instructions.md = baseline rules
+saleor: ai-file: .github/copilot-instructions.md
+saleor: ai-file: CLAUDE.md
+saleor-dashboard: CLAUDE.md = baseline rules
+saleor-dashboard: copilot-instructions.md = baseline rules
+saleor-dashboard: ai-file: .github/copilot-instructions.md
+saleor-dashboard: ai-file: CLAUDE.md
+react-storefront: CLAUDE.md = baseline rules
+react-storefront: copilot-instructions.md = baseline rules
+react-storefront: ai-file: .github/copilot-instructions.md
+react-storefront: ai-file: CLAUDE.md
+saleor: baseline-v1 speckit-v1 
+saleor-dashboard: baseline-v1 speckit-v1 
+react-storefront: baseline-v1 speckit-v1 
