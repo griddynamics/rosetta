@@ -1,6 +1,6 @@
-# Saleor benchmark: preliminary results (2026-10-26)
+# Saleor benchmark: preliminary results (2026-10-27)
 
-**Status: preliminary, 16 of 32 runs done (50 %): 14 with a result, 11 of them usable now (34 %), and 2 AWS AI-DLC runs that ended without a result.** 15 runs on **Claude Code** (Sonnet 5.5, effort medium: small task, product "storage conditions" field across backend, dashboard and storefront; large task, age-restricted products) and the first **Copilot CLI** run (GPT-5.6 Terra, effort medium). The full version will be published later.
+**Status: preliminary, 20 of 32 runs done (63 %): 18 with a result, 15 of them usable now (47 %), and 2 AWS AI-DLC runs that ended without a result.** 15 runs on **Claude Code** (Sonnet 5.5, effort medium: small task, product "storage conditions" field across backend, dashboard and storefront; large task, age-restricted products) and 5 on **Copilot CLI** (GPT-5.6 Terra, effort medium). The full version will be published later.
 
 ## Progress
 
@@ -8,23 +8,23 @@ The plan started with **28 runs**: 7 methods (Baseline, Grill-with-docs, Superpo
 
 | | Original plan (28) | Added: Rosetta Skills (4) | All (32) |
 | --- | ---: | ---: | ---: |
-| Done | **14 (50 %)** | 2 (50 %) | **16 (50 %)** |
-| of them with a result | 12 | 2 | 14 |
-| of them usable now (reliable + with caveats) | 9 (32 %) | 2 (50 %) | 11 (34 %) |
+| Done | **18 (64 %)** | 2 (50 %) | **20 (63 %)** |
+| of them with a result | 16 | 2 | 18 |
+| of them usable now (reliable + with caveats) | 13 (46 %) | 2 (50 %) | 15 (47 %) |
 | of them without a result (AWS AI-DLC) | 2 | – | 2 |
-| Not yet run | 14 (50 %) | 2 (50 %) | **16 (50 %)** |
+| Not yet run | 10 (36 %) | 2 (50 %) | **12 (38 %)** |
 
-By runner: Claude Code 15 of 16 (94 %), Copilot CLI 1 of 16 (6 %).
+By runner: Claude Code 15 of 16 (94 %), Copilot CLI 5 of 16 (31 %).
 
 How far each run can be trusted (the reasons are in "Caveats" below):
 
 | Group | Runs | Count |
 | --- | --- | ---: |
-| **Reliable**: run as the protocol says | Baseline (`S-CC-01`, `L-CC-01`), Rosetta Light (`S-CC-07`, `L-CC-07`), Rosetta Skills (`S-CC-08`, `L-CC-08`) | **6 (19 %)** |
-| **Usable with caveats**: a setup or process deviation, documented in the report | Grill-with-docs `S-CC-02` (pilot on the old setup), Superpowers `S-CC-03` (old setup, AI-suggested replies), Spec Kit `S-CC-04` (end cost partly estimated) and `L-CC-04` (follow-ups drafted by an AI assistant), Superpowers `S-CP-03` (first Copilot run, before the Copilot setup was final: team rules file not loaded; operator score not filled yet) | **5 (16 %)** |
+| **Reliable**: run as the protocol says | Baseline (`S-CC-01`, `L-CC-01`, `S-CP-01`), Rosetta Light (`S-CC-07`, `L-CC-07`), Rosetta Skills (`S-CC-08`, `L-CC-08` rerun of 26 Oct), Spec Kit `S-CP-04` | **8 (25 %)** |
+| **Usable with caveats**: a setup or process deviation, documented in the report | Grill-with-docs `S-CC-02` (pilot on the old setup), `S-CP-02` and `L-CP-02` (follow-ups worded by the operator's AI assistant from what the operator saw), Superpowers `S-CC-03` (old setup, AI-suggested replies) and `S-CP-03` (before the final Copilot setup; status and score not filled), Spec Kit `S-CC-04` (end cost partly estimated) and `L-CC-04` (follow-ups drafted by an AI assistant) | **7 (22 %)** |
 | **Rerun recommended**: not comparable as it is | Grill-with-docs `L-CC-02` (one hidden requirement replaced during the run), Superpowers `L-CC-03` (no final checks or score), Rosetta coding flow `S-CC-06` (ran without the one-time `/init-workspace-flow`, while Rosetta Light and Skills started from the initialized workspace) | **3 (9 %)** |
 | **No result**: the method did not reach a first "done" | AWS AI-DLC `S-CC-05` (stopped during its Construction phase) and `L-CC-05` (stopped after more than 6 h and about $160 of usage) | **2 (6 %)** |
-| **Not yet run** | Claude Code: Rosetta coding flow `L-CC-06`; Copilot CLI: 15 runs | **16 (50 %)** |
+| **Not yet run** | Claude Code: Rosetta coding flow `L-CC-06`; Copilot CLI: `L-CP-01`, `L-CP-03`, `L-CP-04`, AWS AI-DLC `S-CP-05` and `L-CP-05`, all six Rosetta runs | **12 (38 %)** |
 
 For every run so far: one run per method (no repetitions), the independent judge (code-quality scores) has not run yet, and operator scores come from different operators.
 
@@ -32,7 +32,7 @@ Each run has its own folder with the agent's diffs, its own report and a token b
 
 ## All runs
 
-Every run done so far: **16 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIMENTS.md) (8 methods × 2 tasks × 2 runners), 15 on Claude Code (2 of them AWS AI-DLC without a result) and 1 on Copilot CLI; new runs are added as rows when they are committed. Numbers come from each run's report (data block); [`summary.md`](./summary.md) and [`runs.csv`](./runs.csv) are generated from the same reports. Hidden requirements: 7 in the small task, 9 in the large one. Time is to the first "done" (T1) and to the end of the last follow-up (T2), without the time the agent waited for the operator where the report computes it.
+Every run done so far: **20 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIMENTS.md) (8 methods × 2 tasks × 2 runners), 15 on Claude Code (2 of them AWS AI-DLC without a result) and 5 on Copilot CLI; new runs are added as rows when they are committed. Numbers come from each run's report (data block); [`summary.md`](./summary.md) and [`runs.csv`](./runs.csv) are generated from the same reports. Hidden requirements: 7 in the small task, 9 in the large one. Time is to the first "done" (T1) and to the end of the last follow-up (T2), without the time the agent waited for the operator where the report computes it.
 
 | Task | Runner | Run | Method | Status | Operator | Questions asked (hidden / extra) | Hidden: asked / covered / missed | First-pass coverage | Follow-ups | Time to first "done" / total | Cost to first "done" / total | "Done when" passed | Red flags | Tests at the end | Score / merge-ready |
 | --- | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | --- |
@@ -50,12 +50,19 @@ Every run done so far: **16 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIM
 | Large | Claude Code | `L-CC-04` | Spec Kit (follow-ups drafted by the assistant) | done | Rustem Cimendur | 2 (0 / 2) | 0 / 5 / 4 | 56 % | 5 | 51 min / 1 h 25 min | $5.95 / $11.04 | 12 / 12 | 4 | pass | 3 / no |
 | Large | Claude Code | `L-CC-05` | AWS AI-DLC | no result: stopped after more than 6 h and about $160, no first "done" | Patryk | – | – | – | – | more than 6 h / – | about $160 / – | – | – | – | – |
 | Large | Claude Code | `L-CC-07` | Rosetta Light | done | Igor Solomatov | 14 (6 / 8) | 4 / 4 / 1 | 89 % | 2 | 5 h 49 min / 6 h 23 min | $53.30 / $57.65 | 12 / 12 | 0 | pass | 4 / yes |
-| Large | Claude Code | `L-CC-08` | Rosetta Skills | done | Igor Solomatov | 20 (5 / 15) | 4 / 4 / 1 | 89 % | 1 | 1 h 59 min / 4 h 3 min | $62.50 / $67.47 | 12 / 12 | 0 | pass | 5 / yes |
+| Large | Claude Code | `L-CC-08` | Rosetta Skills (rerun 26 Oct, without the `orchestration` skill) | done | Igor Solomatov | 16 (5 / 11) | 3 / 6 / 0 | 100 % | 2 | 2 h 54 min / 3 h 54 min | $23.72 / $24.73 | 12 / 12 | not filled | pass | 5 / yes |
+| Small | Copilot CLI | `S-CP-01` | Baseline (plan mode) | done | Nina Jakovljevic | 1 (1 / 0) | 1 / 4 / 2 | 71 % | 5 | 13 min / 1 h 24 min | 208.77 / 389.10 AI credits | 8 / 8 | 2 | pass | 3 / no |
+| Small | Copilot CLI | `S-CP-02` | Grill-with-docs | done | Oleksii Poletaiev | 20 (7 / 13) | 4 / 3 / 0 | 100 % | 2 | 14 min / ≈ 17 min (agent time; the run spans two days) | 393.06 / 452.33 AI credits | 8 / 8 | 1 | pass | 3.5 / yes |
 | Small | Copilot CLI | `S-CP-03` | Superpowers (before the final Copilot setup) | done | agavrilita | 4 (3 / 1) | 3 / 3 / 1 | 86 % | 2 | 1 h 47 min / 2 h 34 min | 1 406.53 / 1 975.72 AI credits | 8 / 8 | 0 | pass | not filled |
+| Small | Copilot CLI | `S-CP-04` | Spec Kit | done | Rustem Cimendur | 0 | 0 / 7 / 0 | 100 % | 4 | 33 min / 1 h 21 min | 698.70 / 870.42 AI credits | 8 / 8 | 3 | pass | 3 / yes |
+| Large | Copilot CLI | `L-CP-02` | Grill-with-docs | done | Oleksii Poletaiev | 30 (12 / 18) | 7 / 2 / 0 | 100 % | 5 | 27 min / ≈ 43 min (agent time) | 600.76 / 848.91 AI credits | 12 / 12 | 1 | pass | 3 / yes |
 
 **Reading it:**
 - **Small task:** the methods that interview before coding (Grill-with-docs, Rosetta, Rosetta Light) reached 100 % first-pass coverage and needed no follow-ups; Baseline and Spec Kit asked nothing and missed the same 3 hidden requirements. Rosetta Light and Rosetta Skills got the same top operator score as full Rosetta (5 / merge-ready) at about a quarter of its cost ($5.48 and $5.64 against $21.37). Rosetta Skills missed one hidden requirement (CSV export and webhook payloads) in its first spec and needed 1 follow-up.
 - **Large task:** `L-CC-02` is a task variant and is not comparable with the others (the operator replaced hidden key #5, see caveats). Grill-with-docs asked or handled all 9 hidden requirements but needed 2 follow-ups because the first "done" was not usable in the running app; Superpowers missed 4 of 9 at first pass and needed a second implementation round (most of its $35.11). Baseline (`L-CC-01`) asked nothing, missed 5 of 9 and needed 5 follow-ups, but was the cheapest ($7.84); 3 / no. Rosetta Light (`L-CC-07`) asked 14 questions, covered 8 of 9 at first pass, needed 2 follow-ups and got 4 / merge-ready, but ran the longest (5 h 49 min to first "done" without operator waits, 36 subagents) at $57.65. Spec Kit (`L-CC-04`) asked nothing about the hidden requirements, covered 5 of 9 on its own (56 %) and needed 5 follow-ups (who can read the birthday, audit log, age label, recommendation emails, shop time zone); it was cheap ($11.04) but not merge-ready (3 / no), with 4 red flags (dashboard schema/codegen not updated, two tests weakened, unrelated files changed). Rosetta Skills (`L-CC-08`) asked the most (20 questions, 15 outside the answer tables), covered 8 of 9 at first pass, needed 1 follow-up and got 5 / merge-ready, but was by far the most expensive run so far ($67.47).
+
+- **Copilot CLI (5 runs, AI credits, not comparable with Claude Code in cost):** every method reached at least 71 % first-pass coverage on the small task, but every run needed follow-ups, mostly because the first "done" did not work on the running stack (migrations not applied, a dashboard Save button that stayed disabled). Spec Kit covered all 7 hidden requirements without asking (its spec wrote them as assumptions) but cost the most of the small runs (870 credits); Grill-with-docs asked the most and was the cheapest (452). On the large task Grill-with-docs asked or covered all 9 hidden requirements (the first large run to do so on the key as written), then needed 5 follow-ups, one a real logic bug (adults blocked until their birthday in the current year).
+- **`L-CC-08` was re-run on 26 Oct** without the `orchestration` skill (the first run used it, unlike Rosetta Light): $24.73 instead of $67.47, all hidden requirements covered, 2 follow-ups, 5 / merge-ready. The detail table below still shows the first run.
 
 ## Details per task
 
@@ -126,7 +133,7 @@ Every run done so far: **16 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIM
 
 ## Next
 
-1. Claude Code: Rosetta coding flow large (`L-CC-06`), from the initialized workspace. AWS AI-DLC: run reports for `S-CC-05` and `L-CC-05` (what happened, cost), no further attempt planned.
-2. Reruns: Rosetta coding flow small (`S-CC-06`) with `/init-workspace-flow`; Grill-with-docs large (`L-CC-02`) on the original hidden key; Superpowers large (`L-CC-03`) or its missing final checks and score; Rosetta Skills (Igor).
-3. Copilot CLI: one pilot, then the remaining 15 runs (methods/<method>.md, parts 4–6).
+1. Claude Code: Rosetta coding flow large (`L-CC-06`), from the initialized workspace. AWS AI-DLC: run reports for `S-CC-05` and `L-CC-05`.
+2. Reruns: Rosetta coding flow small (`S-CC-06`) with `/init-workspace-flow`; Grill-with-docs large (`L-CC-02`) on the original hidden key; Superpowers large (`L-CC-03`) or its missing final checks and score.
+3. Copilot CLI, 11 runs left: Baseline, Superpowers and Spec Kit on the large task; AWS AI-DLC on both tasks; all six Rosetta runs. `S-CP-03` needs its status and score.
 4. Judge scores; repetitions.
