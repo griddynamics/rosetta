@@ -33,7 +33,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 6 | `S-CC-06` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Flow | `runs/small-storage-conditions/claude-code/rosetta-flow/` | done |
 | 7 | `S-CC-07` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Light | `runs/small-storage-conditions/claude-code/rosetta-light/` | done |
 | 8 | `S-CP-01` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Baseline | `runs/small-storage-conditions/copilot/baseline/` | planned |
-| 9 | `S-CP-02` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Grill-with-docs | `runs/small-storage-conditions/copilot/grill-with-docs/` | planned (Copilot: skills.sh installer) |
+| 9 | `S-CP-02` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Grill-with-docs | `runs/small-storage-conditions/copilot/grill-with-docs/` | done (2026-10-27; 2 follow-ups, both found by the operator on the running stack; run spans two days, agent time ≈ 17 min, see report section 8) |
 | 10 | `S-CP-03` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Superpowers | `runs/small-storage-conditions/copilot/superpowers/` | planned |
 | 11 | `S-CP-04` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Spec Kit | `runs/small-storage-conditions/copilot/spec-kit/` | planned |
 | 12 | `S-CP-05` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | AWS AI-DLC | `runs/small-storage-conditions/copilot/aws-ai-dlc/` | planned (Copilot: via repository files) |
