@@ -255,8 +255,8 @@ Evidence: one red flag, given by the operator (timeline rows 20–26). The other
   - Grill-with-docs on Copilot is installed with its own installer (`npx skills@latest add mattpocock/skills`, `skills@1.7.4`, `mattpocock/skills` @ `5beb35b`, all 38 skills, project scope, `.agents/skills`), not the 13-skill Claude Code plugin; `/setup-matt-pocock-skills` wrote `AGENTS.md` (not `CLAUDE.md`) and `docs/agents/*`. Copilot built-in plugin `computer-use 0.1.94` was loaded (runner default, not listed by `plugin list`).
   - New answers by the operator (not in the tables), to be added to BENCHMARKS.md §4: the storefront label is a translated UI message (round 2, Q8); a translation may exist without a base value (Q9); no product-duplication feature, out of scope (Q12, Q16); CSV export has one base-value column, no translations (Q14); line breaks are not rejected but replaced with a space, then trimmed and limited (Q17, Q18); glossary term "Storage conditions" (Q19).
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
-- Strong point of the method in this run: (to be given by the operator)
-- Weak point of the method in this run: (to be given by the operator)
+- Strong point of the method in this run: the interview (19 questions in 6 rounds) covered all 7 hidden requirements before any code was written, and the agent corrected its own assumptions from the code (Saleor has no product-duplication feature; CSV export has no translations).
+- Weak point of the method in this run: it said "done" without checking the running stack: the migration was not applied and the dashboard Save button did not work, and nothing was checked in a browser. The 19 questions are also a noticeable load on the operator.
 
 ## Appendix A. Raw `/usage` output
 
