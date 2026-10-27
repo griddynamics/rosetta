@@ -32,7 +32,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 5 | `S-CC-05` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | AWS AI-DLC | `runs/small-storage-conditions/claude-code/aws-ai-dlc/` | stopped by the operator during Construction (incomplete: no T1, partial diff, see report section 8) |
 | 6 | `S-CC-06` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Flow | `runs/small-storage-conditions/claude-code/rosetta-flow/` | done |
 | 7 | `S-CC-07` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Light | `runs/small-storage-conditions/claude-code/rosetta-light/` | done |
-| 8 | `S-CP-01` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Baseline | `runs/small-storage-conditions/copilot/baseline/` | planned |
+| 8 | `S-CP-01` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Baseline | `runs/small-storage-conditions/copilot/baseline/` | done |
 | 9 | `S-CP-02` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Grill-with-docs | `runs/small-storage-conditions/copilot/grill-with-docs/` | planned (Copilot: skills.sh installer) |
 | 10 | `S-CP-03` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Superpowers | `runs/small-storage-conditions/copilot/superpowers/` | planned |
 | 11 | `S-CP-04` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Spec Kit | `runs/small-storage-conditions/copilot/spec-kit/` | planned |

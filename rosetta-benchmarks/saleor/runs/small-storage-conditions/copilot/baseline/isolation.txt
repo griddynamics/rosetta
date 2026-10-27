@@ -1,0 +1,70 @@
+COPILOT_HOME=/Users/njakovljevic/saleor-benchmark/envs/baseline/copilot
+GitHub Copilot CLI 1.0.101.
+Run 'copilot update' to check for updates.
+v24.22.1
+autoUpdate=false
+memory=false
+ide.autoConnect=false
+model=gpt-5.6-terra
+effortLevel=medium
+continueOnAutoMode=false
+sandbox.enabled=false
+ignoredSkillsLocations=/Users/njakovljevic/.agents/skills
+ignoredSkillsLocations=/Users/njakovljevic/.claude/skills
+ignoredSkillsLocations=/Users/njakovljevic/.github/skills
+subagents.agents.explore.model=inherit
+subagents.agents.explore.effortLevel=inherit
+subagents.agents.explore.contextTier=inherit
+subagents.agents.task.model=inherit
+subagents.agents.task.effortLevel=inherit
+subagents.agents.task.contextTier=inherit
+subagents.agents.general-purpose.model=inherit
+subagents.agents.general-purpose.effortLevel=inherit
+subagents.agents.general-purpose.contextTier=inherit
+subagents.agents.code-review.model=inherit
+subagents.agents.code-review.effortLevel=inherit
+subagents.agents.code-review.contextTier=inherit
+subagents.agents.research.model=inherit
+subagents.agents.research.effortLevel=inherit
+subagents.agents.research.contextTier=inherit
+subagents.agents.security-review.model=inherit
+subagents.agents.security-review.effortLevel=inherit
+subagents.agents.security-review.contextTier=inherit
+subagents.disabledSubagents=rubber-duck
+disableAllHooks=true
+defaultMode=plan
+dynamicRetrieval.skills=false
+subagents: {"agents": {"explore": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "task": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "general-purpose": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "code-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "research": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "security-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}}, "disabledSubagents": ["rubber-duck"]}
+No plugins installed.
+
+Use 'copilot plugin install <source>' to install a plugin.
+Built-in plugins:
+  • browser-use (v0.0.4) [disabled]
+Builtin skills:
+  customize-cloud-agent - Skill for customizing the Copilot cloud agent (formerly known as Copilot coding agent) environment, including copilot-setup-steps.yml configuration, preinstalling tools and dependencies, runners, and settings. Use when the user mentions copilot-setup-steps, copilot setup steps, or wants to configure the cloud agent environment.
+  github-pr-media - Upload an image or video to GitHub's user attachments API and embed it in a pull request description or comment. Use when asked to add screenshots, diagrams, recordings, or other media to a PR or GitHub comment.
+
+Builtin servers:
+  github-mcp-server (http)
+
+Repository instructions:
+  • team-rules.instructions.md [external]
+      from /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md
+(no inline hooks)
+sandbox.enabled=false
+copilot-rules: team-rules.instructions.md = baseline rules
+saleor: CLAUDE.md = baseline rules
+saleor: copilot-instructions.md = baseline rules
+saleor: ai-file: .github/copilot-instructions.md
+saleor: ai-file: CLAUDE.md
+saleor-dashboard: CLAUDE.md = baseline rules
+saleor-dashboard: copilot-instructions.md = baseline rules
+saleor-dashboard: ai-file: .github/copilot-instructions.md
+saleor-dashboard: ai-file: CLAUDE.md
+react-storefront: CLAUDE.md = baseline rules
+react-storefront: copilot-instructions.md = baseline rules
+react-storefront: ai-file: .github/copilot-instructions.md
+react-storefront: ai-file: CLAUDE.md
+saleor: baseline-v1 
+saleor-dashboard: baseline-v1 
+react-storefront: baseline-v1 
