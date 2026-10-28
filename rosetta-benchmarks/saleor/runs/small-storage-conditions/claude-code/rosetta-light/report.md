@@ -240,6 +240,7 @@ TIME USED EVERYWHERE IN THIS REPORT IS FREE OF THE OPERATOR'S WAITING GAPS: firs
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): `<n/a / no / yes: when, why, outcome>`
 - Strong point of the method in this run: mostly autonomous execution and proper decisions. In addition (15:50, spec): it did not restart the local API blindly; it listed the restart as an assumption (A3: the API needs a restart after the migration, and how it is started is not verified) and asked first.
 - Weak point of the method in this run: it did not ask about three hidden questions (#3 per product or per variant, #5 existing products, #7 who can edit and read); it settled them by following existing patterns, and they were handled correctly (hidden-question check at T1).
+- Dashboard type check (`pnpm run check-types`, run by the assistant after the run): passes. Strong point: the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right.
 
 ## Appendix A. Raw `/cost` output
 

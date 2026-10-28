@@ -248,6 +248,7 @@ Evidence: `<one line per ticked item>`
 - Strong point of the method in this run: the result works and is thorough: `converge` kept finding real gaps (missing migration, translation webhook keys, leftover test data) until all 3 repos were consistent with the spec; all 7 hidden requirements match the answer key at the end.
 - Weak point of the method in this run: a lot of manual commands and a long run. `/speckit-specify` asked nothing and assumed 500 chars / not translatable / no CSV, so 3 of 7 hidden requirements needed follow-ups; the operator drove 14 method commands (specify, plan, tasks, 4× implement, 7× converge) plus 3 follow-ups; 1 h 45 min to the first "done" and 3 h 23 min in total (T0 11:24 → T2 14:47), ≈ $12.65.
 - Operator score and merge-ready, why: 3 (merge-ready not stated). Works end to end (8/8), but very long (3 h 23 min) and with a lot of operator effort: 14 method commands and 3 follow-ups for the hidden requirements `specify` did not ask about.
+- Dashboard type check (`pnpm run check-types`, run by the assistant after the run): passes. Strong point: the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right.
 
 ## Appendix A. Raw `/cost` output
 

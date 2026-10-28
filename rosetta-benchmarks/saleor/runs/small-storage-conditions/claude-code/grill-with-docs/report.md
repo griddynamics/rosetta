@@ -42,7 +42,7 @@ method_steps: 1
 questions_total: 14
 questions_hidden: 5
 questions_extra: 9
-followups: 0
+followups: 1
 retries: 0
 # Hidden questions (section 3). asked + covered + missed = hidden_total
 hidden_total: 7
@@ -59,11 +59,11 @@ operator_score: 4          # 1–5, anchors in templates/README.md
 operator_merge_ready: yes  # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total: 64.6               # diff score: total + bonus, from the totals script
+judge_total: 66.0               # diff score: total + bonus, from the totals script
 judge_bonus: 0               # bonus points for fixed bugs and related improvements
 judge_blockers: 2            # number of blocker findings
-judge_majors: 2              # number of major findings
-judge_minors: 0              # number of minor findings
+judge_majors: 0              # number of major findings
+judge_minors: 1              # number of minor findings
 judge_strengths: 0           # number of strengths
 judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
@@ -266,6 +266,7 @@ Evidence: none ticked. Checked: no debug prints, TODOs, `skip`/`xfail` in the 3 
   - One tool-name error (`bash` instead of `Bash`), recovered.
 - Strong point of the method in this run: a short, cheap interview (2 rounds, 14 questions, ~11 min, ~1% of tokens) asked 5 of 7 hidden questions; the other 2 were handled correctly. 8/8 Done when checks, 0 follow-ups.
 - Weak point of the method in this run: the interview's own recommendations would have been wrong on hidden 6 (it proposed CSV export out of scope) and close-but-off on hidden 1 (255 chars), so the result depends on the operator's answers. The method adds nothing to implementation: 95% of tokens, 167 Bash calls, files edited through the shell. The glossary went into an upstream file (`saleor-dashboard/CONTEXT.md`).
+- Dashboard type check (`pnpm run check-types`, run by the assistant after the run): fails (`ProductDetailsForm.test.tsx(108,11)`: TS2353, `'attributes' does not exist in type 'ProductErrorFragment'`). +1 follow-up (known benchmark deficiency, BENCHMARKS.md section 5).
 
 ## Appendix A. Raw `/cost` output
 

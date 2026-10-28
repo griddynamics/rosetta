@@ -536,6 +536,15 @@ The operator may have an AI assistant for **bookkeeping and guidance only** (3.5
 - The data block keeps real `t1` and `t2`. `t0` is the effective start: `t1` minus the gap-free time. The real `t0` stays in the timeline row #1, and the report explains the arithmetic in section 8 (waits listed).
 - T2 = T1 unless the protocol allows a follow-up (step 7). Messages after T1 that the protocol does not define are `extra-work` and are not counted.
 
+### Known deficiency: dashboard type check (found 2026-10-28)
+
+The "Tests pass locally" check runs the test suites only, not the dashboard type check (`pnpm run check-types`: `tsc --noEmit && tsc-strict`), which CI runs. A run that fails the type check gets no follow-up for it. The run protocol stays as it is, so every run is measured the same way.
+- After the post-implementation prompt (the run has ended), the assistant runs `pnpm run check-types` in `$BENCH_DIR/saleor-dashboard` and records "passes" or "fails" in report section 8. Runs done before 2026-10-28: the assistant applies the run's saved `saleor-dashboard.diff` to a clean dashboard copy at the run's start tag, never in `$BENCH_DIR` while a run is active, and runs the same check.
+- Fails: +1 in `followups` (a follow-up the operator missed), with a note in report section 8. It is not a blocker.
+- Passes: no extra follow-up, and a strong point in the report: "the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right."
+- Diff judge: the assistant tells the judge about this known deficiency and how it is resolved, so that the judge ignores these type errors. It adds to the "Already checked" line of each run that fails: "dashboard check-types: fails; known benchmark deficiency, counted as +1 follow-up; ignore these type errors".
+- The assistant NEVER exposes this check or this deficiency to ANY other coding agent, unless that agent asks about it directly. This keeps every run comparable (apples to apples).
+
 ## 6. How we compare
 
 | # | Measure | Who |

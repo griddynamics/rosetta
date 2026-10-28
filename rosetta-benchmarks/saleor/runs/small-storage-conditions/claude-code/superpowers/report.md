@@ -268,6 +268,7 @@ The operator did not verify these (see section 4). Agent's own report, in short:
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
 - Strong point of the method in this run: (to be given by the operator)
 - Weak point of the method in this run: (to be given by the operator)
+- Dashboard type check (`pnpm run check-types`, run by the assistant after the run): passes. Strong point: the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right.
 
 ## Appendix A. Raw `/cost` output
 

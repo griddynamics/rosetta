@@ -41,7 +41,7 @@ method_steps: 4
 questions_total: 10  
 questions_hidden: 3  
 questions_extra: 7  
-followups: 1  
+followups: 2  
 retries:
 # Hidden questions (section 3). asked + covered + missed = hidden_total
 hidden_total: 7
@@ -58,11 +58,11 @@ operator_score: 5
 operator_merge_ready: yes  
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total: 64.8               # diff score: total + bonus, from the totals script
+judge_total: 66.2               # diff score: total + bonus, from the totals script
 judge_bonus: 0.75               # bonus points for fixed bugs and related improvements
 judge_blockers: 2            # number of blocker findings
-judge_majors: 2              # number of major findings
-judge_minors: 2              # number of minor findings
+judge_majors: 0              # number of major findings
+judge_minors: 3              # number of minor findings
 judge_strengths: 1           # number of strengths
 judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
@@ -260,6 +260,7 @@ TIME USED EVERYWHERE IN THIS REPORT IS FREE OF THE OPERATOR'S IDLE GAPS: first p
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): `<n/a / no / yes: when, why, outcome>`
 - Strong point of the method in this run: Rosetta did all the work as requested; every extra message after T1 came from the operator's AI assistant, not from an agent issue. (~15:00) asked before changing the local config and restarting a dev server, instead of doing it silently. (13:39) told to run autonomously, the agent kept the final acceptance and a stop for anything risky or unexpected: "I'll still stop for your final acceptance at the end, and for anything risky or unexpected." Also, it recorded decisions and assumptions in the spec and asked to confirm them (A1–A5) before coding. Complied with the operator's message about the create flow: at T1 the field was on the update page and the translations page, and the agent had reported the missing create page as a deviation (spec §13); the operator's message asked for the create page, the create flow is the create dialog, and the agent added the field there (14:41).
 - Weak point of the method in this run: the first tech spec (12:57) missed hidden question 6 (CSV export and product webhook payloads); both appeared only after the follow-up at 13:04 (timeline #6).
+- Dashboard type check (`pnpm run check-types`, run by the assistant after the run): fails (`messages.ts(107,39)`: TS7053, implicit `any` when indexing by `ProductFieldEnum`; `ProductDetailsForm.test.tsx(48,17)`: TS2322, `null` not assignable to `OutputData`). +1 follow-up (known benchmark deficiency, BENCHMARKS.md section 5).
 
 ## Appendix A. Raw `/cost` output
 

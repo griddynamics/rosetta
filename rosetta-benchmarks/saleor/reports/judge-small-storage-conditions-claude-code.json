@@ -989,22 +989,12 @@
           "id": "rosetta-skills-3",
           "metric": "0.2",
           "type": "negative",
-          "level": "major",
+          "level": "minor",
           "evidence": [
-            {
-              "kind": "base",
-              "loc": "saleor-dashboard:src/products/components/ProductExportDialog/messages.ts:L107-107",
-              "quote": "return (field: ProductFieldEnum) => messages[field];"
-            },
             {
               "kind": "base",
               "loc": "saleor-dashboard:src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx:L592-597",
               "quote": "fields={[\n          ProductFieldEnum.DESCRIPTION,\n          ProductFieldEnum.NAME,\n          ProductFieldEnum.PRODUCT_MEDIA,\n          ProductFieldEnum.VARIANT_MEDIA,\n        ]}"
-            },
-            {
-              "kind": "base",
-              "loc": "saleor-dashboard:package.json:L24-24",
-              "quote": "\"check-types:src\": \"tsc --noEmit && tsc-strict\","
             },
             {
               "kind": "new",
@@ -1012,9 +1002,9 @@
               "quote": "STORAGE_CONDITIONS = 'STORAGE_CONDITIONS',"
             }
           ],
-          "grounding": "CHECKLIST: backend adds ProductFieldEnum.STORAGE_CONDITIONS (hidden answer 6); the dashboard label map and export field list are not updated. Code facts: the base map in messages.ts is an untyped object literal with exactly the 12 base enum keys, read at L107 as messages[field]; the file has no // @ts-strict-ignore; tsconfig.json has strict:false with the typescript-strict-plugin entry (no paths/exclude), so the second half of check-types:src (tsc-strict) checks this file with noImplicitAny and the 13th member is an implicit-any index (TS7053); CI runs `pnpm run check-types` (.github/workflows/main.yml L31-32). The file is live: ProductExportDialogInfo.tsx L35/L147/L247 imports and calls it, used from ProductList.",
-          "why": "positive: none at runtime — every getFieldLabel call takes field from unchanged hardcoded lists (ProductExportDialogInfo.tsx L149, L196-204, L535-543), so the missing key is never read. negative: regenerated enum member missing from the exhaustive label map; export option not offered.",
-          "impact": "The CI check-types job fails on messages.ts (reviewer cannot merge); staff cannot export the column from the dashboard. No runtime break."
+          "grounding": "CHECKLIST: backend adds ProductFieldEnum.STORAGE_CONDITIONS (hidden answer 6, CSV export); the consumer dashboard export dialog's field list is not updated, so the option is not offered. The missing label in messages.ts (TS7053 under tsc-strict in check-types:src) is treated as fixed by a virtual follow-up: operator decision, benchmark gap, recorded as +1 follow-up by the assistant; it is no longer rated.",
+          "why": "positive: no runtime break; every getFieldLabel call takes field from unchanged hardcoded lists (ProductExportDialogInfo.tsx L149, L196-204, L535-543). negative: the export dialog does not offer the new column.",
+          "impact": "Staff cannot select the storage conditions column in the dashboard CSV export; only direct API callers can export it."
         },
         {
           "id": "rosetta-skills-4",
@@ -1083,37 +1073,6 @@
           "grounding": "Concrete pre-existing failure: raw Django codes such as 'max_length' are not members of the bulk translate error enums, so over-long values failed the whole response.",
           "why": "positive: root-cause one-line fix via the existing helper, covered by a REJECT_FAILED_ROWS test. negative: shared code touched, minimally.",
           "impact": "Bulk translate mutations return per-row INVALID errors instead of a protocol-level error."
-        },
-        {
-          "id": "rosetta-skills-7",
-          "metric": "4.4",
-          "type": "negative",
-          "level": "major",
-          "evidence": [
-            {
-              "kind": "new",
-              "loc": "saleor-dashboard:src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx",
-              "quote": "data={{ description: null, name: \"Milk\", rating: null, storageConditions }}"
-            },
-            {
-              "kind": "new",
-              "loc": "saleor-dashboard:src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx",
-              "quote": "import Wrapper from \"@test/wrapper\";\nimport { fireEvent, render, screen } from \"@testing-library/react\";"
-            },
-            {
-              "kind": "base",
-              "loc": "saleor-dashboard:src/products/components/ProductDetailsForm/ProductDetailsForm.tsx:L18-18",
-              "quote": "description: OutputData;"
-            },
-            {
-              "kind": "base",
-              "loc": "saleor-dashboard:package.json:L24-24",
-              "quote": "\"check-types:src\": \"tsc --noEmit && tsc-strict\","
-            }
-          ],
-          "grounding": "Concrete failure in the code: the new test file has no `// @ts-strict-ignore` (it starts with the imports quoted), and base tests are strict-checked unless they opt out (25 of 944 base *.test.ts(x) files carry the comment; tsconfig.json typescript-strict-plugin has no paths/exclude). Under tsc-strict (strictNullChecks) `description: null` is not assignable to `description: OutputData` (TS2322), so check-types:src fails; CI runs it (.github/workflows/main.yml L31-32).",
-          "why": "positive: the tests cover the value, the 250 maxlength, the change name and staging hiding. negative: the fixture passes null where the form requires OutputData, so the file does not pass the repo's strict type check.",
-          "impact": "The dashboard CI check-types job fails on the run's own test, independently of rosetta-skills-3 (reviewer cannot merge)."
         }
       ],
       "values": {
@@ -1124,7 +1083,7 @@
           ]
         },
         "0.2": {
-          "v": 4,
+          "v": 6,
           "findings": [
             "rosetta-skills-3"
           ]
@@ -1200,10 +1159,8 @@
           ]
         },
         "4.4": {
-          "v": 4,
-          "findings": [
-            "rosetta-skills-7"
-          ]
+          "v": "-",
+          "checked": "Checked test design: tests live next to the changed modules with repo fixtures. The new ProductDetailsForm.test.tsx fixture `description: null` (TS2322 under tsc-strict in check-types:src) is treated as fixed by a virtual follow-up: operator decision, benchmark gap, recorded as +1 follow-up by the assistant; it is no longer rated. No other 4.4 finding."
         },
         "4.5": {
           "v": "-",
@@ -1292,7 +1249,7 @@
       ],
       "merge_advice": {
         "advice": "no",
-        "reason": "Untrimmed storage (extra answer 6) and non-nullable column (extra answer 1); dashboard type check fails twice: the unhandled export enum value (rosetta-skills-3) and its own test fixture (rosetta-skills-7)."
+        "reason": "Untrimmed storage (extra answer 6) and non-nullable column (extra answer 1); export column not offered in the dashboard (rosetta-skills-3)."
       },
       "objections": [
         {
@@ -1303,18 +1260,18 @@
         }
       ],
       "totals": {
-        "total": 64.8,
+        "total": 66.2,
         "bonus": 0.75,
         "blockers": 2,
-        "majors": 2,
-        "minors": 2,
+        "majors": 0,
+        "minors": 3,
         "strengths": 1,
         "categories": {
-          "H0": 50.0,
+          "H0": 60.0,
           "H1": 44.2,
           "H2": 70.0,
           "H3": 70.0,
-          "H4": 62.9,
+          "H4": 68.0,
           "H5": 70.0,
           "H6": 70.0,
           "H7": 70.0,
@@ -1406,22 +1363,12 @@
           "id": "grill-with-docs-3",
           "metric": "0.2",
           "type": "negative",
-          "level": "major",
+          "level": "minor",
           "evidence": [
-            {
-              "kind": "base",
-              "loc": "saleor-dashboard:src/products/components/ProductExportDialog/messages.ts:L107-107",
-              "quote": "return (field: ProductFieldEnum) => messages[field];"
-            },
             {
               "kind": "base",
               "loc": "saleor-dashboard:src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx:L592-597",
               "quote": "fields={[\n          ProductFieldEnum.DESCRIPTION,\n          ProductFieldEnum.NAME,\n          ProductFieldEnum.PRODUCT_MEDIA,\n          ProductFieldEnum.VARIANT_MEDIA,\n        ]}"
-            },
-            {
-              "kind": "base",
-              "loc": "saleor-dashboard:package.json:L24-24",
-              "quote": "\"check-types:src\": \"tsc --noEmit && tsc-strict\","
             },
             {
               "kind": "new",
@@ -1429,45 +1376,9 @@
               "quote": "STORAGE_CONDITIONS = 'STORAGE_CONDITIONS',"
             }
           ],
-          "grounding": "CHECKLIST: backend adds ProductFieldEnum.STORAGE_CONDITIONS (hidden answer 6, CSV export); the consumer dashboard label map and export field list are not updated. Code facts: the base map in messages.ts is an untyped object literal with exactly the 12 base enum keys, read at L107 as messages[field]; the file has no // @ts-strict-ignore; tsconfig.json has strict:false with the typescript-strict-plugin entry (no paths/exclude), so the second half of check-types:src (tsc-strict) checks this file with noImplicitAny and the 13th member is an implicit-any index (TS7053); CI runs `pnpm run check-types` (.github/workflows/main.yml L31-32). The file is live: ProductExportDialogInfo.tsx L35/L147/L247 imports and calls it, used from ProductList.",
-          "why": "positive: none at runtime — every getFieldLabel call takes field from unchanged hardcoded lists (ProductExportDialogInfo.tsx L149, L196-204, L535-543), so the missing key is never read. negative: the regenerated enum gains a member that the exhaustive label map lacks, and the export dialog does not offer the column.",
-          "impact": "The CI check-types job fails on messages.ts (reviewer cannot merge); staff cannot export the column from the dashboard. No runtime break."
-        },
-        {
-          "id": "grill-with-docs-5",
-          "metric": "4.4",
-          "type": "negative",
-          "level": "major",
-          "evidence": [
-            {
-              "kind": "new",
-              "loc": "saleor-dashboard:src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx",
-              "quote": "props: Partial<React.ComponentProps<typeof ProductDetailsForm>> = {},"
-            },
-            {
-              "kind": "new",
-              "loc": "saleor-dashboard:src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx",
-              "quote": "code: ProductErrorCode.REQUIRED,\n          field: \"storageConditions\",\n          message: \"required\",\n          attributes: null,"
-            },
-            {
-              "kind": "base",
-              "loc": "saleor-dashboard:src/products/components/ProductDetailsForm/ProductDetailsForm.tsx:L27-27",
-              "quote": "errors: ProductErrorFragment[];"
-            },
-            {
-              "kind": "base",
-              "loc": "saleor-dashboard:src/graphql/types.generated.ts:L12596-12596",
-              "quote": "export type ProductErrorFragment = { __typename: 'ProductError', code: ProductErrorCode, field: string | null, message: string | null };"
-            },
-            {
-              "kind": "base",
-              "loc": "saleor-dashboard:package.json:L24-24",
-              "quote": "\"check-types:src\": \"tsc --noEmit && tsc-strict\","
-            }
-          ],
-          "grounding": "Concrete failure in the code: the new test passes an object literal with `attributes` as an element of `errors: ProductErrorFragment[]`; ProductErrorFragment has no `attributes` (that field belongs to ProductErrorWithAttributesFragment, types.generated.ts L12598), so the excess-property check fails (TS2353) already in plain `tsc --noEmit`, the first half of check-types:src (package.json L24), which CI runs (.github/workflows/main.yml L31-32). Jest does not type-check, so the test itself still runs.",
-          "why": "positive: the test covers that an API error on storageConditions is shown under the field. negative: the error fixture uses the wrong fragment shape, so the test file does not type-check.",
-          "impact": "The dashboard CI check-types job fails on the run's own test (reviewer cannot merge)."
+          "grounding": "CHECKLIST: backend adds ProductFieldEnum.STORAGE_CONDITIONS (hidden answer 6, CSV export); the consumer dashboard export dialog's field list is not updated, so the option is not offered. The missing label in messages.ts (TS7053 under tsc-strict in check-types:src) is treated as fixed by a virtual follow-up: operator decision, benchmark gap, recorded as +1 follow-up by the assistant; it is no longer rated.",
+          "why": "positive: no runtime break; every getFieldLabel call takes field from unchanged hardcoded lists (ProductExportDialogInfo.tsx L149, L196-204, L535-543). negative: the export dialog does not offer the new column.",
+          "impact": "Staff cannot select the storage conditions column in the dashboard CSV export; only direct API callers can export it."
         }
       ],
       "values": {
@@ -1476,7 +1387,7 @@
           "checked": "Checked backend siblings: model + migration (both models), ProductInput + cleaner on create/update/bulk create, types, get_translated_keys updated, PRODUCT_FIELDS, CSV mapping + enum; dashboard form/types/handlers/translation page; storefront fragment + mapper."
         },
         "0.2": {
-          "v": 4,
+          "v": 6,
           "findings": [
             "grill-with-docs-3"
           ]
@@ -1550,10 +1461,8 @@
           "checked": "Checked assertions: tests assert API response and refreshed DB state, row errors with path/code, rendered HTML. Strong enough."
         },
         "4.4": {
-          "v": 4,
-          "findings": [
-            "grill-with-docs-5"
-          ]
+          "v": "-",
+          "checked": "Checked test design: tests live next to the changed modules with repo fixtures. The new ProductDetailsForm.test.tsx error fixture with `attributes: null` typed as ProductErrorFragment (TS2353 in check-types:src) is treated as fixed by a virtual follow-up: operator decision, benchmark gap, recorded as +1 follow-up by the assistant; it is no longer rated. No other 4.4 finding."
         },
         "4.5": {
           "v": "-",
@@ -1635,7 +1544,7 @@
       "bonus": [],
       "merge_advice": {
         "advice": "no",
-        "reason": "Breaking productTranslate input change against extra answer 11 (grill-with-docs-1), hand-edited invalid staging schema against extra answer 25 (grill-with-docs-2), and two dashboard type-check failures: the unhandled export enum value (grill-with-docs-3) and its own test fixture (grill-with-docs-5)."
+        "reason": "Breaking productTranslate input change against extra answer 11 (grill-with-docs-1), hand-edited invalid staging schema against extra answer 25 (grill-with-docs-2); export column not offered in the dashboard (grill-with-docs-3)."
       },
       "objections": [
         {
@@ -1658,18 +1567,18 @@
         }
       ],
       "totals": {
-        "total": 64.6,
+        "total": 66.0,
         "bonus": 0,
         "blockers": 2,
-        "majors": 2,
-        "minors": 0,
+        "majors": 0,
+        "minors": 1,
         "strengths": 0,
         "categories": {
-          "H0": 55.0,
+          "H0": 65.0,
           "H1": 57.1,
           "H2": 70.0,
           "H3": 55.0,
-          "H4": 64.9,
+          "H4": 70.0,
           "H5": 70.0,
           "H6": 70.0,
           "H7": 70.0,
