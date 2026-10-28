@@ -8,9 +8,9 @@ method: superpowers
 method_version: v6.4.2
 flow: brainstorming > writing-plans > subagent-driven-development (re-run for the follow-ups)
 entry_command: /superpowers:brainstorming
-runner: copilot-cli
+runner: copilot
 runner_version: 1.0.101
-setup_mark: copilot-cli
+setup_mark: official
 model: gpt-5.6-terra
 effort: medium
 start_tag: superpowers-v1
@@ -27,13 +27,13 @@ t1_output_tokens: 194600
 t1_cache_read_tokens: 39000000
 t1_cache_write_tokens: 825500
 t1_cost_usd:
-t1_premium_requests: 1406.53   # AI Credits (AIC) from Copilot CLI /usage; this version reports AIC, not premium requests
+t1_ai_credits: 1406.53   # AI credits from /usage at T1; the session's premium-request counter was 5 (log)
 t2_input_tokens: 55600000
 t2_output_tokens: 255300
 t2_cache_read_tokens: 52500000
 t2_cache_write_tokens: 1400000
 t2_cost_usd:
-t2_premium_requests: 1975.72   # AI Credits (AIC) from Copilot CLI /usage; this version reports AIC, not premium requests
+t2_ai_credits: 1975.72   # AI credits from /usage at T2; the session's premium-request counter was 13 (log)
 context_end_pct: 77
 subagents: 30
 # Counts, taken from the timeline (section 2)
@@ -292,7 +292,7 @@ GitHub Copilot • GPT-5.6 Terra · 209k/272k tokens (77%)
   Buffer          13.6k  (5%)
 ```
 
-**Usage by model** (Claude Code: from `tokens.md`, see below; Copilot: from the runner, if it shows it):
+**Usage by model** (`/usage` at T2, as the runner shows it; the log split per model is in `tokens.md`, see below; both runners):
 
 | Model | Role (main / subagent) | Input | Output | Cache read | Cache write | Cost, USD |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
@@ -300,11 +300,11 @@ GitHub Copilot • GPT-5.6 Terra · 209k/272k tokens (77%)
 | GPT-5.3-Codex | subagents (26: 11 implementers, 13 reviewers, 3 task agents) | 34.0m | 187.7k | 32.3m | not reported | n/a: 1131.38 AIC |
 | Total | | 55.6m | 255.3k | 52.5m | 1.4m | n/a: 1975.72 AIC |
 
-Cumulative session values at T2 from `/usage` (input includes the cached part; the runner reports cache reads as "cached" and cache writes as "written"). The runner reports AI Credits (AIC), not USD. Model split of the 30 subagents from the session log: `gpt-5.3-codex` 26, `gpt-5.6-terra` 4. At T1 the session showed 1406.53 AIC (GPT-5.3-Codex 894.87, GPT-5.6 Terra 511.66).
+Cumulative session values at T2 from `/usage` (input includes the cached part; the runner reports cache reads as "cached" and cache writes as "written"). The runner reports AI Credits (AIC), not USD; `t1_ai_credits` and `t2_ai_credits` in the data block are its totals (1406.53 and 1975.72). The session's premium-request counter, from the session log, was 5 at T1 and 13 at T2. Model split of the 30 subagents from the session log: `gpt-5.3-codex` 26, `gpt-5.6-terra` 4. At T1 the session showed 1406.53 AIC (GPT-5.3-Codex 894.87, GPT-5.6 Terra 511.66).
 
 Raw `/usage` and `/context` output at T1 and T2: in the block above, next to the real size numbers. They were moved out of Appendix A on purpose, so they stay together.
 
-**Claude Code: token breakdown + raw session logs:** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Use its "By model" table for the table above.
+**Token breakdown + raw session logs (both runners):** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Here it was run on `session/events.jsonl` with `--t1 2026-10-22T22:30`. It reads the whole session log, from the task prompt to the end of the post-implementation prompt, so its totals (input 1,734,011 not counting cached tokens, output 254,357, cache read 52,851,801, cache write 1,638,490; 14 premium requests; 2037.7 AIC) are larger than the T2 values above by the post prompt (about 62 AIC). Its input column does not count cached tokens, the runner's `/usage` does. The data block uses the `/usage` figures, as BENCHMARKS.md step 10 says.
 
 
 ## 3. Hidden questions
@@ -385,7 +385,7 @@ Evidence: none ticked (operator: no red flags)
 
 - [x] `<repo>.diff` for every changed repo (repos: `saleor`, `saleor-dashboard`, `react-storefront`)
 - [x] `agent-report.md`: the agent's own report (post-implementation prompt)
-- [ ] `tokens.md` (Claude Code): not applicable to Copilot (the method file: no `session-usage.py` for Copilot). The raw Copilot session log is in `session/` (git-ignored)
+- [x] `tokens.md` (both runners): token breakdown from `session-usage.py`. Raw session log stays local in `session/` (git-ignored)
 - [x] Section 2 (instead of Appendix A): the real size numbers of the change, raw `/usage` (Copilot has no `/cost`) at T1 and T2, and `/context` at T2
 - [x] Appendix B below: the agent's "done" message at T1 and its answer to the hidden-question check
 - [ ] `plan.md` (Baseline): not applicable
@@ -403,13 +403,14 @@ Evidence: none ticked (operator: no red flags)
 - **Rework after T1 (agent time only).** From the hidden-question check (2026-10-23 12:38:27) to T2 (2026-10-26 10:57:06) the agent worked for 46 min 36 s in total. Everything else in that period was the agent idle, waiting for the operator (overnight, a weekend, and the gaps between messages), which is not agent time. First pass plus rework: 2 h 33 min 48 s of agent time. Usage at T2 is read from `/usage` (section 2).
 - **Counts.** `method_steps` 16: the operator's typed or selected replies that only moved the method (the five approvals in the first design talk, the plan review, the worktree answer, three idle stops; after T1 the design approval, the spec review, an idle stop, the plan review and two idle stops). The stray command, the wrong paste of row 11 and the answers to questions are not counted. `questions_total` 4 = hidden #2, #1 and #4 (asked) plus the scope question of the follow-up (answered with the hidden #6 key text and extra answers 9, 13 and 22, counted as extra). `followups` 2 (rows 39 and 41). `retries` 1 = the reset after the aborted attempt 1; the later session restarts before T0 are described above and needed no reset. `subagents` 30.
 - **Post-implementation prompt sent in a resumed session.** At about 11:50 on 26 Oct the running Copilot process had started a new empty session (log 11:52:04) and the prompt had not reached the agent. The real session was resumed with `copilot --resume 143f00cc-4699-4843-9364-6f1147953f1b` (same pinned flags) and the prompt was sent there at 11:56:34 (log); the empty session `e7d2777c-bb16-4a5d-b659-723e73306a25` has no message. The resumed session kept its history: the agent's report refers to the whole run.
-- **Where the usage output is.** The template asks for the raw `/cost` output in Appendix A. In this report the raw `/usage` and `/context` output sits in section 2, directly under the real size numbers of the change (from the three diffs), at the operator's request, so the numbers stay together; Appendix A only points there.
+- **Usage fields (2026-10-27).** Copilot CLI 1.0.101 bills in AI credits, and the upstream templates now record them: `t1_ai_credits` = 1406.53 and `t2_ai_credits` = 1975.72, the totals of `/usage` at T1 and T2 (the log's `totalNanoAiu` gives the same values). The session's premium-request counter, from the log's `session.usage_checkpoint.totalPremiumRequests`, was 5 at T1 (22:30:12) and 13 at T2 (10:57:06), 14 after the post prompt; it is not a data-block field any more. There is no USD value: the runner does not report one. `runner` is `copilot` and `setup_mark` is `official` (the values the method file writes for Copilot runs); the report used `copilot-cli` for both before the template changed. `tokens.md` was generated with `session-usage.py` (see section 2).
+- **Where the usage output is.** The template asks for the raw `/usage` output in Appendix A. In this report the raw `/usage` and `/context` output sits in section 2, directly under the real size numbers of the change (from the three diffs), at the operator's request, so the numbers stay together; Appendix A only points there.
 - Deviations from the protocol, and why: Copilot CLI is pinned to 1.0.101 (launch flags `--no-auto-update --prefer-version 1.0.101`). On its first launch the CLI auto-downloaded 1.0.102 into its package cache and used it; the cached 1.0.102 was moved aside (`~/Library/Caches/copilot/pkg-aside-1.0.102/`) and every launch pins 1.0.101. The setup check sessions ran on 1.0.102; no task was sent in them. `~/.copilot` was backed up and emptied before the plugin install (method rule); the backup is `~/.copilot-backup-20261022-1335`. The two Copilot built-in skills (`customize-cloud-agent`, `github-pr-media`) can't be removed and stay on. The team rules file in the repos (`.github/copilot-instructions.md`) is not loaded at session start because `~/saleor-benchmark` is not a git repo (`copilot instruction list`: none). Copilot model, effort and the MCP servers are set by launch flags: `--model gpt-5.6-terra --reasoning-effort medium --yolo --disable-builtin-mcps` and `--disable-mcp-server` for each of the five account servers.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a (Superpowers run)
 - Strong point of the method in this run: `<...>`
 - Weak point of the method in this run: `<...>`
 
-## Appendix A. Raw `/cost` output
+## Appendix A. Raw `/usage` output
 
 Moved to section 2, "Size of the change and usage": the real size numbers of the change, the raw `/usage` output at T1 and T2 and the `/context` output at T2 are there, together.
 

@@ -22,16 +22,16 @@ t1: 2026-10-19T15:27
 t2: 2026-10-19T15:45
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
-t1_input_tokens: 4900
-t1_output_tokens: 94600
-t1_cache_read_tokens: 26000000
-t1_cache_write_tokens: 252200
+t1_input_tokens: 32100
+t1_output_tokens: 120017
+t1_cache_read_tokens: 30900000
+t1_cache_write_tokens: 372200
 t1_cost_usd: 6.76
 t1_premium_requests:       # Copilot only
-t2_input_tokens: 7400
-t2_output_tokens: 114100
-t2_cache_read_tokens: 35700000
-t2_cache_write_tokens: 290900
+t2_input_tokens: 34600
+t2_output_tokens: 139517
+t2_cache_read_tokens: 40600000
+t2_cache_write_tokens: 410900
 t2_cost_usd: 8.08
 t2_premium_requests:       # Copilot only
 context_end_pct:
@@ -145,15 +145,31 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 13 | `15:45` | T2 | Agent finished the follow-up (last agent message 15:45:42; operator reported 15:48). `/cost` at T2 ~15:46: $8.08 |  |  |
 | 14 | `15:50` | post-prompt | Post-implementation prompt sent (older wording: diffs of the working tree against HEAD into `diffs/<task>/…`, moved to this folder) | `Do not commit anything. For every repository you changed, run git add -N . and then git diff, and save it …` |  |
 
-**Usage by model** (T2 `/cost`; token counts are the runner's `/cost` numbers; `tokens.md` is a reduced file built from them). The token fields of the data block use the `claude-sonnet-5-5` line of `/cost` (main model, as displayed: rounded to 0.1k / 0.1m); the Opus reviewer is not included in them:
+**Usage by model** (T2 `/cost`; token counts are the runner's `/cost` numbers as displayed, rounded to 0.1k / 0.1m; `tokens.md` is a reduced file built from them). The token fields of the data block are the sums of these rows (main Sonnet line, Opus reviewer, runner-internal Haiku line):
 
 | Model | Role (main / subagent) | Input | Output | Cache read | Cache write | Cost, USD |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
 | claude-sonnet-5-5 | main | 7.4k | 114.1k | 35.7m | 290.9k | 5.89 |
 | claude-opus-5-5 | subagent (final reviewer, most capable model) | 25.9k | 25.4k | 4.9m | 120.0k | 2.19 |
 | claude-haiku-5-5 | runner-internal | 1.3k | 17 | 0 | 0 | 0.0001 |
+| **Sum of the rows (data block, T2)** | | **34.6k** | **139.5k** | **40.6m** | **410.9k** | **8.08** |
 
 At T1 (`/cost`): $6.76, of which Sonnet $4.56, Opus $2.19. Raw `/cost` output at T1 and T2: Appendix A.
+
+### Size of the change (the real numbers)
+
+Measured from the three saved `<repo>.diff` files in this folder (post-implementation prompt, older wording: `git add -N .` and `git diff` of the working trees against HEAD). The new files are included through `git add -N .`.
+
+| Repo | Files | Lines added | Lines removed | Code and tests only: files | added | removed |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `saleor` | 22 | 767 | 4 | 21 | 711 | 4 |
+| `saleor-dashboard` | 39 | 4,756 | 2,575 | 32 | 627 | 31 |
+| `react-storefront` | 17 | 190 | 5 | 8 | 172 | 5 |
+| **Total** | **78** | **5,713** | **2,584** | **61** | **1,510** | **40** |
+
+"Code and tests only" leaves out the generated and non-code files: `*.generated.ts`, the schema files (`schema-main.graphql`, `saleor/graphql/schema.graphql`), the locale message files, the spec and plan documents under `saleor/docs/superpowers/` and the storefront `CLAUDE.md` (written by `next dev`, not by the agent). Those are 17 files with 4,203 lines added and 2,544 removed; most of it is the dashboard's regenerated schema and generated types, and part of it was already modified before T0 (old `baseline-v1` tag, see section 8). The same method gives the S-CP-03 numbers.
+
+**What the `Total code changes` line in the `/cost` output (Appendix A) is.** It is not the size of the change. It counts only the lines written with the main agent's own edit tools, so it misses shell edits, generators and codegen, and everything the subagents wrote. Here it shows +136 −0 at T1 and +194 −0 at the last reading (after the post-implementation prompt; not recorded at T2), about 13% of the 1,510 lines of code and tests added.
 
 ## 3. Hidden questions
 
@@ -241,13 +257,14 @@ The operator did not verify these (see section 4). Agent's own report, in short:
 - **Operator.** The programmer sent every message, but Claude (AI) advised which answer or phrase to send at most stops and prepared this report. BENCHMARKS.md §3.5 says "no human-side AI".
 - **Older environment.** Repos at the old `baseline-v1` / `superpowers-v1` tags from before the setup fixes of 2026-10-21 (for example "setup puts dashboard codegen output into baseline-v1"; so the dashboard schema and generated files were already modified at T0), old `bench.sh`, config dir with only `ENABLE_CLAUDEAI_MCP_SERVERS=false` (no common `settings.json`), login with a `claude setup-token` token (the first claude.ai login pulled in 15 synced org plugins, 9 org skills and ~40 connector MCP servers; that environment was discarded). `/skills` and `/plugin` in the session showed only the 15 `superpowers:*` skills and the 5 built-in `cc-plugin-*`.
 - **Reviewer subagents ran on a stronger model than the session.** Superpowers dispatches its final reviewer "on the most capable model" (`skills/executing-plans/SKILL.md:357`): here `claude-opus-5-5`, while the session model is Sonnet 5.5.
-  - **Session log lost.** A cleanup done before the next run deleted `$CLAUDE_CONFIG_DIR/projects/*saleor-benchmark*` before `session-usage.py` had been run for this run. So there is no `session/` and no `session-usage.py` breakdown: `tokens.md` is a reduced, per-model file built from the `/cost` readings, and the token fields of the data block use the `/cost` Sonnet line. Timeline times come from the session log read before it was deleted.
+  - **Session log lost.** A cleanup done before the next run deleted `$CLAUDE_CONFIG_DIR/projects/*saleor-benchmark*` before `session-usage.py` had been run for this run. So there is no `session/` and no `session-usage.py` breakdown: `tokens.md` is a reduced, per-model file built from the `/cost` readings, and the token fields of the data block are the sums of the `/cost` rows (corrected on 2026-10-27, see "Token fields corrected" below). Timeline times come from the session log read before it was deleted.
   - **T0 corrected from the log.** The operator first reported T0 as 14:53; the session log showed the prompt at 14:43:55.
   - **Time without the operator's gaps (BENCHMARKS.md, "Time without the operator's gaps").** Real T0 14:43:55, T1 15:27:13: first pass 43m 18s. The agent was blocked waiting for the operator before T1: 14:44:11→14:45:50 (1m 39s), 14:46:03→14:47:22 (1m 19s), 14:47:34→14:48:42 (1m 08s), 14:48:51→14:49:38 (0m 47s), 14:50:18→14:52:41 (2m 23s); total 7m 16s. Gap-free first pass = 43m 18s − 7m 16s = 36m 02s, so `t0` in the data block is the effective start, T1 − 36m 02s = 14:51; `t1` (15:27) and `t2` (15:45) are real. After T1 and before T2 the agent was blocked by the operator for another 13m 26s (15:27:13→15:31:34 4m 21s; 15:31:51→15:34:41 2m 50s; 15:34:45→15:35:07 0m 22s; 15:35:13→15:40:03 4m 50s; 15:40:34→15:41:37 1m 03s); that time is inside `t2 − t0`. The waits were read from the session log before it was deleted.
   - **Tests (check 7):** passed, reported by the operator on 2026-10-21 via Oleksii Poletaiev (`tests_pass: yes`); commands and counts not recorded.
   - **Operator checks (section 4):** 7 of 8 passed according to the operator; the per-row detail was not recorded, and `tests_pass` and `operator_merge_ready` were not reported.
   - **Operator score 3** (works with notable gaps), given by the operator: the first follow-up showed that a large part of the requirements had not been handled, and the cost weighed in. Cost is not part of the score anchors in `templates/README.md`.
   - **`/context` at T2** was not taken (`context_end_pct` empty); `subagents` not counted (the Opus reviewer ran as a subagent; the `/cost` skills panel shows `general-purpose` at 18%).
+- **Token fields corrected on 2026-10-27.** The data block had only the Sonnet line of `/cost` (T1: 4,900 input, 94,600 output, 26,000,000 cache read, 252,200 cache write; T2: 7,400, 114,100, 35,700,000, 290,900), which left out the Opus reviewer, while the cost fields are the runner's totals including it. They now hold the sums of the model rows of the `/cost` panels (T1: 32,100 / 120,017 / 30,900,000 / 372,200; T2: 34,600 / 139,517 / 40,600,000 / 410,900), as BENCHMARKS.md step 10 says. The real size of the change was added to section 2.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
 - Strong point of the method in this run: (to be given by the operator)
 - Weak point of the method in this run: (to be given by the operator)

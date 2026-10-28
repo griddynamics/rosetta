@@ -22,16 +22,16 @@ t1: 2026-10-20T13:19
 t2: 2026-10-20T20:17
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
-t1_input_tokens: 868
-t1_output_tokens: 204216
-t1_cache_read_tokens: 71455274
-t1_cache_write_tokens: 556701
+t1_input_tokens: 45700
+t1_output_tokens: 227118
+t1_cache_read_tokens: 75500000
+t1_cache_write_tokens: 585800
 t1_cost_usd: 14.31
 t1_premium_requests:       # Copilot only
-t2_input_tokens: 1682
-t2_output_tokens: 351573
-t2_cache_read_tokens: 147954738
-t2_cache_write_tokens: 2975977
+t2_input_tokens: 105600
+t2_output_tokens: 410318
+t2_cache_read_tokens: 155100000
+t2_cache_write_tokens: 3064000
 t2_cost_usd: 35.11
 t2_premium_requests:       # Copilot only
 context_end_pct:
@@ -144,15 +144,31 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 16 | `20:17` | T2 | Agent finished the follow-up (last agent message 20:17:01). `/cost` read the next morning (idle 15h 25m): $35.11 (Appendix A) |  |  |
 | 17 | `–` | note | **Run closed without the post-implementation prompt** (no agent-made `<repo>.diff` or `agent-report.md`): the stack was reset for the next task. The code is kept in `<repo>.diff` files made by the operator, not by the agent (`git add -N .` and `git diff superpowers-v1` of the working trees, taken after T2). `/context` at T2 not taken |  |  |
 
-**Usage by model** (tokens from `tokens.md` (session log); cost from the T2 `/cost`):
+**Usage by model** (T2 `/cost`, as the runner displays it, tokens rounded to 0.1k / 0.1m; the token fields of the data block are the sums of these rows):
 
 | Model | Role (main / subagent) | Input | Output | Cache read | Cache write | Cost, USD |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| claude-sonnet-5-5 | main | 814 | 347 386 | 144 870 328 | 2 646 804 | 25.11 |
-| claude-fable-5-1 | subagent (2 reviews, most capable model) | 868 | 4 187 | 3 084 410 | 329 173 | 10.00 |
-| claude-haiku-5-5 | runner-internal | | | | | 0.0001 |
+| claude-sonnet-5-5 | main | 8.4k | 347.5k | 149.7m | 2.7m | 25.11 |
+| claude-fable-5-1 | subagent (2 reviews, most capable model) | 95.9k | 62.8k | 5.4m | 364.0k | 10.00 |
+| claude-haiku-5-5 | runner-internal | 1.3k | 18 | 0 | 0 | 0.0001 |
+| **Sum of the rows (data block, T2)** | | **105.6k** | **410.3k** | **155.1m** | **3.06m** | **35.11** |
 
-The `/cost` token counts differ from the log counts (for example Fable input 95.9k in `/cost` vs 868 in the log); the data block uses the log totals from `tokens.md`. Raw `/cost` output at T1 and T2: Appendix A. Token breakdown per operator message, agent and tool: `tokens.md`.
+The session log (`tokens.md`) counts differently from `/cost`: for the Fable reviewers it shows 868 input and 4,187 output against 95.9k and 62.8k in `/cost`; its session totals at T2 are 1,682 input, 351,573 output, 147,954,738 cache read and 2,975,977 cache write (at T1: 868, 204,216, 71,455,274, 556,701). Until 2026-10-27 the data block held these log totals; it now holds the `/cost` sums (BENCHMARKS.md, step 10: the token fields are the sum over the models listed in `/usage`). Raw `/cost` output at T1 and T2: Appendix A. Token breakdown per operator message, agent and tool, from the session log: `tokens.md`.
+
+### Size of the change (the real numbers)
+
+Measured from the three saved `<repo>.diff` files in this folder (made by the operator after T2, not by the agent: `git add -N .` and `git diff superpowers-v1` of the working trees). The new files are included through `git add -N .`.
+
+| Repo | Files | Lines added | Lines removed | Code and tests only: files | added | removed |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `saleor` | 58 | 2,952 | 8 | 53 | 2,441 | 8 |
+| `saleor-dashboard` | 31 | 4,793 | 2,549 | 24 | 513 | 8 |
+| `react-storefront` | 37 | 613 | 23 | 35 | 593 | 22 |
+| **Total** | **126** | **8,358** | **2,580** | **112** | **3,547** | **38** |
+
+"Code and tests only" leaves out the generated and non-code files: `*.generated.ts`, the schema files (`schema-main.graphql`, `saleor/graphql/schema.graphql`), the locale message files, the spec and plan documents under `saleor/docs/superpowers/` and the storefront `CLAUDE.md` (written by `next dev`, not by the agent). Those are 14 files with 4,811 lines added and 2,542 removed; most of it is the dashboard's regenerated schema and generated types, and part of it was already modified before T0 (old `baseline-v1` tag, see section 8). The same method gives the S-CP-03 numbers.
+
+**What the `Total code changes` line in the `/cost` output (Appendix A) is.** It is not the size of the change. It counts only the lines written with the main agent's own edit tools, so it misses shell edits, generators and codegen, and everything the subagents wrote. Here it shows +375 −0 at T1 and +729 −3 at T2, about 21% of the 3,547 lines of code and tests added.
 
 ## 3. Hidden questions
 
@@ -251,6 +267,7 @@ Not assessed (see section 4); nothing ticked. The agent-made post-implementation
   - **Follow-up 1 had four items in one message** (not one message per item).
   - **Closed without the post-implementation prompt and the Done-when checks (section 4).** Status is `done` because the agent finished the task and its follow-up (T1 and T2 are measured); the operator's checks, the red-flag review, the agent's own action report and the operator score were not done, so those fields are empty and the quality of the code is unverified. The code is kept in the `<repo>.diff` files.
   - **Same session for `/skills` and the task:** the operator ran `/skills`, `/plugin` and `/context` in the session; only the task prompt was a message to the agent.
+- **Token fields corrected on 2026-10-27.** The data block had the session-log totals from `tokens.md` (T1: 868 input, 204,216 output, 71,455,274 cache read, 556,701 cache write; T2: 1,682, 351,573, 147,954,738, 2,975,977), which barely include the Fable reviewers, while the cost fields are the runner's totals. They now hold the sums of the model rows of the `/cost` panels (T1: 45,700 / 227,118 / 75,500,000 / 585,800; T2: 105,600 / 410,318 / 155,100,000 / 3,064,000), as BENCHMARKS.md step 10 says, so tokens and cost come from the same panel. `tokens.md` is unchanged (session log). The real size of the change was added to section 2.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
 - Strong point of the method in this run: (to be given by the operator)
 - Weak point of the method in this run: (to be given by the operator)
