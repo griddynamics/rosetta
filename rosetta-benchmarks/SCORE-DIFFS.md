@@ -2,6 +2,10 @@
 
 FOLLOW EXACTLY. REPORT on EVERY rule by rule-id at the end (RULE-REPORT).
 
+JOB: JUDGE, nothing else. NEVER transform the inputs: no splitting, copying, converting or applying of diffs, no worktrees, no tag or git-state checks.
+
+LLM CONTEXT IS CRITICALLY IMPORTANT. After SIZE (step 1), FIRST load the diffs (step 2) or start the rounds (step 3). Everything else ONLY when a specific finding or `-` needs it. NOTHING in advance.
+
 ## Responsibility
 
 Rate HOW each run built its change: code quality, coverage, edge cases, complexity, maintainability, DSM, coupling, following original architecture and principles, minimal and fully correct changes, logging. Ratings are ABSOLUTE. Keep the FINAL ratings in the JSON.
@@ -25,7 +29,7 @@ Rate HOW each run built its change: code quality, coverage, edge cases, complexi
 8. IMPACT: the level of a finding = the impact of the finding ITSELF (what is harmed or improved, how much, for whom). NEVER its type (missing, wrong, extra, could be better).
 9. STRENGTH: a strength is a positive impact BEYOND what the task and the hidden-question answers require. Doing what they require is `-`.
 10. COUNT-ONCE: one root cause = ONE finding = ONE metric. Route by root cause: behaves → H1 · safe → H2 · where it sits, what it reuses or depends on → H3 · tests → H4 · cost → H5 · how much changed → H6 · how it is written → H7 · docs → H8 · beneficial extra → H9 · missing in another place of the repo / another repo → 0.1 / 0.2.
-11. EVIDENCE: `new` = `repo:path:Lx-Ly` after the change · `old` = before the change (deletions) · `base` = at `baseline-v1`. ALWAYS + a verbatim quote. VERIFY every line number in the file. Diff-file line numbers are FORBIDDEN.
+11. EVIDENCE: `new` = `repo:path` after the change · `old` = `repo:path` before the change (deletions) · `base` = `repo:path:Lx-Ly` at `baseline-v1`. ALWAYS + a verbatim quote.
 12. VALUES: EVERY metric of EVERY run gets a value from the values table OR `-` with evidence of what you checked. NOTHING ELSE.
 13. CROSS-REPO: a level that depends on another repo is settled from that repo's diff BEFORE you record the finding.
 14. CHECKLIST: do NOT rate whether the "Done when" items and the hidden-question answers exist. Rate HOW they were built. Present in one repo, missing in a consumer repo → 0.2.
@@ -34,20 +38,21 @@ Rate HOW each run built its change: code quality, coverage, edge cases, complexi
 17. AI-DOCS: rate AI-session docs ONLY in 8.4.
 18. SUBAGENTS: if rounds are used, do NOT make decisions or think for subagents. Ask them for any additional info you need. Forward ANY request or question about a subagent's decision to that subagent, resume it if it stopped, use its answer. NEVER answer it yourself.
 19. MERGE-ADVICE: per run, advise on merge-ready with the reason: `none` = no advice · `no` = should not be merge-ready · `yes` = should be merge-ready. The operator decides.
+20. ALL: record EVERY material finding of EVERY run in EVERY metric. NEVER stop at the first blocker, the first major, a few findings, or a value that cannot get worse.
 
-## Starter process — ADAPT to context
+## Starter process
 
-1. SIZE: tokens ≈ words in ALL diffs of ALL runs × 1.3. Budget: 300K tokens.
+1. SIZE: tokens ≈ words in ALL diffs of ALL runs × 1.3. Budget: ~350K tokens. ONLY this number decides FITS or ROUNDS: no other count, no override.
 2. FITS: load ALL diffs of ALL runs at once. Rate.
 3. ROUNDS (does not fit):
-   1. Split the runs into disjoint groups that fit 300K. Mix runs with small diffs and runs with large diffs.
+   1. Split the runs into disjoint groups that fit ~350K. Mix runs with small diffs and runs with large diffs. EVERY group in EVERY round MUST have at least 3 runs.
    2. One general-purpose subagent (Opus 5.5, xhigh) per group, in parallel. Give EXACTLY the same original prompt, this file and the same inputs, plus a temp file for its ratings. Each subagent reports which of its runs are clear losers.
    3. Clear losers are EXCLUDED from further rounds. Their ratings stay UNCHANGED in the merged JSON.
    4. Merge all ratings into one JSON.
    5. Give the top-rated runs that fit a new context to a general-purpose subagent (Opus 5.5, xhigh) to build or revalidate their ratings.
    6. Repeat until the top of the top is selected.
    7. NEVER add your own rules or definitions for subagents.
-4. JSON: write it to the path you were given.
+4. JSON: write it to the path you were given. Run TOTALS (step 6), report the leaderboard, then STOP. Start step 5 ONLY after the operator's explicit approval.
 5. VALIDATOR (MUST; cannot start it → say so, NEVER skip it silently): a FRESH general-purpose subagent (Opus 5.5, xhigh) checks the top runs of your FINAL leaderboard that fit one context (all fit → all). Give it EXACTLY the same original prompt, this file, the same inputs, the JSON and this:
    ```text
    Fresh-eye check of the judge's ratings for runs <list>. Do not modify any file.
@@ -57,7 +62,7 @@ Rate HOW each run built its change: code quality, coverage, edge cases, complexi
    Return a numbered list: finding or metric · what is wrong · evidence · proposed change.
    ```
    DECIDE EACH conflict: accept or reject + reason. Record it in the JSON.
-6. TOTALS: `python3 rosetta-benchmarks/saleor/scripts/score-diffs.py <json>`. DO NOT read the script.
+6. TOTALS: `python3 <totals script path you were given> <json>`. DO NOT read the script.
 
 ## Hints — ideas, not steps
 
@@ -152,7 +157,7 @@ The value comes from the WORST level present and its count. Lower levels and str
 
 Bonus levels: critical · high · medium · low, by the fix's or improvement's own impact.
 
-## JSON — folder names exactly; runs in YOUR leaderboard order
+## JSON — folder names exactly
 
 ```jsonc
 {
@@ -161,7 +166,7 @@ Bonus levels: critical · high · medium · low, by the fix's or improvement's o
     "<method folder>": {
       "findings": [{"id": "<method>-1", "metric": "1.4", "type": "negative | strength",
                     "level": "critical | major | minor",
-                    "evidence": [{"kind": "new | old | base", "loc": "repo:path:Lx-Ly", "quote": "..."}],
+                    "evidence": [{"kind": "new | old | base", "loc": "repo:path (base: repo:path:Lx-Ly)", "quote": "..."}],
                     "grounding": "...", "why": "positive: ... / negative: ...", "impact": "..."}],
       "values": {"0.1": {"v": 4, "findings": ["<method>-1"]}, "0.2": {"v": "-", "checked": "..."}},
       "bonus": [{"finding": "<method>-3", "level": "critical | high | medium | low"}],

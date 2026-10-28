@@ -280,7 +280,7 @@ python3 "$SB/scripts/collect-results.py"                 # your run in the table
 
 ## 3. Run L-CC-06: large task: age-restricted products, Claude Code
 
-Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/claude-code/rosetta/`. Two terminals, both **inside your rosetta checkout**: terminal 1 runs the agent, terminal 2 is for the other commands.
+Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/claude-code/rosetta-flow/`. Two terminals, both **inside your rosetta checkout**: terminal 1 runs the agent, terminal 2 is for the other commands.
 
 **Step 1. Variables** (paste into both terminals):
 
@@ -288,7 +288,7 @@ Folder: `rosetta-benchmarks/saleor/runs/large-age-restriction/claude-code/rosett
 export SB="$(git rev-parse --show-toplevel)/rosetta-benchmarks/saleor"   # inside your rosetta checkout
 export BENCH_DIR="$HOME/saleor-benchmark" ENV_DIR="$HOME/saleor-benchmark/envs/rosetta"
 export CLAUDE_CONFIG_DIR="$ENV_DIR/claude" B="$SB/scripts/bench.sh"
-export RUN="$SB/runs/large-age-restriction/claude-code/rosetta"   # this run's folder
+export RUN="$SB/runs/large-age-restriction/claude-code/rosetta-flow"   # this run's folder
 [ -f "$SB/../BENCHMARKS.md" ] && echo "ok: $SB" || echo "ERROR: cd into your rosetta checkout and paste this block again"
 ```
 

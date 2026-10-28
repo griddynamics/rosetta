@@ -534,8 +534,8 @@ The operator may have an AI assistant for **bookkeeping and guidance only** (3.5
 | 1 | Usage at first pass and in total (from the runner) | Operator |
 | 3 | git diff + action report (post-implementation prompt) | Agent under test |
 | 4 | Absolute rating of how each run built its change: 38 metrics in 10 categories (H0 Completeness, H1 Correctness & robustness, H2 Security, H3 Design conformance & coupling, H4 Test quality, H5 Performance & operability, H6 Change minimality, H7 Code clarity, H8 Documentation, H9 Extra). All runs of one task × one runner in one context (prompt: SCORE-DIFFS.md) | Judge session: Opus 5.5, xhigh |
-| 5 | Validation of the leaderboard: a fresh subagent checks every finding and value; the judge decides each objection | Judge session |
-| 6 | Self-challenge: the assistant gives the operator the fixed self-challenge prompt; the operator sends it to the judge session; the judge finds and fixes its own errors | Judge session |
+| 5 | Self-challenge: the judge stops after the rating; the assistant gives the operator the fixed self-challenge prompt; the operator sends it to the judge session; the judge finds and fixes its own errors | Judge session |
+| 6 | Validation of the leaderboard, after the operator's approval: a fresh subagent checks every finding and value; the judge decides each objection | Judge session |
 
 ### Diff judge
 
@@ -561,21 +561,21 @@ For the assistant's understanding only; the judge prompt SCORE-DIFFS.md already 
 
 | # | Session | Who | Action |
 | --- | --- | --- | --- |
-| 1 | A | Assistant | Extracts `test-library/saleor-not-initialized-repos.zip` into a folder and resets the three repos to `baseline-v1`. Prepares a clean Claude Code config for the judge: its own `CLAUDE_CONFIG_DIR` with no plugins, skills or hooks. |
-| 2 | A | Assistant | Gives the operator the judge's first message: SCORE-DIFFS.md, the path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/`, the path to the base repos, the task prompt, "Done when", the hidden questions with answers, the extra answers, and the path for the judge's JSON. |
-| 3 | B | Operator | Starts a new Claude Code session (Opus 5.5, xhigh) with the clean config and sends the first message. |
-| 4 | B | Judge | Rates all runs and writes the ratings into the JSON. |
-| 5 | B | Judge | Has the validator check the leaderboard, decides each objection and updates the JSON. |
-| 6 | B | Judge | Runs the totals script. |
-| 7 | A | Assistant | Gives the operator the self-challenge prompt. |
-| 8 | B | Operator | Sends the self-challenge prompt to the judge session. |
-| 9 | B | Judge | Answers, relays questions about a subagent's decisions to that subagent, fixes the JSON and runs the totals script again. |
+| 1 | A | Assistant | Makes the judge folder `~/saleor-judge`, outside the Rosetta repo and outside `$BENCH_DIR`. Extracts `test-library/saleor-not-initialized-repos.zip` into it and resets the three repos to `baseline-v1`. Prepares a clean Claude Code config for the judge in `~/saleor-judge/claude`: the common settings of 3.5 with `claude-opus-5-5`, `"effortLevel": "xhigh"`, `"modelSettings": { "claude-opus-5-5": { "effortLevel": "xhigh" } }` and `"disableAllHooks": true`, no plugins, skills or hooks. `/model` must show Opus 5.5 with effort xhigh. Copies the task's inputs from section 4 word for word into `~/saleor-judge/task-<small or large>.md`. |
+| 2 | A | Assistant | Gives the operator the judge's first message: SCORE-DIFFS.md, the path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/`, the path to the base repos, the task prompt, "Done when", the hidden questions with answers, the extra answers, and the path for the judge's JSON. Before the first message, it reads every run's `report.md` and adds one line per run under "Already checked (do not re-check)": each test suite, linter and check that was run, with its result ("<what> was run: <result>"). Nothing else from the report. No data in the report: "not recorded". |
+| 3 | B | Operator | Starts a new Claude Code session (Opus 5.5, xhigh) in the judge folder with the clean config, `--model claude-opus-5-5` and `--dangerously-skip-permissions`, as in the runs, and sends the first message. All paths in the first message are absolute. |
+| 4 | B | Judge | Rates all runs, writes the ratings into the JSON, runs the totals script, reports the leaderboard and stops. |
+| 5 | A | Assistant | Gives the operator the self-challenge prompt. |
+| 6 | B | Operator | Sends the self-challenge prompt to the judge session. |
+| 7 | B | Judge | Answers, relays questions about a subagent's decisions to that subagent, fixes the JSON, runs the totals script again and stops. |
+| 8 | B | Operator | Approves the next step: sends `Approved, continue.` |
+| 9 | B | Judge | Has the validator check the leaderboard, decides each objection, updates the JSON and runs the totals script. |
 | 10 | A | Assistant | Reads the run report template (`templates/run-report-small.md` or `templates/run-report-large.md`) and brings the data block of each run report to it: old judge fields are replaced by the template's fields. Writes the judge's results into them. Records each bug that was only reported, not fixed, as a strong point. |
 
 #### Self-challenge prompt
 
 ```text
-Honestly: do you see overstatements, inventions, assumptions, wrong or missing evidence, wrong line numbers, nitpicks, root causes counted twice, values that do not follow the values table, impact levels not based on the finding's own impact, evidence from another run, or missed findings? Anything else you see is wrong? Did you analyze the positive and the negative side of every difference? List each problem, fix it in the JSON, run the totals script again, and repeat the RULE-REPORT.
+Honestly: do you see overstatements, inventions, assumptions, wrong or missing evidence, wrong line numbers, nitpicks, root causes counted twice, values that do not follow the values table, impact levels not based on the finding's own impact, evidence from another run, or missing findings (negatives and strengths) in any run and any metric? Anything else you see is wrong? Did you analyze the positive and the negative side of every difference? List each problem, fix it in the JSON, run the totals script again, and repeat the RULE-REPORT.
 ```
 
 #### Why
@@ -586,6 +586,7 @@ Honestly: do you see overstatements, inventions, assumptions, wrong or missing e
 - **Impact decides the level:** what matters is the impact of a finding itself, not whether something is missing or could be done better.
 - **Validator and self-challenge:** a first pass can contain wrong line numbers, overstated rules, nitpicks and root causes counted twice.
 - **Clean config:** a method's plugin in the judge session would load that method's rules and bias the ratings toward it.
+- **Judge folder:** a session started in the Rosetta repo loads the repo's `CLAUDE.md`, `AGENTS.md` and project skills (`.claude/skills/`), the same bias. A clean config does not stop that.
 
 ### Prompt — step 0.3, verification subagent
 
@@ -639,7 +640,7 @@ rosetta-benchmarks/
     └── reports/                                # diff judge JSON, summary tables
 ```
 
-`<task>`: `small-storage-conditions` · `large-age-restriction`. `<runner>`: `claude-code` · `copilot`. `<method>`: `baseline` · `grill-with-docs` · `superpowers` · `spec-kit` · `aws-ai-dlc` · `rosetta` · `rosetta-light` · `rosetta-skills`.
+`<task>`: `small-storage-conditions` · `large-age-restriction`. `<runner>`: `claude-code` · `copilot`. `<method>`: `baseline` · `grill-with-docs` · `superpowers` · `spec-kit` · `aws-ai-dlc` · `rosetta-flow` · `rosetta-light` · `rosetta-skills`. The Rosetta run folder is `rosetta-flow`; the `method` field in its report stays `rosetta`.
 
 ## 8. How to improve the benchmark
 
