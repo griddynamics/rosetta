@@ -333,8 +333,8 @@ Evidence:
 | Wrote tests | Yes: backend, dashboard, storefront, Playwright spec | Confirmed: `e2e/age-restrictions.spec.ts`, `profile-birthday.test.ts`, and new backend test files exist. Playwright was not run (T044 open). |
 | Ran tests | Backend 310 passed; product GraphQL 81; dashboard 46; storefront 20 | Not reproduced at those counts. The assistant ran the focused files: backend 13 passed, dashboard 56 passed (6 suites), storefront 188 passed (26 files). Counts differ by scope. Not run: full suites, Playwright, T049 suites. |
 | Ran linters / type checks | Ruff passed; dashboard and storefront TypeScript passed | Operator and assistant runs of the focused checks passed. Full lint not run. Storefront ESLint needs `NEXT_PUBLIC_SALEOR_API_URL` (blocked earlier). |
-| Started the app / called the API | No | Operator ran the app and the API (localhost:3000, :9000, :8000). The assistant made GraphQL calls for Done-when checks 3–8 and 10. The agent did not start the app itself, so the claim is consistent. |
-| Checked the UI / screenshot | No | Operator checked the UI: checks 1, 2 and 9. |
+| Started the app / called the API | No (agent). Operator: yes | Operator started the app (localhost:3000, :9000, :8000) and called the API. The assistant also made GraphQL calls for Done-when checks 3–8, 10 and the migration step. The agent itself did not start the app, so its claim "No" is consistent. |
+| Checked the UI / screenshot | No (agent). Operator: yes | Operator checked the UI for Done-when checks 1, 2 and 9 (birthday field, product flag and minimum age, storefront label and sign-in prompt). |
 | Cleaned up leftovers | Yes: removed `/tmp/saleor-schema.graphql` | Agent wrote a schema file to `/tmp` and deleted it. Assistant check 12: no stray files in the repos, no debug code. Note: the agent used `/tmp` for a schema file, against the scratchpad rule. |
 
 ## 7. Artifacts (all in this folder)
