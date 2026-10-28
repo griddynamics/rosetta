@@ -52,7 +52,7 @@ hidden_matches_answer: 9
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
-red_flags: 1
+red_flags: 0
 tests_pass: yes
 operator_score: 5
 operator_merge_ready: yes
@@ -239,11 +239,11 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken
+- [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
 - [ ] Other: `<...>`
 
-Evidence: at T1 (13:23) a signed-in eligible adult could not add a restricted product to the storefront cart (`AGE_RESTRICTION_LOGIN_REQUIRED`; follow-up 2), and one new backend test failed in the repo's dev container (follow-up 1); the agent had not driven the storefront UI and had run its backend suites on the host venv only. Not ticked: the 6 one-line dashboard test-fixture edits outside the feature folders (`attributes/`, `modeling/`, `configuration/`) only add `isSuperuser: false` to `UserFragment` mocks, which the new field needs for typecheck.
+Evidence: none ticked. The two problems found in the operator's check after T1 (the signed-in storefront add-to-cart, one backend test failing in the dev container) are follow-ups 1 and 2, not red flags (operator). The 6 one-line dashboard test-fixture edits outside the feature folders (`attributes/`, `modeling/`, `configuration/`) only add `isSuperuser: false` to `UserFragment` mocks, which the new field needs for typecheck: not unrelated changes.
 
 ## 6. Agent's claims vs reality (from `agent-report.md`)
 
