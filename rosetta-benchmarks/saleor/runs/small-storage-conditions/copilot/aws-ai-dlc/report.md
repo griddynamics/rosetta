@@ -14,7 +14,7 @@ setup_mark: official
 model: gpt-5.6-terra
 effort: medium
 start_tag: aidlc-v1
-operator:
+operator: rcimendur
 status: not-qualifying
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
 t0: 2026-10-28T15:40
@@ -35,17 +35,17 @@ t2_cache_write_tokens:
 t2_cost_usd:
 t2_ai_credits:             # Copilot only: AI credits from /usage or tokens.md
 context_end_pct:
-subagents:                 # number of subagents launched (0 if none)
+subagents: 0
 # Counts, taken from the timeline (section 2)
 method_steps: 4
-questions_total:
-questions_hidden:
+questions_total: 11
+questions_hidden: 3
 questions_extra:
 followups: 0
 retries: 1
 # Hidden questions (section 3). asked + covered + missed = hidden_total
 hidden_total: 7
-hidden_asked:
+hidden_asked: 3
 hidden_covered:
 hidden_missed:
 hidden_matches_answer:     # how many of the 7 the ORIGINAL result (first pass, before follow-ups) follows the answer key (yes = 1, partly = 0.5)
@@ -130,13 +130,13 @@ Not checked: the run stopped before the first "done" (T1). No hidden question wa
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Plain text, max 250 chars | not reached | | answered as 250 characters (row 5 and the summary) |
-| 2 | Translatable | not reached | | not asked |
-| 3 | Product level, not variant | not reached | | not asked |
-| 4 | Shown only on the product page | not reached | | answered in row 8 correction; summary confirms (storefront product page only) |
-| 5 | Existing products: empty, schema migration only | not reached | | not asked |
-| 6 | In API, webhook payload, CSV export; no filter | not reached | | not asked |
-| 7 | Edit permission `MANAGE_PRODUCTS` | not reached | | answered in row 6 correction; summary confirms |
+| 1 | Plain text, max 250 chars | asked (rows 3 and 5) | | The agent asked the form (Q3, sent as `4`) and the maximum length (Q8, sent as `1`). The correction in row 6 and the summary record 250 characters. The T1 check was not reached. |
+| 2 | Translatable | not asked | | T1 check not reached |
+| 3 | Product level, not variant | not asked | | The agent did not ask about variants. T1 check not reached |
+| 4 | Shown only on the product page | asked (rows 3 and 8) | | The agent asked where customers see it (Q4, sent as `2`). Correction (4) in row 8 gives the table facts. Summary (row 11): storefront product page only, hidden when empty, not in cart, checkout or order emails. |
+| 5 | Existing products: empty, schema migration only | not asked | | The agent asked what happens with no value (Q2, sent as `1`, show nothing). The migration question was not asked. T1 check not reached |
+| 6 | In API, webhook payload, CSV export; no filter | not asked | | T1 check not reached |
+| 7 | Edit permission `MANAGE_PRODUCTS` | asked (rows 4 and 6) | | The agent asked who can edit (Q5, sent as `2`). Correction (1) in row 6 names `MANAGE_PRODUCTS` and public read access. Summary (row 11): MANAGE_PRODUCTS. |
 
 ## 4. Done when: checked by the operator at T2
 
@@ -166,6 +166,9 @@ Not applicable: the post-implementation prompt was not sent.
 - Attempt 3 (this folder's run, clean reset 2, T0 15:40): `runs/small-storage-conditions/copilot/_attempts/S-CP-05-attempt3/` (`workspace-root/`, `sessions-by-id/`, `run-folder/`).
 
 ## 8. Notes
+
+- **Scope of this folder's numbers:** the data block counts (`subagents`, `questions_total`, `questions_hidden`, `hidden_asked`, `method_steps`, `retries`) describe attempt 3, the run in this folder, as logged in its session. Attempts 1 and 2 are in `_attempts/` with their own timelines and `tokens.md`. `questions_total` counts the agent's stops that got an operator reply in attempt 3 (11 of them; the last stop had no reply).
+- **Empty fields, and why:** no T1 or T2 was reached, so `t1`, `t2`, the T1/T2 usage fields, the hidden-question check, the done-when checks, the red flags and the judge fields are empty. `operator_score` and `operator_merge_ready` are the operator's to give. `setup_min` was not timed.
 
 - **Stall (not a method result):** the run stopped at intent-capture. The AI-DLC engine's review step refused each time, saying the intent documents needed a fresh confirmation after they were regenerated. The agent looped on the same confirmation: attempt 1 (about 14:33 to 14:35, plus the engine's retry limit), attempt 2 (about 14:53 to 14:54, a new session with `/aidlc` only, as the team lead directed), and attempt 3 (this run, about 15:53 to 15:58). In attempt 3 the summary also lost the success line, so it no longer shows the Q6 answer. The operator decided to stop the run at 15:58.
 - **Final status: `not-qualifying`.** Set on the team lead's instruction: the run failed and no further retries are made. The protocol's rule is "it still doesn't start after 2 tries from a clean reset": this is two clean resets (reset 1: attempts 1 and 2; reset 2: attempt 3), and the AI-DLC engine's review gate refused at intent-capture in each. No implementation was reached. The reason and what was tried are in this section and in the timeline.
