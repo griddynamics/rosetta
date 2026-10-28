@@ -52,7 +52,7 @@ hidden_matches_answer: 9
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
-red_flags:                 # number of ticked red flags
+red_flags: 1
 tests_pass: yes
 operator_score: 5
 operator_merge_ready: yes
@@ -155,7 +155,8 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 29 | 14:12 | follow-up | Follow-up 1 (step 7b, "Done when" #11). The operator's check of the changed backend tests in the repo's dev container (`docker compose … exec saleor pytest`, 16 changed test files): 257 passed, 1 failed; the failure was rerun alone twice and failed both times (changed area, so a real failure): `test_automatic_completion_blocked_for_ineligible_customer`, `assert len(failed) == 1` → 2 (the dev container captures each warning twice; the behavior itself was right: no order, no payment). The agent had run its suites on the host venv only. Sent at 14:12:51 (log); the agent reported at 14:17:01: fixed, all 8 tests in that file and 129 other new age tests pass in the dev container | `In the local dev container (docker compose -p saleor-benchmark -f saleor/.devcontainer/docker-compose.yml exec saleor pytest), the test saleor/checkout/tests/test_complete_checkout_age_restriction.py::test_automatic_completion_blocked_for_ineligible_customer fails every time, also when run alone: "assert len(failed) == 1" gets 2. All other changed backend tests pass. Please fix it so the tests pass locally.` | |
 | 30 | 14:20 | follow-up | Follow-up 2 (step 7b, "Done when" #7 and hidden #4: a signed-in eligible customer must be able to buy). Operator's UI check: signed in as `ashley.cook@example.com` (birthday 2000-01-01) on the storefront, Apple Juice (restricted) could not be added to the cart; storefront log `Add to cart failed: AGE_RESTRICTION_LOGIN_REQUIRED`. Cause (assistant's read-only check, not sent): the storefront creates the cart checkout without a customer and attaches the customer only on `/checkout` (pre-existing design, unchanged by the agent), while the new line-add check counts only `checkout.user`; the agent had tested through the API with a token and never added a restricted product in the storefront while signed in. Not a Saleor defect. Sent at 14:20:29 (log). The agent reported at 14:23:32: fixed in the storefront (`addVariantToCart` attaches the signed-in customer and retries once on `AGE_RESTRICTION_LOGIN_REQUIRED`; real guests unchanged); `pnpm verify` 998 tests; not clicked through in a browser by the agent. The operator retried and confirmed it works | `On the storefront (localhost:3000), signed in as ashley.cook@example.com (birthday 2000-01-01, an eligible adult), I can't add Apple Juice (age-restricted) to the cart. The storefront log shows "Add to cart failed: AGE_RESTRICTION_LOGIN_REQUIRED". A signed-in eligible customer must be able to buy age-restricted products. Please fix this.` | |
 | 31 | 14:23 | T2 | Last follow-up done (log 14:23:32, "done 2:23 PM"); operator confirmed the storefront fix. `/cost` in Appendix A `## T2` | — | |
-| 32 | | | | | |
+| 32 | 09:21 (Oct 28) | post-prompt | Post-implementation prompt sent on 2026-10-28 in the resumed session (`claude --resume b136e91e…`; after T2 the session had been idle since 2026-10-26 18:29). The agent wrote `saleor.diff` (66 files), `saleor-dashboard.diff` (61), `react-storefront.diff` (90) and `agent-report.md` in `~/saleor-benchmark/run-output/` (09:21–09:22). Its report gives no start time ("earlier context was summarized"); the log gives T0 08:29:43 on 2026-10-26 | `Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder). Then write ~/saleor-benchmark/run-output/agent-report.md …` | |
+| 33 | | | | | |
 
 **Usage by model** (Claude Code: from `tokens.md`, see below; Copilot: from the runner, if it shows it):
 
@@ -238,32 +239,32 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [ ] Agent said "done" while something was clearly broken
+- [x] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
 - [ ] Other: `<...>`
 
-Evidence: `<one line per ticked item>`
+Evidence: at T1 (13:23) a signed-in eligible adult could not add a restricted product to the storefront cart (`AGE_RESTRICTION_LOGIN_REQUIRED`; follow-up 2), and one new backend test failed in the repo's dev container (follow-up 1); the agent had not driven the storefront UI and had run its backend suites on the host venv only. Not ticked: the 6 one-line dashboard test-fixture edits outside the feature folders (`attributes/`, `modeling/`, `configuration/`) only add `isSuperuser: false` to `UserFragment` mocks, which the new field needs for typecheck.
 
 ## 6. Agent's claims vs reality (from `agent-report.md`)
 
 | Action | Agent says | Operator confirms |
 | --- | --- | --- |
-| Wrote tests | | |
-| Ran tests | | |
-| Ran linters / type checks | | |
-| Started the app / called the API | | |
-| Checked the UI / screenshot | | |
-| Cleaned up leftovers | | |
+| Wrote tests | yes: core (account, checkout, order, Stripe, graphql account/checkout/order/product/shop), dashboard Jest, storefront Vitest | yes: 16 changed backend test files (258 tests in the dev container after follow-up 1), 18 dashboard test files (148 tests), storefront 998 tests |
+| Ran tests | yes: core full suite 3 times on the host venv (last 18,615 passed, 1 skipped), dashboard Jest, `pnpm verify` 998; in the dev container only partly (failing file + 129 related) | yes, with a gap: the dev-container failure (follow-up 1) shows the host-venv runs did not cover the repo's own test environment; the agent says this itself |
+| Ran linters / type checks | yes: ruff, mypy (changed non-test files), semgrep, deptry, `makemigrations --check`; dashboard eslint, prettier, knip, `check-types`; storefront lint/typecheck in `pnpm verify` | not re-run by the operator (agent's evidence in the handoffs) |
+| Started the app / called the API | yes: isolated API on :8001 for the validator (then removed); after the dev-DB migration `{ shop { minimumAge timeZone } }` on :8000 | yes: the operator's API checks on :8000 all pass (section 4) |
+| Checked the UI / screenshot | no: no browser check, no screenshot; the storefront fix is "not browser-verified" | correct: the operator's UI check found the signed-in add-to-cart defect (follow-up 2), then confirmed the fix |
+| Cleaned up leftovers | partly: isolated API and `age-check-db` removed; `backups/…dump` (customer data) kept for rollback; `git add -N` index entries | yes: repos have no junk (section 4 #12); `backups/` must be deleted by the operator |
 
 ## 7. Artifacts (all in this folder)
 
-- [ ] `<repo>.diff` for every changed repo (repos: `<...>`)
-- [ ] `agent-report.md`: the agent's own report (post-implementation prompt)
-- [ ] `tokens.md` (Claude Code): token breakdown from `session-usage.py`. Raw session logs stay local in `session/` (git-ignored)
-- [ ] Appendix A below: raw `/cost` output at T1 and T2
+- [x] `<repo>.diff` for every changed repo (repos: `saleor` 66 files +5784/−39, `saleor-dashboard` 61 files +1705/−27, `react-storefront` 90 files +2104/−153)
+- [x] `agent-report.md`: the agent's own report (post-implementation prompt)
+- [x] `tokens.md` (Claude Code): token breakdown from `session-usage.py`. Raw session logs stay local in `session/` (git-ignored)
+- [x] Appendix A below: raw `/cost` output at T1 and T2
 - [ ] Appendix B below: agent messages copied from the terminal, if any
 - [ ] `plan.md` (Baseline): the approved plan, if the runner saved it to a file
-- [ ] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: `workspace-root/`
+- [x] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: `workspace-root/`
 
 ## 8. Notes
 
@@ -272,6 +273,8 @@ Evidence: `<one line per ticked item>`
 - Assistant's reading in an answer (row 17, correction 1): "drafts are checked when a line is added or updated in the draft" is the assistant's reading of rows L-2 + L-3 ("checked the same way" as checkouts), not table text. Sent before this was noticed; not changed (answers already given in a run are never changed).
 - Gap-free time (computed): real T0 08:29:43 → T1 13:23:31 = 293.8 min; minus 10 operator waits before T1 = 119.7 min (listed above); = 174.1 min first pass; effective `t0` = 10:29. The 13:13:26 → 13:22:54 stall (the agent's gates had finished but it did not resume until the operator's `continue`) is counted as agent time. T2 = 14:23 (after 2 follow-ups); `time_total` is computed from the effective `t0`.
 - Counts: method steps 6 (brief, specs, plan, G0, G1, G2: rows 10, 17, 18, 19, 22, 23); questions 16 (14 in 4 `AskUserQuestion` rounds, plus the dashboard-label question at the plan and the D15 confirmation at G1), of which 5 touch hidden questions (#4 ×2, #8, #9 ×2) and 11 are extra.
+- The post-implementation prompt was sent two days after T2, in the resumed session (`--resume`, timeline row 32); the dev stack and the repos were not reset in between (66/57/90 changed files still present). Its usage is not part of T2.
+- `backups/saleor-dev-pre-age-migration-20261026-135559.dump` (workspace root, customer data) is not copied into this folder and must be deleted by the operator.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a (Rosetta Skills run); no.
 - Strong point of the method in this run: the agent asked many good questions before writing specs (operator): who can set the birthday, apps and impersonation access to the birthday, "today" and the time zone, the "age eligible" flag for other staff, a guest whose email matches an account at completion, drafts linked by `userEmail`, visibility of the audit events to MANAGE_USERS/MANAGE_STAFF staff, how the dashboard learns the viewer is a superuser, and how the new schema reaches the dashboard. (Operator's remark that other agents did not ask these is a comparison between runs and is left out of this report, BENCHMARKS.md section 5.)
 - Weak point of the method in this run: one failed test: the agent ran its backend suites only on the host venv, and one new test failed in the repo's dev container (follow-up 1) (operator).
