@@ -71,7 +71,7 @@ All 8 methods are tested on both runners. Every Claude Code cell runs with the m
 
 ## Copilot setup per method
 
-All 8 methods are tested on both runners. Every Copilot cell runs in **GitHub Copilot CLI** with the method's own `COPILOT_HOME` (`envs/<method>/copilot`), model `gpt-5.6-terra`, medium effort, `--allow-all` and `--no-auto-update`. Details are in BENCHMARKS.md, section 3.5; the commands are in part 4 of each method file.
+All 8 methods are tested on both runners. Every Copilot cell runs in **GitHub Copilot CLI** with the method's own `COPILOT_HOME` (`envs/<method>/copilot`), model `gpt-5.6-terra` on the long context tier (1M tokens: `contextTier long_context` and `--context long_context`), medium effort, `--allow-all` and `--no-auto-update`. Runs recorded before that setting (`S-CP-01`–`S-CP-04`, `L-CP-02` and `L-CP-04`) used the default tier. Details are in BENCHMARKS.md, section 3.5; the commands are in part 4 of each method file.
 
 - **Baseline:** starts in Copilot CLI's plan mode, like the Claude Code runs; no hooks and no skill retrieval. See [methods/baseline.md](./methods/baseline.md).
 - **Grill-with-docs:** no Copilot plugin; the README installs it on other agents with `npx skills@latest add mattpocock/skills` (all skills, agent GitHub Copilot), which writes repository files. Never copy single skills. Mark its Copilot runs `skills.sh installer`.
