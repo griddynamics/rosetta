@@ -361,6 +361,16 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 | 24 | May it enable the `pl` locale in the local storefront config and restart the dev server, to show a real Polish page? | No. Don't change the local config or restart anything; the evidence shown is enough. | S-CC-08 |
 | 25 | How should the dashboard behave on the staging schema (keep `@lockSchema` on reads only, hide the field on staging builds, or remove `@lockSchema`)? | Keep `@lockSchema` on reads only. The target is the main (3.23) build; the staging schema doesn't matter for this task. | S-CC-07 |
 | 26 | May it install `libmagic` with Homebrew on the host machine (the API or the backend tests do not run without it)? | Yes, installing libmagic is fine. (It should already be installed in advance, see section 3.1.) | S-CC-07 |
+| 27 | What business problem should the storage-conditions field solve? (Intent capture, 1 of 2; no table row; operator decision.) | Both staff accuracy and customer decision-making: staff can communicate handling requirements accurately, and customers can decide whether a product suits their storage capabilities. | S-CP-05 |
+| 28 | Who is the primary customer and what is their pain point? (Intent capture, 1 of 2; no table row; operator decision.) | Both groups: staff need to publish storage guidance, and customers need to read it before buying. | S-CP-05 |
+| 29 | What measurable outcome should define success for the initial release? (Intent capture, 1 of 2; no table row; operator decision.) | Staff can save storage conditions on a product and customers can view them. | S-CP-05 |
+| 30 | What triggered this initiative now? (Intent capture, 1 of 2; no table row; operator decision.) | Not yet defined. | S-CP-05 |
+| 31 | Which stakeholders should be represented for this work? (Intent capture, 2 of 2; no table row; operator decision.) | Product owner and engineering team. | S-CP-05 |
+| 32 | Who makes the final scope decision, and who influences it? (Intent capture, 2 of 2; no table row; operator decision.) | Product owner decides; engineering advises. | S-CP-05 |
+| 33 | Are there communication or reporting requirements while this work proceeds? (Intent capture, 2 of 2; no table row; operator decision.) | None. | S-CP-05 |
+| 34 | Does the workflow-selected feature boundary match the intended work? (Intent capture, 2 of 2; no table row; operator decision.) | Yes; deliver the end-to-end staff-entry and storefront-display capability. | S-CP-05 |
+| 35 | Which products should support storage conditions? (Intent capture round 2 for the rerun, Q1 of 4; no table row; operator decision.) | All product types. | S-CP-05 (rerun) |
+| 36 | How should the open assumptions be handled (storefront block label, product owner for scope and priority, reporting cadence)? (Intent capture round 2, assumption confirmation; no table row; no recommended option; operator decision. Under review by the team: section 4 says an assumption the agent asks to confirm counts as its proposal.) | Accept assumptions: keep these as open items in the artifacts. | S-CP-05 (rerun) |
 
 **Task 2 (large): extra answers**
 
