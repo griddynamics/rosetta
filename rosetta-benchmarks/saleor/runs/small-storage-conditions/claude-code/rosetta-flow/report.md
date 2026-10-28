@@ -71,9 +71,13 @@ rosetta_workspace_files: 13     # plans/product-storage-conditions/ (SPECS, PLAN
 rosetta_team_contacted: no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_absolute:            # /40
-judge_side_by_side:        # /40
-judge_merge_ready:         # yes | no
+judge_total: 68.0               # diff score: total + bonus, from the totals script
+judge_bonus: 0               # bonus points for fixed bugs and related improvements
+judge_blockers: 1            # number of blocker findings
+judge_majors: 0              # number of major findings
+judge_minors: 0              # number of minor findings
+judge_strengths: 0           # number of strengths
+judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 
 # Run report: S-CC-06 · small task · rosetta · claude-code

@@ -533,9 +533,9 @@ The operator may have an AI assistant for **bookkeeping and guidance only** (3.5
 | 0.3 | A subagent checks what from the checklist and the discussion is actually in the code | Opus 5.5 |
 | 1 | Usage at first pass and in total (from the runner) | Operator |
 | 3 | git diff + action report (post-implementation prompt) | Agent under test |
-| 4 | Absolute rating of how each run built its change: 38 metrics in 10 categories (H0 Completeness, H1 Correctness & robustness, H2 Security, H3 Design conformance & coupling, H4 Test quality, H5 Performance & operability, H6 Change minimality, H7 Code clarity, H8 Documentation, H9 Extra). All runs of one task × one runner in one context (prompt: SCORE-DIFFS.md) | Judge session: Opus 5.5, xhigh |
+| 4 | Absolute rating of how each run built its change: 38 metrics in 10 categories (H0 Completeness, H1 Correctness & robustness, H2 Security, H3 Design conformance & coupling, H4 Test quality, H5 Performance & operability, H6 Change minimality, H7 Code clarity, H8 Documentation, H9 Extra). All runs of one task × one runner in one context, or in rounds of at least 3 runs when they do not fit (prompt: SCORE-DIFFS.md) | Judge session: Opus 5.5, xhigh |
 | 5 | Self-challenge: the judge stops after the rating; the assistant gives the operator the fixed self-challenge prompt; the operator sends it to the judge session; the judge finds and fixes its own errors | Judge session |
-| 6 | Validation of the leaderboard, after the operator's approval: a fresh subagent checks every finding and value; the judge decides each objection | Judge session |
+| 6 | Validation of the leaderboard, after the operator's approval: a fresh subagent checks every finding and value of the top runs that fit one context (all fit → all); the judge decides each objection | Judge session |
 
 ### Diff judge
 
@@ -554,7 +554,7 @@ For the assistant's understanding only; the judge prompt SCORE-DIFFS.md already 
   - H9 Extra: fixes of earlier bugs 0.5, related improvements 0.5.
 - **Findings:** each is a negative or a strength. Its level (critical = blocker, major, minor) comes from its own impact, never from its type.
 - **Values:** 0–6 by the worst negatives (0–1 blockers, 2–4 majors, 5–6 minors); `-` = nothing material (= 7); 8–10 by strengths.
-- **Bonus:** each fixed bug and each distinct improvement related to the job adds critical 1 · high 0.9 · medium 0.75 · low 0.5, by its own impact. A bug that is only reported, not fixed, gets no bonus points; the assistant records it in the run report as a strong point.
+- **Bonus:** each fixed bug and each distinct improvement related to the job adds critical 1 · high 0.9 · medium 0.75 · low 0.5, by its own impact. Only reported, not made → no bonus.
 - **Total** = Σ(value × weight) / Σ(10 × weight) × 100 + bonus. The primary result is the count of blockers, majors, minors and strengths.
 
 #### Sequence
@@ -562,7 +562,7 @@ For the assistant's understanding only; the judge prompt SCORE-DIFFS.md already 
 | # | Session | Who | Action |
 | --- | --- | --- | --- |
 | 1 | A | Assistant | Makes the judge folder `~/saleor-judge`, outside the Rosetta repo and outside `$BENCH_DIR`. Extracts `test-library/saleor-not-initialized-repos.zip` into it and resets the three repos to `baseline-v1`. Prepares a clean Claude Code config for the judge in `~/saleor-judge/claude`: the common settings of 3.5 with `claude-opus-5-5`, `"effortLevel": "xhigh"`, `"modelSettings": { "claude-opus-5-5": { "effortLevel": "xhigh" } }` and `"disableAllHooks": true`, no plugins, skills or hooks. `/model` must show Opus 5.5 with effort xhigh. Copies the task's inputs from section 4 word for word into `~/saleor-judge/task-<small or large>.md`. |
-| 2 | A | Assistant | Gives the operator the judge's first message: SCORE-DIFFS.md, the path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/`, the path to the base repos, the task prompt, "Done when", the hidden questions with answers, the extra answers, and the path for the judge's JSON. Before the first message, it reads every run's `report.md` and adds one line per run under "Already checked (do not re-check)": each test suite, linter and check that was run, with its result ("<what> was run: <result>"). Nothing else from the report. No data in the report: "not recorded". |
+| 2 | A | Assistant | Gives the operator the judge's first message: SCORE-DIFFS.md, the path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/`, the path to the base repos, the task prompt, "Done when", the hidden questions with answers, the extra answers, the path for the judge's JSON, and the path of the totals script. Before the first message, it reads every run's `report.md` and adds one line per run under "Already checked (do not re-check)": each test suite, linter and check that was run, with its result ("<what> was run: <result>"). Nothing else from the report. No data in the report: "not recorded". |
 | 3 | B | Operator | Starts a new Claude Code session (Opus 5.5, xhigh) in the judge folder with the clean config, `--model claude-opus-5-5` and `--dangerously-skip-permissions`, as in the runs, and sends the first message. All paths in the first message are absolute. |
 | 4 | B | Judge | Rates all runs, writes the ratings into the JSON, runs the totals script, reports the leaderboard and stops. |
 | 5 | A | Assistant | Gives the operator the self-challenge prompt. |
@@ -570,7 +570,7 @@ For the assistant's understanding only; the judge prompt SCORE-DIFFS.md already 
 | 7 | B | Judge | Answers, relays questions about a subagent's decisions to that subagent, fixes the JSON, runs the totals script again and stops. |
 | 8 | B | Operator | Approves the next step: sends `Approved, continue.` |
 | 9 | B | Judge | Has the validator check the leaderboard, decides each objection, updates the JSON and runs the totals script. |
-| 10 | A | Assistant | Reads the run report template (`templates/run-report-small.md` or `templates/run-report-large.md`) and brings the data block of each run report to it: old judge fields are replaced by the template's fields. Writes the judge's results into them. Records each bug that was only reported, not fixed, as a strong point. |
+| 10 | A | Assistant | Reads the run report template (`templates/run-report-small.md` or `templates/run-report-large.md`) and brings the data block of each run report to it: old judge fields are replaced by the template's fields. Writes the judge's results into them. |
 
 #### Self-challenge prompt
 
@@ -580,7 +580,7 @@ Honestly: do you see overstatements, inventions, assumptions, wrong or missing e
 
 #### Why
 
-- **All runs of one task × one runner in one context, rated absolutely:** a missing piece is visible next to a run that has it. Every finding is still proven against the base repo, the task or the answers, never against another run.
+- **All runs of one task × one runner in one context (or rounds of at least 3 runs), rated absolutely:** a missing piece is visible next to a run that has it. Every finding is still proven against the base repo, the task or the answers, never against another run.
 - **Full read access to the base repos:** the proof is often outside the diff: where a payload is built, which input type a consumer sends, which validation already exists.
 - **All repos of a run together:** the impact of a change in one repo can depend on the other repos. For example, an API change is major when the dashboard was updated with it, and a blocker when it was not.
 - **Impact decides the level:** what matters is the impact of a finding itself, not whether something is missing or could be done better.
