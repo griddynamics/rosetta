@@ -56,11 +56,15 @@ red_flags:                 # number of ticked red flags
 tests_pass:                # yes | no (operator ran them at T2)
 operator_score:            # 1–5, anchors in templates/README.md
 operator_merge_ready:      # yes | no
-# Filled later by the evaluator from the judge reports
+# Filled later by the assistant: verified_in_code from step 0.3, judge_* from the diff judge's JSON
 verified_in_code:          # items verified in code / items checked (e.g. 8/9)
-judge_absolute:            # /40
-judge_side_by_side:        # /40
-judge_merge_ready:         # yes | no
+judge_total:               # diff score: total + bonus, from the totals script
+judge_bonus:               # bonus points for fixed bugs and related improvements
+judge_blockers:            # number of blocker findings
+judge_majors:              # number of major findings
+judge_minors:              # number of minor findings
+judge_strengths:           # number of strengths
+judge_merge_ready_advice:  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 
 # Run report: <RUN_ID> · large task · <METHOD> · <RUNNER>

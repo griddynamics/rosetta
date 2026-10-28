@@ -17,7 +17,7 @@ Methods come from the presentation slide "Six approaches, one more if time allow
 | Rosetta Light | plugin `rosetta-light` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (both tasks) and `USE ROSETTA SUBAGENTS.` | Plugin | Plugin | `S-CC-07` | `S-CP-07` | `L-CC-07` | `L-CP-07` |
 | Rosetta Skills | plugin `rosetta` 3.1.17 only; no `/coding-flow`, prompt names skills `hitl`, `tech-specs` (both tasks) | Plugin | Plugin | `S-CC-08` | `S-CP-08` | `L-CC-08` | `L-CP-08` |
 
-Run ID format: `<task>-<runner>-<method#>` — `S`/`L` = small/large task, `CC`/`CP` = Claude Code / Copilot CLI. This ID is for operators only; the judge sees a separate random `run_id` (see `reports/mapping.csv`).
+Run ID format: `<task>-<runner>-<method#>` — `S`/`L` = small/large task, `CC`/`CP` = Claude Code / Copilot CLI. This ID is for operators only; the diff judge uses the run folder names.
 
 ## All 32 runs
 

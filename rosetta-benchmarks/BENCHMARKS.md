@@ -325,7 +325,7 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 - **Never change an answer already given in a run.** If one was wrong, add a note and discuss it with the team.
 - **Questions in no table: the agent's own recommended option.** To keep runs equal (apples to apples), the assistant does not invent a product decision of its own. The answer is the option the agent marks "(Recommended)", with all of that option's own description, written as a direct answer to the question (rule above), unless a table answer contradicts it (then the table wins, and the answer says so). It is added right away as an extra row (Q&A only), so every later run gets the same decision. If the agent offers no recommended option, the operator decides. An assumption the agent asks to confirm counts as its proposal. Reading a row more broadly than its text (for example hidden #5 "everywhere" → also the staff dashboard), or borrowing a decision another run made for a different question, is inventing a decision: don't.
 - **Answer only what was asked.** Don't add decisions the agent didn't ask about, and don't hint at hidden questions.
-- **Not asked = not a defect.** If an agent didn't ask and chose something else that is still reasonable, it is not a mistake. Only the "Done when" lines and the hidden-question tables are scored; the judge checks each run only against the answers given in that run.
+- **Not asked = not a defect.** If an agent didn't ask and chose something else that is still reasonable, it is not a mistake. Applies to section 4, running the task. Does not apply to the section 6 diff judge, which uses its own prompt.
 - Mark these questions as `extra` in the run report; they don't count as hidden questions.
 
 **Task 1 (small): extra answers**
@@ -533,14 +533,59 @@ The operator may have an AI assistant for **bookkeeping and guidance only** (3.5
 | 0.3 | A subagent checks what from the checklist and the discussion is actually in the code | Opus 5.5 |
 | 1 | Usage at first pass and in total (from the runner) | Operator |
 | 3 | git diff + action report (post-implementation prompt) | Agent under test |
-| 4 | Absolute score per run, 1–5 per category, without comparing runs | Opus 5.5 |
-| 5 | All diffs for one task × one runner side by side (one per method, up to 8), re-scored 1–5 on the same categories | Opus 5.5 |
+| 4 | Absolute rating of how each run built its change: 38 metrics in 10 categories (H0 Completeness, H1 Correctness & robustness, H2 Security, H3 Design conformance & coupling, H4 Test quality, H5 Performance & operability, H6 Change minimality, H7 Code clarity, H8 Documentation, H9 Extra). All runs of one task × one runner in one context (prompt: SCORE-DIFFS.md) | Judge session: Opus 5.5, xhigh |
+| 5 | Validation of the leaderboard: a fresh subagent checks every finding and value; the judge decides each objection | Judge session |
+| 6 | Self-challenge: the assistant gives the operator the fixed self-challenge prompt; the operator sends it to the judge session; the judge finds and fixes its own errors | Judge session |
 
-**Categories (1–5):** 1 Requirements coverage · 2 Hidden requirements (hidden questions) · 3 Correctness · 4 Security & privacy · 5 Tests · 6 Code quality & Saleor conventions · 7 Verification evidence · 8 Merge-readiness.
+### Diff judge
 
-**Anchors:** 1 = missing/broken · 2 = major gaps · 3 = works with notable gaps · 4 = minor issues only · 5 = complete, nothing to fix.
+For the assistant's understanding only; the judge prompt SCORE-DIFFS.md already contains it.
 
-**Judge:** Claude Opus 5.5, medium effort, 1M context, in Claude Code. Fresh session per job, no method plugins installed. Inputs are blinded: each run is copied into a folder named by a random `run_id`, and method/runner names are removed from `report.md`. The mapping lives in `saleor/reports/mapping.csv` and the judge never sees it.
+- **Metrics** (weight: critical 1 · high 0.9 · medium 0.75 · low 0.5):
+  - H0 Completeness: in-repo propagation 1, cross-repo propagation 1.
+  - H1 Correctness & robustness: logic & edge cases 1, error handling 0.9, data & migration integrity 1, backward compatibility 1, UI accessibility & i18n 0.75.
+  - H2 Security: authorization 1, input validation 0.9, injection & output encoding 1, data exposure 1.
+  - H3 Design conformance & coupling: logical placement, reuse of existing mechanisms, coupling & dependency structure, cross-repo contract consistency: 0.9 each.
+  - H4 Test quality: behavior coverage 0.9, edge & negative coverage 0.9, assertion strength 0.9, test design & placement 0.75, existing-test integrity 1.
+  - H5 Performance & operability: runtime & query cost 0.75, migration & deploy cost 0.75, logging & diagnostics 0.5.
+  - H6 Change minimality: scope discipline 0.9, DRY 0.75, leftovers & dead code 0.75, incidental churn 0.75.
+  - H7 Code clarity: KISS / YAGNI 0.9, SRP & complexity 0.75, naming 0.75, comments 0.5, idiomatic & type-safe 0.75.
+  - H8 Documentation: API docs 0.75, changelog / changeset 0.5, developer & user docs 0.5, AI-session context docs 0.5.
+  - H9 Extra: fixes of earlier bugs 0.5, related improvements 0.5.
+- **Findings:** each is a negative or a strength. Its level (critical = blocker, major, minor) comes from its own impact, never from its type.
+- **Values:** 0–6 by the worst negatives (0–1 blockers, 2–4 majors, 5–6 minors); `-` = nothing material (= 7); 8–10 by strengths.
+- **Bonus:** each fixed bug and each distinct improvement related to the job adds critical 1 · high 0.9 · medium 0.75 · low 0.5, by its own impact. A bug that is only reported, not fixed, gets no bonus points; the assistant records it in the run report as a strong point.
+- **Total** = Σ(value × weight) / Σ(10 × weight) × 100 + bonus. The primary result is the count of blockers, majors, minors and strengths.
+
+#### Sequence
+
+| # | Session | Who | Action |
+| --- | --- | --- | --- |
+| 1 | A | Assistant | Extracts `test-library/saleor-not-initialized-repos.zip` into a folder and resets the three repos to `baseline-v1`. Prepares a clean Claude Code config for the judge: its own `CLAUDE_CONFIG_DIR` with no plugins, skills or hooks. |
+| 2 | A | Assistant | Gives the operator the judge's first message: SCORE-DIFFS.md, the path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/`, the path to the base repos, the task prompt, "Done when", the hidden questions with answers, the extra answers, and the path for the judge's JSON. |
+| 3 | B | Operator | Starts a new Claude Code session (Opus 5.5, xhigh) with the clean config and sends the first message. |
+| 4 | B | Judge | Rates all runs and writes the ratings into the JSON. |
+| 5 | B | Judge | Has the validator check the leaderboard, decides each objection and updates the JSON. |
+| 6 | B | Judge | Runs the totals script. |
+| 7 | A | Assistant | Gives the operator the self-challenge prompt. |
+| 8 | B | Operator | Sends the self-challenge prompt to the judge session. |
+| 9 | B | Judge | Answers, relays questions about a subagent's decisions to that subagent, fixes the JSON and runs the totals script again. |
+| 10 | A | Assistant | Reads the run report template (`templates/run-report-small.md` or `templates/run-report-large.md`) and brings the data block of each run report to it: old judge fields are replaced by the template's fields. Writes the judge's results into them. Records each bug that was only reported, not fixed, as a strong point. |
+
+#### Self-challenge prompt
+
+```text
+Honestly: do you see overstatements, inventions, assumptions, wrong or missing evidence, wrong line numbers, nitpicks, root causes counted twice, values that do not follow the values table, impact levels not based on the finding's own impact, evidence from another run, or missed findings? Anything else you see is wrong? Did you analyze the positive and the negative side of every difference? List each problem, fix it in the JSON, run the totals script again, and repeat the RULE-REPORT.
+```
+
+#### Why
+
+- **All runs of one task × one runner in one context, rated absolutely:** a missing piece is visible next to a run that has it. Every finding is still proven against the base repo, the task or the answers, never against another run.
+- **Full read access to the base repos:** the proof is often outside the diff: where a payload is built, which input type a consumer sends, which validation already exists.
+- **All repos of a run together:** the impact of a change in one repo can depend on the other repos. For example, an API change is major when the dashboard was updated with it, and a blocker when it was not.
+- **Impact decides the level:** what matters is the impact of a finding itself, not whether something is missing or could be done better.
+- **Validator and self-challenge:** a first pass can contain wrong line numbers, overstated rules, nitpicks and root causes counted twice.
+- **Clean config:** a method's plugin in the judge session would load that method's rules and bias the ratings toward it.
 
 ### Prompt — step 0.3, verification subagent
 
@@ -555,35 +600,6 @@ Checklist:
 <PASTE THE TASK CHECKLIST>
 ```
 
-### Prompt — step 4, absolute per-run score
-
-```text
-You are an expert Saleor reviewer. Score ONE run in isolation. Do not compare it to any other run and do not modify any files.
-Task prompt: <PASTE TASK PROMPT>
-Evaluator checklist: <PASTE "Done when" + hidden questions with answers>
-Answers the programmer gave in this run: <PASTE the Q&A from the run protocol>. A decision the agent was never told is not a defect if its choice is reasonable.
-Run materials: <JUDGE_DIR>/<run_id>/ (all *.diff files, agent-report.md, verification table from step 0.3).
-For each category give a score 1–5 using these anchors (1 missing/broken, 2 major gaps, 3 works with notable gaps, 4 minor issues only, 5 complete) and a 1–2 sentence justification citing files from the diff:
-1 Requirements coverage, 2 Hidden requirements, 3 Correctness, 4 Security & privacy, 5 Tests, 6 Code quality & conventions, 7 Verification evidence, 8 Merge-readiness.
-Also output: merge_ready (yes/no), blocking defects (list), total score (sum).
-Save the result as <REPORTS_DIR>/<task>/<run_id>.absolute.md and as one JSON line appended to <REPORTS_DIR>/<task>/absolute.jsonl.
-```
-
-### Prompt — step 5, side by side (one task × one runner, 8 methods)
-
-```text
-You are an expert Saleor reviewer. Below are up to 8 anonymized solutions (run_ids only, one per method; a not-qualifying method has none) to the SAME task, produced on the SAME runner/model. Read all the code first.
-Task prompt: <PASTE TASK PROMPT>
-Evaluator checklist: <PASTE "Done when" + hidden questions with answers>
-Answers the programmer gave in this run: <PASTE the Q&A from the run protocol>. A decision the agent was never told is not a defect if its choice is reasonable.
-Solutions: <JUDGE_DIR>/<task>/<runner>/<run_id_1..8>/ (diffs + agent-report.md + step 0.3 verification table).
-Now that you have seen every solution, score EACH one again on the same 8 categories, 1–5, with the same anchors. Scores stay absolute (a 5 means "nothing to fix", not "best of the group"); do not force a ranking and ties are allowed.
-For each solution give per-category scores with one-sentence justifications, merge_ready (yes/no), blocking defects.
-Then produce one Markdown table: run_id | 8 category scores | total | merge_ready.
-Finally list the differences between solutions that most influenced the scores.
-Do not modify any files except the output: <REPORTS_DIR>/<task>/<runner>.side-by-side.md.
-```
-
 ### Final table
 
 Built by one command from the data blocks of all run reports:
@@ -592,10 +608,10 @@ Built by one command from the data blocks of all run reports:
 python3 rosetta-benchmarks/saleor/scripts/collect-results.py --out rosetta-benchmarks/saleor/reports/summary.md --csv rosetta-benchmarks/saleor/reports/runs.csv
 ```
 
-One per task, built from the data blocks of the run reports after de-blinding with `mapping.csv` (judge scores go into each report's data block: `verified_in_code`, `judge_absolute`, `judge_side_by_side`, `judge_merge_ready`):
+One per task. The assistant writes the judge's results into the data block of each run report (`report.md`). Merge-ready is the operator's decision; the judge's advice can only lead the operator to change it.
 
-| Method | Runner | Time first pass | Time total | Usage first pass | Usage total | Hidden questions: asked / covered / missed | Follow-ups | Method steps | Verified in code | Absolute (/40) | Side-by-side (/40) | Merge-ready |
-| --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Method | Runner | Time first pass | Time total | Usage first pass | Usage total | Hidden questions: asked / covered / missed | Follow-ups | Method steps | Verified in code | Diff score | Blockers / Majors / Minors | Strengths | Bonus | Merge-ready |
+| --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- |
 
 **Verdict per method:**
 
@@ -610,14 +626,17 @@ Everything goes into this folder in the Rosetta repo, on **one branch** (`benchm
 ```text
 rosetta-benchmarks/
 ├── BENCHMARKS.md                               # this document
+├── SCORE-DIFFS.md                              # diff judge prompt
 └── saleor/
     ├── EXPERIMENTS.md                          # the 32 runs + status
     ├── scripts/bench.sh                        # setup, reset, start, stop, health
     ├── scripts/session-usage.py                # token breakdown of one Claude Code or Copilot CLI session
+    ├── scripts/score-diffs.py                  # totals from the diff judge's JSON
+    ├── judge/                                  # diff judge decision history (maintainers only)
     ├── methods/<method>.md                     # one file per method: setup + each run (small/large × Claude Code/Copilot)
     ├── templates/                              # run report templates + metric definitions (README.md)
     ├── runs/<task>/<runner>/<method>/          # one folder per run: report.md, agent-report.md, tokens.md, <repo>.diff (+ plan.md for Baseline)
-    └── reports/                                # judge outputs, mapping.csv, summary tables
+    └── reports/                                # diff judge JSON, summary tables
 ```
 
 `<task>`: `small-storage-conditions` · `large-age-restriction`. `<runner>`: `claude-code` · `copilot`. `<method>`: `baseline` · `grill-with-docs` · `superpowers` · `spec-kit` · `aws-ai-dlc` · `rosetta` · `rosetta-light` · `rosetta-skills`.

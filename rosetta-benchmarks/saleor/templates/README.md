@@ -52,8 +52,10 @@ The same rules for every operator, so results are comparable.
 | `operator_score` | 1–5 | 1 = broken or missing · 2 = major gaps · 3 = works with notable gaps · 4 = minor issues only · 5 = nothing to fix. |
 | `operator_merge_ready` | yes / no | Could be merged after a normal review, without rework. |
 | `verified_in_code` | x/y | From the judge's step 0.3: items found implemented in the diff / items checked. |
-| `judge_absolute`, `judge_side_by_side` | /40 | Judge scores (BENCHMARKS.md, section 6). |
-| `judge_merge_ready` | yes / no | Judge's merge-ready verdict. |
+| `judge_total` | number | Diff score: Σ(value × weight) / Σ(10 × weight) × 100 + bonus (BENCHMARKS.md, section 6). |
+| `judge_bonus` | number | Bonus points for bugs the run fixed and distinct improvements related to the job. |
+| `judge_blockers`, `judge_majors`, `judge_minors`, `judge_strengths` | count | Findings of the diff judge by level. |
+| `judge_merge_ready_advice` | none / no / yes | The judge's advice on `operator_merge_ready`; the operator decides. |
 
 Allowed values: `method` is one of `baseline`, `grill-with-docs`, `superpowers`, `spec-kit`, `aws-ai-dlc`, `rosetta`, `rosetta-light`, `rosetta-skills`. `runner` is one of `claude-code`, `copilot`. `status` is one of `done`, `not-qualifying`, `infra-fail`. `setup_mark` is one of `official`, `manual-port`.
 

@@ -107,8 +107,8 @@ def usage(d, key):
 
 def per_run_table(rows):
     out = ["| Run ID | Folder | Kind | Status | Time first (min) | Time total (min) | Usage first | Usage total | Rework | "
-           "Hidden asked / covered / missed | First-pass coverage | Follow-ups | Method steps | Done checks | Tests | Operator score | Merge-ready | Judge abs | Judge s-b-s |",
-           "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | --- | --- | ---: | --- | ---: | ---: |"]
+           "Hidden asked / covered / missed | First-pass coverage | Follow-ups | Method steps | Done checks | Tests | Operator score | Merge-ready | Diff score | Blockers / Majors / Minors | Strengths | Bonus |",
+           "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | --- | --- | ---: | --- | ---: | --- | ---: | ---: |"]
     key = lambda d: (d.get("task", ""), d.get("runner", ""), METHOD_ORDER.index(d["method"]) if d.get("method") in METHOD_ORDER else 99, d["_folder"])
     for d in sorted(rows, key=key):
         out.append("| " + " | ".join([
@@ -118,7 +118,9 @@ def per_run_table(rows):
             fmt(d["first_pass_coverage"], "%"), d.get("followups") or "–", d.get("method_steps") or "–",
             f"{d.get('done_checks_passed') or '–'}/{d.get('done_checks_total') or '–'}", d.get("tests_pass") or "–",
             d.get("operator_score") or "–", d.get("operator_merge_ready") or "–",
-            d.get("judge_absolute") or "–", d.get("judge_side_by_side") or "–"]) + " |")
+            d.get("judge_total") or "–",
+            f"{d.get('judge_blockers') or '–'} / {d.get('judge_majors') or '–'} / {d.get('judge_minors') or '–'}",
+            d.get("judge_strengths") or "–", d.get("judge_bonus") or "–"]) + " |")
     return out
 
 
@@ -131,7 +133,7 @@ def summary_tables(rows):
             if not cell:
                 continue
             out += ["", f"### {task} · {runner} (status done only)", "",
-                    "| Method | n | Time first (min) | Time total (min) | Usage total | First-pass coverage | Follow-ups | Method steps | Done checks passed | Operator score | Judge abs |",
+                    "| Method | n | Time first (min) | Time total (min) | Usage total | First-pass coverage | Follow-ups | Method steps | Done checks passed | Operator score | Diff score |",
                     "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
             for m in METHOD_ORDER:
                 rs = [d for d in cell if d.get("method") == m]
@@ -144,7 +146,7 @@ def summary_tables(rows):
                 out.append("| " + " | ".join([m, str(len(rs)), fmt(med("time_first_min")), fmt(med("time_total_min")),
                                                usage_text(cost, "usd" if runner == "claude-code" else "cr"),
                                                fmt(med("first_pass_coverage"), "%"), fmt(med("followups")), fmt(med("method_steps")),
-                                               fmt(med("done_checks_passed")), fmt(med("operator_score")), fmt(med("judge_absolute"))]) + " |")
+                                               fmt(med("done_checks_passed")), fmt(med("operator_score")), fmt(med("judge_total"))]) + " |")
     return out or ["", "_No runs with `status: done` yet._"]
 
 
