@@ -12,7 +12,7 @@ baseSchema: docs/schemas/phase.md
 ## Phase Flow
 
 **Phase 2: Old Code Analysis**
-1. Complete Phase 1 first
+1. Complete Phase 1 first, unless on the reduced route recorded in the state file
 2. Process each project separately
 3. Analyze code and tests
 4. Create original-code-specs files
@@ -26,7 +26,7 @@ baseSchema: docs/schemas/phase.md
 
 ## Context
 
-**PREREQUISITES:** Complete Phase 1 (all reference code specs created)
+**PREREQUISITES:** Complete Phase 1 (all reference code specs created), unless on the reduced route recorded in the state file
 
 **OBJECTIVES:**
 - Create complete, factual specification of existing code

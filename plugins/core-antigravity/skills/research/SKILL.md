@@ -47,7 +47,7 @@ Research rules:
 Enforcement rules for the generated research prompt:
 
 1. MUST use todo tasks
-2. MUST use DeepWiki and Context7
+2. MUST use DeepWiki and Context7 when available
 3. MUST create and update state md file after each task
 4. MUST output result file section by section as soon as each section becomes available
 5. MUST think about and align consequences and consequences of consequences to prevent oversight (example: doing X leads to Y, which affects Z, thus it should be done ABC way)
