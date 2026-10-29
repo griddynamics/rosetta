@@ -79,4 +79,7 @@ If you learned something new which is reusable, there are process efficiency imp
 - **Ask-tool questions must stand alone.** Wrote context as text and called AskUserQuestion in the same turn; user saw only "what about the two gaps?". Put problem, gaps, and options inside the question itself.
 - **Start every PR summary with its task.** Presented #365 defects and options before saying what the PR set out to do or who asked. User could not judge. Order: task/origin → needed? → what it does → gaps → decision.
 - **A push to a PR needs another approver.** Pushed a fix to the owner's PR; `main` then demanded approval from someone other than the last pusher, plus every review thread resolved. Before pushing, batch all fixes into one push and plan who approves.
+- **Verify the issue's premise, not only the fix.** Relayed "subagents cannot spawn subagents" from #354 as fact; it was false. Root cause: checked the fix against the issue, never the issue against reality.
+- **Every instructions merge publishes immediately.** Claimed bad text ships only on version bump; `publish-instructions.yml` moves tags and overwrites release assets on each push to `main`. Fix PR branches before merging.
+- **Hand the user gated commands up front.** Auto mode blocks running contributor code, `--admin` merges, and pushes to forks. Give exact `!` commands pinned to reviewed SHAs instead of retrying.
 - **Talking around, not directly.** If you cannot be specific and clear and short, it means YOU are NOT grounded. DO NOT ASK YET - DIG FIRST!
