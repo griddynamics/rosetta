@@ -12,10 +12,10 @@ This modernization process is designed to systematically analyze, specify, and i
 ### Critical Requirements
 
 - **ONE PHASE AT A TIME**: Read one phase file, execute it completely, update state file, then move to next phase.
-- **DO NOT SKIP PHASES**: Each phase builds on the previous one. ONLY exception: the reduced route (see User Customizations).
+- **DO NOT SKIP PHASES**: Each phase builds on the previous one.
 - **STATE TRACKING**: After each phase, update `agents/modernization-flow-state.md` with completion status, keep this document concise.
 - **USER CONFIRMATION**: Wait for user confirmation before proceeding to next phase.
-- Make sure to have todo tasks for each phase! Do not skip phases (except on the reduced route)!
+- Make sure to have todo tasks for each phase! Do not skip phases!
 - **REMEMBER** Do not put decisions/recommendations/suggestions/implementation code for the next phases in the output documents! The decisions are made at phase 6 and review at phase 7 AFTER full analysis. Respect that.
 - **MUST** Create and update files that ARE EXPLICITLY stated here, ASK for permission to create any other file!
 - **MUST** use grep/search on large files to read "table of contents" and then use line ranges to read what is needed.
@@ -28,7 +28,7 @@ This modernization process is designed to systematically analyze, specify, and i
 
 - If user did not specify any preferences perform all steps except optional.
 - User CAN customize and ask only for specific steps OR steps could have been done already OR towards specific goal OR for specific case, in this case LISTEN and ADOPT to the user.
-- Modernization scope could be small or could be done in place (example: upgrade Java 8 to 17 or 17 to 21), in this case only use `Phase 2` and `Phase 6`, unless you discover dependencies and project becomes bigger. This reduced route is an explicit exception to the phase-prerequisite contract: Phase 2 runs without Phase 1 ONLY after recording in the state file that no reusable reference-library analysis is needed (no prior reference specs exist and none is requested), and Phase 6 runs without Phase 5 ONLY under a bounded single-project mapping scope — cross-project findings are replaced by an explicit single-project scope note, written by the orchestrator in the state file's `Reduced Route` section before Phase 6. On the reduced route Phase 7 (Final Review) is skipped: it reviews cross-project artifacts that do not exist; the Phase 6 single-project note is its substitute. Record both decisions in the state file so the exception is auditable.
+- Modernization scope could be small or could be done in place (example: upgrade Java 8 to 17 or 17 to 21), in this case only use `Phase 2` and `Phase 6`, skip the other phases and their prerequisites, record this in the state file, unless you discover dependencies and project becomes bigger.
 - If there is no need to rewrite code (example: upgrade .NET 6 to .NET 8), then take original and target code specs LIGHTLY, only document WHAT IS NECESSARY TO CHANGE (example: new way to use app builder).
 
 ## Modernization Flow - Phase Overview
@@ -112,10 +112,6 @@ Create/update `agents/modernization-flow-state.md` briefly after each phase usin
 - [ ] Phase 7: Final Review - Not Started
 - [ ] Implementation Phase - Not Started
 
-## Reduced Route
-
-Reduced route: no — full sequence. If reduced: yes — Phase 1 skipped because [no reusable reference-library analysis needed: …]; Phase 5 skipped because [single-project mapping scope: …]; Single-project scope note: [project, why no cross-project dependencies, boundaries]; Phase 7 skipped (substituted by the Phase 6 single-project note).
-
 ## Phase Details
 
 ### Phase 1
@@ -129,7 +125,7 @@ Reduced route: no — full sequence. If reduced: yes — Phase 1 skipped because
 
 ## Important Notes
 
-- **Sequential Execution Required**: Phases build on each other and must be done in order — the ONLY exception is the reduced route recorded in the state file (see User Customizations), whose skipped-phase substitutes are defined in the affected phase files.
+- **Sequential Execution Required**: Phases build on each other and must be done in order
 - **No Assumptions**: If information is missing, track it in spec files
 - **User Guidance**: Ask questions to resolve critical unknowns
 - **Evidence-Based**: All findings must reference actual code
