@@ -22,8 +22,6 @@ Claude Code is Anthropic's AI-powered terminal-based coding assistant. Supports 
 - `.claude/rules/` - Path-specific rules
 - `.claude/settings.json` - Project settings and team plugin configuration
 
-**⚠️ CRITICAL LIMITATION: claude code subagents CANNOT spawn new subagents, only top-level agent can do that! It is two levels only: user -> orchestrator -> subagents**. Orchestrator can spawn subagents. Subagents CANNOT spawn subagents.
-
 ---
 
 ## Root Configuration File (CLAUDE.md)

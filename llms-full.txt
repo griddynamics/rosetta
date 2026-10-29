@@ -260,7 +260,7 @@ Domain packs: solr-query (eDisMax, block join, JSON facets, kNN, explain, releva
 ================================================================================
 11 · AGENTS / SUBAGENTS (delegated specialists, fresh context)
 ================================================================================
-Orchestrator  top-level; spawns subagents; owns delegation quality end-to-end (subagents cannot spawn).
+Orchestrator  top-level; spawns subagents; owns delegation quality end-to-end.
 Discoverer    lightweight; gather context from codebase + external before work.
 Executor      lightweight; run simple cmds, summarize to avoid context overflow.
 Planner       sequenced execution plans scaled to size, w/ quality gates.

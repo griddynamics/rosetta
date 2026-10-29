@@ -23,7 +23,6 @@ OpenCode: Terminal-based AI coding assistant with workspace config files, agents
 **Architecture:** Two-level agent hierarchy
 - **Primary agents** - Main assistants (Build, Plan, custom)
 - **Subagents** - Specialized assistants (General, Explore, custom)
-- Primary can spawn subagents. Subagents CANNOT spawn subagents.
 
 ---
 
