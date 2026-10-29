@@ -211,3 +211,4 @@ If you learned something new which is reusable, there are process efficiency imp
 - **Unknown reason: search, then ask** Guessed why Terra was dropped ("lower tier", "two tiers"). Real reason: GPT-6 has no Terra, and Luna matches it at about 1/8 the cost. Search the repo; still unclear, ask.
 - **Id format is not a tool limit** Commit said Cursor/Copilot ids carry no effort; I wrote "cannot set effort". Effort is set elsewhere (orchestration). Claim a limit only when verified, else ask.
 - **Use known facts, hedge real doubt** Dropped "Flash costs less" for lack of repo pricing. Flash is cheaper than Pro-class models; common knowledge needs no repo source.
+- **Flag inferences in the plan** A claim not run or not in the diff (e.g. "binary files re-upload once") goes in a "points to check" list before approval, not silently into text.

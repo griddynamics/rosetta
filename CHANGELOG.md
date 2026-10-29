@@ -118,6 +118,57 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 19.10 – Sun 25.10
+
+Rosetta gains a `checklist` skill. The AI writes a checklist of requirements before it starts, keeps it current, and checks every item before it says the work is done. A fresh reviewer subagent then checks the result independently. In the same week, the AI asks questions in manageable batches instead of one at a time, and workspace initialization runs its reverse-engineering sub-work on cheaper models.
+
+Three fixes close gaps in tooling. A dangerous-actions override now works on MCP tools whose shell field is `cmd` or `shell_command`. Publishing to the server detects changed binary files of equal size and no longer deletes server documents after an unreadable local file. A Curiocity run in which every trial is skipped now fails with exit code 2 instead of passing.
+
+**Highlights**
+
+- `[R3]` New `checklist` skill: the AI builds a checklist of requirements, constraints, and evidence before implementation, keeps it in sync with scope, and validates every item before reporting completion. A fresh reviewer subagent then checks independently and gives a confidence score. This addresses drift and work that only looks complete
+- `[R3]` Question skills (`hitl`, `questioning`): the AI asks questions in manageable batches in every client. Before, it batched only when the client had an ask-user tool and otherwise asked strictly one at a time
+- `[R3]` Workspace initialization, documentation phase: the final documents still use the top-tier model. Reverse-engineering sub-work now goes to the discoverer subagent or a cheap, fast model at high reasoning (Haiku, Luna, Flash), in manageable-sized tasks. Before, the phase ran full reverse engineering on the expensive model
+- `[R3]` Planning: each session in a plan is expected to run with orchestration and subagents, and a session too small for that is now listed as a pitfall
+- `[R3]` Orchestration: reads and tool outputs are named as the main contributors to context size. A new rule states that a newer model generation at one reasoning step higher equals the older one (GPT-6 Luna xhigh = GPT-5.6 Terra high = GPT-5.5 medium)
+- `[Hooks]` The `Rosetta-AI-reviewed` override marker is now accepted in MCP `cmd` and `shell_command` fields. Before, an MCP tool that took its command in those fields could never be self-approved after a review
+- `[Tooling]` Publishing to the server detects binary files that change without changing size (David Turner)
+- `[Tooling]` Publishing fails a text file that is not valid UTF-8 instead of uploading it with bytes dropped. After an unreadable local file, duplicate and orphan cleanup is skipped so an incomplete inventory cannot delete server documents
+- `[Tooling]` A Curiocity run in which every trial is skipped (for example, a mistyped agent id) exits with code 2, "no runnable trials". Before, it exited 0 and the CI gate passed (Arteom Balanuta)
+- `[Tooling, CI]` Model-resolution tests for the plugin generator use a fixture agent pair. Retiering a real subagent no longer breaks pre-commit or the Rosettify Plugins pipeline. `docs/ARCHITECTURE.md` now states that every change bumps each affected component's version in the same commit
+- `[CI]` GitHub triage of new or updated PRs and issues uses the `daily-oss` and `backlog` skills. With no human present, it recommends approval and requests changes automatically
+- Routine (maintainer-internal): `checklist-A` and `checklist-B` project skills replaced by the published `checklist` skill; `daily-oss` proposals are self-contained (5W1H) and resume earlier subagents; `daily-oss` and `merge-main` can be invoked by the model; `update-change-log` tightened; plugins 3.1.16 → 3.1.18; stats snapshot refreshed; last week's changelog entry landed
+
+#### Checklist skill: self-verification before "done"
+
+- **Change.** `[R3]` Long sessions drift, forget requirements, and sometimes report completion early. The new `checklist` skill has the AI write a checklist before implementation context biases it. The list is grouped by category and aspect, with items of under 8 words that mix general checks (build clean, all unit tests pass) with request-specific ones and evidence items. Each item is scored 0 to 100, not ticked. The AI adds items as scope grows and never deletes or weakens one without a recorded reason. Before reporting completion it validates every item and repeats until it finds no unresolved medium or higher issue. It then spawns a fresh reviewer subagent with the source of truth, the checklist, and the evidence, but not its own conclusion. The reviewer checks checklist coverage and each item, and returns findings with a 0 to 100% confidence score. The AI reports completion only when both sides have zero unresolved medium+ findings. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Completion is claimed against a written list instead of the AI's memory of the request. The costly independent review runs once the AI's own checks pass, and the same reviewer is reused where possible.
+
+#### Questions in manageable batches
+
+- **Change.** `[R3]` The `hitl` skill told the AI to batch questions only through an ask-user tool and otherwise ask strictly one at a time. The `questioning` skill said to ask "few" questions. Both now say to ask in manageable batches unless the user requests otherwise. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Clients without an ask-user tool no longer turn a 5 to 10 question round into 5 to 10 round trips.
+
+#### Workspace initialization: reverse engineering on cheaper models
+
+- **Change.** `[R3]` The documentation phase of workspace initialization writes the five context documents that every later session loads. It ran full reverse engineering on the top-tier model. It still requires the top tier for the final documents. For the reverse-engineering sub-work, it now tells the AI to prefer the discoverer subagent or a built-in subagent on a cheap, fast model at high reasoning (Haiku, Luna, Flash), and to give each one a manageable-sized task. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Reading code costs less. The expensive model is kept for the documents themselves.
+
+#### Hooks: override marker works in MCP command fields
+
+- **Change.** `[Hooks]` The `dangerous-actions` hook lets the AI approve a flagged action by adding a `Rosetta-AI-reviewed` marker after a blast-radius check. For MCP tools, the marker was accepted only in `command`, `sql`, `query`, `new_string`, and `content`. A flagged call on a tool that takes its command in `cmd` or `shell_command` could not carry the marker. The accepted fields are now the MCP shell fields plus the content fields. Path fields stay excluded, so changing an operation's target cannot carry the override. A comment now warns that no danger pattern may contain the marker, or a match would override itself. (Igor Solomatov, #358, issue #173)
+- **Why it helps.** A flagged MCP shell call can now be approved after a review like any other tool. Marker placement in a path cannot approve a dangerous command.
+
+#### Publishing to the server: safer change detection and cleanup
+
+- **Change.** `[Tooling]` Rosetta publishes the instructions folder to the server and uploads only changed files. For binary files, the change hash used the file size. A replacement of the same size looked unchanged and was skipped. The hash now uses the file's content, so such changes are detected (David Turner, #359, issue #350). Binary files will re-upload once, because the stored hash changes. A text file that is not valid UTF-8 now fails with a named error. Before, the undecodable bytes were dropped. An unreadable local file is now reported as failed, and duplicate and orphan cleanup is skipped for that run. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Replaced binaries reach the server. A read error on one local file cannot make server documents look stale and delete them.
+
+#### Curiocity: a run with nothing to run now fails
+
+- **Change.** `[Tooling]` Curiocity runs agent evaluations and gates CI on the result. A suite in which every trial resolved to `skipped` (for example, every agent id mistyped) exited 0, so CI passed on a run that executed nothing. The gate now exits 2, "no runnable trials", as the architecture document already specified. One skipped trial among runnable ones stays non-fatal, and error statuses keep exit 3. Re-gating a saved all-skipped suite with `report` gives the same exit code. (Arteom Balanuta, #367, issue #326)
+- **Why it helps.** CI no longer shows a green gate for a run that evaluated nothing.
+
 ### Week Mon 12.10 – Sun 18.10
 
 When Rosetta runs on Gemini, it now uses a more capable model, Gemini 4 Argon, for the architect, planner, requirements-engineer, and prompt-engineer subagents (lightweight profile: architect only). These subagents make the decisions that shape everything built afterwards. Claude and GPT already ran them on Opus and Sol, while Gemini used Flash. On Claude, discovery and research moved to the cheaper Haiku 5.5.
