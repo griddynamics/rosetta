@@ -1,0 +1,24 @@
+# Hook execution path for one IDE tool-call event.
+# Arrows = runtime call / data direction. Evidence: src/hooks/src/.
+direction: right
+
+ide: "IDE / coding agent\n(tool call event)"
+
+bundle: "Per-IDE bundle  hooks/<hook>.js" {
+  direction: right
+  entry: "entrypoints/\nadapter-<ide>.ts"
+  norm: "adapter.ts + adapters/<ide>.ts\nIDE detection → NormalizedInput"
+  hook: "hooks/<hook>.ts\n(defineHook: event + toolKinds)"
+  fmt: "adapters/<ide>.ts\nformatOutput"
+  entry -> norm -> hook -> fmt
+}
+
+state: "runtime/state-store\n(per-session state, e.g. read-once)" {
+  shape: cylinder
+}
+
+ide -> bundle.entry: "stdin JSON"
+bundle.hook -> state: read / mutate {
+  style.stroke-dash: 4
+}
+bundle.fmt -> ide: "stdout JSON\nadvise · deny · side-effect"
