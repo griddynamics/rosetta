@@ -83,36 +83,44 @@ jobs:
           CHART_PATH=./src/helm-charts/rosetta-mcp-server
           VERSION="$(grep -E '^version:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
           CHART_NAME="$(grep -E '^name:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
-          REPOSITORY="registry-1.docker.io/griddynamics"
+          IMAGE="griddynamics/${CHART_NAME}"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "chart_name=${CHART_NAME}" >> "$GITHUB_OUTPUT"
           echo "Chart version is ${VERSION} (${CHART_NAME})"
-          mkdir -p /tmp/helm-check
-          set +e
-          PULL_OUT=$(helm pull "oci://${REPOSITORY}/${CHART_NAME}" --version "${VERSION}" --destination /tmp/helm-check 2>&1)
-          PULL_RC=$?
-          set -e
-          echo "${PULL_OUT}"
-          if [ "${PULL_RC}" -eq 0 ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "::warning::Version ${VERSION} already exists at oci://${REPOSITORY}/${CHART_NAME}"
-          else
-            # Not-found is expected for a new version. Network/auth/registry errors must fail.
-            if echo "${PULL_OUT}" | grep -qiE 'not found|no such|unknown tag|manifest unknown|404|does not exist'; then
+
+          # Anonymous pull token: Docker Hub's OCI registry requires a bearer token
+          # even for public manifest reads.
+          TOKEN="$(curl -fsS "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${IMAGE}:pull" | jq -r '.token')"
+          if [ -z "${TOKEN}" ] || [ "${TOKEN}" = "null" ]; then
+            echo "::error::Could not obtain an anonymous pull token from Docker Hub for ${IMAGE}"
+            exit 1
+          fi
+
+          # Decide by HTTP status only: 200 = manifest exists, 404 = new version.
+          # Any other status (auth failure, registry error, DNS/network failure) fails the job.
+          HTTP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+            "https://registry-1.docker.io/v2/${IMAGE}/manifests/${VERSION}")"
+
+          case "${HTTP_CODE}" in
+            200)
+              echo "exists=true" >> "$GITHUB_OUTPUT"
+              echo "::warning::Version ${VERSION} already exists at oci://registry-1.docker.io/${IMAGE}"
+              ;;
+            404)
               echo "exists=false" >> "$GITHUB_OUTPUT"
               echo "Version ${VERSION} is new, will publish"
-            else
-              echo "::error::helm pull failed while checking existing chart version (rc=${PULL_RC})"
+              ;;
+            *)
+              echo "::error::Unexpected HTTP ${HTTP_CODE} checking oci://registry-1.docker.io/${IMAGE}:${VERSION}"
               exit 1
-            fi
-          fi
+              ;;
+          esac
 
       - name: Fail if version exists
         if: steps.check_version.outputs.exists == 'true'
         run: |
-          echo "::error::Version ${{ steps.check_version.outputs.version }} already published at oci://registry-1.docker.io/griddynamics/${{ steps.check_version.outputs.chart_name }}"
-          echo "Docker Hub / OCI does not allow silently overwriting the same chart version."
-          echo "Please increment version in src/helm-charts/rosetta-mcp-server/Chart.yaml"
+          echo "::error::Version ${{ steps.check_version.outputs.version }} is already published. Increase \`version\` in Chart.yaml."
           exit 1
 
       - name: Package and push Helm chart (OCI / Docker Hub)
