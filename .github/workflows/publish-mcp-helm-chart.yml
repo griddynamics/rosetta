@@ -76,7 +76,55 @@ jobs:
         with:
           version: v3.20.2
 
+      - name: Check if chart version exists
+        id: check_version
+        run: |
+          set -euo pipefail
+          CHART_PATH=./src/helm-charts/rosetta-mcp-server
+          VERSION="$(grep -E '^version:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
+          CHART_NAME="$(grep -E '^name:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
+          IMAGE="griddynamics/${CHART_NAME}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Chart version is ${VERSION} (${CHART_NAME})"
+
+          # Anonymous pull token: Docker Hub's OCI registry requires a bearer token
+          # even for public manifest reads.
+          TOKEN="$(curl -fsS "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${IMAGE}:pull" | jq -r '.token')"
+          if [ -z "${TOKEN}" ] || [ "${TOKEN}" = "null" ]; then
+            echo "::error::Could not obtain an anonymous pull token from Docker Hub for ${IMAGE}"
+            exit 1
+          fi
+
+          # Decide by HTTP status only: 200 = manifest exists, 404 = new version.
+          # Any other status (auth failure, registry error, DNS/network failure) fails the job.
+          HTTP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+            "https://registry-1.docker.io/v2/${IMAGE}/manifests/${VERSION}")"
+
+          case "${HTTP_CODE}" in
+            200)
+              echo "exists=true" >> "$GITHUB_OUTPUT"
+              echo "::warning::Version ${VERSION} already exists at oci://registry-1.docker.io/${IMAGE}"
+              ;;
+            404)
+              echo "exists=false" >> "$GITHUB_OUTPUT"
+              echo "Version ${VERSION} is new, will publish"
+              ;;
+            *)
+              echo "::error::Unexpected HTTP ${HTTP_CODE} checking oci://registry-1.docker.io/${IMAGE}:${VERSION}"
+              exit 1
+              ;;
+          esac
+
+      - name: Fail if version exists
+        if: steps.check_version.outputs.exists == 'true'
+        run: |
+          echo "::error::Version ${{ steps.check_version.outputs.version }} is already published. Increase \`version\` in Chart.yaml."
+          exit 1
+
       - name: Package and push Helm chart (OCI / Docker Hub)
+        if: steps.check_version.outputs.exists == 'false'
         run: |
           set -euo pipefail
           CHART_PATH=./src/helm-charts/rosetta-mcp-server
