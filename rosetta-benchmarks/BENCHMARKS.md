@@ -556,7 +556,7 @@ The "Tests pass locally" check runs the test suites only, not the dashboard type
 | 0.3 | A subagent checks what from the checklist and the discussion is actually in the code | Opus 5.5 |
 | 1 | Usage at first pass and in total (from the runner) | Operator |
 | 3 | git diff + action report (post-implementation prompt) | Agent under test |
-| 4 | Absolute rating of how each run built its change: 38 metrics in 10 categories (H0 Completeness, H1 Correctness & robustness, H2 Security, H3 Design conformance & coupling, H4 Test quality, H5 Performance & operability, H6 Change minimality, H7 Code clarity, H8 Documentation, H9 Extra). All runs of one task × one runner in one context, or in rounds of at least 3 runs when they do not fit (prompt: SCORE-DIFFS.md) | Judge session: Opus 5.5, xhigh |
+| 4 | Absolute rating of how each run built its change: 39 metrics in 10 categories (H0 Completeness, H1 Correctness & robustness, H2 Security, H3 Design conformance & coupling, H4 Test quality, H5 Performance & operability, H6 Change minimality, H7 Code clarity, H8 Documentation, H9 Extra). All runs of one task × one runner in one context, or in rounds of at least 3 runs when they do not fit (prompt: SCORE-DIFFS.md) | Judge session: Opus 5.5, xhigh |
 | 5 | Self-challenge: the judge stops after the rating; the assistant gives the operator the fixed self-challenge prompt; the operator sends it to the judge session; the judge finds and fixes its own errors | Judge session |
 | 6 | Validation of the leaderboard, after the operator's approval: a fresh subagent checks every finding and value of the top runs that fit one context (all fit → all); the judge decides each objection | Judge session |
 
@@ -574,10 +574,10 @@ For the assistant's understanding only; the judge prompt SCORE-DIFFS.md already 
   - H6 Change minimality: scope discipline 0.9, DRY 0.75, leftovers & dead code 0.75, incidental churn 0.75.
   - H7 Code clarity: KISS / YAGNI 0.9, SRP & complexity 0.75, naming 0.75, comments 0.5, idiomatic & type-safe 0.75.
   - H8 Documentation: API docs 0.75, changelog / changeset 0.5, developer & user docs 0.5, AI-session context docs 0.5.
-  - H9 Extra: fixes of earlier bugs 0.5, related improvements 0.5.
-- **Findings:** each is a negative or a strength. Its level (critical = blocker, major, minor) comes from its own impact, never from its type.
+  - H9 Extra: fixes of earlier bugs 0.5, related improvements 0.5, proactive safeguards 0.5.
+- **Findings:** each is a negative or a strength. Its level (critical = blocker, major, minor) comes from its own impact, never from its type. Every difference is first read from the positive side: why the run did it that way (INTENT). A contradicted answer is leveled by its impact after that reason is weighed, never a blocker by type.
 - **Values:** 0–6 by the worst negatives (0–1 blockers, 2–4 majors, 5–6 minors); `-` = nothing material (= 7); 8–10 by strengths.
-- **Bonus:** each fixed bug and each distinct improvement related to the job adds critical 1 · high 0.9 · medium 0.75 · low 0.5, by its own impact. Only reported, not made → no bonus.
+- **Bonus:** each fixed bug, each distinct improvement related to the job, each proactive safeguard and each DELTA item (a correct thing the run did that the `baseline` run did not do or did wrong) adds critical 1 · high 0.9 · medium 0.75 · low 0.5, by its own impact. Only reported, not made → no bonus.
 - **Total** = Σ(value × weight) / Σ(10 × weight) × 100 + bonus. The primary result is the count of blockers, majors, minors and strengths.
 
 #### Sequence
@@ -598,7 +598,7 @@ For the assistant's understanding only; the judge prompt SCORE-DIFFS.md already 
 #### Self-challenge prompt
 
 ```text
-Honestly: do you see overstatements, inventions, assumptions, wrong or missing evidence, wrong line numbers, nitpicks, root causes counted twice, values that do not follow the values table, impact levels not based on the finding's own impact, evidence from another run, or missing findings (negatives and strengths) in any run and any metric? Anything else you see is wrong? Did you analyze the positive and the negative side of every difference? List each problem, fix it in the JSON, run the totals script again, and repeat the RULE-REPORT.
+Honestly: do you see overstatements, inventions, assumptions, wrong or missing evidence, wrong line numbers, nitpicks, root causes counted twice, values that do not follow the values table, impact levels not based on the finding's own impact, evidence from another run, or missing findings (negatives and strengths) in any run and any metric? Anything else you see is wrong? Did you analyze the positive and the negative side of every difference, starting with why the run did it that way (does it make sense, does it follow a base rule, does it solve a problem others missed)? Did you level any contradicted answer as a blocker by type instead of by its impact? List each problem, fix it in the JSON, run the totals script again, and repeat the RULE-REPORT.
 ```
 
 #### Why
@@ -606,7 +606,7 @@ Honestly: do you see overstatements, inventions, assumptions, wrong or missing e
 - **All runs of one task × one runner in one context (or rounds of at least 3 runs), rated absolutely:** a missing piece is visible next to a run that has it. Every finding is still proven against the base repo, the task or the answers, never against another run.
 - **Full read access to the base repos:** the proof is often outside the diff: where a payload is built, which input type a consumer sends, which validation already exists.
 - **All repos of a run together:** the impact of a change in one repo can depend on the other repos. For example, an API change is major when the dashboard was updated with it, and a blocker when it was not.
-- **Impact decides the level:** what matters is the impact of a finding itself, not whether something is missing or could be done better.
+- **Impact decides the level:** what matters is the impact of a finding itself, not whether something is missing or could be done better. A contradicted answer can have a sound reason (a base rule, a deliberate base design); the judge weighs it before leveling.
 - **Validator and self-challenge:** a first pass can contain wrong line numbers, overstated rules, nitpicks and root causes counted twice.
 - **Clean config:** a method's plugin in the judge session would load that method's rules and bias the ratings toward it.
 - **Judge folder:** a session started in the Rosetta repo loads the repo's `CLAUDE.md`, `AGENTS.md` and project skills (`.claude/skills/`), the same bias. A clean config does not stop that.

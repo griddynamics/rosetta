@@ -6,7 +6,8 @@
 Checks the JSON, writes a "totals" object into each run of the same JSON, and prints, per
 run report, the data-block fields the assistant copies into it (templates/run-report-*.md).
 Total = Σ(value × weight) / Σ(10 × weight) × 100 over all metrics ("-" = 7), plus the bonus
-for fixed bugs and related improvements. Exits with an error on any invalid value.
+for fixed bugs, related improvements, proactive safeguards (9.x strengths) and DELTA items
+against the `baseline` run. Exits with an error on any invalid value.
 No third-party packages needed.
 """
 import json
@@ -25,8 +26,11 @@ WEIGHTS = {
     "6.1": 0.9, "6.2": 0.75, "6.3": 0.75, "6.4": 0.75,
     "7.1": 0.9, "7.2": 0.75, "7.3": 0.75, "7.4": 0.5, "7.5": 0.75,
     "8.1": 0.75, "8.2": 0.5, "8.3": 0.5, "8.4": 0.5,
-    "9.1": 0.5, "9.2": 0.5,
+    "9.1": 0.5, "9.2": 0.5, "9.3": 0.5,
 }
+BONUS_METRICS = {"9.1", "9.2", "9.3"}
+BASELINE_RUN = "baseline"
+DELTA_KEYS = ("id", "item", "evidence", "baseline", "covered_by", "level")
 BONUS_WEIGHT = {"critical": 1, "high": 0.9, "medium": 0.75, "low": 0.5}
 NEUTRAL = 7
 ALLOWED_VALUES = {0, 1, 2, 3, 4, 5, 6, 8, 9, 10}
@@ -57,11 +61,42 @@ def check_run(name, run):
             errors.append(f"{name}: finding {fid} has invalid type {f.get('type')!r}")
         if f.get("level") not in LEVEL_COUNT:
             errors.append(f"{name}: finding {fid} has invalid level {f.get('level')!r}")
+    deltas = {}
+    for item in run.get("delta", []):
+        did = item.get("id")
+        missing = [k for k in DELTA_KEYS if not item.get(k)]
+        if missing:
+            errors.append(f"{name}: delta {did!r} misses {', '.join(missing)}")
+        if not str(did).startswith(f"{name}-d"):
+            errors.append(f"{name}: delta id {did!r} must be {name}-d<N>")
+        if did in deltas or did in findings:
+            errors.append(f"{name}: delta id {did!r} is not unique")
+        if item.get("level") not in BONUS_WEIGHT:
+            errors.append(f"{name}: delta {did} has invalid level {item.get('level')!r}")
+        covered = str(item.get("covered_by", "")).strip()
+        if covered and not covered.startswith("-") and covered.split()[0] not in findings:
+            errors.append(f"{name}: delta {did} covered_by cites unknown finding {covered.split()[0]}")
+        deltas[did] = item
+    if name == BASELINE_RUN and deltas:
+        errors.append(f"{name}: the baseline run gets no DELTA")
+    bonus_ids = []
     for bonus in run.get("bonus", []):
-        if bonus.get("finding") not in findings:
-            errors.append(f"{name}: bonus cites unknown finding {bonus.get('finding')}")
+        bid = bonus.get("finding")
+        bonus_ids.append(bid)
+        if bid not in findings and bid not in deltas:
+            errors.append(f"{name}: bonus cites unknown finding or delta {bid}")
         if bonus.get("level") not in BONUS_WEIGHT:
             errors.append(f"{name}: bonus has invalid level {bonus.get('level')!r}")
+        if bid in deltas and bonus.get("level") != deltas[bid].get("level"):
+            errors.append(f"{name}: bonus level for {bid} differs from its delta level")
+    for bid in sorted({b for b in bonus_ids if bonus_ids.count(b) > 1}):
+        errors.append(f"{name}: bonus cites {bid} more than once")
+    for fid, f in findings.items():
+        if f.get("type") == "strength" and f.get("metric") in BONUS_METRICS and fid not in bonus_ids:
+            errors.append(f"{name}: {f.get('metric')} strength {fid} has no bonus entry")
+    for did in deltas:
+        if did not in bonus_ids:
+            errors.append(f"{name}: delta {did} has no bonus entry")
     advice = run.get("merge_advice", {}).get("advice")
     if advice not in ("none", "no", "yes"):
         errors.append(f"{name}: merge_advice.advice is {advice!r}, expected none | no | yes")
@@ -78,11 +113,14 @@ def totals(run):
     counts = {"blockers": 0, "majors": 0, "minors": 0, "strengths": 0}
     for f in run["findings"]:
         counts["strengths" if f["type"] == "strength" else LEVEL_COUNT[f["level"]]] += 1
+    deltas = {d["id"] for d in run.get("delta", [])}
     bonus = sum(BONUS_WEIGHT[b["level"]] for b in run.get("bonus", []))
+    bonus_delta = sum(BONUS_WEIGHT[b["level"]] for b in run.get("bonus", []) if b["finding"] in deltas)
     categories = {}
     for metric in WEIGHTS:
         categories.setdefault("H" + metric.split(".")[0], []).append(metric)
-    return {"total": round(score(run["values"], WEIGHTS) + bonus, 1), "bonus": round(bonus, 2), **counts,
+    return {"total": round(score(run["values"], WEIGHTS) + bonus, 1), "bonus": round(bonus, 2),
+            "bonus_delta": round(bonus_delta, 2), **counts,
             "categories": {cat: round(score(run["values"], ms), 1) for cat, ms in categories.items()}}
 
 

@@ -1,0 +1,3557 @@
+{
+  "task": "small-storage-conditions",
+  "runner": "claude-code",
+  "runs": {
+    "baseline": {
+      "findings": [
+        {
+          "id": "baseline-1",
+          "metric": "1.3",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/models.py",
+              "quote": "storage_conditions = models.CharField(max_length=250, blank=True, default=\"\")"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/migrations/0211_product_storage_conditions.py",
+              "quote": "field=models.CharField(blank=True, default=\"\", max_length=250),"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/product/models.py:L186-187",
+              "quote": "search_document = models.TextField(blank=True, default=\"\")"
+            }
+          ],
+          "grounding": "task-small.md extra answer 1: 'A first-class nullable field on Product.'",
+          "why": "positive: reason found - one empty value for a text column, as the base does for Product.search_document (non-null, default \"\"); a constant default is a metadata-only AddField; HQ5 'empty by default' holds and the GraphQL field stays nullable. / negative: EA1 decided a nullable field; unset products expose \"\" instead of null in the API, webhooks and CSV.",
+          "impact": "Small contract difference for consumers that test for null; no behaviour or data harm."
+        },
+        {
+          "id": "baseline-2",
+          "metric": "1.1",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/views/ProductUpdate/handlers/utils.ts",
+              "quote": "variables.input[\"storageConditions\"] = data.storageConditions;"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/mutations/product/product_create.py",
+              "quote": "description=\"Storage conditions of the product. Plain text, up to 250 characters.\""
+            },
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/lib/storefront/mappers/product.ts",
+              "quote": "storageConditions: product.storageConditions?.trim() || null,"
+            }
+          ],
+          "grounding": "task-small.md extra answer 6: 'Whitespace-only input: store as empty? Yes. Trim it, and treat a blank result as empty.'",
+          "why": "positive: the storefront mapper trims and hides blank values, so customers never see an empty block. / negative: no reason found for the write path - checked all saleor hunks (product_create, product_update and product_bulk_create untouched, translate mutations): no cleaning of storage_conditions, and the dashboard sends the raw value; EA6 decided trim + blank = empty.",
+          "impact": "Every staff entry with whitespace is stored and reaches webhooks and CSV; ongoing data-cleanup cost."
+        },
+        {
+          "id": "baseline-3",
+          "metric": "1.4",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_translate.py",
+              "quote": "input = ProductTranslationInput("
+            },
+            {
+              "kind": "old",
+              "loc": "saleor:saleor/graphql/schema.graphql",
+              "quote": "input: TranslationInput!"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/tests/test_translations.py",
+              "quote": "mutation productTranslate($productId: ID!, $input: ProductTranslationInput!) {"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py:L74-79",
+              "quote": "data_to_validate = {key: value for key, value in input_data.items() if value}"
+            }
+          ],
+          "grounding": "task-small.md extra answer 11: 'The shared `TranslationInput`. No breaking change to `productTranslate`.'",
+          "why": "positive: reason found - a product-only input keeps the field off category/collection inputs, so no reject logic and no crash path through the shared validate_input_against_model (base utils.py L74-79). / negative: EA11 decided the shared TranslationInput with no breaking change; productTranslate's input type changes, so clients that declare `$input: TranslationInput!` fail validation (the run itself had to edit an existing test query).",
+          "impact": "Existing productTranslate callers must change their queries; a reviewer would block the break. Not a runtime or data break."
+        },
+        {
+          "id": "baseline-4",
+          "metric": "0.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/index.tsx:L79-79",
+              "quote": "/** Legacy /products/add → create dialog on the list. */"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/components/CreateProductDialog/CreateProductDialog.tsx:L170-171",
+              "quote": "const errors = await onSubmit({"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/views/ProductList/createMinimalProduct.ts:L34-38",
+              "quote": "Creates a product with name + type only."
+            }
+          ],
+          "grounding": "task-small.md extra answer 19: 'The product update page and the create-product dialog on the product list (that dialog is the create flow).' + EA 9 'Include it in create, update and the translation mutation'; constraint 14 (UI surface named by an answer, backend supports it, missing in consumer).",
+          "why": "positive: reason found - follows the base design: the create dialog collects name and type only and leaves other product fields to the detail page (createMinimalProduct.ts L34-38); the update page sets the field. / negative: EA19 named the create dialog as a surface; staff cannot set storage conditions at creation.",
+          "impact": "One extra step after creating a product."
+        },
+        {
+          "id": "baseline-5",
+          "metric": "0.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/translations/views/EntityLists/utils.ts:L123-133",
+              "quote": "current: generalCompletion.current + attributeCompleted,"
+            }
+          ],
+          "grounding": "task-small.md extra answer 17: 'Count it in the translation progress.'",
+          "why": "positive: the field is translatable on the translation page. / negative: getProductTranslationCompletion was not changed, so the translation list progress ignores the new field. reason found: leaving getProductTranslationCompletion unchanged keeps the progress of existing products identical (HQ5); EA17 still asks to count it.",
+          "impact": "Translation progress in the product translation list under-reports missing storage-condition translations."
+        },
+        {
+          "id": "baseline-6",
+          "metric": "3.2",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/lib/storefront/mappers/product.ts",
+              "quote": "storageConditions: product.storageConditions?.trim() || null,"
+            },
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/lib/storefront/contract/product.ts",
+              "quote": "storageConditions: string | null;"
+            },
+            {
+              "kind": "base",
+              "loc": "react-storefront:src/config/storefront-view.ts:L9-10",
+              "quote": "run `pnpm generate`, then map the new field here. Do not edit"
+            },
+            {
+              "kind": "base",
+              "loc": "react-storefront:docs/adr/0006-storefront-contract-and-templates.md:L12-12",
+              "quote": "Fork fields go through `src/graphql/extensions/ProductDetailsExtension.graphql` and `mapProductExtensions`."
+            }
+          ],
+          "grounding": "react-storefront ADR 0006 L12 and src/config/storefront-view.ts L9-10 mark src/lib/storefront/mappers/product.ts off-limits and provides mapProductExtensions as the fork extension point.",
+          "why": "positive: a typed ProductView field is convenient for consumers. / negative: edits the core mapper and the shared ProductView contract (and its contract test) that the repo says forks must not touch, instead of ProductView.extensions. reason found: a typed ProductView field instead of the untyped extensions record; it does not outweigh ADR 0006 and the off-limits note.",
+          "impact": "Fork diverges from upstream core files; every upstream sync of the mapper/contract now conflicts."
+        },
+        {
+          "id": "baseline-7",
+          "metric": "6.4",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "old",
+              "loc": "react-storefront:src/graphql/extensions/ProductDetailsExtension.graphql",
+              "quote": "# Fork-owned fields on the PDP shell. Add selections here; do not edit ProductDetails.graphql."
+            }
+          ],
+          "grounding": "Unrelated removal of a repo guidance comment (constraint 3 scope; 6.4 incidental churn).",
+          "why": "positive: none for the feature. / negative: deletes the extension file's usage rule while adding a selection to it. reason: none found.",
+          "impact": "Future contributors lose the in-file instruction that guards the fork extension mechanism."
+        },
+        {
+          "id": "baseline-9",
+          "metric": "8.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/types/products.py",
+              "quote": "description=\"Storage conditions of the product. Plain text, up to 250 characters.\""
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/core/descriptions.py:L18-18",
+              "quote": "ADDED_IN_323 = \"\\n\\nAdded in Saleor 3.23.\""
+            }
+          ],
+          "grounding": "Repo pattern: new 3.23 fields carry ADDED_IN_323 (used in 212 places).",
+          "why": "positive: descriptions state the limit. / negative: no 'Added in Saleor 3.23.' marker on any new field/input. reason: none found.",
+          "impact": "API docs do not show when the field was introduced."
+        },
+        {
+          "id": "baseline-10",
+          "metric": "8.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:CHANGELOG.md",
+              "quote": "`productTranslate` now takes `ProductTranslationInput` (a superset of `TranslationInput`)"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:CHANGELOG.md:L7-7",
+              "quote": "### Breaking changes"
+            }
+          ],
+          "grounding": "8.2: breaking changes belong in the breaking section; the unreleased 3.23.0 section has '### Breaking changes'.",
+          "why": "positive: the input change is described. / negative: it sits in '### GraphQL API', not in '### Breaking changes'. reason found: the entry is kept together with its feature; none for skipping the breaking section.",
+          "impact": "Integrators scanning the breaking section miss the productTranslate input change."
+        },
+        {
+          "id": "baseline-11",
+          "metric": "4.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/queries/test_product_query.py",
+              "quote": "staff_api_client, permission_manage_products, product, channel_USD"
+            }
+          ],
+          "grounding": "task-small.md hidden question 7 (MANAGE_PRODUCTS to edit; anyone can read) + constraint 21 SYMMETRY.",
+          "why": "positive: boundaries 0/250/251 well covered. / negative: no permission-denied test for writing the field and no anonymous/customer read test. reason found: writes reuse ProductInput mutations whose permission checks the repo already tests; the HQ7 read/write decision for the new field is still unguarded.",
+          "impact": "The permission and public-read decisions are not guarded by tests."
+        },
+        {
+          "id": "baseline-12",
+          "metric": "4.1",
+          "type": "strength",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/components/ProductExportDialog/messages.test.tsx",
+              "quote": "it(\"provides a label for every exportable product field\", () => {"
+            }
+          ],
+          "grounding": "Constraint 9: a test guarding a contract beyond the new behaviour.",
+          "why": "positive: fails for any future ProductFieldEnum value without an export label. / negative: none.",
+          "impact": "Small guard for future export fields."
+        }
+      ],
+      "values": {
+        "0.1": {
+          "v": 6,
+          "findings": [
+            "baseline-5"
+          ]
+        },
+        "0.2": {
+          "v": 6,
+          "findings": [
+            "baseline-4"
+          ]
+        },
+        "1.1": {
+          "v": 4,
+          "findings": [
+            "baseline-2"
+          ]
+        },
+        "1.2": {
+          "v": "-",
+          "checked": "Errors raised as ValidationError with field and code through the mutation error types (product errors, translation errors, bulk row errors); no swallowed exception or crash path introduced. The bulk-translate `code=e.code` max_length issue is pre-existing (saleor utils.py L441) and not rated."
+        },
+        "1.3": {
+          "v": 6,
+          "findings": [
+            "baseline-1"
+          ]
+        },
+        "1.4": {
+          "v": 4,
+          "findings": [
+            "baseline-3"
+          ]
+        },
+        "1.5": {
+          "v": "-",
+          "checked": "Dashboard label/helper strings via react-intl with defaultMessages.json entries; storefront label via next-intl key pdp.attributes.storageConditions in all 8 locale files; inputs are labelled."
+        },
+        "2.1": {
+          "v": "-",
+          "checked": "Writes only through productCreate/productUpdate/productBulkCreate (MANAGE_PRODUCTS) and productTranslate/productBulkTranslate (MANAGE_TRANSLATIONS); read is public by HQ7."
+        },
+        "2.2": {
+          "v": "-",
+          "checked": "Server enforces 250 (model max_length and/or explicit cleaner check) for product and translation; dashboard product input sets maxLength 250 (EA5)."
+        },
+        "2.3": {
+          "v": "-",
+          "checked": "Storefront renders the value as a React text node, never through dangerouslySetInnerHTML; dashboard uses controlled inputs; escaping tests present."
+        },
+        "2.4": {
+          "v": "-",
+          "checked": "Plain product content, public by HQ7; included in product webhooks and CSV export by HQ6; no PII/secrets."
+        },
+        "3.1": {
+          "v": "-",
+          "checked": "Model in saleor/product, validation in graphql product cleaner/mutations, translation in translations mutations, dashboard in product form/translation builders, storefront mapping in the fork extension point and rendering in ProductAttributes."
+        },
+        "3.2": {
+          "v": 4,
+          "findings": [
+            "baseline-6"
+          ]
+        },
+        "3.3": {
+          "v": "-",
+          "checked": "No new cross-module cycles or reversed dependency directions found in the changed imports."
+        },
+        "3.4": {
+          "v": "-",
+          "checked": "Dashboard schema-main and schema-staging hand-spliced with the same fields/descriptions as saleor schema.graphql and codegen outputs regenerated consistently; staging schema doesn't matter per EA25 -> not material."
+        },
+        "4.1": {
+          "v": 8,
+          "findings": [
+            "baseline-12"
+          ]
+        },
+        "4.2": {
+          "v": 6,
+          "findings": [
+            "baseline-11"
+          ]
+        },
+        "4.3": {
+          "v": "-",
+          "checked": "Tests assert both API responses and stored DB state (refresh_from_db / objects.get) and rendered output."
+        },
+        "4.4": {
+          "v": "-",
+          "checked": "Tests use the repos' fixtures (staff_api_client, product, permission_* ; Wrapper/IntlProvider; vitest renderToStaticMarkup) at the right level."
+        },
+        "4.5": {
+          "v": "-",
+          "checked": "test_translations.py PRODUCT_TRANSLATE_MUTATION variable type changed to ProductTranslationInput (adaptation to baseline-3, not a weakening); other existing tests only gained the field."
+        },
+        "5.1": {
+          "v": "-",
+          "checked": "Plain column on Product loaded with the model; no new queries, N+1 or round trips; CSV reads it via the existing values() mapping."
+        },
+        "5.2": {
+          "v": "-",
+          "checked": "Single AddField of a varchar(250) (nullable or constant default): metadata-only on PostgreSQL 11+, no table rewrite, no backfill."
+        },
+        "5.3": {
+          "v": "-",
+          "checked": "No logging is warranted for a plain product field; none added, none removed."
+        },
+        "6.1": {
+          "v": "-",
+          "checked": "Within the feature. ProductDetailsForm.stories.tsx gained the field in its typed literal (EA16 allows field-only typing edits; not material)."
+        },
+        "6.2": {
+          "v": "-",
+          "checked": "No duplicated logic, fragments or tests of material size found."
+        },
+        "6.3": {
+          "v": "-",
+          "checked": "No unused code, commented-out code, debug output or temp files found."
+        },
+        "6.4": {
+          "v": 6,
+          "findings": [
+            "baseline-7"
+          ]
+        },
+        "7.1": {
+          "v": "-",
+          "checked": "Design is the simplest that fits the repo patterns; no speculative abstraction."
+        },
+        "7.2": {
+          "v": "-",
+          "checked": "New units are small and single-purpose."
+        },
+        "7.3": {
+          "v": "-",
+          "checked": "Names use the domain term storageConditions / storage_conditions consistently."
+        },
+        "7.4": {
+          "v": "-",
+          "checked": "Comments are few, accurate and not process references."
+        },
+        "7.5": {
+          "v": "-",
+          "checked": "Types are precise (string | null, Record<string, unknown> narrowed with typeof); no new any."
+        },
+        "8.1": {
+          "v": 6,
+          "findings": [
+            "baseline-9"
+          ]
+        },
+        "8.2": {
+          "v": 6,
+          "findings": [
+            "baseline-10"
+          ]
+        },
+        "8.3": {
+          "v": "-",
+          "checked": "No user/developer docs exist for comparable product fields; none needed."
+        },
+        "8.4": {
+          "v": "-",
+          "checked": "No AI-session context docs in the run's repo diffs."
+        },
+        "9.1": {
+          "v": "-",
+          "checked": "No pre-existing bug fixed."
+        },
+        "9.2": {
+          "v": "-",
+          "checked": "No distinct related improvement beyond the task."
+        },
+        "9.3": {
+          "v": "-",
+          "checked": "No proactive non-test safeguard beyond the task."
+        }
+      },
+      "bonus": [],
+      "delta": [],
+      "merge_advice": {
+        "advice": "no",
+        "reason": "Majors: breaking productTranslate input (EA11), no trimming on any write path (EA6), off-limits storefront mapper/contract edits."
+      },
+      "objections": [
+        {
+          "from": "validator",
+          "text": "#3 6.4: unrelated class reorder in variant-section-error.tsx. Add minor.",
+          "decision": "reject",
+          "reason": "Facts confirmed; a one-line class reorder with no behaviour change is a nitpick (constraint 7; real failure 4). The validator also flagged it as possibly immaterial."
+        },
+        {
+          "from": "validator",
+          "text": "#7 INTENT: 'why' of negatives 5,6,7,9,10,11 does not state whether a reason was found.",
+          "decision": "accept",
+          "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        }
+      ],
+      "totals": {
+        "total": 65.6,
+        "bonus": 0,
+        "bonus_delta": 0,
+        "blockers": 0,
+        "majors": 3,
+        "minors": 7,
+        "strengths": 1,
+        "categories": {
+          "H0": 60.0,
+          "H1": 54.9,
+          "H2": 70.0,
+          "H3": 62.5,
+          "H4": 70.0,
+          "H5": 70.0,
+          "H6": 67.6,
+          "H7": 70.0,
+          "H8": 64.4,
+          "H9": 70.0
+        }
+      }
+    },
+    "grill-with-docs": {
+      "findings": [
+        {
+          "id": "grill-with-docs-1",
+          "metric": "1.4",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_translate.py",
+              "quote": "class ProductTranslationInput(TranslationInput):"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_translate.py",
+              "quote": "input = ProductTranslationInput("
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:CHANGELOG.md",
+              "quote": "clients that declare the variable type explicitly (`$input: TranslationInput!`) must switch to `ProductTranslationInput!`."
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py:L74-79",
+              "quote": "data_to_validate = {key: value for key, value in input_data.items() if value}"
+            }
+          ],
+          "grounding": "task-small.md extra answer 11: 'The shared `TranslationInput`. No breaking change to `productTranslate`.'",
+          "why": "positive: reason found - a product-only input keeps the field off category/collection inputs, so no reject logic and no crash path through the shared validate_input_against_model (base utils.py L74-79). / negative: EA11 decided the shared TranslationInput with no breaking change; productTranslate's input type changes, so clients that declare `$input: TranslationInput!` fail validation (the run itself had to edit an existing test query). The break is documented in '### Breaking changes'.",
+          "impact": "Existing productTranslate callers must change their queries; a reviewer would block the break. Not a runtime or data break."
+        },
+        {
+          "id": "grill-with-docs-2",
+          "metric": "3.4",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:schema-staging.graphql",
+              "quote": "Storage conditions of the product, e.g. \"Keep refrigerated at 2–8 °C\". Up to 250 characters; blank values are stored as empty."
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:package.json:L42-42",
+              "quote": "\"fetch-schema:staging\": \"curl https://raw.githubusercontent.com/saleor/saleor/main/saleor/graphql/schema.graphql > schema-staging.graphql\","
+            }
+          ],
+          "grounding": "3.4: generated/downloaded files regenerated, not edited by hand; schema-staging.graphql is a verbatim download of saleor's schema.graphql (hint 9).",
+          "why": "positive: tries to keep the staging contract in step with the backend. / negative: the hand edit inserts `storageConditions: String` three times into `input ProductInput` (hunk @@ -25473 +25494,27) and never adds it to ProductCreateInput/ProductBulkCreateInput, so the staging SDL is invalid (duplicate field) and does not match saleor's schema.graphql; typesStaging.generated.ts inherits the gap. reason found: keeping the staging contract in step with the backend; the hand edit used wrong anchors.",
+          "impact": "Tracked downloaded schema becomes invalid SDL and differs from the backend; codegen-staging and lockSchema.test (assumeValidSDL) tolerate it and staging is out of scope (EA25), so the harm is small."
+        },
+        {
+          "id": "grill-with-docs-3",
+          "metric": "0.2",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx:L593-596",
+              "quote": "ProductFieldEnum.DESCRIPTION,"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/csv/enums.py",
+              "quote": "STORAGE_CONDITIONS = \"storage conditions\""
+            }
+          ],
+          "grounding": "task-small.md hidden question 6: 'it is included in product CSV export'; the dashboard export dialog lists exportable fields explicitly and has no export-all path over ProductFieldEnum.",
+          "why": "positive: the backend exports the column. / negative: the dashboard export dialog does not offer STORAGE_CONDITIONS, so staff cannot select the column in the only UI that starts a product export. reason: none found.",
+          "impact": "The agreed CSV-export behaviour is unreachable for staff from the dashboard."
+        },
+        {
+          "id": "grill-with-docs-4",
+          "metric": "0.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/index.tsx:L79-79",
+              "quote": "/** Legacy /products/add → create dialog on the list. */"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/components/CreateProductDialog/CreateProductDialog.tsx:L170-171",
+              "quote": "const errors = await onSubmit({"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/views/ProductList/createMinimalProduct.ts:L34-38",
+              "quote": "Creates a product with name + type only."
+            }
+          ],
+          "grounding": "task-small.md extra answer 19: 'The product update page and the create-product dialog on the product list (that dialog is the create flow).' + EA 9 'Include it in create, update and the translation mutation'; constraint 14 (UI surface named by an answer, backend supports it, missing in consumer).",
+          "why": "positive: reason found - follows the base design: the create dialog collects name and type only and leaves other product fields to the detail page (createMinimalProduct.ts L34-38); the update page sets the field. / negative: EA19 named the create dialog as a surface; staff cannot set storage conditions at creation.",
+          "impact": "One extra step after creating a product."
+        },
+        {
+          "id": "grill-with-docs-5",
+          "metric": "0.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/translations/views/EntityLists/utils.ts:L123-133",
+              "quote": "current: generalCompletion.current + attributeCompleted,"
+            }
+          ],
+          "grounding": "task-small.md extra answer 17: 'Count it in the translation progress.'",
+          "why": "positive: the field is translatable on the translation page. / negative: getProductTranslationCompletion was not changed, so the translation list progress ignores the new field. reason found: leaving getProductTranslationCompletion unchanged keeps the progress of existing products identical (HQ5); EA17 still asks to count it.",
+          "impact": "Translation progress in the product translation list under-reports missing storage-condition translations."
+        },
+        {
+          "id": "grill-with-docs-6",
+          "metric": "7.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/ui/components/pdp/storage-conditions.tsx",
+              "quote": " * without them. A PDP template wraps its layout in this provider; a template that does not"
+            },
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/templates/pdp/product-layout.tsx",
+              "quote": "<StorageConditionsProvider extensions={product.extensions}>"
+            },
+            {
+              "kind": "base",
+              "loc": "react-storefront:src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx:L216-216",
+              "quote": "careInstructions={view.careInstructions}"
+            },
+            {
+              "kind": "base",
+              "loc": "react-storefront:src/templates/pdp/product-layout.tsx:L9-9",
+              "quote": "/** Shared chrome for the built-in presets. A custom template can ignore this and arrange slots itself. */"
+            },
+            {
+              "kind": "base",
+              "loc": "react-storefront:src/config/storefront-view.ts:L9-10",
+              "quote": "`src/lib/storefront/mappers/product.ts` or the product route."
+            }
+          ],
+          "grounding": "task-small.md extra answer 12 allows editing page.tsx; the sibling careInstructions already flows as a ProductAttributes prop from page.tsx.",
+          "why": "positive: reason found - the base rule 'Do not edit ... the product route' (storefront-view.ts L9-10); the context delivers the value without touching page.tsx, lives in src/templates/pdp/ as ADR 0006 asks for fork layouts, and is tested in all four presets. / negative: one string goes through a context, provider and hook, and a custom template that bypasses PdpPresetLayout drops the block silently (product-layout.tsx L9).",
+          "impact": "Small extra indirection and a hidden requirement for custom templates."
+        },
+        {
+          "id": "grill-with-docs-7",
+          "metric": "4.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/mutations/test_product_update.py",
+              "quote": "def test_update_product_storage_conditions_requires_manage_products("
+            }
+          ],
+          "grounding": "task-small.md hidden question 7 'Anyone can read it through the public product API' + constraint 21.",
+          "why": "positive: permission-denied and boundary/blank paths are covered. / negative: no anonymous/customer read test of Product.storageConditions or its translation. reason found: the read path is the plain type resolver; the HQ7 public-read decision is still unguarded.",
+          "impact": "Public-read decision is not guarded by a test."
+        },
+        {
+          "id": "grill-with-docs-8",
+          "metric": "1.2",
+          "type": "strength",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_bulk_translate.py",
+              "quote": "def is_storage_conditions_too_long(cls, translation_fields) -> bool:"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_bulk_translate.py",
+              "quote": "code=ProductTranslateErrorCode.INVALID.value,"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py:L441-441",
+              "quote": "code=e.code,"
+            }
+          ],
+          "grounding": "Base bulk translate puts raw Django codes (max_length) into the error enum (utils.py L441), which surfaces as a GraphQL error.",
+          "why": "positive: validates the new field before the shared path, so a too-long translation in productBulkTranslate returns a proper INVALID row error. / negative: works around rather than fixes the shared bug.",
+          "impact": "Clients get a usable row error for the new field."
+        }
+      ],
+      "values": {
+        "0.1": {
+          "v": 6,
+          "findings": [
+            "grill-with-docs-5"
+          ]
+        },
+        "0.2": {
+          "v": 4,
+          "findings": [
+            "grill-with-docs-3",
+            "grill-with-docs-4"
+          ]
+        },
+        "1.1": {
+          "v": "-",
+          "checked": "Product cleaner trims and stores blank as None (create/update/bulk), translations trimmed in pre_update_or_create and bulk; dashboard sends trim() || null; storefront falls back on blank translation (EA6, EA8)."
+        },
+        "1.2": {
+          "v": 8,
+          "findings": [
+            "grill-with-docs-8"
+          ]
+        },
+        "1.3": {
+          "v": "-",
+          "checked": "Product and ProductTranslation storage_conditions CharField(STORAGE_CONDITIONS_MAX_LENGTH, null=True); AddField only."
+        },
+        "1.4": {
+          "v": 4,
+          "findings": [
+            "grill-with-docs-1"
+          ]
+        },
+        "1.5": {
+          "v": "-",
+          "checked": "Dashboard label/helper strings via react-intl with defaultMessages.json entries; storefront label via next-intl key pdp.attributes.storageConditions in all 8 locale files; inputs are labelled."
+        },
+        "2.1": {
+          "v": "-",
+          "checked": "Writes only through productCreate/productUpdate/productBulkCreate (MANAGE_PRODUCTS) and productTranslate/productBulkTranslate (MANAGE_TRANSLATIONS); read is public by HQ7."
+        },
+        "2.2": {
+          "v": "-",
+          "checked": "Server enforces 250 (model max_length and/or explicit cleaner check) for product and translation; dashboard product input sets maxLength 250 (EA5)."
+        },
+        "2.3": {
+          "v": "-",
+          "checked": "Storefront renders the value as a React text node, never through dangerouslySetInnerHTML; dashboard uses controlled inputs; escaping tests present."
+        },
+        "2.4": {
+          "v": "-",
+          "checked": "Plain product content, public by HQ7; included in product webhooks and CSV export by HQ6; no PII/secrets."
+        },
+        "3.1": {
+          "v": "-",
+          "checked": "Model in saleor/product, validation in graphql product cleaner/mutations, translation in translations mutations, dashboard in product form/translation builders, storefront mapping in the fork extension point and rendering in ProductAttributes."
+        },
+        "3.2": {
+          "v": "-",
+          "checked": "Reuses product_cleaner/translation base mutations, ProductExportFields mapping, PRODUCT_FIELDS, dashboard getFormErrors/getProductErrorMessage, storefront mapProductExtensions extension point and pickTranslatedField."
+        },
+        "3.3": {
+          "v": "-",
+          "checked": "No new cross-module cycles or reversed dependency directions found in the changed imports."
+        },
+        "3.4": {
+          "v": 6,
+          "findings": [
+            "grill-with-docs-2"
+          ]
+        },
+        "4.1": {
+          "v": "-",
+          "checked": "New behaviour (create/update/bulk/translate/query, payloads, CSV, dashboard form/data/variables, storefront mapping/rendering) is covered by tests."
+        },
+        "4.2": {
+          "v": 6,
+          "findings": [
+            "grill-with-docs-7"
+          ]
+        },
+        "4.3": {
+          "v": "-",
+          "checked": "Tests assert both API responses and stored DB state (refresh_from_db / objects.get) and rendered output."
+        },
+        "4.4": {
+          "v": "-",
+          "checked": "Tests use the repos' fixtures (staff_api_client, product, permission_* ; Wrapper/IntlProvider; vitest renderToStaticMarkup) at the right level."
+        },
+        "4.5": {
+          "v": "-",
+          "checked": "test_translations.py variable type changed to ProductTranslationInput (adaptation to grill-with-docs-1)."
+        },
+        "5.1": {
+          "v": "-",
+          "checked": "Plain column on Product loaded with the model; no new queries, N+1 or round trips; CSV reads it via the existing values() mapping."
+        },
+        "5.2": {
+          "v": "-",
+          "checked": "Single AddField of a varchar(250) (nullable or constant default): metadata-only on PostgreSQL 11+, no table rewrite, no backfill."
+        },
+        "5.3": {
+          "v": "-",
+          "checked": "No logging is warranted for a plain product field; none added, none removed."
+        },
+        "6.1": {
+          "v": "-",
+          "checked": "Within the feature. Stories literal gained the field (EA16, not material); dashboard CONTEXT.md glossary entry is harmless."
+        },
+        "6.2": {
+          "v": "-",
+          "checked": "No duplicated logic, fragments or tests of material size found."
+        },
+        "6.3": {
+          "v": "-",
+          "checked": "No unused code, commented-out code, debug output or temp files found."
+        },
+        "6.4": {
+          "v": "-",
+          "checked": "product-layout.tsx re-indentation is the direct consequence of wrapping the layout in the provider, rated once under grill-with-docs-6 (7.1); no unrelated reformatting."
+        },
+        "7.1": {
+          "v": 6,
+          "findings": [
+            "grill-with-docs-6"
+          ]
+        },
+        "7.2": {
+          "v": "-",
+          "checked": "New units are small and single-purpose."
+        },
+        "7.3": {
+          "v": "-",
+          "checked": "Names use the domain term storageConditions / storage_conditions consistently."
+        },
+        "7.4": {
+          "v": "-",
+          "checked": "Comments are few, accurate and not process references."
+        },
+        "7.5": {
+          "v": "-",
+          "checked": "Types are precise (string | null, Record<string, unknown> narrowed with typeof); no new any."
+        },
+        "8.1": {
+          "v": "-",
+          "checked": "GraphQL descriptions present with 'Added in Saleor 3.23.' markers (ADDED_IN_323 is the repo pattern, saleor descriptions.py L18)."
+        },
+        "8.2": {
+          "v": "-",
+          "checked": "CHANGELOG entry under the unreleased 3.23.0 section; dashboard patch changeset present."
+        },
+        "8.3": {
+          "v": "-",
+          "checked": "Dashboard CONTEXT.md glossary entry added; accurate and harmless, not material."
+        },
+        "8.4": {
+          "v": "-",
+          "checked": "Dashboard CONTEXT.md is a tracked repo glossary, not an AI-session doc; the entry is accurate."
+        },
+        "9.1": {
+          "v": "-",
+          "checked": "No pre-existing bug fixed."
+        },
+        "9.2": {
+          "v": "-",
+          "checked": "No distinct related improvement beyond the task."
+        },
+        "9.3": {
+          "v": "-",
+          "checked": "No proactive non-test safeguard beyond the task."
+        }
+      },
+      "bonus": [
+        {
+          "finding": "grill-with-docs-d1",
+          "level": "low"
+        },
+        {
+          "finding": "grill-with-docs-d2",
+          "level": "high"
+        },
+        {
+          "finding": "grill-with-docs-d3",
+          "level": "high"
+        },
+        {
+          "finding": "grill-with-docs-d4",
+          "level": "low"
+        },
+        {
+          "finding": "grill-with-docs-d5",
+          "level": "low"
+        },
+        {
+          "finding": "grill-with-docs-d6",
+          "level": "low"
+        },
+        {
+          "finding": "grill-with-docs-d7",
+          "level": "low"
+        }
+      ],
+      "delta": [
+        {
+          "id": "grill-with-docs-d1",
+          "item": "Nullable Product.storage_conditions as decided (EA1)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/models.py",
+              "quote": "max_length=STORAGE_CONDITIONS_MAX_LENGTH, blank=True, null=True"
+            }
+          ],
+          "baseline": "saleor:saleor/product/models.py + \"storage_conditions = models.CharField(max_length=250, blank=True, default=\\\"\\\")\"",
+          "covered_by": "- (1.3 '-'; baseline-1)",
+          "level": "low"
+        },
+        {
+          "id": "grill-with-docs-d2",
+          "item": "Server-side trimming, blank stored as empty for product and translations (EA6)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/mutations/product/product_cleaner.py",
+              "quote": "storage_conditions = (cleaned_input[\"storage_conditions\"] or \"\").strip() or None"
+            }
+          ],
+          "baseline": "absent: no storage_conditions cleaner in saleor product_create/update; saleor-dashboard:src/products/views/ProductUpdate/handlers/utils.ts \"variables.input[\\\"storageConditions\\\"] = data.storageConditions;\"",
+          "covered_by": "- (1.1 '-'; baseline-2)",
+          "level": "high"
+        },
+        {
+          "id": "grill-with-docs-d3",
+          "item": "Storefront mapped through mapProductExtensions without editing the core mapper/contract",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/config/storefront-view.ts",
+              "quote": "pickTranslatedField(product.translation, \"storageConditions\", product.storageConditions) ?? null,"
+            }
+          ],
+          "baseline": "react-storefront:src/lib/storefront/mappers/product.ts \"storageConditions: product.storageConditions?.trim() || null,\" (off-limits core mapper edited)",
+          "covered_by": "- (3.2 '-'; baseline-6)",
+          "level": "high"
+        },
+        {
+          "id": "grill-with-docs-d4",
+          "item": "ADDED_IN_323 markers on new API fields",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/types/products.py",
+              "quote": "description=\"Storage conditions of the product.\" + ADDED_IN_323"
+            }
+          ],
+          "baseline": "saleor:saleor/graphql/product/types/products.py \"description=\\\"Storage conditions of the product. Plain text, up to 250 characters.\\\"\" (no ADDED_IN_323)",
+          "covered_by": "- (8.1 '-')",
+          "level": "low"
+        },
+        {
+          "id": "grill-with-docs-d5",
+          "item": "Breaking productTranslate change documented in the Breaking changes section",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:CHANGELOG.md",
+              "quote": "The `input` argument of `productTranslate` and the `translationFields` field of `ProductBulkTranslateInput` are now of the new type `ProductTranslationInput`"
+            }
+          ],
+          "baseline": "saleor:CHANGELOG.md \"`productTranslate` now takes `ProductTranslationInput`\" placed under ### GraphQL API",
+          "covered_by": "- (8.2 '-')",
+          "level": "low"
+        },
+        {
+          "id": "grill-with-docs-d6",
+          "item": "Permission-denied test for writing the field",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/mutations/test_product_update.py",
+              "quote": "def test_update_product_storage_conditions_requires_manage_products("
+            }
+          ],
+          "baseline": "absent: baseline saleor tests only use staff_api_client with permissions; no assert_no_permission or api_client read test",
+          "covered_by": "- (4.2 partial; grill-with-docs-7 covers only public read)",
+          "level": "low"
+        },
+        {
+          "id": "grill-with-docs-d7",
+          "item": "Too-long translation in productBulkTranslate returns an INVALID row error for the new field",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_bulk_translate.py",
+              "quote": "def is_storage_conditions_too_long(cls, translation_fields) -> bool:"
+            }
+          ],
+          "baseline": "absent: baseline relies on the base bulk path, which leaks `max_length` into the enum (saleor utils.py L441, unchanged in the baseline diff)",
+          "covered_by": "grill-with-docs-8",
+          "level": "low"
+        }
+      ],
+      "merge_advice": {
+        "advice": "no",
+        "reason": "Major: breaking productTranslate input (EA11, documented); major: export dialog does not offer the field. Rest minor."
+      },
+      "objections": [
+        {
+          "from": "validator",
+          "text": "#7 INTENT: 'why' of negatives 2,3,5,7 does not state whether a reason was found.",
+          "decision": "accept",
+          "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        }
+      ],
+      "totals": {
+        "total": 71.5,
+        "bonus": 4.3,
+        "bonus_delta": 4.3,
+        "blockers": 0,
+        "majors": 2,
+        "minors": 5,
+        "strengths": 1,
+        "categories": {
+          "H0": 50.0,
+          "H1": 65.5,
+          "H2": 70.0,
+          "H3": 67.5,
+          "H4": 68.0,
+          "H5": 70.0,
+          "H6": 70.0,
+          "H7": 67.5,
+          "H8": 70.0,
+          "H9": 70.0
+        }
+      }
+    },
+    "rosetta-flow": {
+      "findings": [
+        {
+          "id": "rosetta-flow-1",
+          "metric": "1.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/tests/mutations/test_product_translate.py",
+              "quote": "def test_product_translate_storage_conditions_values_are_not_stripped("
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/tests/mutations/test_product_translate.py",
+              "quote": "(\"   \", \"   \"),"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/tests/mutations/test_product_bulk_translate.py",
+              "quote": "# existing translation is updated; the value is not stripped"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py:L74-79",
+              "quote": "data_to_validate = {key: value for key, value in input_data.items() if value}"
+            }
+          ],
+          "grounding": "task-small.md extra answer 6: 'Whitespace-only input: store as empty? Yes. Trim it, and treat a blank result as empty.'",
+          "why": "positive: reason found - product values are trimmed server-side; translated values follow the base handling of every other translation field, which stores input as given (utils.py L74-79); the storefront and the translation progress treat blank translations as missing. / negative: EA6 trim is not applied to translated values, and tests lock that in.",
+          "impact": "Whitespace-only translations can be stored; customers still see the base value."
+        },
+        {
+          "id": "rosetta-flow-2",
+          "metric": "0.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/index.tsx:L79-79",
+              "quote": "/** Legacy /products/add → create dialog on the list. */"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/components/CreateProductDialog/CreateProductDialog.tsx:L170-171",
+              "quote": "const errors = await onSubmit({"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/views/ProductList/createMinimalProduct.ts:L34-38",
+              "quote": "Creates a product with name + type only."
+            }
+          ],
+          "grounding": "task-small.md extra answer 19: 'The product update page and the create-product dialog on the product list (that dialog is the create flow).' + EA 9 'Include it in create, update and the translation mutation'; constraint 14 (UI surface named by an answer, backend supports it, missing in consumer).",
+          "why": "positive: reason found - follows the base design: the create dialog collects name and type only and leaves other product fields to the detail page (createMinimalProduct.ts L34-38); the update page sets the field. / negative: EA19 named the create dialog as a surface; staff cannot set storage conditions at creation.",
+          "impact": "One extra step after creating a product."
+        },
+        {
+          "id": "rosetta-flow-4",
+          "metric": "4.4",
+          "type": "strength",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/graphql/extensions/product-details-extension.contract.test.ts",
+              "quote": "it(\"leaves ProductDetails.graphql free of the fork field (ADR 0006)\", () => {"
+            },
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/ui/components/pdp/product-attributes.test.ts",
+              "quote": "it(\"covers all 8 locale files\", () => {"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/tests/test_product_search.py",
+              "quote": "def test_product_search_fields_do_not_include_storage_conditions():"
+            }
+          ],
+          "grounding": "Constraint 9: tests guarding an architecture rule (fork extension point) and a locale-completeness contract. Also guards the HQ6 decision 'no filter or search by this field'.",
+          "why": "positive: fails if the fork field leaks into the core query or a locale misses the label. / negative: file/regex based, slightly brittle.",
+          "impact": "Small guard of the storefront fork contract."
+        },
+        {
+          "id": "rosetta-flow-5",
+          "metric": "7.4",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/config/storefront-view.test.ts",
+              "quote": "// SF-03 holds because mapProductExtensions trims before the reader sees the value."
+            },
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/ui/components/pdp/product-attributes.test.ts",
+              "quote": "// whitespace-only prop renders an item. SF-03 relies on the mapper trimming first (see storefront-view.test.ts)."
+            }
+          ],
+          "grounding": "7.4: no process references in comments.",
+          "why": "positive: explains where trimming happens; the ADR 0006 references are valid (docs/adr/0006 exists). / negative: SF-03 is a spec ID from the run's own plan that exists nowhere in the repo. reason found: traceability to the run's own spec, which is not in the repo.",
+          "impact": "Readers cannot resolve the SF-03 references."
+        }
+      ],
+      "values": {
+        "0.1": {
+          "v": "-",
+          "checked": "Saleor: ProductInput, bulk create cleaner, translation types, shared TranslationInput + category/collection rejection, get_translated_keys, PRODUCT_FIELDS, CSV mapping. Dashboard: fragments, form, data, variables, saveComposition, translation page, translation progress (EA17) and export dialog. Storefront: extension fragment, mapper, ProductAttributes, locales."
+        },
+        "0.2": {
+          "v": 6,
+          "findings": [
+            "rosetta-flow-2"
+          ]
+        },
+        "1.1": {
+          "v": 6,
+          "findings": [
+            "rosetta-flow-1"
+          ]
+        },
+        "1.2": {
+          "v": "-",
+          "checked": "Errors raised as ValidationError with field and code through the mutation error types (product errors, translation errors, bulk row errors); no swallowed exception or crash path introduced. The bulk-translate `code=e.code` max_length issue is pre-existing (saleor utils.py L441) and not rated."
+        },
+        "1.3": {
+          "v": "-",
+          "checked": "Product and ProductTranslation CharField(max_length=250, null=True); single AddField migration."
+        },
+        "1.4": {
+          "v": "-",
+          "checked": "Field added to shared TranslationInput (EA11); categoryTranslate/collectionTranslate reject non-empty values (EA23) and drop \"\"/null instead of rejecting them - weighed: harmless reading of \"if set\", not material; no breaking change."
+        },
+        "1.5": {
+          "v": "-",
+          "checked": "Dashboard label/helper strings via react-intl with defaultMessages.json entries; storefront label via next-intl key pdp.attributes.storageConditions in all 8 locale files; inputs are labelled."
+        },
+        "2.1": {
+          "v": "-",
+          "checked": "Writes only through productCreate/productUpdate/productBulkCreate (MANAGE_PRODUCTS) and productTranslate/productBulkTranslate (MANAGE_TRANSLATIONS); read is public by HQ7."
+        },
+        "2.2": {
+          "v": "-",
+          "checked": "Server enforces 250 (model max_length and/or explicit cleaner check) for product and translation; dashboard product input sets maxLength 250 (EA5)."
+        },
+        "2.3": {
+          "v": "-",
+          "checked": "Storefront renders the value as a React text node, never through dangerouslySetInnerHTML; dashboard uses controlled inputs; escaping tests present."
+        },
+        "2.4": {
+          "v": "-",
+          "checked": "Plain product content, public by HQ7; included in product webhooks and CSV export by HQ6; no PII/secrets."
+        },
+        "3.1": {
+          "v": "-",
+          "checked": "Model in saleor/product, validation in graphql product cleaner/mutations, translation in translations mutations, dashboard in product form/translation builders, storefront mapping in the fork extension point and rendering in ProductAttributes."
+        },
+        "3.2": {
+          "v": "-",
+          "checked": "Reuses product_cleaner/translation base mutations, ProductExportFields mapping, PRODUCT_FIELDS, dashboard getFormErrors/getProductErrorMessage, storefront mapProductExtensions extension point and pickTranslatedField."
+        },
+        "3.3": {
+          "v": "-",
+          "checked": "No new cross-module cycles or reversed dependency directions found in the changed imports."
+        },
+        "3.4": {
+          "v": "-",
+          "checked": "Dashboard uses @lockSchema(schema: \"main\") on reads (EA25) and leaves schema-staging untouched; schema-main hand-spliced faithfully (EA21, not material)."
+        },
+        "4.1": {
+          "v": "-",
+          "checked": "New behaviour (create/update/bulk/translate/query, payloads, CSV, dashboard form/data/variables, storefront mapping/rendering) is covered by tests."
+        },
+        "4.2": {
+          "v": "-",
+          "checked": "Permission-denied tests for create/update/bulk/translate/category/collection, anonymous read with translation, 250/251 boundaries, blank/None, unicode and markup values."
+        },
+        "4.3": {
+          "v": "-",
+          "checked": "Tests assert both API responses and stored DB state (refresh_from_db / objects.get) and rendered output."
+        },
+        "4.4": {
+          "v": 8,
+          "findings": [
+            "rosetta-flow-4"
+          ]
+        },
+        "4.5": {
+          "v": "-",
+          "checked": "EntityLists utils.test.ts expectations moved from max 5/6 to 6/7 because the field is now counted (EA17) - updated, not weakened."
+        },
+        "5.1": {
+          "v": "-",
+          "checked": "Plain column on Product loaded with the model; no new queries, N+1 or round trips; CSV reads it via the existing values() mapping."
+        },
+        "5.2": {
+          "v": "-",
+          "checked": "Single AddField of a varchar(250) (nullable or constant default): metadata-only on PostgreSQL 11+, no table rewrite, no backfill."
+        },
+        "5.3": {
+          "v": "-",
+          "checked": "No logging is warranted for a plain product field; none added, none removed."
+        },
+        "6.1": {
+          "v": "-",
+          "checked": "Within the feature. isMainSchema gating of form/export/translations goes beyond EA25 (staging doesn't matter) but is harmless for the main build; not material."
+        },
+        "6.2": {
+          "v": "-",
+          "checked": "No duplicated logic, fragments or tests of material size found."
+        },
+        "6.3": {
+          "v": "-",
+          "checked": "No unused code, commented-out code, debug output or temp files found."
+        },
+        "6.4": {
+          "v": "-",
+          "checked": "No reformatting of untouched lines found."
+        },
+        "7.1": {
+          "v": "-",
+          "checked": "Dashboard uses a Textarea for a plain-text field whose newlines the storefront does not preserve (EA18) - weighed: allowed input type, maxLength and counter present; not material."
+        },
+        "7.2": {
+          "v": "-",
+          "checked": "New units are small and single-purpose."
+        },
+        "7.3": {
+          "v": "-",
+          "checked": "Names use the domain term storageConditions / storage_conditions consistently."
+        },
+        "7.4": {
+          "v": 6,
+          "findings": [
+            "rosetta-flow-5"
+          ]
+        },
+        "7.5": {
+          "v": "-",
+          "checked": "Types are precise (string | null, Record<string, unknown> narrowed with typeof); no new any."
+        },
+        "8.1": {
+          "v": "-",
+          "checked": "GraphQL descriptions present with 'Added in Saleor 3.23.' markers (ADDED_IN_323 is the repo pattern, saleor descriptions.py L18)."
+        },
+        "8.2": {
+          "v": "-",
+          "checked": "CHANGELOG entry under the unreleased 3.23.0 section; dashboard patch changeset present."
+        },
+        "8.3": {
+          "v": "-",
+          "checked": "No user/developer docs exist for comparable product fields; none needed."
+        },
+        "8.4": {
+          "v": "-",
+          "checked": "No AI-session context docs in the run's repo diffs."
+        },
+        "9.1": {
+          "v": "-",
+          "checked": "No pre-existing bug fixed."
+        },
+        "9.2": {
+          "v": "-",
+          "checked": "No distinct related improvement beyond the task."
+        },
+        "9.3": {
+          "v": "-",
+          "checked": "No proactive non-test safeguard beyond the task."
+        }
+      },
+      "bonus": [
+        {
+          "finding": "rosetta-flow-d1",
+          "level": "low"
+        },
+        {
+          "finding": "rosetta-flow-d2",
+          "level": "high"
+        },
+        {
+          "finding": "rosetta-flow-d3",
+          "level": "medium"
+        },
+        {
+          "finding": "rosetta-flow-d4",
+          "level": "high"
+        },
+        {
+          "finding": "rosetta-flow-d5",
+          "level": "low"
+        },
+        {
+          "finding": "rosetta-flow-d6",
+          "level": "low"
+        },
+        {
+          "finding": "rosetta-flow-d7",
+          "level": "low"
+        },
+        {
+          "finding": "rosetta-flow-d8",
+          "level": "low"
+        }
+      ],
+      "delta": [
+        {
+          "id": "rosetta-flow-d1",
+          "item": "Nullable Product.storage_conditions (EA1)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/models.py",
+              "quote": "storage_conditions = models.CharField(max_length=250, blank=True, null=True)"
+            }
+          ],
+          "baseline": "saleor:saleor/product/models.py + \"storage_conditions = models.CharField(max_length=250, blank=True, default=\\\"\\\")\"",
+          "covered_by": "- (1.3 '-')",
+          "level": "low"
+        },
+        {
+          "id": "rosetta-flow-d2",
+          "item": "Shared TranslationInput, no breaking productTranslate change (EA11)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py",
+              "quote": "\"Translated storage conditions. Applies to products only; non-empty \""
+            }
+          ],
+          "baseline": "saleor:saleor/graphql/translations/mutations/product_translate.py \"input = ProductTranslationInput(\"",
+          "covered_by": "- (1.4 '-')",
+          "level": "high"
+        },
+        {
+          "id": "rosetta-flow-d3",
+          "item": "Product-level trimming with blank stored as None (EA6, product side only)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/mutations/product/product_cleaner.py",
+              "quote": "cleaned_input[\"storage_conditions\"] = (value or \"\").strip() or None"
+            }
+          ],
+          "baseline": "absent: no storage_conditions cleaner in saleor product_create/update; saleor-dashboard:src/products/views/ProductUpdate/handlers/utils.ts \"variables.input[\\\"storageConditions\\\"] = data.storageConditions;\"",
+          "covered_by": "rosetta-flow-1 (negative, translation side) -> net impact",
+          "level": "medium"
+        },
+        {
+          "id": "rosetta-flow-d4",
+          "item": "Storefront mapped through mapProductExtensions (no core mapper edits)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/config/storefront-view.ts",
+              "quote": "pickTranslatedField(product.translation, \"storageConditions\", product.storageConditions)?.trim() ||"
+            }
+          ],
+          "baseline": "react-storefront:src/lib/storefront/mappers/product.ts \"storageConditions: product.storageConditions?.trim() || null,\" (off-limits core mapper edited)",
+          "covered_by": "- (3.2 '-')",
+          "level": "high"
+        },
+        {
+          "id": "rosetta-flow-d5",
+          "item": "Translation progress counts the field (EA17)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/translations/views/EntityLists/utils.ts",
+              "quote": "const storageConditionsCompletion = isMainSchema()"
+            }
+          ],
+          "baseline": "absent: baseline changed only src/translations/views/EntityLists/utils.test.ts fixtures, not utils.ts getProductTranslationCompletion",
+          "covered_by": "- (0.1 '-')",
+          "level": "low"
+        },
+        {
+          "id": "rosetta-flow-d6",
+          "item": "ADDED_IN_323 markers",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/types.py",
+              "quote": "description=\"Translated storage conditions.\" + ADDED_IN_323"
+            }
+          ],
+          "baseline": "saleor:saleor/graphql/product/types/products.py \"description=\\\"Storage conditions of the product. Plain text, up to 250 characters.\\\"\" (no ADDED_IN_323)",
+          "covered_by": "- (8.1 '-')",
+          "level": "low"
+        },
+        {
+          "id": "rosetta-flow-d7",
+          "item": "Permission-denied and anonymous read tests",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/queries/test_product_query.py",
+              "quote": "def test_product_query_storage_conditions_available_for_anonymous("
+            }
+          ],
+          "baseline": "absent: baseline saleor tests only use staff_api_client with permissions; no assert_no_permission or api_client read test",
+          "covered_by": "- (4.2 '-')",
+          "level": "low"
+        },
+        {
+          "id": "rosetta-flow-d8",
+          "item": "Tests guarding the fork-extension contract (ADR 0006), locale completeness and the no-search decision (HQ6)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/graphql/extensions/product-details-extension.contract.test.ts",
+              "quote": "it(\"leaves ProductDetails.graphql free of the fork field (ADR 0006)\", () => {"
+            }
+          ],
+          "baseline": "absent: the baseline diff has no contract test, no locale-coverage test and no saleor/product/tests/test_product_search.py change",
+          "covered_by": "rosetta-flow-4",
+          "level": "low"
+        }
+      ],
+      "merge_advice": {
+        "advice": "yes",
+        "reason": "Only minors: trim translated values (EA6), add the field to the create dialog (EA19), drop SF-03 references - fit for follow-ups."
+      },
+      "objections": [
+        {
+          "from": "validator",
+          "text": "#4 DELTA: strength rosetta-flow-4 (contract, locale and no-search tests) missing as a DELTA item.",
+          "decision": "accept",
+          "reason": "Baseline diff has none of these tests; added rosetta-flow-d8 (low), covered by rosetta-flow-4."
+        },
+        {
+          "from": "validator",
+          "text": "#7 INTENT: 'why' of negatives 5 does not state whether a reason was found.",
+          "decision": "accept",
+          "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        }
+      ],
+      "totals": {
+        "total": 74.5,
+        "bonus": 5.05,
+        "bonus_delta": 5.05,
+        "blockers": 0,
+        "majors": 0,
+        "minors": 3,
+        "strengths": 1,
+        "categories": {
+          "H0": 65.0,
+          "H1": 67.8,
+          "H2": 70.0,
+          "H3": 70.0,
+          "H4": 71.7,
+          "H5": 70.0,
+          "H6": 70.0,
+          "H7": 68.6,
+          "H8": 70.0,
+          "H9": 70.0
+        }
+      }
+    },
+    "rosetta-light": {
+      "findings": [
+        {
+          "id": "rosetta-light-1",
+          "metric": "1.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/mutations/test_product_storage_conditions.py",
+              "quote": "@pytest.mark.parametrize(\"value\", [\"\", None, \"   \", \"<script>alert(1)</script>\"])"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/mutations/test_product_storage_conditions.py",
+              "quote": "def test_create_product_storage_conditions_stored_as_given("
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/translations/utils.ts:L40-40",
+              "quote": "return { [fieldName]: data as string };"
+            }
+          ],
+          "grounding": "task-small.md extra answer 6: 'Whitespace-only input: store as empty? Yes. Trim it, and treat a blank result as empty.'",
+          "why": "positive: reason found - the dashboard, the staff write path, trims and sends null for blank in the product form and the create dialog; the server deliberately keeps values as given (tested) and the storefront normalizes. / negative: EA6 decided trim + blank = empty at storage; other API clients still store whitespace-only values.",
+          "impact": "Whitespace values are stored from non-dashboard API clients and from the dashboard translation page (base saleor-dashboard src/translations/utils.ts L40 sends the raw string); customers still see trimmed values."
+        },
+        {
+          "id": "rosetta-light-2",
+          "metric": "0.2",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/components/ProductExportDialog/messages.ts",
+              "quote": "defaultMessage: \"Export Storage Conditions\","
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx:L593-596",
+              "quote": "ProductFieldEnum.DESCRIPTION,"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/csv/enums.py",
+              "quote": "STORAGE_CONDITIONS = \"storage conditions\""
+            }
+          ],
+          "grounding": "task-small.md hidden question 6: 'it is included in product CSV export'; the dashboard export dialog lists exportable fields explicitly and has no export-all path over ProductFieldEnum.",
+          "why": "positive: the backend exports the column. / negative: the dashboard export dialog does not offer STORAGE_CONDITIONS, so staff cannot select the column in the only UI that starts a product export. reason: none found; the label was added but the dialog list was not, which looks like an oversight.",
+          "impact": "The agreed CSV-export behaviour is unreachable for staff from the dashboard."
+        },
+        {
+          "id": "rosetta-light-3",
+          "metric": "0.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/models.py",
+              "quote": "storage_conditions = models.CharField("
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/product/models.py:L303-311",
+              "quote": "\"description\": self.description,"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/webhook/payloads.py:L1192-1192",
+              "quote": "for key, value in translation.get_translated_keys().items()"
+            }
+          ],
+          "grounding": "Sibling pattern: ProductTranslation.get_translated_keys lists name and description; the legacy translation webhook payload is built from it (hint 1, task-small.md hidden question 2/6).",
+          "why": "positive: ProductTranslation gets the column. / negative: get_translated_keys was not extended, so TRANSLATION_CREATED/UPDATED legacy payloads omit the translated storage conditions. reason: none found.",
+          "impact": "Apps listening to translation webhooks do not receive the new translated value."
+        },
+        {
+          "id": "rosetta-light-4",
+          "metric": "0.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/translations/views/EntityLists/utils.ts:L123-133",
+              "quote": "current: generalCompletion.current + attributeCompleted,"
+            }
+          ],
+          "grounding": "task-small.md extra answer 17: 'Count it in the translation progress.'",
+          "why": "positive: the field is translatable on the translation page. / negative: getProductTranslationCompletion was not changed, so the translation list progress ignores the new field. reason found: leaving getProductTranslationCompletion unchanged keeps the progress of existing products identical (HQ5); EA17 still asks to count it.",
+          "impact": "Translation progress in the product translation list under-reports missing storage-condition translations."
+        },
+        {
+          "id": "rosetta-light-5",
+          "metric": "9.1",
+          "type": "strength",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py",
+              "quote": "code=get_error_code_from_error(e),"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py:L441-441",
+              "quote": "code=e.code,"
+            }
+          ],
+          "grounding": "Pre-existing bug: raw Django codes such as max_length were put into the *TranslateErrorCode enums, producing GraphQL errors.",
+          "why": "positive: every bulk translate mutation now returns INVALID row errors for too-long values. / negative: none.",
+          "impact": "Removes protocol-level failures across four bulk translate mutations."
+        },
+        {
+          "id": "rosetta-light-6",
+          "metric": "4.2",
+          "type": "strength",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/tests/mutations/test_attribute_bulk_translate.py",
+              "quote": "def test_attribute_bulk_translate_returns_invalid_error_when_name_too_long("
+            }
+          ],
+          "grounding": "Constraint 9: tests guarding a shared mechanism beyond the new field.",
+          "why": "positive: guards the shared error-code mapping in attribute/attribute value/variant/product bulk translates. / negative: none.",
+          "impact": "Regression guard for the shared bulk-translate error path."
+        },
+        {
+          "id": "rosetta-light-7",
+          "metric": "4.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/mutations/test_product_storage_conditions.py",
+              "quote": "check_no_permissions=False,"
+            }
+          ],
+          "grounding": "task-small.md hidden question 7 + constraint 21.",
+          "why": "positive: 250/251 and blank values covered. / negative: no permission-denied test and the only read test is a staff query. reason found: writes reuse ProductInput mutations whose permission checks the repo already tests; the HQ7 read/write decision for the new field is still unguarded.",
+          "impact": "Permission and public-read decisions are unguarded."
+        },
+        {
+          "id": "rosetta-light-8",
+          "metric": "9.3",
+          "type": "strength",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py",
+              "quote": "\"This field is not supported for this type.\","
+            }
+          ],
+          "grounding": "task-small.md extra answer 23 requires rejecting storageConditions on category/collection; the generic check goes beyond it.",
+          "why": "positive: any future product-only field on a shared translation input returns INVALID instead of crashing model(**data) / update_or_create. / negative: none found.",
+          "impact": "Prevents a class of future 500s on shared translation inputs."
+        },
+        {
+          "id": "rosetta-light-10",
+          "metric": "8.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/types/products.py",
+              "quote": "description=\"Plain text storage conditions of the product.\""
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/core/descriptions.py:L18-18",
+              "quote": "ADDED_IN_323 = \"\\n\\nAdded in Saleor 3.23.\""
+            }
+          ],
+          "grounding": "Repo pattern: ADDED_IN_323 on new 3.23 fields.",
+          "why": "positive: descriptions exist. / negative: no 'Added in Saleor 3.23.' markers. reason: none found.",
+          "impact": "API docs do not show the version."
+        },
+        {
+          "id": "rosetta-light-12",
+          "metric": "8.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:.changeset/README.md:L1-5",
+              "quote": "This folder contains [changesets](https://github.com/changesets/changesets) — one"
+            }
+          ],
+          "grounding": "Dashboard rule: one changeset file per user-facing change.",
+          "why": "positive: none. / negative: the dashboard diff adds a user-facing field without a .changeset file. reason: none found.",
+          "impact": "Change missing from the generated dashboard changelog."
+        },
+        {
+          "id": "rosetta-light-13",
+          "metric": "1.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/models.py",
+              "quote": "max_length=250, blank=True, null=True, validators=[MaxLengthValidator(250)]"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/core/mutations.py:L95-108",
+              "quote": "for err in field_errors:"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/mutations/test_product_storage_conditions.py",
+              "quote": "assert {(error[\"field\"], error[\"code\"]) for error in data[\"errors\"]} == {"
+            }
+          ],
+          "grounding": "Django CharField(max_length) already adds a MaxLengthValidator; full_clean collects every validator error and saleor turns each into a response error (base mutations.py L95-108).",
+          "why": "positive: reason found - an explicit validator documents the limit in the model and migration. / negative: the second MaxLengthValidator duplicates the built-in one, so a value over 250 returns the storageConditions error twice from productCreate, productUpdate, productTranslate and productBulkTranslate; the tests compare errors as sets and hide it (validator reproduced: ['max_length','max_length']).",
+          "impact": "API clients and the dashboard get duplicate error entries for one invalid field."
+        }
+      ],
+      "values": {
+        "0.1": {
+          "v": 5,
+          "findings": [
+            "rosetta-light-3",
+            "rosetta-light-4"
+          ]
+        },
+        "0.2": {
+          "v": 4,
+          "findings": [
+            "rosetta-light-2"
+          ]
+        },
+        "1.1": {
+          "v": 6,
+          "findings": [
+            "rosetta-light-1"
+          ]
+        },
+        "1.2": {
+          "v": 6,
+          "findings": [
+            "rosetta-light-13"
+          ]
+        },
+        "1.3": {
+          "v": "-",
+          "checked": "Product and ProductTranslation CharField(max_length=250, null=True); AddField only."
+        },
+        "1.4": {
+          "v": "-",
+          "checked": "Shared TranslationInput kept (EA11); category/collection reject via validate_input_against_model (EA23)."
+        },
+        "1.5": {
+          "v": "-",
+          "checked": "Dashboard label/helper strings via react-intl with defaultMessages.json entries; storefront label via next-intl key pdp.attributes.storageConditions in all 8 locale files; inputs are labelled."
+        },
+        "2.1": {
+          "v": "-",
+          "checked": "Writes only through productCreate/productUpdate/productBulkCreate (MANAGE_PRODUCTS) and productTranslate/productBulkTranslate (MANAGE_TRANSLATIONS); read is public by HQ7."
+        },
+        "2.2": {
+          "v": "-",
+          "checked": "Server enforces 250 (model max_length and/or explicit cleaner check) for product and translation; dashboard product input sets maxLength 250 (EA5)."
+        },
+        "2.3": {
+          "v": "-",
+          "checked": "Storefront renders the value as a React text node, never through dangerouslySetInnerHTML; dashboard uses controlled inputs; escaping tests present."
+        },
+        "2.4": {
+          "v": "-",
+          "checked": "Plain product content, public by HQ7; included in product webhooks and CSV export by HQ6; no PII/secrets."
+        },
+        "3.1": {
+          "v": "-",
+          "checked": "Label added to app-wide commonMessages (src/intl.ts) - weighed: feature-specific, but reused by form, create dialog and translation builder; not material."
+        },
+        "3.2": {
+          "v": "-",
+          "checked": "Reuses product_cleaner/translation base mutations, ProductExportFields mapping, PRODUCT_FIELDS, dashboard getFormErrors/getProductErrorMessage, storefront mapProductExtensions extension point and pickTranslatedField."
+        },
+        "3.3": {
+          "v": "-",
+          "checked": "No new cross-module cycles or reversed dependency directions found in the changed imports."
+        },
+        "3.4": {
+          "v": "-",
+          "checked": "storageConditions/storage_conditions names consistent across repos; dashboard *.generated.ts files changed consistently with codegen output; schema-main additions mirror the backend schema (EA21 allows refreshing it)."
+        },
+        "4.1": {
+          "v": "-",
+          "checked": "New behaviour (create/update/bulk/translate/query, payloads, CSV, dashboard form/data/variables, storefront mapping/rendering) is covered by tests."
+        },
+        "4.2": {
+          "v": 6,
+          "findings": [
+            "rosetta-light-6",
+            "rosetta-light-7"
+          ]
+        },
+        "4.3": {
+          "v": "-",
+          "checked": "Tests assert both API responses and stored DB state (refresh_from_db / objects.get) and rendered output."
+        },
+        "4.4": {
+          "v": "-",
+          "checked": "Tests use the repos' fixtures (staff_api_client, product, permission_* ; Wrapper/IntlProvider; vitest renderToStaticMarkup) at the right level."
+        },
+        "4.5": {
+          "v": "-",
+          "checked": "Existing bulk translate test files only gained new tests."
+        },
+        "5.1": {
+          "v": "-",
+          "checked": "Plain column on Product loaded with the model; no new queries, N+1 or round trips; CSV reads it via the existing values() mapping."
+        },
+        "5.2": {
+          "v": "-",
+          "checked": "Single AddField of a varchar(250) (nullable or constant default): metadata-only on PostgreSQL 11+, no table rewrite, no backfill."
+        },
+        "5.3": {
+          "v": "-",
+          "checked": "No logging is warranted for a plain product field; none added, none removed."
+        },
+        "6.1": {
+          "v": "-",
+          "checked": "Within the feature. Error-code mapping change rated as 9.1; stories literal gained the field (EA16, not material)."
+        },
+        "6.2": {
+          "v": "-",
+          "checked": "No duplicated logic, fragments or tests of material size found."
+        },
+        "6.3": {
+          "v": "-",
+          "checked": "No unused code, commented-out code, debug output or temp files found."
+        },
+        "6.4": {
+          "v": "-",
+          "checked": "No reformatting of untouched lines found."
+        },
+        "7.1": {
+          "v": "-",
+          "checked": "Redundant MaxLengthValidator routed to rosetta-light-13 (1.2, behaviour: duplicate errors); the bulk-create re-check returns INVALID consistently with productCreate (the run's reason) - not material."
+        },
+        "7.2": {
+          "v": "-",
+          "checked": "New units are small and single-purpose."
+        },
+        "7.3": {
+          "v": "-",
+          "checked": "Names use the domain term storageConditions / storage_conditions consistently."
+        },
+        "7.4": {
+          "v": "-",
+          "checked": "Comments are few, accurate and not process references."
+        },
+        "7.5": {
+          "v": "-",
+          "checked": "Types are precise (string | null, Record<string, unknown> narrowed with typeof); no new any."
+        },
+        "8.1": {
+          "v": 6,
+          "findings": [
+            "rosetta-light-10"
+          ]
+        },
+        "8.2": {
+          "v": 6,
+          "findings": [
+            "rosetta-light-12"
+          ]
+        },
+        "8.3": {
+          "v": "-",
+          "checked": "No user/developer docs exist for comparable product fields; none needed."
+        },
+        "8.4": {
+          "v": "-",
+          "checked": "No AI-session context docs in the run's repo diffs."
+        },
+        "9.1": {
+          "v": 9,
+          "findings": [
+            "rosetta-light-5"
+          ]
+        },
+        "9.2": {
+          "v": "-",
+          "checked": "No distinct related improvement beyond the task."
+        },
+        "9.3": {
+          "v": 8,
+          "findings": [
+            "rosetta-light-8"
+          ]
+        }
+      },
+      "bonus": [
+        {
+          "finding": "rosetta-light-5",
+          "level": "high"
+        },
+        {
+          "finding": "rosetta-light-8",
+          "level": "medium"
+        },
+        {
+          "finding": "rosetta-light-d1",
+          "level": "low"
+        },
+        {
+          "finding": "rosetta-light-d2",
+          "level": "high"
+        },
+        {
+          "finding": "rosetta-light-d3",
+          "level": "low"
+        },
+        {
+          "finding": "rosetta-light-d4",
+          "level": "high"
+        },
+        {
+          "finding": "rosetta-light-d5",
+          "level": "medium"
+        }
+      ],
+      "delta": [
+        {
+          "id": "rosetta-light-d1",
+          "item": "Nullable Product.storage_conditions (EA1)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/models.py",
+              "quote": "max_length=250, blank=True, null=True, validators=[MaxLengthValidator(250)]"
+            }
+          ],
+          "baseline": "saleor:saleor/product/models.py + \"storage_conditions = models.CharField(max_length=250, blank=True, default=\\\"\\\")\"",
+          "covered_by": "- (1.3 '-')",
+          "level": "low"
+        },
+        {
+          "id": "rosetta-light-d2",
+          "item": "Shared TranslationInput, no breaking productTranslate change (EA11)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py",
+              "quote": "description=\"Translated storage conditions. Supported for products only.\""
+            }
+          ],
+          "baseline": "saleor:saleor/graphql/translations/mutations/product_translate.py \"input = ProductTranslationInput(\"",
+          "covered_by": "- (1.4 '-')",
+          "level": "high"
+        },
+        {
+          "id": "rosetta-light-d3",
+          "item": "Create-product dialog sets the field (EA19)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/views/ProductList/createMinimalProduct.ts",
+              "quote": "input.storageConditions = trimmedStorageConditions;"
+            }
+          ],
+          "baseline": "absent: baseline saleor-dashboard.diff has no change to CreateProductDialog or createMinimalProduct",
+          "covered_by": "- (0.2: create dialog present)",
+          "level": "low"
+        },
+        {
+          "id": "rosetta-light-d4",
+          "item": "Storefront mapped through mapProductExtensions (no core mapper edits)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/config/storefront-view.ts",
+              "quote": "storageConditions: normalizeStorageConditions(product.storageConditions),"
+            }
+          ],
+          "baseline": "react-storefront:src/lib/storefront/mappers/product.ts \"storageConditions: product.storageConditions?.trim() || null,\" (off-limits core mapper edited)",
+          "covered_by": "- (3.2 '-')",
+          "level": "high"
+        },
+        {
+          "id": "rosetta-light-d5",
+          "item": "Dashboard trims and sends null for blank (EA6, client side only)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/views/ProductUpdate/handlers/utils.ts",
+              "quote": "variables.input[\"storageConditions\"] = data.storageConditions?.trim() || null;"
+            }
+          ],
+          "baseline": "absent: no storage_conditions cleaner in saleor product_create/update; saleor-dashboard:src/products/views/ProductUpdate/handlers/utils.ts \"variables.input[\\\"storageConditions\\\"] = data.storageConditions;\"",
+          "covered_by": "rosetta-light-1 (negative, server side) -> net impact",
+          "level": "medium"
+        }
+      ],
+      "merge_advice": {
+        "advice": "no",
+        "reason": "Major: export dialog does not offer the field. Rest minor (server-side trim, translation payload, progress, changeset)."
+      },
+      "objections": [
+        {
+          "from": "validator",
+          "text": "#1 1.2/7.1: redundant MaxLengthValidator(250) duplicates the built-in one -> storageConditions error returned twice; set-based test assertions hide it. Add minor 1.2.",
+          "decision": "accept",
+          "reason": "Proven: Django CharField appends its own MaxLengthValidator, full_clean collects all errors, saleor mutations.py L95-108 emits one error per item; validator reproduced it. Added rosetta-light-13 (1.2 minor); 7.1 checked text fixed."
+        },
+        {
+          "from": "validator",
+          "text": "#2 8.2: CHANGELOG entry under a new '# Next' heading instead of the unreleased '# 3.23.0' section. Add minor.",
+          "decision": "reject",
+          "reason": "Facts confirmed, but not material (constraint 7): moving one entry under the release heading is a release-owner edit with no effect on users or integrators; the entry content is complete."
+        },
+        {
+          "from": "validator",
+          "text": "#4 DELTA: strength rosetta-light-6 (bulk-translate tests) missing as a DELTA item, or state it is covered by light-5.",
+          "decision": "reject",
+          "reason": "The tests guard the error-code fix rewarded by the 9.1 bonus (rosetta-light-5); one root cause = one item, and an item rewarded by a 9.x bonus is not added again (constraint 22)."
+        },
+        {
+          "from": "validator",
+          "text": "#6 rosetta-light-1 impact: 'limited to non-dashboard API clients' is false; the dashboard translation page sends raw strings.",
+          "decision": "accept",
+          "reason": "Confirmed in base saleor-dashboard src/translations/utils.ts L40; impact text corrected, base evidence added; level stays minor (customers still see trimmed values)."
+        },
+        {
+          "from": "validator",
+          "text": "#7 INTENT: 'why' of negatives 2,3,4,7,10,12 does not state whether a reason was found.",
+          "decision": "accept",
+          "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        }
+      ],
+      "totals": {
+        "total": 72.8,
+        "bonus": 5.2,
+        "bonus_delta": 3.55,
+        "blockers": 0,
+        "majors": 1,
+        "minors": 7,
+        "strengths": 3,
+        "categories": {
+          "H0": 45.0,
+          "H1": 65.9,
+          "H2": 70.0,
+          "H3": 70.0,
+          "H4": 68.0,
+          "H5": 70.0,
+          "H6": 70.0,
+          "H7": 70.0,
+          "H8": 64.4,
+          "H9": 80.0
+        }
+      }
+    },
+    "rosetta-skills": {
+      "findings": [
+        {
+          "id": "rosetta-skills-1",
+          "metric": "1.3",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/models.py",
+              "quote": "storage_conditions = models.CharField(max_length=250, blank=True, default=\"\")"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/migrations/0211_product_storage_conditions.py",
+              "quote": "field=models.CharField(blank=True, default=\"\", max_length=250),"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/product/models.py:L186-187",
+              "quote": "search_document = models.TextField(blank=True, default=\"\")"
+            }
+          ],
+          "grounding": "task-small.md extra answer 1: 'A first-class nullable field on Product.'",
+          "why": "positive: reason found - one empty value for a text column, as the base does for Product.search_document (non-null, default \"\"); a constant default is a metadata-only AddField; HQ5 'empty by default' holds and the GraphQL field stays nullable. / negative: EA1 decided a nullable field; unset products expose \"\" instead of null in the API, webhooks and CSV. The run documents the choice (agents/IMPLEMENTATION.md) and maps null input to \"\".",
+          "impact": "Small contract difference for consumers that test for null; no behaviour or data harm."
+        },
+        {
+          "id": "rosetta-skills-2",
+          "metric": "1.1",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/mutations/test_product_storage_conditions.py",
+              "quote": "def test_product_create_storage_conditions_is_stored_as_submitted("
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/mutations/test_product_storage_conditions.py",
+              "quote": "\"  padded  \","
+            },
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/views/ProductUpdate/handlers/utils.ts",
+              "quote": "variables.input[\"storageConditions\"] = data.storageConditions;"
+            }
+          ],
+          "grounding": "task-small.md extra answer 6: 'Whitespace-only input: store as empty? Yes. Trim it, and treat a blank result as empty.'",
+          "why": "positive: reason found - a deliberate 'stored as entered' policy (documented in docs/CATALOG-CONTEXT.md, tested), the create dialog omits blank values and the storefront trims. / negative: EA6 decided trim + blank = empty; the update path and the API store whitespace-only and padded values as submitted.",
+          "impact": "Whitespace values persist in data, webhooks and CSV for every update; ongoing cleanup cost."
+        },
+        {
+          "id": "rosetta-skills-3",
+          "metric": "0.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/models.py",
+              "quote": "storage_conditions = models.CharField("
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/product/models.py:L303-311",
+              "quote": "\"description\": self.description,"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/webhook/payloads.py:L1192-1192",
+              "quote": "for key, value in translation.get_translated_keys().items()"
+            }
+          ],
+          "grounding": "Sibling pattern: ProductTranslation.get_translated_keys lists name and description; the legacy translation webhook payload is built from it (hint 1, task-small.md hidden question 2/6).",
+          "why": "positive: ProductTranslation gets the column. / negative: get_translated_keys was not extended, so TRANSLATION_CREATED/UPDATED legacy payloads omit the translated storage conditions. reason: none found.",
+          "impact": "Apps listening to translation webhooks do not receive the new translated value."
+        },
+        {
+          "id": "rosetta-skills-4",
+          "metric": "0.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/translations/views/EntityLists/utils.ts:L123-133",
+              "quote": "current: generalCompletion.current + attributeCompleted,"
+            }
+          ],
+          "grounding": "task-small.md extra answer 17: 'Count it in the translation progress.'",
+          "why": "positive: the field is translatable on the translation page. / negative: getProductTranslationCompletion was not changed, so the translation list progress ignores the new field. reason found: leaving getProductTranslationCompletion unchanged keeps the progress of existing products identical (HQ5); EA17 still asks to count it.",
+          "impact": "Translation progress in the product translation list under-reports missing storage-condition translations."
+        },
+        {
+          "id": "rosetta-skills-5",
+          "metric": "0.2",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx:L593-596",
+              "quote": "ProductFieldEnum.DESCRIPTION,"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/csv/enums.py",
+              "quote": "STORAGE_CONDITIONS = \"storage conditions\""
+            }
+          ],
+          "grounding": "task-small.md hidden question 6: 'it is included in product CSV export'; the dashboard export dialog lists exportable fields explicitly and has no export-all path over ProductFieldEnum.",
+          "why": "positive: the backend exports the column. / negative: the dashboard export dialog does not offer STORAGE_CONDITIONS, so staff cannot select the column in the only UI that starts a product export. reason: none found.",
+          "impact": "The agreed CSV-export behaviour is unreachable for staff from the dashboard."
+        },
+        {
+          "id": "rosetta-skills-6",
+          "metric": "9.1",
+          "type": "strength",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py",
+              "quote": "code=get_error_code_from_error(e),"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py:L441-441",
+              "quote": "code=e.code,"
+            }
+          ],
+          "grounding": "Pre-existing bug in BaseBulkTranslateMutation error codes.",
+          "why": "positive: bulk translate row errors become INVALID instead of GraphQL errors. / negative: none.",
+          "impact": "Removes protocol-level failures in all bulk translate mutations."
+        },
+        {
+          "id": "rosetta-skills-8",
+          "metric": "8.4",
+          "type": "strength",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:docs/CATALOG-CONTEXT.md",
+              "quote": "- Storage conditions: optional plain-text product field (up to 250 characters, e.g. \"Keep refrigerated at 2–8 °C\"); stored as entered, translatable per language, included in product webhook payloads and the product CSV export. Not on variants, not in search or filters."
+            },
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:agents/IMPLEMENTATION.md",
+              "quote": "### Product storage conditions: done, 2026-10-21"
+            }
+          ],
+          "grounding": "8.4: accurate, short, updated together with the code = minor strength.",
+          "why": "positive: AI context docs in all three repos match the implemented behaviour. / negative: none.",
+          "impact": "Future sessions get correct context."
+        }
+      ],
+      "values": {
+        "0.1": {
+          "v": 5,
+          "findings": [
+            "rosetta-skills-3",
+            "rosetta-skills-4"
+          ]
+        },
+        "0.2": {
+          "v": 4,
+          "findings": [
+            "rosetta-skills-5"
+          ]
+        },
+        "1.1": {
+          "v": 4,
+          "findings": [
+            "rosetta-skills-2"
+          ]
+        },
+        "1.2": {
+          "v": "-",
+          "checked": "Errors raised as ValidationError with field and code through the mutation error types (product errors, translation errors, bulk row errors); no swallowed exception or crash path introduced. The bulk-translate `code=e.code` max_length issue is pre-existing (saleor utils.py L441) and not rated."
+        },
+        "1.3": {
+          "v": 6,
+          "findings": [
+            "rosetta-skills-1"
+          ]
+        },
+        "1.4": {
+          "v": "-",
+          "checked": "Shared TranslationInput kept (EA11); category/collection rejected via validate_storage_conditions_supported (EA23)."
+        },
+        "1.5": {
+          "v": "-",
+          "checked": "Dashboard label/helper strings via react-intl with defaultMessages.json entries; storefront label via next-intl key pdp.attributes.storageConditions in all 8 locale files; inputs are labelled."
+        },
+        "2.1": {
+          "v": "-",
+          "checked": "Writes only through productCreate/productUpdate/productBulkCreate (MANAGE_PRODUCTS) and productTranslate/productBulkTranslate (MANAGE_TRANSLATIONS); read is public by HQ7."
+        },
+        "2.2": {
+          "v": "-",
+          "checked": "Server enforces 250 (model max_length and/or explicit cleaner check) for product and translation; dashboard product input sets maxLength 250 (EA5)."
+        },
+        "2.3": {
+          "v": "-",
+          "checked": "Storefront renders the value as a React text node, never through dangerouslySetInnerHTML; dashboard uses controlled inputs; escaping tests present."
+        },
+        "2.4": {
+          "v": "-",
+          "checked": "Plain product content, public by HQ7; included in product webhooks and CSV export by HQ6; no PII/secrets."
+        },
+        "3.1": {
+          "v": "-",
+          "checked": "Model in saleor/product, validation in graphql product cleaner/mutations, translation in translations mutations, dashboard in product form/translation builders, storefront mapping in the fork extension point and rendering in ProductAttributes."
+        },
+        "3.2": {
+          "v": "-",
+          "checked": "Reuses product_cleaner/translation base mutations, ProductExportFields mapping, PRODUCT_FIELDS, dashboard getFormErrors/getProductErrorMessage, storefront mapProductExtensions extension point and pickTranslatedField."
+        },
+        "3.3": {
+          "v": "-",
+          "checked": "No new cross-module cycles or reversed dependency directions found in the changed imports."
+        },
+        "3.4": {
+          "v": "-",
+          "checked": "storageConditions/storage_conditions names consistent across repos; dashboard *.generated.ts files changed consistently with codegen output; schema-main additions mirror the backend schema (EA21 allows refreshing it)."
+        },
+        "4.1": {
+          "v": "-",
+          "checked": "New behaviour (create/update/bulk/translate/query, payloads, CSV, dashboard form/data/variables, storefront mapping/rendering) is covered by tests."
+        },
+        "4.2": {
+          "v": "-",
+          "checked": "Permission-denied (update, translate), anonymous read, 250/251 boundaries, null/empty coverage present."
+        },
+        "4.3": {
+          "v": "-",
+          "checked": "Tests assert both API responses and stored DB state (refresh_from_db / objects.get) and rendered output."
+        },
+        "4.4": {
+          "v": "-",
+          "checked": "Tests use the repos' fixtures (staff_api_client, product, permission_* ; Wrapper/IntlProvider; vitest renderToStaticMarkup) at the right level."
+        },
+        "4.5": {
+          "v": "-",
+          "checked": "Existing tests only gained the new field in fixtures/queries or updated expectations for the new field; nothing skipped, deleted or weakened."
+        },
+        "5.1": {
+          "v": "-",
+          "checked": "Plain column on Product loaded with the model; no new queries, N+1 or round trips; CSV reads it via the existing values() mapping."
+        },
+        "5.2": {
+          "v": "-",
+          "checked": "Single AddField of a varchar(250) (nullable or constant default): metadata-only on PostgreSQL 11+, no table rewrite, no backfill."
+        },
+        "5.3": {
+          "v": "-",
+          "checked": "No logging is warranted for a plain product field; none added, none removed."
+        },
+        "6.1": {
+          "v": "-",
+          "checked": "Within the feature. isMainSchema gating beyond EA25 is harmless; not material."
+        },
+        "6.2": {
+          "v": "-",
+          "checked": "No duplicated logic, fragments or tests of material size found."
+        },
+        "6.3": {
+          "v": "-",
+          "checked": "No unused code, commented-out code, debug output or temp files found."
+        },
+        "6.4": {
+          "v": "-",
+          "checked": "No reformatting of untouched lines found."
+        },
+        "7.1": {
+          "v": "-",
+          "checked": "clean_storage_conditions null->\"\" duplicates construct_instance (base core/mutations.py L492-493) but is a 6-line explicit guard; judged not material."
+        },
+        "7.2": {
+          "v": "-",
+          "checked": "New units are small and single-purpose."
+        },
+        "7.3": {
+          "v": "-",
+          "checked": "Names use the domain term storageConditions / storage_conditions consistently."
+        },
+        "7.4": {
+          "v": "-",
+          "checked": "Comments are few, accurate and not process references."
+        },
+        "7.5": {
+          "v": "-",
+          "checked": "Types are precise (string | null, Record<string, unknown> narrowed with typeof); no new any."
+        },
+        "8.1": {
+          "v": "-",
+          "checked": "GraphQL descriptions present with 'Added in Saleor 3.23.' markers (ADDED_IN_323 is the repo pattern, saleor descriptions.py L18)."
+        },
+        "8.2": {
+          "v": "-",
+          "checked": "CHANGELOG entry under the unreleased 3.23.0 section; dashboard patch changeset present."
+        },
+        "8.3": {
+          "v": "-",
+          "checked": "No user/developer docs exist for comparable product fields; none needed."
+        },
+        "8.4": {
+          "v": 8,
+          "findings": [
+            "rosetta-skills-8"
+          ]
+        },
+        "9.1": {
+          "v": 9,
+          "findings": [
+            "rosetta-skills-6"
+          ]
+        },
+        "9.2": {
+          "v": "-",
+          "checked": "No distinct related improvement beyond the task."
+        },
+        "9.3": {
+          "v": "-",
+          "checked": "No proactive non-test safeguard beyond the task."
+        }
+      },
+      "bonus": [
+        {
+          "finding": "rosetta-skills-6",
+          "level": "high"
+        },
+        {
+          "finding": "rosetta-skills-d1",
+          "level": "high"
+        },
+        {
+          "finding": "rosetta-skills-d2",
+          "level": "low"
+        },
+        {
+          "finding": "rosetta-skills-d3",
+          "level": "high"
+        },
+        {
+          "finding": "rosetta-skills-d4",
+          "level": "low"
+        },
+        {
+          "finding": "rosetta-skills-d5",
+          "level": "low"
+        },
+        {
+          "finding": "rosetta-skills-d6",
+          "level": "low"
+        }
+      ],
+      "delta": [
+        {
+          "id": "rosetta-skills-d1",
+          "item": "Shared TranslationInput, no breaking productTranslate change (EA11)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py",
+              "quote": "def validate_storage_conditions_supported(model: type[Model], input_data: dict):"
+            }
+          ],
+          "baseline": "saleor:saleor/graphql/translations/mutations/product_translate.py \"input = ProductTranslationInput(\"",
+          "covered_by": "- (1.4 '-')",
+          "level": "high"
+        },
+        {
+          "id": "rosetta-skills-d2",
+          "item": "Create-product dialog sets the field (EA19)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/views/ProductList/createMinimalProduct.ts",
+              "quote": "...(storageConditions ? { storageConditions } : {}),"
+            }
+          ],
+          "baseline": "absent: baseline saleor-dashboard.diff has no change to CreateProductDialog or createMinimalProduct",
+          "covered_by": "- (0.2: create dialog present)",
+          "level": "low"
+        },
+        {
+          "id": "rosetta-skills-d3",
+          "item": "Storefront mapped through mapProductExtensions (no core mapper edits)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/config/storefront-view.ts",
+              "quote": "storageConditions: resolveStorageConditions(product),"
+            }
+          ],
+          "baseline": "react-storefront:src/lib/storefront/mappers/product.ts \"storageConditions: product.storageConditions?.trim() || null,\" (off-limits core mapper edited)",
+          "covered_by": "- (3.2 '-')",
+          "level": "high"
+        },
+        {
+          "id": "rosetta-skills-d4",
+          "item": "ADDED_IN_323 markers",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/types/products.py",
+              "quote": "description=\"Storage conditions of the product.\" + ADDED_IN_323"
+            }
+          ],
+          "baseline": "saleor:saleor/graphql/product/types/products.py \"description=\\\"Storage conditions of the product. Plain text, up to 250 characters.\\\"\" (no ADDED_IN_323)",
+          "covered_by": "- (8.1 '-')",
+          "level": "low"
+        },
+        {
+          "id": "rosetta-skills-d5",
+          "item": "Permission-denied and anonymous read tests",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/mutations/test_product_storage_conditions.py",
+              "quote": "def test_product_query_returns_storage_conditions_to_anonymous_user("
+            }
+          ],
+          "baseline": "absent: baseline saleor tests only use staff_api_client with permissions; no assert_no_permission or api_client read test",
+          "covered_by": "- (4.2 '-')",
+          "level": "low"
+        },
+        {
+          "id": "rosetta-skills-d6",
+          "item": "AI context docs updated together with the code",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:agents/IMPLEMENTATION.md",
+              "quote": "### Product storage conditions: done, 2026-10-21"
+            }
+          ],
+          "baseline": "absent: baseline diffs contain no AI-session docs",
+          "covered_by": "rosetta-skills-8",
+          "level": "low"
+        }
+      ],
+      "merge_advice": {
+        "advice": "no",
+        "reason": "Majors: no trimming on the update/API path (EA6) and export dialog lacks the field."
+      },
+      "objections": [
+        {
+          "from": "validator",
+          "text": "#7 INTENT: 'why' of negatives 3,4,5 does not state whether a reason was found.",
+          "decision": "accept",
+          "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        }
+      ],
+      "totals": {
+        "total": 72.3,
+        "bonus": 4.7,
+        "bonus_delta": 3.8,
+        "blockers": 0,
+        "majors": 2,
+        "minors": 3,
+        "strengths": 2,
+        "categories": {
+          "H0": 45.0,
+          "H1": 61.4,
+          "H2": 70.0,
+          "H3": 70.0,
+          "H4": 70.0,
+          "H5": 70.0,
+          "H6": 70.0,
+          "H7": 70.0,
+          "H8": 72.2,
+          "H9": 76.7
+        }
+      }
+    },
+    "spec-kit": {
+      "findings": [
+        {
+          "id": "spec-kit-1",
+          "metric": "1.3",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/models.py",
+              "quote": "storage_conditions = models.CharField(max_length=250, blank=True, default=\"\")"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/migrations/0211_product_storage_conditions.py",
+              "quote": "field=models.CharField(blank=True, default=\"\", max_length=250),"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/product/models.py:L186-187",
+              "quote": "search_document = models.TextField(blank=True, default=\"\")"
+            }
+          ],
+          "grounding": "task-small.md extra answer 1: 'A first-class nullable field on Product.'",
+          "why": "positive: reason found - one empty value for a text column, as the base does for Product.search_document (non-null, default \"\"); a constant default is a metadata-only AddField; HQ5 'empty by default' holds and the GraphQL field stays nullable. / negative: EA1 decided a nullable field; unset products expose \"\" instead of null in the API, webhooks and CSV. The run also trims and stores blank as \"\", so empty has one representation.",
+          "impact": "Small contract difference for consumers that test for null; no behaviour or data harm."
+        },
+        {
+          "id": "spec-kit-2",
+          "metric": "1.4",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_translate.py",
+              "quote": "class ProductTranslationInput(TranslationInput):"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/tests/test_translations.py",
+              "quote": "mutation productTranslate($productId: ID!, $input: ProductTranslationInput!) {"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py:L74-79",
+              "quote": "data_to_validate = {key: value for key, value in input_data.items() if value}"
+            }
+          ],
+          "grounding": "task-small.md extra answer 11: 'The shared `TranslationInput`. No breaking change to `productTranslate`.'",
+          "why": "positive: reason found - a product-only input keeps the field off category/collection inputs, so no reject logic and no crash path through the shared validate_input_against_model (base utils.py L74-79). / negative: EA11 decided the shared TranslationInput with no breaking change; productTranslate's input type changes, so clients that declare `$input: TranslationInput!` fail validation (the run itself had to edit an existing test query).",
+          "impact": "Existing productTranslate callers must change their queries; a reviewer would block the break. Not a runtime or data break."
+        },
+        {
+          "id": "spec-kit-3",
+          "metric": "0.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/index.tsx:L79-79",
+              "quote": "/** Legacy /products/add → create dialog on the list. */"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/components/CreateProductDialog/CreateProductDialog.tsx:L170-171",
+              "quote": "const errors = await onSubmit({"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/views/ProductList/createMinimalProduct.ts:L34-38",
+              "quote": "Creates a product with name + type only."
+            }
+          ],
+          "grounding": "task-small.md extra answer 19: 'The product update page and the create-product dialog on the product list (that dialog is the create flow).' + EA 9 'Include it in create, update and the translation mutation'; constraint 14 (UI surface named by an answer, backend supports it, missing in consumer).",
+          "why": "positive: reason found - follows the base design: the create dialog collects name and type only and leaves other product fields to the detail page (createMinimalProduct.ts L34-38); the update page sets the field. / negative: EA19 named the create dialog as a surface; staff cannot set storage conditions at creation.",
+          "impact": "One extra step after creating a product."
+        },
+        {
+          "id": "spec-kit-4",
+          "metric": "0.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/translations/views/EntityLists/utils.ts:L123-133",
+              "quote": "current: generalCompletion.current + attributeCompleted,"
+            }
+          ],
+          "grounding": "task-small.md extra answer 17: 'Count it in the translation progress.'",
+          "why": "positive: the field is translatable on the translation page. / negative: getProductTranslationCompletion was not changed, so the translation list progress ignores the new field. reason found: leaving getProductTranslationCompletion unchanged keeps the progress of existing products identical (HQ5); EA17 still asks to count it.",
+          "impact": "Translation progress in the product translation list under-reports missing storage-condition translations."
+        },
+        {
+          "id": "spec-kit-5",
+          "metric": "8.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/types/products.py",
+              "quote": "description='Storage conditions of the product, e.g. \"Keep refrigerated at 2–8 °C\".'"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/core/descriptions.py:L18-18",
+              "quote": "ADDED_IN_323 = \"\\n\\nAdded in Saleor 3.23.\""
+            }
+          ],
+          "grounding": "Repo pattern: ADDED_IN_323 markers.",
+          "why": "positive: descriptive text with example. / negative: no 'Added in Saleor 3.23.' markers. reason: none found.",
+          "impact": "API docs do not show the version."
+        },
+        {
+          "id": "spec-kit-6",
+          "metric": "8.2",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:CHANGELOG.md",
+              "quote": "Added optional `storageConditions` field (max 250 characters) to the `Product` type and to `ProductInput`, `ProductCreateInput` and `ProductBulkCreateInput`."
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:CHANGELOG.md:L7-7",
+              "quote": "### Breaking changes"
+            }
+          ],
+          "grounding": "8.2: breaking changes in the breaking section.",
+          "why": "positive: entry exists. / negative: the breaking productTranslate input change, translations, webhooks and CSV export are not mentioned at all. reason: none found.",
+          "impact": "API consumers get no warning about a breaking change."
+        },
+        {
+          "id": "spec-kit-7",
+          "metric": "6.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/mutations/product/product_cleaner.py",
+              "quote": "storage_conditions = (cleaned_input[\"storage_conditions\"] or \"\").strip()"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/bulk_mutations/product_bulk_create.py",
+              "quote": "storage_conditions = (cleaned_input[\"storage_conditions\"] or \"\").strip()"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_translate.py",
+              "quote": "storage_conditions = storage_conditions.strip()"
+            }
+          ],
+          "grounding": "6.2: no duplicated logic; the cleaner already exists for create/update.",
+          "why": "positive: consistent trimming everywhere. / negative: trim + length check implemented three times; bulk create could call clean_storage_conditions. reason found: bulk create and bulk translate collect row errors instead of raising, so each needs its own error path; the trim + length rule is still copied although the base bulk create calls shared cleaners (clean_seo_fields, product_bulk_create.py L264).",
+          "impact": "Three copies of the same rule to keep in sync."
+        },
+        {
+          "id": "spec-kit-8",
+          "metric": "4.1",
+          "type": "strength",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/components/ProductExportDialog/messages.test.tsx",
+              "quote": "it(\"has a label for every exportable product field\", () => {"
+            }
+          ],
+          "grounding": "Constraint 9: contract guard beyond the new behaviour.",
+          "why": "positive: guards labels for all ProductFieldEnum values. / negative: none.",
+          "impact": "Small guard for future export fields."
+        },
+        {
+          "id": "spec-kit-9",
+          "metric": "1.2",
+          "type": "strength",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_bulk_translate.py",
+              "quote": "clean_storage_conditions(data[\"translation_fields\"])"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_bulk_translate.py",
+              "quote": "code=errors[0].code,"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py:L441-441",
+              "quote": "code=e.code,"
+            }
+          ],
+          "grounding": "Base bulk translate puts raw Django codes (max_length) into the error enum (utils.py L441).",
+          "why": "positive: validates the new field first and maps it to an INVALID row error. / negative: works around rather than fixes the shared bug.",
+          "impact": "Clients get a usable row error for the new field."
+        }
+      ],
+      "values": {
+        "0.1": {
+          "v": 6,
+          "findings": [
+            "spec-kit-4"
+          ]
+        },
+        "0.2": {
+          "v": 6,
+          "findings": [
+            "spec-kit-3"
+          ]
+        },
+        "1.1": {
+          "v": "-",
+          "checked": "Product cleaner, bulk create and translations trim and treat blank as empty (EA6); dashboard sends \"\" to clear; storefront falls back on blank translation (EA8)."
+        },
+        "1.2": {
+          "v": 8,
+          "findings": [
+            "spec-kit-9"
+          ]
+        },
+        "1.3": {
+          "v": 6,
+          "findings": [
+            "spec-kit-1"
+          ]
+        },
+        "1.4": {
+          "v": 4,
+          "findings": [
+            "spec-kit-2"
+          ]
+        },
+        "1.5": {
+          "v": "-",
+          "checked": "Dashboard label/helper strings via react-intl with defaultMessages.json entries; storefront label via next-intl key pdp.attributes.storageConditions in all 8 locale files; inputs are labelled."
+        },
+        "2.1": {
+          "v": "-",
+          "checked": "Writes only through productCreate/productUpdate/productBulkCreate (MANAGE_PRODUCTS) and productTranslate/productBulkTranslate (MANAGE_TRANSLATIONS); read is public by HQ7."
+        },
+        "2.2": {
+          "v": "-",
+          "checked": "Server enforces 250 (model max_length and/or explicit cleaner check) for product and translation; dashboard product input sets maxLength 250 (EA5)."
+        },
+        "2.3": {
+          "v": "-",
+          "checked": "Storefront renders the value as a React text node, never through dangerouslySetInnerHTML; dashboard uses controlled inputs; escaping tests present."
+        },
+        "2.4": {
+          "v": "-",
+          "checked": "Plain product content, public by HQ7; included in product webhooks and CSV export by HQ6; no PII/secrets."
+        },
+        "3.1": {
+          "v": "-",
+          "checked": "Dashboard input sits at the end of the General Information card, below the rating/weight grid - still under the description (EA7); not material. STORAGE_CONDITIONS_MAX_LENGTH lives in the graphql product cleaner and is imported by translations - weighed, not material."
+        },
+        "3.2": {
+          "v": "-",
+          "checked": "Reuses product_cleaner/translation base mutations, ProductExportFields mapping, PRODUCT_FIELDS, dashboard getFormErrors/getProductErrorMessage, storefront mapProductExtensions extension point and pickTranslatedField."
+        },
+        "3.3": {
+          "v": "-",
+          "checked": "No new cross-module cycles or reversed dependency directions found in the changed imports."
+        },
+        "3.4": {
+          "v": "-",
+          "checked": "schema-main and schema-staging hand-spliced faithfully with regenerated types (staging irrelevant per EA25) - not material."
+        },
+        "4.1": {
+          "v": 8,
+          "findings": [
+            "spec-kit-8"
+          ]
+        },
+        "4.2": {
+          "v": "-",
+          "checked": "Permission-denied (update, translate), customer and anonymous read, 250/251 boundaries, blank/None covered."
+        },
+        "4.3": {
+          "v": "-",
+          "checked": "Tests assert both API responses and stored DB state (refresh_from_db / objects.get) and rendered output."
+        },
+        "4.4": {
+          "v": "-",
+          "checked": "Tests use the repos' fixtures (staff_api_client, product, permission_* ; Wrapper/IntlProvider; vitest renderToStaticMarkup) at the right level."
+        },
+        "4.5": {
+          "v": "-",
+          "checked": "test_translations.py variable type changed to ProductTranslationInput (adaptation to spec-kit-2)."
+        },
+        "5.1": {
+          "v": "-",
+          "checked": "Plain column on Product loaded with the model; no new queries, N+1 or round trips; CSV reads it via the existing values() mapping."
+        },
+        "5.2": {
+          "v": "-",
+          "checked": "Single AddField of a varchar(250) (nullable or constant default): metadata-only on PostgreSQL 11+, no table rewrite, no backfill."
+        },
+        "5.3": {
+          "v": "-",
+          "checked": "No logging is warranted for a plain product field; none added, none removed."
+        },
+        "6.1": {
+          "v": "-",
+          "checked": "Within the feature. Stories literal gained the field (EA16, not material)."
+        },
+        "6.2": {
+          "v": 6,
+          "findings": [
+            "spec-kit-7"
+          ]
+        },
+        "6.3": {
+          "v": "-",
+          "checked": "No unused code, commented-out code, debug output or temp files found."
+        },
+        "6.4": {
+          "v": "-",
+          "checked": "No reformatting of untouched lines found."
+        },
+        "7.1": {
+          "v": "-",
+          "checked": "Design is the simplest that fits the repo patterns; no speculative abstraction."
+        },
+        "7.2": {
+          "v": "-",
+          "checked": "New units are small and single-purpose."
+        },
+        "7.3": {
+          "v": "-",
+          "checked": "Names use the domain term storageConditions / storage_conditions consistently."
+        },
+        "7.4": {
+          "v": "-",
+          "checked": "Comments are few, accurate and not process references."
+        },
+        "7.5": {
+          "v": "-",
+          "checked": "Types are precise (string | null, Record<string, unknown> narrowed with typeof); no new any."
+        },
+        "8.1": {
+          "v": 6,
+          "findings": [
+            "spec-kit-5"
+          ]
+        },
+        "8.2": {
+          "v": 4,
+          "findings": [
+            "spec-kit-6"
+          ]
+        },
+        "8.3": {
+          "v": "-",
+          "checked": "No user/developer docs exist for comparable product fields; none needed."
+        },
+        "8.4": {
+          "v": "-",
+          "checked": "No AI-session context docs in the run's repo diffs."
+        },
+        "9.1": {
+          "v": "-",
+          "checked": "No pre-existing bug fixed."
+        },
+        "9.2": {
+          "v": "-",
+          "checked": "No distinct related improvement beyond the task."
+        },
+        "9.3": {
+          "v": "-",
+          "checked": "No proactive non-test safeguard beyond the task."
+        }
+      },
+      "bonus": [
+        {
+          "finding": "spec-kit-d1",
+          "level": "high"
+        },
+        {
+          "finding": "spec-kit-d2",
+          "level": "high"
+        },
+        {
+          "finding": "spec-kit-d3",
+          "level": "low"
+        },
+        {
+          "finding": "spec-kit-d4",
+          "level": "low"
+        }
+      ],
+      "delta": [
+        {
+          "id": "spec-kit-d1",
+          "item": "Server-side trimming for product and translations (EA6)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/mutations/product/product_cleaner.py",
+              "quote": "def clean_storage_conditions(cleaned_input: dict):"
+            }
+          ],
+          "baseline": "absent: no storage_conditions cleaner in saleor product_create/update; saleor-dashboard:src/products/views/ProductUpdate/handlers/utils.ts \"variables.input[\\\"storageConditions\\\"] = data.storageConditions;\"",
+          "covered_by": "- (1.1 '-')",
+          "level": "high"
+        },
+        {
+          "id": "spec-kit-d2",
+          "item": "Storefront mapped through mapProductExtensions (no core mapper edits)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/config/storefront-view.ts",
+              "quote": "product.translation?.storageConditions?.trim() || product.storageConditions?.trim() || null,"
+            }
+          ],
+          "baseline": "react-storefront:src/lib/storefront/mappers/product.ts \"storageConditions: product.storageConditions?.trim() || null,\" (off-limits core mapper edited)",
+          "covered_by": "- (3.2 '-')",
+          "level": "high"
+        },
+        {
+          "id": "spec-kit-d3",
+          "item": "Permission-denied and public read tests",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/queries/test_product_query.py",
+              "quote": "def test_product_query_storage_conditions_as_customer("
+            }
+          ],
+          "baseline": "absent: baseline saleor tests only use staff_api_client with permissions; no assert_no_permission or api_client read test",
+          "covered_by": "- (4.2 '-')",
+          "level": "low"
+        },
+        {
+          "id": "spec-kit-d4",
+          "item": "Too-long translation in productBulkTranslate returns an INVALID row error for the new field",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/product_bulk_translate.py",
+              "quote": "clean_storage_conditions(data[\"translation_fields\"])"
+            }
+          ],
+          "baseline": "absent: baseline relies on the base bulk path, which leaks `max_length` into the enum (saleor utils.py L441, unchanged in the baseline diff)",
+          "covered_by": "spec-kit-9",
+          "level": "low"
+        }
+      ],
+      "merge_advice": {
+        "advice": "no",
+        "reason": "Majors: breaking productTranslate input (EA11) and the break is missing from the CHANGELOG."
+      },
+      "objections": [
+        {
+          "from": "validator",
+          "text": "#7 INTENT: 'why' of negatives 4,5,6,7 does not state whether a reason was found.",
+          "decision": "accept",
+          "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        }
+      ],
+      "totals": {
+        "total": 70.5,
+        "bonus": 2.8,
+        "bonus_delta": 2.8,
+        "blockers": 0,
+        "majors": 2,
+        "minors": 5,
+        "strengths": 2,
+        "categories": {
+          "H0": 60.0,
+          "H1": 63.3,
+          "H2": 70.0,
+          "H3": 70.0,
+          "H4": 72.0,
+          "H5": 70.0,
+          "H6": 67.6,
+          "H7": 70.0,
+          "H8": 60.0,
+          "H9": 70.0
+        }
+      }
+    },
+    "superpowers": {
+      "findings": [
+        {
+          "id": "superpowers-1",
+          "metric": "1.1",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/mutations/product/product_create.py",
+              "quote": "\"Pass an empty string or `null` to clear it.\" + ADDED_IN_323"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/views/ProductUpdate/handlers/utils.ts",
+              "quote": "variables.input[\"storageConditions\"] = data.storageConditions;"
+            }
+          ],
+          "grounding": "task-small.md extra answer 6: 'Whitespace-only input: store as empty? Yes. Trim it, and treat a blank result as empty.'",
+          "why": "positive: the storefront trims and treats blank translations as missing (pickTranslatedStorageConditions). / negative: no reason found; neither saleor nor the dashboard trims, so whitespace-only input is stored (EA6).",
+          "impact": "Whitespace values persist in data, webhooks and CSV; ongoing cleanup cost."
+        },
+        {
+          "id": "superpowers-2",
+          "metric": "1.1",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/translations/translationSectionBuilders.ts",
+              "quote": "return isMainSchema() && !!storageConditions?.trim();"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/translations/translationSectionBuilders.test.ts",
+              "quote": "translationStorageConditions: \"Orphan translation\","
+            },
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/lib/saleor-translations.ts",
+              "quote": "const value = pickTranslatedField(entity.translation, \"storageConditions\", entity.storageConditions);"
+            }
+          ],
+          "grounding": "task-small.md extra answer 20: staff translate it on the translation page the same way as name and description.",
+          "why": "positive: keeps progress unchanged for products without the field. / negative: once the base value is cleared, an existing translation is hidden from the translation page but the storefront still prefers it. reason found: hide translations that have no base value so the progress of existing products stays unchanged; it creates an unfixable orphan state.",
+          "impact": "Customers in that language keep seeing storage text the merchant removed, and staff cannot clear it in the dashboard."
+        },
+        {
+          "id": "superpowers-3",
+          "metric": "2.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/components/ProductDetailsForm/ProductDetailsForm.tsx",
+              "quote": "helperText={getProductErrorMessage(formErrors.storageConditions, intl)}"
+            },
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/products/components/ProductDetailsForm/ProductDetailsForm.tsx",
+              "quote": "name=\"storageConditions\""
+            }
+          ],
+          "grounding": "task-small.md extra answer 5: '250 in the column, the API validation and the dashboard input'.",
+          "why": "positive: the server enforces 250 and the form shows the API error under the field. / negative: no reason found for omitting maxLength; EA5 decided the limit in the dashboard input too.",
+          "impact": "Staff learn the limit only after a failed save."
+        },
+        {
+          "id": "superpowers-4",
+          "metric": "0.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/index.tsx:L79-79",
+              "quote": "/** Legacy /products/add → create dialog on the list. */"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/components/CreateProductDialog/CreateProductDialog.tsx:L170-171",
+              "quote": "const errors = await onSubmit({"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:src/products/views/ProductList/createMinimalProduct.ts:L34-38",
+              "quote": "Creates a product with name + type only."
+            }
+          ],
+          "grounding": "task-small.md extra answer 19: 'The product update page and the create-product dialog on the product list (that dialog is the create flow).' + EA 9 'Include it in create, update and the translation mutation'; constraint 14 (UI surface named by an answer, backend supports it, missing in consumer).",
+          "why": "positive: reason found - follows the base design: the create dialog collects name and type only and leaves other product fields to the detail page (createMinimalProduct.ts L34-38); the update page sets the field. / negative: EA19 named the create dialog as a surface; staff cannot set storage conditions at creation.",
+          "impact": "One extra step after creating a product."
+        },
+        {
+          "id": "superpowers-5",
+          "metric": "8.2",
+          "type": "negative",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:.changeset/storage-conditions-field.md",
+              "quote": "\"saleor-dashboard\": minor"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor-dashboard:scripts/check-changesets.ts:L22-22",
+              "quote": "export const ALLOWED_TYPES: readonly string[] = [\"patch\"];"
+            }
+          ],
+          "grounding": "Dashboard rule (.changeset/README.md, check-changesets in pre-commit and lint CI): only patch changesets.",
+          "why": "positive: changeset present and descriptive. / negative: 'minor' bump is rejected by the changeset linter. reason found: semver - a new feature is a minor bump; the repo allows only patch changesets (.changeset/README.md).",
+          "impact": "Lint CI fails until the changeset is fixed."
+        },
+        {
+          "id": "superpowers-6",
+          "metric": "9.1",
+          "type": "strength",
+          "level": "major",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py",
+              "quote": "code=get_error_code_from_error(e),"
+            },
+            {
+              "kind": "base",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py:L441-441",
+              "quote": "code=e.code,"
+            }
+          ],
+          "grounding": "Pre-existing bug in BaseBulkTranslateMutation error codes.",
+          "why": "positive: too-long bulk translations return INVALID row errors in all bulk translate mutations. / negative: none.",
+          "impact": "Removes protocol-level failures."
+        },
+        {
+          "id": "superpowers-7",
+          "metric": "9.3",
+          "type": "strength",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py",
+              "quote": "\"This field cannot be translated for the given object.\","
+            }
+          ],
+          "grounding": "task-small.md extra answer 23 only requires rejecting storageConditions on category/collection.",
+          "why": "positive: generic rejection of input keys the translation model lacks prevents future crashes for shared inputs. / negative: none found.",
+          "impact": "Prevents a class of future 500s."
+        },
+        {
+          "id": "superpowers-8",
+          "metric": "4.1",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/schema.graphql",
+              "quote": "Storage conditions of the product, for example \"Keep refrigerated at 2–8 °C\". Maximum 250 characters. Pass an empty string or `null` to clear it."
+            }
+          ],
+          "grounding": "Constraint 21 + task-small.md extra answer 9 (create path); productBulkCreate accepts the field through ProductBulkCreateInput.",
+          "why": "positive: create/update/translate covered. / negative: no productBulkCreate test with storageConditions. reason found: bulk create inherits the field from ProductCreateInput with no new code; the path is still untested.",
+          "impact": "Bulk create path unguarded."
+        },
+        {
+          "id": "superpowers-9",
+          "metric": "4.2",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/product/tests/mutations/test_product_create.py",
+              "quote": "\"storageConditions\": \"a\" * 251,"
+            }
+          ],
+          "grounding": "task-small.md hidden question 1/7 + task-small.md extra answer 23 + constraint 21.",
+          "why": "positive: 251 rejection and clear-to-empty covered. / negative: no 250-accepted boundary, no permission-denied test, no collectionTranslate rejection test. reason found: writes reuse ProductInput mutations whose permission checks the repo already tests; the boundary and collection decisions are still unguarded.",
+          "impact": "Boundary and permission decisions unguarded."
+        },
+        {
+          "id": "superpowers-10",
+          "metric": "8.4",
+          "type": "negative",
+          "level": "minor",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:CLAUDE.md",
+              "quote": "<!-- BEGIN:nextjs-agent-rules -->"
+            },
+            {
+              "kind": "base",
+              "loc": "react-storefront:CLAUDE.md:L14-14",
+              "quote": "- Keep changes focused on the task. Don't refactor unrelated code."
+            }
+          ],
+          "grounding": "8.4: AI docs accurate, short, the same as the code; base CLAUDE.md rule 'Keep changes focused on the task'.",
+          "why": "positive: the block says `next dev` re-adds it and committing it keeps the tree clean - not provable in the base repo (the cited generator file is not present). / negative: unrelated tool-generated content added to the team AI instructions in a feature change.",
+          "impact": "Noise in the shared AI instructions, unrelated to the feature."
+        }
+      ],
+      "values": {
+        "0.1": {
+          "v": "-",
+          "checked": "Saleor: ProductInput, translation types, shared TranslationInput + generic rejection, get_translated_keys, PRODUCT_FIELDS, CSV; dashboard: fragments, form, variables, translation page, progress (EA17), export dialog; storefront: fragment, pickTranslatedStorageConditions, ProductAttributes, 8 locales."
+        },
+        "0.2": {
+          "v": 6,
+          "findings": [
+            "superpowers-4"
+          ]
+        },
+        "1.1": {
+          "v": 3,
+          "findings": [
+            "superpowers-1",
+            "superpowers-2"
+          ]
+        },
+        "1.2": {
+          "v": "-",
+          "checked": "Errors raised as ValidationError with field and code through the mutation error types (product errors, translation errors, bulk row errors); no swallowed exception or crash path introduced. The bulk-translate `code=e.code` max_length issue is pre-existing (saleor utils.py L441) and not rated."
+        },
+        "1.3": {
+          "v": "-",
+          "checked": "Product and ProductTranslation CharField(max_length=250, null=True); single AddField. Cleared value stored as \"\" (no normalisation) - covered by superpowers-1 root cause."
+        },
+        "1.4": {
+          "v": "-",
+          "checked": "Shared TranslationInput kept (EA11); category/collection rejected (EA23); ProductFieldEnum value appended."
+        },
+        "1.5": {
+          "v": "-",
+          "checked": "Dashboard label/helper strings via react-intl with defaultMessages.json entries; storefront label via next-intl key pdp.attributes.storageConditions in all 8 locale files; inputs are labelled."
+        },
+        "2.1": {
+          "v": "-",
+          "checked": "Writes only through productCreate/productUpdate/productBulkCreate (MANAGE_PRODUCTS) and productTranslate/productBulkTranslate (MANAGE_TRANSLATIONS); read is public by HQ7."
+        },
+        "2.2": {
+          "v": 6,
+          "findings": [
+            "superpowers-3"
+          ]
+        },
+        "2.3": {
+          "v": "-",
+          "checked": "Storefront renders the value as a React text node, never through dangerouslySetInnerHTML; dashboard uses controlled inputs; escaping tests present."
+        },
+        "2.4": {
+          "v": "-",
+          "checked": "Plain product content, public by HQ7; included in product webhooks and CSV export by HQ6; no PII/secrets."
+        },
+        "3.1": {
+          "v": "-",
+          "checked": "Model in saleor/product, validation in graphql product cleaner/mutations, translation in translations mutations, dashboard in product form/translation builders, storefront mapping in the fork extension point and rendering in ProductAttributes."
+        },
+        "3.2": {
+          "v": "-",
+          "checked": "Reuses product_cleaner/translation base mutations, ProductExportFields mapping, PRODUCT_FIELDS, dashboard getFormErrors/getProductErrorMessage, storefront mapProductExtensions extension point and pickTranslatedField."
+        },
+        "3.3": {
+          "v": "-",
+          "checked": "No new cross-module cycles or reversed dependency directions found in the changed imports."
+        },
+        "3.4": {
+          "v": "-",
+          "checked": "schema-main refreshed from the local API (EA21 allows the tracked file to change); generated TS files regenerated; schema-staging untouched with @lockSchema on reads (EA25)."
+        },
+        "4.1": {
+          "v": 6,
+          "findings": [
+            "superpowers-8"
+          ]
+        },
+        "4.2": {
+          "v": 6,
+          "findings": [
+            "superpowers-9"
+          ]
+        },
+        "4.3": {
+          "v": "-",
+          "checked": "Tests assert both API responses and stored DB state (refresh_from_db / objects.get) and rendered output."
+        },
+        "4.4": {
+          "v": "-",
+          "checked": "Tests use the repos' fixtures (staff_api_client, product, permission_* ; Wrapper/IntlProvider; vitest renderToStaticMarkup) at the right level."
+        },
+        "4.5": {
+          "v": "-",
+          "checked": "Existing tests only gained the new field in fixtures/queries or updated expectations for the new field; nothing skipped, deleted or weakened."
+        },
+        "5.1": {
+          "v": "-",
+          "checked": "Plain column on Product loaded with the model; no new queries, N+1 or round trips; CSV reads it via the existing values() mapping."
+        },
+        "5.2": {
+          "v": "-",
+          "checked": "Single AddField of a varchar(250) (nullable or constant default): metadata-only on PostgreSQL 11+, no table rewrite, no backfill."
+        },
+        "5.3": {
+          "v": "-",
+          "checked": "No logging is warranted for a plain product field; none added, none removed."
+        },
+        "6.1": {
+          "v": "-",
+          "checked": "Within the feature. isMainSchema gating beyond EA25 is harmless; stories literal gained the field (EA16)."
+        },
+        "6.2": {
+          "v": "-",
+          "checked": "No duplicated logic, fragments or tests of material size found."
+        },
+        "6.3": {
+          "v": "-",
+          "checked": "No unused code, commented-out code, debug output or temp files found."
+        },
+        "6.4": {
+          "v": "-",
+          "checked": "schema-main.graphql/generated files churn comes from refreshing against the local API, explicitly allowed by EA21; no other reformatting."
+        },
+        "7.1": {
+          "v": "-",
+          "checked": "Design is the simplest that fits the repo patterns; no speculative abstraction."
+        },
+        "7.2": {
+          "v": "-",
+          "checked": "New units are small and single-purpose."
+        },
+        "7.3": {
+          "v": "-",
+          "checked": "Names use the domain term storageConditions / storage_conditions consistently."
+        },
+        "7.4": {
+          "v": "-",
+          "checked": "Comments are few, accurate and not process references."
+        },
+        "7.5": {
+          "v": "-",
+          "checked": "Types are precise (string | null, Record<string, unknown> narrowed with typeof); no new any."
+        },
+        "8.1": {
+          "v": "-",
+          "checked": "GraphQL descriptions present with 'Added in Saleor 3.23.' markers (ADDED_IN_323 is the repo pattern, saleor descriptions.py L18)."
+        },
+        "8.2": {
+          "v": 4,
+          "findings": [
+            "superpowers-5"
+          ]
+        },
+        "8.3": {
+          "v": "-",
+          "checked": "No user/developer docs exist for comparable product fields; none needed."
+        },
+        "8.4": {
+          "v": 6,
+          "findings": [
+            "superpowers-10"
+          ]
+        },
+        "9.1": {
+          "v": 9,
+          "findings": [
+            "superpowers-6"
+          ]
+        },
+        "9.2": {
+          "v": "-",
+          "checked": "No distinct related improvement beyond the task."
+        },
+        "9.3": {
+          "v": 8,
+          "findings": [
+            "superpowers-7"
+          ]
+        }
+      },
+      "bonus": [
+        {
+          "finding": "superpowers-6",
+          "level": "high"
+        },
+        {
+          "finding": "superpowers-7",
+          "level": "medium"
+        },
+        {
+          "finding": "superpowers-d1",
+          "level": "low"
+        },
+        {
+          "finding": "superpowers-d2",
+          "level": "high"
+        },
+        {
+          "finding": "superpowers-d3",
+          "level": "high"
+        },
+        {
+          "finding": "superpowers-d4",
+          "level": "low"
+        },
+        {
+          "finding": "superpowers-d5",
+          "level": "low"
+        },
+        {
+          "finding": "superpowers-d6",
+          "level": "low"
+        }
+      ],
+      "delta": [
+        {
+          "id": "superpowers-d1",
+          "item": "Nullable Product.storage_conditions (EA1)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/product/models.py",
+              "quote": "storage_conditions = models.CharField(max_length=250, blank=True, null=True)"
+            }
+          ],
+          "baseline": "saleor:saleor/product/models.py + \"storage_conditions = models.CharField(max_length=250, blank=True, default=\\\"\\\")\"",
+          "covered_by": "- (1.3 '-')",
+          "level": "low"
+        },
+        {
+          "id": "superpowers-d2",
+          "item": "Shared TranslationInput, no breaking productTranslate change (EA11)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/mutations/utils.py",
+              "quote": "\"Translated storage conditions. Supported only for products, other \""
+            }
+          ],
+          "baseline": "saleor:saleor/graphql/translations/mutations/product_translate.py \"input = ProductTranslationInput(\"",
+          "covered_by": "- (1.4 '-')",
+          "level": "high"
+        },
+        {
+          "id": "superpowers-d3",
+          "item": "Storefront mapped through mapProductExtensions (no core mapper edits)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "react-storefront:src/config/storefront-view.ts",
+              "quote": "storageConditions: pickTranslatedStorageConditions(product),"
+            }
+          ],
+          "baseline": "react-storefront:src/lib/storefront/mappers/product.ts \"storageConditions: product.storageConditions?.trim() || null,\" (off-limits core mapper edited)",
+          "covered_by": "- (3.2 '-')",
+          "level": "high"
+        },
+        {
+          "id": "superpowers-d4",
+          "item": "Translation progress counts the field (EA17)",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor-dashboard:src/translations/views/EntityLists/utils.ts",
+              "quote": "const storageConditionsCompletion = hasStorageConditionsToTranslate(product?.storageConditions)"
+            }
+          ],
+          "baseline": "absent: baseline changed only src/translations/views/EntityLists/utils.test.ts fixtures, not utils.ts getProductTranslationCompletion",
+          "covered_by": "superpowers-2 (same gating root cause) -> net impact",
+          "level": "low"
+        },
+        {
+          "id": "superpowers-d5",
+          "item": "ADDED_IN_323 markers incl. the enum value",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/csv/enums.py",
+              "quote": "return \"Storage conditions of the product.\" + ADDED_IN_323"
+            }
+          ],
+          "baseline": "saleor:saleor/graphql/product/types/products.py \"description=\\\"Storage conditions of the product. Plain text, up to 250 characters.\\\"\" (no ADDED_IN_323)",
+          "covered_by": "- (8.1 '-')",
+          "level": "low"
+        },
+        {
+          "id": "superpowers-d6",
+          "item": "Public read test (customer) of the field and its translations",
+          "evidence": [
+            {
+              "kind": "new",
+              "loc": "saleor:saleor/graphql/translations/tests/test_translations.py",
+              "quote": "def test_product_translation_storage_conditions(user_api_client, product, channel_USD):"
+            }
+          ],
+          "baseline": "absent: baseline saleor tests only use staff_api_client with permissions; no assert_no_permission or api_client read test",
+          "covered_by": "- (4.2: public read covered; superpowers-9 covers the remaining gaps)",
+          "level": "low"
+        }
+      ],
+      "merge_advice": {
+        "advice": "no",
+        "reason": "Majors: no trimming (EA6), orphan translations hidden from staff, non-patch changeset fails lint."
+      },
+      "objections": [
+        {
+          "from": "validator",
+          "text": "#5 8.4 '-': grounded only in the run's own text; the cited generator file is not in the base repo. Record minor or ground it.",
+          "decision": "accept",
+          "reason": "Confirmed: node_modules/next/dist/server/lib/generate-agent-files.js does not exist in the base storefront, so the positive reason cannot be proven; base CLAUDE.md L14 'Keep changes focused on the task'. Added superpowers-10 (8.4 minor)."
+        },
+        {
+          "from": "validator",
+          "text": "#7 INTENT: 'why' of negatives 2,5,8,9 does not state whether a reason was found.",
+          "decision": "accept",
+          "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        }
+      ],
+      "totals": {
+        "total": 72.8,
+        "bonus": 5.45,
+        "bonus_delta": 3.8,
+        "blockers": 0,
+        "majors": 3,
+        "minors": 5,
+        "strengths": 2,
+        "categories": {
+          "H0": 65.0,
+          "H1": 61.4,
+          "H2": 67.7,
+          "H3": 70.0,
+          "H4": 66.0,
+          "H5": 70.0,
+          "H6": 70.0,
+          "H7": 70.0,
+          "H8": 61.1,
+          "H9": 80.0
+        }
+      }
+    }
+  }
+}

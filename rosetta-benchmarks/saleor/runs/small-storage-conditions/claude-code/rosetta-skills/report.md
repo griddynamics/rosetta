@@ -58,12 +58,12 @@ operator_score: 5
 operator_merge_ready: yes  
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total: 66.2               # diff score: total + bonus, from the totals script
-judge_bonus: 0.75               # bonus points for fixed bugs and related improvements
-judge_blockers: 2            # number of blocker findings
-judge_majors: 0              # number of major findings
+judge_total: 72.3               # diff score: total + bonus, from the totals script
+judge_bonus: 4.7               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
+judge_blockers: 0            # number of blocker findings
+judge_majors: 2              # number of major findings
 judge_minors: 3              # number of minor findings
-judge_strengths: 1           # number of strengths
+judge_strengths: 2           # number of strengths
 judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 

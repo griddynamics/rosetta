@@ -59,12 +59,12 @@ operator_score: 4          # 1–5, anchors in templates/README.md
 operator_merge_ready: yes  # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total: 66.0               # diff score: total + bonus, from the totals script
-judge_bonus: 0               # bonus points for fixed bugs and related improvements
-judge_blockers: 2            # number of blocker findings
-judge_majors: 0              # number of major findings
-judge_minors: 1              # number of minor findings
-judge_strengths: 0           # number of strengths
+judge_total: 71.5               # diff score: total + bonus, from the totals script
+judge_bonus: 4.3               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
+judge_blockers: 0            # number of blocker findings
+judge_majors: 2              # number of major findings
+judge_minors: 5              # number of minor findings
+judge_strengths: 1           # number of strengths
 judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 
