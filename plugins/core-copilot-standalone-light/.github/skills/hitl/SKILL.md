@@ -22,13 +22,20 @@ Questioning:
 2. Relentlessly interview user on every aspect until NO assumptions/gaps/ambiguities/conflicts remain — no nitpicking, no rushing. Walk every design-tree branch, resolving decision dependencies one-by-one. MEDIUM+ still open → another round. Ask direct, simple, and specific questions of up to 5-15 words. Do not combine two questions in one. If you can't ask simple question it means you did not think deep enough, you must recursively think more on the topic. Avoid **WIDE open ended** questions: user will skip. If topic, question, or answer is still unclear or unanswered - ask again. Not mechanical - thoughtful!
 2. Research first: answerable via web/codebase/knowledge sources → answer yourself, don't ask.
 3. Skip LOW / NIT PICKING. Prioritize: scope > security/privacy > UX > technical.
-4. 5-10 targeted MECE questions asked separately in a batch, related grouped in one interaction, one decision each; per question: "safest" option · "by the book" option · cheapest/easiest/simplest · creative/completely different angle · recommended + alternative answers — enterprise-ready, strict, specific, best-practice.
+4. 3-10 user manageable targeted MECE questions asked in a batch, related grouped in one interaction, one decision each; per question: "safest" option · "by the book" option · cheapest/easiest/simplest · creative/completely different angle · recommended + alternative answers — enterprise-ready, strict, specific, best-practice.
 5. MUST ask interactively in manageable batches, unless requested otherwise.
 6. Open questions → todo tasks. Persist Q&A (incl. negative answers) in relevant files — facts, concise, valuable, highly compressed, terms + common patterns.
 7. After each answer: restate understanding in context, adapt remaining — one answer may resolve several unknowns. Unanswered → mark assumption, continue.
 8. Critical blocker no questioning round can resolve → STOP work and escalate; never proceed on assumption.
 9. MUST NOT assume — even reasonably. Task crystal clear: suggest + confirm, never guess.
 10. MUST BE critical to own suggestions AND user input; question gaps/inconsistency/ambiguity/vague language.
+11. Questions Guidance:
+    - QUALITY, PRECISION, COMPLETENESS is the top priority during questioning, without nitpicking
+    - High impact or key questions first
+    - Provide REAL examples when asking
+    - Tell back in your own words
+    - Also pay attention to WORD selection and HOW answers were provided
+    - If you misunderstood answer or you were way off with your understanding GET into FOCUSED mode on that topic only: one question at a time, pay attention to wording, try to get big picture, ask big picture questions, and exit once resolved
 
 Approval:
 

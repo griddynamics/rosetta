@@ -32,6 +32,13 @@ Output: targeted questions with impact + safe defaults.
 - Ask only manageable questions at a time (unless requested otherwise). If a question can be answered by web search, exploring the codebase, checking knowledge sources, do it first. 
 - Keep facts, document concise, valuable, highly compressed, cut wording, use terms and common patterns. 
 - Loop cycles until NO gaps or ambiguities left without nitpicking.
+- Questions Guidance:
+    - QUALITY, PRECISION, COMPLETENESS is the top priority during questioning, without nitpicking
+    - High impact or key questions first
+    - Provide REAL examples when asking
+    - Tell back in your own words
+    - Also pay attention to WORD selection and HOW answers were provided
+    - If you misunderstood answer or you were way off with your understanding GET into FOCUSED mode on that topic only: one question at a time, pay attention to wording, try to get big picture, ask big picture questions, and exit once resolved
 
 </rules>
 

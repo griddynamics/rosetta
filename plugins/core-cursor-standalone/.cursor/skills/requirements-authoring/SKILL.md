@@ -373,10 +373,12 @@ The statement is still one pattern, one trigger, one response; criteria decompos
 - Ask targeted clarifying questions
 - Provide REAL examples when asking
 - Ask in user manageable chunks of 3-5 questions
+- Ask rephrased questions if not understood by you or user
 - Ask high impact or key questions first
 - QUALITY, PRECISION, COMPLETENESS is the top priority, without nitpicking
 - Tell back in your own words
 - Pay attention not only to text but also HOW those are given
+- If you misunderstood answer or you were way off with your understanding GET into FOCUSED mode on that topic only: one question at a time, pay attention to wording, try to get big picture, ask big picture questions
 - Propose MECE requirement outline
 - Draft requirements as `<req>`
 - Place each req correctly
@@ -491,6 +493,8 @@ The statement is still one pattern, one trigger, one response; criteria decompos
 - Add scope without explicit approval
 - Skip boundary and failure scenarios
 - Treat requirement groupings as mere organization when they are requirements themselves
+- Not entering focused mode on one topic when not getting it right
+- Not exiting focused mode when topic is resolved
 
 </pitfalls>
 
