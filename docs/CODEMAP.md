@@ -101,9 +101,9 @@ src/orchestrator/ src/curion/ src/agents/ src/evaluators/ src/reporters/ docs/ar
 
 ### instructions/r3/core/ — OSS foundation layer (current release)
 
-#### instructions/r3/core/skills/ — 42 skill folders
+#### instructions/r3/core/skills/ — 43 skill folders
 
-backlog/ codemap/ coding/ coding-agents-farm/ coding-agents-hooks-authoring/
+backlog/ checklist/ codemap/ coding/ coding-agents-farm/ coding-agents-hooks-authoring/
 coding-agents-prompt-authoring/ dangerous-actions/ data-collection/ debugging/ design/
 deviation/ discovery/ harness/ hitl/ large-workspace-handling/ load-project-context/ natural-writing/
 orchestration/ planning/ post-mortem/ qa-knowledge/ qa-structure/ questioning/

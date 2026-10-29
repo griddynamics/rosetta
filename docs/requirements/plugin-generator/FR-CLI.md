@@ -49,10 +49,10 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-07-13</changed>
+  <changed>2026-10-29</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: no release argument When: invoked Then: release `r2` is used.</criteria>
+    <criteria>Given: no release argument When: invoked Then: release `r3` is used.</criteria>
     <criteria>Given: `r3` When: invoked Then: release `r3` and its template variables are used.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
@@ -106,18 +106,19 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
 
 <req id="FR-CLI-0030" type="FR" level="System" ticketId="" classification="technical">
   <title>Domain-selected instruction source</title>
-  <statement>The generator shall accept a domain argument naming one or more layer folders under the selected release, defaulting to `core`, and shall resolve the instruction source from `<instructionsSource>/<release>/<domain>/` (FR-CLI-0020).</statement>
+  <statement>The generator shall accept a domain argument naming one or more layer folders under the selected release, defaulting to `core`, and shall resolve the instruction source from `<instructionsSource>/<release>/<domain>/` (FR-CLI-0020). A supplied domain argument that holds no domain name after splitting on commas and trimming whitespace shall not default to `core`; the generator shall reject it before any output is written.</statement>
   <rationale>Decouples the source layer from a hardcoded `core`, enabling organization overlays. Replaces the hardcoded `core`.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-10-29</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: no domain argument When: invoked Then: source resolves to `<instructionsSource>/<release>/core/`.</criteria>
     <criteria>Given: `--domain acme` When: invoked Then: source resolves to `<instructionsSource>/<release>/acme/`.</criteria>
     <criteria>Given: a domain folder that does not exist When: invoked Then: it reports the missing source and exits non-zero without generating output.</criteria>
+    <criteria>Given: `--domain " , , "` and an existing file in `<output>/core-claude/` When: invoked Then: stderr reports that no domain is selected, exit status is non-zero, and no file under `<output>` is created, deleted, or modified.</criteria>
   </acceptance>
   <implementation>ToBeModified</implementation>
   <implementationNotes>ToBeModified: clean-architecture re-implementation (CLI source model, RECON-9).</implementationNotes>

@@ -1,5 +1,27 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-10-29 — `FR-CLI-0010`: default-release criterion matches the statement
+
+**Files:** `FR-CLI.md`
+
+**Source:** owner. The statement says the default release is `r3`; the first criterion said `r2`.
+
+- `FR-CLI-0010` criteria: "no release argument" now expects release `r3`. `<changed>` -> 2026-10-29.
+
+---
+
+## 2026-10-29 — `FR-CLI-0030`: a domain argument that names no domain is rejected before output is written
+
+**Files:** `FR-CLI.md`
+
+**Source:** issue #343, PR #377. A domain argument with only whitespace or separators gave an empty source list, and the run could then remove existing output. Approved by the owner.
+
+- `FR-CLI-0030` statement: one sentence added. A supplied domain argument that holds no domain name after comma splitting and whitespace trimming does not default to `core`; the generator rejects it before any output is written.
+- `FR-CLI-0030` criteria: one criterion added (`--domain " , , "` with an existing `<output>/core-claude/` file: stderr report, non-zero exit, no file under `<output>` created, deleted, or modified). `<changed>` -> 2026-10-29.
+- `status`/`approved_by` stay `Approved`/`User`; `implementation` unchanged.
+
+---
+
 ## 2026-10-14 — Gemini 4 Argon takes the Gemini Pro tier; other Gemini tokens stay on Gemini 3.8 Flash
 
 **Files:** `FR-ARCH.md`, `FR-COPY.md`, `docs/ARCHITECTURE.md`
