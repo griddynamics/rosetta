@@ -83,8 +83,6 @@ Pick a **medium** model — **Sonnet 5.5**, **GPT-6-luna-high**, or **gemini-3.8
 - **Running everything on a high-reasoning/Opus model.** Opus-class models spend heavily on reasoning and can exhaust a daily balance in one sitting. Rosetta already assigns an appropriate model per subagent and switches automatically, so you do not need to force the most expensive model for the whole session.
 - **Letting Auto pick the model.** Auto often downgrades to a weaker model mid-task, producing low-quality results. Choose the model explicitly.
 
-See the model guidance in [Quickstart](/rosetta/docs/quickstart/).
-
 **How do I reduce token cost?**
 
 Save cost — add the line below to your workspace AGENTS.md/CLAUDE.md to cut model output tokens:

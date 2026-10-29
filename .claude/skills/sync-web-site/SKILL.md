@@ -69,6 +69,7 @@ You provide best practices and reasoning frameworks, not arbitrary opinions.
 - Use grep/search
 - Understand context in each case
 - Define what and how should be integrated in each document
+- Source mapping: `docs/web/docs/quickstart.md` mirrors only the `## Quick Start` section of root `README.md` (root `QUICKSTART.md` is retired). `scripts/sync_user_guide_web.py` maps `../README.md#quick-start` to `/rosetta/docs/quickstart/`.
 
 ### 3. HITL
 - Present recommendations and plan with exact was-became mapping

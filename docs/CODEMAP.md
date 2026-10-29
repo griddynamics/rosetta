@@ -2,7 +2,7 @@ Code map of the Rosetta workspace — modules, key files, and entry points, 3-4 
 
 ## / — repo root (519 files total)
 
-README.md OVERVIEW.md QUICKSTART.md USAGE_GUIDE.md DEVELOPER_GUIDE.md CONTRIBUTING.md
+README.md OVERVIEW.md USAGE_GUIDE.md DEVELOPER_GUIDE.md CONTRIBUTING.md
 INSTALLATION.md TROUBLESHOOTING.md REVIEW.md SECURITY.md
 CHANGELOG.md AGENTS.md NOTICE LICENSE
 requirements.txt mypy.ini src/validate-types.sh
@@ -36,14 +36,14 @@ instructions.py projects.py resources.py execution_controller.py feedback.py val
 
 tracker.py user_context.py
 
-### src/rosetta-mcp-server/tests/ — unit tests (21 files)
+### src/rosetta-mcp-server/tests/ — unit tests (22 files)
 
 test_bundler_and_query_builder.py test_instructions.py test_execution_controller.py test_oauth.py
 test_analytics.py test_authorizer.py test_migrations.py test_resources.py
 test_tool_contracts.py test_prompts.py test_validation.py test_config.py
 test_cache_ttl.py test_dataset_lookup.py test_document_client.py test_feedback_service.py
 test_keyword_search.py test_invite.py test_origin_middleware.py test_project_naming.py
-conftest.py
+test_compatibility_notice.py conftest.py
 
 ### src/rosetta-mcp-server/validation/ — integration / end-to-end testing
 

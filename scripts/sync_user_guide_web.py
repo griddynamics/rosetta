@@ -47,7 +47,6 @@ ROOT_TO_WEB = {
     'CONTRIBUTING.md': '/rosetta/docs/contributing/',
     'OVERVIEW.md': '/rosetta/docs/overview/',
     'PLUGINS.md': '/rosetta/docs/plugins/',
-    'QUICKSTART.md': '/rosetta/docs/quickstart/',
     'MCPs.md': '/rosetta/docs/mcps/',
 }
 
@@ -78,6 +77,10 @@ def rewrite_target(target: str, in_scenarios: bool) -> str:
     m = re.match(r'^scenarios/([\w-]+)\.md$', plain)
     if m:
         return f'{BASE}/scenarios/{m.group(1)}/{anch}'
+
+    # README Quick Start section -> website Quick Start page
+    if base == 'README.md' and anch == '#quick-start' and '../' in path:
+        return '/rosetta/docs/quickstart/'
 
     # ../<page>.md from inside scenarios/  -> a top-level guide page
     if depth_up and base in PAGES:

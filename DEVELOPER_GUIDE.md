@@ -70,7 +70,7 @@ fork/clone → branch → edit → validate → push → PR
 5. **Test on DEV environment.**
    - Uninstall `local-files-mode.md` from target repository
    - [Publish to dev](#dev-environment-integration-testing)
-   - Enable Rosetta MCP or follow [Quick Start Guide](QUICKSTART.md) to install it
+   - Enable Rosetta MCP or follow [Installation](INSTALLATION.md) to install it
    - Use dev server URL `<rosetta MCP development server URL>`
    - Test end-to-end through the HTTP MCP
 
@@ -224,7 +224,7 @@ codex mcp add Rosetta \
 
 **Pre-release builds:** Version suffixes like `b00` trigger automatic pre-release publishing. Use `--prerelease=allow` with uvx to pull these builds.
 
-Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](QUICKSTART.md#step-2-add-bootstrap-rule).
+Add the bootstrap rule to your IDE as defined in [Installation — Add Bootstrap Rule](INSTALLATION.md#step-2-add-bootstrap-rule-http-and-stdio-modes-only).
 
 ---
 
@@ -393,7 +393,7 @@ codex mcp add Rosetta --url <rosetta MCP development server URL>
 
 Authenticate via OAuth as required.
 
-Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](QUICKSTART.md#step-2-add-bootstrap-rule).
+Add the bootstrap rule to your IDE as defined in [Installation — Add Bootstrap Rule](INSTALLATION.md#step-2-add-bootstrap-rule-http-and-stdio-modes-only).
 
 ### 4. Test CLI changes
 
@@ -439,7 +439,6 @@ Always publish the **entire** `/instructions` folder. Never subfolders or single
 The short version:
 
 - **README** — orientation, what and why
-- **QUICKSTART** — zero to working setup
 - **PLUGINS** — install as a plugin (recommended)
 - **MCPs** — install via MCP (optional, secondary)
 - **OVERVIEW** — mental model, terminology
@@ -620,7 +619,7 @@ Upgrading a workspace from R2 to R3 requires no structural migration — the fol
 
 - [Contributing](CONTRIBUTING.md) — fastest path to a merged PR
 - [Architecture](docs/ARCHITECTURE.md) — system structure, components, data flow
-- [Quickstart](QUICKSTART.md) — zero to working setup
+- [Quick Start](README.md#quick-start) — zero to working setup
 - [Overview](OVERVIEW.md) — mental model, key concepts
 - [Review Standards](REVIEW.md) — what reviewers verify
 - [Usage Guide](USAGE_GUIDE.md) — how to use Rosetta flows

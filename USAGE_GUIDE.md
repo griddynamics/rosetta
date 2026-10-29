@@ -2,9 +2,9 @@
 
 **Who is this for?** Engineers, leads, and architects using Rosetta in their daily work.
 
-**When should I read this?** After [QUICKSTART.md](QUICKSTART.md). When you want to understand what Rosetta offers and how to use each flow.
+**When should I read this?** After the [Quick Start](README.md#quick-start). When you want to understand what Rosetta offers and how to use each flow.
 
-For terminology and mental model, see [OVERVIEW.md](OVERVIEW.md). For setup, see [QUICKSTART.md](QUICKSTART.md) or [INSTALLATION.md](INSTALLATION.md).
+For terminology and mental model, see [OVERVIEW.md](OVERVIEW.md). For setup, see the [Quick Start](README.md#quick-start) or [INSTALLATION.md](INSTALLATION.md).
 
 ---
 
@@ -183,6 +183,8 @@ Use this before building when expected behavior is unclear, high impact, or need
 ```
 /requirements-authoring-flow Define requirements for the checkout flow covering discount codes, tax, and retries
 /requirements-authoring-flow Write requirements for the user onboarding experience
+/requirements-authoring-flow Extract detailed business and technical requirements from the payment service using subagents. Once done, spawn a subagent to validate and repeat the entire loop until there are no issues detected.
+/requirements-authoring-flow Update existing requirements for <component name> so that it <does new behavior/supports new capability>. Once done, spawn a subagent to validate and repeat the entire loop until there are no issues detected.
 ```
 
 </details>
@@ -368,9 +370,14 @@ Large migration workflow for code conversions, platform upgrades, framework upgr
 
 **Expect:** heavy subagent use, often one focused subagent per phase or project. HITL confirms applicable phases, phase transitions, target-spec approval, public API changes, and implementation start. Your responsibility is to provide source/target expectations, compatibility requirements, test expectations, deployment constraints, and careful spec review.
 
+Before starting, complete [Modernization Additional Setup](CONFIGURATION.md#4-modernization-additional-setup). Phase 3 is optional and requires explicit approval.
+
 ```
 /modernization-flow Re-architect monolith to microservices
 /modernization-flow Migrate the billing module from Java 8 to Java 21, one phase at a time
+/modernization-flow Perform modernization phase 1 to reuse library refsrc/... using subagents.
+/modernization-flow Perform modernization phase 2 to analyze service module ... using subagents. Target microservice name is ... .
+/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must use coding-flow as the main flow. Once done, spawn a subagent to validate and repeat the entire loop until there are no issues detected.
 ```
 
 </details>
@@ -669,6 +676,7 @@ See [PLUGINS.md](PLUGINS.md) for install commands.
 - **Be specific.** More context means better output and fewer questions. `/requirements-authoring-flow Define requirements for the checkout flow covering discount codes, tax calculation, and payment retries` beats `/requirements-authoring-flow Write requirements for checkout.`
 - **Read plans before approving.** The plan is your last checkpoint before work begins. Check scope, approach, and what will change.
 - **Answer questions fully.** When Rosetta asks, it targets a specific gap. Short answers lead to incomplete solutions.
+- **Use focused subagents and independent validation loops.** Give each subagent one bounded responsibility. After implementation, use a separate subagent to validate the result and repeat the loop until no issues remain.
 - **Write requirements first.** The requirements workflow prevents scope creep and gives you a clear acceptance baseline.
 - **Invest in context files.** CONTEXT.md and ARCHITECTURE.md benefit every developer on the project.
 - **Point Rosetta at existing specs.** Reference requirements, API contracts, or design documents in CONTEXT.md. Rosetta uses them as constraints instead of generating assumptions.
@@ -739,7 +747,7 @@ These videos were recorded in different IDEs to show that Rosetta works everywhe
 ## Related Docs
 
 - [Overview](OVERVIEW.md) — mental model and terminology
-- [Quick Start](QUICKSTART.md) — zero to working setup
+- [Quick Start](README.md#quick-start) — zero to working setup
 - [Installation](INSTALLATION.md) — all setup modes and environment variables
 - [Architecture](docs/ARCHITECTURE.md) — system structure, components, data flow
 - [Contributing](CONTRIBUTING.md) — fastest path to a merged PR
