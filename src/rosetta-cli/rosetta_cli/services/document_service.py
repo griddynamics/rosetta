@@ -64,56 +64,6 @@ class DocumentService:
         """
         self.client = client
     
-    def list_documents_by_status(
-        self,
-        dataset: DatasetLike,
-        statuses: list[str] | None = None,
-        limit: int = 1000
-    ) -> list[DocumentLike]:
-        """
-        List documents filtered by parse status using server-side filtering.
-        
-        Args:
-            dataset: Dataset object
-            statuses: List of status values to filter by (e.g., ["FAIL", "UNSTART", "CANCEL"])
-                     Supported values: "UNSTART", "RUNNING", "CANCEL", "DONE", "FAIL"
-            limit: Maximum number of documents to return
-        
-        Returns:
-            List of Document objects matching the criteria
-            
-        Raises:
-            Exception: If RAGFlow API returns error
-        """
-        try:
-            # Use server-side filtering via HTTP API run parameter
-            # If statuses is None, no filter is applied (fetches all)
-            documents = self.client.list_documents(
-                dataset,
-                run=statuses,
-                page_size=limit
-            )
-            
-            return documents if documents else []
-            
-        except Exception as e:
-            # Fallback to client-side filtering if HTTP API fails
-            print(f"Warning: Server-side filtering failed, using fallback: {e}")
-            
-            all_documents = dataset.list_documents(page_size=limit)
-            
-            if not all_documents or not statuses:
-                return all_documents or []
-            
-            # Client-side filtering fallback
-            filtered: list[DocumentLike] = []
-            for doc in all_documents:
-                doc_status = getattr(doc, 'run', 'UNSTART')
-                if doc_status in statuses:
-                    filtered.append(doc)
-            
-            return filtered
-    
     def filter_documents_by_prefix(
         self,
         dataset: DatasetLike,
