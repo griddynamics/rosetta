@@ -111,7 +111,7 @@ describe('pluginWrite', () => {
       sink.end();
 
       // Must emit the full target path
-      expect(captured).toContain('rules/test.md');
+      expect(captured.replace(/\\/g, '/')).toContain('rules/test.md');
       // Must emit the full file contents
       expect(captured).toContain('# Hello World');
       expect(captured).toContain('Content here.');

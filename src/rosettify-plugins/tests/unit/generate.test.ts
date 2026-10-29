@@ -119,6 +119,26 @@ describe('generate() — error coverage', () => {
     }
   });
 
+  it('empty domain fails before existing plugin output is mutated', async () => {
+    const outputDir = path.join(tmpRepo, 'out-empty-domain');
+    const targetDir = path.join(outputDir, 'core-claude');
+    fs.mkdirSync(targetDir, { recursive: true });
+    const sentinelPath = path.join(targetDir, 'existing-output.txt');
+    fs.writeFileSync(sentinelPath, 'preserve this output', 'utf-8');
+
+    const code = await silencingStderr(() => generate({
+      sources: buildSources(tmpRepo, outputDir),
+      release: 'r2',
+      domain: ' , \t, ',
+      dryRun: false,
+      verbose: false,
+    }));
+
+    expect(code).toBe(1);
+    expect(fs.readFileSync(sentinelPath, 'utf-8')).toBe('preserve this output');
+    expect(fs.readdirSync(targetDir)).toEqual(['existing-output.txt']);
+  });
+
   it('soft errors (bootstrap size violation) → exit code 1 (NFR-0004/QF-2, G-1)', async () => {
     // Write a plugin-files-mode.md with >10000 chars to trigger the soft error path.
     // The generate() must return exit 1 even though all output is still emitted.

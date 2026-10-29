@@ -28,7 +28,7 @@ describe('resolveSourceDirs', () => {
     try {
       const dirs = resolveSourceDirs(tmpDir, 'r2', 'core');
       expect(dirs).toHaveLength(1);
-      expect(dirs[0]).toContain('r2/core');
+      expect(dirs[0]).toBe(path.join(tmpDir, 'r2', 'core'));
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -50,6 +50,15 @@ describe('resolveSourceDirs', () => {
     const tmpDir = makeTempInstructionDir('r2', ['core']);
     try {
       expect(() => resolveSourceDirs(tmpDir, 'r2', 'missing-domain')).toThrow(/not found/i);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it.each(['', '   ', ', , \t,'])('throws when the domain input has no names (%j)', (domain) => {
+    const tmpDir = makeTempInstructionDir('r2', ['core']);
+    try {
+      expect(() => resolveSourceDirs(tmpDir, 'r2', domain)).toThrow(/at least one non-empty domain/i);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }

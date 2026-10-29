@@ -16,6 +16,10 @@ import { sortPaths } from './sort.js';
  */
 export function resolveSourceDirs(instructionsSource: string, release: string, domain: string): string[] {
   const domainList = domain.split(',').map((d) => d.trim()).filter(Boolean);
+  if (domainList.length === 0) {
+    throw new Error('Domain input must include at least one non-empty domain');
+  }
+
   const dirs: string[] = [];
 
   for (const dom of domainList) {
