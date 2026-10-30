@@ -1,0 +1,184 @@
+
+$ printenv COPILOT_HOME
+/Users/njakovljevic/saleor-benchmark/envs/baseline/copilot
+[exit 0]
+
+$ printenv COPILOT_AUTO_UPDATE
+false
+[exit 0]
+
+$ printenv COPILOT_CUSTOM_INSTRUCTIONS_DIRS
+/Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/copilot-rules
+[exit 0]
+
+$ copilot --version
+GitHub Copilot CLI 1.0.101.
+Run 'copilot update' to check for updates.
+[exit 0]
+
+$ node -v
+v24.22.1
+[exit 0]
+
+$ copilot config --list
+autoUpdate=false
+memory=false
+ide.autoConnect=false
+model=gpt-5.6-terra
+effortLevel=medium
+contextTier=long_context
+continueOnAutoMode=false
+sandbox.enabled=false
+ignoredSkillsLocations=/Users/njakovljevic/.agents/skills
+ignoredSkillsLocations=/Users/njakovljevic/.claude/skills
+ignoredSkillsLocations=/Users/njakovljevic/.github/skills
+subagents.agents.explore.model=inherit
+subagents.agents.explore.effortLevel=inherit
+subagents.agents.explore.contextTier=inherit
+subagents.agents.task.model=inherit
+subagents.agents.task.effortLevel=inherit
+subagents.agents.task.contextTier=inherit
+subagents.agents.general-purpose.model=inherit
+subagents.agents.general-purpose.effortLevel=inherit
+subagents.agents.general-purpose.contextTier=inherit
+subagents.agents.code-review.model=inherit
+subagents.agents.code-review.effortLevel=inherit
+subagents.agents.code-review.contextTier=inherit
+subagents.agents.research.model=inherit
+subagents.agents.research.effortLevel=inherit
+subagents.agents.research.contextTier=inherit
+subagents.agents.security-review.model=inherit
+subagents.agents.security-review.effortLevel=inherit
+subagents.agents.security-review.contextTier=inherit
+subagents.disabledSubagents=rubber-duck
+disableAllHooks=true
+defaultMode=plan
+dynamicRetrieval.skills=false
+[exit 0]
+
+$ copilot config model
+gpt-5.6-terra
+[exit 0]
+
+$ copilot config effortLevel
+medium
+[exit 0]
+
+$ copilot config contextTier
+long_context
+[exit 0]
+
+$ copilot config sandbox.enabled
+false
+[exit 0]
+
+$ python3 -I -c import json,os;print(json.dumps(json.load(open(os.environ["COPILOT_HOME"]+"/settings.json")).get("subagents")))
+{"agents": {"explore": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "task": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "general-purpose": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "code-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "research": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "security-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}}, "disabledSubagents": ["rubber-duck"]}
+[exit 0]
+
+$ copilot -C /Users/njakovljevic/saleor-benchmark plugin list
+No plugins installed.
+
+Use 'copilot plugin install <source>' to install a plugin.
+Built-in plugins:
+  • browser-use (v0.0.4) [disabled]
+[exit 0]
+
+$ copilot -C /Users/njakovljevic/saleor-benchmark skill list
+Builtin skills:
+  customize-cloud-agent - Skill for customizing the Copilot cloud agent (formerly known as Copilot coding agent) environment, including copilot-setup-steps.yml configuration, preinstalling tools and dependencies, runners, and settings. Use when the user mentions copilot-setup-steps, copilot setup steps, or wants to configure the cloud agent environment.
+  github-pr-media - Upload an image or video to GitHub's user attachments API and embed it in a pull request description or comment. Use when asked to add screenshots, diagrams, recordings, or other media to a PR or GitHub comment.
+
+[exit 0]
+
+$ copilot -C /Users/njakovljevic/saleor-benchmark mcp list
+Builtin servers:
+  github-mcp-server (http)
+
+[exit 0]
+
+$ copilot -C /Users/njakovljevic/saleor-benchmark instruction list
+Repository instructions:
+  • team-rules.instructions.md [external]
+      from /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md
+[exit 0]
+
+$ copilot config hooks
+[exit 1]
+
+$ sh -c env | cut -d= -f1 | grep -E "^(COPILOT_GITHUB_TOKEN|GH_TOKEN|GITHUB_TOKEN)$"
+[exit 1]
+
+$ ls -d /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/copilot-instructions.md /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/instructions /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/agents /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/hooks /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/skills /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/mcp-config.json /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/lsp-config.json
+ls: /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/agents: No such file or directory
+ls: /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/copilot-instructions.md: No such file or directory
+ls: /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/hooks: No such file or directory
+ls: /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/instructions: No such file or directory
+ls: /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/lsp-config.json: No such file or directory
+ls: /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/mcp-config.json: No such file or directory
+ls: /Users/njakovljevic/saleor-benchmark/envs/baseline/copilot/skills: No such file or directory
+[exit 1]
+
+$ sh -c tail -n +4 "$1" | diff -s - "$2" sh /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md
+Files - and /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md are identical
+[exit 0]
+
+$ diff -s /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/njakovljevic/saleor-benchmark/saleor/CLAUDE.md
+Files /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/njakovljevic/saleor-benchmark/saleor/CLAUDE.md are identical
+[exit 0]
+
+$ diff -s /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/njakovljevic/saleor-benchmark/saleor/.github/copilot-instructions.md
+Files /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/njakovljevic/saleor-benchmark/saleor/.github/copilot-instructions.md are identical
+[exit 0]
+
+$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/njakovljevic/saleor-benchmark/saleor (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
+.github/copilot-instructions.md
+CLAUDE.md
+[exit 0]
+
+$ git -C /Users/njakovljevic/saleor-benchmark/saleor tag --points-at HEAD
+baseline-v1
+[exit 0]
+
+$ git -C /Users/njakovljevic/saleor-benchmark/saleor status --porcelain
+[exit 0]
+
+$ diff -s /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/njakovljevic/saleor-benchmark/saleor-dashboard/CLAUDE.md
+Files /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/njakovljevic/saleor-benchmark/saleor-dashboard/CLAUDE.md are identical
+[exit 0]
+
+$ diff -s /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/njakovljevic/saleor-benchmark/saleor-dashboard/.github/copilot-instructions.md
+Files /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/njakovljevic/saleor-benchmark/saleor-dashboard/.github/copilot-instructions.md are identical
+[exit 0]
+
+$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/njakovljevic/saleor-benchmark/saleor-dashboard (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
+.github/copilot-instructions.md
+CLAUDE.md
+[exit 0]
+
+$ git -C /Users/njakovljevic/saleor-benchmark/saleor-dashboard tag --points-at HEAD
+baseline-v1
+[exit 0]
+
+$ git -C /Users/njakovljevic/saleor-benchmark/saleor-dashboard status --porcelain
+[exit 0]
+
+$ diff -s /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/njakovljevic/saleor-benchmark/react-storefront/CLAUDE.md
+Files /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/njakovljevic/saleor-benchmark/react-storefront/CLAUDE.md are identical
+[exit 0]
+
+$ diff -s /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/njakovljevic/saleor-benchmark/react-storefront/.github/copilot-instructions.md
+Files /Users/njakovljevic/Code/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/njakovljevic/saleor-benchmark/react-storefront/.github/copilot-instructions.md are identical
+[exit 0]
+
+$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/njakovljevic/saleor-benchmark/react-storefront (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
+.github/copilot-instructions.md
+CLAUDE.md
+[exit 0]
+
+$ git -C /Users/njakovljevic/saleor-benchmark/react-storefront tag --points-at HEAD
+baseline-v1
+[exit 0]
+
+$ git -C /Users/njakovljevic/saleor-benchmark/react-storefront status --porcelain
+[exit 0]
