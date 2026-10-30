@@ -17,7 +17,7 @@ If none of these are true, Rosetta is not active for this session. See [INSTALLA
 
 **How do I install Rosetta for the first time?**
 
-See the [Quick Start Guide](QUICKSTART.md) for the fastest path, or [INSTALLATION.md](INSTALLATION.md) for the full setup including the fallback bootstrap rule. Once installed, [QUICKSTART.md](QUICKSTART.md) walks you through your first session.
+Follow the [install guide](user-guide/02-install.md), then [initialize your repository](user-guide/03-initialize-your-repository.md). Other modes (MCP, offline) and the fallback bootstrap rule: [INSTALLATION.md](INSTALLATION.md).
 
 **Which Rosetta release should I use?**
 
@@ -36,7 +36,7 @@ Use the **plugin** when one is available for your IDE. Plugins bundle the bootst
 - Faster session start, no MCP OAuth expirations dropping the agent mid-task, no dependency on the Rosetta server being reachable from your network.
 - No outbound calls to an external service means no data-egress or privacy review — you're using local static instruction files. That's a much shorter conversation with security and compliance than authorizing a new external MCP endpoint.
 
-Use the **MCP** install when no plugin path exists for your IDE — e.g. Windsurf, OpenCode, or JetBrains Junie. See [PLUGINS.md](PLUGINS.md) for the IDEs that currently ship a plugin, and [INSTALLATION.md](INSTALLATION.md) for MCP setup.
+Use the **MCP** install when no plugin path exists for your IDE — e.g. Windsurf, OpenCode, or JetBrains Junie. See the [install guide](user-guide/02-install.md) for the IDEs that currently ship a plugin, and [INSTALLATION.md](INSTALLATION.md) for MCP setup.
 
 **I ran init — am I ready to go?**
 
@@ -72,20 +72,11 @@ Rosetta runs prep steps once per session: it loads context and reads relevant pr
 
 **Which model should I use, and why did Rosetta burn through my token budget?**
 
-Pick a **medium** model — **Sonnet 5.5**, **GPT-6-luna-high**, or **gemini-3.8-flash-high** — and avoid Auto model selection. The two most common cost mistakes:
-
-- **Running everything on a high-reasoning/Opus model.** Opus-class models spend heavily on reasoning and can exhaust a daily balance in one sitting. Rosetta already assigns an appropriate model per subagent and switches automatically, so you do not need to force the most expensive model for the whole session.
-- **Letting Auto pick the model.** Auto often downgrades to a weaker model mid-task, producing low-quality results. Choose the model explicitly.
-
-See the model guidance in [QUICKSTART.md](QUICKSTART.md).
+Pick a **medium** model — **Sonnet 5.5**, **GPT-6-luna-high**, or **gemini-3.8-flash-high** — and avoid Auto model selection. The two common cost mistakes are running everything on a high-reasoning (Opus-class) model and letting Auto downgrade mid-task. Details: [Tips → Choosing a model](user-guide/05-tips-and-troubleshooting.md#choosing-a-model).
 
 **How do I reduce token cost?**
 
-Save cost — add the line below to your workspace AGENTS.md/CLAUDE.md to cut model output tokens:
-
-`MUST ALWAYS think, reason, plan, chat, document in compressed/terse/unicode chars/terms/always/no hieroglyphs; Exclude final artifacts, any tool calls, all code, etc.`
-
-Second, use a flat-rate subscription (e.g. Claude Pro/Max, ChatGPT Plus/Pro) instead of pay-per-token API billing.
+Use a flat-rate subscription instead of pay-per-token API billing, and add a one-line instruction to your workspace `AGENTS.md`/`CLAUDE.md`: [Tips → Lowering your token bill](user-guide/05-tips-and-troubleshooting.md#lowering-your-token-bill).
 
 ---
 
@@ -105,7 +96,8 @@ Include the literal phrase `fully autonomous` or `no HITL` in your request. This
 
 **The agent stopped following Rosetta mid-session. What happened?**
 
-Most likely an expired MCP OAuth token. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#agent-not-using-rosetta) — re-authenticate through your IDE's MCP settings.
+- **Plugin install:** a long session drifted, or the model changed. Start a fresh session and resume from a saved state file: [Tips → Managing sessions](user-guide/05-tips-and-troubleshooting.md#managing-sessions).
+- **MCP install:** most likely an expired OAuth token. Re-authenticate through your IDE's MCP settings. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#agent-not-using-rosetta).
 
 **When should I start a new chat session versus continue in the same one?**
 
@@ -128,7 +120,7 @@ If you already have a sophisticated harness for the one workflow you care about,
 
 **Why not just use IDE rules (`.cursorrules`, `CLAUDE.md`, Copilot custom instructions)?**
 
-They are useful, but they are usually local to one tool, one repo, or one developer. Rosetta makes instructions layered, versioned, reusable, and portable across agents and IDEs. Organization standards flow into every project, while project-specific context stays local and customizable. On top of that, Rosetta adds the workflows, guardrails, and approval gates that flat rules files do not provide.
+Rules files are usually local to one tool, one repo, or one developer. Rosetta makes instructions layered, versioned, and portable across agents, and adds workflows, guardrails, and approval gates. The full argument: [Why Rosetta](docs/WHY.md#why-not-just-use-ide-rules).
 
 **What's the difference between a skill, workflow, agent, and rule?**
 
