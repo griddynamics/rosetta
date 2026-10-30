@@ -58,12 +58,12 @@ operator_score: 5
 operator_merge_ready: yes  
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total: 67.7               # diff score: total + bonus, from the totals script
-judge_bonus: 0.75               # bonus points for fixed bugs and related improvements
-judge_blockers: 1            # number of blocker findings
+judge_total: 72.8               # diff score: total + bonus, from the totals script
+judge_bonus: 5.2               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
+judge_blockers: 0            # number of blocker findings
 judge_majors: 1              # number of major findings
-judge_minors: 4              # number of minor findings
-judge_strengths: 1           # number of strengths
+judge_minors: 7              # number of minor findings
+judge_strengths: 3           # number of strengths
 judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 
@@ -240,6 +240,7 @@ TIME USED EVERYWHERE IN THIS REPORT IS FREE OF THE OPERATOR'S WAITING GAPS: firs
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): `<n/a / no / yes: when, why, outcome>`
 - Strong point of the method in this run: mostly autonomous execution and proper decisions. In addition (15:50, spec): it did not restart the local API blindly; it listed the restart as an assumption (A3: the API needs a restart after the migration, and how it is started is not verified) and asked first.
 - Weak point of the method in this run: it did not ask about three hidden questions (#3 per product or per variant, #5 existing products, #7 who can edit and read); it settled them by following existing patterns, and they were handled correctly (hidden-question check at T1).
+- Dashboard type check (`pnpm run check-types`, run by the assistant after the run): passes. Strong point: the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right.
 
 ## Appendix A. Raw `/cost` output
 

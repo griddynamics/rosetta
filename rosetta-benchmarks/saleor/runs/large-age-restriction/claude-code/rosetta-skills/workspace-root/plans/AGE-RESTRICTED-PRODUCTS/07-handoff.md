@@ -1,0 +1,8 @@
+# 07 handoff
+Status: validation, gates, docs, cleanup done. Awaiting G-final.
+- Validation: `07-validation-report.md`, independent validator, backend e2e on isolated stack: all PASS, 0 defects. Dashboard/storefront UI not driven manually; covered by Jest/Vitest + `pnpm verify`.
+- Gates: core pytest 18615 passed/1 skipped; ruff check+format clean; schema diff empty; makemigrations clean; mypy clean on non-test code (tests/ excluded by repo config). Dashboard: check-types ok, prettier ok, eslint 0 errors on changed files (1 padding error found and fixed), Jest 6188 passed, 3 load-flakes pass in isolation (CustomerTypeDetailsPage.dirtyState x2, OrderAddTransaction). Storefront `pnpm verify` exit 0.
+- Docs: workspace CONTEXT/ARCHITECTURE, agents/IMPLEMENTATION+MEMORY, per-repo agents/IMPLEMENTATION.
+- Cleanup: uvicorn :8001 stopped, `age-check-db` removed. Dev stack untouched.
+- Known: draftOrderUpdate lets an underage explicit customer onto a draft with a restricted line; blocked at completion (per spec). Other accepted risks: 02/03/06 handoffs.
+- Post-acceptance fix (storefront): a cart created before sign-in had no `checkout.user`, so a signed-in eligible customer got AGE_RESTRICTION_LOGIN_REQUIRED (backend D14 is correct). `addVariantToCart` now attaches the customer (`checkoutCustomerAttach`, new `src/graphql/CheckoutCustomerAttach.graphql`, `Checkout.attachCustomer`) and retries once on that code; real guests unchanged. Files: actions.ts(+test), lib/checkout.ts, lib/saleor/operations.ts, data-layer.lock.md, paper-version.json override. `pnpm verify` green (998 tests). Not driven in a browser.

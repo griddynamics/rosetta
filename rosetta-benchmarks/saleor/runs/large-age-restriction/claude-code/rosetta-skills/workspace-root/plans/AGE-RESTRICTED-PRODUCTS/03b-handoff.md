@@ -1,0 +1,3 @@
+# 03b handoff — D15 correction (DONE, reviewed) — user decision at G1
+- `Order.user_linked_by_email` (internal; migration order 0229; not in GraphQL/webhooks). draftOrderCreate/Update set it True when `user` is derived only from `userEmail`; False for explicit `user`/`user:null`/no-match; unchanged when neither field sent; email re-send of already-linked account keeps flag (agent choice, tested). E3 checks (lines + completion) use `get_age_checked_customer` (None when flag True). Reissue drafts copy flag. Legacy rows flag False => explicit.
+- Verified: order suites 2508 pass; schema unchanged; migration applied to isolated DB `saleor_run`, API restarted.

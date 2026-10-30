@@ -59,12 +59,12 @@ operator_score: 3         # 1–5, anchors in templates/README.md
 operator_merge_ready: no  # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total: 60.6               # diff score: total + bonus, from the totals script
-judge_bonus: 0               # bonus points for fixed bugs and related improvements
-judge_blockers: 4            # number of blocker findings
-judge_majors: 1              # number of major findings
-judge_minors: 4              # number of minor findings
-judge_strengths: 0           # number of strengths
+judge_total: 65.6               # diff score: total + bonus, from the totals script
+judge_bonus: 0               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
+judge_blockers: 0            # number of blocker findings
+judge_majors: 3              # number of major findings
+judge_minors: 7              # number of minor findings
+judge_strengths: 1           # number of strengths
 judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 
@@ -363,6 +363,7 @@ Evidence:
 - Operator score 3, merge-ready no: works end to end (7/8 Done-when checks). Notable gap: `productTranslate` now takes `ProductTranslationInput!` instead of `TranslationInput!`, so existing clients break (confirmed: a request with `$input: TranslationInput!` fails with `Variable "input" of type "TranslationInput!" used in position expecting type "ProductTranslationInput!"`). Minor: whitespace not trimmed (below), unrelated `variant-section-error.tsx` change (section 5). Known existing gap, not caused by the agent: `productBulkTranslate` with a 251-character value returns `Expected a value of type "ProductTranslateErrorCode" but received: max_length` for `name` and `storageConditions` alike.
 - Code issue found by the operator (minor, not in the answer key): the backend stores Storage conditions exactly as typed. Leading and trailing spaces are kept (`"    ok"`), and a value of only spaces (`" "`) is saved as non-empty: it counts as a value in the API, webhook payloads and CSV export, while the storefront trims it and shows nothing. Saleor trims its required text fields (`validate_required_string_field`, `saleor/graphql/core/validators/__init__.py`); this field isn't trimmed, and no test covers it. Not asked in this run, so not scored (BENCHMARKS.md, section 4, Task 1 extra answer 6: "Not asked = not a defect").
 - `/cost` and `/usage`: in Claude Code 2.1.305 both open the same Usage panel, so the two pastes in Appendix A show the same screen at different times. Token fields in the data block are `claude-sonnet-5-5` only (the runner's figures written out in full, as in the pilot); `claude-haiku-5-5` (2.0k input, 36 output, $0.0002, same at T1 and T2) is left out.
+- Dashboard type check (`pnpm run check-types`, run by the assistant after the run): passes. Strong point: the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right.
 
 ## Appendix A. Raw `/cost` output
 

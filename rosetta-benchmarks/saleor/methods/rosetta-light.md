@@ -458,6 +458,7 @@ copilot config memory false
 copilot config ide.autoConnect false
 copilot config model gpt-5.6-terra                   # never Auto
 copilot config effortLevel medium
+copilot config contextTier long_context            # 1M-token context window, not the default tier
 copilot config continueOnAutoMode false
 copilot config sandbox.enabled false
 copilot config ignoredSkillsLocations "$HOME/.agents/skills"   # skill folders outside COPILOT_HOME that Copilot reads anyway: skip them
@@ -485,7 +486,8 @@ Hooks and skills stay on: the method's own hooks and skills must load. Never set
 [ -d "$ENV_DIR/src/.git" ] || git clone -q --branch v3.1.17 https://github.com/griddynamics/rosetta "$ENV_DIR/src"
 copilot plugin marketplace add "$ENV_DIR/src"                 # marketplace "rosetta" (.github/plugin/marketplace.json)
 copilot plugin install rosetta-light@rosetta
-copilot plugin list                                           # rosetta-light@rosetta (v3.1.17) enabled; rosetta listed as disabled; built-in browser-use disabled
+copilot plugin disable rosetta@rosetta                    # the marketplace's other plugin: off, saved as enabledPlugins.rosetta@rosetta=false
+copilot plugin list                                           # rosetta-light@rosetta (v3.1.17) enabled; rosetta (disabled); built-in browser-use [disabled]
 ```
 
 Copilot CLI reads a local marketplace plugin live from `$ENV_DIR/src` and copies nothing: keep that clone at the pinned tag and never edit it during the study.
@@ -512,25 +514,38 @@ In the session: accept the folder-trust prompt with **Yes, and remember this fol
 **4.8 Isolation check** (before every run, step 3; `$RUN` = that run's folder):
 
 ```bash
-{ echo "COPILOT_HOME=$COPILOT_HOME"; copilot --version; node -v; copilot config --list
-  python3 -I -c 'import json,os;print("subagents:", json.dumps(json.load(open(os.environ["COPILOT_HOME"]+"/settings.json")).get("subagents")))'
-  copilot -C "$BENCH_DIR" plugin list; copilot -C "$BENCH_DIR" skill list; copilot -C "$BENCH_DIR" mcp list; copilot -C "$BENCH_DIR" instruction list
-  copilot config hooks 2>/dev/null || echo "(no inline hooks)"
-  echo "sandbox.enabled=$(copilot config sandbox.enabled)"
-  env | grep -qE '^(COPILOT_GITHUB_TOKEN|GH_TOKEN|GITHUB_TOKEN)=' && echo "token env set: unset it (it overrides the saved login)"
-  for p in "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/instructions "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json "$COPILOT_HOME"/lsp-config.json; do [ -e "$p" ] && echo "user-level: $p"; done
+{ run() { printf '\n$ %s\n' "$*"; "$@"; echo "[exit $?]"; }   # each command line, then its own output and exit code: nothing else goes into the file
+  run printenv COPILOT_HOME
+  run printenv COPILOT_AUTO_UPDATE
+  run printenv COPILOT_CUSTOM_INSTRUCTIONS_DIRS
+  run copilot --version
+  run node -v
+  run copilot config --list
+  run copilot config model
+  run copilot config effortLevel
+  run copilot config contextTier
+  run copilot config sandbox.enabled
+  run python3 -I -c 'import json,os;print(json.dumps(json.load(open(os.environ["COPILOT_HOME"]+"/settings.json")).get("subagents")))'
+  run copilot -C "$BENCH_DIR" plugin list
+  run copilot -C "$BENCH_DIR" skill list
+  run copilot -C "$BENCH_DIR" mcp list
+  run copilot -C "$BENCH_DIR" instruction list
+  run copilot config hooks
+  run sh -c 'env | cut -d= -f1 | grep -E "^(COPILOT_GITHUB_TOKEN|GH_TOKEN|GITHUB_TOKEN)$"'   # variable names only, never their values
+  run ls -d "$COPILOT_HOME"/copilot-instructions.md "$COPILOT_HOME"/instructions "$COPILOT_HOME"/agents "$COPILOT_HOME"/hooks "$COPILOT_HOME"/skills "$COPILOT_HOME"/mcp-config.json "$COPILOT_HOME"/lsp-config.json
   RULES="$SB/baseline-instructions.md"   # the team rules file (BENCHMARKS.md 3.3)
-  tail -n +4 "$SB/copilot-rules/.github/instructions/team-rules.instructions.md" | cmp -s - "$RULES" && echo "copilot-rules: team-rules.instructions.md = baseline rules" || echo "copilot-rules: team-rules.instructions.md DIFFERS"
+  run sh -c 'tail -n +4 "$1" | diff -s - "$2"' sh "$SB/copilot-rules/.github/instructions/team-rules.instructions.md" "$RULES"
   for r in saleor saleor-dashboard react-storefront; do
-    cmp -s "$RULES" "$BENCH_DIR/$r/CLAUDE.md" && echo "$r: CLAUDE.md = baseline rules" || echo "$r: CLAUDE.md DIFFERS"
-    cmp -s "$RULES" "$BENCH_DIR/$r/.github/copilot-instructions.md" && echo "$r: copilot-instructions.md = baseline rules" || echo "$r: copilot-instructions.md DIFFERS"
-    git -C "$BENCH_DIR/$r" ls-files | grep -E '(^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/' | sed "s|^|$r: ai-file: |" || true
+    run diff -s "$RULES" "$BENCH_DIR/$r/CLAUDE.md"
+    run diff -s "$RULES" "$BENCH_DIR/$r/.github/copilot-instructions.md"
+    run sh -c 'git -C "$1" ls-files | grep -E "$2"' sh "$BENCH_DIR/$r" '(^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/'
+    run git -C "$BENCH_DIR/$r" tag --points-at HEAD
+    run git -C "$BENCH_DIR/$r" status --porcelain
   done
-  for r in saleor saleor-dashboard react-storefront; do echo "$r: $(git -C "$BENCH_DIR/$r" tag --points-at HEAD | tr '\n' ' ')"; git -C "$BENCH_DIR/$r" status --porcelain; done
 } 2>&1 | tee "$RUN/isolation.txt"
 ```
 
-Expected: `COPILOT_HOME` = `envs/rosetta-light/copilot`; version 1.0.101 and Node v24; the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; `subagents:` shows `explore`, `task`, `general-purpose`, `code-review`, `research` and `security-review` with `model`, `effortLevel` and `contextTier` set to `inherit`, and `disabledSubagents` = `["rubber-duck"]`; in the session, `/subagents` shows "Inherit session model" for those six; `plugin list` shows `rosetta-light` only; `skill list` shows its skills and the CLI's built-in ones only; `instruction list` shows `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`) plus only the files the Rosetta init wrote (zips); no MCP servers (1.0.101's `mcp list` shows the CLI's built-in GitHub server as `Builtin servers: github-mcp-server (http)`: expected, not a leak; `--disable-builtin-mcps` turns it off in the session, and `/env` there must show none; `plugin list` likewise shows the built-in `browser-use (v0.0.4) [disabled]`: expected; S-CP-01); `/env` lists the built-in `computer-use` plugin: expected, its desktop-control MCP server is off by default and must stay off (`0 servers connected`; if it is enabled or connected, don't start); no inline hooks; no `user-level:` lines; no `token env set` line; `rosetta-light-v1` among each repo's tags; no `status` lines. Rules file: `= baseline rules` for both files in every repo and for `copilot-rules`, and `ai-file:` lines only for `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, `DIFFERS` is expected: note it in the report). Copilot sandbox: `sandbox.enabled=false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Anything else: don't start, fix and reset. Paste it into report section 1.
+Expected: `printenv` shows `COPILOT_HOME` = `envs/rosetta-light/copilot`, `COPILOT_AUTO_UPDATE` = `false` and `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` = `…/saleor/copilot-rules`; version 1.0.101 and Node v24; `config model` prints `gpt-5.6-terra`, `config effortLevel` `medium` and `config contextTier` `long_context`; `config --list` shows the common settings, with `ignoredSkillsLocations` set to `~/.agents/skills`, `~/.claude/skills` and `~/.github/skills`, and `skill list` has no "Inherited skills" section; the `python3` line shows `explore`, `task`, `general-purpose`, `code-review`, `research` and `security-review` with `model`, `effortLevel` and `contextTier` set to `inherit`, and `disabledSubagents` = `["rubber-duck"]` (the `python3` line); in the session, `/subagents` shows "Inherit session model" for those six; `plugin list` shows `rosetta-light` only; `skill list` shows its skills and the CLI's built-in ones only; `instruction list` shows `team-rules.instructions.md [external]` (the team rules file, from `saleor/copilot-rules/`) plus only the files the Rosetta init wrote (zips); no MCP servers (1.0.101's `mcp list` shows the CLI's built-in GitHub server as `Builtin servers: github-mcp-server (http)`: expected, not a leak; `--disable-builtin-mcps` turns it off in the session, and `/env` there must show none; `plugin list` likewise shows the built-in `browser-use (v0.0.4) [disabled]`: expected; S-CP-01); `/env` lists the built-in `computer-use` plugin: expected, its desktop-control MCP server is off by default and must stay off (`0 servers connected`; if it is enabled or connected, don't start); `config hooks` prints nothing and `[exit 1]` (no inline hooks); the token check prints nothing and `[exit 1]`; `ls -d` prints `No such file or directory` for every user-level path and `[exit 1]`; `rosetta-light-v1` among the tags `tag --points-at HEAD` prints for every repo; `status --porcelain` prints nothing and `[exit 0]`. Rules file: `diff -s` prints `Files … are identical` for both files in every repo and for `copilot-rules`, and `ls-files | grep` lists only `CLAUDE.md` and `.github/copilot-instructions.md`, plus the method's own files at its tag (if its setup changed a rules file, its diff is expected: note it in the report). Copilot sandbox: `config sandbox.enabled` prints `false`; in the session, `/sandbox` shows sandboxing off (an org policy can force it on: then don't start). Plugins: every plugin line of `plugin list` ends in the state the command prints itself: `(enabled)`, `(disabled)` or `[disabled]`. Only the method's own plugin may say `enabled` (`rosetta-light@rosetta`); every other plugin, the built-in `browser-use` included, must say `disabled`, and `config --list` shows `enabledPlugins.<plugin>=false` for each disabled marketplace plugin. A plugin line without one of these words, or `enabled` on any other plugin: don't start. Every line of `isolation.txt` is printed by the commands above: never type, edit, shorten or summarize it by hand, and never add a verdict line. Anything else: don't start, fix and reset. Paste it into report section 1.
 
 ## 5. Run S-CP-07: small task: product storage conditions, Copilot
 
@@ -565,13 +580,13 @@ sed -i '' -e 's|^run_id:.*|run_id: S-CP-07|' -e 's|^method:.*|method: rosetta-li
 (
 grep -l "^cwd: $BENCH_DIR$" "$COPILOT_HOME"/session-state/*/workspace.yaml 2>/dev/null | while read -r w; do rm -rf "$(dirname "$w")"; done   # earlier sessions of this workspace
 rm -rf "$BENCH_DIR/run-output"
-cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps
+cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --context long_context --allow-all --disable-builtin-mcps
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: `/model` shows GPT-5.6 Terra, effort medium; the normal interactive mode (not plan, not autopilot). If not: `/exit`, reset, start again.
+In the session: `/model` shows GPT-5.6 Terra, effort medium, long context; `/context` shows a 1M-token window, not the default one; the normal interactive mode (not plan, not autopilot). If not: `/exit`, reset, start again.
 
-**When the checks pass: `/exit`, then start `copilot` again WITHOUT the cleanup lines** (`grep … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps)`. This is a NEW session (never `--resume` or `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
+**When the checks pass: `/exit`, then start `copilot` again WITHOUT the cleanup lines** (`grep … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --context long_context --allow-all --disable-builtin-mcps)`. This is a NEW session (never `--resume` or `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
@@ -613,7 +628,7 @@ Mark each one `covered` or not in report section 3. For each one not covered, an
 
 **Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
 
-**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --resume <session id> --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps)` and send it there (note it in section 8):
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --resume <session id> --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --context long_context --allow-all --disable-builtin-mcps)` and send it there (note it in section 8):
 
 ```text
 Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).
@@ -679,13 +694,13 @@ sed -i '' -e 's|^run_id:.*|run_id: L-CP-07|' -e 's|^method:.*|method: rosetta-li
 (
 grep -l "^cwd: $BENCH_DIR$" "$COPILOT_HOME"/session-state/*/workspace.yaml 2>/dev/null | while read -r w; do rm -rf "$(dirname "$w")"; done   # earlier sessions of this workspace
 rm -rf "$BENCH_DIR/run-output"
-cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps
+cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --context long_context --allow-all --disable-builtin-mcps
 )                                               # in a subshell: your terminal stays where it is
 ```
 
-In the session: `/model` shows GPT-5.6 Terra, effort medium; the normal interactive mode (not plan, not autopilot). If not: `/exit`, reset, start again.
+In the session: `/model` shows GPT-5.6 Terra, effort medium, long context; `/context` shows a 1M-token window, not the default one; the normal interactive mode (not plan, not autopilot). If not: `/exit`, reset, start again.
 
-**When the checks pass: `/exit`, then start `copilot` again WITHOUT the cleanup lines** (`grep … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps)`. This is a NEW session (never `--resume` or `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
+**When the checks pass: `/exit`, then start `copilot` again WITHOUT the cleanup lines** (`grep … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --context long_context --allow-all --disable-builtin-mcps)`. This is a NEW session (never `--resume` or `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
 
 **Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
 
@@ -731,7 +746,7 @@ Mark each one `covered` or not in report section 3. For each one not covered, an
 
 **Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
 
-**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --resume <session id> --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --allow-all --disable-builtin-mcps)` and send it there (note it in section 8):
+**Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --resume <session id> --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --context long_context --allow-all --disable-builtin-mcps)` and send it there (note it in section 8):
 
 ```text
 Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff`, and save it to ~/saleor-benchmark/run-output/<repo>.diff (create the folder).

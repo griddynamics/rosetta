@@ -58,12 +58,12 @@ operator_score: 3 # 1–5, anchors in templates/README.md
 operator_merge_ready:      # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total: 63.7               # diff score: total + bonus, from the totals script
-judge_bonus: 0               # bonus points for fixed bugs and related improvements
-judge_blockers: 3            # number of blocker findings
-judge_majors: 0              # number of major findings
-judge_minors: 3              # number of minor findings
-judge_strengths: 0           # number of strengths
+judge_total: 70.5               # diff score: total + bonus, from the totals script
+judge_bonus: 2.8               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
+judge_blockers: 0            # number of blocker findings
+judge_majors: 2              # number of major findings
+judge_minors: 5              # number of minor findings
+judge_strengths: 2           # number of strengths
 judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 
@@ -248,6 +248,7 @@ Evidence: `<one line per ticked item>`
 - Strong point of the method in this run: the result works and is thorough: `converge` kept finding real gaps (missing migration, translation webhook keys, leftover test data) until all 3 repos were consistent with the spec; all 7 hidden requirements match the answer key at the end.
 - Weak point of the method in this run: a lot of manual commands and a long run. `/speckit-specify` asked nothing and assumed 500 chars / not translatable / no CSV, so 3 of 7 hidden requirements needed follow-ups; the operator drove 14 method commands (specify, plan, tasks, 4× implement, 7× converge) plus 3 follow-ups; 1 h 45 min to the first "done" and 3 h 23 min in total (T0 11:24 → T2 14:47), ≈ $12.65.
 - Operator score and merge-ready, why: 3 (merge-ready not stated). Works end to end (8/8), but very long (3 h 23 min) and with a lot of operator effort: 14 method commands and 3 follow-ups for the hidden requirements `specify` did not ask about.
+- Dashboard type check (`pnpm run check-types`, run by the assistant after the run): passes. Strong point: the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right.
 
 ## Appendix A. Raw `/cost` output
 

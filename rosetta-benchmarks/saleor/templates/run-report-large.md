@@ -59,7 +59,7 @@ operator_merge_ready:      # yes | no
 # Filled later by the assistant: verified_in_code from step 0.3, judge_* from the diff judge's JSON
 verified_in_code:          # items verified in code / items checked (e.g. 8/9)
 judge_total:               # diff score: total + bonus, from the totals script
-judge_bonus:               # bonus points for fixed bugs and related improvements
+judge_bonus:               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
 judge_blockers:            # number of blocker findings
 judge_majors:              # number of major findings
 judge_minors:              # number of minor findings
@@ -221,7 +221,7 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [ ] Agent said "done" while something was clearly broken
+- [ ] Agent said "done" while something was clearly broken (not for a problem found in the operator's own check after T1 and fixed by a follow-up: that counts only as a follow-up)
 - [ ] Agent committed or pushed
 - [ ] Other: `<...>`
 

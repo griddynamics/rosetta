@@ -54,7 +54,7 @@ The same rules for every operator, so results are comparable.
 | `operator_merge_ready` | yes / no | Could be merged after a normal review, without rework. |
 | `verified_in_code` | x/y | From the judge's step 0.3: items found implemented in the diff / items checked. |
 | `judge_total` | number | Diff score: Σ(value × weight) / Σ(10 × weight) × 100 + bonus (BENCHMARKS.md, section 6). |
-| `judge_bonus` | number | Bonus points for bugs the run fixed and distinct improvements related to the job. |
+| `judge_bonus` | number | Bonus points for bugs the run fixed, distinct improvements related to the job, proactive safeguards and DELTA items against the `baseline` run. |
 | `judge_blockers`, `judge_majors`, `judge_minors`, `judge_strengths` | count | Findings of the diff judge by level. |
 | `judge_merge_ready_advice` | none / no / yes | The judge's advice on `operator_merge_ready`; the operator decides. |
 

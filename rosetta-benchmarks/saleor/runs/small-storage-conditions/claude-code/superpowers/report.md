@@ -58,12 +58,12 @@ operator_score: 3
 operator_merge_ready: no   # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total: 66.7               # diff score: total + bonus, from the totals script
-judge_bonus: 0.75               # bonus points for fixed bugs and related improvements
-judge_blockers: 2            # number of blocker findings
-judge_majors: 1              # number of major findings
-judge_minors: 2              # number of minor findings
-judge_strengths: 1           # number of strengths
+judge_total: 72.8               # diff score: total + bonus, from the totals script
+judge_bonus: 5.45               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
+judge_blockers: 0            # number of blocker findings
+judge_majors: 3              # number of major findings
+judge_minors: 5              # number of minor findings
+judge_strengths: 2           # number of strengths
 judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 
@@ -268,6 +268,7 @@ The operator did not verify these (see section 4). Agent's own report, in short:
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
 - Strong point of the method in this run: (to be given by the operator)
 - Weak point of the method in this run: (to be given by the operator)
+- Dashboard type check (`pnpm run check-types`, run by the assistant after the run): passes. Strong point: the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right.
 
 ## Appendix A. Raw `/cost` output
 

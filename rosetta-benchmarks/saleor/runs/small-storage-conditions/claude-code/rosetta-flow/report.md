@@ -71,13 +71,13 @@ rosetta_workspace_files: 13     # plans/product-storage-conditions/ (SPECS, PLAN
 rosetta_team_contacted: no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total: 68.0               # diff score: total + bonus, from the totals script
-judge_bonus: 0               # bonus points for fixed bugs and related improvements
-judge_blockers: 1            # number of blocker findings
+judge_total: 74.5               # diff score: total + bonus, from the totals script
+judge_bonus: 5.05               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
+judge_blockers: 0            # number of blocker findings
 judge_majors: 0              # number of major findings
-judge_minors: 0              # number of minor findings
-judge_strengths: 0           # number of strengths
-judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
+judge_minors: 3              # number of minor findings
+judge_strengths: 1           # number of strengths
+judge_merge_ready_advice: yes  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 
 # Run report: S-CC-06 · small task · rosetta · claude-code
@@ -488,6 +488,7 @@ Evidence (operator to confirm; checked against the diffs and the repos at T2):
 - Strong point of the method in this run: asked the right product questions up front (hidden 1, 2, 6 before any code) and covered the other 4 on its own: 7/7 on the first pass, 0 follow-ups, all 8 Done-when checks passed; independent plan, code and test reviews caught real issues (DB-safety and test-setup majors, missing error-state test) before the operator saw them; honest reporting of what it could not verify and of its own DB slip.
 - Weak point of the method in this run: cost and time: $21.37 and 148 min for the small task (S-CC-01 $3.31 / 70 min, S-CC-02 $4.89 / 38 min), 55% of the cost on the Opus architect; heavy operator load (3 question rounds, 12 questions of which 9 outside the answer tables, 3 gates); validator wrote dev-DB data beyond what was approved; no browser check of the dashboard.
 - Operator score and merge-ready, why: 5, merge-ready yes. Works end to end in all 3 repos (8/8 Done-when checks), the code follows all 7 answer-key decisions, tests pass in all 3 repos (only load-timeout flakes in untouched dashboard files), no leftovers or unrelated changes, CHANGELOG and changeset included. The agent's open items (staging gate in `getProductUpdateVariables`, `trim()` in the storefront reader, collapsed newlines, 105 mypy errors in test files) are optional hardening, outside the answer key.
+- Dashboard type check (`pnpm run check-types`, run by the assistant after the run): passes. Strong point: the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right.
 
 ## Appendix A. Raw `/cost` output
 
