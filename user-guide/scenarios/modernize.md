@@ -4,6 +4,10 @@
 
 > Migrate or upgrade a system through strictly sequential, spec-first phases — document what exists, prove behavior with evidence, map the target, get your approval, then implement one piece at a time.
 
+**Demo: frontend migration**
+
+https://github.com/user-attachments/assets/8a48ce2e-a8f6-4d80-a208-4e808ab502df
+
 **Use this when** you're doing a real migration: a language conversion (C++ → Java), a framework or runtime upgrade (Java 8 → 21, .NET Framework → modern .NET), containerization, monolith → services, or a persistence change.
 
 **Not for:** ordinary feature work ([Write or change code](coding.md) — which this flow calls internally for the actual implementation).
