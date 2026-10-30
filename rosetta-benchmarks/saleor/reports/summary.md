@@ -1,6 +1,6 @@
 # Benchmark results
 
-22 reports in `saleor/runs/`. Compare methods only within one task and one runner (templates/README.md).
+23 reports in `saleor/runs/`. Compare methods only within one task and one runner (templates/README.md).
 
 ## Every run
 
@@ -8,23 +8,24 @@
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | --- | --- | ---: | --- | ---: | --- | ---: | ---: |
 | `L-CC-01` | `large-age-restriction/claude-code/baseline` | run | done | 37 | 100 | $3.86 | $7.84 | 51% | 0 / 4 / 5 | 44% | 5 | 1 | 12/12 | yes | 3 | no | – | – / – / – | – | – |
 | `L-CC-02` | `large-age-restriction/claude-code/grill-with-docs` | run | done | 53 | 83 | $9.46 | $10.17 | 7% | 6 / 3 / 0 | 100% | 2 | 1 | 12/12 | yes | 4 | yes | – | – / – / – | – | – |
-| `L-CC-03` | `large-age-restriction/claude-code/superpowers` | run | done | 76 | 494 | $14.31 | $35.11 | 59% | 1 / 4 / 4 | 56% | 1 | 6 | –/12 | – | – | – | – | – / – / – | – | – |
+| `L-CC-03` | `large-age-restriction/claude-code/superpowers` | run | done | 76 | 494 | $14.31 | $35.11 | 59% | 1 / 4 / 4 | 56% | 1 | 6 | –/12 | – | 3 | no | – | – / – / – | – | – |
 | `L-CC-04` | `large-age-restriction/claude-code/spec-kit` | run | done | 103 | 373 | $5.95 | $11.04 | 46% | 0 / 5 / 4 | 56% | 5 | 5 | 12/12 | yes | 3 | no | – | – / – / – | – | – |
 | `L-CC-08` | `large-age-restriction/claude-code/rosetta-skills` | run | done | 164 | 224 | $23.72 | $24.73 | 4% | 3 / 6 / 0 | 100% | 2 | 6 | 12/12 | yes | 5 | yes | – | – / – / – | – | – |
 | `L-CC-07` | `large-age-restriction/claude-code/rosetta-light` | run | done | 275 | 358 | $53.30 | $57.65 | 8% | 4 / 4 / 1 | 89% | 2 | 2 | 12/12 | yes | 4 | yes | – | – / – / – | – | – |
 | `L-CP-01` | `large-age-restriction/copilot/baseline` | run | done | 7 | 2625 | 194.7 cr | 1746.5 cr | 89% | 2 / 3 / 4 | 56% | 10 | 2 | 12/12 | yes | 3 | no | – | – / – / – | – | – |
 | `L-CP-02` | `large-age-restriction/copilot/grill-with-docs` | run | done | 27 | 96 | 600.8 cr | 848.9 cr | 29% | 7 / 2 / 0 | 100% | 5 | 1 | 12/12 | yes | 3 | yes | – | – / – / – | – | – |
+| `L-CP-03` | `large-age-restriction/copilot/superpowers` | run | done | 159 | 1355 | 1776.8 cr | 1887.9 cr | 6% | 2 / 5 / 2 | 78% | 2 | 6 | 7/12 | yes | 3 | yes | – | – / – / – | – | – |
 | `L-CP-04` | `large-age-restriction/copilot/spec-kit` | run | done | 51 | 63 | 964.1 cr | 1024.0 cr | 6% | 0 / 6 / 3 | 67% | 3 | 9 | 12/12 | no | 2 | no | – | – / – / – | – | – |
 | `S-CC-01` | `small-storage-conditions/claude-code/baseline` | run | done | 29 | 70 | $1.24 | $3.31 | 63% | 0 / 4 / 3 | 57% | 3 | 1 | 7/8 | yes | 3 | no | 66.2 | 0 / 2 / 8 | 1 | 0 |
 | `S-CC-02` | `small-storage-conditions/claude-code/grill-with-docs` | run | done | 38 | 38 | $4.82 | $4.89 | 1% | 5 / 2 / 0 | 100% | 1 | 1 | 8/8 | yes | 4 | yes | 71.6 | 0 / 1 / 6 | 1 | 4.15 |
-| `S-CC-03` | `small-storage-conditions/claude-code/superpowers` | run | done | 36 | 54 | $6.76 | $8.08 | 16% | 1 / 5 / 1 | 86% | 1 | 5 | 7/8 | yes | 3 | – | 73.5 | 0 / 1 / 7 | 2 | 5.45 |
+| `S-CC-03` | `small-storage-conditions/claude-code/superpowers` | run | done | 36 | 54 | $6.76 | $8.08 | 16% | 1 / 5 / 1 | 86% | 1 | 5 | 7/8 | yes | 3 | no | 73.5 | 0 / 1 / 7 | 2 | 5.45 |
 | `S-CC-04` | `small-storage-conditions/claude-code/spec-kit` | run | done | 105 | 203 | $4.58 | $12.65 | 64% | 0 / 4 / 3 | 57% | 3 | 14 | 8/8 | yes | 3 | – | 70.7 | 0 / 1 / 6 | 2 | 2.65 |
 | `S-CC-06` | `small-storage-conditions/claude-code/rosetta-flow` | run | done | 120 | 148 | $21.30 | $21.37 | 0% | 3 / 4 / 0 | 100% | 0 | 3 | 8/8 | yes | 5 | yes | 74.5 | 0 / 0 / 3 | 1 | 5.05 |
 | `S-CC-08` | `small-storage-conditions/claude-code/rosetta-skills` | run | done | 56 | 56 | $5.64 | $5.64 | 0% | 3 / 3 / 1 | 86% | 2 | 4 | 8/8 | yes | 5 | yes | 73.6 | 0 / 0 / 5 | 2 | 4.7 |
 | `S-CC-07` | `small-storage-conditions/claude-code/rosetta-light` | run | done | 92 | 92 | $5.48 | $5.48 | 0% | 4 / 3 / 0 | 100% | 0 | 2 | 8/8 | yes | 5 | yes | 73.4 | 0 / 0 / 8 | 3 | 5.2 |
 | `S-CP-01` | `small-storage-conditions/copilot/baseline` | run | done | 13 | 84 | 208.8 cr | 389.1 cr | 46% | 1 / 4 / 2 | 71% | 5 | 1 | 8/8 | yes | 3 | no | – | – / – / – | – | – |
 | `S-CP-02` | `small-storage-conditions/copilot/grill-with-docs` | run | done | 14 | 934 | 393.1 cr | 452.3 cr | 13% | 4 / 3 / 0 | 100% | 2 | 1 | 8/8 | yes | 3.5 | yes | – | – / – / – | – | – |
-| `S-CP-03` | `small-storage-conditions/copilot/superpowers` | run | – | 107 | 5174 | 1406.5 cr | 1975.7 cr | 29% | 3 / 3 / 1 | 86% | 2 | 16 | 8/8 | yes | – | – | – | – / – / – | – | – |
+| `S-CP-03` | `small-storage-conditions/copilot/superpowers` | run | done | 107 | 5174 | 1406.5 cr | 1975.7 cr | 29% | 3 / 3 / 1 | 86% | 2 | 16 | 8/8 | yes | 4 | yes | – | – / – / – | – | – |
 | `S-CP-04` | `small-storage-conditions/copilot/spec-kit` | run | done | 33 | 81 | 698.7 cr | 870.4 cr | 20% | 0 / 7 / 0 | 100% | 4 | 9 | 8/8 | yes | 3 | yes | – | – / – / – | – | – |
 | `S-CP-05` | `small-storage-conditions/copilot/aws-ai-dlc` | run | not-qualifying | – | – | – | – | – | 3 / – / – | – | 0 | 4 | –/8 | – | – | – | – | – / – / – | – | – |
 | `S-CP-07` | `small-storage-conditions/copilot/rosetta-light` | run | done | 29 | 56 | 792.7 cr | 1113.9 cr | 29% | 3 / 3 / 1 | 86% | 1 | 5 | 8/8 | yes | 4 | yes | – | – / – / – | – | – |
@@ -49,6 +50,7 @@
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | baseline | 1 | 13 | 84 | 389.1 cr | 71% | 5 | 1 | 8 | 3 | – |
 | grill-with-docs | 1 | 14 | 934 | 452.3 cr | 100% | 2 | 1 | 8 | 3.5 | – |
+| superpowers | 1 | 107 | 5174 | 1975.7 cr | 86% | 2 | 16 | 8 | 4 | – |
 | spec-kit | 1 | 33 | 81 | 870.4 cr | 100% | 4 | 9 | 8 | 3 | – |
 | rosetta-light | 1 | 29 | 56 | 1113.9 cr | 86% | 1 | 5 | 8 | 4 | – |
 
@@ -58,7 +60,7 @@
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | baseline | 1 | 37 | 100 | $7.84 | 44% | 5 | 1 | 12 | 3 | – |
 | grill-with-docs | 1 | 53 | 83 | $10.17 | 100% | 2 | 1 | 12 | 4 | – |
-| superpowers | 1 | 76 | 494 | $35.11 | 56% | 1 | 6 | – | – | – |
+| superpowers | 1 | 76 | 494 | $35.11 | 56% | 1 | 6 | – | 3 | – |
 | spec-kit | 1 | 103 | 373 | $11.04 | 56% | 5 | 5 | 12 | 3 | – |
 | rosetta-skills | 1 | 164 | 224 | $24.73 | 100% | 2 | 6 | 12 | 5 | – |
 | rosetta-light | 1 | 275 | 358 | $57.65 | 89% | 2 | 2 | 12 | 4 | – |
@@ -69,12 +71,11 @@
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | baseline | 1 | 7 | 2625 | 1746.5 cr | 56% | 10 | 2 | 12 | 3 | – |
 | grill-with-docs | 1 | 27 | 96 | 848.9 cr | 100% | 5 | 1 | 12 | 3 | – |
+| superpowers | 1 | 159 | 1355 | 1887.9 cr | 78% | 2 | 6 | 7 | 3 | – |
 | spec-kit | 1 | 51 | 63 | 1024.0 cr | 67% | 3 | 9 | 12 | 2 | – |
 
 ## Missing values (fill them in the report)
 
-- large-age-restriction/claude-code/superpowers/report.md: empty done_checks_passed, tests_pass, operator_score, operator_merge_ready
+- large-age-restriction/claude-code/superpowers/report.md: empty done_checks_passed, tests_pass
 - small-storage-conditions/claude-code/spec-kit/report.md: empty operator_merge_ready
-- small-storage-conditions/claude-code/superpowers/report.md: empty operator_merge_ready
 - small-storage-conditions/copilot/aws-ai-dlc/report.md: empty t1, t2, hidden_covered, hidden_missed, done_checks_passed, tests_pass, operator_score, operator_merge_ready
-- small-storage-conditions/copilot/superpowers/report.md: empty status, operator_score, operator_merge_ready
