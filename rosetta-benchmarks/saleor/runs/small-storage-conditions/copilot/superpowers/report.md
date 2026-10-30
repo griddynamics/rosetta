@@ -15,7 +15,7 @@ model: gpt-5.6-terra
 effort: medium
 start_tag: superpowers-v1
 operator: agavrilita
-status:                    # done | not-qualifying | infra-fail
+status: done               # done | not-qualifying | infra-fail
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
 t0: 2026-10-22T20:43   # effective start = t1 minus the gap-free first pass 1 h 47 min 12 s; real T0 22 Oct 16:29:01 (timeline row 2), see section 8
 t1: 2026-10-22T22:30
@@ -54,8 +54,8 @@ done_checks_total: 8
 done_checks_passed: 8
 red_flags: 0
 tests_pass: yes
-operator_score:            # 1–5, anchors in templates/README.md
-operator_merge_ready:      # yes | no
+operator_score: 4          # 1–5, anchors in templates/README.md
+operator_merge_ready: yes  # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
 judge_absolute:            # /40

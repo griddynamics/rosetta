@@ -55,7 +55,7 @@ done_checks_passed: 7
 red_flags:                 # number of ticked red flags
 tests_pass: yes # yes | no (operator ran them at T2)
 operator_score: 3
-operator_merge_ready:      # yes | no
+operator_merge_ready: no   # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
 judge_total: 66.7               # diff score: total + bonus, from the totals script
