@@ -77,6 +77,7 @@ ARCHITECTURE.md:
 - Architecture, modules, workspace structure, testing, styling, building blocks
 - No business context — reference CONTEXT.md
 - Reference CODEMAP.md for file structure
+- Also include pre-existing processes (do not invent: document use existing commands or use existing documentation, per module, make it short, use file refs or just commands, sdlc related how-tos).
 - Limit to 150 lines, if there is MORE => keep ARCHITECTURE.md with core ARCHITECTURE plus index to per-area <AREA>-ARCHITECTURE.md files with a set of terms what it contains.
 
 IMPLEMENTATION.md:
