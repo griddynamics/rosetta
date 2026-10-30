@@ -125,15 +125,30 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 1 | `<HH:MM>` | prompt | Task prompt sent (T0) | `<entry command> Some of our products can only be sold to customers above a certain age …` | |
 | 2 | | | | | |
 
-**Usage by model** (from `tokens.md`, see below; both runners):
+**Usage by model** (the model rows of `/usage` at T2, as the runner shows them; the token fields of the data block are their sums; both runners):
 
 | Model | Role (main / subagent) | Input | Output | Cache read | Cache write | Cost, USD |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
 | | | | | | | |
 
+### Size of the change (the real numbers)
+
+Measured from the saved `<repo>.diff` files in this folder (`git apply --numstat`, run outside the repo folder; BENCHMARKS.md, step 10). New files are included through `git add -N .`.
+
+| Repo | Files | Lines added | Lines removed | Code and tests only: files | added | removed |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `saleor` | | | | | | |
+| `saleor-dashboard` | | | | | | |
+| `react-storefront` | | | | | | |
+| **Total** | | | | | | |
+
+"Code and tests only" leaves out the generated and non-code files (`*.generated.*`, schema files, locale and messages JSON, spec and plan documents, tool-written `CLAUDE.md`). List how many files, lines added and lines removed were left out.
+
+**What the "Code changes" / "Changes" line of `/usage` is.** It is not the size of the change. It counts only the lines written with the main agent's own edit tools. It misses shell edits, generators and codegen, and everything the subagents wrote. It shows +<added> −<removed> here, about <n>% of the code-and-tests lines added.
+
 Raw `/usage` output at T1 and T2: paste it into Appendix A at the end of this file.
 
-**Token breakdown + raw session logs (both runners):** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Use its "By model" table for the table above.
+**Token breakdown + raw session logs (both runners):** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Its totals come from the session log and can differ from `/usage` (the log can miss subagent calls), so the table above and the data block use `/usage`.
 
 
 ## 3. Hidden questions

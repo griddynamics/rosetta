@@ -54,8 +54,8 @@ done_checks_total: 12
 done_checks_passed:
 red_flags:                 # number of ticked red flags
 tests_pass:                # yes | no (operator ran them at T2)
-operator_score:            # 1–5, anchors in templates/README.md
-operator_merge_ready:      # yes | no
+operator_score: 3          # 1–5, anchors in templates/README.md; not independently checked (section 4), scored from the agent's own unverified claims (section 6)
+operator_merge_ready: no   # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 8/9)
 judge_absolute:            # /40
@@ -191,7 +191,7 @@ First-pass coverage (asked + covered): 5 of 9.
 
 ## 4. Done when: checked by the operator at T2
 
-**Not checked.** The run was closed without the operator's Done-when checks: the stack was reset to `baseline-v1` for the next task, so the agent's code and database are gone from the local stack and survive only as the `<repo>.diff` files. All rows are empty; `done_checks_passed`, `tests_pass`, `operator_score` and `operator_merge_ready` in the data block stay empty. To fill them, rerun the cell or apply the `<repo>.diff` files to `superpowers-v1`.
+**Not checked.** The run was closed without the operator's Done-when checks: the stack was reset to `baseline-v1` for the next task, so the agent's code and database are gone from the local stack and survive only as the `<repo>.diff` files. All rows are empty; `done_checks_passed`, `tests_pass` and `red_flags` in the data block stay empty (the operator decided not to re-run the checks; to fill them, apply the `<repo>.diff` files to `superpowers-v1` and go through this section properly). `operator_score` (3) and `operator_merge_ready` (no) were given from the agent's own unverified claims only (section 6), not from an independent check.
 
 What the agent reported (not verified by the operator): backend 18,467 tests pass (6 failures that also fail on a clean baseline checkout), dashboard 6,155 tests (one flaky in the full parallel run), storefront 827 tests, ruff/mypy/tsc/eslint clean, and a live API run with 31 of 31 checks. It did not click through the dashboard or storefront in a browser.
 
