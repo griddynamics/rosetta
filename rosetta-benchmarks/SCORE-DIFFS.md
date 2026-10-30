@@ -20,15 +20,15 @@ Rate HOW each run built its change: code quality, coverage, edge cases, complexi
 ## Constraints
 
 1. QUALITY: be SYSTEMATIC and METHODICAL. PRECISION is important: it builds the actual evidence and the report. QUALITY matters most.
-2. SOURCES: use ONLY the git diffs and the repos. Anything else ONLY when REALLY-REALLY needed.
+2. SOURCES: use ONLY the git diffs and the repos. Anything else ONLY when REALLY-REALLY needed. NEVER read `report.md`, `agent-report.md` or `BENCHMARKS.md`.
 3. SCOPE: rate ONLY lines the run added, changed or removed, and their direct effect on code that uses them. Following an existing project pattern is NOT a defect.
-4. ABSOLUTE: rate against rules, patterns and answers. Another run MAY show you where to look. It is NEVER evidence. Only exception: DELTA (22) compares with the `baseline` run by design.
-5. GROUNDED: EVERY finding cites a base-repo rule or pattern, the task, a hidden-question answer, an extra answer, or a concrete failure in the code. NO invention. NO assumption. Cannot prove it → NOT a finding.
+4. ABSOLUTE: rate against rules, patterns and answers. Another run MAY show you where to look. It is NEVER evidence. Only exception: DELTA (22) compares with the `baseline` run by design. The answers a run was directed with explain its reason (23) and ground findings (5); a run that was NOT directed with an answer is STILL rated against it.
+5. GROUNDED: EVERY finding cites a base-repo rule or pattern, the task, a hidden-question answer, an extra answer, an answer the run was directed with, or a concrete failure in the code. NO invention. NO assumption. Cannot prove it → NOT a finding.
 6. BOTH-SIDES: BEFORE recording ANY difference, state its purpose and value. Weigh the POSITIVE side against the NEGATIVE side.
 7. MATERIAL: record ONLY what a senior reviewer would act on: fix it or praise it. NO nitpicks. If you hesitate whether it is material, it is NOT.
-8. IMPACT: the level of a finding = the impact of the finding ITSELF (what is harmed or improved, how much, for whom). NEVER its type (missing, wrong, extra, could be better).
+8. IMPACT: the level of a finding = the impact of the finding ITSELF (what is harmed or improved, how much, for whom). NEVER its type (missing, wrong, extra, could be better). The level = the harm that REMAINS after existing safeguards (in the run's diff or the base repo: a downstream trim, a linter or CI check, an existing validation), cited as evidence. Name who is affected.
 9. STRENGTH: a strength is a positive impact BEYOND what the task and the hidden-question answers require. Doing what they require is `-`. Tests that guard MORE than the new behaviour itself ARE a strength in their 4.x metric: a contract or architecture rule, a negative path the repo leaves untested, a shared mechanism. The level comes from the impact.
-10. COUNT-ONCE: one root cause = ONE finding = ONE metric. Route by root cause: behaves → H1 · safe → H2 · where it sits, what it reuses or depends on → H3 · tests → H4 · cost → H5 · how much changed → H6 · how it is written → H7 · docs → H8 · beneficial extra → H9 · missing in another place of the repo / another repo → 0.1 / 0.2.
+10. COUNT-ONCE: one root cause = ONE finding = ONE metric. Route by root cause: behaves → H1 · safe → H2 · where it sits, what it reuses or depends on → H3 · tests → H4 · cost → H5 · how much changed → H6 · how it is written → H7 · docs → H8 · beneficial extra → H9 · missing in another place of the repo / another repo → 0.1 / 0.2. A missing doc or changelog entry for a change already rated negative is at most minor.
 11. EVIDENCE: `new` = `repo:path` after the change · `old` = `repo:path` before the change (deletions) · `base` = `repo:path:Lx-Ly` at `baseline-v1`. ALWAYS + a verbatim quote.
 12. VALUES: EVERY metric of EVERY run gets a value from the values table OR `-` with evidence of what you checked. NOTHING ELSE.
 13. CROSS-REPO: a level that depends on another repo is settled from that repo's diff BEFORE you record the finding.
@@ -61,7 +61,7 @@ Rate HOW each run built its change: code quality, coverage, edge cases, complexi
    Fresh-eye check of the judge's ratings for runs <list>. Do not modify any file.
    1. QUICK CHECK of every finding and every "-".
    2. For EACH conflict found: DIG DEEPER in the code until you CONFIRM your conclusion. NEVER report a conflict from your own thoughts alone.
-   A conflict is: evidence is wrong (the line does not exist, the quote does not match) or not grounded; only one side, positive or negative, was weighed; a level does not follow the impact of the finding itself; a material gap or strength is missed; a nitpick is recorded; one root cause is counted more than once; a value does not follow the values table; another run is used as evidence outside DELTA; a SYMMETRY gap is missed; a DELTA item is missed, not grounded, counted twice or mis-leveled; the run's reason for a difference was not weighed, or a contradicted answer was leveled as a blocker without blocker-level impact (INTENT).
+   A conflict is: evidence is wrong (the line does not exist, the quote does not match) or not grounded; only one side, positive or negative, was weighed; a level does not follow the impact of the finding itself; a material gap or strength is missed; a nitpick is recorded; one root cause is counted more than once; a value does not follow the values table; another run is used as evidence outside DELTA; a SYMMETRY gap is missed; a DELTA item is missed, not grounded, counted twice or mis-leveled; the run's reason for a difference was not weighed, or a contradicted answer was leveled as a blocker without blocker-level impact (INTENT); a major whose `why` does not name the existing safeguards and the remaining harm.
    Return a numbered list: finding or metric · what is wrong · evidence · proposed change.
    ```
    DECIDE EACH conflict: accept or reject + reason. Record it in the JSON.
@@ -92,6 +92,8 @@ Rate HOW each run built its change: code quality, coverage, edge cases, complexi
 13. A defect that existed before the run rated against the run.
 14. Every contradicted answer rated as a blocker by type: a non-null column with a default, a dialog the base keeps minimal on purpose.
 15. Only the negative side read: a design that obeys a base rule ("do not edit the product route") rated as needless complexity.
+16. A small remaining harm rated major as "ongoing cost": whitespace already trimmed downstream, a changeset type that the linter catches.
+17. A missing option in an existing UI list, when the backend already supports it (a field in the export dialog), rated major. It is minor.
 
 ## Metrics — weight: critical 1 · high 0.9 · medium 0.75 · low 0.5
 
@@ -142,7 +144,7 @@ Rate HOW each run built its change: code quality, coverage, edge cases, complexi
 | Level | Negative | Strength |
 | --- | --- | --- |
 | Critical | **Blocker**: breaks behavior, data or security. A contradicted answer is a blocker only when its impact is (23) | prevents or fixes blocker-level harm (behavior, data, security) |
-| Major | a reviewer would block the merge, OR ongoing cost | removes a real risk or ongoing cost, OR clearly helps users or other teams |
+| Major | real harm that remains after existing safeguards, to customers, staff, API clients or other teams | removes a real risk or ongoing cost, OR clearly helps users or other teams |
 | Minor | worth fixing, small impact | helpful, small positive impact |
 
 | Value | Findings in the metric |

@@ -34,7 +34,7 @@
           "id": "baseline-2",
           "metric": "1.1",
           "type": "negative",
-          "level": "major",
+          "level": "minor",
           "evidence": [
             {
               "kind": "new",
@@ -53,8 +53,8 @@
             }
           ],
           "grounding": "task-small.md extra answer 6: 'Whitespace-only input: store as empty? Yes. Trim it, and treat a blank result as empty.'",
-          "why": "positive: the storefront mapper trims and hides blank values, so customers never see an empty block. / negative: no reason found for the write path - checked all saleor hunks (product_create, product_update and product_bulk_create untouched, translate mutations): no cleaning of storage_conditions, and the dashboard sends the raw value; EA6 decided trim + blank = empty.",
-          "impact": "Every staff entry with whitespace is stored and reaches webhooks and CSV; ongoing data-cleanup cost."
+          "why": "positive: the storefront mapper trims and hides blank values, so customers never see an empty block. / negative: no reason found for the write path - checked all saleor hunks (product_create, product_update and product_bulk_create untouched, translate mutations): no cleaning of storage_conditions, and the dashboard sends the raw value; EA6 decided trim + blank = empty. Safeguards: the storefront mapper trims and hides blank values (react-storefront mappers/product.ts `trim() || null`). Remaining harm: whitespace-only and padded values are stored and reach API clients, product webhooks and the CSV export; customers see trimmed values (real failure 16).",
+          "impact": "Formatting noise in stored data and integration output (API, webhooks, CSV); customers are not affected."
         },
         {
           "id": "baseline-3",
@@ -84,8 +84,8 @@
             }
           ],
           "grounding": "task-small.md extra answer 11: 'The shared `TranslationInput`. No breaking change to `productTranslate`.'",
-          "why": "positive: reason found - a product-only input keeps the field off category/collection inputs, so no reject logic and no crash path through the shared validate_input_against_model (base utils.py L74-79). / negative: EA11 decided the shared TranslationInput with no breaking change; productTranslate's input type changes, so clients that declare `$input: TranslationInput!` fail validation (the run itself had to edit an existing test query).",
-          "impact": "Existing productTranslate callers must change their queries; a reviewer would block the break. Not a runtime or data break."
+          "why": "positive: reason found - a product-only input keeps the field off category/collection inputs, so no reject logic and no crash path through the shared validate_input_against_model (base utils.py L74-79). / negative: EA11 decided the shared TranslationInput with no breaking change; productTranslate's input type changes, so clients that declare `$input: TranslationInput!` fail validation (the run itself had to edit an existing test query). Safeguards: none; only the run's own test query was changed. Remaining harm: API clients that declare `$input: TranslationInput!` fail validation until they change their queries.",
+          "impact": "Existing productTranslate API clients break until they change their queries. Not a runtime or data break."
         },
         {
           "id": "baseline-4",
@@ -157,7 +157,7 @@
             }
           ],
           "grounding": "react-storefront ADR 0006 L12 and src/config/storefront-view.ts L9-10 mark src/lib/storefront/mappers/product.ts off-limits and provides mapProductExtensions as the fork extension point.",
-          "why": "positive: a typed ProductView field is convenient for consumers. / negative: edits the core mapper and the shared ProductView contract (and its contract test) that the repo says forks must not touch, instead of ProductView.extensions. reason found: a typed ProductView field instead of the untyped extensions record; it does not outweigh ADR 0006 and the off-limits note.",
+          "why": "positive: a typed ProductView field is convenient for consumers. / negative: edits the core mapper and the shared ProductView contract (and its contract test) that the repo says forks must not touch, instead of ProductView.extensions. reason found: a typed ProductView field instead of the untyped extensions record; it does not outweigh ADR 0006 and the off-limits note. Safeguards: none; the run also changed the contract test. Remaining harm: every upstream sync of the core mapper and the ProductView contract conflicts, for the fork's maintainers.",
           "impact": "Fork diverges from upstream core files; every upstream sync of the mapper/contract now conflicts."
         },
         {
@@ -265,7 +265,7 @@
           ]
         },
         "1.1": {
-          "v": 4,
+          "v": 6,
           "findings": [
             "baseline-2"
           ]
@@ -435,7 +435,7 @@
       "delta": [],
       "merge_advice": {
         "advice": "no",
-        "reason": "Majors: breaking productTranslate input (EA11), no trimming on any write path (EA6), off-limits storefront mapper/contract edits."
+        "reason": "Majors: breaking productTranslate input (EA11) and off-limits storefront mapper/contract edits. Rest minor (incl. no server-side trimming, EA6)."
       },
       "objections": [
         {
@@ -449,19 +449,25 @@
           "text": "#7 INTENT: 'why' of negatives 5,6,7,9,10,11 does not state whether a reason was found.",
           "decision": "accept",
           "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        },
+        {
+          "from": "operator",
+          "text": "Re-level by SCORE-DIFFS.md D82 (Major = real harm that remains after existing safeguards; constraint 10 changelog cap; real failures 16-17); no re-judge.",
+          "decision": "accept",
+          "reason": "baseline-2 major->minor; baseline-3 stays major, why names safeguards + remaining harm; baseline-6 stays major, why names safeguards + remaining harm. Values and merge advice follow."
         }
       ],
       "totals": {
-        "total": 65.6,
+        "total": 66.2,
         "bonus": 0,
         "bonus_delta": 0,
         "blockers": 0,
-        "majors": 3,
-        "minors": 7,
+        "majors": 2,
+        "minors": 8,
         "strengths": 1,
         "categories": {
           "H0": 60.0,
-          "H1": 54.9,
+          "H1": 59.2,
           "H2": 70.0,
           "H3": 62.5,
           "H4": 70.0,
@@ -503,8 +509,8 @@
             }
           ],
           "grounding": "task-small.md extra answer 11: 'The shared `TranslationInput`. No breaking change to `productTranslate`.'",
-          "why": "positive: reason found - a product-only input keeps the field off category/collection inputs, so no reject logic and no crash path through the shared validate_input_against_model (base utils.py L74-79). / negative: EA11 decided the shared TranslationInput with no breaking change; productTranslate's input type changes, so clients that declare `$input: TranslationInput!` fail validation (the run itself had to edit an existing test query). The break is documented in '### Breaking changes'.",
-          "impact": "Existing productTranslate callers must change their queries; a reviewer would block the break. Not a runtime or data break."
+          "why": "positive: reason found - a product-only input keeps the field off category/collection inputs, so no reject logic and no crash path through the shared validate_input_against_model (base utils.py L74-79). / negative: EA11 decided the shared TranslationInput with no breaking change; productTranslate's input type changes, so clients that declare `$input: TranslationInput!` fail validation (the run itself had to edit an existing test query). The break is documented in '### Breaking changes'. Safeguards: the break is documented in '### Breaking changes'; that warns clients but does not prevent the failure. Remaining harm: API clients that declare `$input: TranslationInput!` fail validation until they change their queries.",
+          "impact": "Existing productTranslate API clients break until they change their queries. Not a runtime or data break."
         },
         {
           "id": "grill-with-docs-2",
@@ -531,7 +537,7 @@
           "id": "grill-with-docs-3",
           "metric": "0.2",
           "type": "negative",
-          "level": "major",
+          "level": "minor",
           "evidence": [
             {
               "kind": "base",
@@ -545,8 +551,8 @@
             }
           ],
           "grounding": "task-small.md hidden question 6: 'it is included in product CSV export'; the dashboard export dialog lists exportable fields explicitly and has no export-all path over ProductFieldEnum.",
-          "why": "positive: the backend exports the column. / negative: the dashboard export dialog does not offer STORAGE_CONDITIONS, so staff cannot select the column in the only UI that starts a product export. reason: none found.",
-          "impact": "The agreed CSV-export behaviour is unreachable for staff from the dashboard."
+          "why": "positive: the backend exports the column. / negative: the dashboard export dialog does not offer STORAGE_CONDITIONS, so staff cannot select the column in the only UI that starts a product export. reason: none found. Safeguards: the backend export supports the column (ProductFieldEnum.STORAGE_CONDITIONS and the CSV mapping). Remaining harm: staff cannot pick it in the existing export dialog list; a missing option in an existing UI list that the backend supports is minor (real failure 17).",
+          "impact": "Staff cannot select the column in the dashboard export dialog; the backend export supports it."
         },
         {
           "id": "grill-with-docs-4",
@@ -677,7 +683,7 @@
           ]
         },
         "0.2": {
-          "v": 4,
+          "v": 5,
           "findings": [
             "grill-with-docs-3",
             "grill-with-docs-4"
@@ -849,7 +855,7 @@
         },
         {
           "finding": "grill-with-docs-d2",
-          "level": "high"
+          "level": "medium"
         },
         {
           "finding": "grill-with-docs-d3",
@@ -899,7 +905,7 @@
           ],
           "baseline": "absent: no storage_conditions cleaner in saleor product_create/update; saleor-dashboard:src/products/views/ProductUpdate/handlers/utils.ts \"variables.input[\\\"storageConditions\\\"] = data.storageConditions;\"",
           "covered_by": "- (1.1 '-'; baseline-2)",
-          "level": "high"
+          "level": "medium"
         },
         {
           "id": "grill-with-docs-d3",
@@ -974,7 +980,7 @@
       ],
       "merge_advice": {
         "advice": "no",
-        "reason": "Major: breaking productTranslate input (EA11, documented); major: export dialog does not offer the field. Rest minor."
+        "reason": "Major: breaking productTranslate input (EA11, documented). Rest minor (incl. export dialog option)."
       },
       "objections": [
         {
@@ -982,18 +988,30 @@
           "text": "#7 INTENT: 'why' of negatives 2,3,5,7 does not state whether a reason was found.",
           "decision": "accept",
           "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        },
+        {
+          "from": "operator",
+          "text": "Re-level by SCORE-DIFFS.md D82 (Major = real harm that remains after existing safeguards; constraint 10 changelog cap; real failures 16-17); no re-judge.",
+          "decision": "accept",
+          "reason": "grill-with-docs-1 stays major, why names safeguards + remaining harm; grill-with-docs-3 major->minor. Values and merge advice follow."
+        },
+        {
+          "from": "operator",
+          "text": "grill-with-docs-d2: server-side trimming rated high, but the missing trimming is minor formatting noise after D82 (baseline-2, superpowers-1, rosetta-skills-2).",
+          "decision": "accept",
+          "reason": "grill-with-docs-d2 high -> medium by its own impact (constraint 22): a clear but contained benefit."
         }
       ],
       "totals": {
-        "total": 71.5,
-        "bonus": 4.3,
-        "bonus_delta": 4.3,
+        "total": 71.6,
+        "bonus": 4.15,
+        "bonus_delta": 4.15,
         "blockers": 0,
-        "majors": 2,
-        "minors": 5,
+        "majors": 1,
+        "minors": 6,
         "strengths": 1,
         "categories": {
-          "H0": 50.0,
+          "H0": 55.0,
           "H1": 65.5,
           "H2": 70.0,
           "H3": 67.5,
@@ -1499,7 +1517,7 @@
           "id": "rosetta-light-2",
           "metric": "0.2",
           "type": "negative",
-          "level": "major",
+          "level": "minor",
           "evidence": [
             {
               "kind": "new",
@@ -1518,8 +1536,8 @@
             }
           ],
           "grounding": "task-small.md hidden question 6: 'it is included in product CSV export'; the dashboard export dialog lists exportable fields explicitly and has no export-all path over ProductFieldEnum.",
-          "why": "positive: the backend exports the column. / negative: the dashboard export dialog does not offer STORAGE_CONDITIONS, so staff cannot select the column in the only UI that starts a product export. reason: none found; the label was added but the dialog list was not, which looks like an oversight.",
-          "impact": "The agreed CSV-export behaviour is unreachable for staff from the dashboard."
+          "why": "positive: the backend exports the column. / negative: the dashboard export dialog does not offer STORAGE_CONDITIONS, so staff cannot select the column in the only UI that starts a product export. reason: none found; the label was added but the dialog list was not, which looks like an oversight. Safeguards: the backend export supports the column (ProductFieldEnum.STORAGE_CONDITIONS and the CSV mapping). Remaining harm: staff cannot pick it in the existing export dialog list; a missing option in an existing UI list that the backend supports is minor (real failure 17).",
+          "impact": "Staff cannot select the column in the dashboard export dialog; the backend export supports it."
         },
         {
           "id": "rosetta-light-3",
@@ -1705,7 +1723,7 @@
           ]
         },
         "0.2": {
-          "v": 4,
+          "v": 6,
           "findings": [
             "rosetta-light-2"
           ]
@@ -1977,8 +1995,8 @@
         }
       ],
       "merge_advice": {
-        "advice": "no",
-        "reason": "Major: export dialog does not offer the field. Rest minor (server-side trim, translation payload, progress, changeset)."
+        "advice": "yes",
+        "reason": "Only minors: export dialog option, server-side trim (EA6), translation payload, progress, changeset, duplicate max-length error - fit for follow-ups."
       },
       "objections": [
         {
@@ -2010,18 +2028,24 @@
           "text": "#7 INTENT: 'why' of negatives 2,3,4,7,10,12 does not state whether a reason was found.",
           "decision": "accept",
           "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        },
+        {
+          "from": "operator",
+          "text": "Re-level by SCORE-DIFFS.md D82 (Major = real harm that remains after existing safeguards; constraint 10 changelog cap; real failures 16-17); no re-judge.",
+          "decision": "accept",
+          "reason": "rosetta-light-2 major->minor. Values and merge advice follow."
         }
       ],
       "totals": {
-        "total": 72.8,
+        "total": 73.4,
         "bonus": 5.2,
         "bonus_delta": 3.55,
         "blockers": 0,
-        "majors": 1,
-        "minors": 7,
+        "majors": 0,
+        "minors": 8,
         "strengths": 3,
         "categories": {
-          "H0": 45.0,
+          "H0": 55.0,
           "H1": 65.9,
           "H2": 70.0,
           "H3": 70.0,
@@ -2066,7 +2090,7 @@
           "id": "rosetta-skills-2",
           "metric": "1.1",
           "type": "negative",
-          "level": "major",
+          "level": "minor",
           "evidence": [
             {
               "kind": "new",
@@ -2085,8 +2109,8 @@
             }
           ],
           "grounding": "task-small.md extra answer 6: 'Whitespace-only input: store as empty? Yes. Trim it, and treat a blank result as empty.'",
-          "why": "positive: reason found - a deliberate 'stored as entered' policy (documented in docs/CATALOG-CONTEXT.md, tested), the create dialog omits blank values and the storefront trims. / negative: EA6 decided trim + blank = empty; the update path and the API store whitespace-only and padded values as submitted.",
-          "impact": "Whitespace values persist in data, webhooks and CSV for every update; ongoing cleanup cost."
+          "why": "positive: reason found - a deliberate 'stored as entered' policy (documented in docs/CATALOG-CONTEXT.md, tested), the create dialog omits blank values and the storefront trims. / negative: EA6 decided trim + blank = empty; the update path and the API store whitespace-only and padded values as submitted. Safeguards: the create dialog omits blank values and the storefront trims (resolveStorageConditions). Remaining harm: whitespace-only and padded values are stored and reach API clients, product webhooks and the CSV export; customers see trimmed values (real failure 16).",
+          "impact": "Formatting noise in stored data and integration output (API, webhooks, CSV); customers are not affected."
         },
         {
           "id": "rosetta-skills-3",
@@ -2134,7 +2158,7 @@
           "id": "rosetta-skills-5",
           "metric": "0.2",
           "type": "negative",
-          "level": "major",
+          "level": "minor",
           "evidence": [
             {
               "kind": "base",
@@ -2148,8 +2172,8 @@
             }
           ],
           "grounding": "task-small.md hidden question 6: 'it is included in product CSV export'; the dashboard export dialog lists exportable fields explicitly and has no export-all path over ProductFieldEnum.",
-          "why": "positive: the backend exports the column. / negative: the dashboard export dialog does not offer STORAGE_CONDITIONS, so staff cannot select the column in the only UI that starts a product export. reason: none found.",
-          "impact": "The agreed CSV-export behaviour is unreachable for staff from the dashboard."
+          "why": "positive: the backend exports the column. / negative: the dashboard export dialog does not offer STORAGE_CONDITIONS, so staff cannot select the column in the only UI that starts a product export. reason: none found. Safeguards: the backend export supports the column (ProductFieldEnum.STORAGE_CONDITIONS and the CSV mapping). Remaining harm: staff cannot pick it in the existing export dialog list; a missing option in an existing UI list that the backend supports is minor (real failure 17).",
+          "impact": "Staff cannot select the column in the dashboard export dialog; the backend export supports it."
         },
         {
           "id": "rosetta-skills-6",
@@ -2203,13 +2227,13 @@
           ]
         },
         "0.2": {
-          "v": 4,
+          "v": 6,
           "findings": [
             "rosetta-skills-5"
           ]
         },
         "1.1": {
-          "v": 4,
+          "v": 6,
           "findings": [
             "rosetta-skills-2"
           ]
@@ -2482,8 +2506,8 @@
         }
       ],
       "merge_advice": {
-        "advice": "no",
-        "reason": "Majors: no trimming on the update/API path (EA6) and export dialog lacks the field."
+        "advice": "yes",
+        "reason": "Only minors: export dialog option, trim on the update/API path (EA6), translation payload, progress, empty string instead of null - fit for follow-ups."
       },
       "objections": [
         {
@@ -2491,19 +2515,25 @@
           "text": "#7 INTENT: 'why' of negatives 3,4,5 does not state whether a reason was found.",
           "decision": "accept",
           "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        },
+        {
+          "from": "operator",
+          "text": "Re-level by SCORE-DIFFS.md D82 (Major = real harm that remains after existing safeguards; constraint 10 changelog cap; real failures 16-17); no re-judge.",
+          "decision": "accept",
+          "reason": "rosetta-skills-2 major->minor; rosetta-skills-5 major->minor. Values and merge advice follow."
         }
       ],
       "totals": {
-        "total": 72.3,
+        "total": 73.6,
         "bonus": 4.7,
         "bonus_delta": 3.8,
         "blockers": 0,
-        "majors": 2,
-        "minors": 3,
+        "majors": 0,
+        "minors": 5,
         "strengths": 2,
         "categories": {
-          "H0": 45.0,
-          "H1": 61.4,
+          "H0": 55.0,
+          "H1": 65.7,
           "H2": 70.0,
           "H3": 70.0,
           "H4": 70.0,
@@ -2566,8 +2596,8 @@
             }
           ],
           "grounding": "task-small.md extra answer 11: 'The shared `TranslationInput`. No breaking change to `productTranslate`.'",
-          "why": "positive: reason found - a product-only input keeps the field off category/collection inputs, so no reject logic and no crash path through the shared validate_input_against_model (base utils.py L74-79). / negative: EA11 decided the shared TranslationInput with no breaking change; productTranslate's input type changes, so clients that declare `$input: TranslationInput!` fail validation (the run itself had to edit an existing test query).",
-          "impact": "Existing productTranslate callers must change their queries; a reviewer would block the break. Not a runtime or data break."
+          "why": "positive: reason found - a product-only input keeps the field off category/collection inputs, so no reject logic and no crash path through the shared validate_input_against_model (base utils.py L74-79). / negative: EA11 decided the shared TranslationInput with no breaking change; productTranslate's input type changes, so clients that declare `$input: TranslationInput!` fail validation (the run itself had to edit an existing test query). Safeguards: none; only the run's own test query was changed and the CHANGELOG does not mention the break. Remaining harm: API clients that declare `$input: TranslationInput!` fail validation until they change their queries.",
+          "impact": "Existing productTranslate API clients break until they change their queries. Not a runtime or data break."
         },
         {
           "id": "spec-kit-3",
@@ -2636,7 +2666,7 @@
           "id": "spec-kit-6",
           "metric": "8.2",
           "type": "negative",
-          "level": "major",
+          "level": "minor",
           "evidence": [
             {
               "kind": "new",
@@ -2650,8 +2680,8 @@
             }
           ],
           "grounding": "8.2: breaking changes in the breaking section.",
-          "why": "positive: entry exists. / negative: the breaking productTranslate input change, translations, webhooks and CSV export are not mentioned at all. reason: none found.",
-          "impact": "API consumers get no warning about a breaking change."
+          "why": "positive: entry exists. / negative: the breaking productTranslate input change, translations, webhooks and CSV export are not mentioned at all. reason: none found. The change it does not document is already rated negative (spec-kit-2): at most minor (constraint 10).",
+          "impact": "API consumers get no CHANGELOG warning about the productTranslate break rated in spec-kit-2."
         },
         {
           "id": "spec-kit-7",
@@ -2872,7 +2902,7 @@
           ]
         },
         "8.2": {
-          "v": 4,
+          "v": 6,
           "findings": [
             "spec-kit-6"
           ]
@@ -2901,7 +2931,7 @@
       "bonus": [
         {
           "finding": "spec-kit-d1",
-          "level": "high"
+          "level": "medium"
         },
         {
           "finding": "spec-kit-d2",
@@ -2929,7 +2959,7 @@
           ],
           "baseline": "absent: no storage_conditions cleaner in saleor product_create/update; saleor-dashboard:src/products/views/ProductUpdate/handlers/utils.ts \"variables.input[\\\"storageConditions\\\"] = data.storageConditions;\"",
           "covered_by": "- (1.1 '-')",
-          "level": "high"
+          "level": "medium"
         },
         {
           "id": "spec-kit-d2",
@@ -2976,7 +3006,7 @@
       ],
       "merge_advice": {
         "advice": "no",
-        "reason": "Majors: breaking productTranslate input (EA11) and the break is missing from the CHANGELOG."
+        "reason": "Major: breaking productTranslate input (EA11). Rest minor (incl. the break missing from the CHANGELOG)."
       },
       "objections": [
         {
@@ -2984,15 +3014,27 @@
           "text": "#7 INTENT: 'why' of negatives 4,5,6,7 does not state whether a reason was found.",
           "decision": "accept",
           "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        },
+        {
+          "from": "operator",
+          "text": "Re-level by SCORE-DIFFS.md D82 (Major = real harm that remains after existing safeguards; constraint 10 changelog cap; real failures 16-17); no re-judge.",
+          "decision": "accept",
+          "reason": "spec-kit-2 stays major, why names safeguards + remaining harm; spec-kit-6 major->minor. Values and merge advice follow."
+        },
+        {
+          "from": "operator",
+          "text": "spec-kit-d1: server-side trimming rated high, but the missing trimming is minor formatting noise after D82 (baseline-2, superpowers-1, rosetta-skills-2).",
+          "decision": "accept",
+          "reason": "spec-kit-d1 high -> medium by its own impact (constraint 22): a clear but contained benefit."
         }
       ],
       "totals": {
-        "total": 70.5,
-        "bonus": 2.8,
-        "bonus_delta": 2.8,
+        "total": 70.7,
+        "bonus": 2.65,
+        "bonus_delta": 2.65,
         "blockers": 0,
-        "majors": 2,
-        "minors": 5,
+        "majors": 1,
+        "minors": 6,
         "strengths": 2,
         "categories": {
           "H0": 60.0,
@@ -3003,7 +3045,7 @@
           "H5": 70.0,
           "H6": 67.6,
           "H7": 70.0,
-          "H8": 60.0,
+          "H8": 64.4,
           "H9": 70.0
         }
       }
@@ -3014,7 +3056,7 @@
           "id": "superpowers-1",
           "metric": "1.1",
           "type": "negative",
-          "level": "major",
+          "level": "minor",
           "evidence": [
             {
               "kind": "new",
@@ -3028,8 +3070,8 @@
             }
           ],
           "grounding": "task-small.md extra answer 6: 'Whitespace-only input: store as empty? Yes. Trim it, and treat a blank result as empty.'",
-          "why": "positive: the storefront trims and treats blank translations as missing (pickTranslatedStorageConditions). / negative: no reason found; neither saleor nor the dashboard trims, so whitespace-only input is stored (EA6).",
-          "impact": "Whitespace values persist in data, webhooks and CSV; ongoing cleanup cost."
+          "why": "positive: the storefront trims and treats blank translations as missing (pickTranslatedStorageConditions). / negative: no reason found; neither saleor nor the dashboard trims, so whitespace-only input is stored (EA6). Safeguards: the storefront trims and treats blank values as missing (pickTranslatedStorageConditions). Remaining harm: whitespace-only and padded values are stored and reach API clients, product webhooks and the CSV export; customers see trimmed values (real failure 16).",
+          "impact": "Formatting noise in stored data and integration output (API, webhooks, CSV); customers are not affected."
         },
         {
           "id": "superpowers-2",
@@ -3054,7 +3096,7 @@
             }
           ],
           "grounding": "task-small.md extra answer 20: staff translate it on the translation page the same way as name and description.",
-          "why": "positive: keeps progress unchanged for products without the field. / negative: once the base value is cleared, an existing translation is hidden from the translation page but the storefront still prefers it. reason found: hide translations that have no base value so the progress of existing products stays unchanged; it creates an unfixable orphan state.",
+          "why": "positive: keeps progress unchanged for products without the field. / negative: once the base value is cleared, an existing translation is hidden from the translation page but the storefront still prefers it. reason found: hide translations that have no base value so the progress of existing products stays unchanged; it creates an unfixable orphan state. Safeguards: none; the dashboard hides the orphan translation. Remaining harm: customers in that language see storage text the merchant removed, and staff cannot clear it in the dashboard.",
           "impact": "Customers in that language keep seeing storage text the merchant removed, and staff cannot clear it in the dashboard."
         },
         {
@@ -3108,7 +3150,7 @@
           "id": "superpowers-5",
           "metric": "8.2",
           "type": "negative",
-          "level": "major",
+          "level": "minor",
           "evidence": [
             {
               "kind": "new",
@@ -3122,8 +3164,8 @@
             }
           ],
           "grounding": "Dashboard rule (.changeset/README.md, check-changesets in pre-commit and lint CI): only patch changesets.",
-          "why": "positive: changeset present and descriptive. / negative: 'minor' bump is rejected by the changeset linter. reason found: semver - a new feature is a minor bump; the repo allows only patch changesets (.changeset/README.md).",
-          "impact": "Lint CI fails until the changeset is fixed."
+          "why": "positive: changeset present and descriptive. / negative: 'minor' bump is rejected by the changeset linter. reason found: semver - a new feature is a minor bump; the repo allows only patch changesets (.changeset/README.md). Safeguards: check-changesets in pre-commit and lint CI (base scripts/check-changesets.ts L22) rejects the type before merge. Remaining harm: one failed CI round; nothing wrong reaches users or integrators (real failure 16).",
+          "impact": "Lint CI fails until the type is changed to patch; no effect on users or integrators."
         },
         {
           "id": "superpowers-6",
@@ -3228,7 +3270,7 @@
           ]
         },
         "1.1": {
-          "v": 3,
+          "v": 4,
           "findings": [
             "superpowers-1",
             "superpowers-2"
@@ -3361,7 +3403,7 @@
           "checked": "GraphQL descriptions present with 'Added in Saleor 3.23.' markers (ADDED_IN_323 is the repo pattern, saleor descriptions.py L18)."
         },
         "8.2": {
-          "v": 4,
+          "v": 6,
           "findings": [
             "superpowers-5"
           ]
@@ -3515,7 +3557,7 @@
       ],
       "merge_advice": {
         "advice": "no",
-        "reason": "Majors: no trimming (EA6), orphan translations hidden from staff, non-patch changeset fails lint."
+        "reason": "Major: orphan translations hidden from staff while customers still see them. Rest minor (incl. no trimming, EA6, and the changeset type)."
       },
       "objections": [
         {
@@ -3529,26 +3571,32 @@
           "text": "#7 INTENT: 'why' of negatives 2,5,8,9 does not state whether a reason was found.",
           "decision": "accept",
           "reason": "Added 'reason found: ... / reason: none found' to each; no level changed."
+        },
+        {
+          "from": "operator",
+          "text": "Re-level by SCORE-DIFFS.md D82 (Major = real harm that remains after existing safeguards; constraint 10 changelog cap; real failures 16-17); no re-judge.",
+          "decision": "accept",
+          "reason": "superpowers-1 major->minor; superpowers-2 stays major, why names safeguards + remaining harm; superpowers-5 major->minor. Values and merge advice follow."
         }
       ],
       "totals": {
-        "total": 72.8,
+        "total": 73.5,
         "bonus": 5.45,
         "bonus_delta": 3.8,
         "blockers": 0,
-        "majors": 3,
-        "minors": 5,
+        "majors": 1,
+        "minors": 7,
         "strengths": 2,
         "categories": {
           "H0": 65.0,
-          "H1": 61.4,
+          "H1": 63.5,
           "H2": 67.7,
           "H3": 70.0,
           "H4": 66.0,
           "H5": 70.0,
           "H6": 70.0,
           "H7": 70.0,
-          "H8": 61.1,
+          "H8": 65.6,
           "H9": 80.0
         }
       }

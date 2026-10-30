@@ -58,13 +58,13 @@ operator_score: 5
 operator_merge_ready: yes  
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total: 72.3               # diff score: total + bonus, from the totals script
+judge_total: 73.6               # diff score: total + bonus, from the totals script
 judge_bonus: 4.7               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
 judge_blockers: 0            # number of blocker findings
-judge_majors: 2              # number of major findings
-judge_minors: 3              # number of minor findings
+judge_majors: 0              # number of major findings
+judge_minors: 5              # number of minor findings
 judge_strengths: 2           # number of strengths
-judge_merge_ready_advice: no  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
+judge_merge_ready_advice: yes  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 
 # Run report: <RUN_ID> · small task · <METHOD> · <RUNNER>
