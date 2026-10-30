@@ -15,22 +15,22 @@ permalink: /contribute/
   <p class="section-subtitle">Get familiar with the project before diving in.</p>
 
   <div class="docs-grid">
-    <a href="https://github.com/griddynamics/rosetta/blob/main/README.md" target="_blank" rel="noopener noreferrer" class="docs-card">
+    <a href="/rosetta/docs/introduction/" class="docs-card">
       <svg class="docs-card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="docs-card-title">README</div>
       <p class="docs-card-desc">What Rosetta is, quick setup, and supported IDEs.</p>
     </a>
-    <a href="https://github.com/griddynamics/rosetta/blob/main/DEVELOPER_GUIDE.md" target="_blank" rel="noopener noreferrer" class="docs-card">
+    <a href="/rosetta/docs/developer-guide/" class="docs-card">
       <svg class="docs-card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="docs-card-title">Developer Guide</div>
       <p class="docs-card-desc">Repo layout, local workflows, and where to change what.</p>
     </a>
-    <a href="https://github.com/griddynamics/rosetta/blob/main/REVIEW.md" target="_blank" rel="noopener noreferrer" class="docs-card">
+    <a href="/rosetta/docs/review/" class="docs-card">
       <svg class="docs-card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="docs-card-title">Review Standards</div>
       <p class="docs-card-desc">What reviewers verify and what authors must provide.</p>
     </a>
-    <a href="https://github.com/griddynamics/rosetta/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener noreferrer" class="docs-card">
+    <a href="/rosetta/docs/architecture/" class="docs-card">
       <svg class="docs-card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="8.5" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10v2.5a1.5 1.5 0 001.5 1.5h0M17.5 10v2.5a1.5 1.5 0 01-1.5 1.5h0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       <div class="docs-card-title">Architecture</div>
       <p class="docs-card-desc">System structure, components, and data flow.</p>
@@ -129,7 +129,7 @@ permalink: /contribute/
       <p>Found an issue or have a suggestion? Raise a GitHub issue or email us at <a href="mailto:rosetta-support@griddynamics.com">rosetta-support@griddynamics.com</a>. Whenever a run fails or you see something you'd like improved, the <code>post-mortem</code> skill (<code>/post-mortem</code>) drafts a sanitized issue for you — submitted only with your explicit approval.</p>
     </div>
     <div class="rm-feedback-actions">
-      <a href="https://github.com/griddynamics/rosetta/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" class="rm-feedback-btn">Read CONTRIBUTING.md</a>
+      <a href="/rosetta/docs/contributing/" class="rm-feedback-btn">Read CONTRIBUTING.md</a>
       <a href="https://github.com/griddynamics/rosetta/issues" target="_blank" rel="noopener noreferrer" class="rm-feedback-btn">Open Issue</a>
       <a href="https://github.com/griddynamics/rosetta/pulls" target="_blank" rel="noopener noreferrer" class="rm-feedback-btn">Open a PR</a>
     </div>

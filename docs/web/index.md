@@ -246,7 +246,7 @@ permalink: /
 
           <!-- Tab: Claude Code -->
           <div class="qs-content active" data-tab-content="claude">
-            <p class="qs-content-hint">Install the Rosetta plugin from the Claude Code marketplace. Deep links: <a href="{{ '/docs/plugins/#claude-code' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Install the Rosetta plugin from the Claude Code marketplace. Deep links: <a href="{{ '/user-guide/install/#claude-code' | relative_url }}">Install guide</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code"><span class="qs-prompt">$</span> claude plugin marketplace add griddynamics/rosetta
 <span class="qs-prompt">$</span> claude plugin install rosetta@rosetta</pre>
@@ -257,35 +257,35 @@ claude plugin install rosetta@rosetta">Copy</button>
 
           <!-- Tab: Cursor -->
           <div class="qs-content" data-tab-content="cursor">
-            <p class="qs-content-hint">Use a Cursor team marketplace when available. If not, extract the standalone package into the repository. Deep links: <a href="{{ '/docs/plugins/#cursor' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Use a Cursor team marketplace when available. If not, extract the standalone package into the repository. Deep links: <a href="{{ '/user-guide/install/#cursor' | relative_url }}">Install guide</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code"><span class="qs-comment"># Team marketplace repository</span>
 https://github.com/griddynamics/rosetta
 
 <span class="qs-comment"># Standalone fallback</span>
-Download core-cursor-standalone-*.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.</pre>
+Download core-cursor-standalone-&lt;version&gt;-&lt;date&gt;.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.</pre>
               <button class="qs-copy" data-copy="https://github.com/griddynamics/rosetta">Copy</button>
             </div>
           </div>
 
           <!-- Tab: VS Code / GitHub Copilot -->
           <div class="qs-content" data-tab-content="copilot">
-            <p class="qs-content-hint">Add Rosetta as a Copilot plugin marketplace (VS Code or JetBrains) and install <code>rosetta</code> from agent customizations. If your Marketplace/plugin catalog isn't available, extract the standalone package as a fallback. Deep links: <a href="{{ '/docs/plugins/#github-copilot' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Add Rosetta as a Copilot plugin marketplace (VS Code or JetBrains) and install <code>rosetta</code> from agent customizations. If your Marketplace/plugin catalog isn't available, extract the standalone package as a fallback. Deep links: <a href="{{ '/user-guide/install/#github-copilot-vs-code-and-jetbrains' | relative_url }}">Install guide</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code"><span class="qs-comment"># VS Code / JetBrains Copilot marketplace setting</span>
 https://github.com/griddynamics/rosetta
 
 <span class="qs-comment"># Standalone fallback</span>
-Download core-copilot-standalone-*.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.</pre>
+Download core-copilot-standalone-&lt;version&gt;-&lt;date&gt;.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.</pre>
               <button class="qs-copy" data-copy="https://github.com/griddynamics/rosetta">Copy</button>
             </div>
           </div>
 
           <!-- Tab: Codex -->
           <div class="qs-content" data-tab-content="codex">
-            <p class="qs-content-hint">Extract the standalone Codex plugin package into the repository, then enable hooks. Deep links: <a href="{{ '/docs/plugins/#codex' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Extract the standalone Codex plugin package into the repository, then enable hooks. Deep links: <a href="{{ '/user-guide/install/#codex' | relative_url }}">Install guide</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
-              <pre class="qs-code">Download core-codex-*.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.
+              <pre class="qs-code">Download core-codex-&lt;version&gt;-&lt;date&gt;.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.
 
 <span class="qs-prompt">$</span> codex features enable hooks</pre>
               <button class="qs-copy" data-copy="codex features enable hooks">Copy</button>
@@ -294,9 +294,9 @@ Download core-copilot-standalone-*.zip from the <a href="https://github.com/grid
 
           <!-- Tab: Antigravity -->
           <div class="qs-content" data-tab-content="antigravity">
-            <p class="qs-content-hint">Extract the standalone Antigravity plugin package into the workspace plugin folder. One plugin serves Antigravity 2.0, CLI, and IDE. Deep links: <a href="{{ '/docs/plugins/#antigravity' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Extract the standalone Antigravity plugin package into the workspace plugin folder. One plugin serves Antigravity 2.0, CLI, and IDE. Deep links: <a href="{{ '/user-guide/install/#antigravity' | relative_url }}">Install guide</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
-              <pre class="qs-code">Download core-antigravity-*.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into .agents/plugins/rosetta/ at the workspace root.
+              <pre class="qs-code">Download core-antigravity-&lt;version&gt;-&lt;date&gt;.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into .agents/plugins/rosetta/ at the workspace root.
 
 <span class="qs-comment"># All workspaces instead of one</span>
 ~/.gemini/config/plugins/rosetta/</pre>
@@ -306,7 +306,7 @@ Download core-copilot-standalone-*.zip from the <a href="https://github.com/grid
 
           <!-- Tab: Windsurf -->
           <div class="qs-content" data-tab-content="windsurf">
-            <p class="qs-content-hint">Add Rosetta MCP to Devin (Windsurf), then add the bootstrap rule. Deep links: <a href="{{ '/docs/mcps/#windsurf' | relative_url }}">MCPs Installation</a>, <a href="{{ '/docs/installation/#http-transport' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Add Rosetta MCP to Devin (Windsurf), then add the bootstrap rule. Deep links: <a href="{{ '/docs/mcps/#step-1-connect-rosetta-mcp' | relative_url }}">MCPs Installation</a>, <a href="{{ '/docs/installation/#http-transport-mcp-optional' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code">{
   "mcpServers": {
@@ -324,7 +324,7 @@ Bootstrap rule destination:
 
           <!-- Tab: OpenCode -->
           <div class="qs-content" data-tab-content="opencode">
-            <p class="qs-content-hint">Add Rosetta MCP to OpenCode, then add the bootstrap rule. Deep links: <a href="{{ '/docs/mcps/#opencode' | relative_url }}">MCPs Installation</a>, <a href="{{ '/docs/installation/#http-transport' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Add Rosetta MCP to OpenCode, then add the bootstrap rule. Deep links: <a href="{{ '/docs/mcps/#step-1-connect-rosetta-mcp' | relative_url }}">MCPs Installation</a>, <a href="{{ '/docs/installation/#http-transport-mcp-optional' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code">{
   "mcp": {
@@ -344,7 +344,7 @@ AGENTS.md</pre>
 
           <!-- Tab: JetBrains Junie -->
           <div class="qs-content" data-tab-content="junie">
-            <p class="qs-content-hint">Add Rosetta MCP in Junie settings, then add the bootstrap rule. Deep links: <a href="{{ '/docs/mcps/#jetbrains-junie' | relative_url }}">MCPs Installation</a>, <a href="{{ '/docs/installation/#http-transport' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Add Rosetta MCP in Junie settings, then add the bootstrap rule. Deep links: <a href="{{ '/docs/mcps/#step-1-connect-rosetta-mcp' | relative_url }}">MCPs Installation</a>, <a href="{{ '/docs/installation/#http-transport-mcp-optional' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code">{
   "mcpServers": {
@@ -362,7 +362,7 @@ Bootstrap rule destination:
 
           <!-- Tab: Other MCP Client -->
           <div class="qs-content" data-tab-content="other-mcp">
-            <p class="qs-content-hint">Use the Rosetta HTTP MCP endpoint in any MCP-compatible IDE or coding agent without a Rosetta plugin path. Add the bootstrap rule to that tool's project instruction file. Deep links: <a href="{{ '/docs/mcps/' | relative_url }}">MCPs Installation</a>, <a href="{{ '/docs/installation/#http-transport' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Use the Rosetta HTTP MCP endpoint in any MCP-compatible IDE or coding agent without a Rosetta plugin path. Add the bootstrap rule to that tool's project instruction file. Deep links: <a href="{{ '/docs/mcps/' | relative_url }}">MCPs Installation</a>, <a href="{{ '/docs/installation/#http-transport-mcp-optional' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code">https://mcp.rosetta.griddynamics.net/mcp
 

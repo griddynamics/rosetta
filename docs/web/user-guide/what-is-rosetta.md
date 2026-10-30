@@ -17,15 +17,7 @@ It's not a new AI agent and it doesn't replace the tools you already have. It pl
 
 ## What changes when you use it
 
-Here's the difference on a typical request like *"Add rate limiting to the checkout API."*
-
-| Without Rosetta                                  | With Rosetta                                       |
-| ------------------------------------------------ | -------------------------------------------------- |
-| Jumps straight into editing the handler          | Reads your architecture and conventions first      |
-| Duplicates code that already exists               | Reuses your shared patterns and libraries          |
-| No plan, no checkpoint                            | Proposes a plan and asks you to approve it          |
-| Reviews its own work in the same breath           | A fresh reviewer double-checks it                  |
-| "Generate and hope"                               | Runs the tests and validates with real evidence    |
+Instead of guessing from a few open files, the agent reads your architecture and conventions first, proposes a plan, waits for your approval, and validates with a real test run. A side-by-side example is in [Why Rosetta](/rosetta/docs/why/).
 
 The core idea: **teach the agent how to *think*, not what to do.** The model already knows Python, Java, and React. What it's missing is your engineering discipline — and that's what Rosetta supplies.
 

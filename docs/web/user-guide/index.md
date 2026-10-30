@@ -6,13 +6,11 @@ search_exclude: true
 ---
 
 # User Guide
+[README](/rosetta/docs/introduction/)
+
 Welcome! This guide helps you **use** Rosetta — no internals, no server administration, just the steps you need to get real work done with an AI coding agent.
 
 If you can install a plugin in your IDE and type a message to your coding assistant, you can use Rosetta.
-
-## What is Rosetta, in one sentence
-
-Rosetta gives your AI coding agent (Claude Code, Cursor, Copilot, Codex, Antigravity, and others) your team's engineering know-how — so it reads your architecture and conventions first, asks before doing risky things, and follows a proper Prepare → Research → Plan → Act → Validate process instead of guessing.
 
 ## Start here
 
@@ -28,7 +26,7 @@ Then pick your task from [Scenarios at a glance](#scenarios-at-a-glance) below.
 
 ## See it visually
 
-Open the **[workflow map](/rosetta/user-guide/workflow-map/)** — a diagram that starts from *"what do I want to do?"*, routes you to the right command, and shows the shape every workflow shares. It's the fastest way to get oriented.
+Open the **[workflow map](/rosetta/user-guide/workflow-map/)** — a diagram that starts from *"what do I want to do?"*, routes you to the right command, and shows the shape every workflow shares. It's the fastest way to get oriented. All workflows and skills in one list: [Workflows and skills](/rosetta/docs/catalog/).
 
 ## The 60-second path
 
@@ -104,5 +102,5 @@ Each task has its own page. Jump straight in.
 
 ---
 
-*This user guide is a friendlier companion to the full documentation. For deeper technical detail, the developer-focused docs live in the repository root ([README](/rosetta/user-guide/), [USAGE_GUIDE](/rosetta/docs/usage-guide/), [INSTALLATION](/rosetta/docs/installation/)) and the [`docs/`](/rosetta/docs/introduction/) folder. Each scenario page links to the exact workflow definition it describes.*
+*This user guide is a friendlier companion to the full documentation. For deeper technical detail, see [USAGE_GUIDE](/rosetta/docs/usage-guide/), [INSTALLATION](/rosetta/docs/installation/), and the [`docs/`](/rosetta/docs/introduction/) folder. Each scenario page links to the exact workflow definition it describes.*
 

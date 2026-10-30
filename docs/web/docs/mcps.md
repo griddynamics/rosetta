@@ -11,15 +11,8 @@ permalink: /docs/mcps/
 
 ---
 
-> [!CAUTION]
-> You must receive prior approval from your manager and company to use it.
-
 > [!WARNING]
-> Use **Sonnet 5.5 medium**, **GPT-6-luna-high**, **gemini-3.8-flash-high** or newer models. Avoid Auto model selection.
-
-> [!NOTE]
-> Rosetta is designed to never use or see data or IP.
-> Instead it uses inversion of control, by providing a "menu" to AI coding agents.
+> **Before you start:** get approval from your manager and company. Use **Sonnet 5.5 medium**, **GPT-6-luna-high**, **gemini-3.8-flash-high** or newer models. Avoid Auto model selection. Details: [Before you install](/rosetta/user-guide/install/#before-you-install).
 
 > [!NOTE]
 > The endpoint below (`mcp.rosetta.griddynamics.net`) is a **public hosted instance for evaluation only** — do not point production or sensitive repositories at it. Production use of MCP means deploying your own MCP server and RAGFlow inside your organization's perimeter — see [Deployment Guide](/rosetta/docs/deployment/).
