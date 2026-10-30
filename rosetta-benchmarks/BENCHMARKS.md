@@ -443,7 +443,6 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 | 48 | Privileged API checkout: may staff or apps that use the checkout APIs bypass the age validation (enforce for every checkout / allow authorized staff and apps to bypass)? | Enforce for every checkout, including staff and apps: no staff user or app can bypass the age validation on the checkout APIs. (The agent's recommended option; draft orders: rows 3, 12 and 21.) | L-CP-01 |
 
 Rule for composed answers (rows 21–23): when the agent's question touches several rows, the answer gives the decisions of all those rows in full, as one direct answer to the question (rule above). Rows 21–23 and earlier rows record the text sent at the time, word for word. Open point for the team: extra row 1 (a flag on Product, one store-wide minimum age) and hidden question 2 ("minimum age is empty by default") read as two different models; the answers were sent word for word, and the judge rule is not decided.
-| 35 | Which time zone does the shop use for the age check (and the future-birthday check)? Saleor has only Django's global TIME_ZONE (UTC). | A new `SHOP_TIME_ZONE` setting (environment variable, IANA name, default UTC) used for the age check and the future-birthday check. Nothing else in Saleor changes. | L-CC-04 |
 
 ## 5. Running one experiment
 
