@@ -1,0 +1,13 @@
+Installed plugins:
+
+  ❯ rosetta@rosetta
+    Version: 3.1.17
+    Read from: /Users/isolomatov/saleor-benchmark/envs/rosetta-skills/src/plugins/core-claude
+    Scope: user
+    Status: ✔ enabled
+
+No MCP servers configured. Use `claude mcp add` to add a server.
+(no skills dir)
+saleor: rosetta-light-v1 rosetta-skills-v1 rosetta-v1 
+saleor-dashboard: rosetta-light-v1 rosetta-skills-v1 rosetta-v1 
+react-storefront: rosetta-light-v1 rosetta-skills-v1 rosetta-v1 

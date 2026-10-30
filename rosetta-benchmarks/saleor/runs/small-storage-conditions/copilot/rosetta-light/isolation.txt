@@ -1,0 +1,309 @@
+
+$ printenv COPILOT_HOME
+/Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot
+[exit 0]
+
+$ printenv COPILOT_AUTO_UPDATE
+false
+[exit 0]
+
+$ printenv COPILOT_CUSTOM_INSTRUCTIONS_DIRS
+/Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/copilot-rules
+[exit 0]
+
+$ copilot --version
+GitHub Copilot CLI 1.0.103.
+Run 'copilot update' to check for updates.
+[exit 0]
+
+$ node -v
+v24.21.0
+[exit 0]
+
+$ copilot config --list
+autoUpdate=false
+memory=false
+ide.autoConnect=false
+model=gpt-5.6-terra
+effortLevel=medium
+contextTier=long_context
+continueOnAutoMode=false
+sandbox.enabled=false
+ignoredSkillsLocations=/Users/rcimendur/.agents/skills
+ignoredSkillsLocations=/Users/rcimendur/.claude/skills
+ignoredSkillsLocations=/Users/rcimendur/.github/skills
+subagents.agents.explore.model=inherit
+subagents.agents.explore.effortLevel=inherit
+subagents.agents.explore.contextTier=inherit
+subagents.agents.task.model=inherit
+subagents.agents.task.effortLevel=inherit
+subagents.agents.task.contextTier=inherit
+subagents.agents.general-purpose.model=inherit
+subagents.agents.general-purpose.effortLevel=inherit
+subagents.agents.general-purpose.contextTier=inherit
+subagents.agents.code-review.model=inherit
+subagents.agents.code-review.effortLevel=inherit
+subagents.agents.code-review.contextTier=inherit
+subagents.agents.research.model=inherit
+subagents.agents.research.effortLevel=inherit
+subagents.agents.research.contextTier=inherit
+subagents.agents.security-review.model=inherit
+subagents.agents.security-review.effortLevel=inherit
+subagents.agents.security-review.contextTier=inherit
+subagents.disabledSubagents=rubber-duck
+extraKnownMarketplaces.rosetta.source.source=directory
+extraKnownMarketplaces.rosetta.source.path=/Users/rcimendur/saleor-benchmark/envs/rosetta-light/src
+enabledPlugins.rosetta-light@rosetta=true
+enabledPlugins.rosetta@rosetta=false
+[exit 0]
+
+$ copilot config model
+gpt-5.6-terra
+[exit 0]
+
+$ copilot config effortLevel
+medium
+[exit 0]
+
+$ copilot config contextTier
+long_context
+[exit 0]
+
+$ copilot config sandbox.enabled
+false
+[exit 0]
+
+$ python3 -I -c import json,os;print(json.dumps(json.load(open(os.environ["COPILOT_HOME"]+"/settings.json")).get("subagents")))
+{"agents": {"explore": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "task": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "general-purpose": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "code-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "research": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "security-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}}, "disabledSubagents": ["rubber-duck"]}
+[exit 0]
+
+$ copilot -C /Users/rcimendur/saleor-benchmark plugin list
+Built-in plugins:
+  • browser-use (v0.0.4) [disabled]
+Live Plugins (loaded from a local marketplace directory, never copied):
+  • rosetta-light@rosetta (v3.1.17) (enabled)
+      from /Users/rcimendur/saleor-benchmark/envs/rosetta-light/src
+  • rosetta@rosetta (v3.1.17) (disabled)
+      from /Users/rcimendur/saleor-benchmark/envs/rosetta-light/src
+[exit 0]
+
+$ copilot -C /Users/rcimendur/saleor-benchmark skill list
+Plugin skills:
+  backlog - To validate story readiness for a sprint or to break work into a human WBS.
+  checklist - Session self-verification checklist
+  codemap - To generate, populate, and use a project codemap
+  coding-agents-farm - To orchestrate parallel coding-agent farms (Claude, Codex, Copilot, Gemini, etc.) on isolated git worktrees.
+  coding-agents-hooks-authoring - To author, register, and test Rosetta hooks, add a SemanticKind, or debug a hook that won't fire.
+  coding-agents-prompt-authoring - To author, adapt, review, and validate prompts (skills, agents, workflows, rules, etc.) with brief, contracts, and a validation pack.
+  coding - To implement features, fix bugs, and refactor with KISS/SOLID/DRY and systematic validation.
+  dangerous-actions - MUST activate when action OR its consequence is potentially dangerous/irreversible/destructive, or HIGH RISK, or environment is stage, pre-prod, prod, or blast radius.
+  data-collection - To gather QA source artifacts from issue tracker, wiki, test management system
+  debugging - To investigate errors, test failures, and unexpected behavior — root cause before fix.
+  design - To decide architecture — alternatives, tradeoffs, committed decision with rationale, boundaries, domain-specific concerns.
+  deviation - MUST activate when intent is unclear, or cannot follow or deviate from original intent, or easily or reliably solve the problem, something came as SURPRISE or UNEXPECTED, you cannot bet $100 on solution, unknowns or assumptions critically affect solution, you panic, or user asked to UNDO.
+  discovery - To establish what exists — affected areas, behavior, prior attempts, dependencies, data.
+  harness - To build an AI harness: run, observe, validate, automate repeated work faster — CLI/MCP actions, devcontainers, skills, subagents, hooks, pipelines, automations.
+  hitl - MUST activate for ALL tasks — planning, execution, validation, review: session-wide work with human together, human-in-the-loop questioning, approvals, stop-and-wait vs proceed. NEVER assume approval. MANDATORY unless user requested EXACTLY `fully autonomous` or `No HITL`.
+  large-workspace-handling - To partition large workspaces (100+ files) into scoped subagent tasks when context is insufficient.
+  load-project-context - To load the project's business, behavioral, and technical context.
+  natural-writing - To rewrite text in a clear, natural, honest human tone — no AI slop, hype, or robotic phrasing.
+  orchestration - To delegate, prompt and manage subagents. MUST activate to spawn subagent with a quality prompt, unless trivial.
+  planning - To build execution-ready AI sessions graph with intent/ACs/checklists.
+  post-mortem - Diagnose instruction defects and optionally submit Rosetta GitHub issue
+  qa-knowledge - To run QA engineering — requirements/gap analysis, scenario & spec design, test implementation, failure triage — over the QA knowledge base.
+  qa-structure - To resolve QA session paths, identifiers/slugs, and state-file shape
+  questioning - To ask targeted clarification questions only when high-impact unknowns block safe execution.
+  reasoning - To apply structured meta-cognitive thinking to complex problems. Invoke on explicit only.
+  requirements-authoring - To author, update, and validate functional/non-functional requirements as atomic units with user approval.
+  requirements-use - To consume approved requirements for planning, implementation, and validation, with traceability and HITL.
+  research - To run systematic deep research via meta-prompting — grounded references, incremental tracking, self-validation.
+  reverse-engineering - To reverse-engineer code into a spec: extract behavior and domain logic — WHAT and WHY, not HOW.
+  risk-assessment - MUST activate before execution when environment has access to databases, cloud services, S3, or similar external systems, any access to servers of higher environments, and when assessing environment risk level.
+  rosetta - Rosetta identifies and routes user request to the most matching workflow
+  security - Run authorized, evidence-preserving security reviews and prepare remediation inputs.
+  self-learning - MUST STOP and activate on: any failure/error, mistakes, wrong/unexpected result, expected≠actual mismatch, 2 consecutive mismatches, unhappy/upset user, user WRITING IN CAPS, something didn't work. No edits, no reverses, no actions, except this skill.
+  self-organization - MUST activate at 65%+ context usage or on large-file restructuring. Proactive planning, reorganization, stale-content cleanup.
+  sensitive-data - MUST activate when you suspect, there is a slight chance, encounter, read, process, or are about to output any sensitive or possibly sensitive data including PII, PCI, HIPAA, PHI, GDPR, SOC2, FedRAMP, secrets, API keys, passwords, credentials, tokens, certificates, or any sensitive data. Follow compliance/regulations.
+  solr-extending - To build Solr plugins: SearchComponent, QParser, URP, DocTransformer.
+  solr-query - To build and debug Solr queries: eDisMax, block join, JSON facets, kNN, explain.
+  solr-schema - To design and audit Solr schemas: field types, analyzers, docValues, solrconfig.
+  solr-semantic-search - To build Solr phrase-tagging semantic search: concept tagging, taxonomy, graph paths.
+  specflow-use - To connect Rosetta with Grid Dynamics SpecFlow MCP; only when SpecFlow is mentioned and the MCP is installed.
+  subagent-directives - MUST duties for a spawned subagent
+  tech-specs - To define clear, testable tech specs from requirements — target-state architecture, contracts, interfaces.
+  testing - To write thorough, isolated, idempotent tests — 80%+ coverage, external-only mocking, scenario-driven.
+  INDEX - All paths are relative to Rosetta Plugin Path. - `commands/adhoc-flow.md`: "Workflow for the rest of tasks: lightweight documentation, build, track, synchronize, etc." - `commands/api-aqa-flow.md`: "Workflow for backend API test automation: TMS / Issue Tracker test cases → automated API tests, HITL-gated."
+  adhoc-flow - Workflow for the rest of tasks: lightweight documentation, build, track, synchronize, etc.
+  api-aqa-flow-api-spec-analysis - Phase 2 API Spec Analysis of api-aqa-flow
+  api-aqa-flow-data-collection - Phase 1 Data Collection of api-aqa-flow
+  api-aqa-flow-execution-and-report-analysis - Phase 6 Execution & Report Analysis of api-aqa-flow (USER INTERACTION REQUIRED)
+  api-aqa-flow-gap-and-requirements-clarification - Phase 3 Gap & Requirements Clarification of api-aqa-flow (USER INTERACTION REQUIRED)
+  api-aqa-flow-project-config-loading - Phase 0 Project Config Loading of api-aqa-flow (USER INTERACTION CONDITIONALLY REQUIRED)
+  api-aqa-flow-test-case-specification - Phase 4 Test Case Specification of api-aqa-flow (HITL APPROVAL GATE)
+  api-aqa-flow-test-correction - Phase 7 Test Corrections of api-aqa-flow (USER APPROVAL REQUIRED)
+  api-aqa-flow-test-implementation - Phase 5 Test Implementation of api-aqa-flow (USER INTERACTION REQUIRED after implementation)
+  api-aqa-flow - Workflow for backend API test automation: TMS / Issue Tracker test cases → automated API tests, HITL-gated.
+  aqa-flow - Router workflow for test automation: routes to ui-aqa-flow, api-aqa-flow, or testgen-flow. Kept for backward compatibility.
+  arrange-workspace-flow-business-context - Phase 3 Business context of arrange-workspace-flow
+  arrange-workspace-flow-choose-workspace-layout - Phase 1 Choose Workspace Layout of arrange-workspace-flow
+  arrange-workspace-flow-configure-ecosystem - Phase 6 Configure Ecosystem of arrange-workspace-flow
+  arrange-workspace-flow-modernization - Phase 5 Modernization of arrange-workspace-flow
+  arrange-workspace-flow-reference-source-code - Phase 2 Reference Source Code of arrange-workspace-flow
+  arrange-workspace-flow-technical-context - Phase 4 Technical context of arrange-workspace-flow
+  arrange-workspace-flow - Workflow for arranging a workspace: layout, reference source code, business/technical context, ecosystem setup.
+  code-analysis-flow - Workflow for reverse-engineering a codebase into grounded architecture docs, requirements capture, etc.
+  coding-agents-prompting-flow - Workflow for authoring and adapting AI-agent prompts: skills, agents, workflows, rules, etc.
+  coding-flow - Light coding workflow: features, fixes, refactors, unit tests, etc.; scales small to large.
+  external-lib-flow - Workflow for onboarding an external private library so AI can use it without source access.
+  help-flow - Help about Rosetta: explains capabilities and usage.
+  init-workspace-flow-codegraph - Phase 6 Code-graph of init-workspace-flow
+  init-workspace-flow-context - Phase 1 Context of init-workspace-flow
+  init-workspace-flow-discovery - Phase 3 Discovery of init-workspace-flow
+  init-workspace-flow-documentation - Phase 7 Documentation of init-workspace-flow
+  init-workspace-flow-patterns - Phase 5 Patterns of init-workspace-flow
+  init-workspace-flow-questions - Phase 8 Questions of init-workspace-flow
+  init-workspace-flow-shells - Phase 2 Shells of init-workspace-flow
+  init-workspace-flow-verification - Phase 9 Verification of init-workspace-flow
+  init-workspace-flow - Workflow for initializing or upgrading a workspace: context, discovery, documentation, etc.
+  modernization-flow-analysis - Phase 2 Code Analysis of modernization-flow
+  modernization-flow-crossproject - Phase 5 Cross-Project Analysis of modernization-flow
+  modernization-flow-grouping - Phase 4 Class Grouping of modernization-flow
+  modernization-flow-implement - Phase 8 Implementation of modernization-flow
+  modernization-flow-mapping - Phase 6 Implementation Mapping of modernization-flow
+  modernization-flow-reuse - Phase 1 Existing-Library Reuse of modernization-flow
+  modernization-flow-review - Phase 7 Review of modernization-flow
+  modernization-flow-testing - Phase 3 Testing (optional) of modernization-flow
+  modernization-flow - Workflow for converting, modernizing, upgrading, or re-architecting code (e.g. C++→Java, monolith→microservices), etc.
+  requirements-authoring-flow - Workflow for authoring requirements and specifications: drafting, review, validation, etc.
+  research-flow - Workflow for deep project research with grounded references, parallel exploration, etc.
+  security-flow-authorize - Phase 2 Authorize of security-flow
+  security-flow-deterministic-gates - Phase 3 Deterministic Gates of security-flow
+  security-flow-independent-review - Phase 7 Independent Review of security-flow
+  security-flow-inspect-and-test - Phase 5 Inspect and Test of security-flow
+  security-flow-model-and-select - Phase 4 Model and Select of security-flow
+  security-flow-normalize-and-triage - Phase 6 Normalize and Triage of security-flow
+  security-flow-readiness - Phase 1 Readiness of security-flow
+  security-flow-report-and-package - Phase 8 Report and Package of security-flow
+  security-flow - Workflow for authorized, evidence-preserving security review and remediation-task preparation.
+  self-help-flow - Rosetta self-help: explains capabilities and usage. DEPRECATED.
+  testgen-flow-data-collection - Phase 1 Data Collection of testgen-flow
+  testgen-flow-gap-and-contradiction-analysis - Phase 2 Gap & Contradiction Analysis of testgen-flow
+  testgen-flow-project-config-loading - Phase 0 Project Config Loading of testgen-flow
+  testgen-flow-question-generation - Phase 3 Question Generation of testgen-flow
+  testgen-flow-requirements-document-generation - Phase 4 Requirements Document of testgen-flow
+  testgen-flow-test-case-export - Phase 6 Test Case Export of testgen-flow
+  testgen-flow-test-case-generation - Phase 5 Test Case Generation of testgen-flow
+  testgen-flow - Workflow for generating test cases from requirements (Issue Tracker / Wiki sources), exporting to a Test Management System, etc.
+  ui-aqa-flow-code-analysis - Phase 3 Code Analysis of ui-aqa-flow
+  ui-aqa-flow-data-collection - Phase 1 Data Collection of ui-aqa-flow
+  ui-aqa-flow-requirements-clarification - Phase 2 Requirements Clarification of ui-aqa-flow
+  ui-aqa-flow-selector-identification - Phase 4 Selector Identification of ui-aqa-flow
+  ui-aqa-flow-selector-implementation - Phase 5 Selector Implementation of ui-aqa-flow
+  ui-aqa-flow-test-correction - Phase 8 Test Correction of ui-aqa-flow
+  ui-aqa-flow-test-implementation - Phase 6 Test Implementation of ui-aqa-flow
+  ui-aqa-flow-test-report-analysis - Phase 7 Test Report Analysis of ui-aqa-flow
+  ui-aqa-flow - Workflow for automated QA: integration and end-to-end UI test automation, page objects, etc.
+
+Builtin skills:
+  customize-cloud-agent - Skill for customizing the Copilot cloud agent (formerly known as Copilot coding agent) environment, including copilot-setup-steps.yml configuration, preinstalling tools and dependencies, runners, and settings. Use when the user mentions copilot-setup-steps, copilot setup steps, or wants to configure the cloud agent environment.
+  github-pr-media - Upload an image or video to GitHub's user attachments API and embed it in a pull request description or comment. Use when asked to add screenshots, diagrams, recordings, or other media to a PR or GitHub comment.
+
+[exit 0]
+
+$ copilot -C /Users/rcimendur/saleor-benchmark mcp list
+Builtin servers:
+  github-mcp-server (http)
+
+[exit 0]
+
+$ copilot -C /Users/rcimendur/saleor-benchmark instruction list
+Repository instructions:
+  • team-rules.instructions.md [external]
+      from /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md
+[exit 0]
+
+$ copilot config hooks
+[exit 1]
+
+$ sh -c env | cut -d= -f1 | grep -E "^(COPILOT_GITHUB_TOKEN|GH_TOKEN|GITHUB_TOKEN)$"
+[exit 1]
+
+$ ls -d /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/copilot-instructions.md /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/instructions /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/agents /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/hooks /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/skills /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/mcp-config.json /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/lsp-config.json
+ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/agents: No such file or directory
+ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/copilot-instructions.md: No such file or directory
+ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/hooks: No such file or directory
+ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/instructions: No such file or directory
+ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/lsp-config.json: No such file or directory
+ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/mcp-config.json: No such file or directory
+ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/skills: No such file or directory
+[exit 1]
+
+$ sh -c tail -n +4 "$1" | diff -s - "$2" sh /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md
+Files - and /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md are identical
+[exit 0]
+
+$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/saleor/CLAUDE.md
+Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/saleor/CLAUDE.md are identical
+[exit 0]
+
+$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/saleor/.github/copilot-instructions.md
+Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/saleor/.github/copilot-instructions.md are identical
+[exit 0]
+
+$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/rcimendur/saleor-benchmark/saleor (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
+.github/copilot-instructions.md
+CLAUDE.md
+[exit 0]
+
+$ git -C /Users/rcimendur/saleor-benchmark/saleor tag --points-at HEAD
+rosetta-light-v1
+rosetta-skills-v1
+rosetta-v1
+[exit 0]
+
+$ git -C /Users/rcimendur/saleor-benchmark/saleor status --porcelain
+[exit 0]
+
+$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/saleor-dashboard/CLAUDE.md
+Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/saleor-dashboard/CLAUDE.md are identical
+[exit 0]
+
+$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/saleor-dashboard/.github/copilot-instructions.md
+Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/saleor-dashboard/.github/copilot-instructions.md are identical
+[exit 0]
+
+$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/rcimendur/saleor-benchmark/saleor-dashboard (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
+.github/copilot-instructions.md
+CLAUDE.md
+[exit 0]
+
+$ git -C /Users/rcimendur/saleor-benchmark/saleor-dashboard tag --points-at HEAD
+rosetta-light-v1
+rosetta-skills-v1
+rosetta-v1
+[exit 0]
+
+$ git -C /Users/rcimendur/saleor-benchmark/saleor-dashboard status --porcelain
+[exit 0]
+
+$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/react-storefront/CLAUDE.md
+Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/react-storefront/CLAUDE.md are identical
+[exit 0]
+
+$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/react-storefront/.github/copilot-instructions.md
+Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/react-storefront/.github/copilot-instructions.md are identical
+[exit 0]
+
+$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/rcimendur/saleor-benchmark/react-storefront (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
+.github/copilot-instructions.md
+CLAUDE.md
+[exit 0]
+
+$ git -C /Users/rcimendur/saleor-benchmark/react-storefront tag --points-at HEAD
+rosetta-light-v1
+rosetta-skills-v1
+rosetta-v1
+[exit 0]
+
+$ git -C /Users/rcimendur/saleor-benchmark/react-storefront status --porcelain
+[exit 0]

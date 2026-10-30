@@ -1,0 +1,1044 @@
+diff --git a/messages/en.json b/messages/en.json
+index 94a1cf3..2fe41dc 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -167,6 +167,7 @@
+ 			"password": "Password",
+ 			"firstName": "First name",
+ 			"lastName": "Last name",
++			"dateOfBirth": "Date of birth",
+ 			"confirmPassword": "Confirm password",
+ 			"currentPassword": "Current password",
+ 			"newPassword": "New password",
+@@ -216,6 +217,8 @@
+ 			"itemCount": "{count, plural, one {# item} other {# items}}",
+ 			"notSet": "Not set",
+ 			"change": "Change",
++			"add": "Add",
++			"clear": "Clear",
+ 			"changing": "Changing…",
+ 			"sending": "Sending…"
+ 		},
+@@ -241,6 +244,9 @@
+ 			"loadOrderFailed": "We couldn't load this order. Please try again.",
+ 			"loadRecentOrdersFailed": "We couldn't load your recent orders.",
+ 			"updateProfileFailed": "Failed to update profile",
++			"updateDateOfBirthFailed": "Failed to update date of birth",
++			"invalidDateOfBirth": "Enter a valid date of birth",
++			"dateOfBirthInFuture": "Date of birth cannot be in the future",
+ 			"changePasswordFailed": "Failed to change password",
+ 			"createAddressFailed": "Failed to create address",
+ 			"updateAddressFailed": "Failed to update address",
+diff --git a/src/app/(checkout)/actions.ts b/src/app/(checkout)/actions.ts
+index 388b7ad..bfc0134 100644
+--- a/src/app/(checkout)/actions.ts
++++ b/src/app/(checkout)/actions.ts
+@@ -96,6 +96,7 @@ import { liveQuery, mutate, rawMutation } from "@/lib/saleor";
+ import * as Checkout from "@/lib/checkout";
+ import { saveCheckoutId } from "@/app/actions";
+ import { setOrderViewCookie, signOrderViewToken } from "@/lib/order-view";
++import { formatCheckoutCompleteError } from "@/checkout/lib/payment/format-checkout-complete-error";
+ 
+ const checkoutEmailUpdateDocument = toTypedDocument<
+ 	CheckoutEmailUpdateMutation,
+@@ -581,9 +582,13 @@ export async function runCheckoutComplete(checkoutId: string): Promise<CheckoutC
+ 
+ 	if (payload.errors?.length) {
+ 		const { server: t } = await getCheckoutServerTranslations();
++		const firstError = payload.errors[0];
+ 		return {
+ 			ok: false,
+-			error: payload.errors[0].message ?? t("completeOrderFailed"),
++			error: formatCheckoutCompleteError(
++				firstError.message ?? t("completeOrderFailed"),
++				firstError.code,
++			),
+ 			fieldErrors: payload.errors.map((error) => ({
+ 				field: error.field,
+ 				message: error.message ?? t("completeOrderFailed"),
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts b/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
+index 0e2ad45..db549a8 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
+@@ -16,6 +16,7 @@ import {
+ import { mutate } from "@/lib/saleor";
+ import { getFormString, getFormStringOptional } from "@/ui/components/account/form-utils";
+ import type { AccountActionResult } from "@/ui/components/account/account-action-result";
++import { validateDateOfBirth } from "@/ui/components/account/date-of-birth";
+ 
+ export async function updateProfile(formData: FormData): Promise<AccountActionResult> {
+ 	const firstName = getFormString(formData, "firstName");
+@@ -40,6 +41,27 @@ export async function updateProfile(formData: FormData): Promise<AccountActionRe
+ 	return { success: true };
+ }
+ 
++export async function updateDateOfBirth(formData: FormData): Promise<AccountActionResult> {
++	const clear = getFormStringOptional(formData, "clear") === "true";
++	const dateOfBirth = getFormStringOptional(formData, "dateOfBirth");
++	const validationError = !clear && dateOfBirth ? validateDateOfBirth(dateOfBirth) : null;
++	if (validationError) return { success: false, errorKey: validationError };
++
++	const result = await mutate(AccountUpdateDocument, {
++		variables: { input: { dateOfBirth: clear ? null : dateOfBirth || null } },
++	});
++	if (!result.ok) return { success: false, error: result.error.message };
++
++	const errors = result.data.accountUpdate?.errors;
++	if (errors?.length) {
++		return errors[0].message
++			? { success: false, error: errors[0].message }
++			: { success: false, errorKey: "updateDateOfBirthFailed" };
++	}
++	revalidateAccountLayout();
++	return { success: true };
++}
++
+ export async function changePassword(formData: FormData): Promise<AccountActionResult> {
+ 	const oldPassword = getFormString(formData, "oldPassword");
+ 	const newPassword = getFormString(formData, "newPassword");
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/cart/page.tsx b/src/app/(storefront)/[locale]/[channel]/(main)/cart/page.tsx
+index b5a308d..702f840 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/cart/page.tsx
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/cart/page.tsx
+@@ -13,6 +13,8 @@ import { buildBrowsePageMetadata } from "@/lib/seo";
+ import { resolveLocaleFromSlug } from "@/config/locale";
+ import { LinkWithChannel } from "@/ui/atoms/link-with-channel";
+ import { buttonClassName } from "@/ui/components/ui/button";
++import { AgeRestrictedLabel } from "@/ui/components/age-restricted-label";
++import { getMinimumPurchaseAge } from "@/lib/catalog/minimum-purchase-age";
+ 
+ export async function generateMetadata(props: {
+ 	params: Promise<{ locale: string; channel: string }>;
+@@ -48,10 +50,11 @@ async function CartContent({
+ 	params: Promise<{ locale: string; channel: string }>;
+ }) {
+ 	const params = await paramsPromise;
+-	const [{ surfaces }, checkoutId, t] = await Promise.all([
++	const [{ surfaces }, checkoutId, t, minimumPurchaseAge] = await Promise.all([
+ 		getStorefrontContent(params.channel, params.locale),
+ 		Checkout.getIdFromCookies(params.channel),
+ 		getTranslations({ locale: params.locale, namespace: "cart.page" }),
++		getMinimumPurchaseAge(),
+ 	]);
+ 	const cart = surfaces.cart;
+ 	const intlLocale = resolveLocaleFromSlug(params.locale).bcp47;
+@@ -102,6 +105,11 @@ async function CartContent({
+ 										>
+ 											<h2 className="font-medium text-foreground">{item.variant?.product?.name}</h2>
+ 										</LinkWithChannel>
++										{item.variant?.product?.isAgeRestricted ? (
++											<div className="mt-1">
++												<AgeRestrictedLabel minimumAge={minimumPurchaseAge} />
++											</div>
++										) : null}
+ 										<p className="mt-1 text-sm text-muted-foreground">
+ 											{item.variant?.product?.category?.name}
+ 										</p>
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+index 51a91eb..8fcab1e 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+@@ -10,6 +10,7 @@ import { resolveChannelCurrency } from "@/lib/channels/resolve-channel-currency"
+ import { catalogPathSuffix, redirectToCanonicalCatalogSlug } from "@/lib/catalog/canonical-slug";
+ import { CatalogIdentityBridge } from "@/lib/catalog/catalog-identity-bridge";
+ import { getProductData } from "@/lib/catalog/get-product-data";
++import { getMinimumPurchaseAge } from "@/lib/catalog/minimum-purchase-age";
+ import { buildCatalogPathSuffixByLocale, buildLocaleSlugMap } from "@/lib/catalog/locale-slugs";
+ import { buildPolicyLabelValues } from "@/lib/content";
+ import { getStorefrontContent } from "@/lib/content/server";
+@@ -114,12 +115,13 @@ async function ProductShell({
+ }) {
+ 	const params = await paramsPromise;
+ 	const browse = (suffix: string) => buildStorefrontPath(params.locale, params.channel, suffix);
+-	const [product, tPdp, tNav, content, currency] = await Promise.all([
++	const [product, tPdp, tNav, content, currency, minimumPurchaseAge] = await Promise.all([
+ 		getProductData(params.slug, params.channel, params.locale),
+ 		getTranslations({ locale: params.locale, namespace: "pdp" }),
+ 		getTranslations({ locale: params.locale, namespace: "nav" }),
+ 		getStorefrontContent(params.channel, params.locale),
+ 		resolveChannelCurrency(params.channel),
++		getMinimumPurchaseAge(),
+ 	]);
+ 	const intlLocale = resolveLocaleFromSlug(params.locale).bcp47;
+ 	const policyLabels = buildPolicyLabelValues(content.policies, {
+@@ -252,6 +254,7 @@ async function ProductShell({
+ 							<Suspense fallback={variantSectionFallback}>
+ 								<VariantSectionDynamic
+ 									product={product}
++									minimumPurchaseAge={minimumPurchaseAge}
+ 									channel={params.channel}
+ 									localeSlug={params.locale}
+ 									searchParams={searchParams}
+diff --git a/src/app/actions.ts b/src/app/actions.ts
+index 1392671..5849504 100644
+--- a/src/app/actions.ts
++++ b/src/app/actions.ts
+@@ -8,9 +8,11 @@ import {
+ 	CheckoutAddLineDocument,
+ 	CheckoutDeleteLinesDocument,
+ 	CheckoutLinesUpdateDocument,
++	type CheckoutErrorCode,
+ } from "@/gql/graphql";
+ import { emitCommerceEvent } from "@/lib/analytics/emit.server";
+ import * as Checkout from "@/lib/checkout";
++import { formatAgeGateError } from "@/lib/checkout-age-gate";
+ 
+ // Private state (session/cart cookies) lives in dynamic holes that read cookies at
+ // request time — it is never in the shared cache, so there is nothing global to
+@@ -98,13 +100,15 @@ export async function updateCartLineQuantity(checkoutId: string, lineId: string,
+ }
+ 
+ /** Add a variant to the channel cart. Private refresh only — never busts the shared cache. */
++export type AddVariantToCartResult = { success: true } | { success: false; error: string };
++
+ export async function addVariantToCart(input: {
+ 	channel: string;
+ 	localeSlug: string;
+ 	variantId: string;
+ 	value?: number;
+ 	currency?: string;
+-}) {
++}): Promise<AddVariantToCartResult> {
+ 	const checkout = await Checkout.findOrCreate({
+ 		checkoutId: await Checkout.getIdFromCookies(input.channel),
+ 		channel: input.channel,
+@@ -113,7 +117,7 @@ export async function addVariantToCart(input: {
+ 
+ 	if (!checkout) {
+ 		console.error("Add to cart: Failed to create checkout");
+-		return;
++		return { success: false, error: "Could not create a checkout. Please try again." };
+ 	}
+ 
+ 	await Checkout.saveIdToCookie(input.channel, checkout.id);
+@@ -127,12 +131,16 @@ export async function addVariantToCart(input: {
+ 
+ 	if (!addResult.ok) {
+ 		console.error("Add to cart failed:", addResult.error.message);
+-		return;
++		return { success: false, error: addResult.error.message };
+ 	}
+ 
+-	if (addResult.data.checkoutLinesAdd?.errors?.length) {
+-		console.error("Add to cart failed:", addResult.data.checkoutLinesAdd.errors);
+-		return;
++	const checkoutErrors = addResult.data.checkoutLinesAdd?.errors ?? [];
++	if (checkoutErrors.length) {
++		const error = checkoutErrors[0];
++		return {
++			success: false,
++			error: formatAgeGateError(error.code as CheckoutErrorCode) ?? error.message ?? "Could not add this product to your bag.",
++		};
+ 	}
+ 
+ 	emitCommerceEvent({
+@@ -143,4 +151,5 @@ export async function addVariantToCart(input: {
+ 	});
+ 
+ 	refresh();
++	return { success: true };
+ }
+diff --git a/src/checkout/graphql/checkout.graphql b/src/checkout/graphql/checkout.graphql
+index 7390137..cea5327 100644
+--- a/src/checkout/graphql/checkout.graphql
++++ b/src/checkout/graphql/checkout.graphql
+@@ -139,6 +139,7 @@ fragment CheckoutLineFragment on CheckoutLine {
+ 		}
+ 		product {
+ 			name
++			isAgeRestricted
+ 			translation(languageCode: $languageCode) {
+ 				language {
+ 					code
+@@ -179,6 +180,9 @@ fragment AddressFragment on Address {
+ }
+ 
+ query checkout($id: ID!, $languageCode: LanguageCodeEnum!) {
++	shop {
++		minimumPurchaseAge
++	}
+ 	checkout(id: $id) {
+ 		...CheckoutFragment
+ 	}
+diff --git a/src/checkout/graphql/codegen.ts b/src/checkout/graphql/codegen.ts
+index 52fa9cb..e3f44e4 100644
+--- a/src/checkout/graphql/codegen.ts
++++ b/src/checkout/graphql/codegen.ts
+@@ -8,7 +8,8 @@ import type { CodegenConfig } from "@graphql-codegen/cli";
+ 
+ loadEnvConfig(process.cwd());
+ 
+-const schemaUrl = process.env.NEXT_PUBLIC_SALEOR_API_URL;
++const schemaUrl =
++	process.env.GITHUB_ACTION === "generate-schema-from-file" ? "schema.graphql" : process.env.NEXT_PUBLIC_SALEOR_API_URL;
+ 
+ if (!schemaUrl) {
+ 	console.error("Missing NEXT_PUBLIC_SALEOR_API_URL environment variable");
+diff --git a/src/checkout/lib/checkout-types.ts b/src/checkout/lib/checkout-types.ts
+index 2bb2ac5..0c7a800 100644
+--- a/src/checkout/lib/checkout-types.ts
++++ b/src/checkout/lib/checkout-types.ts
+@@ -7,7 +7,9 @@ import type {
+ import type { CountryCode } from "@/checkout/graphql";
+ 
+ /** Checkout object returned by the server-side checkout query. */
+-export type ServerCheckout = NonNullable<CheckoutQuery["checkout"]>;
++export type ServerCheckout = NonNullable<CheckoutQuery["checkout"]> & {
++	minimumPurchaseAge?: number;
++};
+ 
+ export type CheckoutLoadState = "none" | "not_found" | "empty" | "error" | "ready";
+ 
+diff --git a/src/checkout/lib/payment/format-checkout-complete-error.test.ts b/src/checkout/lib/payment/format-checkout-complete-error.test.ts
+index bbdc830..23a8bbc 100644
+--- a/src/checkout/lib/payment/format-checkout-complete-error.test.ts
++++ b/src/checkout/lib/payment/format-checkout-complete-error.test.ts
+@@ -9,4 +9,20 @@ describe("formatCheckoutCompleteError", () => {
+ 	it("passes through unknown errors", () => {
+ 		expect(formatCheckoutCompleteError("Something else failed")).toBe("Something else failed");
+ 	});
++
++	it("preserves affected product names while adding missing-DOB remediation", () => {
++		const serverMessage = "Date of birth is required to purchase age-restricted products: Red Wine, Whisky.";
++
++		expect(
++			formatCheckoutCompleteError(serverMessage, "AGE_RESTRICTED_PRODUCT_MISSING_DATE_OF_BIRTH"),
++		).toBe(`${serverMessage}\n\nAdd your date of birth in account settings before completing this order.`);
++	});
++
++	it("preserves affected product names while adding underage remediation", () => {
++		const serverMessage = "You do not meet the minimum age for age-restricted products: Red Wine, Whisky.";
++
++		expect(formatCheckoutCompleteError(serverMessage, "AGE_RESTRICTED_PRODUCT_UNDERAGE")).toContain(
++			"Red Wine, Whisky",
++		);
++	});
+ });
+diff --git a/src/checkout/lib/payment/format-checkout-complete-error.ts b/src/checkout/lib/payment/format-checkout-complete-error.ts
+index d4b5d54..acc3512 100644
+--- a/src/checkout/lib/payment/format-checkout-complete-error.ts
++++ b/src/checkout/lib/payment/format-checkout-complete-error.ts
+@@ -4,7 +4,19 @@
+  * Saleor completes checkout when authorizeStatus is FULL (authorized + charged
+  * amounts cover the total). Capture at fulfillment is separate.
+  */
+-export function formatCheckoutCompleteError(error: string): string {
++export function formatCheckoutCompleteError(error: string, code?: string | null): string {
++	// Saleor returns the machine-readable code separately from the human message.
++	// In particular, the missing-DOB and underage messages include the affected
++	// product names, so keep that server detail visible.
++	if (code === "AGE_RESTRICTED_PRODUCT_GUEST") {
++		return "Please sign in before completing an order with age-restricted products.";
++	}
++	if (code === "AGE_RESTRICTED_PRODUCT_MISSING_DATE_OF_BIRTH") {
++		return `${error}\n\nAdd your date of birth in account settings before completing this order.`;
++	}
++	if (code === "AGE_RESTRICTED_PRODUCT_UNDERAGE") {
++		return `${error}\n\nYou do not meet the minimum age requirement for these products.`;
++	}
+ 	if (error.includes("CHECKOUT_NOT_FULLY_PAID")) {
+ 		return "Payment does not fully cover this order total yet. Refresh the page — if funds were authorized, use Complete order. Do not pay again until we confirm the status.";
+ 	}
+diff --git a/src/checkout/lib/server/fetch-checkout.ts b/src/checkout/lib/server/fetch-checkout.ts
+index dc51d8a..7890ea8 100644
+--- a/src/checkout/lib/server/fetch-checkout.ts
++++ b/src/checkout/lib/server/fetch-checkout.ts
+@@ -38,5 +38,9 @@ export async function fetchCheckoutOnServer(
+ 		return { ok: false };
+ 	}
+ 
+-	return { ok: true, checkout: result.data.checkout ?? null };
++	const checkout = result.data.checkout;
++	return {
++		ok: true,
++		checkout: checkout ? { ...checkout, minimumPurchaseAge: result.data.shop.minimumPurchaseAge } : null,
++	};
+ }
+diff --git a/src/checkout/views/saleor-checkout/order-summary.tsx b/src/checkout/views/saleor-checkout/order-summary.tsx
+index 1cdbabf..1cd45aa 100644
+--- a/src/checkout/views/saleor-checkout/order-summary.tsx
++++ b/src/checkout/views/saleor-checkout/order-summary.tsx
+@@ -15,6 +15,7 @@ import { getLocaleDefinition } from "@/config/locale";
+ import { localeConfig } from "@/config/locale";
+ import { contactFieldAttributes } from "@/checkout/lib/consts/input-attributes";
+ import { pickTranslatedName } from "@/lib/saleor-translations";
++import { AgeRestrictedLabel } from "@/ui/components/age-restricted-label";
+ 
+ // ============================================================================
+ // Types
+@@ -28,6 +29,7 @@ interface LineItem {
+ 	imageUrl?: string | null;
+ 	imageAlt?: string | null;
+ 	totalAmount: number;
++	isAgeRestricted: boolean;
+ }
+ 
+ interface OrderSummaryData {
+@@ -122,6 +124,7 @@ function extractCheckoutData(checkout: CheckoutFragment): OrderSummaryData {
+ 			imageUrl: image?.url,
+ 			imageAlt: image?.alt,
+ 			totalAmount: line.totalPrice?.gross?.amount || 0,
++			isAgeRestricted: Boolean(line.variant?.product?.isAgeRestricted),
+ 		};
+ 	});
+ 
+@@ -147,6 +150,7 @@ function extractOrderData(order: OrderFragment): OrderSummaryData {
+ 			imageUrl: line.thumbnail?.url,
+ 			imageAlt: line.thumbnail?.alt,
+ 			totalAmount: line.totalPrice?.gross?.amount || 0,
++			isAgeRestricted: false,
+ 		};
+ 	});
+ 
+@@ -206,6 +210,8 @@ export const OrderSummary: FC<OrderSummaryProps> = ({
+ 	const { lines, currency, subtotal, shipping, tax, discount, total } = data;
+ 	const isEditable = editable ?? data.editable;
+ 	const itemCount = lines.reduce((acc, line) => acc + line.quantity, 0);
++	const minimumPurchaseAge = (checkout as (CheckoutFragment & { minimumPurchaseAge?: number }) | undefined)
++		?.minimumPurchaseAge ?? 18;
+ 
+ 	const formatMoney = (amount: number) => {
+ 		return new Intl.NumberFormat(localeBcp47, {
+@@ -332,6 +338,7 @@ export const OrderSummary: FC<OrderSummaryProps> = ({
+ 										<p className="truncate text-sm font-medium leading-tight">
+ 											{line.name || t("productFallback")}
+ 										</p>
++										{line.isAgeRestricted ? <AgeRestrictedLabel minimumAge={minimumPurchaseAge} /> : null}
+ 										{line.attributes.length > 0 && (
+ 											<p className="mt-0.5 truncate text-xs text-muted-foreground">
+ 												{line.attributes.join(" / ")}
+diff --git a/src/graphql/CheckoutAddLine.graphql b/src/graphql/CheckoutAddLine.graphql
+index 222e882..db419a3 100644
+--- a/src/graphql/CheckoutAddLine.graphql
++++ b/src/graphql/CheckoutAddLine.graphql
+@@ -15,6 +15,7 @@ mutation CheckoutAddLine($id: ID!, $productVariantId: ID!) {
+ 		}
+ 		errors {
+ 			message
++			code
+ 		}
+ 	}
+ }
+diff --git a/src/graphql/CheckoutFind.graphql b/src/graphql/CheckoutFind.graphql
+index 0f5e932..9af3d15 100644
+--- a/src/graphql/CheckoutFind.graphql
++++ b/src/graphql/CheckoutFind.graphql
+@@ -19,6 +19,7 @@ query CheckoutFind($id: ID!, $languageCode: LanguageCodeEnum!) {
+ 					id
+ 					name
+ 					slug
++					isAgeRestricted
+ 					translation(languageCode: $languageCode) {
+ 						name
+ 					}
+diff --git a/src/graphql/ShopMinimumPurchaseAge.graphql b/src/graphql/ShopMinimumPurchaseAge.graphql
+new file mode 100644
+index 0000000..12aec10
+--- /dev/null
++++ b/src/graphql/ShopMinimumPurchaseAge.graphql
+@@ -0,0 +1,5 @@
++query ShopMinimumPurchaseAge {
++	shop {
++		minimumPurchaseAge
++	}
++}
+diff --git a/src/graphql/UserDetailsFragment.graphql b/src/graphql/UserDetailsFragment.graphql
+index 05ff2c7..b5ca02d 100644
+--- a/src/graphql/UserDetailsFragment.graphql
++++ b/src/graphql/UserDetailsFragment.graphql
+@@ -3,6 +3,7 @@ fragment UserDetails on User {
+ 	email
+ 	firstName
+ 	lastName
++	dateOfBirth
+ 	avatar {
+ 		url
+ 		alt
+diff --git a/src/graphql/extensions/ProductDetailsExtension.graphql b/src/graphql/extensions/ProductDetailsExtension.graphql
+index 0a67217..d04a295 100644
+--- a/src/graphql/extensions/ProductDetailsExtension.graphql
++++ b/src/graphql/extensions/ProductDetailsExtension.graphql
+@@ -1,4 +1,5 @@
+ # Fork-owned fields on the PDP shell. Add selections here; do not edit ProductDetails.graphql.
+ fragment ProductDetailsExtension on Product {
+ 	__typename
++	isAgeRestricted
+ }
+diff --git a/src/graphql/extensions/ProductListItemExtension.graphql b/src/graphql/extensions/ProductListItemExtension.graphql
+index 0bea242..aeae012 100644
+--- a/src/graphql/extensions/ProductListItemExtension.graphql
++++ b/src/graphql/extensions/ProductListItemExtension.graphql
+@@ -1,4 +1,5 @@
+ # Fork-owned fields on listing cards. Add selections here; do not edit ProductListItem.graphql.
+ fragment ProductListItemExtension on Product {
+ 	__typename
++	isAgeRestricted
+ }
+diff --git a/src/lib/catalog/minimum-purchase-age.ts b/src/lib/catalog/minimum-purchase-age.ts
+new file mode 100644
+index 0000000..3c35f69
+--- /dev/null
++++ b/src/lib/catalog/minimum-purchase-age.ts
+@@ -0,0 +1,14 @@
++import "server-only";
++
++import { ShopMinimumPurchaseAgeDocument } from "@/gql/graphql";
++import { CACHE_PROFILES, cachedQuery } from "@/lib/saleor";
++
++export async function getMinimumPurchaseAge(): Promise<number> {
++	"use cache";
++
++	const data = await cachedQuery(ShopMinimumPurchaseAgeDocument, {
++		profile: CACHE_PROFILES.channels,
++	});
++
++	return data.shop.minimumPurchaseAge;
++}
+diff --git a/src/lib/checkout-age-gate.test.ts b/src/lib/checkout-age-gate.test.ts
+new file mode 100644
+index 0000000..80a1464
+--- /dev/null
++++ b/src/lib/checkout-age-gate.test.ts
+@@ -0,0 +1,13 @@
++import { describe, expect, it } from "vitest";
++import { CheckoutErrorCode } from "@/gql/graphql";
++import { formatAgeGateError } from "./checkout-age-gate";
++
++describe("formatAgeGateError", () => {
++	it.each([
++		[CheckoutErrorCode.AgeRestrictedProductGuest, /sign in/i],
++		[CheckoutErrorCode.AgeRestrictedProductMissingDateOfBirth, /date of birth/i],
++		[CheckoutErrorCode.AgeRestrictedProductUnderage, /minimum age/i],
++	])("maps %s to actionable copy", (code, expected) => {
++		expect(formatAgeGateError(code)).toMatch(expected);
++	});
++});
+diff --git a/src/lib/checkout-age-gate.ts b/src/lib/checkout-age-gate.ts
+new file mode 100644
+index 0000000..e1766b4
+--- /dev/null
++++ b/src/lib/checkout-age-gate.ts
+@@ -0,0 +1,14 @@
++import { CheckoutErrorCode } from "@/gql/graphql";
++
++export function formatAgeGateError(code?: CheckoutErrorCode | null): string | null {
++	switch (code) {
++		case CheckoutErrorCode.AgeRestrictedProductGuest:
++			return "Please sign in before adding age-restricted products to your bag.";
++		case CheckoutErrorCode.AgeRestrictedProductMissingDateOfBirth:
++			return "Add your date of birth in account settings before purchasing age-restricted products.";
++		case CheckoutErrorCode.AgeRestrictedProductUnderage:
++			return "You do not meet the minimum age requirement for this product.";
++		default:
++			return null;
++	}
++}
+diff --git a/src/lib/listing/providers/saleor/index.ts b/src/lib/listing/providers/saleor/index.ts
+index 68fdd65..38fee48 100644
+--- a/src/lib/listing/providers/saleor/index.ts
++++ b/src/lib/listing/providers/saleor/index.ts
+@@ -16,6 +16,7 @@ import type { ListingQuery, ListingResult, SortId } from "@/lib/storefront/contr
+ import { buildProductListingConstraints, buildSortVariables } from "./constraints";
+ import { sampleFacets } from "./sample-facets";
+ import { toProductCardData } from "./to-card";
++import { getMinimumPurchaseAge } from "@/lib/catalog/minimum-purchase-age";
+ 
+ const LISTING_SORTS = [
+ 	"featured",
+@@ -184,7 +185,7 @@ export function createSaleorListingProvider(
+ 						: CACHE_PROFILES.listingAll;
+ 			const tag = slug ? { channel: query.channel, slug } : { channel: query.channel };
+ 
+-			const data = await transport({
++			const [data, minimumPurchaseAge] = await Promise.all([transport({
+ 				kind,
+ 				cached,
+ 				profile,
+@@ -199,12 +200,12 @@ export function createSaleorListingProvider(
+ 					...(search ? { search } : {}),
+ 					...graphqlLanguageCodeVariables(query.locale),
+ 				},
+-			});
++			}), getMinimumPurchaseAge()]);
+ 
+ 			const connection = unwrap(kind, data);
+ 			if (!connection && kind !== "search") return null;
+ 			const edges = connection?.edges ?? [];
+-			const items = edges.map((edge) => toProductCardData(edge.node, query.locale, query.channel));
++			const items = edges.map((edge) => toProductCardData(edge.node, query.locale, query.channel, minimumPurchaseAge));
+ 			const sorts = provider.capabilities.sorts[kind] ?? [];
+ 			return {
+ 				items,
+diff --git a/src/lib/listing/providers/saleor/to-card.ts b/src/lib/listing/providers/saleor/to-card.ts
+index ac17f93..e23131d 100644
+--- a/src/lib/listing/providers/saleor/to-card.ts
++++ b/src/lib/listing/providers/saleor/to-card.ts
+@@ -67,6 +67,7 @@ export function toProductCardData(
+ 	product: ProductListItemFragment,
+ 	locale: string,
+ 	channel: string,
++	minimumPurchaseAge?: number,
+ ): ProductCardView {
+ 	const startPrice = product.pricing?.priceRange?.start?.gross;
+ 	const stopPrice = product.pricing?.priceRange?.stop?.gross;
+@@ -124,5 +125,6 @@ export function toProductCardData(
+ 		variantTotalCount,
+ 		variantSampleSize,
+ 		isOverVariantCap: variantTotalCount > PDP_VARIANT_CAP,
++		minimumPurchaseAge: product.isAgeRestricted ? minimumPurchaseAge ?? null : null,
+ 	};
+ }
+diff --git a/src/lib/saleor/operations.ts b/src/lib/saleor/operations.ts
+index 611ba7f..25127d2 100644
+--- a/src/lib/saleor/operations.ts
++++ b/src/lib/saleor/operations.ts
+@@ -42,6 +42,7 @@ const CORE_OPERATIONS = {
+ 	StorefrontContentPages: cached("channel-locale"),
+ 	CategoriesBySlug: cached("global"),
+ 	ChannelsList: cached("global", "app"),
++	ShopMinimumPurchaseAge: cached("global"),
+ 
+ 	// Storefront session reads.
+ 	CurrentUser: session(),
+diff --git a/src/lib/storefront/contract/listing.ts b/src/lib/storefront/contract/listing.ts
+index 06b0694..5aba118 100644
+--- a/src/lib/storefront/contract/listing.ts
++++ b/src/lib/storefront/contract/listing.ts
+@@ -87,6 +87,8 @@ export interface ProductCardView {
+ 	 * open a variant sheet; shoppers go to the PDP.
+ 	 */
+ 	isOverVariantCap?: boolean;
++	/** Store-defined purchase age when this product is age restricted. */
++	minimumPurchaseAge?: number | null;
+ }
+ 
+ export type FacetControl = "swatch" | "chip" | "range" | "tree";
+diff --git a/src/ui/components/account/account-action-result.ts b/src/ui/components/account/account-action-result.ts
+index 1a922d6..98ef79b 100644
+--- a/src/ui/components/account/account-action-result.ts
++++ b/src/ui/components/account/account-action-result.ts
+@@ -5,6 +5,9 @@ export type AccountActionErrorKey =
+ 	| "passwordMinLength"
+ 	| "passwordsMismatch"
+ 	| "updateProfileFailed"
++	| "updateDateOfBirthFailed"
++	| "invalidDateOfBirth"
++	| "dateOfBirthInFuture"
+ 	| "changePasswordFailed"
+ 	| "createAddressFailed"
+ 	| "updateAddressFailed"
+diff --git a/src/ui/components/account/date-of-birth.test.ts b/src/ui/components/account/date-of-birth.test.ts
+new file mode 100644
+index 0000000..c65b3a6
+--- /dev/null
++++ b/src/ui/components/account/date-of-birth.test.ts
+@@ -0,0 +1,13 @@
++import { describe, expect, it } from "vitest";
++import { validateDateOfBirth } from "./date-of-birth";
++
++describe("validateDateOfBirth", () => {
++	it("accepts a calendar date", () => {
++		expect(validateDateOfBirth("2000-02-29")).toBeNull();
++	});
++
++	it("rejects impossible and future dates", () => {
++		expect(validateDateOfBirth("2023-02-29")).toBe("invalidDateOfBirth");
++		expect(validateDateOfBirth("2999-01-01")).toBe("dateOfBirthInFuture");
++	});
++});
+diff --git a/src/ui/components/account/date-of-birth.ts b/src/ui/components/account/date-of-birth.ts
+new file mode 100644
+index 0000000..e8408b1
+--- /dev/null
++++ b/src/ui/components/account/date-of-birth.ts
+@@ -0,0 +1,14 @@
++export function validateDateOfBirth(value: string): "invalidDateOfBirth" | "dateOfBirthInFuture" | null {
++	if (!value) return null;
++
++	const date = new Date(`${value}T00:00:00Z`);
++	if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
++		return "invalidDateOfBirth";
++	}
++
++	if (value > new Date().toISOString().slice(0, 10)) {
++		return "dateOfBirthInFuture";
++	}
++
++	return null;
++}
+diff --git a/src/ui/components/account/edit-date-of-birth-form.tsx b/src/ui/components/account/edit-date-of-birth-form.tsx
+new file mode 100644
+index 0000000..670bac1
+--- /dev/null
++++ b/src/ui/components/account/edit-date-of-birth-form.tsx
+@@ -0,0 +1,67 @@
++"use client";
++
++import { useState, useTransition } from "react";
++import { useRouter } from "next/navigation";
++import { useTranslations } from "next-intl";
++import { Button } from "@/ui/components/ui/button";
++import { Input } from "@/ui/components/ui/input";
++import { Label } from "@/ui/components/ui/label";
++import { updateDateOfBirth } from "@/app/(storefront)/[locale]/[channel]/(main)/account/actions";
++import { resolveAccountActionError } from "@/ui/components/account/account-action-result";
++import { validateDateOfBirth } from "./date-of-birth";
++
++export function EditDateOfBirthForm({ dateOfBirth }: { dateOfBirth?: string | null }) {
++	const t = useTranslations("account");
++	const router = useRouter();
++	const [isEditing, setIsEditing] = useState(false);
++	const [isPending, startTransition] = useTransition();
++	const [error, setError] = useState("");
++
++	const submit = (formData: FormData) => {
++		const value = String(formData.get("dateOfBirth") ?? "");
++		const validationError = validateDateOfBirth(value);
++		if (validationError) {
++			setError(t(`errors.${validationError as "invalidDateOfBirth" | "dateOfBirthInFuture"}`));
++			return;
++		}
++		setError("");
++		startTransition(async () => {
++			const result = await updateDateOfBirth(formData);
++			if (!result.success) {
++				setError(resolveAccountActionError(t, result));
++				return;
++			}
++			setIsEditing(false);
++			router.refresh();
++		});
++	};
++
++	if (!isEditing) {
++		return (
++			<div className="flex items-center justify-between gap-4">
++				<div>
++					<p className="text-sm text-muted-foreground">{t("fields.dateOfBirth")}</p>
++					<p className="font-medium">{dateOfBirth || t("common.notSet")}</p>
++				</div>
++				<Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
++					{dateOfBirth ? t("common.change") : t("common.add")}
++				</Button>
++			</div>
++		);
++	}
++
++	return (
++		<form action={submit} className="space-y-4">
++			{error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
++			<div className="space-y-1.5">
++				<Label htmlFor="dateOfBirth">{t("fields.dateOfBirth")}</Label>
++				<Input id="dateOfBirth" name="dateOfBirth" type="date" defaultValue={dateOfBirth ?? ""} max={new Date().toISOString().slice(0, 10)} />
++			</div>
++			<div className="flex gap-2">
++				<Button type="submit" size="sm" disabled={isPending}>{isPending ? t("common.saving") : t("common.save")}</Button>
++				<Button type="submit" name="clear" value="true" variant="ghost" size="sm" disabled={isPending}>{t("common.clear")}</Button>
++				<Button type="button" variant="ghost" size="sm" onClick={() => setIsEditing(false)}>{t("common.cancel")}</Button>
++			</div>
++		</form>
++	);
++}
+diff --git a/src/ui/components/account/settings-page.tsx b/src/ui/components/account/settings-page.tsx
+index d2154d6..8b79888 100644
+--- a/src/ui/components/account/settings-page.tsx
++++ b/src/ui/components/account/settings-page.tsx
+@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
+ import { Mail, Calendar } from "lucide-react";
+ import { resolveLocaleFromSlug } from "@/config/locale";
+ import { EditNameForm } from "@/ui/components/account/edit-name-form";
++import { EditDateOfBirthForm } from "@/ui/components/account/edit-date-of-birth-form";
+ import { ChangePasswordForm } from "@/ui/components/account/change-password-form";
+ import { DeleteAccountSection } from "@/ui/components/account/delete-account-section";
+ import { useAccountUser } from "@/ui/components/account/account-context";
+@@ -44,6 +45,9 @@ export function AccountSettingsPage() {
+ 				<div className="p-4 sm:p-6">
+ 					<EditNameForm firstName={user.firstName} lastName={user.lastName} />
+ 				</div>
++				<div className="p-4 sm:p-6">
++					<EditDateOfBirthForm dateOfBirth={user.dateOfBirth} />
++				</div>
+ 
+ 				<div className="p-4 sm:p-6">
+ 					<ChangePasswordForm />
+diff --git a/src/ui/components/age-restricted-label.tsx b/src/ui/components/age-restricted-label.tsx
+new file mode 100644
+index 0000000..221487e
+--- /dev/null
++++ b/src/ui/components/age-restricted-label.tsx
+@@ -0,0 +1,9 @@
++import { Badge } from "@/ui/components/ui/badge";
++
++export function AgeRestrictedLabel({ minimumAge }: { minimumAge: number }) {
++	return (
++		<Badge variant="secondary" className="text-xs font-semibold" aria-label={`Age restricted: ${minimumAge}+`}>
++			{minimumAge}+
++		</Badge>
++	);
++}
+diff --git a/src/ui/components/cart/cart-drawer-wrapper.tsx b/src/ui/components/cart/cart-drawer-wrapper.tsx
+index f98ceea..053274a 100644
+--- a/src/ui/components/cart/cart-drawer-wrapper.tsx
++++ b/src/ui/components/cart/cart-drawer-wrapper.tsx
+@@ -3,6 +3,7 @@ import { io } from "next/cache";
+ import { deleteCartLine, updateCartLineQuantity } from "@/app/actions";
+ import type { CartContent, StorefrontPolicies } from "@/lib/content";
+ import * as Checkout from "@/lib/checkout";
++import { getMinimumPurchaseAge } from "@/lib/catalog/minimum-purchase-age";
+ import { CartDrawer } from "./cart-drawer";
+ 
+ interface CartDrawerWrapperProps {
+@@ -17,7 +18,10 @@ export async function CartDrawerWrapper({ channel, localeSlug, cart, policies }:
+ 	await io();
+ 
+ 	const checkoutId = await Checkout.getIdFromCookies(channel);
+-	const checkout = checkoutId ? await Checkout.find(checkoutId, localeSlug) : null;
++	const [checkout, minimumPurchaseAge] = await Promise.all([
++		checkoutId ? Checkout.find(checkoutId, localeSlug) : null,
++		getMinimumPurchaseAge(),
++	]);
+ 
+ 	return (
+ 		<CartDrawer
+@@ -27,6 +31,7 @@ export async function CartDrawerWrapper({ channel, localeSlug, cart, policies }:
+ 			localeSlug={localeSlug}
+ 			cart={cart}
+ 			policies={policies}
++			minimumPurchaseAge={minimumPurchaseAge}
+ 			deleteCartLine={deleteCartLine}
+ 			updateCartLineQuantity={updateCartLineQuantity}
+ 		/>
+diff --git a/src/ui/components/cart/cart-drawer.tsx b/src/ui/components/cart/cart-drawer.tsx
+index bbeaac2..57e67e6 100644
+--- a/src/ui/components/cart/cart-drawer.tsx
++++ b/src/ui/components/cart/cart-drawer.tsx
+@@ -19,6 +19,7 @@ import { CART_THUMBNAIL_IMAGE_SIZES, PRODUCT_IMAGE_QUALITY } from "@/lib/images"
+ import { buildCheckoutPath } from "@paper/session-bridge";
+ import type { CartContent, StorefrontPolicies } from "@/lib/content";
+ import { formatContentLabel } from "@/lib/content/format-label";
++import { AgeRestrictedLabel } from "@/ui/components/age-restricted-label";
+ 
+ interface CartLine {
+ 	id: string;
+@@ -36,6 +37,7 @@ interface CartLine {
+ 			id: string;
+ 			name: string;
+ 			slug: string;
++			isAgeRestricted?: boolean | null;
+ 			thumbnail?: {
+ 				url: string;
+ 				alt?: string | null;
+@@ -118,6 +120,7 @@ interface CartDrawerProps {
+ 	localeSlug: string;
+ 	cart: CartContent;
+ 	policies: StorefrontPolicies;
++	minimumPurchaseAge: number;
+ 	deleteCartLine: DeleteCartLine;
+ 	updateCartLineQuantity: UpdateCartLineQuantity;
+ }
+@@ -129,6 +132,7 @@ export function CartDrawer({
+ 	localeSlug,
+ 	cart,
+ 	policies,
++	minimumPurchaseAge,
+ 	deleteCartLine,
+ 	updateCartLineQuantity,
+ }: CartDrawerProps) {
+@@ -279,6 +283,11 @@ export function CartDrawer({
+ 														>
+ 															{line.variant.product.name}
+ 														</LinkWithChannel>
++														{line.variant.product.isAgeRestricted ? (
++															<div className="mt-1">
++																<AgeRestrictedLabel minimumAge={minimumPurchaseAge} />
++															</div>
++														) : null}
+ 														{/* Variant attributes: Color swatch + values separated by | */}
+ 														{variantAttributes.length > 0 ? (
+ 															<div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+diff --git a/src/ui/components/pdp/add-to-cart.tsx b/src/ui/components/pdp/add-to-cart.tsx
+index 41eb161..270e499 100644
+--- a/src/ui/components/pdp/add-to-cart.tsx
++++ b/src/ui/components/pdp/add-to-cart.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ 
+-import { useEffect, useRef } from "react";
++import { useActionState, useEffect, useRef } from "react";
+ import { useFormStatus } from "react-dom";
+ import { useTranslations } from "next-intl";
+ import { ShoppingBag } from "lucide-react";
+@@ -17,6 +17,7 @@ interface AddToCartProps {
+ 	disabledReason?: "no-selection" | "out-of-stock";
+ 	secureCheckoutLabel: string;
+ 	freeShippingTrustLabel?: string | null;
++	action: () => Promise<{ success: boolean; error?: string }>;
+ }
+ 
+ function AddToCartButton({
+@@ -68,7 +69,9 @@ export function AddToCart({
+ 	disabledReason,
+ 	secureCheckoutLabel,
+ 	freeShippingTrustLabel,
++	action,
+ }: AddToCartProps) {
++	const [result, formAction] = useActionState(action, null);
+ 	return (
+ 		<div className="space-y-4">
+ 			<div className="flex items-baseline gap-3">
+@@ -81,7 +84,12 @@ export function AddToCart({
+ 				)}
+ 			</div>
+ 
+-			<AddToCartButton disabled={disabled} disabledReason={disabledReason} />
++			<form action={formAction}>
++				<AddToCartButton disabled={disabled} disabledReason={disabledReason} />
++			</form>
++			{result && !result.success && result.error ? (
++				<p role="alert" className="text-sm text-destructive">{result.error}</p>
++			) : null}
+ 
+ 			<div className="flex items-center justify-center gap-6 pt-2 text-xs text-muted-foreground">
+ 				<span className="flex items-center gap-1.5">
+diff --git a/src/ui/components/pdp/variant-section-dynamic.tsx b/src/ui/components/pdp/variant-section-dynamic.tsx
+index af0bf04..0496d4a 100644
+--- a/src/ui/components/pdp/variant-section-dynamic.tsx
++++ b/src/ui/components/pdp/variant-section-dynamic.tsx
+@@ -13,6 +13,7 @@ import { NonMatrixBuyBox } from "./non-matrix-buy-box";
+ import { VariantSelectionSection } from "./variant-selection";
+ import { StickyBar } from "./sticky-bar";
+ import { Badge } from "@/ui/components/ui/badge";
++import { AgeRestrictedLabel } from "@/ui/components/age-restricted-label";
+ import { SaleBadge } from "@/ui/components/ui/sale-label";
+ import { resolveSelectedVariantId, type Product } from "./gallery-utils";
+ 
+@@ -20,6 +21,7 @@ interface VariantSectionDynamicProps {
+ 	product: Product;
+ 	channel: string;
+ 	localeSlug: string;
++	minimumPurchaseAge: number;
+ 	searchParams: Promise<{ variant?: string; sku?: string }>;
+ }
+ 
+@@ -34,6 +36,7 @@ interface VariantSectionDynamicProps {
+  */
+ export async function VariantSectionDynamic({
+ 	product,
++	minimumPurchaseAge,
+ 	channel,
+ 	localeSlug,
+ 	searchParams,
+@@ -119,21 +122,17 @@ export async function VariantSectionDynamic({
+ 		"use server";
+ 
+ 		if (!selectedVariantID) {
+-			return;
++			return { success: false, error: "Select product options before adding to your bag." };
+ 		}
+ 
+-		try {
+-			const linePrice = selectedVariant?.pricing?.price?.gross;
+-			await addVariantToCart({
+-				channel,
+-				localeSlug,
+-				variantId: selectedVariantID,
+-				value: linePrice?.amount ?? 0,
+-				currency: linePrice?.currency ?? "",
+-			});
+-		} catch (error) {
+-			console.error("Add to cart failed:", error);
+-		}
++		const linePrice = selectedVariant?.pricing?.price?.gross;
++		return addVariantToCart({
++			channel,
++			localeSlug,
++			variantId: selectedVariantID,
++			value: linePrice?.amount ?? 0,
++			currency: linePrice?.currency ?? "",
++		});
+ 	}
+ 
+ 	const buyBox =
+@@ -158,6 +157,7 @@ export async function VariantSectionDynamic({
+ 			<div className="order-1 flex items-center gap-2">
+ 				{product.category && <span className="text-sm text-muted-foreground">{product.category.name}</span>}
+ 				{isOnSale && <SaleBadge />}
++				{product.isAgeRestricted ? <AgeRestrictedLabel minimumAge={minimumPurchaseAge} /> : null}
+ 				{!isAvailable && (
+ 					<Badge variant="secondary" className="text-xs">
+ 						{t("outOfStock")}
+@@ -165,7 +165,7 @@ export async function VariantSectionDynamic({
+ 				)}
+ 			</div>
+ 
+-			<form action={addToCart} className="order-3 mt-4 space-y-6">
++			<div className="order-3 mt-4 space-y-6">
+ 				{buyBox}
+ 
+ 				<AddToCart
+@@ -176,10 +176,11 @@ export async function VariantSectionDynamic({
+ 					disabledReason={disabledReason}
+ 					secureCheckoutLabel={secureCheckoutLabel}
+ 					freeShippingTrustLabel={freeShippingTrustLabel}
++					action={addToCart}
+ 				/>
+ 
+ 				<StickyBar productName={product.name} price={price} show={!isAddToCartDisabled} />
+-			</form>
++			</div>
+ 		</>
+ 	);
+ }
+diff --git a/src/ui/components/plp/product-card-base.tsx b/src/ui/components/plp/product-card-base.tsx
+index 82ed5b1..450eb5b 100644
+--- a/src/ui/components/plp/product-card-base.tsx
++++ b/src/ui/components/plp/product-card-base.tsx
+@@ -8,6 +8,7 @@ import { PLP_IMAGE_SIZES, PRODUCT_IMAGE_QUALITY } from "@/lib/images";
+ import { SaleorImage } from "@/ui/atoms/saleor-image";
+ import type { ProductCardData } from "./product-card-data";
+ import { ProductCardLink } from "./product-card-link";
++import { AgeRestrictedLabel } from "@/ui/components/age-restricted-label";
+ 
+ export interface ProductCardBaseProps {
+ 	product: ProductCardData;
+@@ -51,11 +52,12 @@ export function ProductCardBase({
+ 					)}
+ 				</ProductCardLink>
+ 
+-				{(product.badge === "Sale" || product.badge === "New" || product.isBestseller) && (
++				{(product.badge === "Sale" || product.badge === "New" || product.isBestseller || product.minimumPurchaseAge) && (
+ 					<div className="pointer-events-none absolute left-3 top-3 z-[1] flex flex-wrap items-center gap-1.5">
+ 						{product.badge === "Sale" ? <SaleBadge /> : null}
+ 						{product.isBestseller ? <BestsellerBadge /> : null}
+ 						{product.badge === "New" ? <NewBadge /> : null}
++						{product.minimumPurchaseAge ? <AgeRestrictedLabel minimumAge={product.minimumPurchaseAge} /> : null}
+ 					</div>
+ 				)}
+ 
+diff --git a/src/ui/sections/featured-collection-section/featured-collection-section.tsx b/src/ui/sections/featured-collection-section/featured-collection-section.tsx
+index 507c81e..40e5bfa 100644
+--- a/src/ui/sections/featured-collection-section/featured-collection-section.tsx
++++ b/src/ui/sections/featured-collection-section/featured-collection-section.tsx
+@@ -4,6 +4,7 @@ import { FEATURED_COLLECTION_IMAGE_SIZES } from "@/lib/images";
+ import { ProductGrid, type ProductGridDesktopColumns } from "@/ui/components/plp/product-grid";
+ import { Section, type SectionTone, type SectionWidth } from "@/ui/sections/section";
+ import { SectionHeader, type SectionHeaderCta } from "@/ui/sections/section-header";
++import { getMinimumPurchaseAge } from "@/lib/catalog/minimum-purchase-age";
+ 
+ export interface FeaturedCollectionSectionProps {
+ 	locale: string;
+@@ -35,8 +36,12 @@ export async function FeaturedCollectionSection({
+ 	width = "content",
+ 	className,
+ }: FeaturedCollectionSectionProps) {
+-	const products = (await getFeaturedProducts(channel, locale, limit, collectionSlug)).map((product) =>
+-		toProductCardData(product, locale, channel),
++	const [featuredProducts, minimumPurchaseAge] = await Promise.all([
++		getFeaturedProducts(channel, locale, limit, collectionSlug),
++		getMinimumPurchaseAge(),
++	]);
++	const products = featuredProducts.map((product) =>
++		toProductCardData(product, locale, channel, minimumPurchaseAge),
+ 	);
+ 	const headingId = "featured-collection-heading";
+ 

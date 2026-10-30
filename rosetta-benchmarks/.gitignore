@@ -1,0 +1,3 @@
+# Raw Claude Code session logs: large, and they contain local access tokens and passwords.
+# Keep them locally; commit only tokens.md (the breakdown made from them).
+saleor/runs/**/session/
