@@ -19,7 +19,7 @@ Installing Rosetta means adding a **plugin** to your IDE. The plugin bundles eve
 
 ## Install for your IDE
 
-Pick your tool below.
+Pick your tool below. Most IDEs offer two ways to install: **Marketplace** (easier, updates itself) or **Standalone** (extract a zip from the latest release into your repo; use it when your IDE has no marketplace path or your environment blocks external marketplaces). Use one way per IDE.
 
 ### Claude Code
 
@@ -40,7 +40,7 @@ That's it. Marketplace plugins update themselves over time.
 
 **Standalone (no marketplace):**
 
-1. Download `core-cursor-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `core-cursor-standalone-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest). For the lightweight version (simpler workflows, smaller models), take `core-cursor-standalone-light-<version>-<date>.zip` instead.
 2. Extract the contents into your repository.
 3. Confirm the file `.cursor/agents/architect.md` exists, and that there's no nested `.cursor/.cursor` folder.
 
@@ -50,11 +50,11 @@ That's it. Marketplace plugins update themselves over time.
 
 1. In VS Code settings, add `https://github.com/griddynamics/rosetta` to `chat.plugins.marketplaces`. In JetBrains, add the same URL under the Copilot plugin's marketplace setting.
 2. Open the Copilot chat panel and click the settings gear to open agent customizations.
-3. Click **Browse Marketplaces**, then **Install** for `rosetta`.
+3. Click **Browse Marketplaces**, then **Install** for `rosetta`. Screenshots of each step: [Plugins](/rosetta/docs/plugins/#step-1-install-plugin).
 
 **Standalone (fallback):**
 
-1. Download `core-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `core-copilot-standalone-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest). For the lightweight version (simpler workflows, smaller models), take `core-copilot-standalone-light-<version>-<date>.zip` instead.
 2. Extract into your repository. If `.github/copilot-instructions.md` already exists, merge — put Rosetta's content first, then your original content.
 3. Confirm `.github/agents/architect.agent.md` exists, and that there's no nested `.github/.github` folder.
 
@@ -64,7 +64,7 @@ That's it. Marketplace plugins update themselves over time.
 
 *(As of August 2026, Codex plugins do not support subagents. In Codex, invoke a workflow as `$coding-flow` rather than `/coding-flow`.)*
 
-1. Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `core-codex-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest). For the lightweight version (simpler workflows, smaller models), take `core-codex-light-<version>-<date>.zip` instead.
 2. Extract into your repository.
 3. Enable hooks:
 
@@ -76,7 +76,7 @@ That's it. Marketplace plugins update themselves over time.
 
 One plugin serves Antigravity 2.0, the CLI, and the IDE.
 
-1. Download `core-antigravity-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `core-antigravity-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest). For the lightweight version (simpler workflows, smaller models), take `core-antigravity-light-<version>-<date>.zip` instead.
 2. Create the folder `.agents/plugins/rosetta/` at your workspace root.
 3. Extract the archive contents into it.
 4. Confirm `.agents/plugins/rosetta/plugin.json` exists, and that there's no nested `core-antigravity` folder inside.
@@ -91,14 +91,22 @@ Start a chat with your agent and ask:
 What can you do, Rosetta?
 ```
 
-If it's working, the agent recognizes Rosetta and lists the available workflows (it runs the built-in `help-flow` to do this). If it just answers like a generic assistant with no mention of Rosetta workflows, see [Tips → The agent isn't using Rosetta](/rosetta/user-guide/tips/#the-agent-isnt-using-rosetta).
+If it's working, the agent recognizes Rosetta and lists the available workflows (it runs the built-in `help-flow` to do this). If it just answers like a generic assistant with no mention of Rosetta workflows, see [Tips → The agent isn't using Rosetta](/rosetta/user-guide/tips/#the-agent-isnt-using-rosetta). What a correct answer looks like (Claude Code, Copilot): [Plugins → Verify](/rosetta/docs/plugins/#step-2-verify).
 
 ## Keeping it up to date
 
-- **Marketplace installs** usually update automatically. To force it: `claude plugin marketplace update rosetta` then `claude plugin update rosetta@rosetta`. To remove it: `claude plugin uninstall rosetta@rosetta`.
-- **Standalone installs** don't — to upgrade, re-download the latest zip and replace the files (install again). To remove it, delete the extracted files.
+- **Marketplace installs** usually update automatically. To force it: `claude plugin marketplace update rosetta` then `claude plugin update rosetta@rosetta`.
+- **Standalone installs** don't update themselves. To upgrade, download the latest zip and extract it over the old files.
+
+## Uninstall
+
+- **Claude Code:** `claude plugin uninstall rosetta@rosetta`.
+- **Cursor, Copilot (marketplace):** remove the Rosetta plugin where you added it (team marketplace, Copilot agent customizations).
+- **Any standalone install:** delete the extracted files: `.cursor/`, `.github/`, the Codex files, or `.agents/plugins/rosetta/` (`~/.gemini/config/plugins/rosetta/` for Antigravity in all workspaces).
 
 ## Next step
 
-Rosetta is installed, but it doesn't know your codebase yet. Do that once per repository in [Set up your repository →](/rosetta/user-guide/initialize/).
+Rosetta is installed, but it doesn't know your codebase yet. Do that once per repository in [Set up your repository →](/rosetta/user-guide/initialize/). Then try the starter prompts in [Quick Start](/rosetta/docs/quickstart/).
+
+Coming from the [Quick Start](/rosetta/docs/quickstart/)? Go back to [step 2](/rosetta/docs/quickstart/#step-2-initialize-your-repository-once).
 

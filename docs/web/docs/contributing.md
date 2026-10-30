@@ -65,7 +65,7 @@ Before requesting review:
 - [ ] No duplicate rules or ambiguous wording introduced
 - [ ] Safety, privacy, and approval checkpoints preserved
 - [ ] Prompt changes include a brief, examples, and validation evidence
-- [ ] Architecture changes update [`docs/ARCHITECTURE.md`](https://github.com/griddynamics/rosetta/blob/main/docs/ARCHITECTURE.md) in the same changeset
+- [ ] Architecture changes update [`docs/ARCHITECTURE.md`](/rosetta/docs/architecture/) in the same changeset
 - [ ] Local validation passes (build, lint, relevant checks)
 - [ ] PR description explains *why*, not just *what*
 

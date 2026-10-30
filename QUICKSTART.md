@@ -1,15 +1,19 @@
 # Quick Start
 
-**Who is this for?** New users setting up Rosetta for the first time.
-**When should I read this?** When you want to go from zero to a working setup.
+[README](README.md)
+
+**Who is this for?** New users: install Rosetta, set up your repository once, run your first task. Already set up? Jump to [example prompts](#next-steps) or [Upgrading](#upgrading).
 
 ---
 
 > [!CAUTION]
-> You must receive prior approval from your manager and company to use it.
+> If you use Rosetta on company code, **get approval** from your manager and company.
+> <sub>Your company may have rules for AI tools working on its code, and using Rosetta without approval may violate them.</sub>
 
 > [!WARNING]
-> Use **Sonnet 5.5 medium**, **GPT-6-luna-high**, **gemini-3.8-flash-high** or newer models. Please use the reasoning effort named above (do not go higher) or it will take 30 minutes in useless reasoning. Avoid Auto model selection. 
+>
+> - **Use Sonnet 5.5 medium, GPT-6-luna-high, gemini-3.8-flash-high or newer models. Avoid Auto model selection.**<br><sub>Higher effort burns time and tokens on needless reasoning, because Rosetta already switches models per step.<br>"Auto" can silently drop to a weaker model mid-task, and weaker models skip tool calls and ignore Rosetta's rules.</sub>
+> - **Remove similar plugins** (JUXT, Superpowers, GSD, AI-DevKit), or keep only the one you know best.<br><sub>They bring their own rules, skills, and workflows, so the agent gets mixed context and the two sets compete.<br>This makes Rosetta load the wrong instructions or lose its own, and the results get worse.</sub>
 
 > [!NOTE]
 > Rosetta is designed to never use or see data or IP.
@@ -17,7 +21,6 @@
 > Instead it uses inversion of control, by providing a "menu" to AI coding agents.
 >
 > There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
-
 
 ## Step 1: Install Rosetta
 
@@ -27,36 +30,35 @@
 | **[Hosted MCP](MCPs.md)** — evaluation only | Try Rosetta with zero setup, or use any other MCP-compatible agent (Devin/Windsurf · Junie · OpenCode). Public demo endpoint — do not point production or sensitive repos at it. |
 | **[Self-hosted MCP](docs/mcp/DEPLOYMENT_GUIDE.md)** — optional | MCP in production: your own MCP server and RAGFlow inside your perimeter. Only needed if you specifically require centrally-managed, always-fresh instructions with nothing copied into repos — most teams don't. |
 
-## Step 2: Initialize (once per repository and commit)
+## Step 2: Initialize your repository (once)
 
-Ask the agent:
+Required before your first task. Type one of these as a plain sentence (it is not a slash command).
 
-**Greenfield (new repository):**
-```
-Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ...
-```
+**Existing repository:**
 
-**Brownfield (existing repository):**
-
-Ask the agent to initialize the repository:
-
-```
+```text
 Initialize this repository using the respective Rosetta workflow
 ```
 
-Optionally, add details to that same request. If your workspace contains multiple repositories:
+**New repository:**
 
+```text
+Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ...
 ```
+
+**Several repositories in one workspace (composite):** initialize each repository separately, then run this at the workspace level:
+
+```text
 Initialize this repository using the respective Rosetta workflow, this is a composite workspace
 ```
 
-To tell the agent where dead code or existing specs live:
+**Dead code or existing specs:** mention where they are to save time:
 
-```
+```text
 Initialize this repository using the respective Rosetta workflow, dead code is in <path>, existing specs are in <path>
 ```
 
-The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md, ARCHITECTURE.md, CONTEXT.md), and ask clarifying questions. Read more about [workspace files](INSTALLATION.md#workspace-files-created) and [all workflows](USAGE_GUIDE.md#workflows).
+The agent studies your code, asks a few questions, and writes context files (`docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and others). Review and commit them, then start a **new session**: the agent loads these files only at session start. More: [Set up your repository](user-guide/03-initialize-your-repository.md), [workspace files](INSTALLATION.md#workspace-files-created).
 
 > [!NOTE]
 > **Prefer medium models:** High reasoning and Opus models consume too much token on reasoning.
@@ -65,7 +67,17 @@ The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CO
 >
 > **Dead code or existing specs:** mention their location in the prompt to save time.
 
+## Step 3: Run your first task
+
+```text
+/coding-flow Add password reset to the auth service
+```
+
+Not sure what to run? Ask `/help-flow What can you do?` or see all [workflows and skills](docs/CATALOG.md). In Codex, use `$` instead of `/`.
+
 ## Next Steps
+
+All workflows and skills in one list: [Workflows and skills](docs/CATALOG.md).
 
 To properly set up an entire workspace, refer to [CONFIGURATION.md](CONFIGURATION.md).
 
@@ -137,9 +149,7 @@ To properly set up an entire workspace, refer to [CONFIGURATION.md](CONFIGURATIO
 
 ### Save Tokens (Optional)
 
-Save cost — add the line below to your workspace AGENTS.md/CLAUDE.md to cut model output tokens:
-
-`MUST ALWAYS think, reason, plan, chat, document in compressed/terse/unicode chars/terms/always/no hieroglyphs; Exclude final artifacts, any tool calls, all code, etc.`
+A one-line instruction cuts output tokens: [Tips → Lowering your token bill](user-guide/05-tips-and-troubleshooting.md#lowering-your-token-bill).
 
 To explore all workflows (coding, requirements authoring, modernization, and more), refer to [USAGE_GUIDE.md — Workflows](USAGE_GUIDE.md#workflows).
 
@@ -157,3 +167,15 @@ To explore all workflows (coding, requirements authoring, modernization, and mor
 - [Install Using MCP](https://vimeo.com/1174124251/f38e017d8d?fl=ml&fe=ec) — step-by-step setup
 - [Initialize with Antigravity](https://vimeo.com/1174124165/8f5fbd7775?fl=ml&fe=ec) — project initialization
 - [Subagents and Workflows in Claude Code](https://vimeo.com/1174124272/96056d5cc5?fl=ml&fe=ec) — advanced configuration
+
+## Upgrading
+
+**Existing workspace, from Rosetta R2 to R3:**
+
+```
+Upgrade this repository from Rosetta R2 to R3
+```
+
+**Plugin or MCP update:** see [Installation → Upgrading](INSTALLATION.md#upgrading).
+
+**Rosetta MCP says it runs in "legacy compatibility mode":** switch to HTTP mode ([MCPs Installation](MCPs.md)) or install the plugin ([install guide](user-guide/02-install.md)).

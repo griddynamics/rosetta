@@ -113,6 +113,7 @@ Layers at the same resource path get merged: in Plugin mode, the generator merge
 - [User Guide](user-guide/README.md) — using Rosetta day to day
 - [Quick Start](QUICKSTART.md) — zero to working setup
 - [Usage Guide](USAGE_GUIDE.md) — how to use Rosetta flows
+- [Workflows and skills](docs/CATALOG.md) — all workflows and skills in one list
 - [Contributing](CONTRIBUTING.md) — fastest path to a merged PR
 - [Architecture](docs/ARCHITECTURE.md) — system structure, components, data flow
 - [Developer Guide](DEVELOPER_GUIDE.md) — repo navigation, where to change what

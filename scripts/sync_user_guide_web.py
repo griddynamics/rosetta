@@ -49,6 +49,8 @@ ROOT_TO_WEB = {
     'PLUGINS.md': '/rosetta/docs/plugins/',
     'QUICKSTART.md': '/rosetta/docs/quickstart/',
     'MCPs.md': '/rosetta/docs/mcps/',
+    'CATALOG.md': '/rosetta/docs/catalog/',
+    'WHY.md': '/rosetta/docs/why/',
 }
 
 
@@ -78,6 +80,10 @@ def rewrite_target(target: str, in_scenarios: bool) -> str:
     m = re.match(r'^scenarios/([\w-]+)\.md$', plain)
     if m:
         return f'{BASE}/scenarios/{m.group(1)}/{anch}'
+
+    # ../README.md from a top-level page (../../ from scenarios/) is the repo-root README, not the guide index
+    if base == 'README.md' and path.count('../') >= (2 if in_scenarios else 1):
+        return ROOT_TO_WEB['README.md'] + anch
 
     # ../<page>.md from inside scenarios/  -> a top-level guide page
     if depth_up and base in PAGES:
@@ -127,6 +133,10 @@ def convert(src_path: str, out_path: str, title: str, in_scenarios: bool, order:
         return f'{label}({rewrite_target(target, in_scenarios)}{ttl})'
 
     txt = LINK_RE.sub(sub, txt)
+
+    # GitHub plays a bare user-attachments URL as a video; Jekyll needs a <video> tag.
+    txt = re.sub(r'^(https://github\.com/user-attachments/assets/\S+)$',
+                 r'<video src="\1" controls width="100%"></video>', txt, flags=re.M)
 
     # Mermaid hexagon nodes use {{"..."}}, which Liquid would interpolate away.
     # Fence every mermaid block in {% raw %} so Jekyll leaves it untouched.

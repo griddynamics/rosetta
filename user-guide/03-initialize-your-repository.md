@@ -6,6 +6,10 @@ Before Rosetta can help with real tasks, it needs to understand your project. Yo
 
 Think of it as onboarding a new teammate: an hour of orientation now saves confusion on every task later.
 
+**Demo: init and your first coding task**
+
+https://github.com/user-attachments/assets/fc0ef06a-2f9c-49fa-bc05-68001dadd286
+
 ## How to run it
 
 Just ask the agent in plain language, which runs `/init-workspace-flow`. Use the version that matches your situation.

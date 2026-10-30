@@ -612,32 +612,7 @@ The agent should follow Rosetta's prompts and list its workflows:
 
 ## Step 4: Initialize Repository
 
-Run once per repository after installation:
-
-**Greenfield (new repository):**
-```
-Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ...
-```
-
-**Brownfield (existing repository):**
-
-Ask the agent to initialize the repository:
-
-```
-Initialize this repository using the respective Rosetta workflow
-```
-
-Optionally, add details to that same request. If your workspace contains multiple repositories:
-
-```
-Initialize this repository using the respective Rosetta workflow, this is a composite workspace
-```
-
-To tell the agent where dead code or existing specs live:
-
-```
-Initialize this repository using the respective Rosetta workflow, dead code is in <path>, existing specs are in <path>
-```
+Run once per repository after installation. Prompts for brownfield, greenfield, composite workspaces, and for pointing the agent at dead code or existing specs: [Set up your repository](user-guide/03-initialize-your-repository.md).
 
 The agent runs an eight-phase workflow (see [Usage Guide — Init Workspace](USAGE_GUIDE.md#workflows) for details):
 
@@ -649,10 +624,6 @@ The agent runs an eight-phase workflow (see [Usage Guide — Init Workspace](USA
 6. **Documentation** — create CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md
 7. **Questions** — clarifying questions about gaps and assumptions
 8. **Verification** — completeness check and catch-up for missed artifacts
-
-> [!NOTE]
-> **Composite workspaces:** init each repository separately, then init at the workspace level with "This is composite workspace" appended.
-> **Dead code or existing specs:** mention their location in the prompt to save time.
 
 ### Workspace Files Created
 
@@ -704,7 +675,8 @@ After initialization, Rosetta maintains these files in your repository. Read mor
 - **Cursor (standalone):** Delete the extracted `.cursor/` plugin files from the repository.
 - **VS Code / GitHub Copilot (marketplace):** Remove the Copilot agent plugin.
 - **VS Code / JetBrains / GitHub Copilot (standalone):** Delete the extracted `.github/` plugin files from the repository.
-- **Codex:** Delete the extracted plugin files from the repository
+- **Codex:** Delete the extracted plugin files from the repository.
+- **Antigravity:** Delete `.agents/plugins/rosetta/` (or `~/.gemini/config/plugins/rosetta/` if installed for all workspaces).
 
 **HTTP/STDIO MCP:**
 
@@ -718,7 +690,8 @@ After initialization, Rosetta maintains these files in your repository. Read mor
 
 ## Related Docs
 
-- [PLUGINS.md](PLUGINS.md) - plugin contents and capabilities
+- [Install guide](user-guide/02-install.md) - plugin install steps for every IDE
+- [PLUGINS.md](PLUGINS.md) - plugin screenshots and verification
 - [QUICKSTART.md](QUICKSTART.md) - fastest path to a working setup
 - [MCPs.md](MCPs.md) - when and how to use the optional MCP path
 - [OVERVIEW.md](OVERVIEW.md) - mental model and terminology

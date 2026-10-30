@@ -29,6 +29,8 @@ Use the slash command for the respective workflow and type your request naturall
 
 Each workflow is invoked with its slash command. Use the slash command, add your request, and the workflow guides AI and you along the way. Each workflow defines phases, produces traceable artifacts, and enforces approval gates where decisions matter.
 
+All workflows and skills in one list: [Workflows and skills](/rosetta/docs/catalog/).
+
 <details markdown="1">
 <summary><b>Init Workspace</b></summary>
 
@@ -77,7 +79,7 @@ Initialize this repository using the respective Rosetta workflow, dead code is i
 **Upgrade an existing workspace:**
 
 ```
-Upgrade this repository to Rosetta R3
+Upgrade this repository from Rosetta R2 to R3
 ```
 
 **Initialize subagents and workflows:**
@@ -693,7 +695,7 @@ These rules are always active. They cannot be turned off.
 
 Rosetta is distributed as a single plugin for supported IDEs. The plugin bundles the full Rosetta instruction set locally, including workflows, skills, agents, rules, templates, and bootstrap guardrails.
 
-See [Plugins](/rosetta/docs/plugins/) for install commands.
+See the [install guide](/rosetta/user-guide/install/) for install steps.
 
 ## Best Practices
 

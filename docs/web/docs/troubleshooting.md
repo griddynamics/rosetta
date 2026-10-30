@@ -18,7 +18,7 @@ Most sections below are MCP-specific (connection, OAuth, server issues) — if y
 
 **OAuth prompt does not appear**
 - Restart your IDE and retry the connection
-- Confirm your IDE supports HTTP MCP transport (see [Quick Start](/rosetta/docs/quickstart/))
+- Confirm your IDE supports HTTP MCP transport (see [MCPs Installation](/rosetta/docs/mcps/#step-1-connect-rosetta-mcp))
 - Some IDEs require manually triggering auth (Claude Code: `/mcp` > select Rosetta > Authenticate)
 
 **MCP server shows as disconnected**
@@ -50,7 +50,7 @@ Most sections below are MCP-specific (connection, OAuth, server issues) — if y
 - Re-add the bootstrap rule if it was removed
 
 **Untested IDE or agent**
-- Not every IDE/agent has been validated with Rosetta. If yours isn't listed in [Quick Start](/rosetta/docs/quickstart/), it may not invoke MCP tools reliably
+- Not every IDE/agent has been validated with Rosetta. If yours isn't listed in the [install guide](/rosetta/user-guide/install/) (plugins) or [MCPs Installation](/rosetta/docs/mcps/) (MCP), it may not invoke MCP tools reliably
 - The bootstrap rule works as a fallback for any agent that reads project-level instruction files
 - If neither MCP nor bootstrap works, your IDE/agent may not support the required capabilities. Open an [issue](https://github.com/griddynamics/rosetta/issues)
 
@@ -58,7 +58,7 @@ Most sections below are MCP-specific (connection, OAuth, server issues) — if y
 
 **Wrong model causes poor or inconsistent results**
 
-Use **Sonnet 5.5 medium**, **GPT-6-luna-high**, **gemini-3.8-flash-high** or newer models. Avoid Auto model selection. Weaker models skip tool calls, hallucinate instructions, or ignore loaded rules entirely (plugin or MCP).
+Use **Sonnet 5.5 medium**, **GPT-6-luna-high**, **gemini-3.8-flash-high** or newer models. Avoid Auto model selection. Weaker models skip tool calls, hallucinate instructions, or ignore loaded rules entirely (plugin or MCP). Details: [Tips → Choosing a model](/rosetta/user-guide/tips/#choosing-a-model).
 
 ## Slow or Empty Responses (MCP)
 

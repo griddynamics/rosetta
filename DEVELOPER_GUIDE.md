@@ -224,7 +224,7 @@ codex mcp add Rosetta \
 
 **Pre-release builds:** Version suffixes like `b00` trigger automatic pre-release publishing. Use `--prerelease=allow` with uvx to pull these builds.
 
-Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](QUICKSTART.md#step-2-add-bootstrap-rule).
+Add the bootstrap rule to your IDE as defined in [Installation — Add Bootstrap Rule](INSTALLATION.md#step-2-add-bootstrap-rule-http-and-stdio-modes-only).
 
 ---
 
@@ -393,7 +393,7 @@ codex mcp add Rosetta --url <rosetta MCP development server URL>
 
 Authenticate via OAuth as required.
 
-Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](QUICKSTART.md#step-2-add-bootstrap-rule).
+Add the bootstrap rule to your IDE as defined in [Installation — Add Bootstrap Rule](INSTALLATION.md#step-2-add-bootstrap-rule-http-and-stdio-modes-only).
 
 ### 4. Test CLI changes
 

@@ -23,6 +23,8 @@ Use the slash command for the respective workflow and type your request naturall
 
 Each workflow is invoked with its slash command. Use the slash command, add your request, and the workflow guides AI and you along the way. Each workflow defines phases, produces traceable artifacts, and enforces approval gates where decisions matter.
 
+All workflows and skills in one list: [Workflows and skills](docs/CATALOG.md).
+
 <details>
 <summary><b>Init Workspace</b></summary>
 
@@ -661,7 +663,7 @@ These rules are always active. They cannot be turned off.
 
 Rosetta is distributed as a single plugin for supported IDEs. The plugin bundles the full Rosetta instruction set locally, including workflows, skills, agents, rules, templates, and bootstrap guardrails.
 
-See [PLUGINS.md](PLUGINS.md) for install commands.
+See the [install guide](user-guide/02-install.md) for install steps.
 
 ## Best Practices
 
