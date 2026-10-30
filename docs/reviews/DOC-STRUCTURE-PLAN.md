@@ -6,7 +6,7 @@ Each doc answers one question for one reader at one moment. If a file answers tw
 
 Four reader types. Every doc serves one primary profile. README is the shared front door that routes all four.
 
-- **User** — wants to use Rosetta on their own project. The primary audience. Path: README → QUICKSTART → install (PLUGINS — recommended / MCPs — optional, secondary / INSTALLATION — full reference) → CONFIGURATION → USAGE_GUIDE, with FAQ and TROUBLESHOOTING for support.
+- **User** — wants to use Rosetta on their own project. The primary audience. Path: README → user-guide (what is it → install → initialize → configure → scenarios), with QUICKSTART for example prompts, CONFIGURATION and USAGE_GUIDE as references, and FAQ and TROUBLESHOOTING for support. MCP (MCPs — optional, secondary) and INSTALLATION (MCP, offline, env) are for non-default setups.
 - **AI** — a coding agent reading the repo to learn Rosetta. Path: README points it to `llms-full.txt`, one dense machine-readable source.
 - **Contributor** — develops for Rosetta. Path: CONTRIBUTING → OVERVIEW → CONTEXT → ARCHITECTURE → DEVELOPER_GUIDE → REVIEW. MCP-CONTEXT and MCP-ARCHITECTURE are optional deep-dives reached from CONTEXT/ARCHITECTURE, not separate stops on the main path.
 - **Organization** — wants to roll out Rosetta company-wide. For nearly all organizations this is the User path at scale (plugins distributed via IDE marketplaces) — no server to deploy. Path: INSTALLATION → docs/mcp/DEPLOYMENT_GUIDE → SECURITY exists only for the rare organization that specifically needs self-hosted, centrally-managed MCP; reuses ARCHITECTURE/MCP-ARCHITECTURE.
@@ -15,12 +15,15 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 |---|---|---|---|
 | `README.md` | Orientation + route to the right doc. | Anyone landing on the repo. | Front door (all) |
 | `ELEVATOR_PITCH.md` | 30-second pitch for the unconvinced. | Someone asked "what is Rosetta?" in a hallway. | User |
-| `QUICKSTART.md` | Fastest path to a working setup. | A user who decided to try it. | User |
-| `INSTALLATION.md` | Complete setup reference, all modes and transports. | A user or org with a non-default setup. | User + Organization |
-| `PLUGINS.md` | Plugin install path, per IDE. Recommended default; never mentions MCP. | Users on the plugin install route (nearly everyone). | User |
+| `QUICKSTART.md` | Example prompts for the first tasks (coding, requirements, QA, modernization). Install and init live in `user-guide/`. | A user who installed Rosetta and wants prompts to copy. | User |
+| `INSTALLATION.md` | Reference for non-default setups: MCP (HTTP, STDIO), offline, bootstrap rule, env vars, upgrade, uninstall. Plugin steps live in `user-guide/02-install.md`. | A user or org with a non-default setup. | User + Organization |
+| `PLUGINS.md` | Plugin screenshots (Copilot marketplace) and verification. Install steps live in `user-guide/02-install.md`. Never mentions MCP. | Users on the plugin install route (nearly everyone). | User |
 | `MCPs.md` | MCP install path — optional, secondary. | Users with no plugin path for their IDE, or a specific centrally-managed-instructions need. | User |
 | `CONFIGURATION.md` | Post-install workspace setup (includes refsrc examples). | A user asking "now what?". | User |
 | `USAGE_GUIDE.md` | How to run the workflows day to day. | A configured user doing real work. | User |
+| `user-guide/*` | The only place for "how to use Rosetta": before you install, install per IDE (marketplace and zip), initialize, configure ecosystem, tips and model choice, one page per scenario. Mirrored to the website by `scripts/sync_user_guide_web.py`. | A user going from zero to the first task. | User |
+| `docs/CATALOG.md` | Every workflow and skill, with one-line descriptions. Owns the workflow and skill counts. | Someone choosing a command or calling a skill by name. | User |
+| `docs/WHY.md` | The full argument: how it works, why not IDE rules, the failure modes Rosetta addresses. | An evaluator deciding whether to adopt. | User |
 | `docs/MODERNIZATION.md` | Migration methodology: principles, red flags, process, start prompt templates. | A user running modernization/migration work. | User |
 | `FAQ.md` | Fast answers to recurring real questions. | Anyone scanning before a full guide. | User |
 | `TROUBLESHOOTING.md` | Recover when setup or runtime breaks. | A user who hit an error. | User |
@@ -45,9 +48,9 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Profile:** Front door (all).
 - **Audience:** anyone landing on the repo for the first time.
 - **Answers:** "What is this, and where do I go next?"
-- **Owns:** one-paragraph what-it-is, the value proposition in brief, the routing table ("I want to… → read X"), community/license pointers.
-- **Structure:** badges/hero → one-line what-it-is → value proposition → Quick Start teaser (links out) → "I want to… → read X" routing table → who-it's-for → community/license.
-- **Excludes:** full install steps (→ QUICKSTART/INSTALLATION), mental model and concepts (→ OVERVIEW), workflow how-tos (→ USAGE_GUIDE).
+- **Owns:** what-it-is in two paragraphs, one concrete example (Without/With), the user flow in three lines, a three-step quick start (install commands for Claude Code only, the init prompt, the first task), the routing list, support, license.
+- **Structure:** badges/hero + nav → what is Rosetta (+ example, "is it for you") → how it works (user flow) → quick start → where to go next → support/warning/license.
+- **Excludes:** install steps for other IDEs and zip rules (→ user-guide/02-install), the command and skill lists (→ docs/CATALOG), the full "why" argument and architecture diagrams (→ docs/WHY, OVERVIEW), workflow how-tos (→ user-guide/scenarios, USAGE_GUIDE).
 - **Sources:** ELEVATOR_PITCH + OVERVIEW (value prop), the live doc set (routing table), PyPI badges (`rosetta-mcp`, `rosetta-cli`).
 
 ### OVERVIEW.md
@@ -84,34 +87,34 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** the pitch — problem, solution, one-line core idea, proof.
 - **Structure:** hook/problem → solution in one line → how it helps → proof/outcome.
 - **Excludes:** setup/how-to (→ QUICKSTART), conceptual depth (→ OVERVIEW), feature reference (→ USAGE_GUIDE).
-- **Sources:** the value-proposition deck/slide, README intro, real proof points/metrics.
+- **Sources:** the value-proposition deck/slide, README intro, real proof points/metrics. Claims about speed are marked as internal estimates until a measured source exists. Linked from docs/WHY.md.
 
 ### QUICKSTART.md
 - **Profile:** User.
-- **Audience:** a user who decided to try it and wants it working now.
-- **Answers:** "Minimum steps to a working setup?"
-- **Owns:** install one-liner, initialize-once step, a short "next steps" pointing into the workflows. Happy path only.
-- **Structure:** prerequisites → install one-liner → initialize once → run your first workflow → next steps (links into CONFIGURATION/USAGE_GUIDE).
-- **Excludes:** exhaustive install modes/transports (→ INSTALLATION), workspace configuration (→ CONFIGURATION), per-workflow detail (→ USAGE_GUIDE).
-- **Sources:** INSTALLATION (canonical steps), PLUGINS/MCPs (install routes), the actual init prompt/command.
+- **Audience:** a user who installed Rosetta and wants to know what to do next.
+- **Answers:** "Does it work, and what do I type for coding, requirements, QA, modernization? How do I upgrade?"
+- **Owns:** the "check it works" prompt, example prompts per task type, the upgrade pointers (R2 to R3 prompt, legacy MCP mode).
+- **Structure:** not-installed-yet pointer (README quick start, user-guide/02-install) → check it works → example prompts per task type → token-saving pointer → upgrading → links.
+- **Excludes:** install steps (→ user-guide/02-install), init prompts (→ user-guide/03), workspace configuration (→ CONFIGURATION), per-workflow detail (→ USAGE_GUIDE).
+- **Sources:** user-guide scenarios, USAGE_GUIDE.
 
 ### INSTALLATION.md
 - **Profile:** User + Organization.
-- **Audience:** a user whose setup is non-default (HTTP/STDIO, offline, specific IDE).
-- **Answers:** "Every supported way to install, in full."
-- **Owns:** all transports, bootstrap rule, verify, initialize, upgrade, uninstall, env vars. The canonical install reference.
-- **Structure:** modes overview, plugin-first (Plugin → HTTP → STDIO → Offline) → plugin install → offline install (rare — developing Rosetta itself, or no plugin available) → HTTP/STDIO transports (MCP, optional) → bootstrap rule → verify → initialize → upgrade → uninstall → env vars.
-- **Excludes:** post-install workspace setup (→ CONFIGURATION), per-IDE plugin walkthrough (→ PLUGINS), MCP-connect specifics (→ MCPs), self-hosted server deploy (→ docs/mcp/DEPLOYMENT_GUIDE).
-- **Sources:** PyPI packages (`rosetta-mcp`, `rosetta-mcp`, `rosetta-cli`), CLI `--help`, server transport config + env vars in code.
+- **Audience:** a user whose setup is non-default (HTTP/STDIO MCP, offline).
+- **Answers:** "Every non-default way to install, in full."
+- **Owns:** MCP transports, bootstrap rule, env vars, offline install, upgrade, uninstall, workspace files created by init.
+- **Structure:** modes overview → plugin (link to user-guide/02-install) → HTTP/STDIO transports (MCP, optional) → offline → bootstrap rule → verify → initialize (link) → workspace files → upgrade → uninstall → env vars.
+- **Excludes:** plugin install steps and zip naming (→ user-guide/02-install), init prompts (→ user-guide/03), post-install workspace setup (→ CONFIGURATION), self-hosted server deploy (→ docs/mcp/DEPLOYMENT_GUIDE).
+- **Sources:** PyPI packages (`rosetta-mcp`, `rosetta-cli`), CLI `--help`, server transport config and env vars in code.
 
 ### PLUGINS.md
 - **Profile:** User.
-- **Audience:** a user installing via plugin, per IDE (Claude Code, Cursor, Copilot, Codex). The recommended default for nearly every user.
-- **Answers:** "Plugin install for my IDE?"
-- **Owns:** per-IDE plugin steps, verify, upgrade.
-- **Structure:** prerequisites → per-IDE install steps (Claude Code, Cursor, Copilot, Codex) → verify → upgrade.
-- **Excludes:** MCP install route — **never mentions MCP, not even a pointer** (one-directional split; MCPs.md may point back here, this file never points there), transport/env reference (→ INSTALLATION), workspace config (→ CONFIGURATION).
-- **Sources:** each IDE's plugin registry/config, the plugin manifest, INSTALLATION (shared verify/upgrade steps).
+- **Audience:** a user who installed a plugin and wants to see or check the result.
+- **Answers:** "What does the install look like, and how do I know it works?"
+- **Owns:** Copilot marketplace screenshots, verification screenshots, upgrade pointer.
+- **Structure:** install (link to user-guide/02-install + screenshots) → verify → upgrading → next steps.
+- **Excludes:** install steps per IDE and zip naming (→ user-guide/02-install), **MCP in any form** (one-directional split; MCPs.md may point back here, this file never points there), transport/env reference (→ INSTALLATION).
+- **Sources:** the install guide, IDE screenshots.
 
 ### MCPs.md
 - **Profile:** User.
@@ -279,7 +282,8 @@ flowchart TD
 
     subgraph USER["User — use Rosetta"]
         ELEV["ELEVATOR_PITCH"]
-        QS["QUICKSTART"]
+        UG["user-guide<br/>install · init · scenarios"]
+        QS["QUICKSTART<br/>(example prompts)"]
         PLUG["PLUGINS<br/>(recommended)"]
         MCP["MCPs<br/>(optional, secondary)"]
         INST["INSTALLATION"]
@@ -308,14 +312,15 @@ flowchart TD
         SEC["SECURITY"]
     end
 
-    README -->|user| QS
+    README -->|user| UG
+    UG --> QS
     README -.-> ELEV
     README -->|AI| LLMS
     README -->|contributor| CONT
     README -.->|organization,<br/>only if self-hosting| INSTO
 
-    ELEV --> QS
-    QS --> PLUG
+    ELEV --> UG
+    UG --> PLUG
     QS -.->|no plugin path, or<br/>specific MCP need| MCP
     QS --> INST
     PLUG --> INST
@@ -344,7 +349,7 @@ flowchart TD
     classDef org fill:#b45309,stroke:#5a2900,color:#ffffff;
 
     class README entry;
-    class ELEV,QS,PLUG,MCP,INST,CONF,USAGE,FAQ,TRBL user;
+    class ELEV,UG,QS,PLUG,MCP,INST,CONF,USAGE,FAQ,TRBL user;
     class LLMS ai;
     class CONT,OVER,CTX,ARCH,DEV,REV contrib;
     class INSTO,DEP,SEC org;
@@ -352,14 +357,14 @@ flowchart TD
 
 ---
 
-## 5. Known overlaps to clarify at the sync
+## 5. Overlaps and proposed resolutions
 
-Observed today, stated as boundary questions — not deletion proposals. These are the concrete "who owns this fact" decisions to make with Igor.
+Each item is a proposed resolution, open for the owners to accept or change.
 
-1. **Setup steps** appear in QUICKSTART, INSTALLATION, CONFIGURATION, and USAGE_GUIDE. Decide the owner per step: install → INSTALLATION, first-run init → QUICKSTART, workspace setup → CONFIGURATION. Others link.
-2. **Bootstrap rule + verify** are spelled out in INSTALLATION, PLUGINS, and MCPs. Decide whether INSTALLATION owns the canonical version and the two children link to it.
-3. **FAQ vs TROUBLESHOOTING** boundary: FAQ = "is this expected?", TROUBLESHOOTING = "fix this break". Sort each existing entry into one.
-4. **README length:** README currently carries a Quick Start section *and* links to QUICKSTART. Decide whether README keeps a 3-line teaser that links out, or the inline steps. (This is the exact Yuriy↔Igor disagreement — resolving #1 resolves it.)
-5. **Video tutorial + links blocks** are repeated across QUICKSTART, MCPs, USAGE_GUIDE. Decide one owner (likely USAGE_GUIDE) and link from the rest.
-
-Resolving overlap #1 dissolves most of the others, because nearly all of them are the same setup facts written in more than one place.
+1. **Setup steps.** Install per IDE (marketplace and zip) → `user-guide/02-install.md`. Init prompts → `user-guide/03-initialize-your-repository.md`. "Before you install" (approval, model, conflicting plugins) → `02-install#before-you-install`. Model names and token tips → `user-guide/05-tips-and-troubleshooting.md`. INSTALLATION, QUICKSTART, PLUGINS, MCPs, FAQ and TROUBLESHOOTING link instead of copying.
+2. **Bootstrap rule + verify.** Open for MCP: INSTALLATION and MCPs both describe it. Plugin verify lives in PLUGINS (screenshots) and 02-install ("Confirm it works").
+3. **FAQ vs TROUBLESHOOTING.** Unchanged: FAQ = "is this expected?", TROUBLESHOOTING = "fix this break".
+4. **README length.** Proposal: README keeps a three-step quick start (Claude Code commands, init prompt, first task) and links out for every other IDE. Follows from #1.
+5. **Video tutorials.** Still repeated in QUICKSTART, MCPs, USAGE_GUIDE. Open: decide one owner.
+6. **Workflow and skill lists.** Owned by `docs/CATALOG.md`. Other docs show a few examples and link.
+7. **Without/With comparison.** One example in README, a short table in `user-guide/01-what-is-rosetta.md`, the full argument in `docs/WHY.md`.
