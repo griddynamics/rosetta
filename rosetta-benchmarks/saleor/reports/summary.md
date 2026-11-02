@@ -13,7 +13,7 @@
 | `L-CC-08` | `large-age-restriction/claude-code/rosetta-skills` | run | done | 164 | 224 | $23.72 | $24.73 | 4% | 3 / 6 / 0 | 100% | 2 | 6 | 12/12 | yes | 5 | yes | – | – / – / – | – | – |
 | `L-CC-07` | `large-age-restriction/claude-code/rosetta-light` | run | done | 275 | 358 | $53.30 | $57.65 | 8% | 4 / 4 / 1 | 89% | 2 | 2 | 12/12 | yes | 4 | yes | – | – / – / – | – | – |
 | `L-CP-01` | `large-age-restriction/copilot/baseline` | run | done | 7 | 2625 | 194.7 cr | 1746.5 cr | 89% | 2 / 3 / 4 | 56% | 10 | 2 | 12/12 | yes | 3 | no | – | – / – / – | – | – |
-| `L-CP-02` | `large-age-restriction/copilot/grill-with-docs` | run | done | 27 | 96 | 600.8 cr | 848.9 cr | 29% | 7 / 2 / 0 | 100% | 5 | 1 | 12/12 | yes | 3 | yes | – | – / – / – | – | – |
+| `L-CP-02` | `large-age-restriction/copilot/grill-with-docs` | run | done | 27 | 96 | 600.8 cr | 848.9 cr | 29% | 7 / 2 / 0 | 100% | 5 | 1 | 12/12 | yes | 4 | yes | – | – / – / – | – | – |
 | `L-CP-03` | `large-age-restriction/copilot/superpowers` | run | done | 159 | 1355 | 1776.8 cr | 1887.9 cr | 6% | 2 / 5 / 2 | 78% | 2 | 6 | 7/12 | yes | 3 | yes | – | – / – / – | – | – |
 | `L-CP-04` | `large-age-restriction/copilot/spec-kit` | run | done | 51 | 63 | 964.1 cr | 1024.0 cr | 6% | 0 / 6 / 3 | 67% | 3 | 9 | 12/12 | no | 2 | no | – | – / – / – | – | – |
 | `S-CC-01` | `small-storage-conditions/claude-code/baseline` | run | done | 29 | 70 | $1.24 | $3.31 | 63% | 0 / 4 / 3 | 57% | 3 | 1 | 7/8 | yes | 3 | no | 66.2 | 0 / 2 / 8 | 1 | 0 |
@@ -70,7 +70,7 @@
 | Method | n | Time first (min) | Time total (min) | Usage total | First-pass coverage | Follow-ups | Method steps | Done checks passed | Operator score | Diff score |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | baseline | 1 | 7 | 2625 | 1746.5 cr | 56% | 10 | 2 | 12 | 3 | – |
-| grill-with-docs | 1 | 27 | 96 | 848.9 cr | 100% | 5 | 1 | 12 | 3 | – |
+| grill-with-docs | 1 | 27 | 96 | 848.9 cr | 100% | 5 | 1 | 12 | 4 | – |
 | superpowers | 1 | 159 | 1355 | 1887.9 cr | 78% | 2 | 6 | 7 | 3 | – |
 | spec-kit | 1 | 51 | 63 | 1024.0 cr | 67% | 3 | 9 | 12 | 2 | – |
 

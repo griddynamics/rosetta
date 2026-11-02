@@ -54,7 +54,7 @@ done_checks_total: 12
 done_checks_passed: 12
 red_flags: 1   # number of ticked red flags
 tests_pass: yes   # yes | no (operator ran them at T2)
-operator_score: 3   # 1–5, anchors in templates/README.md
+operator_score: 4   # 1–5, anchors in templates/README.md   # changed from 3 on 2026-11-02: score judges the final code at T2 (12/12 checks, tests pass, all 5 follow-up issues fixed); the follow-ups are counted in followups and red_flags
 operator_merge_ready: yes   # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 8/9)
@@ -366,6 +366,7 @@ Evidence: one red flag, given by the operator (timeline rows 12–16). Not seen:
   - Copilot built-in plugin `computer-use 0.1.94` was loaded (runner default). Grill-with-docs on Copilot is the `skills.sh` install (38 skills), see `S-CP-02` and part 7 of the method file.
 - **Interview vs. result.** The interview covered all 9 hidden requirements before any code was written, the best first-pass coverage among the large runs so far. The first "done" was nevertheless not usable on the running stack, and one follow-up (age calculation) was a real logic bug that the agent's own tests had not caught.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
+- Operator score and merge-ready (changed from 3 / yes to 4 / yes on 2026-11-02, Oleksii Poletaiev): the score judges the final code at T2, not the way to it. At T2 all 12 Done-when checks pass, the tests pass, and the 5 issues found after the first "done" are fixed; what remains are minor issues only. The 5 follow-ups and the "done" while broken are counted in `followups` and `red_flags`.
 - Strong point of the method in this run: the interview (30 questions in 6 rounds, about 19 minutes of the operator's answers) covered all 9 hidden requirements before any code, and the agent reviewed its own subagent's work and sent it back for missing migrations and tests.
 - Weak point of the method in this run: "done" without checking the running stack, as in `S-CP-02`: five follow-ups, one of them a logic bug (adults blocked until their birthday in the current year); the dashboard customer screen was not updated at all. 848.91 AI credits.
 
