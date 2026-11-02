@@ -96,6 +96,7 @@ JSON
 
 ```bash
 [ -d "$ENV_DIR/src/.git" ] || git clone -q --branch v3.1.17 https://github.com/griddynamics/rosetta "$ENV_DIR/src"
+git -C "$ENV_DIR/src" checkout -q 6215332c                    # pin: the v3.1.17 tag was moved on 23 Oct (to 817b3adf); all Rosetta runs use 6215332c
 claude plugin marketplace add "$ENV_DIR/src"
 claude plugin install rosetta@rosetta
 claude plugin list                                             # rosetta@rosetta 3.1.17 only
@@ -476,6 +477,7 @@ Hooks and skills stay on: the method's own hooks and skills must load. Never set
 
 ```bash
 [ -d "$ENV_DIR/src/.git" ] || git clone -q --branch v3.1.17 https://github.com/griddynamics/rosetta "$ENV_DIR/src"
+git -C "$ENV_DIR/src" checkout -q 6215332c                    # pin: the v3.1.17 tag was moved on 23 Oct (to 817b3adf); all Rosetta runs use 6215332c
 copilot plugin marketplace add "$ENV_DIR/src"                 # marketplace "rosetta" (.github/plugin/marketplace.json)
 copilot plugin install rosetta@rosetta
 copilot plugin disable rosetta-light@rosetta                    # the marketplace's other plugin: off, saved as enabledPlugins.rosetta-light@rosetta=false
