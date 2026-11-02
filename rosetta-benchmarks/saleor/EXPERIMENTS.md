@@ -54,7 +54,7 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 27 | `L-CP-06` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Flow | `runs/large-age-restriction/copilot/rosetta-flow/` | planned |
 | 28 | `L-CP-07` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Light | `runs/large-age-restriction/copilot/rosetta-light/` | planned |
 | 29 | `S-CC-08` | Small — product storage conditions | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/small-storage-conditions/claude-code/rosetta-skills/` | done (3 extra messages after T1 were not protocol follow-ups and are not counted, see report section 8) |
-| 30 | `S-CP-08` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Skills | `runs/small-storage-conditions/copilot/rosetta-skills/` | planned |
+| 30 | `S-CP-08` | Small — product storage conditions | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Skills | `runs/small-storage-conditions/copilot/rosetta-skills/` | in progress (2026-10-29, Oleksii Poletaiev) |
 | 31 | `L-CC-08` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/large-age-restriction/claude-code/rosetta-skills/` | done (rerun without the `orchestration` skill, 2026-10-26; the first run is in git history; Claude Code 2.1.310; 3 operator messages outside the protocol, report sections 2 and 8) |
 | 32 | `L-CP-08` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Skills | `runs/large-age-restriction/copilot/rosetta-skills/` | planned |
 
