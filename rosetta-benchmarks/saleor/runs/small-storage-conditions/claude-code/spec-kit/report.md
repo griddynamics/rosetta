@@ -241,6 +241,7 @@ Evidence: `<one line per ticked item>`
 
 ## 8. Notes
 
+- Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 7 gaps of 4 min or more (the longest 14 min 53 s); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - Deviations from the protocol, and why:
   1. **First attempt restarted** (11:18): the pasted prompt lost its last line, and a stray ` /model` reached the agent. Reset, new session; T0 = 11:24 (`retries: 1`).
   2. **Session interrupted during follow-ups** (13:24–13:28): the session stopped during follow-up 2 and was resumed after a re-login with a different organization account; follow-up 2 was re-sent. Before this, T1, the hidden-question check and follow-up 1 were done, but the task was not yet complete (hidden 2 and 6 open). After the re-login the agent could not reuse its earlier thinking, so later turns may cost more than in an uninterrupted run. All tokens are in the one session log (`tokens.md`). The runner's `/cost` counter restarted at the re-login, so `t2_cost_usd` is an estimate (Appendix A: $4.58 at T1 + ~$1.04 for 13:09–13:24 + $7.03 after the re-login); token totals come from the session log.

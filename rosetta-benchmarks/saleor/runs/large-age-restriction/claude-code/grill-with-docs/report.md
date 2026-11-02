@@ -254,6 +254,7 @@ Evidence: at T1 (14:20) the three new migrations were not applied to the running
 
 ## 8. Notes
 
+- Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 10 gaps of 4 min or more (the longest 33 min 22 s); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - Deviations from the protocol, and why:
   1. **Task variant (not comparable with other large runs).** The operator replaced hidden key #5 ("visible everywhere with an age label") with an own visibility rule: ineligible viewers (under-age, no birthday, guests) don't see restricted products; product page blurred with "You are under age; we cannot display this product to you." Rounds 2–4 of the interview follow from it (backend withholding, caching, staff/app visibility). Key #5 is marked n/a.
   2. **Operator corrected an own answer within the run.** Round 1 Q1: "EU 18, US 21 by shipping country"; round 2: "no regions, one store-wide minimum age 18".

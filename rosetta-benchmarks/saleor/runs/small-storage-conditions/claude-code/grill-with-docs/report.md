@@ -248,6 +248,7 @@ Evidence: none ticked. Checked: no debug prints, TODOs, `skip`/`xfail` in the 3 
 
 ## 8. Notes
 
+- Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 2 gaps of 4 min or more (5 min 49 s, 19 min 21 s); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - Deviations from the protocol, and why:
   1. **Upstream AI files present.** The baseline removed only root-level AI files. Nested `AGENTS.md` / `CLAUDE.md` stayed in all 3 repos (saleor: `saleor/graphql/{AGENTS,CLAUDE}.md`; dashboard: `src/components/ConditionalFilter/{AGENTS,CLAUDE}.md`, `src/components/ResponsiveTable/AGENTS.md`; storefront: 4 × `AGENTS.md` under `src/`). The agent loaded `saleor/graphql/CLAUDE.md`. `bench.sh setup` is fixed for future runs. **Counted as the S-CC-02 result**, with this deviation noted: it ran before the fix.
   2. **Node 20 in the agent's shell** (operator terminal default), not Node 24 as required. pnpm failed; the agent worked around it. Future runs: `nvm use 24` (or `nvm alias default 24`) before starting `claude`.
