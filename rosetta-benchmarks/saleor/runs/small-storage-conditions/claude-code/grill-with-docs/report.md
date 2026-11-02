@@ -56,7 +56,7 @@ done_checks_passed: 8
 red_flags: 0               # number of ticked red flags
 tests_pass: yes   # yes | no (operator ran them at T2)
 operator_score: 4          # 1–5, anchors in templates/README.md
-operator_merge_ready: yes  # yes | no
+operator_merge_ready: no   # yes | no   # changed from yes on 2026-11-02: breaking productTranslate change, as S-CC-01 (section 8)
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
 judge_total: 71.6               # diff score: total + bonus, from the totals script
@@ -264,6 +264,7 @@ Evidence: none ticked. Checked: no debug prints, TODOs, `skip`/`xfail` in the 3 
   - Storefront: used the sanctioned extension mechanism to keep `core:lock:check` passing instead of editing locked core files.
   - Polish locale is not enabled on this stack, so the translated storefront path could not be checked in a browser.
   - One tool-name error (`bash` instead of `Bash`), recovered.
+- Merge-ready (changed from yes on 2026-11-02): not merge-ready: `productTranslate` now takes a new `ProductTranslationInput!` instead of `TranslationInput!`, a breaking change for existing API clients; restoring compatibility is rework (backend, schema and dashboard). Same reason as Baseline `S-CC-01` (decision of 2026-11-02, Oleksii Poletaiev, for consistency between operators).
 - Strong point of the method in this run: a short, cheap interview (2 rounds, 14 questions, ~11 min, ~1% of tokens) asked 5 of 7 hidden questions; the other 2 were handled correctly. 8/8 Done when checks, 0 follow-ups.
 - Weak point of the method in this run: the interview's own recommendations would have been wrong on hidden 6 (it proposed CSV export out of scope) and close-but-off on hidden 1 (255 chars), so the result depends on the operator's answers. The method adds nothing to implementation: 95% of tokens, 167 Bash calls, files edited through the shell. The glossary went into an upstream file (`saleor-dashboard/CONTEXT.md`).
 - Dashboard type check (`pnpm run check-types`, run by the assistant after the run): fails (`ProductDetailsForm.test.tsx(108,11)`: TS2353, `'attributes' does not exist in type 'ProductErrorFragment'`). +1 follow-up (known benchmark deficiency, BENCHMARKS.md section 5).

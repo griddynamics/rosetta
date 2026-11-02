@@ -17,14 +17,14 @@
 | `L-CP-03` | `large-age-restriction/copilot/superpowers` | run | done | 159 | 1355 | 1776.8 cr | 1887.9 cr | 6% | 2 / 5 / 2 | 78% | 2 | 6 | 7/12 | yes | 3 | yes | – | – / – / – | – | – |
 | `L-CP-04` | `large-age-restriction/copilot/spec-kit` | run | done | 51 | 63 | 964.1 cr | 1024.0 cr | 6% | 0 / 6 / 3 | 67% | 3 | 9 | 12/12 | no | 2 | no | – | – / – / – | – | – |
 | `S-CC-01` | `small-storage-conditions/claude-code/baseline` | run | done | 29 | 70 | $1.24 | $3.31 | 63% | 0 / 4 / 3 | 57% | 3 | 1 | 7/8 | yes | 3 | no | 66.2 | 0 / 2 / 8 | 1 | 0 |
-| `S-CC-02` | `small-storage-conditions/claude-code/grill-with-docs` | run | done | 38 | 38 | $4.82 | $4.89 | 1% | 5 / 2 / 0 | 100% | 1 | 1 | 8/8 | yes | 4 | yes | 71.6 | 0 / 1 / 6 | 1 | 4.15 |
+| `S-CC-02` | `small-storage-conditions/claude-code/grill-with-docs` | run | done | 38 | 38 | $4.82 | $4.89 | 1% | 5 / 2 / 0 | 100% | 1 | 1 | 8/8 | yes | 4 | no | 71.6 | 0 / 1 / 6 | 1 | 4.15 |
 | `S-CC-03` | `small-storage-conditions/claude-code/superpowers` | run | done | 36 | 54 | $6.76 | $8.08 | 16% | 1 / 5 / 1 | 86% | 1 | 5 | 7/8 | yes | 3 | no | 73.5 | 0 / 1 / 7 | 2 | 5.45 |
-| `S-CC-04` | `small-storage-conditions/claude-code/spec-kit` | run | done | 105 | 203 | $4.58 | $12.65 | 64% | 0 / 4 / 3 | 57% | 3 | 14 | 8/8 | yes | 3 | – | 70.7 | 0 / 1 / 6 | 2 | 2.65 |
+| `S-CC-04` | `small-storage-conditions/claude-code/spec-kit` | run | done | 105 | 203 | $4.58 | $12.65 | 64% | 0 / 4 / 3 | 57% | 3 | 14 | 8/8 | yes | 3 | no | 70.7 | 0 / 1 / 6 | 2 | 2.65 |
 | `S-CC-06` | `small-storage-conditions/claude-code/rosetta-flow` | run | done | 120 | 148 | $21.30 | $21.37 | 0% | 3 / 4 / 0 | 100% | 0 | 3 | 8/8 | yes | 5 | yes | 74.5 | 0 / 0 / 3 | 1 | 5.05 |
 | `S-CC-08` | `small-storage-conditions/claude-code/rosetta-skills` | run | done | 56 | 56 | $5.64 | $5.64 | 0% | 3 / 3 / 1 | 86% | 2 | 4 | 8/8 | yes | 5 | yes | 73.6 | 0 / 0 / 5 | 2 | 4.7 |
 | `S-CC-07` | `small-storage-conditions/claude-code/rosetta-light` | run | done | 92 | 92 | $5.48 | $5.48 | 0% | 4 / 3 / 0 | 100% | 0 | 2 | 8/8 | yes | 5 | yes | 73.4 | 0 / 0 / 8 | 3 | 5.2 |
 | `S-CP-01` | `small-storage-conditions/copilot/baseline` | run | done | 13 | 84 | 208.8 cr | 389.1 cr | 46% | 1 / 4 / 2 | 71% | 5 | 1 | 8/8 | yes | 3 | no | – | – / – / – | – | – |
-| `S-CP-02` | `small-storage-conditions/copilot/grill-with-docs` | run | done | 14 | 934 | 393.1 cr | 452.3 cr | 13% | 4 / 3 / 0 | 100% | 2 | 1 | 8/8 | yes | 3.5 | yes | – | – / – / – | – | – |
+| `S-CP-02` | `small-storage-conditions/copilot/grill-with-docs` | run | done | 14 | 934 | 393.1 cr | 452.3 cr | 13% | 4 / 3 / 0 | 100% | 2 | 1 | 8/8 | yes | 3.5 | no | – | – / – / – | – | – |
 | `S-CP-03` | `small-storage-conditions/copilot/superpowers` | run | done | 107 | 5174 | 1406.5 cr | 1975.7 cr | 29% | 3 / 3 / 1 | 86% | 2 | 16 | 8/8 | yes | 4 | yes | – | – / – / – | – | – |
 | `S-CP-04` | `small-storage-conditions/copilot/spec-kit` | run | done | 33 | 81 | 698.7 cr | 870.4 cr | 20% | 0 / 7 / 0 | 100% | 4 | 9 | 8/8 | yes | 3 | yes | – | – / – / – | – | – |
 | `S-CP-05` | `small-storage-conditions/copilot/aws-ai-dlc` | run | not-qualifying | – | – | – | – | – | 3 / – / – | – | 0 | 4 | –/8 | – | – | – | – | – / – / – | – | – |
@@ -77,5 +77,4 @@
 ## Missing values (fill them in the report)
 
 - large-age-restriction/claude-code/superpowers/report.md: empty done_checks_passed, tests_pass
-- small-storage-conditions/claude-code/spec-kit/report.md: empty operator_merge_ready
 - small-storage-conditions/copilot/aws-ai-dlc/report.md: empty t1, t2, hidden_covered, hidden_missed, done_checks_passed, tests_pass, operator_score, operator_merge_ready
