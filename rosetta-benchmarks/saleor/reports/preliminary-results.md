@@ -32,6 +32,31 @@ For every run so far: one run per method (no repetitions), and operator scores c
 
 Each run has its own folder with the agent's diffs, its own report and a token breakdown: [`saleor/runs/`](../runs/). Generated table of all runs: [`summary.md`](./summary.md) (`python3 saleor/scripts/collect-results.py`). Method, rules and scoring: [`BENCHMARKS.md`](../../BENCHMARKS.md).
 
+## What we track and how merge-ready is decided (updated 2 Nov)
+
+Since 28 Oct each run report has these fields and rules on top of the operator's measures:
+
+- **Diff judge** ([SCORE-DIFFS.md](../../SCORE-DIFFS.md)), per run: `judge_total` (score + bonus), `judge_bonus`, `judge_blockers` / `judge_majors` / `judge_minors` / `judge_strengths`, `judge_merge_ready_advice`. Rules added since v1: the judge first asks why the run did something (INTENT) before calling it a problem; bonuses for fixed earlier bugs, related improvements, proactive safeguards and DELTA items (what the run did right that Baseline did not); a finding's level follows the harm that remains, and a fix that is small (no design decision, one repo, no new type or API field, no behavior other repos rely on) is at most minor (decision-log D80–D82, proposals by Andra Ciobanu). The judge has scored the 7 small Claude Code runs; the large task and the Copilot runs are next.
+- **Dashboard type check** (`pnpm run check-types`): part of "Tests pass locally" since 28 Oct (known deficiency, see the top of this file).
+- **Time without waits:** the time the agent was blocked waiting for the operator is removed, and, as decided on 2 Nov, also runner stalls and runner outages (e.g. the Copilot outage of 28–29 Oct), before and after the first "done", for every run. So far only the Rosetta runs `L-CC-07` and `L-CC-08` were recomputed this way.
+- **Method steps vs questions:** a Rosetta stop that only asks to retry or continue ("May I retry with the corrected path?") is answered `Approved, continue.` and counted as a method step, not as a question.
+- **Rosetta version:** the `v3.1.17` tag was moved on 23 Oct (`6215332c` → `817b3adf`); the earlier Rosetta runs used `6215332c`, `S-CP-07` used `817b3adf` (noted in its report). Pinning the commit in the Rosetta method files is proposed.
+- **Operator merge-ready:** "can be merged after a normal review, without rework". A breaking public API change (e.g. `productTranslate` taking a new `ProductTranslationInput!` instead of `TranslationInput!`) is rework, so not merge-ready, in every run (applied on 2 Nov to `S-CC-02`, `S-CP-02`, `S-CC-04`, as in `S-CC-01`). A full operator checklist (Andra Ciobanu's proposal: Done-when items, red flags and the judge's major types) is being agreed; after that every operator re-checks their finished runs with it.
+
+**Merge-ready, small task, Claude Code: operator vs judge** (the only cell the judge has scored so far; they agree on all 7 runs):
+
+| Run | Operator | Judge | Why (judge's reason; operator's where recorded) |
+| --- | --- | --- | --- |
+| Baseline `S-CC-01` | no | no | Breaking `productTranslate` input; edits to the off-limits storefront mapper / `ProductView` contract. Minor: no server-side trimming. |
+| Grill-with-docs `S-CC-02` | no (was yes until 2 Nov) | no | Breaking `productTranslate` input. Minor: the field is missing from the CSV export dialog. |
+| Superpowers `S-CC-03` | no | no | Orphan translations: after the value is removed, customers still see its translation and staff cannot see or clear it. Minor: no trimming, changeset type. |
+| Spec Kit `S-CC-04` | no (set on 2 Nov) | no | Breaking `productTranslate` input. Minor: the break is not in the CHANGELOG. |
+| Rosetta coding flow `S-CC-06` | yes | yes | Only minors: translated values not trimmed, field missing in the create dialog, leftover spec references. |
+| Rosetta Light `S-CC-07` | yes | yes | Only minors: CSV export dialog option, server-side trimming, translation payload, changeset, a duplicate max-length error. |
+| Rosetta Skills `S-CC-08` | yes | yes | Only minors: CSV export dialog option, trimming on the update path, translation payload, empty string instead of null. |
+
+The three Rosetta variants are the only small Claude Code runs with no major finding; the others either broke the translation API (Baseline, Grill-with-docs, Spec Kit) or left stale translations (Superpowers). One run per method, so this is an observation, not a rule. For the large task and the Copilot runs only the operator's verdict exists (see "All runs"), and most reports do not record its reason yet; the checklist re-check will add them.
+
 ## All runs
 
 Every run done so far: **25 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIMENTS.md) (8 methods × 2 tasks × 2 runners), 15 on Claude Code (2 of them AWS AI-DLC without a result) and 10 on Copilot CLI (1 of them AWS AI-DLC without a result); new runs are added as rows when they are committed. Numbers come from each run's report (data block); [`summary.md`](./summary.md) and [`runs.csv`](./runs.csv) are generated from the same reports. Hidden requirements: 7 in the small task, 9 in the large one. Time is to the first "done" (T1) and to the end of the last follow-up (T2), without the time the agent waited for the operator where the report computes it.
@@ -129,6 +154,7 @@ Every run done so far: **25 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIM
   - Small task, Claude Code (`S-CC-05`): stopped by the operator during AI-DLC's Construction phase, with a partial diff. Its run report is not in the branch yet, so time and cost are not known.
   - Large task, Claude Code (`L-CC-05`): stopped after more than 6 hours and about $160 of usage, more than twice the most expensive finished run ($57.65, `L-CC-07`). Report to follow.
   - Small task, Copilot CLI (`S-CP-05`): not qualifying. In all 3 attempts (2 clean resets) the AI-DLC engine's review gate looped at intent-capture: it kept asking for a fresh confirmation of the intent documents and never accepted one. 490.88 AI credits and about 1 hour in total, no code written; that is more than the finished Baseline (389.10) and Grill-with-docs (452.33) small Copilot runs. Report and token breakdown: `runs/small-storage-conditions/copilot/aws-ai-dlc/`.
+  - The pattern is the same in all 3: AI-DLC asked its questions (11 in `S-CP-05`, 3 of them hidden requirements), then went in circles: on Copilot its review gate looped at intent capture and no code was written; on Claude Code it stopped in Construction with a partial diff (`S-CC-05`) or ran more than 6 h without a first "done" (`L-CC-05`).
   - Under the same rules as the other methods, AI-DLC used as much as or more than the others and delivered nothing reviewable. This is a result in itself.
 
 - **Times are without the operator's waits.** Where a report computes it from the session log, "time" is the agent's time: the minutes the agent waited for the operator (answers, approvals, nights, weekends) are removed. `S-CC-03` and `L-CC-03` were recomputed this way on 2026-10-26 (before: 44 min / 1 h 2 min and 1 h 48 min / 8 h 46 min of clock time). Cost is not recomputed: it is the runner's total.
