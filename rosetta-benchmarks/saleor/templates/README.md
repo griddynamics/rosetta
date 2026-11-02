@@ -38,7 +38,7 @@ The same rules for every operator, so results are comparable.
 | `tokens_total` *(computed when comparing)* | tokens | `t2` input + output + cache write. Cache reads are listed separately (they are cheaper). |
 | `rework_share` *(computed when comparing)* | % | Usage after T1 ÷ usage at T2 (cost for Claude Code, AI credits for Copilot CLI). How much was spent to fix a "done" that wasn't done. |
 | `subagents` | count | Subagents launched in the session. |
-| `method_steps` | count | Messages that only move the method to its next step: `Approved, continue.` or the method's own next command. Baseline: also the plan approval in the runner's menu. |
+| `method_steps` | count | Messages that only move the method to its next step: `Approved, continue.` or the method's own next command, including replies to stops that only ask to retry or continue (e.g. Rosetta `self-learning` "May I retry…?"). Baseline: also the plan approval in the runner's menu. |
 | `questions_total` | count | Agent questions answered by the operator. `= questions_hidden + questions_extra`. |
 | `followups` | count | Operator messages that ask for a fix or a missing part: hidden questions not covered at the T1 check, and things the operator found broken in their own check. Not counted: `extra-work` rows (any message the protocol does not define, e.g. an extra check or an idea suggested by a helper). Their usage is reported separately in Appendix A, block `## Extra work`. |
 | `retries` | count | Restarts from reset (method didn't activate, infra failure). |

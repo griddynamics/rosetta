@@ -226,6 +226,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | plan gate | `Yes, I reviewed the plan` |
 | implementation gate | `Yes, I approve the implementation` |
 | any other "shall I continue?" | `Approved, continue.` |
+| a stop that only asks to retry or continue (e.g. `self-learning` "May I retry/resume…?", even with "Type exactly …") | `Approved, continue.` (a method step, not a question; BENCHMARKS.md section 5, "Method steps") |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
@@ -355,6 +356,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | plan gate | `Yes, I reviewed the plan` |
 | implementation gate | `Yes, I approve the implementation` |
 | any other "shall I continue?" | `Approved, continue.` |
+| a stop that only asks to retry or continue (e.g. `self-learning` "May I retry/resume…?", even with "Type exactly …") | `Approved, continue.` (a method step, not a question; BENCHMARKS.md section 5, "Method steps") |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
@@ -595,6 +597,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | plan gate | `Yes, I reviewed the plan` |
 | implementation gate | `Yes, I approve the implementation` |
 | any other "shall I continue?" | `Approved, continue.` |
+| a stop that only asks to retry or continue (e.g. `self-learning` "May I retry/resume…?", even with "Type exactly …") | `Approved, continue.` (a method step, not a question; BENCHMARKS.md section 5, "Method steps") |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
@@ -708,6 +711,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | plan gate | `Yes, I reviewed the plan` |
 | implementation gate | `Yes, I approve the implementation` |
 | any other "shall I continue?" | `Approved, continue.` |
+| a stop that only asks to retry or continue (e.g. `self-learning` "May I retry/resume…?", even with "Type exactly …") | `Approved, continue.` (a method step, not a question; BENCHMARKS.md section 5, "Method steps") |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 

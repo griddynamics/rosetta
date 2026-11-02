@@ -466,6 +466,7 @@ Some methods need more than one command by design (Spec Kit: specify → plan �
   - Copilot CLI: **Accept plan and continue in Interactive execution mode** (not an Autopilot option).
 
   Answer any later stop that only asks for permission with **"Approved, continue."**. Each approval counts as a method step (`method_steps`). The exact replies are in step 6 of each run in [saleor/methods/baseline.md](./saleor/methods/baseline.md).
+- **A stop that only asks to retry or continue** (e.g. after a tool error: Rosetta's `self-learning` "May I retry with the corrected path?" or "May I resume…?", also when the agent asks to type its own sentence such as "Type exactly: Yes, inspect …") is answered with **"Approved, continue."** and counted as a method step, **not** as a question. It is a question only when it offers a real product or design choice; then answer it like any other question (step 5). Decided on 2026-11-02 (S-CP-07, S-CP-08).
 - Questions the method asks (including the grill interview) are answered like any other question (step 5).
 - Method steps still count in time and usage. So a method with more ceremony pays for it in time and tokens, but not in the follow-up count.
 
