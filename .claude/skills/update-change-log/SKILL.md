@@ -240,3 +240,6 @@ If you learned something new which is reusable, there are process efficiency imp
 - **One topic at a time when corrected** Sent eight points at once; the user could not answer and answers could not be mapped. Close one topic before the next.
 - **Name the common aim, not features** Week's changes shared one aim: remove points where meaning drifts. Summary and Slack lead with that aim, not a feature list.
 - **Cold-reader test for every Slack line** Wrote "a contradiction, two mismatched names, an impossible MUST are gone"; a reader without context learns nothing. Each line states what the reader now gets.
+- **Check final text against own analysis** Analysis said "full process costs, restart is expensive"; Slack said "stuck". Every claim must match the consequence already established, no more dramatic word.
+- **Capability across all tools, not changed files** Wrote "Claude Code and OpenCode" because only their files changed; Codex too. State what the AI can do wherever it applies, plus which files changed.
+- **Take all information in when correcting** Fixed one point and dropped another (cost, Codex). A correction adds to what is known; keep every established fact in the text.
