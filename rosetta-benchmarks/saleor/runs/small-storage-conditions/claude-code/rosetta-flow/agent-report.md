@@ -1,43 +1,60 @@
-# Agent report: product "storage conditions"
+# Agent report: product "storage conditions" field
 
 ## Experiment info
-- Task: add an optional, translatable "storage conditions" field (plain text, max 250 chars) to Products. Staff set it in the dashboard; customers see it in a separate labelled block after the description on the storefront. Also in product webhook payloads and CSV export; no filter/search.
-- Method: Rosetta `coding-flow` (plugin mode) with HITL gates: discovery, design (approved), specs + plan with independent review (approved), implementation (approved), tests, test review, final validation. Work delegated to subagents (architect, engineer, reviewer, validator).
-- Runner: Claude Code CLI (macOS, zsh), workspace ~/saleor-benchmark. Repos: `saleor`, `saleor-dashboard`, `react-storefront`.
-- Model: orchestrator Sonnet 5.5 (`claude-sonnet-5-5`). Architect subagent requested as `opus`; engineer, reviewer and validator subagents requested as `sonnet`.
-- Start/end: first workflow artifact (state file) created 2026-10-21 13:32 CEST; this report written 14:41 CEST. The session itself began earlier; I do not have an exact start timestamp, so the start is approximate.
-- Nothing committed or pushed. For this report `git add -N .` was run in each repo (intent-to-add only; this changes the git index, not history).
+- **Task:** add a product "storage conditions" field (plain text, optional, max 250 chars). Staff set it in the dashboard (edit page and create dialog), customers see it on the storefront product page. Also translatable, in product CSV export and in webhook payloads. DoD: implemented end to end, tests in place, everything passes locally.
+- **Method:** Rosetta `coding-flow` (13 phases: discovery, design, tech plan, plan review, implementation, code review, validation, tests, test review, final validation). Human approval gates at design, plan, implementation. Work delegated to subagents (discoverer, architect, reviewer, engineer, validator, executor).
+- **Runner:** Claude Code CLI, with the Rosetta plugin.
+- **Model:** claude-sonnet-5-5 (orchestrator). Subagents used the models set by the workflow.
+- **Start time:** about 12:20 on 2026-11-03 (EET). Approximate: the first artifact, a discovery report, is stamped 12:22:26.
+- **End time:** about 15:26 on 2026-11-03 (EET). Final validation report written 13:59; the rest of the time went to Q&A with the user and this report.
+- **State:** nothing committed or pushed. Changes are in the working trees. `git add -N .` was run only to produce the diffs.
 
-## Diffs (git add -N . && git diff)
-| Repo | File | Size | Stat |
-|---|---|---|---|
-| saleor | run-output/saleor.diff | 70k | 32 files, +1237 / -15 |
-| saleor-dashboard | run-output/saleor-dashboard.diff | 116k | 38 files, +1270 / -37 |
-| react-storefront | run-output/react-storefront.diff | 22k | 16 files, +285 / -3 |
+## Diffs (`~/saleor-benchmark/run-output/`)
+| Repo | File | Size |
+|---|---|---|
+| saleor | `saleor.diff` | 32 files, +1447/-7 |
+| saleor-dashboard | `saleor-dashboard.diff` | 40 files, +991/-12 |
+| react-storefront | `react-storefront.diff` | 17 files, +337/-4 |
 
-## Actions
+The dashboard diff includes the hand-edited `schema-main.graphql` and the generated codegen files.
+
+## Actions performed
 | Action | Done | Evidence |
 |---|---|---|
-| Wrote code | yes | Sessions S1/S2/S3 by engineer subagents; the three .diff files above. Migration `saleor/saleor/product/migrations/0211_product_storage_conditions.py`. |
-| Reviewed the code | yes | Three reviewer subagents, independent of the implementers: `agents/TEMP/product-storage-conditions/review-code-{saleor,dashboard,storefront}.md` (0 blockers/majors). |
-| Reviewed the specs/plan | yes | `review-plan.md` (0 blockers, 3 majors fixed in the plan before approval). |
-| Wrote tests | yes | T1/T2/T3: 14 backend test files, dashboard tests (edited + 7 new), 3 new storefront test files; all in the .diff files. |
-| Reviewed the tests | yes | `review-tests-{saleor,dashboard,storefront}.md`; their findings were fixed except those listed under "Not done". |
-| Ran tests | yes | Backend in container `saleor-benchmark-saleor-1` (4004 passed, 1 skipped, 0 failed); dashboard `pnpm test` (937 suites, 6169 tests); storefront `test:run` (130 files, 835 tests). Source: `validation-v2.md`. |
-| Ran tests multiple times | yes | Engineers re-ran after each fix; validators V1 and V2 each ran every suite from scratch; dashboard timeout flakes (e.g. SiteSettingsPage, SingleReferenceField, ProductTile, SettingsToggleRow) were re-run alone and passed. |
-| Ran tests in a different order | no | Not done on purpose. Backend used `--create-db` once, then `--reuse-db`; no randomized or reversed order run. |
-| Ran linters, type checks, migration checks | yes | ruff, mypy (non-test files), `makemigrations --check`, schema diff; dashboard check-types/eslint/prettier/lint:changesets; storefront typecheck/lint/design-tokens/graphql-variants/data:lock. `core:lock:check` fails only on 2 AGENTS.md lines that already failed before the change. |
-| Cleaned up leftovers | partial | Validator V1 deleted the rows it created (ProductTranslation pk 30, 31; CategoryTranslation pk 1) and its staff token file; T1 deleted its temporary pytest file; V2 found only gitignored artifacts. Not fully clean: V1 reset `rating` and `search_index_dirty` on `apple-juice` by inference (not snapshotted), and `updated_at` and id counters cannot be restored. |
-| Updated documentation | yes | `saleor/CHANGELOG.md` (2 bullets), `saleor-dashboard/.changeset/product-storage-conditions.md`, `locale/defaultMessages.json`, `schema.graphql`/`schema-main.graphql`. Specs and plan under `plans/product-storage-conditions/`. No repo CONTEXT/ARCHITECTURE docs exist in the workspace, so none updated. |
-| Started the application | no | I did not start anything. The backend containers and a storefront dev server on :3000 were already running. The migration was applied to the local dev DB and the running API reloaded and served the new field. |
-| Checked the API | yes | V1: live productUpdate/productTranslate/categoryTranslate calls (with snapshot and restore). V2: read-only introspection (`Product.storageConditions`, `ProductTranslation`, `TranslationInput`, `ProductFieldEnum.STORAGE_CONDITIONS`) and anonymous read. |
-| Checked the storefront live | partial | V1/V2 GETs against :3000: apple-juice and monospace-tee return 200. V1 saw the block after Description in English. German not checkable (no `de` locale on that server); V2 saw no rendered block because values were NULL. |
-| Checked the dashboard in a browser | no | No browser tool was available. Covered only by jest tests. |
-| Took a screenshot of the final result | no | No browser or screenshot tool available. |
+| Discovery of the three repos | yes | `agents/TEMP/storage-conditions/discovery-{saleor,dashboard,storefront}.md` |
+| Architecture options and decision | yes | `architecture-notes.md` (3 options, Option A chosen) |
+| Asked the user design questions and recorded the decisions | yes | decisions D1-D9 and I1-I6 in `coding-flow-state.md` and SPECS |
+| Wrote specs and plan | yes | `plans/storage-conditions/storage-conditions-{SPECS,PLAN}.md` |
+| Reviewed the plan (subagent) | yes | `review-plan.md` |
+| Wrote code | yes | core: model, migration 0211, GraphQL type and inputs, translations, CSV, webhook. Dashboard: edit page, create dialog, translations page, export dialog. Storefront: extension query, mapper, PDP block, 8 locale files. See the three `.diff` files and `impl-*.md` |
+| Created a DB migration and applied it to the local dev DB | yes | `saleor/product/migrations/0211_product_storage_conditions.py`, applied with the single user-approved migrate command |
+| Regenerated schema and codegen | yes | core `schema.graphql` (+50), dashboard `schema-main.graphql` (hand-edited, +50) and `*.generated.ts` |
+| Reviewed the code (subagent, per repo) | yes | `review-code-{core,dashboard,storefront}.md` |
+| Validated the implementation | partly | `validation-impl.md`, `validation-final.md`. No staff login was available (user declined credentials), so logged-in flows are NOT VERIFIED |
+| Wrote tests | yes | 14 core test files added or edited. Dashboard: 4 new test files plus edits. Storefront: 4 new test files plus an extended mapper test. See `tests-*.md` |
+| Reviewed the tests (subagent) | yes | `review-tests-{core,dashboard,storefront}.md` |
+| Ran tests | yes | core: 4108 passed, 1 skipped, 0 failed. Dashboard: full suite green. Storefront: `pnpm verify`, 847 tests green |
+| Ran tests multiple times | yes | core baseline failed with 181 errors from a stale test DB, then passed with `--create-db`. Dashboard had one unrelated 5 s timeout flake (`ChannelPaymentGatewaysSection`) in the first final run and passed on rerun. Each suite also ran before and after the changes |
+| Ran tests in a different order or randomized | no | not done |
+| Ran linters, type checks and formatters | yes | dashboard type check, eslint, prettier and changesets clean. Storefront `pnpm verify` includes lint and typecheck. Core linters were part of the core checks recorded in `tests-core.md` and `validation-final.md` |
+| Updated documentation | yes | `agents/IMPLEMENTATION.md` entry, `agents/MEMORY.md` lesson, core `CHANGELOG.md`, dashboard changeset `.changeset/product-storage-conditions.md`, dashboard `locale/defaultMessages.json` |
+| Started the application | no | the core API, dashboard dev server and storefront dev server were already running locally. I used them and did not start them |
+| Checked the API | yes | unauthenticated GraphQL queries: `storageConditions` returned null for all 29 products. Anonymous `productUpdate` was rejected with a `MANAGE_PRODUCTS` permission error. See `validation-final.md` |
+| Checked the storefront live | partly | product pages `apple-juice` and `ascii-tee` render and hide the block when the value is empty. Rendering a non-empty value was NOT VERIFIED live (no way to set one without a login) and is covered by unit tests only |
+| Took a screenshot of the final result | no | no screenshots taken |
+| Cleaned up leftovers | partly | no throwaway users or DB rows were created. The test DB was recreated by `--create-db`. I did not run a dedicated cleanup pass over temp files, and `agents/TEMP/storage-conditions/` is left in place |
+| Committed or pushed | no | not allowed by the repo `CLAUDE.md` |
 
-## Not done / caveats
-- Not verified live: dashboard UI, German storefront render, reverse migration, product create and bulk translate against the real API, staging schema against a live staging API.
-- Optional items left unchanged: gate `getProductUpdateVariables` with `isMainSchema()`, `whitespace-pre-line` for multi-line values, `trim()` in `getStorageConditions`.
-- Spec change made after implementation: bulk translate over 250 chars is a request-level error (same as `name`), not a row error. No production fix was made for it.
-- Backend engineer added `product_bulk_translate.py` (not in the plan) so updates to existing translations keep the value.
-- mypy reports 105 errors in changed backend test files (same enum pattern as existing tests); not fixed.
+## Not verified
+- Dashboard UI save and create flows (no staff login).
+- Translation saved in the dashboard and shown on the storefront.
+- Storefront cache after a translation-only edit. The revalidate route has no translation handling.
+- The 251-character validation message in the UI.
+- Live CSV export.
+- Storefront rendering of a non-empty value.
+- Which core test is the one skipped is not identified.
+
+## Known limitations
+- Bulk translate with more than 250 characters returns a raw enum serialization error and saves nothing. The same happens for `name`.
+- A dashboard build against the staging schema does not load the saved value. The target is the main (3.23) schema, as the user chose.
+- Translation completion ignores the new field.
