@@ -277,13 +277,13 @@ All content under `.github/`; bootstrap delivered via **auto-loaded instructions
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-11-04</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a standalone variant When: generated Then: its manifest version equals the parent target's manifest version.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/plugin-processors/plugin-copy.ts readParentVersion (the version comes from the first parent manifest found among .claude-plugin/plugin.json, .cursor-plugin/plugin.json, .github/plugin/plugin.json and .codex-plugin/plugin.json; a missing or unreadable manifest, invalid JSON, or a missing, empty or non-string version is a hard error, no standalone plugin.json is written, and generation exits 1). Tests: tests/unit/plugin-processors/plugin-copy.test.ts, tests/unit/generate.test.ts.</implementationNotes>
   <depends>FR-SEED-0002</depends>
 </req>
 
