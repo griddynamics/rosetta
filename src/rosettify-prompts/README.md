@@ -227,10 +227,13 @@ it as a template, not as the schema.
 
 - **Input/output tokens**: billed figures straight from the API's `usage`.
 - **Thinking tokens**: read from `usage.output_tokens_details.thinking_tokens`
-  when the API reports it, otherwise estimated via `countTokens` on the
-  extracted `thinking` block (marked `"estimated"` in `report.json`). Already
-  included in billed output tokens; broken out here for analysis, not added
-  on top for cost.
+  when the API reports it (`thinkingTokensSource: "usage"` in `report.json`).
+  Otherwise derived as billed `output_tokens` minus a `countTokens`
+  measurement of the visible reply text (`thinkingTokensSource: "derived"`),
+  and `null` when thinking is off or neither source is available. The returned `thinking` block is not counted: it can be a summary, so its
+  length does not match the billed thinking tokens. Already included in
+  billed output tokens; broken out here for analysis, not added on top for
+  cost.
 - **Cost**: billed input/output tokens times the pricing table in
   `src/pricing.ts`, overridable via `pricingOverrides`.
 - **Text metrics**: char/word count and unicode-symbol density per reply, a
