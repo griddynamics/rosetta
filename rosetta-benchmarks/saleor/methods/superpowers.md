@@ -24,7 +24,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 
 ```text
 /superpowers:brainstorming Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
-Staff need to be able to mark a product as age-restricted, and set one minimum age for the whole store (for example 18). Customers who are too young shouldn't be able to buy those products.
+Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
 To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
@@ -315,7 +315,7 @@ In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `superp
 
 ```text
 /superpowers:brainstorming Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
-Staff need to be able to mark a product as age-restricted, and set one minimum age for the whole store (for example 18). Customers who are too young shouldn't be able to buy those products.
+Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
 To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
@@ -682,7 +682,7 @@ In the session: `/model` shows GPT-5.6 Terra, effort medium, long context; `/con
 
 ```text
 /superpowers:brainstorming Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
-Staff need to be able to mark a product as age-restricted, and set one minimum age for the whole store (for example 18). Customers who are too young shouldn't be able to buy those products.
+Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
 To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.

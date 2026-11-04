@@ -197,7 +197,7 @@ docker compose -p saleor-benchmark -f "$BENCH_DIR/saleor/.devcontainer/docker-co
 | # | Check | Pass? | How checked (command / UI steps) | Evidence |
 | ---: | --- | --- | --- | --- |
 | 1 | Customer birthday field exists (customer account, API, dashboard) | | | |
-| 2 | In the dashboard, staff mark a product as age-restricted (checkbox on the product page) and set the store-wide minimum age (site settings) | | | |
+| 2 | In the dashboard, staff set and see a minimum age per product, or mark a product age-restricted (checkbox) and set the store-wide minimum age in the site settings (either passes) | | | |
 | 3 | **Backend** blocks checkout: underage customer | | | |
 | 4 | **Backend** blocks checkout: customer with no birthday | | | |
 | 5 | **Backend** blocks checkout: guest with a restricted product | | | |
@@ -250,7 +250,6 @@ Evidence: `<one line per ticked item>`
 
 ## 8. Notes
 
-- Starter prompt version: `<v1 / v2>` (v2 for large runs from 2026-11-03; BENCHMARKS.md section 4, Task 2)
 - Deviations from the protocol, and why: `<none / ...>`
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): `<n/a / no / yes: when, why, outcome>`
 - Strong point of the method in this run: `<...>`

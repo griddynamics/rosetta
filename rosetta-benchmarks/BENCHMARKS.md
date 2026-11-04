@@ -292,22 +292,20 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 
 ```text
 Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
-Staff need to be able to mark a product as age-restricted, and set one minimum age for the whole store (for example 18). Customers who are too young shouldn't be able to buy those products.
+Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
 To make this work, the customer profile should have a birthday field.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
 ```
 
-**Prompt versions.** This is prompt **v2**, used from 2026-11-03 (extra row 80). Large runs before that date used **v1**, which differs in one sentence: "Staff need to be able to mark a product with a minimum age." The run report's Notes record the version. Section 6 says how the judge rates v1 runs.
-
-**Done when** (evaluator only): customer birthday field exists; in the dashboard, staff mark a product as age-restricted with a checkbox on the product page, and staff with the site-settings permission set the store-wide minimum age (default 18) in the site settings (v1 runs: a per-product minimum age set in the dashboard also passes); the backend blocks checkout for underage, no-birthday, and guest customers (not only the UI); eligible customers and unrestricted products work as before; tests pass.
+**Done when** (evaluator only): customer birthday field exists; in the dashboard, staff set and see a minimum age per product, or mark a product as age-restricted with a checkbox and set one store-wide minimum age (default 18) in the site settings (either passes); the backend blocks checkout for underage, no-birthday, and guest customers (not only the UI); eligible customers and unrestricted products work as before; tests pass.
 
 **Hidden questions** (evaluator only; never in the prompt, the AI must not know about them). The answer is the product decision: the programmer gives exactly this answer when the agent asks, and the judge checks the code against it.
 
 | # | Question | Answer |
 | ---: | --- | --- |
 | 1 | Existing customers with no birthday? | They can't buy age-restricted products until they add a birthday in their account; the storefront tells them so. Everything else works as before. |
-| 2 | Existing products? | Unrestricted. The age-restricted checkbox is off by default, and off means no restriction. |
+| 2 | Existing products? | Unrestricted. By default a product has no age restriction: the minimum age is empty, or the age-restricted checkbox is off (either model), and that means no restriction. |
 | 3 | Data migration? | A schema migration only (new fields that are nullable or have a default). No backfill of existing data. |
 | 4 | User not signed in (guest)? | A guest can browse and see restricted products but can't buy them: guest checkout with a restricted product is blocked by the backend, and the storefront asks the user to sign in. |
 | 5 | Lists, search, discounts, banners? | Restricted products stay visible everywhere, with an age label (for example "18+"). Visibility is not restricted; buying is. |
@@ -315,8 +313,6 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | 7 | Legal policies? | Not a code change. The agent should flag that the terms and privacy policy need a legal review for age restriction and birthday collection. |
 | 8 | Birthday boundary and time zone? | A customer who turns the required age today is eligible today. Compare dates, not times; "today" is the current date in the shop's time zone. Someone born on 29 February becomes eligible on 1 March in non-leap years. |
 | 9 | PII: who can see the birthday? | The birthday is personal data. Only the customer (own account) and a super-admin can see it. It is not in any public API, public profile, unauthenticated endpoint, webhook payload or export. Support and sales staff can't see it (at most a yes/no "age eligible" flag). Every change and every staff read of a birthday is audit-logged. |
-
-History, never send it: before prompt v2, hidden #2 read "Minimum age is empty by default, and empty means no restriction." The judge rates v1 runs by "Rules for the judge" in section 6.
 
 ### Questions that are not in the tables
 
@@ -494,7 +490,7 @@ Never answer from these rows, and never combine them with active rows. They keep
 | # | Question | Answer (as sent) | First asked in | Superseded by |
 | ---: | --- | --- | --- | --- |
 | 7 | "Super-admin": Saleor's `is_superuser`? What do other staff see? | Yes, `is_superuser`. Other staff see only a yes/no "age eligible" flag (hidden #9). | L-CC-02 | 81: `is_superuser` kept; the flag is allowed, not required |
-| 22 | What are the valid values for a product's minimum age? | A flag on Product marks it age-restricted. The minimum age is one setting per store, 18, stored in the database. A field in the site settings, default 18, editable in the dashboard by staff with the site-settings permission. A change applies to all later checks. Existing products are unrestricted: minimum age is empty by default, and empty means no restriction. (Rows 1 and 11 together with hidden question 2.) | L-CC-08 | 80: "empty by default" contradicts the checkbox model |
+| 22 | What are the valid values for a product's minimum age? | A flag on Product marks it age-restricted. The minimum age is one setting per store, 18, stored in the database. A field in the site settings, default 18, editable in the dashboard by staff with the site-settings permission. A change applies to all later checks. Existing products are unrestricted: minimum age is empty by default, and empty means no restriction. (Rows 1 and 11 together with hidden question 2.) | L-CC-08 | 80: the checkbox model is off by default; there is no "empty minimum age" |
 | 32 | Which age-label fixes to implement when some screens lack the label (only the listed gaps / gaps plus optional extras / report only)? | Restricted products stay visible everywhere, with an age label (for example "18+"). Visibility is not restricted; buying is. Fix the 4 gaps and the optional extras too (discount pickers and summaries, dashboard global search, storefront structured data). (Hidden #5 plus the choice; the "4 gaps" are the ones this agent found: adapt the list to what the agent names.) | L-CC-08 | 46, 71, 72, 80: no age label in dashboard staff screens or on past orders |
 | 43 | Do we add an "age eligible" yes/no flag for other staff? | Yes. Other staff see only a yes/no "age eligible" flag. It is a yes/no: whether the customer meets the store-wide minimum age today (compare dates, "today" is the current date in the shop's time zone). It reveals no age and no date. Only the owner and staff with the customer-management permission see it; null for everyone else. Reading it is audit-logged, one read event per customer per request, only when the field is actually resolved. The customer-management permission is MANAGE_USERS. (Rows 7, 20 and 25 together.) | L-CC-08 (rerun) | 82: the flag is allowed, not required (hidden #9 "at most") |
 | 59 | Should superusers see the birthday audit events on the dashboard customer page? | Yes, superusers see the birthday audit events on the dashboard customer page, as part of the existing events list. Only super-admins can see the birthday audit events. The birthday event types (changed, read) are hidden from the customer events for everyone else; they are still written. (The agent's recommended option, with row 16.) | L-CC-06 | 66: the dashboard has no customer events list |
@@ -662,8 +658,8 @@ For the assistant's understanding only; the judge prompt SCORE-DIFFS.md already 
 
 | # | Session | Who | Action |
 | --- | --- | --- | --- |
-| 1 | A | Assistant | Makes the judge folder `~/saleor-judge`, outside the Rosetta repo and outside `$BENCH_DIR`. Extracts `test-library/saleor-not-initialized-repos.zip` into it and resets the three repos to `baseline-v1`. Prepares a clean Claude Code config for the judge in `~/saleor-judge/claude`: the common settings of 3.5 with `claude-opus-5-5`, `"effortLevel": "xhigh"`, `"modelSettings": { "claude-opus-5-5": { "effortLevel": "xhigh" } }` and `"disableAllHooks": true`, no plugins, skills or hooks. `/model` must show Opus 5.5 with effort xhigh. Copies the task's inputs from section 4 word for word into `~/saleor-judge/task-<small or large>.md`. Active tables only, never a superseded table. Leave out the "Prompt versions" paragraph and the hidden #2 history line: the Rules block replaces them. Large task: also the "Rules for the judge" block and the "Prompt version per run" list (below). |
-| 2 | A | Assistant | Gives the operator the judge's first message: SCORE-DIFFS.md, the path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/`, the path to the base repos, the task prompt (large task: v2), "Done when", the hidden questions with answers, the active extra answers, the large task's "Rules for the judge" and "Prompt version per run" (below), the path for the judge's JSON, and the path of the totals script. Before the first message, it reads every run's `report.md` and adds one line per run under "Already checked (do not re-check)": each test suite, linter and check that was run, with its result ("<what> was run: <result>"). It also reads every question the agent asked, every answer given and every follow-up in the run's timeline, and adds per run "Agent was directed with: 1. …, 2. …": a numbered list of very short answers, content only. No IDs, no hidden or extra labels, no follow-up marks, no times, no other meta information; approvals with no content are left out. No answers: "none". Nothing else from the report. No data in the report: "not recorded". |
+| 1 | A | Assistant | Makes the judge folder `~/saleor-judge`, outside the Rosetta repo and outside `$BENCH_DIR`. Extracts `test-library/saleor-not-initialized-repos.zip` into it and resets the three repos to `baseline-v1`. Prepares a clean Claude Code config for the judge in `~/saleor-judge/claude`: the common settings of 3.5 with `claude-opus-5-5`, `"effortLevel": "xhigh"`, `"modelSettings": { "claude-opus-5-5": { "effortLevel": "xhigh" } }` and `"disableAllHooks": true`, no plugins, skills or hooks. `/model` must show Opus 5.5 with effort xhigh. Copies the task's inputs from section 4 word for word into `~/saleor-judge/task-<small or large>.md`. Active tables only, never a superseded table. Large task: also the "Rules for the judge" block (below). |
+| 2 | A | Assistant | Gives the operator the judge's first message: SCORE-DIFFS.md, the path to `rosetta-benchmarks/saleor/runs/<task>/<runner>/`, the path to the base repos, the task prompt, "Done when", the hidden questions with answers, the active extra answers, the large task's "Rules for the judge" (below), the path for the judge's JSON, and the path of the totals script. Before the first message, it reads every run's `report.md` and adds one line per run under "Already checked (do not re-check)": each test suite, linter and check that was run, with its result ("<what> was run: <result>"). It also reads every question the agent asked, every answer given and every follow-up in the run's timeline, and adds per run "Agent was directed with: 1. …, 2. …": a numbered list of very short answers, content only. No IDs, no hidden or extra labels, no follow-up marks, no times, no other meta information; approvals with no content are left out. No answers: "none". Nothing else from the report. No data in the report: "not recorded". |
 | 3 | B | Operator | Starts a new Claude Code session (Opus 5.5, xhigh) in the judge folder with the clean config, `--model claude-opus-5-5` and `--dangerously-skip-permissions`, as in the runs, and sends the first message. All paths in the first message are absolute. |
 | 4 | B | Judge | Rates all runs, writes the ratings into the JSON, runs the totals script, reports the leaderboard and stops. |
 | 5 | A | Assistant | Gives the operator the self-challenge prompt. |
@@ -675,18 +671,14 @@ For the assistant's understanding only; the judge prompt SCORE-DIFFS.md already 
 
 #### Rules for the judge, large task
 
-The assistant gives the judge this block word for word with the task inputs (sequence rows 1 and 2), followed by the "Prompt version per run" list. That list has one line per run folder of the judged runner, `<method folder>: v1` or `v2`, taken from the "Starter prompt version" line in the run report's Notes. A large run before 2026-11-03 without that line is `v1`. SCORE-DIFFS.md constraint 24 tells the judge how to apply both.
+The assistant gives the judge this block word for word with the task inputs (sequence rows 1 and 2). The block is part of the task inputs, not of SCORE-DIFFS.md: for the points it names, it replaces what SCORE-DIFFS.md constraints 4, 5, 9, 14 and 22 would say.
 
 ```text
 Rules for the judge
-Prompt v1: "Staff need to be able to mark a product with a minimum age."
-Prompt v2: "Staff need to be able to mark a product as age-restricted, and set one minimum age for the whole store (for example 18)."
-1. Minimum-age model, v1 runs: extra answers 1, 11, 23, 24, 45, 51 and 80 are excluded on the minimum-age model. Hidden #2 is rated by its v1 text ("Minimum age is empty by default, and empty means no restriction.") or its v2 text, whichever matches the run's model. A per-product minimum age and a checkbox plus one store-wide minimum age BOTH conform.
-2. Minimum-age model, v2 runs: rated against extra answer 80.
-3. Checkout-line age label, v1 runs: extra answer 85 is excluded, and hidden #5 does not require a label on checkout lines. No label there is NOT a defect.
-4. Dashboard age label or marker on orders, order lines or draft lines, all runs: extra answers 71 and 80 are excluded on this point, and hidden #5 does not cover the dashboard. NOT required. Having one or not is NOT a defect.
-5. Directed answers, all runs: an answer the run was directed with (its "Agent was directed with" list) wins over the extra answers for that run. Following it is NOT a defect and NOT a strength; rate HOW it was built. It NEVER wins over a hidden-question answer: a directed answer that contradicts one is rated by constraint 23 (reason + impact).
-6. DELTA, all runs: a difference from the `baseline` run that comes only from the prompt version (rules 1 to 3) is NOT a DELTA item.
+These rules apply to EVERY run. For the points they name, they override SCORE-DIFFS.md constraints 4, 5, 9, 14 and 22.
+1. Minimum-age model: a per-product minimum age, and a checkbox plus one store-wide minimum age, BOTH conform. Extra answers 1, 11, 23, 24, 45, 51 and 80 are excluded on the choice of model: NO finding or DELTA item for following or not following them. Hidden #2 and the "Done when" read either way.
+2. Dashboard age label or marker on orders, order lines or draft lines: extra answers 71 and 80 are excluded on this point, and hidden #5 does not cover the dashboard. NOT required. Having one or not is NOT a defect.
+3. Directed answers: an answer the run was directed with (its "Agent was directed with" list) wins over the extra answers for that run. Following it is NOT a defect and NOT a strength; rate HOW it was built. It NEVER wins over a hidden-question answer: a directed answer that contradicts one is rated by constraint 23 (reason + impact).
 ```
 
 #### Self-challenge prompt
