@@ -58,8 +58,6 @@ Status values: `planned` · `running` · `done` · `not qualifying` (method can'
 | 31 | `L-CC-08` | Large — age-restricted products | Claude Code | Sonnet 5.5 · medium | Rosetta Skills | `runs/large-age-restriction/claude-code/rosetta-skills/` | done (rerun without the `orchestration` skill, 2026-10-26; the first run is in git history; Claude Code 2.1.310; 3 operator messages outside the protocol, report sections 2 and 8)                                                                                                 |
 | 32 | `L-CP-08` | Large — age-restricted products | GitHub Copilot CLI | GPT-5.6 Terra · medium | Rosetta Skills | `runs/large-age-restriction/copilot/rosetta-skills/` | planned                                                                                                                                                                                                                                                                             |
 
-Age model for large runs (team decision 2026-11-04): the starter prompt, "Done when" and judge rules are unchanged. Every new large run and rerun is answered with the checkbox model (BENCHMARKS.md section 4, row 80). Large runs finished before that date keep their answers in the "superseded answers" table for audit.
-
 ## Claude Code setup per method
 
 All 8 methods are tested on both runners. Every Claude Code cell runs with the method's own `CLAUDE_CONFIG_DIR` (`envs/<method>/claude`), model `claude-sonnet-5-5`, medium effort, `--dangerously-skip-permissions`. Details are in BENCHMARKS.md, section 3.5; the commands are in part 1 of each method file.
