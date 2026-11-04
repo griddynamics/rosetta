@@ -54,7 +54,7 @@ done_checks_total: 12
 done_checks_passed: 12
 red_flags: 1
 tests_pass: yes
-operator_score: 4
+operator_score: 4  # not 5: dashboard UI only on the staging-schema build; 10 test_tasks.py tests left out, not verified (section 8)
 operator_merge_ready: yes  # changed from no by the operator on 2026-10-28
 # Filled later by the evaluator from the judge reports
 verified_in_code: 8/8
@@ -271,7 +271,9 @@ Evidence: at T1 (14:20) the three new migrations were not applied to the running
 - **Time without the operator's gaps:** T0 12:29:08 → T1 14:20:21 = 111.2 min. The agent waited for the operator 58.1 min before T1 (session log: 12:29:31→13:05:56 36.4, 13:06:20→13:13:47 7.5, 13:14:04→13:14:33 0.5, 13:14:49→13:17:13 2.4, 13:17:21→13:24:13 6.9, 13:24:23→13:28:49 4.4). Gap-free time 53.2 min; effective t0 = 13:27. Waits for its own background subagents (13:55) are agent time and are not removed.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a (not a Rosetta run)
 - Strong point of the method in this run: `<...>`
-- Weak point of the method in this run: the first "done" had errors: the feature was not usable in the running app (database not migrated, dashboard UI behind a staging flag) until 2 follow-ups. Merge-ready (operator, changed from no on 2026-10-28); points for the review: dashboard UI only on the staging-schema build, 10 `test_tasks.py` tests excluded without the operator's verification, agent-written translations in 8 locales.
+- **Kept as a task variant, no rerun** (team decision of 2026-11-04): hidden #5 follows the operator's visibility rule, so hidden #5, time and cost are not compared with the other large runs; the other results count.
+- **Why the score is 4, not 5** (added 2026-11-02, asked in the team chat): all 12 Done-when checks pass, but two things in the final code would come up in a normal review: (1) the dashboard UI (product "Age restricted" flag, store "Minimum age") is shown only on the staging-schema build (`isStagingSchema()`), so staff don't see it in the normal dashboard build; (2) 10 `saleor/checkout/tests/test_tasks.py` tests were left out of the agent's full backend run, not verified by the operator. The wrong first "done" (2 follow-ups) is counted in `followups` and `red_flags`, not in the score. Storefront translations in 8 locales are not a minus: 3 other large runs did the same (L-CC-04, L-CC-08 with score 5, L-CP-04), the others added English only.
+- Weak point of the method in this run: the first "done" had errors: the feature was not usable in the running app (database not migrated, dashboard UI behind a staging flag) until 2 follow-ups. Merge-ready (operator, changed from no on 2026-10-28); points for the review: dashboard UI only on the staging-schema build, 10 `test_tasks.py` tests excluded without the operator's verification.
 
 ## Appendix A. Raw `/cost` output
 

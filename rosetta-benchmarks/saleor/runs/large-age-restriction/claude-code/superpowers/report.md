@@ -51,11 +51,11 @@ hidden_missed: 4
 hidden_matches_answer:     # how many of the 9 the final code follows the answer key (yes = 1, partly = 0.5)
 # Outcome (sections 4–5)
 done_checks_total: 12
-done_checks_passed:
-red_flags:                 # number of ticked red flags
-tests_pass:                # yes | no (operator ran them at T2)
-operator_score: 3          # 1–5, anchors in templates/README.md; not independently checked (section 4), scored from the agent's own unverified claims (section 6)
-operator_merge_ready: no   # yes | no
+done_checks_passed: 12          # checked on 2026-11-04 after the run, on the saved diffs applied to a clean stack (section 4)
+red_flags: 0                 # section 5, checked on 2026-11-04
+tests_pass: yes                # changed/new test files of all 3 repos, run on 2026-11-04 (section 4, #11)
+operator_score: 4          # operator (oleksii), 2026-11-04, judging the final code at T2 from the saved diffs after the Done-when checks (section 4); was 3 from the agent's claims
+operator_merge_ready: yes   # operator (oleksii), 2026-11-04
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 8/9)
 judge_absolute:            # /40
@@ -191,24 +191,24 @@ First-pass coverage (asked + covered): 5 of 9.
 
 ## 4. Done when: checked by the operator at T2
 
-**Not checked.** The run was closed without the operator's Done-when checks: the stack was reset to `baseline-v1` for the next task, so the agent's code and database are gone from the local stack and survive only as the `<repo>.diff` files. All rows are empty; `done_checks_passed`, `tests_pass` and `red_flags` in the data block stay empty (the operator decided not to re-run the checks; to fill them, apply the `<repo>.diff` files to `superpowers-v1` and go through this section properly). `operator_score` (3) and `operator_merge_ready` (no) were given from the agent's own unverified claims only (section 6), not from an independent check.
+**Checked after the run, on 2026-11-04** (operator oleksii with the assistant; originally the run was closed without these checks, see section 8). The agent's code at T2 survives only as the three `<repo>.diff` files in this folder, so they were applied to a clean stack: `bench.sh from-zips not-initialized` → `setup` (repos at `baseline-v1` of the current setup) → `git apply` of `saleor.diff` and `react-storefront.diff` (clean) and of `saleor-dashboard.diff` without `schema-main.graphql` and `src/graphql/*.generated.ts` (they were made against the older baseline and do not apply; regenerated instead from the local API with `fetch-local-schema` + `generate`, as the agent did) → the agent's 4 migrations (`account.0106`, `account.0107`, `product.0211_product_minimum_age`, `site.0053_sitesettings_time_zone`) → `start`. Test customers (assistant, Django shell): adult (1990-05-05), turns 18 today (2008-11-04), one day too young (2008-11-05), no birthday, and a support staff user with `MANAGE_USERS` + `MANAGE_ORDERS`; Apple Juice minimum age 18 (21 during the UI checks). Shop date from the agent's `get_shop_today()`: 2026-11-04.
 
-What the agent reported (not verified by the operator): backend 18,467 tests pass (6 failures that also fail on a clean baseline checkout), dashboard 6,155 tests (one flaky in the full parallel run), storefront 827 tests, ruff/mypy/tsc/eslint clean, and a live API run with 31 of 31 checks. It did not click through the dashboard or storefront in a browser.
+What the agent reported at T2: backend 18,467 tests pass (6 failures that also fail on a clean baseline checkout), dashboard 6,155 tests, storefront 827 tests, linters clean, 31/31 live API checks.
 
 | # | Check | Pass? | How checked (command / UI steps) | Evidence |
 | ---: | --- | --- | --- | --- |
-| 1 | Customer birthday field exists (customer account, API, dashboard) | | | |
-| 2 | Staff can set and see a minimum age per product in the dashboard | | | |
-| 3 | **Backend** blocks checkout: underage customer | | | |
-| 4 | **Backend** blocks checkout: customer with no birthday | | | |
-| 5 | **Backend** blocks checkout: guest with a restricted product | | | |
-| 6 | Customer who turns the age **today** can buy | | | |
-| 7 | Adult customer can buy a restricted product | | | |
-| 8 | Unrestricted products work as before for everyone | | | |
-| 9 | Storefront shows the restriction (list + product page) and explains why buying is blocked | | | |
-| 10 | Birthday not readable without a token, nor by support staff | | | |
-| 11 | Tests pass locally (backend + changed frontends) | | | |
-| 12 | No manual cleanup needed (no junk files, no debug code) | | | |
+| 1 | Customer birthday field exists (customer account, API, dashboard) | pass | Dashboard customer page shows "Date of birth" (05/05/1990) with the hint "Customers need a date of birth to buy age-restricted products"; storefront Account → Settings has "Date of birth … Edit, Needed to buy age-restricted products"; API `me { dateOfBirth }` returns it | Operator (UI); assistant (API) |
+| 2 | Staff can set and see a minimum age per product in the dashboard | pass | Dashboard product page: "Minimum age" field ("Leave empty for no restriction"); changed to 21 → Save → "Product updated"; public API `product { minimumAge }` returns it. Model: a minimum age per product (both age models are accepted) | Operator; assistant |
+| 3 | **Backend** blocks checkout: underage customer | pass | One-day-too-young customer: `checkoutCreate` and `checkoutLinesAdd` with Apple Juice → `AGE_RESTRICTION_NOT_MET`; storefront Add to bag → redirect to Settings with "The product you tried to add is age-restricted…". Also enforced in `checkoutComplete` and `orderCreateFromCheckout` (code) | Assistant (API); operator (UI) |
+| 4 | **Backend** blocks checkout: customer with no birthday | pass | No-birthday customer: `checkoutCreate` → `AGE_RESTRICTION_NOT_MET`; storefront redirects to Settings: "Add your date of birth below to buy it" | Assistant; operator |
+| 5 | **Backend** blocks checkout: guest with a restricted product | pass | Guest: `checkoutCreate` → `AGE_RESTRICTED_LOGIN_REQUIRED`; storefront: "The product you tried to add is age-restricted. Sign in to your account to buy it." + sign-in form | Assistant; operator |
+| 6 | Customer who turns the age **today** can buy | pass | Customer born 2008-11-04 (18 today in the shop's time zone): `checkoutCreate` with Apple Juice succeeds | Assistant (API) |
+| 7 | Adult customer can buy a restricted product | pass | Adult (1990): `checkoutCreate` with Apple Juice succeeds | Assistant (API) |
+| 8 | Unrestricted products work as before for everyone | pass | Monospace Tee (no minimum age): `checkoutCreate` succeeds for guest, no-birthday, too young, 18 today and adult | Assistant (API) |
+| 9 | Storefront shows the restriction (list + product page) and explains why buying is blocked | pass | Storefront: "21+" badge on the Apple Juice card in Groceries → Juices and on the product page; no badge on the other juices; clear messages for guest and no birthday. Minor: the too-young customer gets the same text as no birthday ("Add your date of birth… If you are below the minimum age, you cannot buy") although a birthday is set | Operator |
+| 10 | Birthday not readable without a token, nor by support staff | pass | Anonymous `me` → null; support staff (`MANAGE_USERS`) `user(email){dateOfBirth}` → PermissionDenied "Only the customer, or a super-admin looking up a single customer, can access the date of birth."; the customer sees own birthday; superuser sees it | Assistant (API) |
+| 11 | Tests pass locally (backend + changed frontends) | pass | Changed/new test files of each repo, run on the applied diffs: core `pytest <20 files> --create-db` → **1306 passed**; dashboard `jest --runTestsByPath <8 files>` → **8 suites, 71 tests passed**, `pnpm run check-types` → all files passed; storefront `vitest run <7 files>` → **7 files, 44 tests passed** | Assistant |
+| 12 | No manual cleanup needed (no junk files, no debug code) | pass | Added lines: no `console.log`, `print(`, `debugger`, `breakpoint`, `pdb`, `.only`, `TODO`/`FIXME`/`XXX`; no dependency file changed. `saleor/docs/superpowers/` (2 specs, 2 plans) are the method's own design documents, not junk. The storefront dev overlay's "1 Issue" (Next.js metadata warning in `account/layout.tsx`) is in a file the agent did not change | Assistant |
 
 ## 5. Red flags
 
@@ -226,7 +226,7 @@ Tick every one you see; one line of evidence each.
 - [ ] Agent committed or pushed
 - [ ] Other: `<...>`
 
-Not assessed (see section 4); nothing ticked. The agent-made post-implementation diffs do not exist; the operator-made `<repo>.diff` files are in this folder.
+Checked on 2026-11-04 (section 4): none ticked. Age checks are in the backend (checkout create, lines add, complete, order from checkout); 4 migrations apply on a clean DB; core schema and dashboard codegen were updated by the agent (the dashboard generated files were regenerated for the check because they were made on the old baseline); tests run and pass; no leftovers, no new dependency; nothing committed. The agent's own post-implementation diffs and report do not exist (section 6).
 
 ## 6. Agent's claims vs reality (from `agent-report.md`)
 
@@ -234,12 +234,12 @@ Not assessed (see section 4); nothing ticked. The agent-made post-implementation
 
 | Action | Agent says | Operator confirms |
 | --- | --- | --- |
-| Wrote tests | yes | |
-| Ran tests | yes (18,467 backend; 6,155 dashboard; 827 storefront) | |
-| Ran linters / type checks | yes (ruff, mypy, tsc-strict, eslint, storefront checks) | |
-| Started the app / called the API | yes, live API run (31/31) | |
-| Checked the UI / screenshot | no browser check | |
-| Cleaned up leftovers | throwaway data deleted, DB state restored (one seeded order restored to "no user", "nearly certain but not provable") | |
+| Wrote tests | yes | Confirmed: 20 core, 8 dashboard, 7 storefront test files changed or new |
+| Ran tests | yes (18,467 backend; 6,155 dashboard; 827 storefront) | Confirmed for the changed files: 1306 / 71 / 44 pass (2026-11-04); full suites not rerun |
+| Ran linters / type checks | yes (ruff, mypy, tsc-strict, eslint, storefront checks) | Dashboard `check-types` passes; others not rerun |
+| Started the app / called the API | yes, live API run (31/31) | Consistent: the API checks of section 4 pass |
+| Checked the UI / screenshot | no browser check | True; the operator's UI check passed (section 4) |
+| Cleaned up leftovers | throwaway data deleted, DB state restored (one seeded order restored to "no user", "nearly certain but not provable") | Not checkable after the reset; no leftovers in the diffs |
 
 ## 7. Artifacts (all in this folder)
 
@@ -269,8 +269,9 @@ Not assessed (see section 4); nothing ticked. The agent-made post-implementation
   - **Same session for `/skills` and the task:** the operator ran `/skills`, `/plugin` and `/context` in the session; only the task prompt was a message to the agent.
 - **Token fields corrected on 2026-10-27.** The data block had the session-log totals from `tokens.md` (T1: 868 input, 204,216 output, 71,455,274 cache read, 556,701 cache write; T2: 1,682, 351,573, 147,954,738, 2,975,977), which barely include the Fable reviewers, while the cost fields are the runner's totals. They now hold the sums of the model rows of the `/cost` panels (T1: 45,700 / 227,118 / 75,500,000 / 585,800; T2: 105,600 / 410,318 / 155,100,000 / 3,064,000), as BENCHMARKS.md step 10 says, so tokens and cost come from the same panel. `tokens.md` is unchanged (session log). The real size of the change was added to section 2.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
-- Strong point of the method in this run: (to be given by the operator)
-- Weak point of the method in this run: (to be given by the operator)
+- Strong point of the method in this run (drafted by the assistant from the checks, operator to confirm): the backend enforces the age on every purchase path, "today" uses the shop's time zone, and the birthday is hidden from support staff; the storefront explains each block clearly.
+- Weak point of the method in this run (drafted by the assistant, operator to confirm): it needed a follow-up with 4 items, and the too-young customer sees the same message as a customer without a birthday.
+- **Done-when checks and score added on 2026-11-04** (operator oleksii with the assistant, section 4): all 12 pass on the saved diffs applied to a clean stack of the current setup; score changed from 3 (from the agent's claims) to **4**, merge-ready **yes**. Caveats: the check ran on the current `baseline-v1`, not the old one of the run; the dashboard generated files were regenerated, not taken from the diff; the agent's post-implementation report does not exist.
 
 ## Appendix A. Raw `/cost` output
 
