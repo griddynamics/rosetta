@@ -319,6 +319,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 The prompts are short on purpose, like a real ticket, so agents will also ask things the tables above don't cover (field name, label text, error wording, where a setting goes in the dashboard, …). The programmer decides these as the product owner. To keep all runs fair:
 
 - **One decision per question for all runs.** Before answering, look in the tables below. If the question is there, every run gets that decision. If not, decide, answer, and add a row right away (with the run ID), so every later run (any method, any runner) gets the same decision.
+- **What you send.** Send only the words of the Answer column that come before the closing note in round brackets. The closing note is for the operator and the judge: never send it. If the words before the note name a row or a hidden question, leave that part out.
 - **Answer the question that was asked, in full.** The tables fix the decision, not the wording. Never paste a table row that was written for another question. Each reply:
   1. starts with the direct answer to this question: the chosen option, yes or no, the name, the place, or the mechanism the agent asked about;
   2. then gives the full decision: every fact of every matching row (hidden question and extra answers), with nothing dropped and nothing added. Facts that do not answer this question but belong to the same matching row stay in;
