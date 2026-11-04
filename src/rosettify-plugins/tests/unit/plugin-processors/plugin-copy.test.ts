@@ -1,5 +1,5 @@
 // FR-ARCH-0053, FR-SEED-0001/0002 — pluginCopy: preserved-source copy, tmpl frame registration,
-// standalone manifest, readParentVersion fallback
+// standalone manifest, parent-version validation (FR-VAR-0060)
 import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import os from 'os';
@@ -196,17 +196,28 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
     }
   });
 
-  it('readParentVersion falls back to "2.0.40" when no plugin.json found in any candidate path (line 170)', () => {
-    // Scenario:
-    // 1. preservedSource has no .claude-plugin, .cursor-plugin, .github, or .codex-plugin dirs
-    // 2. readParentVersion iterates all candidates, finds none, returns hardcoded fallback "2.0.40"
-    // 3. standalone plugin.json is written with version "2.0.40"
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-fallback-'));
+  // FR-VAR-0060: the version comes from the parent manifest or generation fails — never a guess.
+  // Every manifest carries LEAK_SENTINEL so the test proves no part of its contents reaches the error.
+  // The bare-text case matters most: JSON.parse quotes that input in its own error message.
+  const LEAK_SENTINEL = 'leak-sentinel';
+  const BAD_VERSION = '"version" is missing, empty, or not a string';
+  it.each([
+    { scenario: 'no plugin.json in any candidate path', manifest: undefined, problem: 'no parent plugin.json' },
+    { scenario: 'a trailing comma', manifest: `{"name":"${LEAK_SENTINEL}","version":"3.1.21",}`, problem: 'not valid JSON' },
+    { scenario: 'text that is not JSON', manifest: LEAK_SENTINEL, problem: 'not valid JSON' },
+    { scenario: 'no version field', manifest: `{"name":"${LEAK_SENTINEL}"}`, problem: BAD_VERSION },
+    { scenario: 'empty version', manifest: `{"name":"${LEAK_SENTINEL}","version":""}`, problem: BAD_VERSION },
+    { scenario: 'non-string version', manifest: `{"name":"${LEAK_SENTINEL}","version":3}`, problem: BAD_VERSION },
+    { scenario: 'a JSON string', manifest: `"${LEAK_SENTINEL}"`, problem: BAD_VERSION },
+    { scenario: 'a JSON array', manifest: `["${LEAK_SENTINEL}"]`, problem: BAD_VERSION },
+    { scenario: 'JSON null', manifest: 'null', problem: BAD_VERSION },
+  ])('parent manifest with $scenario: hard error, no standalone plugin.json written', ({ manifest, problem }) => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-badparent-'));
     try {
-      // preservedSource exists but has no plugin.json in any candidate path
       const preservedSource = path.join(tmp, 'core-cursor');
-      fs.mkdirSync(preservedSource, { recursive: true });
-      // No .claude-plugin, .cursor-plugin, .github, .codex-plugin → all candidates missing
+      const parentManifest = path.join(preservedSource, '.cursor-plugin', 'plugin.json');
+      fs.mkdirSync(path.dirname(parentManifest), { recursive: true });
+      if (manifest !== undefined) fs.writeFileSync(parentManifest, manifest);
       fs.writeFileSync(path.join(preservedSource, 'hooks.json.tmpl'), '{}');
 
       const outputDir = path.join(tmp, 'output');
@@ -217,28 +228,31 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
       };
-      pluginCopy(outputDir, false)(makePluginFrame(spec));
+      const result = pluginCopy(outputDir, false)(makePluginFrame(spec));
 
-      const manifest = JSON.parse(
-        fs.readFileSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'), 'utf-8'),
-      );
-      // Fallback version must be exactly "2.0.40" (GT-7)
-      expect(manifest.version).toBe('2.0.40');
+      expect(fs.existsSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'))).toBe(false);
+      expect(result.errors).toEqual([
+        {
+          target: 'core-cursor-standalone',
+          file: manifest === undefined ? undefined : parentManifest,
+          message: expect.stringContaining(problem),
+          kind: 'hard',
+        },
+      ]);
+      expect(JSON.stringify(result.errors)).not.toContain(LEAK_SENTINEL);
+      // Template frames are still registered; only the manifest is withheld.
+      expect(result.frames.map((f: FileProcessingFrame) => f.target)).toEqual(['.cursor/hooks.json.tmpl']);
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
   });
 
-  it('readParentVersion falls back to "2.0.40" when plugin.json JSON is malformed (catch branch)', () => {
-    // Scenario: candidate plugin.json exists but contains malformed JSON.
-    // JSON.parse throws → caught silently → loop continues → fallback "2.0.40" returned.
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-badjson-'));
+  it('an unreadable parent manifest (a directory named plugin.json): hard error naming the file', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-unreadable-'));
     try {
       const preservedSource = path.join(tmp, 'core-cursor');
-      fs.mkdirSync(path.join(preservedSource, '.cursor-plugin'), { recursive: true });
-      // Write malformed JSON → JSON.parse in readParentVersion throws → silently ignored
-      fs.writeFileSync(path.join(preservedSource, '.cursor-plugin', 'plugin.json'), '{bad json}');
-      fs.writeFileSync(path.join(preservedSource, 'hooks.json.tmpl'), '{}');
+      const parentManifest = path.join(preservedSource, '.cursor-plugin', 'plugin.json');
+      fs.mkdirSync(parentManifest, { recursive: true });
 
       const outputDir = path.join(tmp, 'output');
       const spec: Partial<PluginSpec> = {
@@ -246,31 +260,31 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         destination: 'core-cursor-standalone',
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
-        standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
       };
-      pluginCopy(outputDir, false)(makePluginFrame(spec));
+      const result = pluginCopy(outputDir, false)(makePluginFrame(spec));
 
-      const manifest = JSON.parse(
-        fs.readFileSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'), 'utf-8'),
-      );
-      expect(manifest.version).toBe('2.0.40');
+      expect(result.errors).toEqual([
+        {
+          target: 'core-cursor-standalone',
+          file: parentManifest,
+          message: expect.stringContaining('could not be read'),
+          kind: 'hard',
+        },
+      ]);
+      expect(fs.existsSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'))).toBe(false);
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
   });
 
-  it('readParentVersion falls back to "2.0.40" when plugin.json has no version field', () => {
-    // Scenario: plugin.json parses but has no version key.
-    // data.version is undefined → falsy → loop continues → fallback returned.
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-nover-'));
+  it('a malformed parent manifest is not skipped in favour of a later candidate', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-firstwins-'));
     try {
       const preservedSource = path.join(tmp, 'core-cursor');
+      fs.mkdirSync(path.join(preservedSource, '.claude-plugin'), { recursive: true });
       fs.mkdirSync(path.join(preservedSource, '.cursor-plugin'), { recursive: true });
-      fs.writeFileSync(
-        path.join(preservedSource, '.cursor-plugin', 'plugin.json'),
-        '{"name":"core-cursor"}', // no version field
-      );
-      fs.writeFileSync(path.join(preservedSource, 'hooks.json.tmpl'), '{}');
+      fs.writeFileSync(path.join(preservedSource, '.claude-plugin', 'plugin.json'), '{bad json}');
+      fs.writeFileSync(path.join(preservedSource, '.cursor-plugin', 'plugin.json'), '{"version":"9.9.9"}');
 
       const outputDir = path.join(tmp, 'output');
       const spec: Partial<PluginSpec> = {
@@ -278,14 +292,43 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         destination: 'core-cursor-standalone',
         preservedSource,
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
-        standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
       };
-      pluginCopy(outputDir, false)(makePluginFrame(spec));
+      const result = pluginCopy(outputDir, false)(makePluginFrame(spec));
 
-      const manifest = JSON.parse(
-        fs.readFileSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'), 'utf-8'),
-      );
-      expect(manifest.version).toBe('2.0.40');
+      expect(result.errors.map((e) => e.file)).toEqual([path.join(preservedSource, '.claude-plugin', 'plugin.json')]);
+      expect(fs.existsSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'))).toBe(false);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('dry-run with a versionless parent manifest: reports the error, not a manifest write, and writes nothing', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-dry-badparent-'));
+    try {
+      const preservedSource = path.join(tmp, 'core-cursor');
+      fs.mkdirSync(path.join(preservedSource, '.cursor-plugin'), { recursive: true });
+      fs.writeFileSync(path.join(preservedSource, '.cursor-plugin', 'plugin.json'), '{"name":"core-cursor"}');
+
+      const outputDir = path.join(tmp, 'output');
+      const spec: Partial<PluginSpec> = {
+        name: 'core-cursor-standalone',
+        destination: 'core-cursor-standalone',
+        preservedSource,
+        manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
+      };
+
+      let captured = '';
+      const sink = new PassThrough();
+      sink.on('data', (chunk: Buffer | string) => {
+        captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
+      });
+      const result = pluginCopy(outputDir, true, null, sink)(makePluginFrame(spec));
+      sink.end();
+
+      expect(captured).toBe('');
+      expect(fs.existsSync(outputDir)).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0].kind).toBe('hard');
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
@@ -295,7 +338,8 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-std-dry-'));
     try {
       const preservedSource = path.join(tmp, 'core-cursor');
-      fs.mkdirSync(preservedSource, { recursive: true });
+      fs.mkdirSync(path.join(preservedSource, '.cursor-plugin'), { recursive: true });
+      fs.writeFileSync(path.join(preservedSource, '.cursor-plugin', 'plugin.json'), '{"version":"9.9.9"}');
       fs.writeFileSync(path.join(preservedSource, 'hooks.json.tmpl'), '{"hooks":{}}');
 
       const outputDir = path.join(tmp, 'output');
@@ -324,7 +368,8 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-std-miss-'));
     try {
       const preservedSource = path.join(tmp, 'core-cursor');
-      fs.mkdirSync(preservedSource, { recursive: true });
+      fs.mkdirSync(path.join(preservedSource, '.cursor-plugin'), { recursive: true });
+      fs.writeFileSync(path.join(preservedSource, '.cursor-plugin', 'plugin.json'), '{"version":"9.9.9"}');
       // No hooks.json.tmpl in preservedSource
 
       const outputDir = path.join(tmp, 'output');
