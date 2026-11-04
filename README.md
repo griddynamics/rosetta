@@ -46,7 +46,7 @@ Very detailed information on installation and configuration in all available mod
 
 ## Skills
 
-Reusable units of work the AI loads on demand. Workflows pick them for you, and most can also be called by name.
+Reusable units of work the AI loads on demand. If your tasks are small to medium use skills. Workflows pick them for you, and most can also be called by name.
 
 **Let Rosetta decide**
 
@@ -124,6 +124,8 @@ Reusable units of work the AI loads on demand. Workflows pick them for you, and 
 5. [`specflow-use`](instructions/r3/core/skills/specflow-use/README.md): Connects your workspace to Grid Dynamics SpecFlow through its MCP.
 
 ## [Top Workflows](USAGE_GUIDE.md#workflows)
+
+Workflows are more expensive to run, those are supposed to be used on large areas of work: entire feature or multiple related features at once. It is expected to give tasks that those workflows will work on for hours.
 
 1. `coding-flow`: AI creates features, fixes defects, and performs refactoring, everything end-to-end. AI performs discovery, design, specs and a plan, user review, then AI implements and runs separate review and validation passes (including running application). Most useful for medium to large coding tasks, and for controlled component-by-component migration/modernization work.
 2. `requirements-authoring-flow`: AI works with user and raw artifacts to define entire-application requirements. AI discovers context and existing constraints, captures intent, drafts atomic requirement units, validates them, and finalizes traceability artifacts. This is the most efficient use of coding agents. Requirements then Coding.

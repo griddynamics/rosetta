@@ -10,6 +10,11 @@
     "contributors": 31,
     "size_kb": 126509
   },
+  "critical_notes": [
+    "You cannot summarize any `unique` metrics. Not average, not sum, not median, etc. Those can only be compared. You can use MAX. `Unique` means data was deduplicated on server side.",
+    "Use appropriate metrics for the task. Daily for daily data, weekly for weekly data. Monthly data is not available. Calculate it thoughtfully: counts can ge safely aggregated, unique - use vale from the latest week or MAX of all weeks, same with stars.",
+    "Weekly data is built based on sliding window of 14 days of data."
+  ],
   "traffic": {
     "clones_daily": [
       {
