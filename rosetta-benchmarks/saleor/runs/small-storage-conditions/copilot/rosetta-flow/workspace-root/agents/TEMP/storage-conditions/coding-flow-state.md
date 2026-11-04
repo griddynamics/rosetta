@@ -1,39 +1,40 @@
 # Storage Conditions Coding Flow State
 
-## Request
+## Status
 
-Add a translatable, optional plain-text Product storage-conditions field. It has a
-maximum length of 250 characters. Staff edit it in the dashboard. The storefront
-shows the translation in a labeled block immediately after the Product description
-on the Product detail page only, and hides the block when empty.
+- Phase 0: context loading complete.
+- Phase 1: discovery complete.
+- Phase 2: design complete.
+- Phase 3: design approved.
+- Phase 4: specification and planning complete.
+- Phase 6: specifications and plan approved.
+- Phase 7: implementation complete.
+- Phase 8: direct code review complete; no functional defects found.
+- Phase 9: independent implementation validation complete with manual-browser gaps.
+- Phase 10: implementation approved, 2026-11-04.
+- Phase 11: test completion complete.
+- Phase 12: test review complete; gaps resolved.
+- Phase 13: final validation complete; accepted with documented format-check exception.
+- Scope: add product-level storage conditions through Saleor API, dashboard, and storefront.
+- Classification: medium, cross-repository.
 
-## Decisions
+## Gates
 
-- Translation follows the Product name and description behavior.
-- Do not show the field in cart, checkout, or order emails.
-- Use optional plain text with a maximum length of 250 characters.
-- Show a labeled block immediately after the Product description on the Product
-  detail page, and hide it when the value is empty.
-- Target the dashboard main schema, refreshed from the local API.
-- Extend the shared TranslationInput. Category and Collection translation
-  mutations reject storage conditions with an INVALID error.
-- Invalidate storefront PDP content on translation-only saves when catalog
-  update notifications are connected.
-- The backend Unicode character limit is authoritative; the dashboard enforces
-  the practical equivalent.
-- Exclude the field from catalog search and filters; include it in Product
-  webhook payloads and Product CSV exports.
-- Expand the PDP block by default.
-- Count the field in translation progress when its source value exists.
+- Design approval: approved, 2026-11-04.
+- Plan and specification approval: approved, 2026-11-04. Artifacts: `plans/storage-conditions/storage-conditions-SPECS.md`, `plans/storage-conditions/storage-conditions-PLAN.md`, `plans/storage-conditions/HANDOFF.md`.
+- Implementation approval: approved, 2026-11-04.
 
-## Progress
+## Evidence
 
-- Context loading: complete.
-- Intent confirmation: complete.
-- Discovery: complete.
-- Design: approved by user on 2026-11-03.
-- Technical specification and plan: complete.
-- Independent plan review: complete; required corrections applied and verified.
-- Plan approval: approved by user on 2026-11-03.
-- Implementation: in progress; backend contract phase started.
-- Review, tests, and validation: pending.
+- Workspace and all three repository context and architecture documents loaded.
+- Approved decisions: storage conditions are translatable like product names and descriptions; dashboard targets only the stable main schema and uses `@lockSchema` on reads; plain text maximum 250 characters; an otherwise-empty Description section displays storage conditions.
+- Translation API decision: extend shared `TranslationInput`; product mutations support `storageConditions`, category and collection mutations return `INVALID` if it is supplied.
+- Backend evidence: focused backend suite passed (578 tests); schema, migration, model, translations, and API contract implemented.
+- Dashboard evidence: schema generation, type checks, main-schema lock, and 773 focused tests passed; the broad format check reports an unrelated `agents/MEMORY.md` failure.
+- Storefront evidence: code generation, typecheck, focused tests, lock checks, and touched-area lint passed; browser validation remains pending.
+- Review recovery: the assigned reviewer did not complete after three path-resolution failures. The user approved a direct review, which found no functional defect in the inspected API, dashboard, and storefront contracts. Generated-schema exactness, browser behavior, and broad client checks remain validation gaps.
+- Validation: focused backend, dashboard, and storefront checks passed; dashboard formatting fails only on an unchanged file. Live browser checks remain unavailable because no browser tool or credentials are available.
+- Test evidence: added the ProductTranslatableContent base-and-translation query test; focused backend, dashboard, and storefront tests pass; read-only local API introspection confirms the running schema exposes the field.
+- Test review: dashboard form rendering/error and null/empty translation-clear cases were added and pass focused checks with zero lint warnings.
+- Final validation: ready under the user-approved automated/API alternative to unavailable browser checks. The only remaining repository failure is dashboard `format:check` on an unchanged `agents/MEMORY.md` file.
+- Final acceptance: accepted, 2026-11-04, with the documented unchanged dashboard format-check exception.

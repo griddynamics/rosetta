@@ -17,9 +17,11 @@ Scope: workspace-level and cross-repo lessons only; repo-specific lessons go to 
 ### Verify cross-repo contracts on both sides in code [ACTIVE]
 - Each repo's docs describe its own side only; e.g. webhook signing looked compatible until core and storefront code were read together.
 
-### Require human confirmation when runtime database identity is unprovable [ACTIVE]
-- Do not infer the live API database from unrelated connection counts; block writes until
-  the owner explicitly confirms the API and migration target are the same approved local database.
+### Use explicit repository roots for cross-repo review commands [ACTIVE]
+- Run Git and line-numbered reads with the same resolved repository root; the workspace root is not a Git worktree and Saleor source paths are nested.
+
+### Apply additive schema migrations before exposing new model fields [ACTIVE]
+- Deploy the migration before clients query a new Django model column; otherwise catalog reads fail at runtime even when code, schema, and tests are valid.
 
 ## What Worked
 

@@ -227,6 +227,8 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | implementation gate | `Yes, I approve the implementation` |
 | any other "shall I continue?" | `Approved, continue.` |
 | a stop that only asks to retry or continue (e.g. `self-learning` "May I retry/resume…?", even with "Type exactly …") | `Approved, continue.` (a method step, not a question; BENCHMARKS.md section 5, "Method steps") |
+| a gate or acceptance that names its own exact sentence (e.g. `Approve, the plan and specs were reviewed`, `Yes, I accept the runtime recovery`) | that sentence, word for word (a method step) |
+| a menu of ways to go on, not retry-or-stop (e.g. "Perform a direct line-cited review now (recommended)" / "Document the gap and proceed") | the option marked recommended (a method step; S-CP-06) |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
@@ -357,6 +359,8 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | implementation gate | `Yes, I approve the implementation` |
 | any other "shall I continue?" | `Approved, continue.` |
 | a stop that only asks to retry or continue (e.g. `self-learning` "May I retry/resume…?", even with "Type exactly …") | `Approved, continue.` (a method step, not a question; BENCHMARKS.md section 5, "Method steps") |
+| a gate or acceptance that names its own exact sentence (e.g. `Approve, the plan and specs were reviewed`, `Yes, I accept the runtime recovery`) | that sentence, word for word (a method step) |
+| a menu of ways to go on, not retry-or-stop (e.g. "Perform a direct line-cited review now (recommended)" / "Document the gap and proceed") | the option marked recommended (a method step; S-CP-06) |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
@@ -416,7 +420,7 @@ python3 "$SB/scripts/collect-results.py"                 # your run in the table
 
 > ⚠️ **Not verified yet:** these steps follow the method's docs and Copilot CLI 1.0.101's own help, not a real run.
 
-**Install and use:** plugin `rosetta` from the pinned clone's Copilot marketplace (`.github/plugin/marketplace.json`, marketplace `rosetta`). Its skills, agents, commands and session-start hook must load. Then the same `/coding-flow` and gate phrases.
+**Install and use:** plugin `rosetta` from the pinned clone's Copilot marketplace (`.github/plugin/marketplace.json`, marketplace `rosetta`). Its skills, agents, commands and session-start hook must load. Then the same flow and gate phrases; the command is `/rosetta:coding-flow` (Copilot CLI names plugin commands `/<plugin>:<name>`; `/coding-flow` alone is `Unknown command`, S-CP-06).
 
 **4.1 Copilot CLI** (once per machine, shared by all methods):
 
@@ -579,10 +583,10 @@ In the session: `/model` shows GPT-5.6 Terra, effort medium, long context; `/con
 
 **When the checks pass: `/exit`, then start `copilot` again WITHOUT the cleanup lines** (`grep … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --context long_context --allow-all --disable-builtin-mcps)`. This is a NEW session (never `--resume` or `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
 
-**Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
+**Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline. In Copilot CLI the command is `/rosetta:coding-flow`: Copilot CLI 1.0.101 names plugin commands `/<plugin>:<name>`, and a bare `/coding-flow` is rejected as `Unknown command` (S-CP-06):
 
 ```text
-/coding-flow Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
+/rosetta:coding-flow Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
 Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
 
 Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
@@ -598,10 +602,12 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | implementation gate | `Yes, I approve the implementation` |
 | any other "shall I continue?" | `Approved, continue.` |
 | a stop that only asks to retry or continue (e.g. `self-learning` "May I retry/resume…?", even with "Type exactly …") | `Approved, continue.` (a method step, not a question; BENCHMARKS.md section 5, "Method steps") |
+| a gate or acceptance that names its own exact sentence (e.g. `Approve, the plan and specs were reviewed`, `Yes, I accept the runtime recovery`) | that sentence, word for word (a method step) |
+| a menu of ways to go on, not retry-or-stop (e.g. "Perform a direct line-cited review now (recommended)" / "Document the gap and proceed") | the option marked recommended (a method step; S-CP-06) |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** If the first "done" is a final-acceptance form (`ask_user`), it blocks the prompt: answer it with its own sentence (a method step), then take `/usage` right after the closing message (S-CP-06). In Copilot forms use only ↓, typing and Enter: Esc cancels. Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
@@ -692,10 +698,10 @@ In the session: `/model` shows GPT-5.6 Terra, effort medium, long context; `/con
 
 **When the checks pass: `/exit`, then start `copilot` again WITHOUT the cleanup lines** (`grep … rm -rf` and `rm -rf "$BENCH_DIR/run-output"` run only in the first start; running them again would delete the logs of this run): `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --context long_context --allow-all --disable-builtin-mcps)`. This is a NEW session (never `--resume` or `--continue`): its purpose is a clean context, with none of the checks in it. Send the task as the first message of that second session. Do not send the task before this restart.
 
-**Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline:
+**Step 5. Send the task (T0).** Paste this into the agent and write the time (T0) in the report timeline. In Copilot CLI the command is `/rosetta:coding-flow` (plugin commands are `/<plugin>:<name>`; S-CP-06):
 
 ```text
-/coding-flow Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
+/rosetta:coding-flow Some of our products can only be sold to customers above a certain age (alcohol, tobacco, etc.).
 Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
 To make this work, the customer profile should have a birthday field.
 
@@ -712,10 +718,12 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 | implementation gate | `Yes, I approve the implementation` |
 | any other "shall I continue?" | `Approved, continue.` |
 | a stop that only asks to retry or continue (e.g. `self-learning` "May I retry/resume…?", even with "Type exactly …") | `Approved, continue.` (a method step, not a question; BENCHMARKS.md section 5, "Method steps") |
+| a gate or acceptance that names its own exact sentence (e.g. `Approve, the plan and specs were reviewed`, `Yes, I accept the runtime recovery`) | that sentence, word for word (a method step) |
+| a menu of ways to go on, not retry-or-stop (e.g. "Perform a direct line-cited review now (recommended)" / "Document the gap and proceed") | the option marked recommended (a method step; S-CP-06) |
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** If the first "done" is a final-acceptance form (`ask_user`), it blocks the prompt: answer it with its own sentence (a method step), then take `/usage` right after the closing message (S-CP-06). In Copilot forms use only ↓, typing and Enter: Esc cancels. Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?

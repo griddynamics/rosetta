@@ -1,6 +1,6 @@
 diff --git a/.changeset/storage-conditions-field.md b/.changeset/storage-conditions-field.md
 new file mode 100644
-index 0000000..8a196a7
+index 0000000..c586d34
 --- /dev/null
 +++ b/.changeset/storage-conditions-field.md
 @@ -0,0 +1,5 @@
@@ -8,22 +8,22 @@ index 0000000..8a196a7
 +"saleor-dashboard": patch
 +---
 +
-+Products now have a "Storage conditions" text field (up to 250 characters). You can edit it on the product page, translate it on the product translation page, and include it in product exports. Requires a Saleor version that supports `storageConditions`.
++Added an optional "Storage conditions" field (up to 250 characters, plain text) to the product details page and the product translation page. Requires Saleor 3.23.
 diff --git a/locale/defaultMessages.json b/locale/defaultMessages.json
-index 93af9bf..013408d 100644
+index 93af9bf..12a96bb 100644
 --- a/locale/defaultMessages.json
 +++ b/locale/defaultMessages.json
-@@ -5621,6 +5621,10 @@
-     "context": "header",
-     "string": "Edit Media"
+@@ -2489,6 +2489,10 @@
+     "context": "product field",
+     "string": "Export Product Weight"
    },
-+  "IkRpW+": {
-+    "context": "product storage conditions length error",
-+    "string": "Storage conditions can have at most 250 characters."
++  "7JOm2D": {
++    "context": "storage conditions field hint",
++    "string": "Storage instructions shown with the product description"
 +  },
-   "IlPaqv": {
-     "context": "channel detail cogs menu, opens the delete-confirmation dialog",
-     "string": "Delete channel"
+   "7JPV5U": {
+     "string": "Pages published"
+   },
 @@ -12170,6 +12174,10 @@
    "hAoqp6": {
      "string": "Failed to save permissions. Refresh the page and try again."
@@ -35,30 +35,8 @@ index 93af9bf..013408d 100644
    "hF952H": {
      "context": "product variant pricing manage channels button",
      "string": "Manage channels"
-@@ -16140,6 +16148,10 @@
-     "context": "button",
-     "string": "Delete"
-   },
-+  "uhaSOf": {
-+    "context": "product storage conditions translation field label",
-+    "string": "Storage conditions"
-+  },
-   "uiZoY3": {
-     "context": "Status when product is scheduled for future publication",
-     "string": "Scheduled for {date}"
-@@ -17293,6 +17305,10 @@
-     "context": "PDP schematic legend for non-selection variant attributes",
-     "string": "Variant attributes with <em>Variant selection</em> off. Set on each variant; shoppers don’t pick them."
-   },
-+  "yRkFXR": {
-+    "context": "product field",
-+    "string": "Storage conditions"
-+  },
-   "ySqncG": {
-     "context": "ExitFormPrompt keep editing button",
-     "string": "Keep editing"
 diff --git a/schema-main.graphql b/schema-main.graphql
-index 0565113..e368551 100644
+index 0565113..42b8722 100644
 --- a/schema-main.graphql
 +++ b/schema-main.graphql
 @@ -4198,6 +4198,13 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes {
@@ -66,7 +44,7 @@ index 0565113..e368551 100644
    description: JSONString
  
 +  """
-+  Plain-text storage conditions of the product, up to 250 characters.
++  Storage conditions of the product.
 +
 +  Added in Saleor 3.23.
 +  """
@@ -75,9 +53,9 @@ index 0565113..e368551 100644
    """Type of the product."""
    productType: ProductType!
  
-@@ -10654,6 +10661,13 @@ type ProductTranslation implements Node {
+@@ -10647,6 +10654,13 @@ type ProductTranslation implements Node {
    """
-   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+   description: JSONString
  
 +  """
 +  Translated storage conditions of the product.
@@ -86,12 +64,12 @@ index 0565113..e368551 100644
 +  """
 +  storageConditions: String
 +
-   """Represents the product fields to translate."""
-   translatableContent: ProductTranslatableContent
- }
-@@ -10698,6 +10712,13 @@ type ProductTranslatableContent implements Node {
    """
-   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+   Translated description of the product.
+   
+@@ -10691,6 +10705,13 @@ type ProductTranslatableContent implements Node {
+   """
+   description: JSONString
  
 +  """
 +  Product's storage conditions to translate.
@@ -100,36 +78,16 @@ index 0565113..e368551 100644
 +  """
 +  storageConditions: String
 +
-   """Returns translated product fields for the given language code."""
-   translation(
-     """A language code to return the translation for product."""
-@@ -19111,6 +19132,7 @@ type Mutation {
-   Triggers the following webhook events:
-   - TRANSLATION_CREATED (async): Called when a translation was created.
-   - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+  - PRODUCT_UPDATED (async): Called once for each product whose translation was saved.
    """
-   productBulkTranslate(
-     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
-@@ -19124,6 +19146,11 @@ type Mutation {
-   Creates/updates translations for a product. 
+   Description of the product.
    
-   Requires one of the following permissions: MANAGE_TRANSLATIONS.
-+
-+  Triggers the following webhook events:
-+  - TRANSLATION_CREATED (async): Called when a translation was created.
-+  - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+  - PRODUCT_UPDATED (async): Called when a product translation was saved.
-   """
-   productTranslate(
-     """Product ID or ProductTranslatableContent ID."""
-@@ -25318,6 +25345,13 @@ input TranslationInput {
+@@ -25318,6 +25339,13 @@ input TranslationInput {
    Rich text format. For reference see https://editorjs.io/
    """
    description: JSONString
 +
 +  """
-+  Translated storage conditions, up to 250 characters. Only supported by product translations; other types return INVALID.
++  Translated storage conditions. Products only. Plain text, up to 250 characters. A blank value clears the translation.
 +
 +  Added in Saleor 3.23.
 +  """
@@ -137,12 +95,12 @@ index 0565113..e368551 100644
  }
  
  """
-@@ -25657,6 +25691,13 @@ input ProductCreateInput {
+@@ -25657,6 +25685,13 @@ input ProductCreateInput {
    """
    description: JSONString
  
 +  """
-+  Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++  Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 +
 +  Added in Saleor 3.23.
 +  """
@@ -151,12 +109,12 @@ index 0565113..e368551 100644
    """Product name."""
    name: String
  
-@@ -25888,6 +25929,13 @@ input ProductBulkCreateInput {
+@@ -25888,6 +25923,13 @@ input ProductBulkCreateInput {
    """
    description: JSONString
  
 +  """
-+  Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++  Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 +
 +  Added in Saleor 3.23.
 +  """
@@ -165,12 +123,12 @@ index 0565113..e368551 100644
    """Product name."""
    name: String
  
-@@ -26201,6 +26249,13 @@ input ProductInput {
+@@ -26201,6 +26243,13 @@ input ProductInput {
    """
    description: JSONString
  
 +  """
-+  Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++  Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 +
 +  Added in Saleor 3.23.
 +  """
@@ -179,40 +137,6 @@ index 0565113..e368551 100644
    """Product name."""
    name: String
  
-@@ -26258,6 +26313,7 @@ Requires one of the following permissions: MANAGE_TRANSLATIONS.
- Triggers the following webhook events:
- - TRANSLATION_CREATED (async): Called when a translation was created.
- - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+- PRODUCT_UPDATED (async): Called once for each product whose translation was saved.
- """
- type ProductBulkTranslate {
-   """Returns how many translations were created/updated."""
-@@ -26314,6 +26370,11 @@ input ProductBulkTranslateInput {
- Creates/updates translations for a product. 
- 
- Requires one of the following permissions: MANAGE_TRANSLATIONS.
-+
-+Triggers the following webhook events:
-+- TRANSLATION_CREATED (async): Called when a translation was created.
-+- TRANSLATION_UPDATED (async): Called when a translation was updated.
-+- PRODUCT_UPDATED (async): Called when a product translation was saved.
- """
- type ProductTranslate {
-   translationErrors: [TranslationError!]! @deprecated(reason: "Use `errors` field instead.")
-@@ -32067,6 +32128,13 @@ input ExportInfoInput {
- enum ProductFieldEnum {
-   NAME
-   DESCRIPTION
-+
-+  """
-+  Plain-text storage conditions of the product.
-+
-+  Added in Saleor 3.23.
-+  """
-+  STORAGE_CONDITIONS
-   PRODUCT_TYPE
-   CATEGORY
-   PRODUCT_WEIGHT
 diff --git a/src/fragments/products.ts b/src/fragments/products.ts
 index c17c983..de08f7e 100644
 --- a/src/fragments/products.ts
@@ -246,34 +170,14 @@ index f7b23c7..733ba7d 100644
          code
          language
 diff --git a/src/graphql/fabbrica.generated.ts b/src/graphql/fabbrica.generated.ts
-index 9d7f6c6..8eb7589 100644
+index 9d7f6c6..4953cef 100644
 --- a/src/graphql/fabbrica.generated.ts
 +++ b/src/graphql/fabbrica.generated.ts
-@@ -18064,6 +18064,7 @@ export type OptionalMutation = {
-  * Triggers the following webhook events:
-  * - TRANSLATION_CREATED (async): Called when a translation was created.
-  * - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+ * - PRODUCT_UPDATED (async): Called once for each product whose translation was saved.
-  */
-   productBulkTranslate?: Maybe<OptionalProductBulkTranslate> | undefined;
-   /**
-@@ -18132,6 +18133,11 @@ export type OptionalMutation = {
-  * Creates/updates translations for a product.
-  *
-  * Requires one of the following permissions: MANAGE_TRANSLATIONS.
-+ *
-+ * Triggers the following webhook events:
-+ * - TRANSLATION_CREATED (async): Called when a translation was created.
-+ * - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+ * - PRODUCT_UPDATED (async): Called when a product translation was saved.
-  */
-   productTranslate?: Maybe<OptionalProductTranslate> | undefined;
-   /**
-@@ -25389,6 +25395,12 @@ export type OptionalProduct = {
+@@ -25389,6 +25389,12 @@ export type OptionalProduct = {
    /** Slug of the product. */
    slug?: Product['slug'] | undefined;
    /**
-+ * Plain-text storage conditions of the product, up to 250 characters.
++ * Storage conditions of the product.
 + *
 + * Added in Saleor 3.23.
 + */
@@ -282,12 +186,12 @@ index 9d7f6c6..8eb7589 100644
   * Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
   *
   * Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
-@@ -25639,6 +25651,12 @@ export type OptionalProductBulkCreateInput = {
+@@ -25639,6 +25645,12 @@ export type OptionalProductBulkCreateInput = {
    seo?: Maybe<OptionalSeoInput> | undefined;
    /** Product slug. */
    slug?: ProductBulkCreateInput['slug'] | undefined;
 +  /**
-+ * Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++ * Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 + *
 + * Added in Saleor 3.23.
 + */
@@ -295,20 +199,12 @@ index 9d7f6c6..8eb7589 100644
    /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
    taxClass?: ProductBulkCreateInput['taxClass'] | undefined;
    /**
-@@ -25715,6 +25733,7 @@ export const defineProductBulkResultFactory: DefineTypeFactoryInterface<
-  * Triggers the following webhook events:
-  * - TRANSLATION_CREATED (async): Called when a translation was created.
-  * - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+ * - PRODUCT_UPDATED (async): Called once for each product whose translation was saved.
-  */
- export type OptionalProductBulkTranslate = {
-   __typename?: 'ProductBulkTranslate';
-@@ -26099,6 +26118,12 @@ export type OptionalProductCreateInput = {
+@@ -26099,6 +26111,12 @@ export type OptionalProductCreateInput = {
    seo?: Maybe<OptionalSeoInput> | undefined;
    /** Product slug. */
    slug?: ProductCreateInput['slug'] | undefined;
 +  /**
-+ * Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++ * Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 + *
 + * Added in Saleor 3.23.
 + */
@@ -316,12 +212,12 @@ index 9d7f6c6..8eb7589 100644
    /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
    taxClass?: ProductCreateInput['taxClass'] | undefined;
    /**
-@@ -26381,6 +26406,12 @@ export type OptionalProductInput = {
+@@ -26381,6 +26399,12 @@ export type OptionalProductInput = {
    seo?: Maybe<OptionalSeoInput> | undefined;
    /** Product slug. */
    slug?: ProductInput['slug'] | undefined;
 +  /**
-+ * Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++ * Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 + *
 + * Added in Saleor 3.23.
 + */
@@ -329,7 +225,7 @@ index 9d7f6c6..8eb7589 100644
    /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
    taxClass?: ProductInput['taxClass'] | undefined;
    /**
-@@ -27004,6 +27035,12 @@ export type OptionalProductTranslatableContent = {
+@@ -27004,6 +27028,12 @@ export type OptionalProductTranslatableContent = {
   * Added in Saleor 3.21.
   */
    slug?: ProductTranslatableContent['slug'] | undefined;
@@ -342,19 +238,7 @@ index 9d7f6c6..8eb7589 100644
    /** Returns translated product fields for the given language code. */
    translation?: Maybe<OptionalProductTranslation> | undefined;
  };
-@@ -27023,6 +27060,11 @@ export const defineProductTranslatableContentFactory: DefineTypeFactoryInterface
-  * Creates/updates translations for a product.
-  *
-  * Requires one of the following permissions: MANAGE_TRANSLATIONS.
-+ *
-+ * Triggers the following webhook events:
-+ * - TRANSLATION_CREATED (async): Called when a translation was created.
-+ * - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+ * - PRODUCT_UPDATED (async): Called when a product translation was saved.
-  */
- export type OptionalProductTranslate = {
-   __typename?: 'ProductTranslate';
-@@ -27073,6 +27115,12 @@ export type OptionalProductTranslation = {
+@@ -27073,6 +27103,12 @@ export type OptionalProductTranslation = {
   * Added in Saleor 3.21.
   */
    slug?: ProductTranslation['slug'] | undefined;
@@ -367,12 +251,12 @@ index 9d7f6c6..8eb7589 100644
    /** Represents the product fields to translate. */
    translatableContent?: Maybe<OptionalProductTranslatableContent> | undefined;
  };
-@@ -37036,6 +37084,12 @@ export type OptionalTranslationInput = {
+@@ -37036,6 +37072,12 @@ export type OptionalTranslationInput = {
    seoDescription?: TranslationInput['seoDescription'] | undefined;
    seoTitle?: TranslationInput['seoTitle'] | undefined;
    slug?: TranslationInput['slug'] | undefined;
 +  /**
-+ * Translated storage conditions, up to 250 characters. Only supported by product translations; other types return INVALID.
++ * Translated storage conditions. Products only. Plain text, up to 250 characters. A blank value clears the translation.
 + *
 + * Added in Saleor 3.23.
 + */
@@ -381,35 +265,15 @@ index 9d7f6c6..8eb7589 100644
  
  /**
 diff --git a/src/graphql/fabbricaTypes.generated.ts b/src/graphql/fabbricaTypes.generated.ts
-index ed61f5c..15d19b3 100644
+index ed61f5c..a562ce3 100644
 --- a/src/graphql/fabbricaTypes.generated.ts
 +++ b/src/graphql/fabbricaTypes.generated.ts
-@@ -14604,6 +14604,7 @@ export type Mutation = {
-    * Triggers the following webhook events:
-    * - TRANSLATION_CREATED (async): Called when a translation was created.
-    * - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+   * - PRODUCT_UPDATED (async): Called once for each product whose translation was saved.
-    */
-   productBulkTranslate: Maybe<ProductBulkTranslate>;
-   /**
-@@ -14672,6 +14673,11 @@ export type Mutation = {
-    * Creates/updates translations for a product.
-    *
-    * Requires one of the following permissions: MANAGE_TRANSLATIONS.
-+   *
-+   * Triggers the following webhook events:
-+   * - TRANSLATION_CREATED (async): Called when a translation was created.
-+   * - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+   * - PRODUCT_UPDATED (async): Called when a product translation was saved.
-    */
-   productTranslate: Maybe<ProductTranslate>;
-   /**
-@@ -22386,6 +22392,12 @@ export type Product = Node & ObjectWithAttributes & ObjectWithMetadata & {
+@@ -22386,6 +22386,12 @@ export type Product = Node & ObjectWithAttributes & ObjectWithMetadata & {
    seoTitle: Maybe<Scalars['String']['output']>;
    /** Slug of the product. */
    slug: Scalars['String']['output'];
 +  /**
-+   * Plain-text storage conditions of the product, up to 250 characters.
++   * Storage conditions of the product.
 +   *
 +   * Added in Saleor 3.23.
 +   */
@@ -417,12 +281,12 @@ index ed61f5c..15d19b3 100644
    /**
     * Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
     *
-@@ -22684,6 +22696,12 @@ export type ProductBulkCreateInput = {
+@@ -22684,6 +22690,12 @@ export type ProductBulkCreateInput = {
    seo: InputMaybe<SeoInput>;
    /** Product slug. */
    slug: InputMaybe<Scalars['String']['input']>;
 +  /**
-+   * Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++   * Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 +   *
 +   * Added in Saleor 3.23.
 +   */
@@ -430,20 +294,12 @@ index ed61f5c..15d19b3 100644
    /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
    taxClass: InputMaybe<Scalars['ID']['input']>;
    /**
-@@ -22728,6 +22746,7 @@ export type ProductBulkResult = {
-  * Triggers the following webhook events:
-  * - TRANSLATION_CREATED (async): Called when a translation was created.
-  * - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+ * - PRODUCT_UPDATED (async): Called once for each product whose translation was saved.
-  */
- export type ProductBulkTranslate = {
-   __typename: 'ProductBulkTranslate';
-@@ -22974,6 +22993,12 @@ export type ProductCreateInput = {
+@@ -22974,6 +22986,12 @@ export type ProductCreateInput = {
    seo: InputMaybe<SeoInput>;
    /** Product slug. */
    slug: InputMaybe<Scalars['String']['input']>;
 +  /**
-+   * Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++   * Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 +   *
 +   * Added in Saleor 3.23.
 +   */
@@ -451,25 +307,12 @@ index ed61f5c..15d19b3 100644
    /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
    taxClass: InputMaybe<Scalars['ID']['input']>;
    /**
-@@ -23114,6 +23139,12 @@ export type ProductFieldEnum =
-   | 'PRODUCT_MEDIA'
-   | 'PRODUCT_TYPE'
-   | 'PRODUCT_WEIGHT'
-+  /**
-+   * Plain-text storage conditions of the product.
-+   *
-+   * Added in Saleor 3.23.
-+   */
-+  | 'STORAGE_CONDITIONS'
-   | 'VARIANT_ID'
-   | 'VARIANT_MEDIA'
-   | 'VARIANT_SKU'
-@@ -23227,6 +23258,12 @@ export type ProductInput = {
+@@ -23227,6 +23245,12 @@ export type ProductInput = {
    seo: InputMaybe<SeoInput>;
    /** Product slug. */
    slug: InputMaybe<Scalars['String']['input']>;
 +  /**
-+   * Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++   * Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 +   *
 +   * Added in Saleor 3.23.
 +   */
@@ -477,7 +320,7 @@ index ed61f5c..15d19b3 100644
    /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
    taxClass: InputMaybe<Scalars['ID']['input']>;
    /**
-@@ -23736,6 +23773,12 @@ export type ProductTranslatableContent = Node & {
+@@ -23736,6 +23760,12 @@ export type ProductTranslatableContent = Node & {
     * Added in Saleor 3.21.
     */
    slug: Maybe<Scalars['String']['output']>;
@@ -490,19 +333,7 @@ index ed61f5c..15d19b3 100644
    /** Returns translated product fields for the given language code. */
    translation: Maybe<ProductTranslation>;
  };
-@@ -23750,6 +23793,11 @@ export type ProductTranslatableContentTranslationArgs = {
-  * Creates/updates translations for a product.
-  *
-  * Requires one of the following permissions: MANAGE_TRANSLATIONS.
-+ *
-+ * Triggers the following webhook events:
-+ * - TRANSLATION_CREATED (async): Called when a translation was created.
-+ * - TRANSLATION_UPDATED (async): Called when a translation was updated.
-+ * - PRODUCT_UPDATED (async): Called when a product translation was saved.
-  */
- export type ProductTranslate = {
-   __typename: 'ProductTranslate';
-@@ -23797,6 +23845,12 @@ export type ProductTranslation = Node & {
+@@ -23797,6 +23827,12 @@ export type ProductTranslation = Node & {
     * Added in Saleor 3.21.
     */
    slug: Maybe<Scalars['String']['output']>;
@@ -515,12 +346,12 @@ index ed61f5c..15d19b3 100644
    /** Represents the product fields to translate. */
    translatableContent: Maybe<ProductTranslatableContent>;
  };
-@@ -32205,6 +32259,12 @@ export type TranslationInput = {
+@@ -32205,6 +32241,12 @@ export type TranslationInput = {
    seoDescription: InputMaybe<Scalars['String']['input']>;
    seoTitle: InputMaybe<Scalars['String']['input']>;
    slug: InputMaybe<Scalars['String']['input']>;
 +  /**
-+   * Translated storage conditions, up to 250 characters. Only supported by product translations; other types return INVALID.
++   * Translated storage conditions. Products only. Plain text, up to 250 characters. A blank value clears the translation.
 +   *
 +   * Added in Saleor 3.23.
 +   */
@@ -529,7 +360,7 @@ index ed61f5c..15d19b3 100644
  
  export type TranslationTypes = AttributeTranslation | AttributeValueTranslation | CategoryTranslation | CollectionTranslation | MenuItemTranslation | PageTranslation | ProductMediaTranslation | ProductTranslation | ProductVariantTranslation | PromotionRuleTranslation | PromotionTranslation | SaleTranslation | ShippingMethodTranslation | VoucherTranslation;
 diff --git a/src/graphql/hooks.generated.ts b/src/graphql/hooks.generated.ts
-index 3bb8791..6b09925 100644
+index 3bb8791..1cf3dd3 100644
 --- a/src/graphql/hooks.generated.ts
 +++ b/src/graphql/hooks.generated.ts
 @@ -3462,6 +3462,7 @@ export const ProductFragmentDoc = gql`
@@ -556,6 +387,21 @@ index 3bb8791..6b09925 100644
      language {
        code
        language
+@@ -22937,12 +22940,14 @@ export const UpdateProductTranslationsDocument = gql`
+       id
+       name
+       description
++      storageConditions @lockSchema(schema: "main")
+       seoDescription
+       seoTitle
+       slug
+       translation(languageCode: $language) {
+         id
+         description
++        storageConditions @lockSchema(schema: "main")
+         language {
+           code
+           language
 diff --git a/src/graphql/typePolicies.generated.ts b/src/graphql/typePolicies.generated.ts
 index 560c483..44c0676 100644
 --- a/src/graphql/typePolicies.generated.ts
@@ -612,7 +458,7 @@ index 560c483..44c0676 100644
  };
  export type ProductTypeKeySpecifier = ('assignedVariantAttributes' | 'availableAttributes' | 'hasVariants' | 'id' | 'isDigital' | 'isShippingRequired' | 'kind' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productAttributes' | 'products' | 'slug' | 'taxClass' | 'taxType' | 'variantAttributes' | 'weight' | ProductTypeKeySpecifier)[];
 diff --git a/src/graphql/types.generated.ts b/src/graphql/types.generated.ts
-index 8738069..61ea02d 100644
+index 8738069..3c96ba0 100644
 --- a/src/graphql/types.generated.ts
 +++ b/src/graphql/types.generated.ts
 @@ -7079,6 +7079,12 @@ export type ProductBulkCreateInput = {
@@ -620,7 +466,7 @@ index 8738069..61ea02d 100644
    /** Product slug. */
    slug?: InputMaybe<Scalars['String']['input']>;
 +  /**
-+   * Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++   * Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 +   *
 +   * Added in Saleor 3.23.
 +   */
@@ -633,7 +479,7 @@ index 8738069..61ea02d 100644
    /** Product slug. */
    slug?: InputMaybe<Scalars['String']['input']>;
 +  /**
-+   * Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++   * Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 +   *
 +   * Added in Saleor 3.23.
 +   */
@@ -641,25 +487,12 @@ index 8738069..61ea02d 100644
    /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
    taxClass?: InputMaybe<Scalars['ID']['input']>;
    /**
-@@ -7251,6 +7263,12 @@ export enum ProductFieldEnum {
-   PRODUCT_MEDIA = 'PRODUCT_MEDIA',
-   PRODUCT_TYPE = 'PRODUCT_TYPE',
-   PRODUCT_WEIGHT = 'PRODUCT_WEIGHT',
-+  /**
-+   * Plain-text storage conditions of the product.
-+   *
-+   * Added in Saleor 3.23.
-+   */
-+  STORAGE_CONDITIONS = 'STORAGE_CONDITIONS',
-   VARIANT_ID = 'VARIANT_ID',
-   VARIANT_MEDIA = 'VARIANT_MEDIA',
-   VARIANT_SKU = 'VARIANT_SKU',
-@@ -7345,6 +7363,12 @@ export type ProductInput = {
+@@ -7345,6 +7357,12 @@ export type ProductInput = {
    seo?: InputMaybe<SeoInput>;
    /** Product slug. */
    slug?: InputMaybe<Scalars['String']['input']>;
 +  /**
-+   * Plain-text storage conditions, up to 250 characters. Empty or whitespace-only value clears the field.
++   * Storage conditions of the product. Plain text, up to 250 characters. A blank value clears the field.
 +   *
 +   * Added in Saleor 3.23.
 +   */
@@ -667,12 +500,12 @@ index 8738069..61ea02d 100644
    /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
    taxClass?: InputMaybe<Scalars['ID']['input']>;
    /**
-@@ -9425,6 +9449,12 @@ export type TranslationInput = {
+@@ -9425,6 +9443,12 @@ export type TranslationInput = {
    seoDescription?: InputMaybe<Scalars['String']['input']>;
    seoTitle?: InputMaybe<Scalars['String']['input']>;
    slug?: InputMaybe<Scalars['String']['input']>;
 +  /**
-+   * Translated storage conditions, up to 250 characters. Only supported by product translations; other types return INVALID.
++   * Translated storage conditions. Products only. Plain text, up to 250 characters. A blank value clears the translation.
 +   *
 +   * Added in Saleor 3.23.
 +   */
@@ -680,7 +513,7 @@ index 8738069..61ea02d 100644
  };
  
  /** Define the filtering options for string fields. */
-@@ -12971,7 +13001,7 @@ export type ProductVariantSiblingFragment = { __typename: 'ProductVariant', id:
+@@ -12971,7 +12995,7 @@ export type ProductVariantSiblingFragment = { __typename: 'ProductVariant', id:
  
  export type ProductVariantGeneratorExistingFragment = { __typename: 'ProductVariant', id: string, sku: string | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', id: string }, values: Array<{ __typename: 'AttributeValue', id: string, slug: string | null }> }> };
  
@@ -689,7 +522,7 @@ index 8738069..61ea02d 100644
  
  export type VariantAttributeFragment = { __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null };
  
-@@ -13037,7 +13067,7 @@ export type CategoryTranslationFragment = { __typename: 'CategoryTranslatableCon
+@@ -13037,7 +13061,7 @@ export type CategoryTranslationFragment = { __typename: 'CategoryTranslatableCon
  
  export type CollectionTranslationFragment = { __typename: 'CollectionTranslatableContent', collection: { __typename: 'Collection', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null } | null, translation: { __typename: 'CollectionTranslation', id: string, description: string | null, name: string | null, slug: string | null, seoDescription: string | null, seoTitle: string | null, language: { __typename: 'LanguageDisplay', language: string } } | null };
  
@@ -698,7 +531,7 @@ index 8738069..61ea02d 100644
  
  export type ProductVariantTranslationFragment = { __typename: 'ProductVariantTranslatableContent', name: string, productVariant: { __typename: 'ProductVariant', id: string } | null, translation: { __typename: 'ProductVariantTranslation', id: string, name: string, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> };
  
-@@ -14223,7 +14253,7 @@ export type ProductDetailsQueryVariables = Exact<{
+@@ -14223,7 +14247,7 @@ export type ProductDetailsQueryVariables = Exact<{
  }>;
  
  
@@ -707,7 +540,16 @@ index 8738069..61ea02d 100644
  
  export type ProductTypeQueryVariables = Exact<{
    id: Scalars['ID']['input'];
-@@ -15141,7 +15171,7 @@ export type ProductTranslationsQueryVariables = Exact<{
+@@ -15018,7 +15042,7 @@ export type UpdateProductTranslationsMutationVariables = Exact<{
+ }>;
+ 
+ 
+-export type UpdateProductTranslationsMutation = { __typename: 'Mutation', productTranslate: { __typename: 'ProductTranslate', errors: Array<{ __typename: 'TranslationError', code: TranslationErrorCode, field: string | null, message: string | null }>, product: { __typename: 'Product', id: string, name: string, description: string | null, seoDescription: string | null, seoTitle: string | null, slug: string, translation: { __typename: 'ProductTranslation', id: string, description: string | null, name: string | null, seoDescription: string | null, seoTitle: string | null, slug: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null } | null } | null };
++export type UpdateProductTranslationsMutation = { __typename: 'Mutation', productTranslate: { __typename: 'ProductTranslate', errors: Array<{ __typename: 'TranslationError', code: TranslationErrorCode, field: string | null, message: string | null }>, product: { __typename: 'Product', id: string, name: string, description: string | null, storageConditions: string | null, seoDescription: string | null, seoTitle: string | null, slug: string, translation: { __typename: 'ProductTranslation', id: string, description: string | null, storageConditions: string | null, name: string | null, seoDescription: string | null, seoTitle: string | null, slug: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null } | null } | null };
+ 
+ export type UpdateProductVariantTranslationsMutationVariables = Exact<{
+   id: Scalars['ID']['input'];
+@@ -15141,7 +15165,7 @@ export type ProductTranslationsQueryVariables = Exact<{
  }>;
  
  
@@ -716,7 +558,7 @@ index 8738069..61ea02d 100644
  
  export type PageTranslationsQueryVariables = Exact<{
    language: LanguageCodeEnum;
-@@ -15215,7 +15245,7 @@ export type ProductTranslationDetailsQueryVariables = Exact<{
+@@ -15215,7 +15239,7 @@ export type ProductTranslationDetailsQueryVariables = Exact<{
  }>;
  
  
@@ -725,181 +567,199 @@ index 8738069..61ea02d 100644
  
  export type ProductVariantTranslationDetailsQueryVariables = Exact<{
    id: Scalars['ID']['input'];
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
+index 417fff3..e8be6e5 100644
+--- a/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
+@@ -29,7 +29,12 @@ const ProductDetailsFormPlayground = ({
+   rating,
+   withShippingWeight = false,
+ }: PlaygroundProps): React.ReactNode => {
+-  const [data, setData] = useState({ name: "Olive oil", description: { blocks: [] }, rating });
++  const [data, setData] = useState({
++    name: "Olive oil",
++    description: { blocks: [] },
++    rating,
++    storageConditions: "Keep refrigerated at 2–8 °C",
++  });
+   const [weight, setWeight] = useState("0.5");
+   const richText = useRichText({ initial: description, triggerChange: () => undefined });
+ 
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx
+new file mode 100644
+index 0000000..bdc8cec
+--- /dev/null
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx
+@@ -0,0 +1,111 @@
++import { ProductErrorCode, type ProductErrorFragment } from "@dashboard/graphql";
++import { ThemeProvider } from "@saleor/macaw-ui-next";
++import { fireEvent, render, screen } from "@testing-library/react";
++
++import { ProductDetailsForm } from "./ProductDetailsForm";
++
++jest.mock("@dashboard/utils/richText/context", () => ({
++  useRichTextContext: (): Record<string, unknown> => ({
++    editorRef: { current: null },
++    defaultValue: undefined,
++    isReadyForMount: false,
++    handleChange: jest.fn(),
++  }),
++}));
++
++jest.mock("@dashboard/components/RichTextEditor/RichTextEditorLoading", () => ({
++  RichTextEditorLoading: (): JSX.Element => <div data-test-id="rich-text-loading" />,
++}));
++
++const baseData = {
++  description: { blocks: [] } as any,
++  name: "Test product",
++  rating: null,
++  storageConditions: "Keep refrigerated at 2-8 C",
++};
++
++const renderForm = (
++  props: Partial<React.ComponentProps<typeof ProductDetailsForm>> = {},
++  onChange = jest.fn(),
++): { onChange: jest.Mock; field: HTMLElement } => {
++  render(
++    <ThemeProvider>
++      <ProductDetailsForm data={baseData} errors={[]} onChange={onChange} {...props} />
++    </ThemeProvider>,
++  );
++
++  return { onChange, field: screen.getByTestId("product-storage-conditions") };
++};
++
++describe("ProductDetailsForm storage conditions", () => {
++  it("renders the existing value with the 250 character limit", () => {
++    // Arrange & Act
++    const { field } = renderForm();
++
++    // Assert
++    expect(field).toHaveValue("Keep refrigerated at 2-8 C");
++    expect(field).toHaveAttribute("name", "storageConditions");
++    expect(field).toHaveAttribute("maxlength", "250");
++  });
++
++  it("renders an empty field when the value is empty", () => {
++    // Arrange & Act
++    const { field } = renderForm({ data: { ...baseData, storageConditions: "" } });
++
++    // Assert
++    expect(field).toHaveValue("");
++  });
++
++  it("forwards the typed value to onChange with the field name", () => {
++    // Arrange
++    // The input is controlled, so read the target while the handler runs.
++    const received: Array<{ name: string; value: string }> = [];
++    const onChange = jest.fn(event =>
++      received.push({ name: event.target.name, value: event.target.value }),
++    );
++    const { field } = renderForm({}, onChange);
++
++    // Act
++    fireEvent.change(field, { target: { value: "Store dry" } });
++
++    // Assert
++    expect(onChange).toHaveBeenCalledTimes(1);
++    expect(received).toEqual([{ name: "storageConditions", value: "Store dry" }]);
++  });
++
++  it("shows the API error as helper text", () => {
++    // Arrange
++    const errors = [
++      {
++        __typename: "ProductError",
++        code: ProductErrorCode.INVALID,
++        field: "storageConditions",
++        message: null,
++      },
++    ] as ProductErrorFragment[];
++
++    // Act
++    renderForm({ errors });
++
++    // Assert
++    expect(screen.getByText("Invalid value")).toBeInTheDocument();
++  });
++
++  it("shows no helper text when the error targets another field", () => {
++    // Arrange
++    const errors = [
++      {
++        __typename: "ProductError",
++        code: ProductErrorCode.INVALID,
++        field: "name",
++        message: null,
++      },
++    ] as ProductErrorFragment[];
++
++    // Act
++    renderForm({ errors });
++
++    // Assert: the single "Invalid value" belongs to the name field only
++    expect(screen.getAllByText("Invalid value")).toHaveLength(1);
++  });
++});
 diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
-index f54cb77..4fae4d0 100644
+index f54cb77..0470573 100644
 --- a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
 +++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
-@@ -5,18 +5,24 @@ import RichTextEditor from "@dashboard/components/RichTextEditor/RichTextEditor"
- import { RichTextEditorClamp } from "@dashboard/components/RichTextEditor/RichTextEditorClamp";
- import { RichTextEditorLoading } from "@dashboard/components/RichTextEditor/RichTextEditorLoading";
- import { type ProductErrorFragment } from "@dashboard/graphql";
-+import { isMainSchema } from "@dashboard/graphql/schemaVersion";
- import { commonMessages } from "@dashboard/intl";
-+import {
-+  countStorageConditions,
-+  STORAGE_CONDITIONS_MAX_LENGTH,
-+} from "@dashboard/products/utils/storageConditions";
- import { getFormErrors, getProductErrorMessage } from "@dashboard/utils/errors";
+@@ -10,7 +10,7 @@ import { getFormErrors, getProductErrorMessage } from "@dashboard/utils/errors";
  import createNonNegativeValueChangeHandler from "@dashboard/utils/handlers/nonNegativeValueChangeHandler";
  import { useRichTextContext } from "@dashboard/utils/richText/context";
  import { type OutputData } from "@editorjs/editorjs";
 -import { Box, Input } from "@saleor/macaw-ui-next";
-+import { Box, Input, Text, Textarea } from "@saleor/macaw-ui-next";
++import { Box, Input, Textarea } from "@saleor/macaw-ui-next";
  import { useIntl } from "react-intl";
  
  interface ProductDetailsFormProps {
-   data: {
+@@ -18,6 +18,7 @@ interface ProductDetailsFormProps {
      description: OutputData;
      name: string;
-+    storageConditions?: string;
      rating: number | null;
++    storageConditions: string;
    };
    /** Simple products carry weight here. Variants keep it on the variant. */
-@@ -38,8 +44,13 @@ export const ProductDetailsForm = ({
+   shippingWeight?: {
+@@ -38,7 +39,10 @@ export const ProductDetailsForm = ({
    onDescriptionChange,
  }: ProductDetailsFormProps) => {
    const intl = useIntl();
 -  const formErrors = getFormErrors(["name", "description", "rating", "weight"], errors);
 +  const formErrors = getFormErrors(
-+    ["name", "description", "storageConditions", "rating", "weight"],
++    ["name", "description", "rating", "weight", "storageConditions"],
 +    errors,
 +  );
    const { editorRef, defaultValue, isReadyForMount, handleChange } = useRichTextContext();
-+  const storageConditionsCount = countStorageConditions(data.storageConditions);
-+  const storageConditionsTooLong = storageConditionsCount > STORAGE_CONDITIONS_MAX_LENGTH;
    const handleWeightChange = createNonNegativeValueChangeHandler(onChange);
  
-   return (
-@@ -90,6 +101,38 @@ export const ProductDetailsForm = ({
+@@ -90,6 +94,24 @@ export const ProductDetailsForm = ({
          />
        )}
        <FormSpacer />
-+      {isMainSchema() && (
-+        <>
-+          <Textarea
-+            label={intl.formatMessage({
-+              id: 'hCQSOG',
-+              defaultMessage: "Storage conditions",
-+              description: "product storage conditions field label",
-+            })}
-+            name="storageConditions"
-+            rows={3}
-+            value={data.storageConditions ?? ""}
-+            onChange={onChange}
-+            disabled={disabled}
-+            error={!!formErrors.storageConditions || storageConditionsTooLong}
-+            data-test-id="product-storage-conditions"
-+            helperText={
-+              getProductErrorMessage(formErrors.storageConditions, intl) ||
-+              (storageConditionsTooLong
-+                ? intl.formatMessage({
-+                    id: 'IkRpW+',
-+                    defaultMessage: "Storage conditions can have at most 250 characters.",
-+                    description: "product storage conditions length error",
-+                  })
-+                : undefined)
-+            }
-+          />
-+          <Text size={2} color="default2" data-test-id="product-storage-conditions-counter">
-+            {storageConditionsCount} / {STORAGE_CONDITIONS_MAX_LENGTH}
-+          </Text>
-+          <FormSpacer />
-+        </>
-+      )}
++      <Textarea
++        label={intl.formatMessage({
++          id: "hCQSOG",
++          defaultMessage: "Storage conditions",
++          description: "product storage conditions field label",
++        })}
++        size="small"
++        rows={2}
++        maxLength={250}
++        value={data.storageConditions || ""}
++        onChange={onChange}
++        error={!!formErrors.storageConditions}
++        name="storageConditions"
++        disabled={disabled}
++        data-test-id="product-storage-conditions"
++        helperText={getProductErrorMessage(formErrors.storageConditions, intl)}
++      />
++      <FormSpacer />
        <Box display="grid" __gridTemplateColumns="1fr 1fr" gap={4} alignItems="start">
          <Input
            label={intl.formatMessage({
-diff --git a/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx b/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx
-index 0496f67..36a68b1 100644
---- a/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx
-+++ b/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx
-@@ -14,6 +14,7 @@ import {
-   type ExportProductsInput,
-   ProductFieldEnum,
- } from "@dashboard/graphql";
-+import { isMainSchema } from "@dashboard/graphql/schemaVersion";
- import { type ChangeEvent, type FormChange } from "@dashboard/hooks/useForm";
- import useSearchQuery from "@dashboard/hooks/useSearchQuery";
- import { sectionNames } from "@dashboard/intl";
-@@ -592,6 +593,7 @@ const ProductExportDialogInfo = ({
-         fields={[
-           ProductFieldEnum.DESCRIPTION,
-           ProductFieldEnum.NAME,
-+          ...(isMainSchema() ? [ProductFieldEnum.STORAGE_CONDITIONS] : []),
-           ProductFieldEnum.PRODUCT_MEDIA,
-           ProductFieldEnum.VARIANT_MEDIA,
-         ]}
-diff --git a/src/products/components/ProductExportDialog/messages.ts b/src/products/components/ProductExportDialog/messages.ts
-index de35aa4..2d3a5ff 100644
---- a/src/products/components/ProductExportDialog/messages.ts
-+++ b/src/products/components/ProductExportDialog/messages.ts
-@@ -82,6 +82,11 @@ function useProductExportFieldMessages() {
-       defaultMessage: "Export Product Weight",
-       description: "product field",
-     }),
-+    [ProductFieldEnum.STORAGE_CONDITIONS]: intl.formatMessage({
-+      id: 'yRkFXR',
-+      defaultMessage: "Storage conditions",
-+      description: "product field",
-+    }),
-     [ProductFieldEnum.VARIANT_MEDIA]: intl.formatMessage({
-       id: "Uo5MoU",
-       defaultMessage: "Variant Images",
-diff --git a/src/products/components/ProductUpdatePage/form.test.ts b/src/products/components/ProductUpdatePage/form.test.ts
-index db3d2b4..7616bc3 100644
---- a/src/products/components/ProductUpdatePage/form.test.ts
-+++ b/src/products/components/ProductUpdatePage/form.test.ts
-@@ -613,4 +613,27 @@ describe("useProductUpdateForm", () => {
-       expect(result.current.saveComposition.variantCreateCount).toBe(0);
-     });
-   });
-+
-+  describe("storageConditions length gate", () => {
-+    const renderForm = () =>
-+      renderHook(() =>
-+        useProductUpdateForm(productWithName, jest.fn(), false, jest.fn(), formOpts),
-+      );
-+
-+    it.each([
-+      ["a".repeat(250), false],
-+      ["😀".repeat(250), false],
-+      ["a".repeat(251), true],
-+      ["😀".repeat(251), true],
-+    ])("save disabled case %#", async (value, disabled) => {
-+      const { result } = renderForm();
-+
-+      await act(async () => {
-+        result.current.change({ target: { name: "storageConditions", value } });
-+      });
-+
-+      expect(result.current.data.storageConditions).toBe(value);
-+      expect(result.current.isSaveDisabled).toBe(disabled);
-+    });
-+  });
- });
-diff --git a/src/products/components/ProductUpdatePage/form.tsx b/src/products/components/ProductUpdatePage/form.tsx
-index a03c8de..0041bd6 100644
---- a/src/products/components/ProductUpdatePage/form.tsx
-+++ b/src/products/components/ProductUpdatePage/form.tsx
-@@ -49,6 +49,7 @@ import {
-   getAttributeInputFromProduct,
-   getProductUpdatePageFormData,
- } from "@dashboard/products/utils/data";
-+import { isStorageConditionsTooLong } from "@dashboard/products/utils/storageConditions";
- import { PRODUCT_UPDATE_FORM_ID } from "@dashboard/products/views/ProductUpdate/consts";
- import createMultiselectChangeHandler from "@dashboard/utils/handlers/multiselectChangeHandler";
- import createSingleAutocompleteSelectHandler from "@dashboard/utils/handlers/singleAutocompleteSelectChangeHandler";
-@@ -549,6 +550,10 @@ export function useProductUpdateForm(
-       return false;
-     }
- 
-+    if (isStorageConditionsTooLong(data.storageConditions)) {
-+      return false;
-+    }
-+
-     return true;
-   };
-   const isSaveDisabled = disabled || !hasUnsavedChanges || !isValid();
 diff --git a/src/products/components/ProductUpdatePage/saveComposition.ts b/src/products/components/ProductUpdatePage/saveComposition.ts
 index 9e2c6bd..63cfdc2 100644
 --- a/src/products/components/ProductUpdatePage/saveComposition.ts
@@ -913,29 +773,62 @@ index 9e2c6bd..63cfdc2 100644
    "seoDescription",
    "rating",
 diff --git a/src/products/components/ProductUpdatePage/types.ts b/src/products/components/ProductUpdatePage/types.ts
-index e236f93..8bd1118 100644
+index e236f93..46d6adf 100644
 --- a/src/products/components/ProductUpdatePage/types.ts
 +++ b/src/products/components/ProductUpdatePage/types.ts
-@@ -44,6 +44,7 @@ export interface ProductUpdateFormData {
-   name: string;
-   rating: number;
-   slug: string;
-+  storageConditions: string;
+@@ -47,6 +47,7 @@ export interface ProductUpdateFormData {
    seoDescription: string;
    seoTitle: string;
    sku: string;
++  storageConditions: string;
+   trackInventory: boolean;
+   weight: string;
+ }
 diff --git a/src/products/fixtures.ts b/src/products/fixtures.ts
-index 15487df..b81d6ad 100644
+index 15487df..4bca77f 100644
 --- a/src/products/fixtures.ts
 +++ b/src/products/fixtures.ts
-@@ -273,6 +273,7 @@ export const product: (
-     trackInventory: true,
-   },
-   description: JSON.stringify(content),
-+  storageConditions: null,
-   id: "p10171",
-   isAvailable: false,
-   isAvailableForPurchase: false,
+@@ -577,6 +577,7 @@ export const product: (
+   seoTitle: "Seo title",
+   sku: "59661-34207",
+   slug: "Borders",
++  storageConditions: "Keep refrigerated at 2–8 °C",
+   taxClass: {
+     __typename: "TaxClass",
+     name: "standard",
+diff --git a/src/products/utils/data.test.ts b/src/products/utils/data.test.ts
+index fb12c7c..d79bf6a 100644
+--- a/src/products/utils/data.test.ts
++++ b/src/products/utils/data.test.ts
+@@ -1,4 +1,6 @@
+-import { getSelectedMedia } from "./data";
++import { type ProductFragment } from "@dashboard/graphql";
++
++import { getProductUpdatePageFormData, getSelectedMedia } from "./data";
+ 
+ type GetSelectedMediaParams = Parameters<typeof getSelectedMedia>;
+ 
+@@ -72,3 +74,20 @@ describe("Product media utils", () => {
+     expect(result).toEqual([]);
+   });
+ });
++
++describe("getProductUpdatePageFormData storageConditions", () => {
++  it.each([
++    ["Keep refrigerated at 2–8 °C", "Keep refrigerated at 2–8 °C"],
++    [null, ""],
++    [undefined, ""],
++  ])("maps %j to %j", (storageConditions, expected) => {
++    // Arrange
++    const product = { storageConditions } as ProductFragment;
++
++    // Act
++    const result = getProductUpdatePageFormData(product, []);
++
++    // Assert
++    expect(result.storageConditions).toBe(expected);
++  });
++});
 diff --git a/src/products/utils/data.ts b/src/products/utils/data.ts
 index fd355af..d11b51f 100644
 --- a/src/products/utils/data.ts
@@ -948,108 +841,6 @@ index fd355af..d11b51f 100644
      trackInventory: !!variant?.trackInventory,
      weight: product?.weight?.value.toString() || "",
    };
-diff --git a/src/products/utils/storageConditions.test.ts b/src/products/utils/storageConditions.test.ts
-new file mode 100644
-index 0000000..cca0502
---- /dev/null
-+++ b/src/products/utils/storageConditions.test.ts
-@@ -0,0 +1,36 @@
-+import {
-+  countStorageConditions,
-+  isStorageConditionsTooLong,
-+  STORAGE_CONDITIONS_MAX_LENGTH,
-+} from "./storageConditions";
-+
-+describe("storageConditions", () => {
-+  it("limit is 250", () => {
-+    expect(STORAGE_CONDITIONS_MAX_LENGTH).toBe(250);
-+  });
-+
-+  it.each([null, undefined, "", "   ", "\n\t"])("counts blank %p as 0", value => {
-+    expect(countStorageConditions(value)).toBe(0);
-+    expect(isStorageConditionsTooLong(value)).toBe(false);
-+  });
-+
-+  it("counts the trimmed value", () => {
-+    expect(countStorageConditions("  abc \n")).toBe(3);
-+    expect(isStorageConditionsTooLong(`  ${"a".repeat(250)}  `)).toBe(false);
-+    expect(isStorageConditionsTooLong(`  ${"a".repeat(251)}  `)).toBe(true);
-+  });
-+
-+  it("counts astral characters as one code point (not UTF-16 units)", () => {
-+    const value = "😀".repeat(250);
-+
-+    expect(value.length).toBe(500);
-+    expect(countStorageConditions(value)).toBe(250);
-+    expect(isStorageConditionsTooLong(value)).toBe(false);
-+    expect(isStorageConditionsTooLong("😀".repeat(251))).toBe(true);
-+  });
-+
-+  it("counts BMP non-ASCII characters", () => {
-+    expect(isStorageConditionsTooLong("ł".repeat(250))).toBe(false);
-+    expect(isStorageConditionsTooLong("你".repeat(251))).toBe(true);
-+  });
-+});
-diff --git a/src/products/utils/storageConditions.ts b/src/products/utils/storageConditions.ts
-new file mode 100644
-index 0000000..d6d087b
---- /dev/null
-+++ b/src/products/utils/storageConditions.ts
-@@ -0,0 +1,11 @@
-+export const STORAGE_CONDITIONS_MAX_LENGTH = 250;
-+
-+/**
-+ * Mirrors the server's `len(value.strip())`: code points of the trimmed value.
-+ * Do not use `.length` (UTF-16 units) or the untrimmed value.
-+ */
-+export const countStorageConditions = (value: string | null | undefined): number =>
-+  Array.from((value ?? "").trim()).length;
-+
-+export const isStorageConditionsTooLong = (value: string | null | undefined): boolean =>
-+  countStorageConditions(value) > STORAGE_CONDITIONS_MAX_LENGTH;
-diff --git a/src/products/views/ProductUpdate/handlers/storageConditions.test.ts b/src/products/views/ProductUpdate/handlers/storageConditions.test.ts
-new file mode 100644
-index 0000000..c864434
---- /dev/null
-+++ b/src/products/views/ProductUpdate/handlers/storageConditions.test.ts
-@@ -0,0 +1,37 @@
-+// @ts-strict-ignore
-+import { type ProductUpdateSubmitData } from "@dashboard/products/components/ProductUpdatePage/types";
-+
-+import { product } from "../../../fixtures";
-+import { getProductUpdateVariables } from "./utils";
-+
-+describe("getProductUpdateVariables storageConditions", () => {
-+  const baseProduct = product("http://google.com");
-+  const baseData = {
-+    attributes: [],
-+    attributesWithNewFileValue: [],
-+    category: null,
-+    collections: [],
-+    description: null,
-+    name: "Test Product",
-+    rating: null,
-+    slug: "test-product",
-+    taxClassId: null,
-+    seoDescription: null,
-+    seoTitle: null,
-+  } as ProductUpdateSubmitData;
-+
-+  const run = (storageConditions?: string) =>
-+    getProductUpdateVariables(baseProduct, { ...baseData, storageConditions }, []).input;
-+
-+  it("omits the field when unchanged (undefined)", () => {
-+    expect(run(undefined)).not.toHaveProperty("storageConditions");
-+  });
-+
-+  it("trims the value", () => {
-+    expect(run("  Keep cool \n").storageConditions).toBe("Keep cool");
-+  });
-+
-+  it.each(["", "   ", "\n\t"])("sends null for blank %p", value => {
-+    expect(run(value).storageConditions).toBeNull();
-+  });
-+});
 diff --git a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
 index fd11549..dfe4169 100644
 --- a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
@@ -1062,758 +853,294 @@ index fd11549..dfe4169 100644
    sku: "",
    slug: product.slug,
    taxClassId: "",
+diff --git a/src/products/views/ProductUpdate/handlers/utils.test.ts b/src/products/views/ProductUpdate/handlers/utils.test.ts
+index f5bcd9c..525b48f 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.test.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.test.ts
+@@ -316,6 +316,36 @@ describe("getProductUpdateVariables", () => {
+     seoTitle: null,
+   } as ProductUpdateSubmitData;
+ 
++  it("should omit storageConditions when the field is untouched", () => {
++    // Arrange & Act
++    const result = getProductUpdateVariables(baseProduct, baseData, []);
++
++    // Assert
++    expect(result.input).not.toHaveProperty("storageConditions");
++  });
++
++  it("should send trimmed storageConditions when changed", () => {
++    // Arrange
++    const data = { ...baseData, storageConditions: "  Keep refrigerated at 2–8 °C " };
++
++    // Act
++    const result = getProductUpdateVariables(baseProduct, data, []);
++
++    // Assert
++    expect(result.input.storageConditions).toBe("Keep refrigerated at 2–8 °C");
++  });
++
++  it.each(["", "   "])("should send null when storageConditions is blank (%j)", value => {
++    // Arrange
++    const data = { ...baseData, storageConditions: value };
++
++    // Act
++    const result = getProductUpdateVariables(baseProduct, data, []);
++
++    // Assert
++    expect(result.input.storageConditions).toBeNull();
++  });
++
+   it("should include weight when valid number is provided", () => {
+     // Arrange
+     const data = {
 diff --git a/src/products/views/ProductUpdate/handlers/utils.ts b/src/products/views/ProductUpdate/handlers/utils.ts
-index 74f714e..f65aa93 100644
+index 74f714e..30a26b8 100644
 --- a/src/products/views/ProductUpdate/handlers/utils.ts
 +++ b/src/products/views/ProductUpdate/handlers/utils.ts
-@@ -15,6 +15,7 @@ import {
-   type SeoInput,
-   type VariantAttributeFragment,
- } from "@dashboard/graphql";
-+import { isMainSchema } from "@dashboard/graphql/schemaVersion";
- import { weight } from "@dashboard/misc";
- import { type ProductUpdateSubmitData } from "@dashboard/products/components/ProductUpdatePage/types";
- import { getAttributeInputFromProduct } from "@dashboard/products/utils/data";
-@@ -96,6 +97,11 @@ export function getProductUpdateVariables(
-     variables.input["seo"] = seo;
+@@ -77,6 +77,11 @@ export function getProductUpdateVariables(
+     variables.input["slug"] = data.slug;
    }
  
-+  // Changed-fields payload: presence means changed, blank clears (null).
-+  if (data.storageConditions !== undefined && isMainSchema()) {
++  if (data.storageConditions !== undefined) {
++    // Presence of the key means the field changed; blank is an explicit clear.
 +    variables.input["storageConditions"] = data.storageConditions.trim() || null;
 +  }
 +
-   if (data.weight !== undefined) {
-     variables.input["weight"] = weight(data.weight);
-   }
-diff --git a/src/translations/bulkFieldDirty.ts b/src/translations/bulkFieldDirty.ts
-index 7b9e181..a0047bb 100644
---- a/src/translations/bulkFieldDirty.ts
-+++ b/src/translations/bulkFieldDirty.ts
-@@ -1,3 +1,4 @@
-+import { countStorageConditions } from "@dashboard/products/utils/storageConditions";
- import {
-   type BulkTranslationValue,
-   type TranslationField,
-@@ -70,6 +71,22 @@ export const isBulkFieldDirty = (
-   );
- };
- 
-+export const isBulkFieldOverLimit = (
-+  field: TranslationField,
-+  editedValue: string | undefined,
-+): boolean =>
-+  field.maxLength !== undefined &&
-+  editedValue !== undefined &&
-+  countStorageConditions(editedValue) > field.maxLength;
-+
-+export const hasOverLimitBulkFields = (
-+  sections: TranslationSectionConfig[],
-+  values: Record<string, string>,
-+): boolean =>
-+  sections.some(section =>
-+    section.fields.some(field => isBulkFieldOverLimit(field, values[field.name])),
-+  );
-+
- export const hasDirtyBulkFields = (
-   sections: TranslationSectionConfig[],
-   values: Record<string, string>,
-diff --git a/src/translations/components/TranslationFieldRow/TranslationFieldRow.tsx b/src/translations/components/TranslationFieldRow/TranslationFieldRow.tsx
-index 808b2b6..306dd04 100644
---- a/src/translations/components/TranslationFieldRow/TranslationFieldRow.tsx
-+++ b/src/translations/components/TranslationFieldRow/TranslationFieldRow.tsx
-@@ -166,6 +166,7 @@ const renderTranslationInput = (
-         hideActions={hideFieldActions}
-         saveDisabled={saveDisabled}
-         initial={initial}
-+        maxLength={field.maxLength}
-         saveButtonState={saveButtonState}
-         onDiscard={onDiscard}
-         onSubmit={data => onSubmit(data)}
-diff --git a/src/translations/components/TranslationFields/TranslationFieldsLong.tsx b/src/translations/components/TranslationFields/TranslationFieldsLong.tsx
-index 286d3b6..6f2c0be 100644
---- a/src/translations/components/TranslationFields/TranslationFieldsLong.tsx
-+++ b/src/translations/components/TranslationFields/TranslationFieldsLong.tsx
-@@ -2,6 +2,7 @@ import { type ConfirmButtonTransitionState } from "@dashboard/components/Confirm
- import Form from "@dashboard/components/Form/Form";
- import { SendFormKeyboardShortcutHint } from "@dashboard/components/SendFormKeyboardShortcutHint/SendFormKeyboardShortcutHint";
- import { type SubmitPromise } from "@dashboard/hooks/useForm";
-+import { countStorageConditions } from "@dashboard/products/utils/storageConditions";
- import { createCmdEnterSubmitHandler } from "@dashboard/utils/cmdEnterSubmit";
- import { Box, Text, Textarea } from "@saleor/macaw-ui-next";
- import { useState } from "react";
-@@ -16,6 +17,8 @@ interface TranslationFieldsLongProps {
-   hideActions?: boolean;
-   saveDisabled?: boolean;
-   initial: string | null;
-+  /** Max code points of the trimmed value. Shows a counter and blocks submit when exceeded. */
-+  maxLength?: number;
-   saveButtonState: ConfirmButtonTransitionState;
-   onDiscard: () => void;
-   onSubmit?: (data: string) => SubmitPromise;
-@@ -28,6 +31,7 @@ const TranslationFieldsLong = ({
-   hideActions = false,
-   saveDisabled = false,
-   initial,
-+  maxLength,
-   saveButtonState,
-   onDiscard,
-   onSubmit,
-@@ -41,11 +45,19 @@ const TranslationFieldsLong = ({
-     <Form
-       confirmLeave={false}
-       initial={{ translation: initial }}
--      onSubmit={data => (onSubmit ? onSubmit(data.translation ?? "") : Promise.resolve([]))}
-+      onSubmit={data => {
-+        if (maxLength !== undefined && countStorageConditions(data.translation) > maxLength) {
-+          return Promise.resolve([]);
-+        }
-+
-+        return onSubmit ? onSubmit(data.translation ?? "") : Promise.resolve([]);
-+      }}
-     >
-       {({ change, data, submit }) => {
-+        const count = countStorageConditions(data.translation);
-+        const overLimit = maxLength !== undefined && count > maxLength;
-         const canSubmitWithShortcut =
--          showShortcut && !disabled && !saveDisabled && saveButtonState !== "loading";
-+          showShortcut && !disabled && !saveDisabled && !overLimit && saveButtonState !== "loading";
-         const handleCmdEnterSubmit = createCmdEnterSubmitHandler(submit, canSubmitWithShortcut);
- 
-         return (
-@@ -69,7 +81,17 @@ const TranslationFieldsLong = ({
-               onKeyDown={handleCmdEnterSubmit}
-               onFocus={() => setIsFocused(true)}
-               onBlur={() => setIsFocused(false)}
-+              error={overLimit}
-             />
-+            {maxLength !== undefined && (
-+              <Text
-+                size={2}
-+                color={overLimit ? "critical1" : "default2"}
-+                data-test-id="translation-field-counter"
-+              >
-+                {count} / {maxLength}
-+              </Text>
-+            )}
-             {showShortcut && (
-               <Box display="flex" justifyContent="flex-end" paddingTop={1}>
-                 <SendFormKeyboardShortcutHint visible={isFocused} action="save" />
-@@ -78,7 +100,7 @@ const TranslationFieldsLong = ({
-             {!hideActions && (
-               <TranslationFieldsSave
-                 saveButtonState={saveButtonState}
--                saveDisabled={saveDisabled}
-+                saveDisabled={saveDisabled || overLimit}
-                 onDiscard={onDiscard}
-                 onSave={submit}
-               />
-diff --git a/src/translations/components/TranslationSection/TranslationSection.tsx b/src/translations/components/TranslationSection/TranslationSection.tsx
-index 08f2adf..bf85d9d 100644
---- a/src/translations/components/TranslationSection/TranslationSection.tsx
-+++ b/src/translations/components/TranslationSection/TranslationSection.tsx
-@@ -29,6 +29,7 @@ interface TranslationSectionProps {
-   activeField?: string | string[];
-   disabled: boolean;
-   isFieldDirty: (field: TranslationField) => boolean;
-+  isFieldOverLimit?: (field: TranslationField) => boolean;
-   saveButtonState: ConfirmButtonTransitionState;
-   richTextResetKey: string;
-   initialExpanded?: boolean;
-@@ -49,6 +50,7 @@ export const TranslationSection = ({
-   activeField,
-   disabled,
-   isFieldDirty,
-+  isFieldOverLimit,
-   saveButtonState,
-   richTextResetKey,
-   initialExpanded = true,
-@@ -165,7 +167,11 @@ export const TranslationSection = ({
-               isEditing={isFieldEditing(field.name)}
-               showPerFieldActions={!bulk}
-               hideFieldActions={bulk}
--              saveDisabled={!bulk && isFieldEditing(field.name) && !isFieldDirty(field)}
-+              saveDisabled={
-+                !bulk &&
-+                isFieldEditing(field.name) &&
-+                (!isFieldDirty(field) || !!isFieldOverLimit?.(field))
-+              }
-               disabled={disabled}
-               saveButtonState={saveButtonState}
-               richTextResetKey={richTextResetKey}
-diff --git a/src/translations/components/TranslationsDetailLayout/TranslationsDetailLayout.tsx b/src/translations/components/TranslationsDetailLayout/TranslationsDetailLayout.tsx
-index 2892062..4b906fc 100644
---- a/src/translations/components/TranslationsDetailLayout/TranslationsDetailLayout.tsx
-+++ b/src/translations/components/TranslationsDetailLayout/TranslationsDetailLayout.tsx
-@@ -74,7 +74,9 @@ export const TranslationsDetailLayout = ({
-     getDirtyValues,
-     handleValueChange,
-     hasDirtyFields,
-+    hasOverLimitFields,
-     isFieldDirty,
-+    isFieldOverLimit,
-     resetValues,
-   } = useTranslationBulkValues(sections);
-   const isEditMode = isTranslationEditMode(bulk, activeField);
-@@ -158,7 +160,7 @@ export const TranslationsDetailLayout = ({
-   };
- 
-   const handleBulkSave = async () => {
--    if (!onBulkSubmit || !hasDirtyFields) {
-+    if (!onBulkSubmit || !hasDirtyFields || hasOverLimitFields) {
-       return;
-     }
- 
-@@ -233,6 +235,7 @@ export const TranslationsDetailLayout = ({
-           activeField={activeField}
-           disabled={disabled}
-           isFieldDirty={isFieldDirty}
-+          isFieldOverLimit={isFieldOverLimit}
-           saveButtonState={saveButtonState}
-           richTextResetKey={resolvedRichTextResetKey}
-           onEdit={onEdit}
-@@ -248,7 +251,7 @@ export const TranslationsDetailLayout = ({
-           <Savebar.CancelButton onClick={handleBulkDiscard} />
-           <Savebar.ConfirmButton
-             transitionState={saveButtonState}
--            disabled={disabled || !hasDirtyFields}
-+            disabled={disabled || !hasDirtyFields || hasOverLimitFields}
-             onClick={handleBulkSave}
-           >
-             <FormattedMessage {...translationDetailMessages.saveAllTranslations} />
+   if (data.taxClassId !== undefined) {
+     // Empty string clears the product override so Saleor falls back to the product type.
+     variables.input["taxClass"] = data.taxClassId || null;
+diff --git a/src/translations/components/TranslationsDetailLayout/messages.ts b/src/translations/components/TranslationsDetailLayout/messages.ts
+index 957df68..8ba1bf0 100644
+--- a/src/translations/components/TranslationsDetailLayout/messages.ts
++++ b/src/translations/components/TranslationsDetailLayout/messages.ts
+@@ -92,6 +92,11 @@ export const translationDetailMessages = defineMessages({
+     defaultMessage: "Displayed as the primary name in your storefront",
+     description: "name field hint",
+   },
++  storageConditionsFieldHint: {
++    id: "7JOm2D",
++    defaultMessage: "Storage instructions shown with the product description",
++    description: "storage conditions field hint",
++  },
+   descriptionFieldHint: {
+     id: "d+Wc8t",
+     defaultMessage: "Main description content for this item",
 diff --git a/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
-index 53fbacb..a752f15 100644
+index 53fbacb..f990dfa 100644
 --- a/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
 +++ b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
-@@ -20,6 +20,7 @@ import {
-   createAttributeValuesSection,
-   createGeneralNameDescriptionSection,
-   createSeoTranslationSection,
-+  createStorageConditionsField,
- } from "@dashboard/translations/translationSectionBuilders";
- import {
-   type TranslationField,
-@@ -128,26 +129,36 @@ export const TranslationsProductsPage = ({
-   });
- 
-   const sections = useMemo((): TranslationSectionConfig[] => {
-+    const generalSection = createGeneralNameDescriptionSection(
-+      intl,
-+      {
-+        description: data?.product?.description,
-+        name: data?.product?.name,
-+        translationDescription: data?.translation?.description ?? null,
-+        translationName: data?.translation?.name ?? null,
-+      },
-+      {
-+        descriptionLabel: intl.formatMessage({
-+          id: "Q8Qw5B",
-+          defaultMessage: "Description",
-+        }),
-+        nameLabel: intl.formatMessage({
-+          id: "ZIc5lM",
-+          defaultMessage: "Product Name",
-+        }),
-+      },
-+    );
-+    const storageConditionsField = createStorageConditionsField(intl, {
-+      storageConditions: data?.product?.storageConditions,
-+      translationStorageConditions: data?.translation?.storageConditions,
-+    });
-+
-+    if (storageConditionsField) {
-+      generalSection.fields = [...generalSection.fields, storageConditionsField];
-+    }
-+
-     const productSections: TranslationSectionConfig[] = [
--      createGeneralNameDescriptionSection(
--        intl,
--        {
--          description: data?.product?.description,
--          name: data?.product?.name,
--          translationDescription: data?.translation?.description ?? null,
--          translationName: data?.translation?.name ?? null,
--        },
--        {
--          descriptionLabel: intl.formatMessage({
--            id: "Q8Qw5B",
--            defaultMessage: "Description",
--          }),
--          nameLabel: intl.formatMessage({
--            id: "ZIc5lM",
--            defaultMessage: "Product Name",
--          }),
--        },
--      ),
-+      generalSection,
-       createSeoTranslationSection(intl, {
-         seoDescription: data?.product?.seoDescription,
-         seoTitle: data?.product?.seoTitle,
+@@ -134,6 +134,8 @@ export const TranslationsProductsPage = ({
+         {
+           description: data?.product?.description,
+           name: data?.product?.name,
++          storageConditions: data?.product?.storageConditions,
++          translationStorageConditions: data?.translation?.storageConditions ?? null,
+           translationDescription: data?.translation?.description ?? null,
+           translationName: data?.translation?.name ?? null,
+         },
+@@ -142,6 +144,11 @@ export const TranslationsProductsPage = ({
+             id: "Q8Qw5B",
+             defaultMessage: "Description",
+           }),
++          storageConditionsLabel: intl.formatMessage({
++            id: "hCQSOG",
++            defaultMessage: "Storage conditions",
++            description: "product storage conditions field label",
++          }),
+           nameLabel: intl.formatMessage({
+             id: "ZIc5lM",
+             defaultMessage: "Product Name",
 diff --git a/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts b/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts
-index cd1527c..4cab514 100644
+index cd1527c..71ddc0a 100644
 --- a/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts
 +++ b/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts
-@@ -25,6 +25,7 @@ describe("useTranslationProductFormAppResponse", () => {
+@@ -22,6 +22,7 @@ describe("useTranslationProductFormAppResponse", () => {
+     id: "product-1",
+     name: "Original Product Name",
+     description: "Original Description",
++    storageConditions: null,
      slug: "original-product-name",
      seoDescription: "Original SEO Description",
      seoTitle: "Original SEO Title",
-+    storageConditions: null,
-   };
- 
-   const mockOnEdit = jest.fn();
-diff --git a/src/translations/hooks/useTranslationBulkValues.ts b/src/translations/hooks/useTranslationBulkValues.ts
-index 8c55b08..cb38d6a 100644
---- a/src/translations/hooks/useTranslationBulkValues.ts
-+++ b/src/translations/hooks/useTranslationBulkValues.ts
-@@ -1,7 +1,9 @@
- import {
-   getDirtyBulkSubmitValues,
-   hasDirtyBulkFields,
-+  hasOverLimitBulkFields,
-   isBulkFieldDirty,
-+  isBulkFieldOverLimit,
- } from "@dashboard/translations/bulkFieldDirty";
- import {
-   type BulkTranslationValue,
-@@ -46,6 +48,16 @@ export function useTranslationBulkValues(sections: TranslationSectionConfig[]) {
-     [values],
-   );
- 
-+  const isFieldOverLimit = useCallback(
-+    (field: TranslationField) => isBulkFieldOverLimit(field, values[field.name]),
-+    [values],
-+  );
-+
-+  const hasOverLimitFields = useMemo(
-+    () => hasOverLimitBulkFields(sections, values),
-+    [sections, values],
-+  );
-+
-   const hasDirtyFields = useMemo(() => hasDirtyBulkFields(sections, values), [sections, values]);
- 
-   const getDirtyValues = useCallback(
-@@ -58,7 +70,9 @@ export function useTranslationBulkValues(sections: TranslationSectionConfig[]) {
-     getDirtyValues,
-     handleValueChange,
-     hasDirtyFields,
-+    hasOverLimitFields,
-     isFieldDirty,
-+    isFieldOverLimit,
-     resetValues,
-   };
- }
-diff --git a/src/translations/progress.ts b/src/translations/progress.ts
-index 5913130..dd88e33 100644
---- a/src/translations/progress.ts
-+++ b/src/translations/progress.ts
-@@ -45,7 +45,8 @@ export function getTranslationCompletion(fields: TranslationFieldInput[]): Trans
-   return { completed, total };
- }
- 
--export function getFieldsProgress(fields: TranslationField[]): TranslationProgress {
-+export function getFieldsProgress(allFields: TranslationField[]): TranslationProgress {
-+  const fields = allFields.filter(field => !field.excludeFromProgress);
-   const total = fields.length;
- 
-   if (total === 0) {
-diff --git a/src/translations/storageConditions.test.ts b/src/translations/storageConditions.test.ts
+diff --git a/src/translations/mutations.ts b/src/translations/mutations.ts
+index f075f27..d1b91c5 100644
+--- a/src/translations/mutations.ts
++++ b/src/translations/mutations.ts
+@@ -14,12 +14,14 @@ export const updateProductTranslations = gql`
+         id
+         name
+         description
++        storageConditions @lockSchema(schema: "main")
+         seoDescription
+         seoTitle
+         slug
+         translation(languageCode: $language) {
+           id
+           description
++          storageConditions @lockSchema(schema: "main")
+           language {
+             code
+             language
+diff --git a/src/translations/translationSectionBuilders.test.ts b/src/translations/translationSectionBuilders.test.ts
 new file mode 100644
-index 0000000..b8d7cdd
+index 0000000..bdc53a5
 --- /dev/null
-+++ b/src/translations/storageConditions.test.ts
-@@ -0,0 +1,157 @@
-+import { LanguageCodeEnum } from "@dashboard/graphql";
-+import { type IntlShape } from "react-intl";
++++ b/src/translations/translationSectionBuilders.test.ts
+@@ -0,0 +1,44 @@
++import { createGeneralNameDescriptionSection } from "@dashboard/translations/translationSectionBuilders";
++import { TranslationFieldType, TranslationInputFieldName } from "@dashboard/translations/types";
++import { createIntl } from "react-intl";
 +
-+import { hasOverLimitBulkFields, isBulkFieldOverLimit } from "./bulkFieldDirty";
-+import { createStorageConditionsField } from "./translationSectionBuilders";
-+import { TranslationFieldType, TranslationInputFieldName } from "./types";
-+import { getParsedTranslationInputData } from "./utils";
-+import { getProductTranslationCompletion } from "./views/EntityLists/utils";
++const intl = createIntl({ locale: "en" });
 +
-+const intl = {
-+  formatMessage: ({ defaultMessage }: { defaultMessage?: string }) => defaultMessage ?? "",
-+} as IntlShape;
++describe("createGeneralNameDescriptionSection", () => {
++  it("adds a storage conditions field for products when a label is provided", () => {
++    // Arrange & Act
++    const section = createGeneralNameDescriptionSection(
++      intl,
++      {
++        name: "Milk",
++        storageConditions: "Keep refrigerated",
++        translationStorageConditions: "Przechowywać w lodówce",
++      },
++      { storageConditionsLabel: "Storage conditions" },
++    );
 +
-+const translation = (storageConditions: string | null) => ({
-+  __typename: "ProductTranslation" as const,
-+  id: "t-1",
-+  name: null,
-+  description: null,
-+  seoDescription: null,
-+  seoTitle: null,
-+  slug: null,
-+  storageConditions,
-+  language: {
-+    __typename: "LanguageDisplay" as const,
-+    code: LanguageCodeEnum.PL,
-+    language: "Polish",
-+  },
-+});
-+
-+describe("createStorageConditionsField", () => {
-+  it("returns null when source and translation are blank", () => {
-+    expect(
-+      createStorageConditionsField(intl, {
-+        storageConditions: "  ",
-+        translationStorageConditions: null,
-+      }),
-+    ).toBeNull();
-+  });
-+
-+  it("is a long field with 250 limit that counts toward progress when source exists", () => {
-+    const field = createStorageConditionsField(intl, {
-+      storageConditions: "Keep cool",
-+      translationStorageConditions: null,
-+    });
-+
-+    expect(field).toMatchObject({
-+      name: TranslationInputFieldName.storageConditions,
++    // Assert
++    expect(section.fields.map(field => field.name)).toEqual([
++      TranslationInputFieldName.name,
++      TranslationInputFieldName.description,
++      TranslationInputFieldName.storageConditions,
++    ]);
++    expect(section.fields[2]).toMatchObject({
++      displayName: "Storage conditions",
 +      type: TranslationFieldType.LONG,
-+      maxLength: 250,
-+      excludeFromProgress: false,
-+      value: "Keep cool",
++      value: "Keep refrigerated",
++      translation: "Przechowywać w lodówce",
 +    });
 +  });
 +
-+  it("keeps orphan translation editable but excluded from progress", () => {
-+    const field = createStorageConditionsField(intl, {
-+      storageConditions: null,
-+      translationStorageConditions: "Chłodno",
-+    });
++  it("does not add the field for other entities (category, collection) by default", () => {
++    // Arrange & Act
++    const section = createGeneralNameDescriptionSection(intl, { name: "Dairy" });
 +
-+    expect(field).toMatchObject({ excludeFromProgress: true, translation: "Chłodno", value: "" });
-+  });
-+});
-+
-+describe("storage conditions translation input", () => {
-+  it("sends null for blank translation", () => {
-+    expect(
-+      getParsedTranslationInputData({
-+        fieldName: TranslationInputFieldName.storageConditions,
-+        data: "   ",
-+      }),
-+    ).toEqual({ storageConditions: null });
-+  });
-+
-+  it("sends the value untouched otherwise", () => {
-+    expect(
-+      getParsedTranslationInputData({
-+        fieldName: TranslationInputFieldName.storageConditions,
-+        data: " Chłodno ",
-+      }),
-+    ).toEqual({ storageConditions: " Chłodno " });
-+  });
-+});
-+
-+describe("bulk over-limit (trimmed code points)", () => {
-+  const field = createStorageConditionsField(intl, {
-+    storageConditions: "x",
-+    translationStorageConditions: null,
-+  })!;
-+
-+  it.each([
-+    ["a".repeat(250), false],
-+    ["a".repeat(251), true],
-+    ["😀".repeat(250), false],
-+    ["😀".repeat(251), true],
-+    [`  ${"a".repeat(250)}  `, false],
-+  ])("%#", (value, expected) => {
-+    expect(isBulkFieldOverLimit(field, value)).toBe(expected);
-+    expect(hasOverLimitBulkFields([{ fields: [field] } as never], { [field.name]: value })).toBe(
-+      expected,
-+    );
-+  });
-+
-+  it("is false when untouched", () => {
-+    expect(isBulkFieldOverLimit(field, undefined)).toBe(false);
-+  });
-+});
-+
-+describe("product translation progress with storage conditions", () => {
-+  const base = { attributeValues: [] };
-+
-+  it("does not count when product source is blank/absent", () => {
-+    const without = getProductTranslationCompletion({ ...base, translation: translation("x") });
-+    const blank = getProductTranslationCompletion({
-+      ...base,
-+      translation: translation("x"),
-+      product: { storageConditions: "  " } as never,
-+    });
-+
-+    expect(blank).toEqual(without);
-+  });
-+
-+  it("adds to max when source exists, and to current when translated", () => {
-+    const product = { storageConditions: "Keep cool" } as never;
-+    const missing = getProductTranslationCompletion({
-+      ...base,
-+      translation: translation(null),
-+      product,
-+    });
-+    const done = getProductTranslationCompletion({
-+      ...base,
-+      translation: translation("Chłodno"),
-+      product,
-+    });
-+    const absent = getProductTranslationCompletion({ ...base, translation: translation(null) });
-+
-+    expect(missing.max).toBe(absent.max + 1);
-+    expect(missing.current).toBe(absent.current);
-+    expect(done).toEqual({ current: missing.current + 1, max: missing.max });
-+  });
-+
-+  it("whitespace-only translation does not count as complete", () => {
-+    const product = { storageConditions: "Keep cool" } as never;
-+    const blank = getProductTranslationCompletion({
-+      ...base,
-+      translation: translation("   "),
-+      product,
-+    });
-+    const missing = getProductTranslationCompletion({
-+      ...base,
-+      translation: translation(null),
-+      product,
-+    });
-+
-+    expect(blank).toEqual(missing);
-+  });
-+});
-diff --git a/src/translations/storageConditionsLimit.test.tsx b/src/translations/storageConditionsLimit.test.tsx
-new file mode 100644
-index 0000000..2c8b464
---- /dev/null
-+++ b/src/translations/storageConditionsLimit.test.tsx
-@@ -0,0 +1,71 @@
-+import { ThemeProvider } from "@saleor/macaw-ui-next";
-+import { act, fireEvent,render, renderHook, screen } from "@testing-library/react";
-+import { IntlProvider } from "react-intl";
-+import { type IntlShape } from "react-intl";
-+
-+import TranslationFieldsLong from "./components/TranslationFields/TranslationFieldsLong";
-+import { useTranslationBulkValues } from "./hooks/useTranslationBulkValues";
-+import { createStorageConditionsField } from "./translationSectionBuilders";
-+import { type TranslationSectionConfig } from "./types";
-+
-+const intl = {
-+  formatMessage: ({ defaultMessage }: { defaultMessage?: string }) => defaultMessage ?? "",
-+} as IntlShape;
-+
-+const field = createStorageConditionsField(intl, {
-+  storageConditions: "src",
-+  translationStorageConditions: null,
-+})!;
-+const sections = [{ fields: [field] }] as unknown as TranslationSectionConfig[];
-+
-+describe("251 code points block bulk translation mutation", () => {
-+  it.each([
-+    ["a".repeat(251), true],
-+    ["😀".repeat(251), true],
-+    ["😀".repeat(250), false],
-+  ])("hasOverLimitFields for %#", (value, over) => {
-+    const { result } = renderHook(() => useTranslationBulkValues(sections));
-+
-+    act(() => result.current.handleValueChange(field, value));
-+
-+    expect(result.current.hasOverLimitFields).toBe(over);
-+    expect(result.current.isFieldOverLimit(field)).toBe(over);
-+  });
-+});
-+
-+describe("251 code points block single translation mutation", () => {
-+  const renderField = (value: string, onSubmit: jest.Mock) => {
-+    render(
-+      <IntlProvider locale="en">
-+        <ThemeProvider>
-+          <TranslationFieldsLong
-+            edit
-+            initial=""
-+            saveButtonState="default"
-+            disabled={false}
-+            maxLength={250}
-+            onDiscard={jest.fn()}
-+            onSubmit={onSubmit}
-+          />
-+        </ThemeProvider>
-+      </IntlProvider>,
-+    );
-+    fireEvent.change(screen.getByTestId("translation-field"), {
-+      target: { name: "translation", value },
-+    });
-+  };
-+
-+  it.each([
-+    ["😀".repeat(251), false],
-+    ["😀".repeat(250), true],
-+  ])("Cmd+Enter submit for %#", async (value, shouldSubmit) => {
-+    const onSubmit = jest.fn().mockResolvedValue([]);
-+
-+    renderField(value, onSubmit);
-+    await act(async () => {
-+      fireEvent.keyDown(screen.getByTestId("translation-field"), { key: "Enter", metaKey: true });
-+    });
-+
-+    expect(onSubmit).toHaveBeenCalledTimes(shouldSubmit ? 1 : 0);
++    // Assert
++    expect(section.fields.map(field => field.name)).toEqual([
++      TranslationInputFieldName.name,
++      TranslationInputFieldName.description,
++    ]);
 +  });
 +});
 diff --git a/src/translations/translationSectionBuilders.ts b/src/translations/translationSectionBuilders.ts
-index b724d8f..210b268 100644
+index b724d8f..edf23c5 100644
 --- a/src/translations/translationSectionBuilders.ts
 +++ b/src/translations/translationSectionBuilders.ts
-@@ -1,4 +1,6 @@
-+import { isMainSchema } from "@dashboard/graphql/schemaVersion";
- import { commonMessages } from "@dashboard/intl";
-+import { STORAGE_CONDITIONS_MAX_LENGTH } from "@dashboard/products/utils/storageConditions";
- import { rippleSlugTranslation } from "@dashboard/translations/ripples/slugTranslation";
- import {
-   PageTranslationInputFieldName,
-@@ -62,6 +64,40 @@ export function createGeneralNameDescriptionSection(
-   };
+@@ -24,8 +24,10 @@ interface SeoTranslationData {
+ interface GeneralTranslationData {
+   description?: string | null;
+   name?: string | null;
++  storageConditions?: string | null;
+   translationDescription?: string | null;
+   translationName?: string | null;
++  translationStorageConditions?: string | null;
  }
  
-+/**
-+ * Product-only field. Rendered when the source or the translation is non-blank, so an orphan
-+ * translation stays clearable. Counts toward progress only when the source is non-blank.
-+ */
-+export function createStorageConditionsField(
-+  intl: IntlShape,
-+  data: { storageConditions?: string | null; translationStorageConditions?: string | null },
-+): TranslationField | null {
-+  if (!isMainSchema()) {
-+    return null;
-+  }
-+
-+  const hasSource = !!data.storageConditions?.trim();
-+  const hasTranslation = !!data.translationStorageConditions?.trim();
-+
-+  if (!hasSource && !hasTranslation) {
-+    return null;
-+  }
-+
-+  return {
-+    displayName: intl.formatMessage({
-+      id: 'uhaSOf',
-+      defaultMessage: "Storage conditions",
-+      description: "product storage conditions translation field label",
-+    }),
-+    excludeFromProgress: !hasSource,
-+    maxLength: STORAGE_CONDITIONS_MAX_LENGTH,
-+    name: TranslationInputFieldName.storageConditions,
-+    translation: data.translationStorageConditions ?? null,
-+    type: TranslationFieldType.LONG,
-+    value: data.storageConditions ?? "",
-+  };
-+}
-+
- export function createSeoTranslationSection(
-   intl: IntlShape,
-   data: SeoTranslationData,
+ export function createGeneralNameDescriptionSection(
+@@ -34,6 +36,8 @@ export function createGeneralNameDescriptionSection(
+   options?: {
+     descriptionLabel?: string;
+     nameLabel?: string;
++    /** Products only: adds the plain-text storage conditions field. */
++    storageConditionsLabel?: string;
+   },
+ ): TranslationSectionConfig {
+   return {
+@@ -58,6 +62,18 @@ export function createGeneralNameDescriptionSection(
+         type: TranslationFieldType.RICH,
+         value: data.description ?? "",
+       },
++      ...(options?.storageConditionsLabel
++        ? [
++            {
++              displayName: options.storageConditionsLabel,
++              hint: intl.formatMessage(translationDetailMessages.storageConditionsFieldHint),
++              name: TranslationInputFieldName.storageConditions,
++              translation: data.translationStorageConditions ?? null,
++              type: TranslationFieldType.LONG,
++              value: data.storageConditions ?? "",
++            },
++          ]
++        : []),
+     ],
+   };
+ }
 diff --git a/src/translations/types.ts b/src/translations/types.ts
-index e0880a3..0d663ef 100644
+index e0880a3..fb997f9 100644
 --- a/src/translations/types.ts
 +++ b/src/translations/types.ts
-@@ -14,6 +14,7 @@ export enum TranslationInputFieldName {
+@@ -13,6 +13,7 @@ export enum TranslationInputFieldName {
+   seoDescription = "seoDescription",
    seoTitle = "seoTitle",
    slug = "slug",
-   richText = "richText",
 +  storageConditions = "storageConditions",
+   richText = "richText",
  }
  
- export enum PageTranslationInputFieldName {
-@@ -44,6 +45,10 @@ export interface TranslationField<T extends string = string> {
-   value: string;
-   hint?: string;
-   ripple?: Ripple;
-+  /** Max length in code points of the trimmed value; gates save and shows a counter. */
-+  maxLength?: number;
-+  /** Rendered but not counted in translation progress (e.g. orphan translation without source). */
-+  excludeFromProgress?: boolean;
- }
+diff --git a/src/translations/utils.test.ts b/src/translations/utils.test.ts
+index b5a3621..5846927 100644
+--- a/src/translations/utils.test.ts
++++ b/src/translations/utils.test.ts
+@@ -43,6 +43,24 @@ describe("getParsedTranslationInputData", () => {
+   });
+ });
  
- export const TranslationSubmitScope = {
-diff --git a/src/translations/utils.ts b/src/translations/utils.ts
-index 3dfb5d1..8dca73e 100644
---- a/src/translations/utils.ts
-+++ b/src/translations/utils.ts
-@@ -37,6 +37,11 @@ export const getParsedTranslationInputData = ({
-     };
-   }
- 
-+  if (fieldName === TranslationInputFieldName.storageConditions) {
-+    // Blank clears the translation.
-+    return { [fieldName]: (data as string).trim() ? (data as string) : null };
-+  }
++describe("getParsedTranslationInputData storageConditions", () => {
++  it("returns plain string, and empty string to clear", () => {
++    // Arrange & Act
++    const value = getParsedTranslationInputData({
++      fieldName: TranslationInputFieldName.storageConditions,
++      data: "Keep dry",
++    });
++    const cleared = getParsedTranslationInputData({
++      fieldName: TranslationInputFieldName.storageConditions,
++      data: "",
++    });
 +
-   return { [fieldName]: data as string };
- };
- 
++    // Assert
++    expect(value).toEqual({ storageConditions: "Keep dry" });
++    expect(cleared).toEqual({ storageConditions: "" });
++  });
++});
++
+ describe("getTranslationFields", () => {
+   it("returns empty array when fields have no edges", () => {
+     // Arrange
 diff --git a/src/translations/views/EntityLists/utils.test.ts b/src/translations/views/EntityLists/utils.test.ts
-index 179065a..6773ab7 100644
+index 179065a..f714ae8 100644
 --- a/src/translations/views/EntityLists/utils.test.ts
 +++ b/src/translations/views/EntityLists/utils.test.ts
-@@ -232,6 +232,7 @@ describe("getProductTranslationCompletion", () => {
-         seoDescription: null,
-         seoTitle: null,
-         slug: null,
+@@ -226,6 +226,7 @@ describe("getProductTranslationCompletion", () => {
+     const result = getProductTranslationCompletion({
+       translation: {
+         __typename: "ProductTranslation",
 +        storageConditions: null,
-         language: { __typename: "LanguageDisplay", code: LanguageCodeEnum.PL, language: "Polish" },
-       },
-       attributeValues: [],
-@@ -252,6 +253,7 @@ describe("getProductTranslationCompletion", () => {
-         seoDescription: null,
-         seoTitle: null,
-         slug: null,
+         id: "t-1",
+         name: "Product",
+         description: JSON.stringify({ blocks: [] }),
+@@ -246,6 +247,7 @@ describe("getProductTranslationCompletion", () => {
+     const result = getProductTranslationCompletion({
+       translation: {
+         __typename: "ProductTranslation",
 +        storageConditions: null,
-         language: { __typename: "LanguageDisplay", code: LanguageCodeEnum.PL, language: "Polish" },
-       },
-       attributeValues: [
-@@ -298,6 +300,7 @@ describe("getProductTranslationCompletion", () => {
-         seoDescription: null,
-         seoTitle: null,
-         slug: null,
+         id: "t-1",
+         name: "Product",
+         description: null,
+@@ -292,6 +294,7 @@ describe("getProductTranslationCompletion", () => {
+     const result = getProductTranslationCompletion({
+       translation: {
+         __typename: "ProductTranslation",
 +        storageConditions: null,
-         language: { __typename: "LanguageDisplay", code: LanguageCodeEnum.PL, language: "Polish" },
-       },
-       attributeValues: [
-diff --git a/src/translations/views/EntityLists/utils.ts b/src/translations/views/EntityLists/utils.ts
-index 7fb9437..7576b34 100644
---- a/src/translations/views/EntityLists/utils.ts
-+++ b/src/translations/views/EntityLists/utils.ts
-@@ -2,6 +2,7 @@ import {
-   type ProductTranslationFragment,
-   type ShippingMethodTranslationsQuery,
- } from "@dashboard/graphql";
-+import { isMainSchema } from "@dashboard/graphql/schemaVersion";
- import { type TranslatableEntity } from "@dashboard/translations/components/TranslationsEntitiesList/TranslationsEntitiesList";
- import {
-   getTranslationCompletion,
-@@ -121,15 +122,26 @@ export function mapTranslationsToEntities(
- }
- 
- export function getProductTranslationCompletion({
-+  product,
-   translation,
-   attributeValues,
--}: Pick<ProductTranslationFragment, "translation" | "attributeValues">) {
-+}: Pick<ProductTranslationFragment, "translation" | "attributeValues"> &
-+  Partial<Pick<ProductTranslationFragment, "product">>) {
-   const generalCompletion = getGeneralEntityTranslationCompletion(translation);
-   const attributeCompleted =
-     attributeValues?.filter(isAttributeValueTranslationComplete).length ?? 0;
-+  // Storage conditions count only when the product has a (non-blank) source value.
-+  const hasStorageConditionsSource = isMainSchema() && !!product?.storageConditions?.trim();
-+  const storageConditions = hasStorageConditionsSource
-+    ? toListCompletion(
-+        getTranslationCompletion([
-+          { translation: translation?.storageConditions, type: TranslationFieldType.LONG },
-+        ]),
-+      )
-+    : { current: 0, max: 0 };
- 
-   return {
--    current: generalCompletion.current + attributeCompleted,
--    max: generalCompletion.max + (attributeValues?.length ?? 0),
-+    current: generalCompletion.current + attributeCompleted + storageConditions.current,
-+    max: generalCompletion.max + (attributeValues?.length ?? 0) + storageConditions.max,
-   };
- }
+         id: "t-1",
+         name: null,
+         description: null,
