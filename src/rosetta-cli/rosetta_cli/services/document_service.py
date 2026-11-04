@@ -7,12 +7,15 @@ Eliminates code duplication and fixes naming inconsistencies.
 
 import json
 import time
-from typing import cast
+from typing import Literal, cast
 
 from tqdm import tqdm
 from ..ragflow_client import RAGFlowClient
 from ..rosetta_config import DEFAULT_PARSE_TIMEOUT
 from ..typing_utils import DatasetLike, DocumentLike, JsonDict
+
+
+ParseOutcome = Literal["DONE", "FAIL", "PENDING"]
 
 
 def _doc_meta(document: DocumentLike) -> object:
@@ -248,8 +251,30 @@ class DocumentService:
             Tuple of (success_count, unsuccessful_count); the latter includes
             documents still pending when the polling deadline expires.
         """
+        results = self.wait_for_parsing_results(documents, timeout, poll_interval)
+        success_count = sum(status == "DONE" for status in results.values())
+        return success_count, len(documents) - success_count
+
+    def wait_for_parsing_results(
+        self,
+        documents: list[JsonDict],
+        timeout: int = DEFAULT_PARSE_TIMEOUT,
+        poll_interval: float = 0.5
+    ) -> dict[str, ParseOutcome]:
+        """
+        Wait for documents to finish parsing with progress display grouped by folder.
+
+        Args:
+            documents: List of {"id": doc_id, "name": name, "dataset_id": dataset_id, "folder": folder}
+            timeout: Max seconds to wait (default: DEFAULT_PARSE_TIMEOUT = 1200 = 20 minutes)
+            poll_interval: Seconds between status checks (default: 0.5 for smooth progress)
+
+        Returns:
+            Document IDs mapped to DONE, FAIL or PENDING. PENDING means no
+            terminal status was observed before the timeout.
+        """
         if not documents:
-            return 0, 0
+            return {}
         
         # Group by folder for display
         by_folder: dict[str, list[str]] = {}
@@ -365,8 +390,7 @@ class DocumentService:
             print("ℹ️  Parsing continues on server. Check RAGFlow UI for status.")
             raise
         
-        # A timeout leaves documents unfinished, not successfully parsed. Count
-        # every remaining document as unsuccessful so CLI/automation exits
-        # non-zero rather than treating an incomplete batch as a success.
-        unfinished_count = len(documents) - len(completed) - len(failed)
-        return len(completed), len(failed) + unfinished_count
+        return {
+            doc_id: "DONE" if doc_id in completed else "FAIL" if doc_id in failed else "PENDING"
+            for doc_id in doc_info
+        }
