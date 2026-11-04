@@ -52,6 +52,7 @@ The same rules for every operator, so results are comparable.
 | `tests_pass` | yes / no | The operator ran the tests at T2 and they passed. |
 | `operator_score` | 1–5 | 1 = broken or missing · 2 = major gaps · 3 = works with notable gaps · 4 = minor issues only · 5 = nothing to fix. |
 | `operator_merge_ready` | yes / no | Could be merged after a normal review, without rework. |
+| `operator_merge_ready_reason` | text | The items that decided `operator_merge_ready`; for each "no" |
 | `verified_in_code` | x/y | From the judge's step 0.3: items found implemented in the diff / items checked. |
 | `judge_total` | number | Diff score: Σ(value × weight) / Σ(10 × weight) × 100 + bonus (BENCHMARKS.md, section 6). |
 | `judge_bonus` | number | Bonus points for bugs the run fixed, distinct improvements related to the job, proactive safeguards and DELTA items against the `baseline` run. |
