@@ -1,12 +1,12 @@
 diff --git a/messages/de.json b/messages/de.json
-index cd8d760..5edb5d0 100644
+index cd8d760..e31b3c5 100644
 --- a/messages/de.json
 +++ b/messages/de.json
 @@ -62,6 +62,7 @@
  		},
  		"attributes": {
  			"description": "Beschreibung",
-+			"storageConditions": "Lagerbedingungen",
++			"storageConditions": "Lagerungshinweise",
  			"productDetails": "Produktdetails",
  			"careInstructions": "Pflegehinweise",
  			"shippingReturns": "Versand & Rückgabe",
@@ -35,14 +35,14 @@ index 4fd92e3..64a9f4e 100644
  			"careInstructions": "Hoito-ohjeet",
  			"shippingReturns": "Toimitus ja palautukset",
 diff --git a/messages/fr.json b/messages/fr.json
-index 6662017..849b83e 100644
+index 6662017..0ab6e06 100644
 --- a/messages/fr.json
 +++ b/messages/fr.json
 @@ -62,6 +62,7 @@
  		},
  		"attributes": {
  			"description": "Description",
-+			"storageConditions": "Conditions de stockage",
++			"storageConditions": "Conditions de conservation",
  			"productDetails": "Détails du produit",
  			"careInstructions": "Entretien",
  			"shippingReturns": "Livraison et retours",
@@ -94,6 +94,23 @@ index ecaf8f2..5b54309 100644
  			"productDetails": "Szczegóły produktu",
  			"careInstructions": "Instrukcje pielęgnacji",
  			"shippingReturns": "Dostawa i zwroty",
+diff --git a/paper-core.lock.json b/paper-core.lock.json
+index ed696cb..929da1b 100644
+--- a/paper-core.lock.json
++++ b/paper-core.lock.json
+@@ -18,10 +18,10 @@
+ 		"src/lib/storefront/AGENTS.md": "0801d7f64a44b6469dd8d7c353c882db19e77dcf4e01bb06c8dc6b2c5d93016e",
+ 		"src/lib/storefront/contract/gallery.ts": "38e03e4d2844fa299330811fb7d6cf0260cd222fc58af3311513ec898d0cc701",
+ 		"src/lib/storefront/contract/listing.ts": "3bc1fcc56d1e606daab8d53a178f0d6f5e60a3fbdfc6678884164190049787ac",
+-		"src/lib/storefront/contract/product.ts": "a842b65c6cedaa4a6dbecbf1b213da3c411e6baf8dfb031b6299050a6746401f",
++		"src/lib/storefront/contract/product.ts": "c3b03f286b8c6ff695178a2956af08dc0be9ce0658191e372f9f58f289d57565",
+ 		"src/lib/storefront/contract/version.ts": "88020263209f89b26b592ce46c6ff6948096eebdf539bccdfb6725718cf22aae",
+ 		"src/lib/storefront/mappers/gallery-images.ts": "ffc2e05b9699ee41d88755e805498ae54377dfaa61e0bba8e42a90558e365f4f",
+-		"src/lib/storefront/mappers/product.ts": "6789b0feb4bc21acb0528f0672c26cdc2f8d2bcebc395c4d0ab2da964f999d2b",
++		"src/lib/storefront/mappers/product.ts": "e64d538e2b5ddd8da072bf42ff229830609e030f8246d4535ee8761efa980d95",
+ 		"src/lib/storefront/templates.ts": "6907e0806f157c7faafcd56b4f25574f5ee3185c19842f90d9b1cc779b436ea9",
+ 		"src/lib/listing/cacheability.ts": "f461a1e4d9c637de7b09c825874b68f8ab5e24a4dcda394b39ba23906258e655",
+ 		"src/lib/listing/invalidate.ts": "982db0da013741b22388fe908d4d28428cabaec4abcedaa08599577fdaaebf8e",
 diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
 index 51a91eb..43a63f3 100644
 --- a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
@@ -125,6 +142,34 @@ index 86b7c36..b359fb3 100644
  			seoTitle
  			seoDescription
  			slug
+diff --git a/src/lib/saleor-translations.ts b/src/lib/saleor-translations.ts
+index 0182e3a..4fdc69c 100644
+--- a/src/lib/saleor-translations.ts
++++ b/src/lib/saleor-translations.ts
+@@ -123,11 +123,13 @@ export function withTranslatedPageFields<T extends TranslatablePage>(page: T): T
+ type TranslatableProduct = {
+ 	name: string;
+ 	description?: string | null;
++	storageConditions?: string | null;
+ 	seoTitle?: string | null;
+ 	seoDescription?: string | null;
+ 	translation?: {
+ 		name?: string | null;
+ 		description?: string | null;
++		storageConditions?: string | null;
+ 		seoTitle?: string | null;
+ 		seoDescription?: string | null;
+ 		slug?: string | null;
+@@ -148,6 +150,9 @@ export function withTranslatedProductFields<T extends TranslatableProduct>(produ
+ 		...product,
+ 		name: pickTranslatedName(product),
+ 		description: pickTranslatedDescription(product) ?? product.description,
++		storageConditions:
++			pickTranslatedField(product.translation, "storageConditions", product.storageConditions) ??
++			product.storageConditions,
+ 		seoTitle: pickTranslatedSeoTitle(product) ?? product.seoTitle,
+ 		seoDescription: pickTranslatedSeoDescription(product) ?? product.seoDescription,
+ 		category: product.category
 diff --git a/src/lib/storefront/__contracts__/templates.contract.test.ts b/src/lib/storefront/__contracts__/templates.contract.test.ts
 index 1666981..5213ef6 100644
 --- a/src/lib/storefront/__contracts__/templates.contract.test.ts
@@ -138,155 +183,150 @@ index 1666981..5213ef6 100644
  	careInstructions: null,
  	images: [],
 diff --git a/src/lib/storefront/contract/product.ts b/src/lib/storefront/contract/product.ts
-index a743cc9..7046ce2 100644
+index a743cc9..3afab5d 100644
 --- a/src/lib/storefront/contract/product.ts
 +++ b/src/lib/storefront/contract/product.ts
-@@ -39,6 +39,8 @@ export interface ProductView {
+@@ -39,6 +39,7 @@ export interface ProductView {
  	category: ProductViewCategory | null;
  	/** Sanitized HTML blocks from the product description. */
  	descriptionHtml: string[] | null;
-+	/** Localized plain-text storage requirements, with base-product fallback. */
 +	storageConditions: string | null;
  	/** Specs. Size, color, care, and bestseller flags are already removed. */
  	attributes: ProductViewAttribute[];
  	careInstructions: string | null;
 diff --git a/src/lib/storefront/mappers/product.test.ts b/src/lib/storefront/mappers/product.test.ts
-index 6d7cf17..af71b1f 100644
+index 6d7cf17..a288d19 100644
 --- a/src/lib/storefront/mappers/product.test.ts
 +++ b/src/lib/storefront/mappers/product.test.ts
-@@ -11,6 +11,8 @@ function shell(): ProductShell {
+@@ -1,14 +1,20 @@
+ import { describe, expect, it } from "vitest";
+ 
+ import type { ProductShell } from "@/lib/catalog/get-product-data";
++import { withTranslatedProductFields } from "@/lib/saleor-translations";
+ import { toProductView } from "@/lib/storefront/mappers/product";
+ 
+-function shell(): ProductShell {
++function shell(options: {
++	storageConditions?: string | null;
++	translatedStorageConditions?: string | null;
++} = {}): ProductShell {
+ 	return {
+ 		id: "p1",
+ 		slug: "tee",
+ 		name: "Tee",
  		description: "Soft cotton",
++		storageConditions: options.storageConditions ?? "Store in a cool, dry place",
++		translation: { storageConditions: options.translatedStorageConditions ?? "" },
  		seoTitle: "SEO tee",
  		seoDescription: null,
-+		storageConditions: "  Store below 25°C.  ",
-+		translation: { storageConditions: "  Bei Raumtemperatur lagern.  " },
  		category: { id: "c1", name: "Tops", slug: "tops" },
- 		assignedAttributes: [
- 			{
-@@ -68,6 +70,7 @@ describe("toProductView", () => {
- 			variantCount: 3,
- 			seoTitle: "SEO tee",
- 			seoDescription: null,
-+			storageConditions: "Bei Raumtemperatur lagern.",
- 			priceRange: { low: 10, high: 20, currency: "USD" },
- 			extensions: {},
- 		});
-@@ -80,4 +83,19 @@ describe("toProductView", () => {
+@@ -55,13 +61,14 @@ function shell(): ProductShell {
+ 
+ describe("toProductView", () => {
+ 	it("maps the shell and drops variant and care attributes from specs", () => {
+-		const view = toProductView(shell());
++		const view = toProductView(withTranslatedProductFields(shell()));
+ 
+ 		expect(view).toMatchObject({
+ 			id: "p1",
+ 			slug: "tee",
+ 			name: "Tee",
+ 			category: { id: "c1", name: "Tops", slug: "tops" },
++			storageConditions: "Store in a cool, dry place",
+ 			careInstructions: "Cold wash",
+ 			isAvailable: true,
+ 			isBestseller: true,
+@@ -79,5 +86,19 @@ describe("toProductView", () => {
+ 			thumbSrc: "https://cdn.example/256",
  		});
  		expect(view.images[0]?.srcSet).toContain("512w");
- 	});
+-	});
++	}, 1000);
 +
-+	it("falls back to normalized base storage conditions when translation is blank", () => {
-+		const product = shell();
-+		product.translation = { storageConditions: " \n\t " } as ProductShell["translation"];
++	it("uses a non-empty translated value and falls back for a blank translation", () => {
++		const translated = toProductView(
++			withTranslatedProductFields(
++				shell({ translatedStorageConditions: "Conserver dans un endroit frais" }),
++			),
++		);
++		const blankTranslation = toProductView(
++			withTranslatedProductFields(shell({ translatedStorageConditions: " \t " })),
++		);
 +
-+		expect(toProductView(product).storageConditions).toBe("Store below 25°C.");
-+	});
-+
-+	it("hides storage conditions when translation and base values are absent or whitespace only", () => {
-+		const product = shell();
-+		product.storageConditions = " \n ";
-+		product.translation = { storageConditions: "\t" } as ProductShell["translation"];
-+
-+		expect(toProductView(product).storageConditions).toBeNull();
-+	});
++		expect(translated.storageConditions).toBe("Conserver dans un endroit frais");
++		expect(blankTranslation.storageConditions).toBe("Store in a cool, dry place");
++	}, 1000);
  });
 diff --git a/src/lib/storefront/mappers/product.ts b/src/lib/storefront/mappers/product.ts
-index d65ed5c..ec3c304 100644
+index d65ed5c..69bd2f8 100644
 --- a/src/lib/storefront/mappers/product.ts
 +++ b/src/lib/storefront/mappers/product.ts
 @@ -33,6 +33,7 @@ export function toProductView(product: ProductShell): ProductView {
  			? { id: product.category.id, name: product.category.name, slug: product.category.slug }
  			: null,
  		descriptionHtml: parseDescription(product.description),
-+		storageConditions: resolveStorageConditions(product.storageConditions, product.translation?.storageConditions),
++		storageConditions: product.storageConditions ?? null,
  		attributes: extractProductAttributes(product),
  		careInstructions: extractCareInstructions(product),
  		images: defaultProductImages(product),
-@@ -52,6 +53,17 @@ export function toProductView(product: ProductShell): ProductView {
- 	};
- }
- 
-+function resolveStorageConditions(
-+	baseStorageConditions: string | null | undefined,
-+	translatedStorageConditions: string | null | undefined,
-+): string | null {
-+	return normalizeStorageConditions(translatedStorageConditions) ?? normalizeStorageConditions(baseStorageConditions);
-+}
-+
-+function normalizeStorageConditions(value: string | null | undefined): string | null {
-+	return value?.replace(/\s+/g, " ").trim() || null;
-+}
-+
- function parseDescription(description: string | null | undefined): string[] | null {
- 	if (!description) return null;
- 
 diff --git a/src/ui/components/pdp/product-attributes.test.ts b/src/ui/components/pdp/product-attributes.test.ts
 new file mode 100644
-index 0000000..6fb8a07
+index 0000000..b590c08
 --- /dev/null
 +++ b/src/ui/components/pdp/product-attributes.test.ts
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,50 @@
 +import { createElement } from "react";
 +import { renderToStaticMarkup } from "react-dom/server";
-+import { NextIntlClientProvider } from "next-intl";
-+import { describe, expect, it } from "vitest";
++import { describe, expect, it, vi } from "vitest";
 +
-+import { ProductAttributes } from "@/ui/components/pdp/product-attributes";
++import type { PolicyLabelValues } from "@/lib/content/policy-format";
++import { ProductAttributes } from "./product-attributes";
 +
-+const messages = {
-+	pdp: {
-+		attributes: {
-+			description: "Description",
-+			storageConditions: "Storage conditions",
-+			productDetails: "Product Details",
-+			careInstructions: "Care Instructions",
-+			shippingReturns: "Shipping & Returns",
-+			shippingBody: "Free shipping over {freeShippingThreshold}.",
-+			returnsBody: "Free returns within {returnsWindowDays} days.",
-+			yes: "Yes",
-+			no: "No",
-+		},
-+	},
++vi.mock("next-intl", () => ({
++	useTranslations: () => (key: string) => `label:${key}`,
++}));
++
++const policyLabels: PolicyLabelValues = {
++	freeShippingThreshold: "$50",
++	returnsWindowDays: 30,
 +};
 +
-+function renderProductAttributes(storageConditions: string | null) {
-+	return renderToStaticMarkup(
-+		// eslint-disable-next-line react/no-children-prop -- NextIntlClientProvider requires children in typed props.
-+		createElement(
-+			NextIntlClientProvider,
-+			{
-+				locale: "en",
-+				messages,
-+				timeZone: "UTC",
-+				children: createElement(ProductAttributes, {
-+					descriptionHtml: ["<p>Product description</p>"],
-+					storageConditions,
-+					attributes: [{ name: "Material", value: "Cotton" }],
-+					careInstructions: null,
-+					policyLabels: { freeShippingThreshold: "$50", returnsWindowDays: 30 },
-+				}),
-+			},
-+		),
-+	);
-+}
-+
 +describe("ProductAttributes storage conditions", () => {
-+	it("renders plain text immediately after the Description block", () => {
-+		const html = renderProductAttributes("Store below <strong>25°C</strong>.");
++	it("hides the block when the resolved value is empty", () => {
++		const markup = renderToStaticMarkup(
++			createElement(ProductAttributes, {
++				descriptionHtml: ["<p>Product description</p>"],
++				storageConditions: " \t ",
++				policyLabels,
++			}),
++		);
 +
-+		expect(html).toContain("Storage conditions");
-+		expect(html).toContain("Store below &lt;strong&gt;25°C&lt;/strong&gt;.");
-+		expect(html.indexOf("Description")).toBeLessThan(html.indexOf("Storage conditions"));
-+		expect(html.indexOf("Storage conditions")).toBeLessThan(html.indexOf("Product Details"));
-+	});
++		expect(markup).not.toContain("label:storageConditions");
++	}, 1000);
 +
-+	it("hides the block when no resolved storage conditions are provided", () => {
-+		expect(renderProductAttributes(null)).not.toContain("Storage conditions");
-+	});
++	it("renders a labeled plain-text block after description and before product details", () => {
++		const markup = renderToStaticMarkup(
++			createElement(ProductAttributes, {
++				descriptionHtml: ["<p>Product description</p>"],
++				storageConditions: "<em>Store below 25°C</em>",
++				attributes: [{ name: "Material", value: "Cotton" }],
++				policyLabels,
++			}),
++		);
++
++		expect(markup).toContain("label:storageConditions");
++		expect(markup).toContain("&lt;em&gt;Store below 25°C&lt;/em&gt;");
++		expect(markup).not.toContain("<em>Store below 25°C</em>");
++		expect(markup.indexOf('data-value="description"')).toBeLessThan(
++			markup.indexOf('data-value="storageConditions"'),
++		);
++		expect(markup.indexOf('data-value="storageConditions"')).toBeLessThan(
++			markup.indexOf('data-value="details"'),
++		);
++	}, 1000);
 +});
 diff --git a/src/ui/components/pdp/product-attributes.tsx b/src/ui/components/pdp/product-attributes.tsx
-index 004d495..a3e262f 100644
+index 004d495..110a409 100644
 --- a/src/ui/components/pdp/product-attributes.tsx
 +++ b/src/ui/components/pdp/product-attributes.tsx
 @@ -23,6 +23,7 @@ interface ProductAttributesProps {
@@ -309,13 +349,13 @@ index 004d495..a3e262f 100644
  				</AccordionItemWithContext>
  			)}
  
-+			{storageConditions && (
-+				<AccordionItemWithContext value="storage-conditions" className="border-border">
++			{storageConditions?.trim() && (
++				<AccordionItemWithContext value="storageConditions" className="border-border">
 +					<AccordionTrigger className="py-4 text-sm font-medium hover:no-underline">
 +						{t("storageConditions")}
 +					</AccordionTrigger>
 +					<AccordionContent className="leading-relaxed text-muted-foreground">
-+						{storageConditions}
++						<p>{storageConditions}</p>
 +					</AccordionContent>
 +				</AccordionItemWithContext>
 +			)}

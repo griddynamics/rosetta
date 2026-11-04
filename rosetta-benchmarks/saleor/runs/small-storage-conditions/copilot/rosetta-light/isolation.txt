@@ -1,6 +1,6 @@
 
 $ printenv COPILOT_HOME
-/Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot
+/Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot
 [exit 0]
 
 $ printenv COPILOT_AUTO_UPDATE
@@ -8,11 +8,11 @@ false
 [exit 0]
 
 $ printenv COPILOT_CUSTOM_INSTRUCTIONS_DIRS
-/Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/copilot-rules
+/Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/copilot-rules
 [exit 0]
 
 $ copilot --version
-GitHub Copilot CLI 1.0.103.
+GitHub Copilot CLI 1.0.101.
 Run 'copilot update' to check for updates.
 [exit 0]
 
@@ -21,17 +21,6 @@ v24.21.0
 [exit 0]
 
 $ copilot config --list
-autoUpdate=false
-memory=false
-ide.autoConnect=false
-model=gpt-5.6-terra
-effortLevel=medium
-contextTier=long_context
-continueOnAutoMode=false
-sandbox.enabled=false
-ignoredSkillsLocations=/Users/rcimendur/.agents/skills
-ignoredSkillsLocations=/Users/rcimendur/.claude/skills
-ignoredSkillsLocations=/Users/rcimendur/.github/skills
 subagents.agents.explore.model=inherit
 subagents.agents.explore.effortLevel=inherit
 subagents.agents.explore.contextTier=inherit
@@ -52,9 +41,20 @@ subagents.agents.security-review.effortLevel=inherit
 subagents.agents.security-review.contextTier=inherit
 subagents.disabledSubagents=rubber-duck
 extraKnownMarketplaces.rosetta.source.source=directory
-extraKnownMarketplaces.rosetta.source.path=/Users/rcimendur/saleor-benchmark/envs/rosetta-light/src
+extraKnownMarketplaces.rosetta.source.path=/Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/src
 enabledPlugins.rosetta-light@rosetta=true
 enabledPlugins.rosetta@rosetta=false
+autoUpdate=false
+memory=false
+ide.autoConnect=false
+model=gpt-5.6-terra
+effortLevel=medium
+contextTier=long_context
+continueOnAutoMode=false
+sandbox.enabled=false
+ignoredSkillsLocations=/Users/olepoletaiev/.agents/skills
+ignoredSkillsLocations=/Users/olepoletaiev/.claude/skills
+ignoredSkillsLocations=/Users/olepoletaiev/.github/skills
 [exit 0]
 
 $ copilot config model
@@ -77,17 +77,17 @@ $ python3 -I -c import json,os;print(json.dumps(json.load(open(os.environ["COPIL
 {"agents": {"explore": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "task": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "general-purpose": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "code-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "research": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "security-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}}, "disabledSubagents": ["rubber-duck"]}
 [exit 0]
 
-$ copilot -C /Users/rcimendur/saleor-benchmark plugin list
+$ copilot -C /Users/olepoletaiev/saleor-benchmark plugin list
 Built-in plugins:
   • browser-use (v0.0.4) [disabled]
 Live Plugins (loaded from a local marketplace directory, never copied):
-  • rosetta-light@rosetta (v3.1.17) (enabled)
-      from /Users/rcimendur/saleor-benchmark/envs/rosetta-light/src
   • rosetta@rosetta (v3.1.17) (disabled)
-      from /Users/rcimendur/saleor-benchmark/envs/rosetta-light/src
+      from /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/src
+  • rosetta-light@rosetta (v3.1.17) (enabled)
+      from /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/src
 [exit 0]
 
-$ copilot -C /Users/rcimendur/saleor-benchmark skill list
+$ copilot -C /Users/olepoletaiev/saleor-benchmark skill list
 Plugin skills:
   backlog - To validate story readiness for a sprint or to break work into a human WBS.
   checklist - Session self-verification checklist
@@ -210,16 +210,16 @@ Builtin skills:
 
 [exit 0]
 
-$ copilot -C /Users/rcimendur/saleor-benchmark mcp list
+$ copilot -C /Users/olepoletaiev/saleor-benchmark mcp list
 Builtin servers:
   github-mcp-server (http)
 
 [exit 0]
 
-$ copilot -C /Users/rcimendur/saleor-benchmark instruction list
+$ copilot -C /Users/olepoletaiev/saleor-benchmark instruction list
 Repository instructions:
   • team-rules.instructions.md [external]
-      from /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md
+      from /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md
 [exit 0]
 
 $ copilot config hooks
@@ -228,82 +228,82 @@ $ copilot config hooks
 $ sh -c env | cut -d= -f1 | grep -E "^(COPILOT_GITHUB_TOKEN|GH_TOKEN|GITHUB_TOKEN)$"
 [exit 1]
 
-$ ls -d /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/copilot-instructions.md /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/instructions /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/agents /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/hooks /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/skills /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/mcp-config.json /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/lsp-config.json
-ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/agents: No such file or directory
-ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/copilot-instructions.md: No such file or directory
-ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/hooks: No such file or directory
-ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/instructions: No such file or directory
-ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/lsp-config.json: No such file or directory
-ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/mcp-config.json: No such file or directory
-ls: /Users/rcimendur/saleor-benchmark/envs/rosetta-light/copilot/skills: No such file or directory
+$ ls -d /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/copilot-instructions.md /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/instructions /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/agents /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/hooks /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/skills /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/mcp-config.json /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/lsp-config.json
+ls: /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/agents: No such file or directory
+ls: /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/copilot-instructions.md: No such file or directory
+ls: /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/hooks: No such file or directory
+ls: /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/instructions: No such file or directory
+ls: /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/lsp-config.json: No such file or directory
+ls: /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/mcp-config.json: No such file or directory
+ls: /Users/olepoletaiev/saleor-benchmark/envs/rosetta-light/copilot/skills: No such file or directory
 [exit 1]
 
-$ sh -c tail -n +4 "$1" | diff -s - "$2" sh /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md
-Files - and /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md are identical
+$ sh -c tail -n +4 "$1" | diff -s - "$2" sh /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md
+Files - and /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md are identical
 [exit 0]
 
-$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/saleor/CLAUDE.md
-Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/saleor/CLAUDE.md are identical
+$ diff -s /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/olepoletaiev/saleor-benchmark/saleor/CLAUDE.md
+Files /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/olepoletaiev/saleor-benchmark/saleor/CLAUDE.md are identical
 [exit 0]
 
-$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/saleor/.github/copilot-instructions.md
-Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/saleor/.github/copilot-instructions.md are identical
+$ diff -s /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/olepoletaiev/saleor-benchmark/saleor/.github/copilot-instructions.md
+Files /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/olepoletaiev/saleor-benchmark/saleor/.github/copilot-instructions.md are identical
 [exit 0]
 
-$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/rcimendur/saleor-benchmark/saleor (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
+$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/olepoletaiev/saleor-benchmark/saleor (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
 .github/copilot-instructions.md
 CLAUDE.md
 [exit 0]
 
-$ git -C /Users/rcimendur/saleor-benchmark/saleor tag --points-at HEAD
+$ git -C /Users/olepoletaiev/saleor-benchmark/saleor tag --points-at HEAD
 rosetta-light-v1
 rosetta-skills-v1
 rosetta-v1
 [exit 0]
 
-$ git -C /Users/rcimendur/saleor-benchmark/saleor status --porcelain
+$ git -C /Users/olepoletaiev/saleor-benchmark/saleor status --porcelain
 [exit 0]
 
-$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/saleor-dashboard/CLAUDE.md
-Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/saleor-dashboard/CLAUDE.md are identical
+$ diff -s /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/olepoletaiev/saleor-benchmark/saleor-dashboard/CLAUDE.md
+Files /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/olepoletaiev/saleor-benchmark/saleor-dashboard/CLAUDE.md are identical
 [exit 0]
 
-$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/saleor-dashboard/.github/copilot-instructions.md
-Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/saleor-dashboard/.github/copilot-instructions.md are identical
+$ diff -s /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/olepoletaiev/saleor-benchmark/saleor-dashboard/.github/copilot-instructions.md
+Files /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/olepoletaiev/saleor-benchmark/saleor-dashboard/.github/copilot-instructions.md are identical
 [exit 0]
 
-$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/rcimendur/saleor-benchmark/saleor-dashboard (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
+$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/olepoletaiev/saleor-benchmark/saleor-dashboard (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
 .github/copilot-instructions.md
 CLAUDE.md
 [exit 0]
 
-$ git -C /Users/rcimendur/saleor-benchmark/saleor-dashboard tag --points-at HEAD
+$ git -C /Users/olepoletaiev/saleor-benchmark/saleor-dashboard tag --points-at HEAD
 rosetta-light-v1
 rosetta-skills-v1
 rosetta-v1
 [exit 0]
 
-$ git -C /Users/rcimendur/saleor-benchmark/saleor-dashboard status --porcelain
+$ git -C /Users/olepoletaiev/saleor-benchmark/saleor-dashboard status --porcelain
 [exit 0]
 
-$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/react-storefront/CLAUDE.md
-Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/react-storefront/CLAUDE.md are identical
+$ diff -s /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/olepoletaiev/saleor-benchmark/react-storefront/CLAUDE.md
+Files /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/olepoletaiev/saleor-benchmark/react-storefront/CLAUDE.md are identical
 [exit 0]
 
-$ diff -s /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/rcimendur/saleor-benchmark/react-storefront/.github/copilot-instructions.md
-Files /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/rcimendur/saleor-benchmark/react-storefront/.github/copilot-instructions.md are identical
+$ diff -s /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md /Users/olepoletaiev/saleor-benchmark/react-storefront/.github/copilot-instructions.md
+Files /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/baseline-instructions.md and /Users/olepoletaiev/saleor-benchmark/react-storefront/.github/copilot-instructions.md are identical
 [exit 0]
 
-$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/rcimendur/saleor-benchmark/react-storefront (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
+$ sh -c git -C "$1" ls-files | grep -E "$2" sh /Users/olepoletaiev/saleor-benchmark/react-storefront (^|/)(AGENTS|CLAUDE|GEMINI)\.md$|\.mdc$|copilot-instructions\.md$|(^|/)\.github/(instructions|skills|agents|hooks)/|(^|/)\.claude/|(^|/)\.cursor/
 .github/copilot-instructions.md
 CLAUDE.md
 [exit 0]
 
-$ git -C /Users/rcimendur/saleor-benchmark/react-storefront tag --points-at HEAD
+$ git -C /Users/olepoletaiev/saleor-benchmark/react-storefront tag --points-at HEAD
 rosetta-light-v1
 rosetta-skills-v1
 rosetta-v1
 [exit 0]
 
-$ git -C /Users/rcimendur/saleor-benchmark/react-storefront status --porcelain
+$ git -C /Users/olepoletaiev/saleor-benchmark/react-storefront status --porcelain
 [exit 0]

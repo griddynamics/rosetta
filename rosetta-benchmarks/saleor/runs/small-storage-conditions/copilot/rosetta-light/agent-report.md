@@ -4,33 +4,31 @@
 
 | Field | Value |
 |---|---|
-| Task | Add localized product storage conditions end to end; add base CSV export and product webhook support; apply the local development migration and restart the local API |
-| Method | HITL-gated specification, scoped Rosetta subagents, independent review, focused validation |
+| Task | Add translatable product storage conditions end to end; expose them in product webhooks and CSV export; repair the local development database migration. |
+| Method | Cross-repository implementation, focused automated tests, code generation, independent review, local API validation, and explicit user approval for database migration. |
 | Runner | GitHub Copilot CLI |
 | Model | GPT-5.6 Terra (`gpt-5.6-terra`) |
-| Start | 2026-10-29T17:18:50.208+02:00 |
-| End | 2026-10-29T19:08:03+02:00 |
+| Start time | 2026-11-04T17:35:17+01:00 |
+| End time | 2026-11-04T19:00:51+01:00 |
 
 ## Actions performed
 
 | Action | Done | Evidence |
 |---|---|---|
-| Discovered existing cross-repository product patterns | Yes | Rosetta discovery reports for catalog, CSV export, and webhook contracts |
-| Wrote technical specifications and execution plans | Yes | `plans/STORAGE-CONDITIONS/*-SPECS.md`, `*-PLAN.md`, `HANDOFF.md` |
-| Implemented core product model, GraphQL, mutation normalization, and migration | Yes | `saleor/product/models.py`, `saleor/product/migrations/0211_product_storage_conditions.py`, `saleor/graphql/**` |
-| Implemented Dashboard base and translation editing | Yes | `saleor-dashboard/src/products/**`, `saleor-dashboard/src/translations/**`, generated schema/types |
-| Implemented Storefront PDP mapping and display | Yes | `react-storefront/src/graphql/ProductDetails.graphql`, `src/lib/storefront/**`, `src/ui/components/pdp/**` |
-| Added product CSV export support | Yes | `saleor/graphql/csv/enums.py`, `saleor/csv/utils/__init__.py`, CSV tests |
-| Added fixed legacy product webhook support | Yes | `saleor/webhook/payloads.py`, webhook payload and subscription tests |
-| Reviewed implementation independently | Yes | Rosetta reviewer and validator reports; validation found no unresolved material issue |
-| Wrote or updated automated tests | Yes | Core product/translation, CSV, webhook, Dashboard, and Storefront focused tests |
-| Ran tests multiple times | Yes | Core: 98 product/translation tests, 50 CSV tests, 235 webhook tests; Dashboard: 69 focused tests; Storefront: 8 focused tests |
-| Ran type, lint, formatting, and schema checks | Yes | Dashboard and Storefront type/lint checks; Core Ruff, `gql-schema-check`, and schema generation checks |
-| Updated documentation | Yes | Storage-conditions specs, plans, handoff, and workspace agent memory |
-| Applied local database migration | Yes | `docker exec saleor-benchmark-api ... python manage.py migrate product 0211_product_storage_conditions --noinput` |
-| Restarted local API | Yes | `docker restart saleor-benchmark-api` |
-| Checked local API readiness and schema | Yes | GraphQL `{ __typename }` response and `Product.storageConditions` introspection check |
-| Took a screenshot | No | Not needed for this API/data-model feature |
-| Cleaned temporary source artifacts | No | No temporary source artifacts were created |
-| Created requested diff artifacts | Yes | `run-output/saleor.diff`, `run-output/saleor-dashboard.diff`, `run-output/react-storefront.diff`; each generated after `git add -N .` |
-| Committed changes | No | No commit or push command was run |
+| Wrote backend code | Yes | Saleor product model, migration, GraphQL contracts, webhook payload, and CSV export changes. |
+| Wrote dashboard code | Yes | Product form, translation UI, GraphQL operations/generated types, locale message, and validation wiring. |
+| Wrote storefront code | Yes | PDP GraphQL query, translation fallback, product view mapping, labeled storage-conditions block, and locale messages. |
+| Wrote tests | Yes | Added or updated Saleor GraphQL, webhook, CSV, dashboard, and storefront focused tests. |
+| Reviewed code independently | Yes | Independent cross-repository review reported no actionable findings; outbound-data review also passed. |
+| Ran tests | Yes | Saleor storage-field tests: 7 passed. Webhook/CSV focused suite: 278 passed. Webhook rerun after review coverage: 232 passed. Dashboard focused suites reached 96 passing tests. Storefront focused Vitest run: 12 tests passed. |
+| Ran tests multiple times | Yes | Backend tests were rerun after test-helper corrections and added webhook coverage; dashboard and storefront focused checks were rerun after generated-contract updates. |
+| Ran code generation | Yes | `uv run poe build-schema` in Saleor; dashboard local schema refresh plus `pnpm run generate`; storefront `NEXT_PUBLIC_SALEOR_API_URL=http://localhost:8000/graphql/ pnpm run generate`. |
+| Ran static checks | Yes | Saleor Ruff lint/format and `git diff --check`; dashboard source type checks, targeted ESLint, Prettier, and whitespace checks; storefront typecheck, focused ESLint, lock checks, and whitespace checks. |
+| Updated documentation | Yes | Updated `plans/STORAGE-CONDITIONS/STORAGE-CONDITIONS-SPECS.md`; recorded reusable workflow lessons in `agents/MEMORY.md`. |
+| Applied local database migration | Yes | After explicit approval: `docker exec saleor-benchmark-api python manage.py migrate product 0211_product_storage_conditions`. |
+| Checked the API | Yes | Confirmed migration state and queried `http://localhost:8000/graphql/` with a channel-scoped product query returning `storageConditions`. |
+| Started the application | No | The local API stack was already running; no service was started. |
+| Cleaned up leftovers | No | No temporary source files or processes were created by this task. |
+| Took a screenshot | No | No browser screenshot was required or taken. |
+| Committed or pushed | No | No Git commit or push was performed. |
+| Saved requested diffs | Yes | Ran `git add -N .` then `git diff` in `saleor`, `saleor-dashboard`, and `react-storefront`; saved the output as adjacent `.diff` files. |
