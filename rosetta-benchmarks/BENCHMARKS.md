@@ -678,7 +678,8 @@ Rules for the judge
 These rules apply to EVERY run. For the points they name, they override SCORE-DIFFS.md constraints 4, 5, 9, 14 and 22.
 1. Minimum-age model: a per-product minimum age, and a checkbox plus one store-wide minimum age, BOTH conform, in every run. The choice of model is NOT a finding and NOT a DELTA item. Extra answers 1, 11, 23, 24, 45, 51 and 80 are excluded on the choice of model: NO finding or DELTA item for following or not following them. Hidden #2 and the "Done when" read either way.
 2. Dashboard age label or marker on orders, order lines or draft lines: extra answers 71 and 80 are excluded on this point, and hidden #5 does not cover the dashboard. NOT required. Having one or not is NOT a defect.
-3. Directed answers: an answer the run was directed with (its "Agent was directed with" list) wins over the extra answers for that run. Following it is NOT a defect and NOT a strength; rate HOW it was built. It NEVER wins over a hidden-question answer: a directed answer that contradicts one is rated by constraint 23 (reason + impact).
+3. Checkout-line age label: extra answer 85 is excluded on this point, and hidden #5 does not require a label on checkout lines. NOT required. No label there is NOT a defect, and having one is NOT a defect.
+4. Directed answers: an answer the run was directed with (its "Agent was directed with" list) wins over the extra answers for that run. Following it is NOT a defect and NOT a strength; rate HOW it was built. It NEVER wins over a hidden-question answer: a directed answer that contradicts one is rated by constraint 23 (reason + impact).
 ```
 
 #### Self-challenge prompt
