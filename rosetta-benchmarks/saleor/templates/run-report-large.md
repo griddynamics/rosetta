@@ -197,7 +197,7 @@ docker compose -p saleor-benchmark -f "$BENCH_DIR/saleor/.devcontainer/docker-co
 | # | Check | Pass? | How checked (command / UI steps) | Evidence |
 | ---: | --- | --- | --- | --- |
 | 1 | Customer birthday field exists (customer account, API, dashboard) | | | |
-| 2 | In the dashboard, staff set and see a minimum age per product, or mark a product age-restricted (checkbox) and set the store-wide minimum age in the site settings (either passes) | | | |
+| 2 | In the dashboard, staff set and see a minimum age per product, or mark a product age-restricted (checkbox) and set one store-wide minimum age (either passes) | | | |
 | 3 | **Backend** blocks checkout: underage customer | | | |
 | 4 | **Backend** blocks checkout: customer with no birthday | | | |
 | 5 | **Backend** blocks checkout: guest with a restricted product | | | |
