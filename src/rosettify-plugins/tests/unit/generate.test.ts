@@ -262,6 +262,30 @@ describe('generate() — error coverage', () => {
     }
   });
 
+  it('versionless parent manifest → exit code 1 and no standalone plugin.json, instead of a guessed version (FR-VAR-0060)', async () => {
+    const repo = buildFakeRepo();
+    try {
+      const parentManifest = path.join(repo, 'src', 'rosettify-plugins', 'plugins', 'core-cursor', '.cursor-plugin', 'plugin.json');
+      fs.writeFileSync(parentManifest, '{"name":"rosetta"}');
+      const outputDir = path.join(repo, 'out-versionless-parent');
+      const code = await silencingStderr(() => generate({
+        sources: buildSources(repo, outputDir),
+        release: 'r2',
+        domain: 'core',
+        dryRun: false,
+        verbose: false,
+      }));
+      expect(code).toBe(1);
+      expect(fs.existsSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'))).toBe(false);
+      // FR-CLI-0041: the rest of that target is still generated; only its manifest is withheld.
+      expect(fs.readdirSync(path.join(outputDir, 'core-cursor-standalone')).length).toBeGreaterThan(0);
+      // Only the standalone whose parent is broken is affected.
+      expect(fs.existsSync(path.join(outputDir, 'core-copilot-standalone', 'plugin.json'))).toBe(true);
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
   it('r3 with missing bundles → returns exit code 1 (hard error propagation)', async () => {
     // r3 = deterministicHooks; bundles dir exists but files are missing → pluginSyncBundles → hard error
     const r3Repo = buildFakeRepo();
