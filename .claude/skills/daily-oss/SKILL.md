@@ -84,4 +84,5 @@ If you learned something new which is reusable, there are process efficiency imp
 - **Hand the user gated commands up front.** Auto mode blocks running contributor code, `--admin` merges, and pushes to forks. Give exact `!` commands pinned to reviewed SHAs instead of retrying.
 - **Reviewer prompts: static only, return commands.** Three reviewer spawns were denied outright because prompts asked to run contributor tests. Auto mode blocks running PR code; ask for exact pinned commands instead.
 - **Verify release fixes against shipped assets.** Static review could not prove #388; downloading release zips and `diff -r` against `git archive <sha> plugins` did. Check the real artifact, not the script.
+- **Compare against the baseline the user named.** Asked "new pipeline vs previous pipeline, same release"; compared against the repo and the prior release instead. Overwritten assets still leave per-file `adding:` lines in run logs.
 - **Talking around, not directly.** If you cannot be specific and clear and short, it means YOU are NOT grounded. DO NOT ASK YET - DIG FIRST!
