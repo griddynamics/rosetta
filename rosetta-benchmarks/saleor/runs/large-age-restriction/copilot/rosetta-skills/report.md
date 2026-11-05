@@ -15,7 +15,7 @@ model: gpt-5.6-terra
 effort: medium
 start_tag: rosetta-skills-v1
 operator: Rustem Cimendur
-status:                    # done | not-qualifying | infra-fail
+status: done                # stopped at the AI credit limit after follow-up 1 (hidden #6 not sent, counted as missed); Done-when checks by the team lead from the saved diffs on a clean stack (section 4)
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
 t0: 2026-11-04T13:19   # effective start = t1 minus gap-free time to T1 (64 min 37 s); real T0 12:33:03 (timeline row 1); 46 min 33 s blocked waiting for the operator before T1 (section 8)
 t1: 2026-11-04T14:24   # log time of the agent's end of the first pass (14:24:13), operator decision (timeline row 22)
@@ -51,11 +51,11 @@ hidden_missed: 2   # #5 (follow-up 1), #6 (follow-up not sent, AI credit limit)
 hidden_matches_answer: 6.5   # yes: #1, #2, #3, #4, #8, #9; partly: #7; no: #5, #6. how many of the 9 the ORIGINAL result (first pass, before follow-ups) follows the answer key (yes = 1, partly = 0.5)
 # Outcome (sections 4–5)
 done_checks_total: 12
-done_checks_passed:
-red_flags:                 # number of ticked red flags
-tests_pass:                # yes | no (operator ran them at T2)
-operator_score:            # 1–5, anchors in templates/README.md
-operator_merge_ready:      # yes | no
+done_checks_passed: 11   # #2 fail: the product checkbox alone does not enable Save in the dashboard (section 4)
+red_flags: 0
+tests_pass: yes          # team lead, 2026-11-05, on a clean stack with the saved diffs: backend 193 passed, dashboard 42, storefront 38, tsc / check-types clean
+operator_score: 4          # team lead (Oleksii), 2026-11-05, judging the final code from the saved diffs
+operator_merge_ready: yes
 # Filled later by the assistant: verified_in_code from step 0.3, judge_* from the diff judge's JSON
 verified_in_code:          # items verified in code / items checked (e.g. 8/9)
 judge_total:               # diff score: total + bonus, from the totals script
@@ -510,7 +510,7 @@ Matches = the ORIGINAL result (first pass, before any follow-up) follows the ans
 
 ## 4. Done when: checked by the operator at T2
 
-**Not checked in this run's stack** (team lead's decision, 2026-11-05 12:01, section 8): the local API was down (dev database never migrated, the agent at the quota limit), so the team lead does these checks from the saved diffs on a clean stack. The table below stays empty for that check.
+**Checked by the team lead from the saved diffs on a clean stack** (2026-11-05; decision of 12:01, section 8). The run's own stack was not used: its API was down (dev database never migrated, the agent at the quota limit). Steps: `bench.sh reset rosetta-skills-v1`; `git apply` of the three saved diffs (all applied cleanly); `manage.py migrate` applied the agent's 4 migrations (`account.0106`, `account.0107`, `product.0211`, `site.0053`) to the reset dev database without errors; `bench.sh start` (twice: the storefront codegen failed on the first start, before the migrations); `health` all OK. Test data (assistant, ORM): Apple Juice `is_age_restricted=True`; customers `lcp08-adult` (1990-05-05), `lcp08-today18` (turns 18 today, 2026-11-05), `lcp08-young` (one day too young), `lcp08-nobday` (no birthday), staff `lcp08-support` with `MANAGE_USERS` + `MANAGE_ORDERS` (not superuser); password `Test12345!`. Shop minimum age 18, time zone UTC.
 
 Check it yourself; don't rely on the agent's report. Use the field names the agent chose. Test customers: `populatedb` customers have the password `password`; set their birthdays in the dashboard (adult, turns the age **today**, one day too young, none).
 
@@ -538,18 +538,18 @@ docker compose -p saleor-benchmark -f "$BENCH_DIR/saleor/.devcontainer/docker-co
 
 | # | Check | Pass? | How checked (command / UI steps) | Evidence |
 | ---: | --- | --- | --- | --- |
-| 1 | Customer birthday field exists (customer account, API, dashboard) | | | |
-| 2 | Staff can set and see a minimum age per product in the dashboard | | | |
-| 3 | **Backend** blocks checkout: underage customer | | | |
-| 4 | **Backend** blocks checkout: customer with no birthday | | | |
-| 5 | **Backend** blocks checkout: guest with a restricted product | | | |
-| 6 | Customer who turns the age **today** can buy | | | |
-| 7 | Adult customer can buy a restricted product | | | |
-| 8 | Unrestricted products work as before for everyone | | | |
-| 9 | Storefront shows the restriction (list + product page) and explains why buying is blocked | | | |
-| 10 | Birthday not readable without a token, nor by support staff | | | |
-| 11 | Tests pass locally (backend + changed frontends) | | `<commands + pass/fail counts>` | |
-| 12 | No manual cleanup needed (no junk files, no debug code) | | | |
+| 1 | Customer birthday field exists (customer account, API, dashboard) | yes (dashboard: "Age eligibility" only; no staff, including superusers, sees or edits the birthday there, by design) | API (assistant): `me { birthday }` for the owner, `user { birthday }` for a superuser, `accountUpdate(birthday)`, superuser `customerBirthdayUpdate`; storefront account settings (operator); dashboard customer page (operator) | Owner reads 1990-05-05; superuser reads it; the dashboard shows "Eligible" / "Not eligible" and no date (changeset: "Birthdays are never queried or shown"). Same mark as the run where staff can't see the birthday by design |
+| 2 | Staff can set and see a minimum age per product in the dashboard | **fail** | Checkbox model (team decision): product "Age-restricted product" checkbox + store-wide minimum age in Site settings. Operator: Products → Apple Juice → toggle the checkbox; then with another field changed; Site settings → minimum age 19 → Save → reload | Toggling the checkbox alone does **not** enable Save; it is saved only when another field is changed too (operator). Site settings: minimum age and time zone save (API read 19 after the operator's save). Marked fail like the other large run where the birthday alone did not enable Save |
+| 3 | **Backend** blocks checkout: underage customer | yes | API (assistant): `checkoutCreate` with the Apple Juice variant as `lcp08-young`; `checkoutLinesAdd` of it to a checkout with an unrestricted product | Both: `AGE_RESTRICTION` "This purchase is restricted to customers of eligible age." |
+| 4 | **Backend** blocks checkout: customer with no birthday | yes | API: `checkoutCreate` as `lcp08-nobday` | `AGE_RESTRICTION` |
+| 5 | **Backend** blocks checkout: guest with a restricted product | yes | API: `checkoutCreate` without a token; storefront as a guest (operator) | `AGE_RESTRICTION`; storefront works as expected (operator) |
+| 6 | Customer who turns the age **today** can buy | yes | API: `checkoutCreate` as `lcp08-today18` (born 2008-11-05, shop today 2026-11-05) | Checkout created |
+| 7 | Adult customer can buy a restricted product | yes | API: `checkoutCreate` as `lcp08-adult`; storefront: Apple Juice added to the cart (operator) | Checkout created; works in the storefront |
+| 8 | Unrestricted products work as before for everyone | yes | API: `checkoutCreate` with an unrestricted product (ASCII tee) for all five users | All OK |
+| 9 | Storefront shows the restriction (list + product page) and explains why buying is blocked | yes | Operator in the browser (repeated after the assistant restored the Apple Juice restriction, see section 8): label in the list and on the product page; guest, `lcp08-young` and `lcp08-adult` | Operator: "everything works" |
+| 10 | Birthday not readable without a token, nor by support staff | yes | API: `me` without a token; `user(email) { birthday }` without a token and as `lcp08-support` | `me` null; no token: permission error; support staff: `birthday: null` (its `isAgeEligible` is readable, as designed); superuser reads the date |
+| 11 | Tests pass locally (backend + changed frontends) | yes | Backend: `pytest -n 0 --create-db` on the 9 changed test files; dashboard: `jest --runTestsByPath` on the 5 changed test files + `pnpm run check-types`; storefront: `vitest run` on the 7 changed test files + `tsc --noEmit` | Backend 193 passed; dashboard 5 suites, 42 passed, check-types "All files passed"; storefront 6 files, 38 passed (vitest picked up 6 of the 7 paths), tsc clean |
+| 12 | No manual cleanup needed (no junk files, no debug code) | yes | Saved diffs read; `grep` for debug code | No debug code or temp files. Storefront `data-layer.lock.md` and `paper-version.json` changed (the known lock/docs check issue, section 8); per-repo `agents/IMPLEMENTATION.md`, `docs/TODO.md` and `CHANGELOG.md` updates are part of the method |
 
 ## 5. Red flags
 
@@ -567,7 +567,7 @@ Tick every one you see; one line of evidence each.
 - [ ] Agent committed or pushed
 - [ ] Other: `<...>`
 
-Evidence: `<one line per ticked item>`
+Evidence: none ticked. The migrations were not applied to the dev database at the end of the run; the agent validated on a disposable test database, as extra answer 90 allowed, so this is not "done while broken". On a clean database the 4 migrations apply without errors.
 
 ## 6. Agent's claims vs reality (from `agent-report.md`)
 
@@ -575,12 +575,12 @@ Evidence: `<one line per ticked item>`
 
 | Action | Agent says | Operator confirms |
 | --- | --- | --- |
-| Wrote tests | | |
-| Ran tests | | |
-| Ran linters / type checks | | |
-| Started the app / called the API | | |
-| Checked the UI / screenshot | | |
-| Cleaned up leftovers | | |
+| Wrote tests | no report (its messages: yes) | yes: 9 backend, 5 dashboard, 7 storefront test files in the diffs |
+| Ran tests | no report (follow-up 1 message: "825 Vitest tests passed") | yes: they pass on a clean stack (section 4 #11) |
+| Ran linters / type checks | no report (follow-up 1 message: typecheck, lint, lock/docs checks) | dashboard `check-types` and storefront `tsc` clean (section 4 #11); lock/docs checks not re-run |
+| Started the app / called the API | no report | no: the dev database was never migrated, the run's API was down at the end (section 8) |
+| Checked the UI / screenshot | no report | not known; the dashboard Save bug (section 4 #2) suggests the product page was not tried in a browser |
+| Cleaned up leftovers | no report | nothing left (section 4 #12) |
 
 ## 7. Artifacts (all in this folder)
 
@@ -609,12 +609,13 @@ Evidence: `<one line per ticked item>`
   - Sub-agent models (`tokens.md`): the main agent ran on `gpt-5.6-terra` as set; the 3 `rosetta:engineer` subagents ran on `claude-sonnet-5.5` and the `rosetta:reviewer` on `gpt-6-luna` (failed, row 12). Claude Sonnet 5.5 used 1137.46 of the 1644.38 AIC (69%).
   - Known issue (baseline-v1, `react-storefront` `pnpm docs:check` and `pnpm core:lock:check` fail): the agent touched both areas. The storefront diff changes `data-layer.lock.md` and `paper-version.json`, and its follow-up 1 message says "Storefront typecheck, lint, lock/docs checks, and 825 Vitest tests passed" (row 29). Not checked by the operator.
   - Dashboard type check (BENCHMARKS.md, known deficiency), run by the assistant after the run ended (2026-11-05, in `~/saleor-benchmark/saleor-dashboard`, the run's working tree): `pnpm run check-types` **passes** (exit 0; `tsc-strict`: "Found 4213 strict files … All files passed"; e2e, e2e-legacy, scripts: Done). Per the protocol this gives no extra follow-up and a strong point: "the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right." (operator to record it with the scores).
-- Deviations from the protocol, and why: `<none / ...>`
+- Deviations from the protocol, and why: (1) **Stopped at the AI credit limit**: the hidden #6 follow-up and the post-implementation prompt were not sent; hidden #6 counts as missed; the diffs were made with the prompt's own git commands, and there is no `agent-report.md`. (2) **Done-when checks by the team lead, not in the run's stack**: from the saved diffs applied to a clean `rosetta-skills-v1` stack (section 4), as for `L-CC-03`. (3) **Test environment**: on that stack `pytest --create-db` failed for every test, including unchanged Saleor tests (`CREATE INDEX … USING gin` on `page_page`: the new test database had no `btree_gin`). The assistant added `btree_gin`, `pg_trgm`, `hstore` and `pgcrypto` to the PostgreSQL `template1`; no repository change. Then 193 passed. (4) **The team lead's dashboard check changed the test data**: while trying the checkbox (section 4 #2) Apple Juice was left unrestricted and the shop minimum age at 19. The assistant restored both (Apple Juice restricted via the ORM, minimum age 18 via `shopSettingsUpdate`), re-ran the API checks, and the operator repeated the storefront checks.
+- Rosetta team contacted: no.
+- Strong point of the method in this run (team lead): the backend rule and the birthday privacy are exact: guests, customers without a birthday and underage customers are blocked in `checkoutCreate` and `checkoutLinesAdd`, the day of the 18th birthday counts, support staff get `birthday: null`; the migrations apply cleanly and the tests and the strict dashboard type check pass.
+- Weak point of the method in this run (team lead): the product checkbox alone does not enable Save in the dashboard; hidden #5 and #6 were not found without a follow-up; the dev database was left unmigrated; costly: 1,644 AIC, 69% of it on the Sonnet 5.5 engineer subagents.
+- Operator score and merge-ready (team lead, judging the final code from the saved diffs, 2026-11-05): 4, merge-ready yes. The Save bug and hidden #6 are small follow-up fixes.
 - One-time method setup (method file part 4, done before this run, not part of the run), verified on 2026-11-04: 4.1 Copilot CLI 1.0.101 installed with npm under Node 24 (`~/.nvm/versions/node/v24.21.0/bin/copilot`); the Homebrew cask `copilot-cli` (1.0.103 cask, `copilot --version` printed 1.0.105) was uninstalled first, by the operator's decision, because `/opt/homebrew/bin` comes before nvm's bin in PATH. 4.3 common settings in place (`copilot config --list`). 4.4 `rosetta@rosetta` v3.1.17 enabled from the clone at `6215332c`, `rosetta-light@rosetta` disabled. 4.5 `rosetta-skills-v1` in all three repos (from the zip). 4.6 login `rcimendur` and trusted folder `~/saleor-benchmark` present in `$COPILOT_HOME/config.json`. 4.7 skipped: the run starts from the zips in `test-library/`.
 - An earlier, stopped attempt of this run ID (2 Nov, untracked, never committed) was in this folder; it was deleted by the method's step 2 (`rm -rf "$RUN"`), by the operator's decision.
-- Rosetta team contacted (Rosetta and Rosetta Light runs only): `<n/a / no / yes: when, why, outcome>`
-- Strong point of the method in this run: `<...>`
-- Weak point of the method in this run: `<...>`
 
 ## Appendix A. Raw `/usage` output
 
