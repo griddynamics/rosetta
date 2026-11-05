@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-23T09:27           # effective start = t1 − gap-free time (37 min); real T0 09:26 is timeline row #1, arithmetic in section 8
 t1: 2026-10-23T10:04
 t2: 2026-10-23T11:07
+total_min: 68                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 18100            # /cost at T1: haiku 2.0k + sonnet 16.1k (rounded as the runner shows them)
@@ -279,6 +280,7 @@ Not ticked, notes:
 - Operator remark (minimum age 0): Staff can save 0. The backend treats 0 as restricted, so guests and customers without a birthday can't buy. The storefront treats 0 as no restriction and shows no label. So a guest sees a normal product and is refused at Add to bag (checked on Banana Juice, screenshot). Confusing but minor, and it fails safe. The agent mentioned it in follow-up 2. Not in the answer key. Banana Juice was set back to 18 after the test.
 - Operator remark (questions): The agent never asks before it builds. It makes its own choice, says what it chose, and offers a change at the end ("say if you want it different", row 3; "Say if you want any of those.", row 8; "say if you want a different shape.", row 16). Plan mode had 0 questions (row 2).
 - Operator remark (cleanup, positive): The agent cleaned up after its own testing. It set Apple Juice to 18 to check the label and then back to unrestricted (10:29:18 log). It didn't touch the operator's test data (Banana Juice stayed at 18).
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 10:04:54 → T2 11:07:36: 62m42s. Operator waits after T1: 10:04:54–10:08:13 (3m19s, until the hidden-question check) · 10:08:34–10:17:27 (8m53s, operator's check, follow-up 1) · 10:18:13–10:24:40 (6m27s) · 10:24:47–10:27:54 (3m07s, follow-up 2) · 10:29:30–10:32:50 (3m20s, agent's question) · 10:40:46–10:41:46 (1m00s, follow-up 3) · 10:42:05–10:42:51 (46s, follow-up 4) · 10:45:08–10:50:17 (5m09s, follow-up 5). Total 32m01s. Agent time after T1 30m41s. Gap-free total = 37m25s + 30m41s = 68m06s ≈ 68 min.
 
 ## Appendix A. Raw `/cost` output
 

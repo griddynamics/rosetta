@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-27T09:05               # effective start = t1 minus the gap-free first pass 13 min 36 s; real T0 08:58:44 (timeline row 1), see section 8
 t1: 2026-10-27T09:18
 t2: 2026-10-27T10:29
+total_min: 27                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 15               # one-time setup of envs/baseline/copilot (config, login, folder trust, isolation check); operator's estimate 10–15 min, not timed
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 7.1m              # as /usage shows it (includes cached); exact counts in tokens.md
@@ -334,6 +335,7 @@ Evidence (ticked by the operator):
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a (Baseline)
 - Strong point of the method in this run: fast first turn: the first "done" came 13 min 36 s after T0 without the waits for the operator (20 min on the clock), with one question and one plan approval (operator).
 - Weak point of the method in this run: whitespace is not handled: leading spaces are kept and a value of only spaces is saved as is (operator).
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 09:18:52 → T2 10:29:32: 70m40s. Operator waits after T1: 09:18:52–09:21:00 (2m08s, until the hidden-question check) · 09:21:09–09:25:15 (4m06s, follow-up 1) · 09:27:40–09:29:00 (1m20s, follow-up 2) · 09:35:09–09:49:01 (13m52s, operator's check, follow-up 3) · 09:49:40–09:58:59 (9m19s, operator's dashboard check, follow-up 4) · 10:00:29–10:26:54 (26m25s, operator's tests check, follow-up 5). Total 57m10s. Agent time after T1 13m30s. Gap-free total = 13m36s + 13m30s = 27m06s ≈ 27 min.
 
 ## Appendix A. Raw `/usage` output
 

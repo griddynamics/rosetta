@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-20T12:03
 t1: 2026-10-20T13:19
 t2: 2026-10-20T20:17
+total_min: 202                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 45700
@@ -275,6 +276,7 @@ Checked on 2026-11-04 (section 4): none ticked. Age checks are in the backend (c
 - Strong point of the method in this run (drafted by the assistant from the checks, operator to confirm): the backend enforces the age on every purchase path, "today" uses the shop's time zone, and the birthday is hidden from support staff; the storefront explains each block clearly.
 - Weak point of the method in this run (drafted by the assistant, operator to confirm): it needed a follow-up with 4 items, and the too-young customer sees the same message as a customer without a birthday.
 - **Done-when checks and score added on 2026-11-04** (operator oleksii with the assistant, section 4): all 12 pass on the saved diffs applied to a clean stack of the current setup; score changed from 3 (from the agent's claims) to **4**, merge-ready **yes**. Caveats: the check ran on the current `baseline-v1`, not the old one of the run; the dashboard generated files were regenerated, not taken from the diff; the agent's post-implementation report does not exist.
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 13:19:37 → T2 20:17:01: 6h57m24s. Operator waits after T1 (as listed above, checked against `tokens.md`): 13:19:37–15:09:31 (1h49m54s) · 15:10:05–17:39:17 (2h29m12s) · 17:40:26–18:08:51 (28m25s) · 18:09:41–18:10:31 (50s) · 18:12:02–18:14:53 (2m51s). Total 4h51m12s. Agent time after T1 2h06m12s. Gap-free total = 1h15m57s + 2h06m12s = 3h22m09s ≈ 202 min.
 
 ## Appendix A. Raw `/cost` output
 

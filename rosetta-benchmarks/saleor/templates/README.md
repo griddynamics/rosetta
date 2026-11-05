@@ -29,8 +29,9 @@ The same rules for every operator, so results are comparable.
 | Key | Unit | Definition |
 | --- | --- | --- |
 | `t0`, `t1`, `t2` | time | See rule 2. |
+| `total_min` | min | Gap-free total: first pass + agent time after T1 (T1→T2 minus operator waits: hidden-question check delay, operator checks, breaks). Arithmetic in section 8. |
 | `time_first_min` *(computed when comparing)* | min | `t1 − t0`. Time to the first "done". |
-| `time_total_min` *(computed when comparing)* | min | `t2 − t0`. Time until the task is really done. |
+| `time_total_min` *(computed when comparing)* | min | `total_min` when filled (gap-free: operator waits after T1 removed too), else `t2 − t0`. Time until the task is really done. |
 | `setup_min` | min | One-time method installation and init. Not part of any run. |
 | `t1_*`, `t2_*` tokens | tokens | Input, output, cache read, cache write, as the runner reports them. |
 | `t1_cost_usd`, `t2_cost_usd` | USD | Claude Code: the `Total cost` line of `/usage`. Copilot: leave empty. |

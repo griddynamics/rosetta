@@ -17,9 +17,10 @@ start_tag: speckit-v1
 operator: Rustem Cimendur
 status: done  # done | not-qualifying | infra-fail
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
-t0: 2026-10-22T13:50
+t0: 2026-10-22T14:42          # effective start = t1 − gap-free first pass 51m31s (section 8); real T0 13:50
 t1: 2026-10-22T15:33
 t2: 2026-10-22T20:03
+total_min: 85                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 15
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 27500

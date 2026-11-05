@@ -20,6 +20,7 @@ status: done
 t0: 2026-11-04T13:55          # effective start = t1 minus the gap-free first pass 10m38s (21 operator waits before T1, total 1h45m46s, section 8); real T0 12:09:06
 t1: 2026-11-04T14:05          # first "done": "Storage conditions is implemented end to end" (log 14:05:30)
 t2: 2026-11-04T14:08          # effective end = t0 + gap-free total 13m03s; real T2 15:30:16 (end of follow-up 3), section 8
+total_min: 13                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 60                # init once for all Rosetta methods (shared zips; methods/rosetta-skills.md part 7); this run started from the zips
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 17.6m     # runner /usage after T1; includes 17.2m cached

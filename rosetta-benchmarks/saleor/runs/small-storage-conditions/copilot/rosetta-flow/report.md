@@ -20,6 +20,7 @@ status: done
 t0: 2026-11-04T12:09          # effective start = t1 minus the gap-free first pass 1h04m00s (14 pre-T1 operator waits, total 29m22s, section 8); real T0 11:39:50 (timeline row 1)
 t1: 2026-11-04T13:13
 t2: 2026-11-04T14:04
+total_min: 76                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 60                # /init-workspace-flow, once for all Rosetta methods (shared zips; methods/rosetta-skills.md part 7, about 1 h); this run started from the zips. Rosetta's one-time Copilot home setup (part 4, 2026-11-04 ~10:35–11:37) not added
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 34.0m   # runner /usage after T1 (taken after the final gate, 13:16); includes 32.9m cached; sum of the 5 model rows
@@ -614,6 +615,7 @@ Evidence: none ticked. Not ticked, with the reason: the storefront broken at T1 
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): no
 - Strong point of the method in this run (operator): Rosetta asked good questions, which led straight to the definition of done.
 - Weak point of the method in this run (operator): it may ask permission for an obvious action that was already permitted a few steps before.
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 13:13:12 → T2 14:03:59: 50m47s. Operator waits after T1: 13:13:12–13:16:04 (2m52s, final-gate form) · 13:16:15–13:21:26 (5m11s, until the hidden-question check) · 13:21:44–13:30:22 (8m38s, follow-up 1) · 13:30:48–13:32:50 (2m02s, plan gate) · 13:36:36–13:39:08 (2m32s, continue stop) · 13:39:24–13:39:53 (29s, retry stop) · 13:40:20–13:41:42 (1m22s, schema choice) · 13:45:59–13:48:22 (2m23s, acceptance gate) · 13:48:28–13:58:52 (10m24s, operator's check, follow-up 2) · 13:59:55–14:01:28 (1m33s, migration approval) · 14:02:31–14:03:57 (1m26s, acceptance gate). Total 38m52s. Agent time after T1 11m55s. Gap-free total = 64m00s + 11m55s = 75m55s ≈ 76 min.
 
 ## Appendix A. Raw `/usage` output
 

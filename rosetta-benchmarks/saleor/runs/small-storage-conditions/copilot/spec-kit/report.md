@@ -20,6 +20,7 @@ status:                    done   # done | not-qualifying | infra-fail
 t0: 2026-10-26T20:24   # effective start = t1 minus gap-free time to T1 (32 min 57 s); real T0 is 20:11:26 (timeline row 1)
 t1: 2026-10-26T20:57   # log time of the first "done"; operator saw 20:58
 t2: 2026-10-26T21:45   # log time when the last follow-up was done (operator saw 21:45)
+total_min: 39                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 38   # Copilot home, specify, tag, login, trust and constitution, 19:25 to 20:03 (operator's times, incl. troubleshooting)                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 23.3m   # runner /usage at 21:00; includes 22.9m cached

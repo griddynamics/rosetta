@@ -74,7 +74,7 @@ def load():
         if missing:
             warnings.append(f"{rel}/report.md: empty {', '.join(missing)}")
         d["time_first_min"] = minutes(d.get("t0"), d.get("t1"))
-        d["time_total_min"] = minutes(d.get("t0"), d.get("t2"))
+        d["time_total_min"] = num(d.get("total_min")) if num(d.get("total_min")) is not None else minutes(d.get("t0"), d.get("t2"))
         field, d["usage_unit"] = ("cost_usd", "usd") if d.get("runner") == "claude-code" else ("ai_credits", "cr")
         u1, u2 = num(d.get(f"t1_{field}")), num(d.get(f"t2_{field}"))
         d["usage_first"], d["usage_total"] = u1, u2

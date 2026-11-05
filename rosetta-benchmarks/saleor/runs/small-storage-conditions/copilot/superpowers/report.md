@@ -20,6 +20,7 @@ status: done               # done | not-qualifying | infra-fail
 t0: 2026-10-22T20:43   # effective start = t1 minus the gap-free first pass 1 h 47 min 12 s; real T0 22 Oct 16:29:01 (timeline row 2), see section 8
 t1: 2026-10-22T22:30
 t2: 2026-10-26T10:57
+total_min: 154                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 41100000

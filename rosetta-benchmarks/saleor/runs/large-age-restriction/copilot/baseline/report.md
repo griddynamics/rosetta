@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-28T14:41   # effective start = t1 minus the gap-free first pass 6 min 42 s; real T0 14:30:56 (timeline row 1), see section 8
 t1: 2026-10-28T14:48   # log time of the first "done" (14:48:02)
 t2: 2026-10-30T10:26   # log time when the last follow-up was done (10:26:15); after an auth outage and an overnight pause (section 8)
+total_min: 37                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 0
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 6.4m              # as /usage shows it (includes cached); exact counts in tokens.md
@@ -478,6 +479,7 @@ Evidence:
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
 - Strong point of the method in this run: fixed everything fast after the follow-ups (operator).
 - Weak point of the method in this run: it says "done" while the main things are broken, not just details: e.g. staff could not save a minimum age in the dashboard (operator).
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 14:48:02 (28 Oct) → T2 10:26:15 (30 Oct): 43h38m13s. Operator waits after T1: 14:48:02–14:50:42 (2m40s) · 14:50:55–14:53:39 (2m44s) · 14:54:37–14:55:29 (52s) · 14:55:44–14:56:51 (1m07s) · 14:58:17–16:09:58 next day (25h11m41s: operator's check, the Copilot outage (401 on every send from 15:03:35 to at least 15:29:05, no agent work), overnight) · 16:11:09–16:34:36 (23m27s) · 16:42:07–16:52:53 (10m46s) · 16:57:45–17:13:54 (16m09s) · 17:16:38–17:34:29 (17m51s) · 17:39:56–10:17:40 next day (16h37m44s, overnight) · 10:20:11–10:22:42 (2m31s). Total 43h07m32s. Agent time after T1 30m41s (hidden check 13s + follow-ups 1–10). The outage lies inside an operator wait, so the total is comparable: 6m42s + 30m41s = 37m23s ≈ 37 min.
 
 ## Appendix A. Raw `/usage` output
 

@@ -20,6 +20,7 @@ status: done                # stopped at the AI credit limit after follow-up 1 (
 t0: 2026-11-04T13:19   # effective start = t1 minus gap-free time to T1 (64 min 37 s); real T0 12:33:03 (timeline row 1); 46 min 33 s blocked waiting for the operator before T1 (section 8)
 t1: 2026-11-04T14:24   # log time of the agent's end of the first pass (14:24:13), operator decision (timeline row 22)
 t2: 2026-11-04T16:04   # end of follow-up 1 (log 16:04:53), the last agent work; no follow-ups after it (stopped at the AI credit limit, section 8)
+total_min: 73                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 54.4m   # runner /usage after T1 (total over Claude Sonnet 5.5, GPT-5.6 Terra, GPT-6 Luna); includes 52.5m cached
@@ -620,6 +621,7 @@ Evidence: none ticked. The migrations were not applied to the dev database at th
 - Operator score and merge-ready (team lead, judging the final code from the saved diffs, 2026-11-05): 4, merge-ready yes. The Save bug and hidden #6 are small follow-up fixes.
 - One-time method setup (method file part 4, done before this run, not part of the run), verified on 2026-11-04: 4.1 Copilot CLI 1.0.101 installed with npm under Node 24 (`~/.nvm/versions/node/v24.21.0/bin/copilot`); the Homebrew cask `copilot-cli` (1.0.103 cask, `copilot --version` printed 1.0.105) was uninstalled first, by the operator's decision, because `/opt/homebrew/bin` comes before nvm's bin in PATH. 4.3 common settings in place (`copilot config --list`). 4.4 `rosetta@rosetta` v3.1.17 enabled from the clone at `6215332c`, `rosetta-light@rosetta` disabled. 4.5 `rosetta-skills-v1` in all three repos (from the zip). 4.6 login `rcimendur` and trusted folder `~/saleor-benchmark` present in `$COPILOT_HOME/config.json`. 4.7 skipped: the run starts from the zips in `test-library/`.
 - An earlier, stopped attempt of this run ID (2 Nov, untracked, never committed) was in this folder; it was deleted by the method's step 2 (`rm -rf "$RUN"`), by the operator's decision.
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 14:24:13 → T2 16:04:53 (end of follow-up 1): 1h40m40s. Operator waits after T1: 14:24:13–14:35:04 (10m51s) · 14:35:19–15:52:44 (1h17m25s, until the hidden-question check) · 15:53:03–15:54:19 (1m16s, form) · 15:54:29–15:55:11 (42s, spec approval) · 15:55:19–15:55:34 (15s, plan approval) · 15:56:00–15:57:56 (1m56s, design approval). Total 1h32m25s. Agent time after T1 8m15s. Gap-free total = 64m37s + 8m15s = 72m52s ≈ 73 min.
 
 ## Appendix A. Raw `/usage` output
 

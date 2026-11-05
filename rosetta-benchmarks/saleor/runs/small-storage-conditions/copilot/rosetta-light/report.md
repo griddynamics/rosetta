@@ -20,6 +20,7 @@ status: done
 t0: 2026-11-04T17:51          # effective start = t1 minus the gap-free first pass 45m01s (20 operator waits before T1, total 15m43s, section 8); real T0 17:35:17
 t1: 2026-11-04T18:36          # first "done": "Completed and accepted." (log 18:36:02)
 t2: 2026-11-04T18:52          # effective end = t0 + gap-free total 1h01m26s; real T2 18:57:54 (end of follow-up 2), section 8
+total_min: 61                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 60                # init once for all Rosetta methods (shared zips; methods/rosetta-skills.md part 7); this run started from the zips
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 35.5m     # runner /usage after T1; includes 34.6m cached; sum of the 3 model rows

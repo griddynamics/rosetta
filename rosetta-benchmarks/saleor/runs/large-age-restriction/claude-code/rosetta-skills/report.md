@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-26T10:39        # effective start = t1 − gap-free time (164.6 min, runner stall excluded); real T0 08:29:43 in timeline row 1; arithmetic in section 8
 t1: 2026-10-26T13:23
 t2: 2026-10-26T14:23
+total_min: 173                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 225.6k
@@ -279,6 +280,7 @@ Evidence: none ticked. The two problems found in the operator's check after T1 (
 - Strong point of the method in this run: the agent asked many good questions before writing specs (operator): who can set the birthday, apps and impersonation access to the birthday, "today" and the time zone, the "age eligible" flag for other staff, a guest whose email matches an account at completion, drafts linked by `userEmail`, visibility of the audit events to MANAGE_USERS/MANAGE_STAFF staff, how the dashboard learns the viewer is a superuser, and how the new schema reaches the dashboard. (Operator's remark that other agents did not ask these is a comparison between runs and is left out of this report, BENCHMARKS.md section 5.)
 - Weak point of the method in this run: one failed test: the agent ran its backend suites only on the host venv, and one new test failed in the repo's dev container (follow-up 1) (operator).
 - Second strong point (operator): the agent got all hidden questions fully without a follow-up: 3 asked, 6 covered, 0 missed (section 3; #5 reached the agent as a spec correction before any code).
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 13:23:31 → T2 14:23:32: 60m01s. Operator waits after T1: 13:23:31–13:28:29 (4m58s, until the hidden-question check) · 13:28:48–13:55:43 (26m55s, operator's check, until the stack-fix request; the stack fix is agent time) · 13:56:22–14:12:51 (16m29s, operator's check, follow-up 1) · 14:17:01–14:20:29 (3m28s, follow-up 2). Total 51m50s. Agent time after T1 8m11s. Gap-free total = 164.6 + 8.2 ≈ 173 min.
 
 ## Appendix A. Raw `/cost` output
 

@@ -20,6 +20,7 @@ status: done               # done | not-qualifying | infra-fail
 t0: 2026-10-27T15:01  # effective start = t1 minus gap-free time (51.3 min); the real start is 14:39 (timeline row 1)
 t1: 2026-10-27T15:52
 t2: 2026-10-27T16:04
+total_min: 56                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 15 minutes               # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 29.8m
@@ -363,6 +364,7 @@ Evidence:
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a (Spec Kit run)
 - Strong point of the method in this run: Spec Kit's loop surfaced its own gaps. Converge found the line-time validation bug, the error-code mismatch, the time-zone naming mismatch, and a contradiction on the no-birthday eligibility status, and each got a task. The backend answers were right on the core rules: underage, no-birthday and guest blocked; the boundary and the leap day right; privacy redacted, with the support-level account getting null.
 - Weak point of the method in this run: the run ended with 5 of 45 tasks open (T040, T041, T044, T045, T049), and the agent declared "done" anyway. The `checkoutCreate` path skipped the line-time check. The generated GraphQL files were hand-edited instead of regenerated. Two spec review rounds and a T027 correction were needed because the spec first put the checkbox on the create page and dropped the MANAGE_USERS name. It took about 22 minutes of waiting on the operator and roughly 50 minutes of agent time to reach T1 (gap-free).
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 15:52:49 → T2 16:04:28: 11m39s (minute precision after T1, no session log). Operator waits after T1: 15:52:49–15:55:07 (2m18s, `/usage` and hidden-question check) · hidden-check answer (~15:55:25)–15:56:50 (~1m25s) · end of follow-up 1 (16:00)–16:03:17 (2m18s–3m17s) · end of follow-up 2 (16:04)–16:04:22 (0–22s). Agent time after T1 about 5 min (4–7). Gap-free total ≈ 51.3 + 5 ≈ 56 min (55–58).
 
 ## Appendix A. Raw `/usage` output
 

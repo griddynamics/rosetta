@@ -20,6 +20,7 @@ status: done               # done | not-qualifying | infra-fail
 t0: 2026-10-28T11:59   # effective start = t1 minus the gap-free first pass 2h39m34s (11 pre-T1 operator waits, total 43m11s, section 8); real T0 11:15:53 (timeline row 1)
 t1: 2026-10-28T14:38
 t2: 2026-10-29T10:34
+total_min: 160                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 51500000
@@ -390,6 +391,7 @@ Evidence:
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a — this is a Superpowers run
 - Strong point of the method in this run: goes through the flows and steps on its own (operator).
 - Weak point of the method in this run: heavy for small tasks (operator).
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 14:38:38 (28 Oct) → T2 10:34:06 (29 Oct): 19h55m28s. Operator waits after T1: 14:38:38–15:11:56 (33m18s, laptop freezing, check delay) · 15:12:10–15:31:41 (19m31s) · 15:32:05–16:11:09 (39m04s) · 16:11:09–10:33:53 next day (18h22m44s: the Copilot outage (401 from 16:11:09 to at least 16:39:07), overnight). Total 19h54m37s. Agent time after T1 51s (hidden check 14s, follow-up 1 24s, follow-up 2 13s). The outage lies inside an operator wait, so the total is comparable: 2h39m34s + 51s ≈ 160 min.
 
 ## Appendix A. Raw `/usage` output
 

@@ -20,6 +20,7 @@ status: done
 t0: 2026-11-03T12:50          # effective start = t1 minus the gap-free first pass 1h10m24s (7 pre-T1 operator waits, total 28m36s, section 8); real T0 12:20:57 (timeline row 1)
 t1: 2026-11-03T13:59
 t2: 2026-11-03T14:11
+total_min: 71                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 60                # /init-workspace-flow, once for all Rosetta methods (shared zips; methods/rosetta-skills.md part 7, about 1 h); this run started from the zips
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 136.1k      # sum over the 3 models in /usage (95.8k + 28.1k + 12.2k); /usage is cumulative
@@ -323,6 +324,7 @@ Evidence: none ticked. Checked: enforcement and validation are in the core (250 
 - Strong point of the method in this run (operator): the agent worked through all the hidden questions and left no bugs in the code. The implementation was fast and clean.
 - Weak point of the method in this run (operator): I still need to babysit the agent and answer questions.
 - Operator score and merge-ready (operator, judging the final code at T2): 5, merge-ready yes.
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 13:59:57 → T2 14:11:54: 11m57s. Operator waits after T1: 13:59:57–14:11:34 (11m37s, until the hidden-question check). Agent time after T1 20s. Gap-free total = 70m24s + 20s = 70m44s ≈ 71 min.
 
 ## Appendix A. Raw `/usage` output
 

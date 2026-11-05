@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-19T14:51
 t1: 2026-10-19T15:27
 t2: 2026-10-19T15:45
+total_min: 41                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 32100

@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-23T14:09        # effective start = t1 − gap-free time (real T0 10:22, timeline row 1; waits and the 2 runner stalls in section 8)
 t1: 2026-10-23T18:44
 t2: 2026-10-23T20:07        # real time of the last follow-up done (follow-up 2, log 20:07:09); gap-free total in section 8
+total_min: 309                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 60                # /init-workspace-flow, once for all Rosetta methods (see methods/rosetta-light.md, part 7)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 594.5k      # sum over the 3 models in /cost (514.9k + 50.7k + 28.9k); /cost is cumulative

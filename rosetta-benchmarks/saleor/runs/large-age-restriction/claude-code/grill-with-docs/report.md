@@ -20,6 +20,7 @@ status: done  # task variant: operator replaced hidden key #5, see section 8
 t0: 2026-10-22T13:27  # effective start = t1 − 53 gap-free min; real T0 12:29 (timeline #1), section 8
 t1: 2026-10-22T14:20
 t2: 2026-10-22T14:50
+total_min: 55                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 9
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 560
@@ -280,6 +281,7 @@ Evidence: at T1 (14:20) the three new migrations were not applied to the running
 - **Kept as a task variant, no rerun** (team decision of 2026-11-04): hidden #5 follows the operator's visibility rule, so hidden #5, time and cost are not compared with the other large runs; the other results count.
 - **Why the score is 4, not 5** (added 2026-11-02, asked in the team chat): all 12 Done-when checks pass, but two things in the final code would come up in a normal review: (1) the dashboard UI (product "Age restricted" flag, store "Minimum age") is shown only on the staging-schema build (`isStagingSchema()`), so staff don't see it in the normal dashboard build; (2) 10 `saleor/checkout/tests/test_tasks.py` tests were left out of the agent's full backend run, not verified by the operator. The wrong first "done" (2 follow-ups) is counted in `followups` and `red_flags`, not in the score. Storefront translations in 8 locales are not a minus: 3 other large runs did the same (L-CC-04, L-CC-08 with score 5, L-CP-04), the others added English only.
 - Weak point of the method in this run: the first "done" had errors: the feature was not usable in the running app (database not migrated, dashboard UI behind a staging flag) until 2 follow-ups. Merge-ready (operator, changed from no on 2026-10-28); points for the review: dashboard UI only on the staging-schema build, 10 `test_tasks.py` tests excluded without the operator's verification.
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 14:20:22 → T2 14:50:59 (session log): 30m37s. Operator waits after T1: 14:20:22–14:25:26 (5m04s, until the hidden-question check) · 14:25:39–14:37:19 (11m40s, operator's check, follow-up 1) · 14:37:49–14:49:58 (12m10s, operator's check, follow-up 2). Total 28m54s. Agent time after T1 1m43s. Gap-free total = 53.2 + 1.7 ≈ 55 min.
 
 ## Appendix A. Raw `/cost` output
 
