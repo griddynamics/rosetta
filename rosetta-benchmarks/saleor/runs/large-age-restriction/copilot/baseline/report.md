@@ -52,7 +52,7 @@ hidden_matches_answer: 4.0         # #2, #3 yes; #1, #4, #5, #7 partly; #6, #8, 
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12             # at T2, after follow-ups; first check: #1, #2, #3, #6 (storefront), #8, #9 failed
-red_flags: 3
+red_flags: 2   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
 tests_pass: yes                    # run at T2 (section 4, #11)
 operator_score: 3
 operator_merge_ready: no
@@ -423,11 +423,14 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken
+- [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
 - [x] Other: claimed backend validation was impossible while the Docker stack was available
 
 Evidence:
+
+> Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 2 (was 3).
+
 - "Done" while broken: T1 (timeline #8) said "Implementation is complete" while the migrations were not applied (dev API failing, section 4 #8), saving a birthday crashed (#1), no dashboard product page opened (#2) and an underage customer could buy (#3). Backend tests had not been run.
 - Schema not updated: Saleor's committed `saleor/graphql/schema.graphql` was never regenerated. It is not in `saleor.diff`, has no `minimumAge`, `birthday` or `AGE_RESTRICTION` (0 matches; unchanged since setup, modified 2026-10-28 13:36, before T0), while the live API serves all three (read-only introspection during the report audit, code unchanged since T2). The session log has no `get_graphql_schema` call, also not after follow-up 4, when the agent ran `manage.py` in Docker. Saleor requires it (`poe build-schema`, pre-commit hook "Check GraphQL schema is up to date"). The dashboard's `schema-main.graphql` was edited by hand (`apply_patch`, 2026-10-28 14:42), not generated; the dashboard and storefront codegen outputs were updated.
 - Other: at T1 and after follow-up 3 the agent said backend tests and migration checks were "blocked" because "no usable Python/Django environment is installed"; the stack ran in Docker the whole time, and the agent used `docker exec saleor-benchmark-api …` for migrations and pytest from follow-up 4 on (timeline #17, #18).
@@ -455,6 +458,10 @@ Evidence:
 - [ ] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: none (no `workspace-root/`)
 
 ## 8. Notes
+
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 10 follow-ups · build OK
+  - Error: Saleor `schema.graphql` not regenerated; dashboard schema edited by hand
+  - Error: no shop time zone ("today" in UTC)
 
 - Deviations from the protocol, and why: listed in the "Deviation:" items below. The session folder also holds two earlier sessions of the first start (`37fa52fb…` and the in-session restart `29295305…`), with 0 user messages each.
 - Session log: at T0 Copilot CLI called `gpt-4o-mini` once to make the session title ("Implement Age Verification Feature"); it is the CLI's own title call (price 0 in the log), not a subagent.

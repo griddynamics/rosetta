@@ -349,6 +349,10 @@ Evidence:
 
 ## 8. Notes
 
+- **Why not 5** (score 2; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 3 follow-ups · build broken
+  - Build: not finished: 5 of 45 tasks open, full suites not run
+  - Error: `checkoutCreate` accepts restricted lines for guests and customers without a birthday
+
 - Deviations from the protocol, and why:
   - Copilot CLI 1.0.103 (Homebrew cask) instead of the pinned 1.0.101 (npm). Operator decision, recorded in `runner_version`.
   - Operator decision on the Task 2 extra answers: the table is taken as 46 numbered rows (not 18). Applies to all Task 2 answers in this run.

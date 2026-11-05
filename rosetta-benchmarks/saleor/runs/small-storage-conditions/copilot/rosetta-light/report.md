@@ -257,6 +257,9 @@ Evidence: none ticked. The migration was not applied to the dev DB at T1 (row 17
 
 ## 8. Notes
 
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 2 follow-ups · build OK
+  - Error: maximum length 255, not 250 (the operator picked the agent's option)
+
 - Deviations from the protocol, and why: (1) **Hidden #1 answered off the key** (row 3): the operator picked the agent's option "Plain text, 255 characters — recommended" instead of the key's 250. The operator's mistake, not the method's; no follow-up was sent for it (operator decision), so the result keeps 255 and hidden #1 counts as `partly`. (2) No operator message outside the protocol: every stop was answered with the agent's own option or its typed "Yes, …" sentence (Enter). (3) This run replaces the earlier S-CP-07 run; its files stay in git history.
 - **Gap-free time (BENCHMARKS.md section 5).** Real T0 17:35:17, T1 18:36:02: 1h00m45s. Operator waits before T1 (log, local time), 20 ask_user waits in total 15m43s: 17:36:51–17:39:04, 17:39:25–17:39:46, 17:40:18–17:42:35, 17:43:02–17:44:39, 17:45:20–17:46:07, 17:49:27–17:49:54, 17:50:55–17:51:12, 17:53:58–17:54:54, 17:56:09–17:57:47, 17:59:21–17:59:47, 18:00:44–18:01:15, 18:02:32–18:03:09, 18:09:59–18:11:21, 18:13:19–18:14:06, 18:15:58–18:16:42, 18:19:06–18:19:15, 18:20:19–18:20:44, 18:22:16–18:22:18, 18:26:39–18:26:42, 18:35:46–18:35:52. Gap-free first pass = **45m01s**. After T1, agent work: hidden check 20 s; follow-up 1 14m47s (16m28s minus 8 waits, 1m40s); follow-up 2 1m18s (2m07s minus 3 waits, 48 s): total gap-free **1h01m26s**.
 - **Subagents** (`tokens.md`): 8, on the models of the `core-copilot-light` definitions: discoverer ×2 and engineer ×4 on `gpt-6-luna`, reviewer ×2 on `gemini-3.8-flash`; main agent `gpt-5.6-terra`. No fallback to another model.

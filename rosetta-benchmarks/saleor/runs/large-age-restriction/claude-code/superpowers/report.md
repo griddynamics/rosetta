@@ -254,6 +254,9 @@ Checked on 2026-11-04 (section 4): none ticked. Age checks are in the backend (c
 
 ## 8. Notes
 
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 1 follow-up · build OK
+  - Error: an underage customer with a birthday is told to "add your date of birth"
+
 - Deviations from the protocol, and why:
 - **Run predates the Superpowers guide.** `saleor/methods/superpowers.md` (committed 2026-10-21 10:18, after this run) defines `/superpowers:brainstorming <task>` as the T0 command ("team decision, for repeatable results"). This run sent the plain task prompt (no entry command). Superpowers still loaded `brainstorming` by itself, 1 to 3 seconds after the prompt (session log), see timeline.
 - **Replies not as in the guide / rules.** The rules (BENCHMARKS.md §5, guide step 6) say answers come from the tables and never "use your recommendation"; the guide also lists fixed replies per stop. This run used the phrases listed in the timeline (not always the fixed ones).

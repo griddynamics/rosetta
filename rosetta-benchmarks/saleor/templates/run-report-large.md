@@ -221,7 +221,7 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [ ] Agent said "done" while something was clearly broken (not for a problem found in the operator's own check after T1 and fixed by a follow-up: that counts only as a follow-up)
+- [ ] Agent said "done" while something was clearly broken (not for a problem found in the operator's own check after T1 and fixed by a follow-up: that counts only as a follow-up, unless the agent itself knew about the problem before it said "done")
 - [ ] Agent committed or pushed
 - [ ] Other: `<...>`
 

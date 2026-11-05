@@ -52,10 +52,10 @@ hidden_matches_answer: 5           # yes: #2, #3, #4, #5, #7; #1 and #6 missed (
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 8               # at T2; #1 needed follow-up 4, #3/#6 follow-up 3, #7 follow-up 5
-red_flags: 2
+red_flags: 1   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
 tests_pass: yes                    # at T2 (after follow-up 5): backend 268, storefront 788, dashboard 4835 passed (related tests), 0 failed
-operator_score: 3                  # operator; final result at T2 (works with notable gaps)
-operator_merge_ready: no
+operator_score: 4   # was 3; aligned on 2026-11-05 by the team lead to the rule in section 8 ("Why not 5")
+operator_merge_ready: yes   # was no; aligned on 2026-11-05 (section 8)
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
 judge_absolute:            # /40
@@ -276,11 +276,14 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken
+- [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
 - [x] Other: new GraphQL fields not marked `@lockSchema`, so a dashboard test failed on the staging schema until follow-up 5
 
 Evidence (ticked by the operator):
+
+> Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 1 (was 2).
+
 - Other (new GraphQL fields not marked `@lockSchema`): the agent updated the schema and codegen (Saleor `schema.graphql`, dashboard `schema-main.graphql` and generated files), so "codegen not updated" is not ticked. But `storageConditions` was neither added to `schema-staging.graphql` nor marked `@lockSchema`, so `src/graphql/lockSchema.test.ts` failed on the staging schema from the first pass (fields added 09:06–09:08) until follow-up 5 (row 15).
 - Agent said "done" while something was clearly broken: at T1 (09:18) it wrote "All checks passed", but the dev API failed on every product query because migration `0211` was not applied to the dev database (follow-up 3), the dashboard Save button stayed disabled when only storage conditions changed (follow-up 4), and `lockSchema.test.ts` failed (follow-up 5).
 
@@ -314,6 +317,10 @@ Evidence (ticked by the operator):
 - [x] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: none
 
 ## 8. Notes
+
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 5 follow-ups · build OK
+  - Error: spaces not trimmed
+  - Error: the 250-character limit stops typing without a message
 
 - Deviations from the protocol, and why: none. `/env` lists the built-in `computer-use` plugin; its MCP server is off and not connected. `enabledPlugins.computer-use=false` was tried, didn't remove it, and was taken out again.
 - **Leading spaces are kept** (operator: not what they expected): the value is stored as entered, without trimming. On Carrot Juice the saved 250-character value starts with the space that was left in the field (`" Keep refrig…"`, API at 10:11:04).

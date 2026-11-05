@@ -52,10 +52,10 @@ hidden_matches_answer: 7   # how many of the 7 the ORIGINAL result (first pass, 
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 8
-red_flags: 1   # number of ticked red flags
+red_flags: 0   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
 tests_pass: yes   # yes | no (operator ran them at T2)
-operator_score: 3.5   # 1–5, anchors in templates/README.md
-operator_merge_ready: no   # yes | no   # changed from yes on 2026-11-02: breaking productTranslate change, as S-CC-01 (section 8)
+operator_score: 3   # was 3.5; aligned on 2026-11-05 by the team lead to the rule in section 8 ("Why not 5")
+operator_merge_ready: no   # was no; aligned on 2026-11-05 (section 8)
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
 judge_absolute:            # /40
@@ -215,11 +215,14 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken: at T1 ("implemented end to end") the migration was not applied to the running database, so every product query failed and the storefront showed "Something went wrong" (follow-up 1), and the dashboard Save button stayed disabled after editing the field, so the value could not be saved (follow-up 2)
+- [ ] Agent said "done" while something was clearly broken: at T1 ("implemented end to end") the migration was not applied to the running database, so every product query failed and the storefront showed "Something went wrong" (follow-up 1), and the dashboard Save button stayed disabled after editing the field, so the value could not be saved (follow-up 2)
 - [ ] Agent committed or pushed
 - [ ] Other: `<...>`
 
 Evidence: one red flag, given by the operator (timeline rows 20–26). The other items were checked and not seen: logic is enforced in the backend, the migration exists, schema and codegen were updated, no tests weakened, no leftovers (section 4, check 8), no commits.
+
+> Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 0 (was 1).
+
 
 ## 6. Agent's claims vs reality (from `agent-report.md`)
 
@@ -243,6 +246,9 @@ Evidence: one red flag, given by the operator (timeline rows 20–26). The other
 - [x] Workspace-root files the method wrote during the run: `workspace-root/GLOSSARY.md` (the setup files `AGENTS.md`, `docs/agents/*`, `.agents/skills/`, `skills-lock.json` are the one-time setup, kept in `envs/grill-with-docs/root-copilot/`)
 
 ## 8. Notes
+
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 2 follow-ups · build OK
+  - Error: breaking `productTranslate` API change
 
 - Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 5 gaps of 4 min or more (the longest the overnight pause, 891 min); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - **The run spans two days; the agent worked about 17 minutes.** The interview and first pass ran on 2026-10-26 (T0 17:02:41, T1 17:30:05, log). The operator then stopped for the day and continued on 2026-10-27 in the same session with the hidden-question check (08:21:07), the two follow-ups and the final checks (T2 08:50:54). So the session's wall-clock length in `/usage` ("15h 16m" at T1, "16h 1m" at T2) and `t2 − t0` include the night; they are not agent time.

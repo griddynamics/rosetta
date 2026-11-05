@@ -241,6 +241,9 @@ Evidence: `<one line per ticked item>`
 
 ## 8. Notes
 
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 3 follow-ups · build OK
+  - Error: breaking `productTranslate` API change
+
 - Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 7 gaps of 4 min or more (the longest 14 min 53 s); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - Deviations from the protocol, and why:
   1. **First attempt restarted** (11:18): the pasted prompt lost its last line, and a stray ` /model` reached the agent. Reset, new session; T0 = 11:24 (`retries: 1`).

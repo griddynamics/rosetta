@@ -52,9 +52,9 @@ hidden_matches_answer: 8  # of 8 applicable; #5 replaced by the operator's varia
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
-red_flags: 1
+red_flags: 0   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
 tests_pass: yes
-operator_score: 4  # not 5: dashboard UI only on the staging-schema build; 10 test_tasks.py tests left out, not verified (section 8)
+operator_score: 4  # not 5: dashboard UI only on the staging-schema build (section 8, "Why not 5")
 operator_merge_ready: yes  # changed from no by the operator on 2026-10-28
 # Filled later by the evaluator from the judge reports
 verified_in_code: 8/8
@@ -225,11 +225,14 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken
+- [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
 - [ ] Other: `<...>`
 
 Evidence: at T1 (14:20) the three new migrations were not applied to the running database, and the dashboard UI was behind `FF_USE_STAGING_SCHEMA` (off in the running dashboard), so the feature was not usable in the running app; fixed by follow-ups 1 and 2 (timeline #16, #18). Operator confirmed the flag.
+
+> Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 0 (was 1).
+
 
 ## 6. Agent's claims vs reality (from `agent-report.md`)
 
@@ -253,6 +256,9 @@ Evidence: at T1 (14:20) the three new migrations were not applied to the running
 - [ ] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: `workspace-root/`
 
 ## 8. Notes
+
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 2 follow-ups · build OK
+  - Error: age fields shown only on the staging-schema dashboard build
 
 - Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 10 gaps of 4 min or more (the longest 33 min 22 s); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - Deviations from the protocol, and why:

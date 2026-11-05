@@ -54,8 +54,8 @@ done_checks_total: 12
 done_checks_passed: 7      # strict count: clean passes only (3,4,6,7,8,10,11). Check 5 not testable (environment) and check 9 partial are excluded.
 red_flags: 2               # number of ticked red flags
 tests_pass: yes            # yes | no (operator ran them at T2)
-operator_score: 3          # 1–5, anchors in templates/README.md
-operator_merge_ready: yes  # yes | no
+operator_score: 3   # was 3; aligned on 2026-11-05 by the team lead to the rule in section 8 ("Why not 5")
+operator_merge_ready: no   # was yes; aligned on 2026-11-05 (section 8)
 # Filled later by the assistant: verified_in_code from step 0.3, judge_* from the diff judge's JSON
 verified_in_code: 7/9      # items verified in code / items checked (e.g. 8/9) — items 1,2,3,5,8,9 verified directly in run-output/saleor.diff; item 4 verified live (check 5) + the uncommitted storefront redirect code (check 12); items 6,7 are advisory-only (no code expected), not counted
 judge_total:               # diff score: total + bonus, from the totals script
@@ -362,6 +362,10 @@ Evidence:
 - [ ] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: `workspace-root/` (none written; the folder was empty and removed by Step 10)
 
 ## 8. Notes
+
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 2 follow-ups · build OK
+  - Error: Save not enabled when only the birthday or only the age flag changes
+  - Error: 22 storefront files never committed; unrelated Stripe and login changes in the diff
 
 - Deviations from the protocol, and why:
   - Before T0, the earlier sessions of this workspace were not deleted: `session-state` held three sessions from 09:09–09:11 (folder trust, login, the "react todo list" trigger check; ids `eb2942f6…`, `6187dfb7…`, `c930af2a…`) besides this run's session `87563543…`. The first start with the cleanup lines was apparently skipped (found at 11:16 by the assistant, from the session folders). They hold no part of this run's context (this run's session started at 11:15:27 with no earlier chat, memory off; the run log never mentions their ids). `session-usage.py` takes the newest session of the folder and `--copy-to` copies only that one, so they do not enter `tokens.md` (checked in the script during the run; an earlier line of this note said otherwise and was wrong for Copilot). Theoretical channel, not used: the agent has the `session_store_sql` tool and `session-store.db` holds one earlier session (the "Create React Todo List" trigger check, 1 turn); the agent made no `session_store_sql` call (its 9 `sql` calls up to 11:53 touch only its own todos), and the method's cleanup removes only the session folders. Decision (operator): leave them — confirmed harmless, left in place.

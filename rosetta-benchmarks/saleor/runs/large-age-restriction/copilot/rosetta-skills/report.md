@@ -594,6 +594,10 @@ Evidence: none ticked. The migrations were not applied to the dev database at th
 
 ## 8. Notes
 
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 1 follow-up · build OK
+  - Error: the "Age-restricted product" checkbox alone does not enable Save
+  - Error: hidden #6 (marketing emails) not handled: the follow-up was not sent (AI credit limit)
+
 - **Run paused at the AI credit limit (2026-11-04, after 16:04), by the team lead's decision.** `/usage` at T1 (14:24) showed the plan at 94% used (4,740 / 5,000 AIC); this session had used 1,303.43 AIC at T1. The Copilot session is kept open and the stack is not reset, so the run can be resumed in the same session. **Session id: `31501a74-c294-44df-aea8-6243e9e7a466`** (`$COPILOT_HOME/session-state/31501a74-c294-44df-aea8-6243e9e7a466/`; the in-session checks ran in the earlier session `31a89adf-d3b4-4cd8-8a7e-bbe470987a11`). State at the pause:
   - T1 14:24 (log 14:24:13), `/usage` at T1 in Appendix A; hidden-question check 14:35 (row 23), answer in Appendix B; marks in section 3 (#2, #3 covered and #6 not covered as proposed, #7 open, operator to confirm).
   - Follow-up 1 (hidden #5, age label) sent 15:52 and done 16:04 (rows 24–29).

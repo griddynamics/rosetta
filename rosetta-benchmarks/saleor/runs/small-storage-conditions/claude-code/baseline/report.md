@@ -348,6 +348,11 @@ Evidence:
 
 ## 8. Notes
 
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 3 follow-ups · build OK
+  - Error: breaking `productTranslate` API change
+  - Error: a value of only spaces is saved
+  - Error: unrelated storefront file in the diff
+
 - Deviations from the protocol, and why:
   1. The in-session checks in section 1 (`/model`, `/skills`, `/plugin`, `/mcp`, status line) were taken in session `53e18020…`. The operator then restarted `claude` with the same command; the run session `df65cf95…` started in plan mode at 02:08 with the task prompt, and the checks were not repeated in it.
   2. **Post-implementation prompt sent in a resumed session.** The operator closed the session with `/exit` before step 11. The session was reopened at 04:24 with `claude --resume df65cf95-15b9-4bcc-b97c-4fb57d720829 --permission-mode bypassPermissions --model claude-sonnet-5-5` and the prompt sent there. This is after T2, so no data-block value changes; `tokens.md` was regenerated after the second `/exit`. When it was regenerated, the resumed `claude` process was still listed as running (it exited soon after); the log had no writes after 04:25:03.

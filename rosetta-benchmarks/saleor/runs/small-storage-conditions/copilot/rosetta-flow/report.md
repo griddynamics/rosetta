@@ -592,6 +592,10 @@ Evidence: none ticked. Not ticked, with the reason: the storefront broken at T1 
 
 ## 8. Notes
 
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 2 follow-ups · build OK
+  - Error: 7 trailing-space lines in `schema.graphql` (`git diff --check` fails)
+  - Error: storefront label not translated in other locales
+
 - Deviations from the protocol, and why:
   - **First Rosetta run on Copilot CLI: one-time setup done this morning.** `envs/rosetta/copilot` did not exist, so part 4 of methods/rosetta-flow.md ("not verified yet") ran for the first time (≈10:35–11:37): common settings (4.3; the Python heredoc was run from a script file because the terminal paste indented it), plugin install from the local marketplace (4.4), login and folder trust (4.6). Not part of the run time.
   - **Plugin pin `6215332c`.** The shared clone `envs/rosetta/src` was at `817b3adf` (the pin S-CC-06's rerun used). On the team lead's instruction ("For every Rosetta Copilot run: pin 6215332c, session model GPT-5.6 Terra medium, start from the zips, and check sub-agent models in tokens.md") it was checked out at `6215332c` before T0, and the isolation check and in-session checks were run again (isolation output unchanged apart from the order of the two plugins in `plugin list`). Between the two pins only `plugins/core-copilot/commands/init-workspace-flow-documentation.md` differs in the Copilot plugin.

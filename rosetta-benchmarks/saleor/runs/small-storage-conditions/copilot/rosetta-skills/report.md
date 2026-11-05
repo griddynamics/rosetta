@@ -52,7 +52,7 @@ hidden_matches_answer: 6        # of 7: #6 not built in the first pass
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 7           # #8 fails: a 40,101-line copy of the core schema left in react-storefront/schema.graphql (section 4)
-red_flags: 2                    # schema.graphql not regenerated after the CSV enum change; leftover storefront schema copy (section 5)
+red_flags: 3   # schema.graphql not regenerated after the CSV enum change; leftover storefront schema copy; said done while it knew the migration was not applied (added 2026-11-05) (section 5)
 tests_pass: yes                 # changed/new test files of all 3 repos, run after T2 (section 4, #7)
 operator_score: 4               # operator: works end to end; not 5 because of 2 small fixes: the leftover storefront schema copy and the stale schema.graphql (sections 4, 5, 8)
 operator_merge_ready: yes       # operator
@@ -233,11 +233,12 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [x] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [ ] Agent said "done" while something was clearly broken (not for a problem found in the operator's own check after T1 and fixed by a follow-up: that counts only as a follow-up)
+- [x] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
 - [ ] Other: `<...>`
 
 Evidence:
+- Said done while broken (ticked on 2026-11-05 by the team lead): the agent itself wrote at 12:58 and 13:01 that migration 0211 was not applied to the dev database, and still reported done at 14:05. Rule: the follow-up exception covers only problems the agent did not know about; a problem the agent knew and still called done is a red flag.
 - Schema: `saleor/graphql/schema.graphql` has the `storageConditions` fields but not `ProductFieldEnum.STORAGE_CONDITIONS`, which follow-up 1 added to `graphql/csv/enums.py`; the schema was not rebuilt after that change (`get_graphql_schema` from the running API prints it). Saleor's schema-drift check would fail; a small fix. Separately, `saleor-dashboard/schema-main.graphql` was replaced by a copy of the core schema (+2,243 −2,554) instead of a targeted update, which also churns 5 generated files (+348 −914); typecheck and tests pass.
 - Leftover: `react-storefront/schema.graphql`, 40,101 lines, a temporary codegen input (section 4 #8).
 Not ticked: "said done while clearly broken": the missing migration and the disabled Save button were found in the operator's own check after T1 and fixed by follow-ups (counted there). Not ticked: unrelated changes (the `ProductDetailsForm.stories.tsx` edit adds the new prop only).
@@ -264,6 +265,10 @@ Not ticked: "said done while clearly broken": the missing migration and the disa
 - [x] Workspace-root files the method wrote: `workspace-root/` (the root-zip init files plus the agent's `agents/MEMORY.md` edits)
 
 ## 8. Notes
+
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 3 follow-ups · build broken
+  - Build: schema-drift check fails: `saleor/graphql/schema.graphql` not rebuilt
+  - Error: a 40,101-line schema copy left in the storefront; dashboard schema replaced wholesale
 
 - Deviations from the protocol, and why: (1) **Two operator messages outside the protocol** (rows 13, 17): `finish the work fully` (12:55) and `fix everything no HITL before done` (13:41). The second told the agent to skip its HITL approval gates for the rest of the first pass; the agent confirmed "without further approval gates". The spec gate and all product questions were already behind it (rows 3–9), so the decisions are unaffected, but the number of stops after 13:41 is lower than the method would make on its own. Same kind of deviation as the "fully autonomous" message in L-CC-07; for the team to decide on comparability. (2) Several stops were answered with the agent's own "Yes, …" option instead of `Approved, continue.` (rows 7, 8, 11) and twice as `approved continue` (row 16); same meaning, counted as method steps. (3) This run replaces the stopped first attempt of 29 Oct (subagents fell back to another model); its files were saved outside the repo before the reset, nothing of it was committed.
 - **Gap-free time (BENCHMARKS.md section 5).** Real T0 12:09:06, T1 14:05:30: 1h56m24s. Operator waits before T1 (log, local time), 21 in total 1h45m46s: ask_user 12:09:47–12:15:02, 12:15:33–12:19:41, 12:20:04–12:30:56, 12:32:04–12:35:25, 12:35:57–12:38:15, 12:38:48–12:40:48, 12:41:14–12:41:54, 12:42:43–12:43:41, 12:47:01–12:48:12; idle before messages 12:44:20–12:46:42, 12:48:21–12:51:50, 12:52:19–12:55:28, 12:55:47–12:58:03, 12:58:33–13:01:43, 13:01:54–13:21:55, 13:22:07–13:28:29, 13:29:00–13:37:15, 13:37:40–13:39:32, 13:40:09–13:41:11, 13:41:53–13:59:20, 13:59:38–14:05:16. Gap-free first pass = **10m38s** (cross-check: the assistant turns before T1 total 41m20s, of which 30m42s are ask_user waits). After T1, agent work: hidden check 14 s, follow-up 1 46 s, follow-up 2 40 s (without its 49 s approval wait), follow-up 3 45 s: total gap-free **13m03s**. The agent itself was fast; the run was long because of 17 operator stops.
