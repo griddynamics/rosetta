@@ -1,6 +1,6 @@
 ---
 name: orchestration
-description: "To delegate, prompt and manage subagents. MUST activate to spawn subagent with a quality prompt, unless trivial."
+description: "To delegate, prompt and manage subagents. MUST activate to spawn subagent with a quality prompt, unless small task."
 ---
 
 <orchestration>
@@ -21,9 +21,9 @@ Prerequisites: USE SKILL `hitl`, `load-project-context`
 
 <request_sizing>
 
-- <200 LOC expected and =1 area → SMALL → hold it yourself on todo-task ledger; subagents for fresh-eye review.
-- <2000 LOC expected and ≤3 areas → MEDIUM → keep todo-task ledger; build + manage a subagent team — no longer a worker.
-- >2000 LOC expected or >3 areas → LARGE → orchestrator context will be overloaded, so it must delegate everything to subagents, todo tasks must be at a higher level and help orchestrator itself. MUST APPLY SKILL FILE `assets/o-team-manager.md`. Report how you will organize and orchestrate that work.
+- <200 LOC expected and =1 area → SMALL → handle it by yourself with todo-task ledger; subagents are only for fresh-eye review.
+- <2000 LOC expected and ≤3 areas → MEDIUM → keep todo-task ledger; use subagents only if context is separated (like frontend and backend work), it is warranted, or for fresh-eye review.
+- >2000 LOC expected or >3 areas → LARGE → build + manage a subagent team — no longer a worker, orchestrator context will be overloaded, so it must delegate everything to subagents, todo tasks must be at a higher level and help orchestrator itself. MUST APPLY SKILL FILE `assets/o-team-manager.md`. Report how you will organize and orchestrate that work.
 
 Roughly 5 files to change/write likely means small; 20 files - medium; 40+ files - large; 
 
