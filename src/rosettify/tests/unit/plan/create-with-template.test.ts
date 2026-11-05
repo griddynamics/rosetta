@@ -33,6 +33,17 @@ function planFile(name = "plan.json"): string {
 // ---------------------------------------------------------------------------
 
 describe("cmdCreateWithTemplate — FR-PLAN-0030 happy path", () => {
+  it("re-create links the previous template plan in the result and file", async () => {
+    const file = planFile();
+    expect((await cmdCreateWithTemplate(file, "for-orchestrator", "First", "desc", "[]")).ok).toBe(true);
+    const before = fs.readFileSync(file);
+    const result = await cmdCreateWithTemplate(file, "for-orchestrator", "Second", "desc", "[]");
+    expect(result.ok).toBe(true);
+    expect(result.result!.plan.previous_version).toBe(file + ".bak000");
+    expect(loadPlan(file)!.previous_version).toBe(file + ".bak000");
+    expect(fs.readFileSync(file + ".bak000")).toEqual(before);
+  });
+
   // FR-PLAN-0030 — creates plan via template; returns compressed-tree
   it("creates plan from for-orchestrator template and returns compressed-tree", async () => {
     const file = planFile();

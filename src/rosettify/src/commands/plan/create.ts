@@ -1,9 +1,10 @@
 // Implements FR-PLAN-0010 (create subcommand) and FR-PLAN-0040 (compressed-tree output).
-// Uses FR-PLAN-0024 write cycle (first-create path: direct write, previous_version=null).
+// Uses FR-PLAN-0024 write cycle for both first creates and replacements.
 
 import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
+import { atomicReplaceWithBackup } from "../../shared/doc-io.js";
 import {
   type Plan,
   type Phase,
@@ -84,12 +85,13 @@ export async function cmdCreate(
     if (sizeErr) return err(sizeErr);
 
     propagateStatuses(plan);
-    // FR-PLAN-0026 — savePlan writes pretty-formatted JSON (2-space indent)
-    savePlan(planFile, plan);
+    const writeResult = await atomicReplaceWithBackup(planFile, plan, savePlan);
+    if (!writeResult.ok) {
+      return { ok: false, result: null, error: writeResult.error, include_help: writeResult.include_help };
+    }
 
     logger.info({ planFile, name: plan.name }, "plan created");
-    // FR-PLAN-0040 — return PlanWriteResult shape (plan + phases); previous_version=null on first create (FR-PLAN-0010)
-    return ok(buildPlanWriteResult(plan, null));
+    return ok(buildPlanWriteResult(plan, writeResult.result!.backupPath));
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return err(`internal_error: ${msg}`);

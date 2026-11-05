@@ -111,6 +111,25 @@ describe("cmdUpsert — entire_plan on missing file (create)", () => {
     expect(fs.existsSync(file)).toBe(true);
     const plan = loadPlan(file)!;
     expect(plan.name).toBe("Created");
+    expect(tree.plan.previous_version).toBeNull();
+    expect(plan.previous_version).toBeNull();
+    expect(fs.readdirSync(tmpDir)).toEqual(["new.json"]);
+  });
+
+  it("re-checks for a concurrent first create under the lock and merges into it", async () => {
+    const file = planFile("new.json");
+    fs.mkdirSync(file + ".lock");
+    const pending = cmdUpsert(file, "entire_plan", { description: "Merged" });
+    expect(fs.existsSync(file)).toBe(false);
+    savePlan(file, minimalPlan());
+    const before = fs.readFileSync(file);
+    fs.rmdirSync(file + ".lock");
+    const result = await pending;
+    expect(result.ok).toBe(true);
+    expect(result.result!.plan.previous_version).toBe(file + ".bak000");
+    expect(loadPlan(file)!.name).toBe(minimalPlan().name);
+    expect(loadPlan(file)!.description).toBe("Merged");
+    expect(fs.readFileSync(file + ".bak000")).toEqual(before);
   });
 });
 

@@ -92,7 +92,7 @@ Note: All "Output:" references in this file describe the `result` field contents
 
 <req id="FR-PLAN-0010" type="FR" level="System">
   <title>plan create subcommand</title>
-  <statement>plan create SHALL accept a plan JSON object and a file path. It SHALL create the plan file with: status defaults (open for all phases/steps), depends_on defaults ([]), timestamps (created_at, updated_at set to current ISO8601), default name "Unnamed Plan" when not provided, and previous_version set to null. It SHALL create parent directories if they don't exist. All validations (unique IDs, dependencies, size limits, cycles) SHALL run before writing. The result SHALL conform to the PlanWriteResult shape defined in FR-PLAN-0040.</statement>
+  <statement>plan create SHALL accept a plan JSON object and a file path. It SHALL create the plan file with: status defaults (open for all phases/steps), depends_on defaults ([]), timestamps (created_at, updated_at set to current ISO8601), and default name "Unnamed Plan" when not provided. It SHALL write through the FR-PLAN-0024 cycle and replace any existing file without reading it, so unreadable content is still replaced and kept in the backup; previous_version SHALL be null when no file exists at the path. It SHALL create parent directories if they don't exist. All validations (unique IDs, dependencies, size limits, cycles) SHALL run before writing. The result SHALL conform to the PlanWriteResult shape defined in FR-PLAN-0040.</statement>
   <rationale>PlanWriteResult output gives AI agents an immediate post-write snapshot without a follow-up query.</rationale>
   <source>Sources</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -100,7 +100,7 @@ Note: All "Output:" references in this file describe the `result` field contents
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: create with {name: "My Plan", phases: []}. When: executed. Then: file exists with status=open, created_at and updated_at set, and the plan document's previous_version=null; the result matches the PlanWriteResult shape from FR-PLAN-0040 with result.plan.previous_version=null. Given: no name provided. Then: name="Unnamed Plan". Given: nested path that doesn't exist. Then: parent dirs are created.</criteria>
+    <criteria>Given: no file exists at the path and create with {name: "My Plan", phases: []}. When: executed. Then: file exists with status=open, created_at and updated_at set, and the plan document's previous_version=null; the result matches the PlanWriteResult shape from FR-PLAN-0040 with result.plan.previous_version=null. Given: no name provided. Then: name="Unnamed Plan". Given: an existing plan file, valid or not. When: create is executed. Then: the old file is moved unchanged to the next backup, and the plan document's previous_version and result.plan.previous_version both point to that backup. Given: nested path that doesn't exist. Then: parent dirs are created.</criteria>
   </acceptance>
 </req>
 
@@ -644,7 +644,7 @@ All input parameters for the template-using subcommands (FR-PLAN-0030, FR-PLAN-0
   <statement>Every successful plan-file mutation SHALL execute the following cycle under cross-process mutual exclusion:
 
 0. Acquire a cross-process exclusive mutex over the plan file. The mutex SHALL be implemented as an atomic-create primitive (e.g. `mkdir(2)` on a `<plan_file>.lock` directory, or an equivalent `O_CREAT|O_EXCL` file marker) — NOT as a rename or hardlink, both of which do not provide cross-process mutual exclusion (see "Concurrency primitive constraints" below). On EEXIST the writer SHALL back off briefly (jittered ~20 ms) and retry. A mutex held longer than 30 seconds SHALL be considered stale and MAY be reclaimed by another writer.
-1. Read the current plan from the plan file (subject to FR-SHRD-0009 read resilience).
+1. Read the current plan from the plan file (subject to FR-SHRD-0009 read resilience). plan create skips this read and replaces the file whole (FR-PLAN-0010). When no file exists at the path, steps 3 and 5 are skipped and previous_version is null.
 2. Apply the requested mutation in memory.
 3. Compute the next backup name as `<plan_file>.bakNNN` where NNN is the lowest non-negative 3-digit-zero-padded integer greater than the highest existing matching backup index in the same directory.
 4. Set the in-memory plan's `previous_version` field to the computed backup path.
@@ -669,15 +669,15 @@ Implementations SHALL NOT use plain rename or plain hardlink as the cycle's excl
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: a successful write. When: the filesystem is inspected. Then: a new `<plan_file>.bakNNN` file exists containing the pre-write plan, and the plan file contains the post-write plan with previous_version pointing to that backup. Given: 6 successive successful writes with retention=5. Then: exactly 5 backups remain; the oldest has been deleted. Given: N concurrent processes (N ≥ 10) each performing one upsert against the same plan file. When: all complete. Then: every process that reports success has its mutation present in the final plan (no lost writes); the final plan is valid JSON; the bak chain is well-formed; retention is enforced. Given: a writer crashes while holding the lock and a new writer attempts the cycle after the stale-lock timeout. Then: the new writer reclaims the lock and proceeds. Given: mutex contention exhausts 50 attempts. Then: returns `backup_create_failed`. Given: any write succeeds. Then: the plan's `previous_version` equals the path of the just-created backup.</criteria>
+    <criteria>Given: a successful write to an existing file. When: the filesystem is inspected. Then: a new `<plan_file>.bakNNN` file exists containing the pre-write plan, and the plan file contains the post-write plan with previous_version pointing to that backup. Given: 6 successive successful writes with retention=5. Then: exactly 5 backups remain; the oldest has been deleted. Given: N concurrent processes (N ≥ 10) each performing one upsert against the same plan file. When: all complete. Then: every process that reports success has its mutation present in the final plan (no lost writes); the final plan is valid JSON; the bak chain is well-formed; retention is enforced. Given: a writer crashes while holding the lock and a new writer attempts the cycle after the stale-lock timeout. Then: the new writer reclaims the lock and proceeds. Given: mutex contention exhausts 50 attempts. Then: returns `backup_create_failed`. Given: any write to an existing file succeeds. Then: the plan's `previous_version` equals the path of the just-created backup.</criteria>
   </acceptance>
 </req>
 
 ### FR-PLAN-0025 Concurrent Write Safety
 
 <req id="FR-PLAN-0025" type="FR" level="System">
-  <title>Safe concurrent writes without locking</title>
-  <statement>Plan file writes SHALL be safe under concurrent invocation. The concurrency mechanism for plan writes is the rename-as-guard cycle defined in FR-PLAN-0024, which serializes writers via atomic rename and recovers via bounded restart. The shared optimistic-concurrency function (FR-SHRD-0006) SHALL NOT be used for plan writes; FR-PLAN-0024 supersedes it for this surface. On retry exhaustion the error code is `backup_create_failed` (FR-PLAN-0024), not `concurrent_write_conflict`.</statement>
+  <title>Safe concurrent writes</title>
+  <statement>Plan file writes SHALL be safe under concurrent invocation. The concurrency mechanism for plan writes is the FR-PLAN-0024 cycle, which serializes writers with a cross-process mutex and recovers via bounded restart. The shared optimistic-concurrency function (FR-SHRD-0006) SHALL NOT be used for plan writes; FR-PLAN-0024 supersedes it for this surface. On retry exhaustion the error code is `backup_create_failed` (FR-PLAN-0024), not `concurrent_write_conflict`.</statement>
   <rationale>Parallel subagents write to the same plan file simultaneously. FR-PLAN-0024 provides stronger guarantees (atomic guard + backup chain + crash-recovery resilience) than optimistic re-read; using one mechanism prevents drift and ambiguity about which error code surfaces when writes contend.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -685,7 +685,7 @@ Implementations SHALL NOT use plain rename or plain hardlink as the cycle's excl
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: two concurrent upserts to the same plan file. When: both complete. Then: file is valid JSON, no data corruption, both mutations applied (one via restart). Given: the rename-as-guard cycle exhausts 50 attempts under sustained contention. Then: {error: "backup_create_failed"}. Given: any plan-file write path. When: inspected in source. Then: it routes through the FR-PLAN-0024 write cycle and does not call the FR-SHRD-0006 optimistic-concurrency function.</criteria>
+    <criteria>Given: two concurrent upserts to the same plan file. When: both complete. Then: file is valid JSON, no data corruption, both mutations applied (one via restart). Given: the FR-PLAN-0024 cycle exhausts 50 attempts under sustained contention. Then: {error: "backup_create_failed"}. Given: any plan-file write path. When: inspected in source. Then: it routes through the FR-PLAN-0024 write cycle and does not call the FR-SHRD-0006 optimistic-concurrency function.</criteria>
   </acceptance>
 </req>
 

@@ -1,7 +1,6 @@
 // Implements FR-SHRD-0009 (read resilience with retry) and FR-PLAN-0024 (atomic write with rename-as-guard).
 // Generalized from plan-io.ts so both `plan` and `specs` share one file-IO implementation
-// (FR-SPECS-0070/0071) — bodies are unchanged except the error-code source, which is now an
-// optional parameter defaulting to plan's exact strings so plan behavior is byte-identical.
+// (FR-SPECS-0070/0071), with optional error codes defaulting to plan's strings.
 
 import * as fs from "fs";
 import * as path from "path";
@@ -145,24 +144,65 @@ export async function readDocWithRetry<Doc extends { previous_version?: string |
 /**
  * Wraps a document mutation in the rename-as-guard write cycle (FR-PLAN-0024).
  *
- * Used only when an existing document file is being mutated. First-ever create writes
- * (file does not yet exist) bypass this helper and call the caller's save function directly
- * with previous_version=null, per FR-PLAN-0024 ("first-ever create: skip steps 1, 3, 5, 7").
+ * The optional create callback handles a missing file, checked under the same lock as
+ * existing-file mutations. First writes have no backup and previous_version=null.
  *
  * Retry loop bounded to PLAN_BACKUP_MAX_RETRIES.
- * Any failure within the cycle restarts from step 1.
+ * Write failures restart with a fresh lock attempt.
  * Mutation returning ok:false bubbles immediately (logic error, not a write failure).
  */
 export async function atomicWriteWithBackup<Doc extends { previous_version?: string | null; updated_at: string }, T>(
   filePath: string,
-  mutate: (doc: Doc) => { ok: true; result: T; updated: Doc } | { ok: false; error: string; include_help?: boolean },
+  mutate: (doc: Doc) => DocMutation<Doc, T>,
   saveDoc: (filePath: string, doc: Doc) => void,
-  options?: { maxRetries?: number; retention?: number; errors?: DocIoErrors },
+  options?: WriteOptions & { create?: () => DocMutation<Doc, T> },
+): Promise<RunEnvelope<{ result: T; backupPath: string | null }>> {
+  if (options?.create) fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  return writeWithBackup(filePath, async (exists) => {
+    if (!exists && options?.create) return options.create();
+    let current: Doc | null;
+    try {
+      current = await readDocWithRetry<Doc>(filePath);
+    } catch {
+      return { ok: false, error: options?.errors?.corrupted ?? "plan_file_corrupted" };
+    }
+    if (!current) return { ok: false, error: options?.errors?.notFound ?? "plan_not_found" };
+    return mutate(current);
+  }, saveDoc, options);
+}
+
+/** Replaces a document without parsing its old content, preserving even corrupted bytes. */
+export async function atomicReplaceWithBackup<Doc extends { previous_version?: string | null; updated_at: string }>(
+  filePath: string,
+  doc: Doc,
+  saveDoc: (filePath: string, doc: Doc) => void,
+  options?: WriteOptions,
+): Promise<RunEnvelope<{ result: Doc; backupPath: string | null }>> {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  return writeWithBackup(filePath, (exists) => {
+    if (exists && !fs.statSync(filePath).isFile()) throw new Error(`Not a regular file: ${filePath}`);
+    return { ok: true, result: doc, updated: doc };
+  }, saveDoc, options);
+}
+
+type DocMutation<Doc, T> =
+  | { ok: true; result: T; updated: Doc }
+  | { ok: false; error: string; include_help?: boolean };
+
+interface WriteOptions {
+  maxRetries?: number;
+  retention?: number;
+  errors?: DocIoErrors;
+}
+
+async function writeWithBackup<Doc extends { previous_version?: string | null; updated_at: string }, T>(
+  filePath: string,
+  prepare: (exists: boolean) => DocMutation<Doc, T> | Promise<DocMutation<Doc, T>>,
+  saveDoc: (filePath: string, doc: Doc) => void,
+  options?: WriteOptions,
 ): Promise<RunEnvelope<{ result: T; backupPath: string | null }>> {
   const maxRetries = options?.maxRetries ?? PLAN_BACKUP_MAX_RETRIES;
   const retention = options?.retention ?? PLAN_BACKUP_RETENTION;
-  const corruptedError = options?.errors?.corrupted ?? "plan_file_corrupted";
-  const notFoundError = options?.errors?.notFound ?? "plan_not_found";
 
   // FR-PLAN-0024 write cycle. The FR statement names rename-as-guard, but neither plain
   // renameSync (POSIX rename overwrites the target — clobbers another writer's bak) nor
@@ -206,26 +246,16 @@ export async function atomicWriteWithBackup<Doc extends { previous_version?: str
     }
 
     try {
-      // Step 1: Read with resilience
-      let current: Doc | null;
-      try {
-        current = await readDocWithRetry<Doc>(filePath);
-      } catch (e) {
-        // parse failure — treat as corrupted, bubble immediately
-        return err(corruptedError);
-      }
-
-      if (!current) return err(notFoundError);
-
-      // Step 2: Apply mutation in memory
-      const fnResult = mutate(current);
+      // Steps 1–2: Decide whether to create, mutate, or replace while holding the lock.
+      const exists = fs.existsSync(filePath);
+      const fnResult = await prepare(exists);
       if (!fnResult.ok) {
         // Logic error — do not retry
         return err(fnResult.error, fnResult.include_help ?? false);
       }
 
       // Step 3: Compute next backup name (we hold the lock, so the directory scan is stable)
-      const bakPath = nextBackupPath(filePath);
+      const bakPath = fs.existsSync(filePath) ? nextBackupPath(filePath) : null;
 
       // Step 4: Set previous_version on the mutated document
       const toWrite = { ...fnResult.updated, previous_version: bakPath } as Doc;
@@ -234,7 +264,7 @@ export async function atomicWriteWithBackup<Doc extends { previous_version?: str
       // semantics are safe — bakPath cannot exist (we just computed max+1), and no other
       // writer is racing for filePath.
       try {
-        fs.renameSync(filePath, bakPath); // FR-PLAN-0024 step 5 — guarded by lock
+        if (bakPath) fs.renameSync(filePath, bakPath); // FR-PLAN-0024 step 5 — guarded by lock
       } catch (renameErr) {
         // Should not happen inside the lock; if it does, surface and restart.
         logger.warn({ attempt, filePath, bakPath, error: String(renameErr) }, "rename failed under lock, restarting");
@@ -245,9 +275,12 @@ export async function atomicWriteWithBackup<Doc extends { previous_version?: str
       try {
         saveDoc(filePath, toWrite); // FR-PLAN-0026 — pretty-formatted on disk
       } catch (writeErr) {
-        // Roll back: rename the bak back to file path.
-        try { fs.renameSync(bakPath, filePath); } catch { /* best-effort */ }
-        logger.warn({ attempt, filePath, bakPath, error: String(writeErr) }, "write failed after rename, rolled back, restarting");
+        // Roll back: restore the backup or remove a partial first write.
+        try {
+          if (bakPath) fs.renameSync(bakPath, filePath);
+          else fs.rmSync(filePath, { force: true });
+        } catch { /* best-effort */ }
+        logger.warn({ attempt, filePath, bakPath, error: String(writeErr) }, "write failed, rollback attempted, restarting");
         continue;
       }
 

@@ -156,6 +156,36 @@ function planFile(name = "plan.json"): string {
   return path.join(tmpDir, name);
 }
 
+describe("MCP — plan replacement backups", () => {
+  it.each(["create", "create-with-template"])("%s preserves and links the latest plan", async (subcommand) => {
+    const file = planFile();
+    expect((await client.callTool("plan", { subcommand: "create", plan_file: file, data: { name: "Original", phases: [
+      { id: "p1", name: "P1", steps: [{ id: "s1", name: "S1", prompt: "do" }] },
+    ] } })).isError).toBe(false);
+    expect((await client.callTool("plan", { subcommand: "update_status", plan_file: file, target_id: "s1", new_status: "complete" })).isError).toBe(false);
+    const before = fs.readFileSync(file);
+    const result = await client.callTool("plan", subcommand === "create"
+      ? { subcommand, plan_file: file, data: { name: "Replacement" } }
+      : { subcommand, plan_file: file, template: "for-orchestrator", "plan-name": "Replacement", "plan-description": "desc", "phase-steps": "[]" });
+    expect(result.isError).toBe(false);
+    expect((result.payload as { plan: { previous_version: string } }).plan.previous_version).toBe(file + ".bak001");
+    expect(JSON.parse(fs.readFileSync(file, "utf8")).previous_version).toBe(file + ".bak001");
+    expect(fs.readFileSync(file + ".bak001")).toEqual(before);
+  });
+
+  it("create replaces corrupted bytes and upsert first create still links null", async () => {
+    const file = planFile();
+    fs.writeFileSync(file, "corrupted");
+    const result = await client.callTool("plan", { subcommand: "create", plan_file: file, data: { name: "Recovered" } });
+    expect(result.isError).toBe(false);
+    expect((result.payload as { plan: { previous_version: string } }).plan.previous_version).toBe(file + ".bak000");
+    expect(fs.readFileSync(file + ".bak000", "utf8")).toBe("corrupted");
+    const first = await client.callTool("plan", { subcommand: "upsert", plan_file: planFile("new.json"), target_id: "entire_plan", data: { name: "First" } });
+    expect(first.isError).toBe(false);
+    expect((first.payload as { plan: { previous_version: null } }).plan.previous_version).toBeNull();
+  });
+});
+
 // ---------------------------------------------------------------------------
 // tools/list
 // ---------------------------------------------------------------------------

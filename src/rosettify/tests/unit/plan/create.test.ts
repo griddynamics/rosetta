@@ -3,12 +3,14 @@
  * Updated for Phase 9: expects compressed-tree result shape, previous_version field,
  * and pretty-formatted file on disk.
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { cmdCreate } from "../../../src/commands/plan/create.js";
 import { loadPlan } from "../../../src/commands/plan/core.js";
+import { cmdUpdateStatus } from "../../../src/commands/plan/update-status.js";
+import { PLAN_BACKUP_RETENTION } from "../../../src/shared/constants.js";
 import type { PlanWriteResult } from "../../../src/commands/plan/output.js";
 
 let tmpDir: string;
@@ -26,6 +28,25 @@ function planFile(name = "plan.json"): string {
 }
 
 describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
+  it("returns backup_create_failed on lock exhaustion and leaves the file unchanged", async () => {
+    const file = planFile();
+    expect((await cmdCreate(file, { name: "Original" })).ok).toBe(true);
+    const before = fs.readFileSync(file);
+    fs.mkdirSync(file + ".lock");
+    vi.useFakeTimers({ toFake: ["setTimeout"] });
+    try {
+      const pending = cmdCreate(file, { name: "Replacement" });
+      await vi.runAllTimersAsync();
+      const result = await pending;
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe("backup_create_failed");
+      expect(fs.readFileSync(file)).toEqual(before);
+      expect(fs.readdirSync(tmpDir).sort()).toEqual(["plan.json", "plan.json.lock"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   // FR-PLAN-0040 — create returns compressed-tree shape
   it("returns compressed-tree result on first create", async () => {
     const file = planFile();
@@ -253,9 +274,13 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
   it("internal_error: returns internal_error for non-Error thrown", async () => {
     const dirPath = path.join(tmpDir, "dir-not-file");
     fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(path.join(dirPath, "keep.txt"), "untouched");
     const result = await cmdCreate(dirPath, { name: "Fail" });
     expect(result.ok).toBe(false);
     expect(result.error).toContain("internal_error");
+    expect(fs.statSync(dirPath).isDirectory()).toBe(true);
+    expect(fs.readFileSync(path.join(dirPath, "keep.txt"), "utf8")).toBe("untouched");
+    expect(fs.readdirSync(tmpDir)).toEqual(["dir-not-file"]);
   });
 
   it("idempotent: second create overwrites with new name (NFR-REL-0002)", async () => {
@@ -271,5 +296,74 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
 
     const plan = loadPlan(file)!;
     expect(plan.name).toBe("Replaced Plan");
+    expect(plan.previous_version).toBe(file + ".bak000");
+    expect((second.result as PlanWriteResult).plan.previous_version).toBe(plan.previous_version);
+    expect(loadPlan(plan.previous_version!)!.name).toBe("Original Plan");
+  });
+
+  it("re-create backs up the latest status and links it in the result and file", async () => {
+    const file = planFile();
+    await cmdCreate(file, { name: "Original", phases: [
+      { id: "p1", name: "P1", steps: [{ id: "s1", name: "S1", prompt: "do" }] },
+    ] });
+    expect((await cmdUpdateStatus(file, "s1", "complete")).ok).toBe(true);
+    const latest = fs.readFileSync(file, "utf8");
+    const result = await cmdCreate(file, { name: "Replacement" });
+    expect(result.ok).toBe(true);
+    expect(result.result!.plan.previous_version).toBe(file + ".bak001");
+    expect(loadPlan(file)!.previous_version).toBe(file + ".bak001");
+    expect(fs.readFileSync(file + ".bak001", "utf8")).toBe(latest);
+    expect(loadPlan(file + ".bak001")!.phases[0]!.steps[0]!.status).toBe("complete");
+  });
+
+  it("replaces corrupted content while preserving its exact bytes", async () => {
+    const file = planFile();
+    const corrupted = Buffer.from([0xff, 0x00, 0x7b, 0x0a]);
+    fs.writeFileSync(file, corrupted);
+    const result = await cmdCreate(file, { name: "Recovered" });
+    expect(result.ok).toBe(true);
+    expect(result.result!.plan.previous_version).toBe(file + ".bak000");
+    expect(loadPlan(file)!.previous_version).toBe(file + ".bak000");
+    expect(fs.readFileSync(file + ".bak000")).toEqual(corrupted);
+  });
+
+  it("a rejected re-create leaves the original file unchanged with no backup", async () => {
+    const file = planFile();
+    await cmdCreate(file, { name: "Keep" });
+    const before = fs.readFileSync(file);
+    const result = await cmdCreate(file, { name: "" });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("size_limit_exceeded");
+    expect(fs.readFileSync(file)).toEqual(before);
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
+  });
+
+  it("six re-creates retain only the newest backups", async () => {
+    const file = planFile();
+    await cmdCreate(file, { name: "v0" });
+    for (let i = 1; i <= 6; i++) {
+      expect((await cmdCreate(file, { name: `v${i}` })).ok).toBe(true);
+    }
+    const backups = fs.readdirSync(tmpDir).filter((name) => name.includes(".bak"));
+    expect(backups).toHaveLength(PLAN_BACKUP_RETENTION);
+    expect(backups).toEqual(Array.from({ length: PLAN_BACKUP_RETENTION }, (_, i) => `plan.json.bak00${i + 1}`));
+    expect(loadPlan(file)!.previous_version).toBe(file + ".bak005");
+    expect(loadPlan(file + ".bak001")!.name).toBe("v1");
+  });
+
+  it("waits for the lock and backs up a file created while waiting", async () => {
+    const file = planFile();
+    fs.mkdirSync(file + ".lock");
+    const pending = cmdCreate(file, { name: "Second" });
+    expect(fs.existsSync(file)).toBe(false);
+    const first = '{"name":"First"}';
+    fs.writeFileSync(file, first);
+    fs.rmdirSync(file + ".lock");
+    const result = await pending;
+    expect(result.ok).toBe(true);
+    expect(result.result!.plan.previous_version).toBe(file + ".bak000");
+    expect(fs.readFileSync(file + ".bak000", "utf8")).toBe(first);
+    expect(loadPlan(file)!.previous_version).toBe(file + ".bak000");
+    expect(fs.existsSync(file + ".lock")).toBe(false);
   });
 });
