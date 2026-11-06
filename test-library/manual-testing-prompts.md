@@ -12,9 +12,9 @@ At minimum it should read and grep CONTEXT.md, ARCHITECTURE.md, it should load w
 # Prompts
 
 - What can you do?
-- /self-help-flow What can you do?
+- /help-flow What can you do?
 - What are your capabilities?
-- /self-help-flow What are your capabilities?
+- /help-flow What are your capabilities?
 - Change home page title to follow pattern `<icon> <product>: <actual page title>`
 - /coding-flow Change home page title to follow pattern `<icon> <product>: <actual page title>`
 - Implement a small shell script to cleanup build artifacts

@@ -147,7 +147,7 @@ Record Phase 12 findings/disposition and Phase 13 current in `coding-flow-state.
 
 Independent validator reads full specs/plan, reviews code/tests/findings, runs the Phase 11 command set, inspects generated Codex/Antigravity trees, and confirms all six acceptance surfaces.
 
-After all evidence passes, update only the six requirement records in `docs/requirements/plugin-generator/{FR-COPY.md,FR-VAR.md,FR-HOOK.md,STRUCTURES.md}` to `Implemented` with concise file/test evidence.
+After all evidence passes, update only the six requirement records in `docs/REQUIREMENTS/plugin-generator/{FR-COPY.md,FR-VAR.md,FR-HOOK.md,STRUCTURES.md}` to `Implemented` with concise file/test evidence.
 
 Record Phase 13 results, requirement updates, residual gaps, and final coverage gate current in `coding-flow-state.md`. No commit, push, staging, or PR.
 

@@ -4,31 +4,33 @@
 direction: down
 
 inputs: Inputs {
-  instr: "instructions/<release>/core\n(+ <org>/ overlays)"
-  tmpl: "src/rosettify-plugins/plugins/core-*\n(manifests, hooks.json.tmpl)"
+  instr: "instructions/<release>/core\n(+ --customizations roots)"
+  catalog: "src/rosettify-plugins/plugins.json\n(plugin sets · variants)"
+  tmpl: "src/rosettify-plugins/plugins/template-*\n(manifests, hooks.json.tmpl)"
   bundles: "src/hooks/dist/bundles/<plugin>/*.js"
-  profile: "profiles/<name>.json\n(optional, e.g. lightweight)"
+  profile: "profiles/<name>.json\n(per variant, e.g. lightweight)"
 }
 
 gen: rosettify-plugins {
   direction: down
-  select: "1. Select release + layers\nfilename directives (~overwrite~, ~core-x-only~)"
+  select: "1. Select sets + sources\norder key · directives (~overwrite~, ~ide-x-only~)"
   adapt: "2. Adapt per target\nmodel rewriting · agent format\nfolder layout · reference rewriting"
-  assemble: "3. Assemble\nbootstrap · INDEX.md · templates\nhook bundle sync (if enabled)"
+  assemble: "3. Assemble\nbootstrap · templates\nhook bundle sync (if enabled)"
   derive: "4. Derive standalone variants\nfrom built main plugins"
   select -> adapt -> assemble -> derive
 }
 
-out: "plugins/ (committed, zipped on release)" {
-  main: "Main plugins\ncore-claude · core-cursor · core-copilot\ncore-codex · core-antigravity"
-  standalone: "Standalone\ncore-cursor-standalone (.cursor/)\ncore-copilot-standalone (.github/)"
-  light: "*-light variants\n(--profile lightweight)"
+out: "plugins/ (published: rosetta, rosetta-light)" {
+  main: "Main plugins\nrosetta-claude · rosetta-cursor · rosetta-copilot\nrosetta-codex · rosetta-antigravity"
+  standalone: "Standalone\nrosetta-cursor-standalone (.cursor/)\nrosetta-copilot-standalone (.github/)"
+  light: "rosetta-*-light\n(lightweight variant)"
 }
 
 inputs.instr -> gen.select
+inputs.catalog -> gen.select
 inputs.profile -> gen.select
 inputs.tmpl -> gen.assemble
 inputs.bundles -> gen.assemble: "only with\n--deterministic-hooks true"
 gen.assemble -> out.main
 gen.derive -> out.standalone
-gen -> out.light: "same pipeline,\nsuffixed destination"
+gen -> out.light: "same run,\n-light suffix"

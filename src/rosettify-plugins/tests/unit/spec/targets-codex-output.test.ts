@@ -10,7 +10,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { buildAllSpecs } from '../../../src/spec/targets.js';
+import { buildTestSpecs } from '../../helpers/build-specs.js';
 import { createPluginFrame } from '../../../src/frames.js';
 import { buildVfs } from '../../../src/vfs/build-vfs.js';
 import type { PluginProcessingFrame, ReleaseDescriptor } from '../../../src/types.js';
@@ -93,7 +93,7 @@ describe('core-codex — generated output shape (FR-VAR-0041, FR-VAR-0042, FR-ST
     outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-out-'));
 
     const vfs = buildVfs(instructionsSource, 'r1', 'core');
-    const specs = buildAllSpecs({
+    const specs = buildTestSpecs({
       pluginsSource: REAL_PLUGINS_ROOT,
       hooksSource: path.join(outputDir, '__no-hooks-source__'),
       outputDir,
@@ -101,8 +101,8 @@ describe('core-codex — generated output shape (FR-VAR-0041, FR-VAR-0042, FR-ST
       dryRun: false,
     });
 
-    const coreCodex = specs.find((s) => s.name === 'core-codex');
-    if (!coreCodex) throw new Error('core-codex spec not found in buildAllSpecs() output');
+    const coreCodex = specs.find((s) => s.name === 'codex');
+    if (!coreCodex) throw new Error('core-codex spec not found in buildTestSpecs() output');
 
     let frame: PluginProcessingFrame = createPluginFrame(coreCodex, vfs, {
       release: 'r1',
@@ -188,10 +188,12 @@ describe('core-codex — generated output shape (FR-VAR-0041, FR-VAR-0042, FR-ST
     expect(fs.existsSync(path.join(targetRoot, '.agents', 'skills', 'INDEX.md'))).toBe(false);
   });
 
-  it('generates a rules index only (FR-VAR-0041)', () => {
-    expect(fs.existsSync(path.join(targetRoot, '.agents', 'rules', 'INDEX.md'))).toBe(true);
-    const idx = fs.readFileSync(path.join(targetRoot, '.agents', 'rules', 'INDEX.md'), 'utf-8');
-    expect(idx).toContain('# Rosetta Rules Index');
+  // D6: every set declares `indexes: []`, so NO index is generated for any target any more.
+  // pluginGenerateIndexes itself is retained (and still unit-tested in
+  // tests/unit/plugin-processors/plugin-generate-indexes.test.ts) — it is dormant, not deleted.
+  it('generates NO indexes — every set declares indexes: [] (D6)', () => {
+    expect(fs.existsSync(path.join(targetRoot, '.agents', 'rules', 'INDEX.md'))).toBe(false);
+    expect(fs.existsSync(path.join(targetRoot, '.agents', 'skills', 'INDEX.md'))).toBe(false);
   });
 
   it('preserves .codex-plugin/plugin.json (FR-STRUCT-0010) and it names NO workflows folder/index (FR-VAR-0041 regression guard)', () => {
@@ -240,10 +242,13 @@ describe('core-codex — generated output shape (FR-VAR-0041, FR-VAR-0042, FR-ST
   // FR-ARCH-0058 — pluginReplaceLiterals correction on the WORKFLOW/COMMAND
   // glob-doc string, keyed on the long form so a bare `workflows/*.md` token elsewhere is
   // untouched.
-  it('rewrites the WORKFLOW/COMMAND glob-doc string to the skills-flow form, leaving a bare workflows/*.md token elsewhere unchanged', () => {
+  // INT-IDE-0002: Codex documents every unit path ROOT-relative — it is the one target whose
+  // content spans two roots (`.agents/` for instructions, `.codex/agents/` for TOML subagents),
+  // so a plugin-root-relative list could not name the subagents at all.
+  it('rewrites the WORKFLOW/COMMAND glob-doc string to the ROOT-relative skills-flow form, leaving a bare workflows/*.md token elsewhere unchanged', () => {
     const ruleDoc = path.join(targetRoot, '.agents', 'rules', 'sample-rule.md');
     const content = fs.readFileSync(ruleDoc, 'utf-8');
-    expect(content).toContain('WORKFLOW/COMMAND `skills/*-flow/SKILL.md`');
+    expect(content).toContain('WORKFLOW/COMMAND `.agents/skills/*-flow/SKILL.md`');
     expect(content).not.toContain('WORKFLOW/COMMAND `workflows/*.md`');
     // Bare, unrelated mention of the same literal token survives untouched.
     expect(content).toContain('unrelated glob `workflows/*.md`');

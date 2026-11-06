@@ -1,7 +1,7 @@
 name: Rosetta Codex setup
 description: >-
   Prepares a Codex run for the Rosetta pipelines: a TRUSTED Codex home (permission
-  profiles + the hooks feature) and, optionally, the Rosetta `core-codex` plugin
+  profiles + the hooks feature) and, optionally, the Rosetta `rosetta-codex` plugin
   extracted into the workspace. Output `codex-home` feeds `openai/codex-action`.
 
 # Why this action exists
@@ -44,11 +44,11 @@ description: >-
 
 inputs:
   install-plugin:
-    description: "Extract the Rosetta core-codex plugin into the workspace so the agent boots with the Rosetta instruction set."
+    description: "Extract the Rosetta rosetta-codex plugin into the workspace so the agent boots with the Rosetta instruction set."
     required: false
     default: "true"
   release-tag:
-    description: "Rosetta release to take the core-codex asset from. Empty means the latest release."
+    description: "Rosetta release to take the rosetta-codex asset from. Empty means the latest release."
     required: false
     default: ""
   github-token:
@@ -82,7 +82,7 @@ runs:
         echo "Trusted Codex home: $home"
         cat "$home/config.toml"
 
-    - name: Install Rosetta core-codex plugin
+    - name: Install Rosetta rosetta-codex plugin
       if: inputs.install-plugin == 'true'
       shell: bash
       env:
@@ -98,10 +98,10 @@ runs:
         # variant, which is a different (reduced) instruction set.
         if [ -n "$RELEASE_TAG" ]; then
           gh release download "$RELEASE_TAG" --repo griddynamics/rosetta \
-            --pattern 'core-codex-[0-9]*.zip' --dir "$dl" --clobber
+            --pattern 'rosetta-codex-[0-9]*.zip' --dir "$dl" --clobber
         else
           gh release download --repo griddynamics/rosetta \
-            --pattern 'core-codex-[0-9]*.zip' --dir "$dl" --clobber
+            --pattern 'rosetta-codex-[0-9]*.zip' --dir "$dl" --clobber
         fi
 
         # One release can carry several dated builds of the same version and `gh`
@@ -112,9 +112,9 @@ runs:
         # `sort -r` would rank 3.1.9 above 3.1.13.
         # `|| true` so an empty match reports the message below instead of `set -e`
         # aborting on the glob.
-        zip=$(ls -1 "$dl"/core-codex-[0-9]*.zip 2>/dev/null | sort -Vr | head -n1 || true)
-        [ -n "$zip" ] || { echo "::error::no core-codex asset found in the release"; exit 1; }
-        echo "Rosetta core-codex asset: $(basename "$zip")"
+        zip=$(ls -1 "$dl"/rosetta-codex-[0-9]*.zip 2>/dev/null | sort -Vr | head -n1 || true)
+        [ -n "$zip" ] || { echo "::error::no rosetta-codex asset found in the release"; exit 1; }
+        echo "Rosetta rosetta-codex asset: $(basename "$zip")"
 
         unzip -oq "$zip" -d "$GITHUB_WORKSPACE"
 
@@ -125,7 +125,7 @@ runs:
         if [ -f "$exclude" ]; then
           {
             echo ""
-            echo "# Rosetta core-codex plugin, extracted by .github/actions/codex-setup"
+            echo "# Rosetta rosetta-codex plugin, extracted by .github/actions/codex-setup"
             echo "/.agents/"
             echo "/.codex/"
             echo "/.codex-plugin/"
@@ -136,7 +136,7 @@ runs:
           || { echo "::error::plugin extracted but .codex/hooks.json is missing"; exit 1; }
         test -f "$GITHUB_WORKSPACE/.agents/rules/bootstrap-alwayson.md" \
           || { echo "::error::plugin extracted but .agents/rules/bootstrap-alwayson.md is missing"; exit 1; }
-        echo "Rosetta core-codex plugin installed at the workspace root."
+        echo "Rosetta rosetta-codex plugin installed at the workspace root."
 
     - name: Install enforced policy
       shell: bash

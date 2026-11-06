@@ -4,41 +4,55 @@
 import path from 'path';
 import { type Vfs, type VirtualFile, type SourceFile } from '../types.js';
 import { parseDirectives } from './directives.js';
-import { resolveSourceDirs, collectSourceFiles } from './source-resolver.js';
-import { sortPaths } from './sort.js';
+import { resolveLayerDirs, collectSourceFiles } from './source-resolver.js';
+import { sortPaths, lexicographicCompare } from './sort.js';
 
 /**
  * Build the immutable VFS for a release+domain.
  * VFS is a sorted, flat list of VirtualFiles, each with ordered SourceFiles.
  * instructionsSource: absolute path to the instructions root (FR-CLI-0020).
- * FR-ARCH-0010/0011/0012
+ * customizationRoots: absolute roots in CLI order, letters B.. (FR-CUST-0001); default none.
+ * Each SourceFile gets the order key `<letter>:<VFS path>:<OrderToken>` (FR-ARCH-0026); the
+ * SourceFiles of each VirtualFile are stable-sorted by it BEFORE freezing (FR-ARCH-0013/0014).
+ * FR-ARCH-0010/0011/0012/0022/0026
  */
-export function buildVfs(instructionsSource: string, release: string, domain: string): Vfs {
-  const sourceDirs = resolveSourceDirs(instructionsSource, release, domain);
-  const fileMap = collectSourceFiles(sourceDirs);
+export function buildVfs(
+  instructionsSource: string,
+  release: string,
+  domain: string,
+  customizationRoots: readonly string[] = [],
+): Vfs {
+  const layers = resolveLayerDirs(instructionsSource, customizationRoots, release, domain);
+  const loaded = collectSourceFiles(layers);
+
+  const groups = new Map<string, SourceFile[]>();
+
+  // Load order = letter → folder → sorted raw path; Map keeps first-seen order per clean path.
+  for (const file of loaded) {
+    // Parse directives from filename (FR-ARCH-0020/0021); name the file in any error
+    let parsed;
+    try {
+      parsed = parseDirectives(path.basename(file.relPath));
+    } catch (err) {
+      throw new Error(`${file.absPath}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    const cleanRelPath = path.posix.join(path.posix.dirname(file.relPath), parsed.cleanName);
+
+    const sourceFile: SourceFile = {
+      origin: file.absPath,
+      order: `${file.letter}:${cleanRelPath}:${parsed.orderToken}`, // FR-ARCH-0026
+      conditions: new Set(parsed.conditions),
+    };
+    const group = groups.get(cleanRelPath);
+    if (group) group.push(sourceFile);
+    else groups.set(cleanRelPath, [sourceFile]);
+  }
 
   const virtualFiles: VirtualFile[] = [];
-
-  for (const [relPath, absolutePaths] of fileMap) {
-    // Parse directives from filename (FR-ARCH-0020)
-    const parsed = parseDirectives(path.basename(relPath));
-    const cleanRelPath = path.join(path.dirname(relPath), parsed.cleanName)
-      .replace(/\\/g, '/'); // normalize to forward slashes
-
-    // Build SourceFiles (one per layer)
-    const sourceFiles: SourceFile[] = absolutePaths.map((absPath, i) => ({
-      origin: absPath,
-      order: `${i}`,
-      conditions: new Set(parsed.conditions),
-    }));
-
-    // Check if there's already a VirtualFile for this cleanRelPath (from directives rename)
-    const existing = virtualFiles.find((vf) => vf.path === cleanRelPath);
-    if (existing) {
-      existing.sourceFiles.push(...sourceFiles);
-    } else {
-      virtualFiles.push({ path: cleanRelPath, sourceFiles });
-    }
+  for (const [vfsPath, sourceFiles] of groups) {
+    // Stable sort (ES2019) by order key, plain string order (FR-ARCH-0022, FR-ARCH-0026)
+    sourceFiles.sort((a, b) => lexicographicCompare(a.order, b.order));
+    virtualFiles.push({ path: vfsPath, sourceFiles });
   }
 
   // Sort by path — NFR-0002, PARITY-5

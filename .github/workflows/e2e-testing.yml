@@ -2,7 +2,7 @@ name: E2E Testing (Curiocity)
 
 # Manually-triggered end-to-end run of the Curiocity coding suite. Cases live under
 # tests/e2e-tests: `coding-vanilla` / `coding-vanilla-full` (a plain agent) and
-# `coding-rosetta` (an agent + the live checked-in plugins/core-claude, whatever version
+# `coding-rosetta` (an agent + the live checked-in plugins/rosetta-claude, whatever version
 # is committed). Each case's src.zip is a maintainer-provided test-library archive copied
 # verbatim. workflow_dispatch only.
 #
@@ -130,12 +130,12 @@ jobs:
           npm ci
           npm run build
 
-      # The coding-rosetta case references the LIVE repo plugin at plugins/core-claude
+      # The coding-rosetta case references the LIVE repo plugin at plugins/rosetta-claude
       # (whatever version is checked in) — no plugin generation, no dormant copy.
       - name: Verify live Rosetta plugin present
         if: inputs.agent == 'claude-code'
         run: |
-          PLUGIN_HOOKS="plugins/core-claude/hooks/hooks.json"
+          PLUGIN_HOOKS="plugins/rosetta-claude/hooks/hooks.json"
           if [ ! -f "$PLUGIN_HOOKS" ]; then
             echo "::error::Live plugin manifest not found: $PLUGIN_HOOKS"
             exit 1

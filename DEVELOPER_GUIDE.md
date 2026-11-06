@@ -93,8 +93,7 @@ rosetta/
 ├── instructions/         ← Prompts: skills, agents, workflows, rules, templates
 │   ├── r2/               ← Previous release (supported; backports only)
 │   └── r3/               ← Current release
-│       ├── core/         ← Rosetta instruction source
-│       └── <org>/        ← Optional organization extensions (e.g., acme/)
+│       └── core/         ← Skills, agents, workflows, rules, templates
 ├── src/rosetta-mcp-server/       ← Rosetta MCP server (PyPI: rosetta-mcp)
 │   ├── rosetta_mcp/          ← Server source code
 │   ├── tests/            ← Unit tests (pytest)
@@ -115,6 +114,7 @@ rosetta/
 
 - **Python 3.12+**
 - **uvx** (included with [uv](https://docs.astral.sh/uv/getting-started/installation/))
+- **jq** (required by the pre-commit `verify links` check)
 - **Podman or Docker** (optional, for Redis, used by full MCP execution_controller tests)
 
 ---
@@ -296,7 +296,7 @@ Run this after any Python code change.
 ### Git pre-commit hook
 
 The repository ships a native Git pre-commit hook shim in `.githooks/pre-commit`.
-It runs the Python entrypoint at `scripts/pre_commit.py`, which first regenerates all plugin payloads (via `npx -y rosettify-plugins@latest`) and then executes type validation.
+It runs the Python entrypoint at `scripts/pre_commit.py`, which runs, in order: the hooks build; the plugin sync (a single `npx -y rosettify-plugins@latest` call that reads `src/rosettify-plugins/plugins.json` and emits every `<set>-<ide>` folder in one pass); the `verify structure`, `verify crossrefs`, `verify hooks content`, `verify counts` and `verify links` steps (`scripts/verify/`, scope and rules in `docs/definitions/live_counts.json`); type validation; and tests. The `verify links` step needs `jq` installed (`ac_links.sh` exits 2 without it). `--only <slug>` runs selected steps.
 
 Use the root repo virtualenv for hook execution:
 
@@ -418,13 +418,16 @@ uvx rosetta-cli@latest list-dataset --dataset aia-r3 --env dev
 
 ## Where to Change What
 
+Instruction sources live in `instructions/r3/core/`. Every top-level folder under a release must be declared in `src/rosettify-plugins/plugins.json`. To add instructions for one organization without changing Rosetta itself, use a customization root, see [Build customized plugins](PLUGINS.md#build-customized-plugins). See [Instruction Structure](docs/ARCHITECTURE.md#instruction-structure).
+
 | Change type            | Location                                              | Validation                               |
 | ---------------------- | ----------------------------------------------------- | ---------------------------------------- |
-| New/modified skill     | `instructions/r3/core/skills/<name>/SKILL.md`         | Publish, test via MCP                    |
-| New/modified agent     | `instructions/r3/core/agents/<name>.md`               | Publish, test via MCP                    |
-| New/modified workflow  | `instructions/r3/core/workflows/<name>.md`            | Publish, test via MCP                    |
-| New/modified rule      | `instructions/r3/core/rules/<name>.md`                | Publish, test via MCP                    |
-| Organization extension | `instructions/r3/<org>/` (same type structure)        | Publish, test via MCP                    |
+| New/modified skill     | `instructions/r3/core/skills/<name>/SKILL.md` | Publish, test via MCP |
+| New/modified agent     | `instructions/r3/core/agents/<name>.md` | Publish, test via MCP   |
+| New/modified workflow  | `instructions/r3/core/workflows/<name>.md` | Publish, test via MCP |
+| New/modified rule      | `instructions/r3/core/rules/<name>.md` | Publish, test via MCP  |
+| Organization-specific additions | A customization root, built into the plugin with `--customizations` ([guide](PLUGINS.md#build-customized-plugins)) | Build plugin, install, test |
+| New top-level folder   | `instructions/r3/<folder>/` plus a `plugins.json` entry | Publish, test via MCP                  |
 | MCP tool or prompt     | `src/rosetta-mcp-server/rosetta_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, src/validate-types.sh |
 | CLI command            | `src/rosetta-cli/rosetta_cli/commands/`               | pytest, dry-run, publish to dev          |
 | Website                | `docs/web/`                                           | Local Jekyll build                       |
@@ -489,7 +492,7 @@ instructions/r3/
 │   │       └── SKILL.md
 │   ├── agents/
 │   ├── rules/
-│   └── configure/
+│   └── templates/
 ```
 
 #### Naming conventions

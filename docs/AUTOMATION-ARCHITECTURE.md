@@ -114,7 +114,7 @@ Both branches authenticate with **the same `BIFROST_API_KEY`**, on different rou
 | GitHub token | `github_token` input | `GH_TOKEN` step env (no input exists) |
 | Actor gate bypass | `allowed_non_write_users: "*"` | `allow-users: "*"` |
 | Model | `--model opus` / `sonnet` | `model: gpt-6.1-sol` / `gpt-6-luna` |
-| Rosetta instructions | `plugin_marketplaces` + `plugins` inputs | `.github/actions/codex-setup` extracts the `core-codex` release asset into the workspace |
+| Rosetta instructions | `plugin_marketplaces` + `plugins` inputs | `.github/actions/codex-setup` extracts the `rosetta-codex` release asset into the workspace |
 | Tool boundary | `--allowedTools` / `--disallowedTools` | permission profile + execpolicy deny-list (see below) |
 | Hook trust | n/a | managed hooks in `/etc/codex/requirements.toml` |
 | Trace | `claude-execution-output.json` | rollout JSONL under `$CODEX_HOME/sessions` |
@@ -144,7 +144,7 @@ Python with named arguments.
 ### The plugin lands in the workspace, and the agent must be told
 
 Codex has no out-of-repo install path for a plugin — the documented install is "extract
-into your repository" — so `codex-setup` unzips `core-codex` at the workspace root. The
+into your repository" — so `codex-setup` unzips `rosetta-codex` at the workspace root. The
 Claude branch does not do this: `claude-code-action` takes `plugin_marketplaces`/`plugins`
 and keeps the instruction set outside the checkout.
 
