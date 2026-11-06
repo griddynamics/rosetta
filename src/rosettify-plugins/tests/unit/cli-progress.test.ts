@@ -33,7 +33,7 @@ describe('cli.ts progress channel (FR-CLI-0042)', () => {
     try {
       const { status, stdout, stderr } = runCli([
         '--source', REPO_ROOT,
-        '--domain', 'qe',
+        '--domain', 'core',
         '--output', outputDir,
       ]);
       expect(status).toBe(0);
@@ -49,7 +49,7 @@ describe('cli.ts progress channel (FR-CLI-0042)', () => {
     try {
       const { status, stdout, stderr } = runCli([
         '--source', REPO_ROOT,
-        '--domain', 'qe',
+        '--domain', 'core',
         '--output', outputDir,
         '--dry-run',
       ]);

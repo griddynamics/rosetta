@@ -33,6 +33,7 @@ Requirements are organized by Rosetta component. Each component has its own fold
 ### plugin-generator/FR-HOOK.md — Bootstrap context payload assembly and hook-bundle synchronization (FR-HOOK-*).
 ### plugin-generator/FR-VAR.md — Per-target structure, reasoning, and bootstrap-delivery strategy; per-variant output properties (FR-VAR-*).
 ### plugin-generator/FR-SET.md — Plugin sets: plugins.json resolution and validation, set-to-folder layering, per-set variants, `<set>-<ide>` naming, `requires` metadata, single-call generation, per-set bootstrap and hooks (FR-SET-*).
+### plugin-generator/FR-CUST.md — Customization roots merged folder into folder with the main instruction source (FR-CUST-*).
 ### plugin-generator/FR-PROF.md — Profile capability: descriptor resolution and validation, effective model vocabulary, exhaustive candidate skipping, and the boundary keeping naming and manifest identity out of a profile (FR-PROF-*).
 ### plugin-generator/NFR.md — Byte-for-byte parity, determinism, idempotency, portability (TS/npx), modularity, library selection criteria, limits (NFR-*).
 ### plugin-generator/REFERENCES.md — Authoritative per-IDE configuration guides under instructions/r3/core/skills/harness/references/configure/ (INT-IDE-*).

@@ -1,4 +1,4 @@
-Plugin folders are named `<set>-<ide>`. `rosetta-<ide>` is the full plugin (all five domain sets); `core-<ide>` is the core set alone. Test against `rosetta-<ide>` unless you are specifically testing a split plugin.
+Plugin folders are named `rosetta-<ide>` and `rosetta-<ide>-light`. Test against `rosetta-<ide>`. Test `rosetta-<ide>-light` when you change lightweight variants.
 
 # Claude Code
 

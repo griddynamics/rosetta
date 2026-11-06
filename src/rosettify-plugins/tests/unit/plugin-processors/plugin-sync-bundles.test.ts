@@ -1,5 +1,7 @@
 // FR-HOOK-0020–0022 — pluginSyncBundles: r3 adds .js; r2 removes stale; preserve unmanaged
 import { describe, it, expect } from 'vitest';
+import { PassThrough as LogSink } from 'stream';
+import { initLogger } from '../../../src/logging.js';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -239,7 +241,7 @@ describe('pluginSyncBundles', () => {
       };
       const p = makePluginFrame(spec);
       // dryRun=true → no-op
-      const result = pluginSyncBundles(hooksSource, outputDir, true, true)(p);
+      const result = pluginSyncBundles(hooksSource, outputDir, true, 'dry-run')(p);
       expect(result).toBe(p); // frame returned unchanged
       // No output dir created
       const targetHookDir = path.join(outputDir, 'core-claude', 'hooks');
@@ -363,6 +365,80 @@ describe('pluginSyncBundles — sweeps bundles the set no longer declares', () =
       pluginSyncBundles(hooksSource, outputDir, false)(makePluginFrame(spec));
 
       expect(fs.readdirSync(hookDir)).toEqual(['hooks.json']);
+    } finally {
+      cleanup();
+    }
+  });
+});
+
+// FR-CLI-0036 — suppressed: checks run and errors are reported, nothing is copied or removed
+describe('pluginSyncBundles — suppressed', () => {
+  const specFor = (over: Partial<PluginSpec> = {}): Partial<PluginSpec> => ({
+    name: 'claude', set: 'core', hookModules: BUNDLE_MODULES, destination: 'core-claude',
+    hookFolder: 'hooks', bundleSource: 'claude', ...over,
+  });
+
+  it('copies no bundle and creates no hook folder, returns no errors when checks pass', () => {
+    const { hooksSource, outputDir, cleanup } = makeTempRepo('claude', BUNDLE_NAMES);
+    try {
+      const result = pluginSyncBundles(hooksSource, outputDir, true, 'suppressed')(makePluginFrame(specFor()));
+      expect(result.errors).toHaveLength(0);
+      expect(fs.existsSync(outputDir)).toBe(false);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('does not sweep undeclared bundles', () => {
+    const { hooksSource, outputDir, cleanup } = makeTempRepo('claude', BUNDLE_NAMES);
+    try {
+      const hookDir = path.join(outputDir, 'core-claude', 'hooks');
+      fs.mkdirSync(hookDir, { recursive: true });
+      fs.writeFileSync(path.join(hookDir, 'read-once.js'), 'stale');
+      const spec = specFor({ hookModules: ['dangerous-actions'] });
+      pluginSyncBundles(hooksSource, outputDir, true, 'suppressed')(makePluginFrame(spec));
+      expect(fs.readFileSync(path.join(hookDir, 'read-once.js'), 'utf-8')).toBe('stale');
+      expect(fs.existsSync(path.join(hookDir, 'dangerous-actions.js'))).toBe(false);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('r2 (deterministicHooks false): removes nothing', () => {
+    const { hooksSource, outputDir, cleanup } = makeTempRepo('claude', BUNDLE_NAMES);
+    try {
+      const hookDir = path.join(outputDir, 'core-claude', 'hooks');
+      fs.mkdirSync(hookDir, { recursive: true });
+      fs.writeFileSync(path.join(hookDir, 'read-once.js'), 'stale');
+      pluginSyncBundles(hooksSource, outputDir, false, 'suppressed')(makePluginFrame(specFor()));
+      expect(fs.existsSync(path.join(hookDir, 'read-once.js'))).toBe(true);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('still reports a missing bundle directory as a hard error', () => {
+    const { hooksSource, outputDir, cleanup } = makeTempRepo('claude', BUNDLE_NAMES);
+    try {
+      const result = pluginSyncBundles(hooksSource, outputDir, true, 'suppressed')(
+        makePluginFrame(specFor({ bundleSource: 'typo-ide' })));
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]).toMatchObject({ kind: 'hard', target: 'core-claude' });
+      expect(result.errors[0].message).toContain('typo-ide');
+      expect(fs.existsSync(outputDir)).toBe(false);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('still reports missing bundle files as a hard error, copying none', () => {
+    const { hooksSource, outputDir, cleanup } = makeTempRepo('claude', ['dangerous-actions.js']);
+    try {
+      const result = pluginSyncBundles(hooksSource, outputDir, true, 'suppressed')(
+        makePluginFrame(specFor({ hookModules: ['dangerous-actions', 'read-once'] })));
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0].message).toContain('read-once.js');
+      expect(fs.existsSync(outputDir)).toBe(false);
     } finally {
       cleanup();
     }

@@ -255,3 +255,92 @@ describe('set-<name>-only (DATA-CFG-0007)', () => {
       .toBe(true);
   });
 });
+
+// FR-ARCH-0021 / FR-ARCH-0020.AC1 / FR-ARCH-0022 — OrderToken grammar and duplicate rejection
+describe('OrderToken grammar (FR-ARCH-0021)', () => {
+  it('AC1: accepts an order token followed by directives in any order', () => {
+    const r = parseDirectives('policy~1a~overwrite~target-claude-only~.md');
+    expect(r.cleanName).toBe('policy.md');
+    expect(r.orderToken).toBe('1a');
+    expect(r.conditions).toEqual(new Set(['overwrite', 'target-claude-only']));
+    expect(parseDirectives('policy~1a~target-claude-only~overwrite~.md').conditions).toEqual(r.conditions);
+  });
+
+  it('FR-ARCH-0020.AC1: bootstrap-core-policy~1a~target-claude-only~overwrite~.md', () => {
+    const r = parseDirectives('bootstrap-core-policy~1a~target-claude-only~overwrite~.md');
+    expect(r.cleanName).toBe('bootstrap-core-policy.md');
+    expect(r.orderToken).toBe('1a');
+    expect(r.conditions).toEqual(new Set(['target-claude-only', 'overwrite']));
+  });
+
+  it('AC2: duplicate token errors naming file and token', () => {
+    expect(() => parseDirectives('policy~overwrite~overwrite~.md')).toThrow(
+      'Duplicate filename directive "overwrite" in "policy~overwrite~overwrite~.md"',
+    );
+    expect(() => parseDirectives('p~1a~target-claude-only~target-claude-only~.md')).toThrow(
+      /target-claude-only.*p~1a~target-claude-only~target-claude-only~\.md/,
+    );
+  });
+
+  it('AC2: unknown token errors naming file and token', () => {
+    expect(() => parseDirectives('policy~1a~bogus~.md')).toThrow(/"bogus" in "policy~1a~bogus~\.md"/);
+  });
+
+  it('AC3: an order token not in first position errors', () => {
+    expect(() => parseDirectives('policy~overwrite~1a~.md')).toThrow(
+      'OrderToken "1a" in "policy~overwrite~1a~.md" must be the first token after the name',
+    );
+    expect(() => parseDirectives('policy~1a~2b~.md')).toThrow(/OrderToken "2b"/);
+  });
+
+  it.each([['1a'], ['10'], ['2abc']])('AC4: accepts order token %s', (tok) => {
+    const r = parseDirectives(`coding-flow~${tok}~.md`);
+    expect(r.orderToken).toBe(tok);
+    expect(r.cleanName).toBe('coding-flow.md');
+    expect(r.conditions.size).toBe(0);
+  });
+
+  it('AC4: single-digit and 4-char boundary tokens accepted', () => {
+    expect(parseDirectives('f~0~.md').orderToken).toBe('0');
+    expect(parseDirectives('f~9zz9~.md').orderToken).toBe('9zz9');
+  });
+
+  it('AC5: a 5-character token errors naming file and token', () => {
+    expect(() => parseDirectives('coding-flow~1abcd~.md')).toThrow(/"1abcd" in "coding-flow~1abcd~\.md"/);
+  });
+
+  it('AC5: an uppercase token errors naming file and token', () => {
+    expect(() => parseDirectives('coding-flow~1A~.md')).toThrow(/"1A" in "coding-flow~1A~\.md"/);
+  });
+
+  it('AC6: misspelled first-position directive is an unknown directive, not an order token', () => {
+    expect(() => parseDirectives('coding-flow~overwrit~.md')).toThrow(
+      /Unknown filename directive "overwrit" in "coding-flow~overwrit~\.md"/,
+    );
+  });
+
+  it('AC7-9: existing directive sets are unchanged and carry an empty order token', () => {
+    for (const [name, set] of [
+      ['bootstrap-guardrails~overwrite~.md', ['overwrite']],
+      ['bootstrap-core-policy~target-claude-only~overwrite~.md', ['target-claude-only', 'overwrite']],
+      ['coding-flow~profile-lightweight-only~overwrite~.md', ['profile-lightweight-only', 'overwrite']],
+    ] as const) {
+      const r = parseDirectives(name);
+      expect(r.conditions).toEqual(new Set(set));
+      expect(r.orderToken).toBe('');
+    }
+  });
+
+  it('bare claude-only without a namespace prefix is rejected', () => {
+    expect(() => parseDirectives('p~claude-only~.md')).toThrow(/Unknown filename directive "claude-only"/);
+  });
+
+  it('a file without directives has an empty order token (FR-ARCH-0022: sorts first)', () => {
+    expect(parseDirectives('plain.md').orderToken).toBe('');
+  });
+
+  it('a lone order token with no directives works with and without closing fence', () => {
+    expect(parseDirectives('x~7.md').orderToken).toBe('7');
+    expect(parseDirectives('x~7~.md').cleanName).toBe('x.md');
+  });
+});

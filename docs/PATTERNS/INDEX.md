@@ -10,7 +10,7 @@ Coding and architectural patterns extracted from the Rosetta workspace. Each fil
 | Tag-Based Retrieval | `tag-based-retrieval.md` | Auto-generated hierarchical tags from folder path enable precise ACQUIRE-by-tag without search ambiguity |
 | Document Bundling | `document-bundling.md` | Multiple documents at the same VFS path merged into one XML response |
 | VFS Resource Paths | `vfs-resource-paths.md` | Canonical stable path computed by stripping release and org prefix from physical file path |
-| Domain Set Architecture | `domain-set-architecture.md` | Release-versioned, subject-scoped instruction folders, one installable plugin each, selected rather than merged |
+| Instruction Folder Architecture | `domain-set-architecture.md` | Release-versioned instruction folders, plugin sets over folders, customization roots merged folder into folder |
 
 ## Data and Storage
 

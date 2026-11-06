@@ -22,4 +22,25 @@ describe('cli.ts --help (FR-CLI-0060)', () => {
       expect(result.stdout).toContain(field);
     }
   });
+
+  it('documents --customizations, --publish and OrderToken (FR-CLI-0035, FR-CLI-0036)', { timeout: 30_000 }, () => {
+    const result = spawnSync(TSX_BIN, [CLI_ENTRY, '--help'], { cwd: PACKAGE_ROOT, encoding: 'utf-8' });
+    expect(result.status).toBe(0);
+    for (const needle of ['--customizations', '--publish', 'Customizations (', 'Publish filter', 'OrderToken']) {
+      expect(result.stdout).toContain(needle);
+    }
+  });
+
+  // FR-CLI-0035.AC4 / FR-CLI-0036 (A1): empty entry = usage error (commander message), non-zero,
+  // nothing generated. Two spawns: one per flag; the parser itself is unit-tested in cli-args.test.ts.
+  it.each([
+    ['--customizations', 'acme,,team'],
+    ['--publish', ''],
+  ])('%s %j is a usage error (non-zero exit, nothing written)', { timeout: 30_000 }, (flag, value) => {
+    const result = spawnSync(TSX_BIN, [CLI_ENTRY, flag, value, '--dry-run'], { cwd: PACKAGE_ROOT, encoding: 'utf-8' });
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain(`error: option '${flag} `);
+    expect(result.stderr).toContain(`argument '${value}' is invalid. Expected a non-empty, comma-separated list with no empty entries.`);
+    expect(result.stdout).not.toContain('dry-run');
+  });
 });

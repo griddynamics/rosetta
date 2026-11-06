@@ -1,5 +1,52 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-11-05 — Draft units approved
+
+- Approved by isolomatov-gd: FR-SET-0020, FR-SET-0030, FR-SET-0040, FR-SET-0050, FR-SET-0060, FR-SET-0070, FR-CLI-0030, FR-CLI-0031, FR-SEED-0001, FR-PROF-0021, FR-STRUCT-0010, DATA-CFG-0007, NFR-0001, FR-HOOK-0001.
+
+---
+
+## 2026-11-05 — Implementation status; split-catalog text re-anchored to the current catalog
+
+**Files:** `FR-CUST.md`, `FR-CLI.md`, `FR-ARCH.md`, `FR-SET.md`, `FR-COPY.md`, `FR-PROF.md`, `FR-HOOK.md`, `STRUCTURES.md`, `MODEL.md`, `NFR.md`, `FR-GEN.md`, `ASSUMPTIONS.md`, `GLOSSARY.md`, `INDEX.md`, `TRACE.md`
+
+- `implementation` -> `Implemented` with notes (statement, criteria, status unchanged): `FR-CUST-0001`..`0003`, `FR-CLI-0035`, `FR-CLI-0036`, `FR-ARCH-0010`, `FR-ARCH-0012`, `FR-ARCH-0020`, `FR-ARCH-0021`, `FR-ARCH-0022`, `FR-ARCH-0024`, `FR-ARCH-0026`. Notes refreshed: `FR-SET-0001`, `FR-SET-0020`.
+- Current catalog is `rosetta` (two variants) and `core` (declared, unpublished); 14 published folders. Statements and criteria that named the six-set split as fact are re-anchored or attributed to `assets/plugins.split.json`.
+- `Approved` -> `Draft`, pending approval (`approved_by` cleared): `FR-SET-0020`, `FR-SET-0030`, `FR-SET-0040`, `FR-SET-0050`, `FR-SET-0060`, `FR-SET-0070`, `FR-CLI-0030`, `FR-CLI-0031`, `FR-SEED-0001`, `FR-PROF-0021`, `FR-STRUCT-0010`, `DATA-CFG-0007`, `NFR-0001`, `FR-HOOK-0001`.
+- Notes, rationale or evidence only, status kept: `FR-CLI-0042`, `FR-GEN-0001`..`0004`, `FR-GEN-0010`, `FR-ARCH-0025`, `FR-ARCH-0060`, `FR-PROF-0020`.
+- Prose files: `FR-SET.md` header, `ASSUMPTIONS.md` (AC-4, AC-23, AC-24, OQ-6, AG-9), `GLOSSARY.md` (Domain, PluginSet, Layer merge), `INDEX.md` (split asset, `FR-COPY.md`, plugin-sets entries), `TRACE.md` (G6, G7 wording; G6 to G14 meaning unchanged).
+
+---
+
+## 2026-11-05 — Plugin-set split documented
+
+**Files:** `assets/plugin-sets-split.md` (new), `assets/plugins.split.json` (new), `INDEX.md`, `FR-SET.md` (`<notes>` of `FR-SET-0001`, `FR-SET-0020` only)
+
+- Per-set file lists, collapse destinations, 24 marker lines and re-split procedure recorded. No statement, criteria or status changed.
+
+## 2026-11-05 — Customization roots, last-overwrite-wins, source order key, publish filter
+
+**Files:** `FR-CUST.md` (new), `FR-ARCH.md`, `FR-CLI.md`, `SCOPE.md`, `ASSUMPTIONS.md`, `GLOSSARY.md`, `INDEX.md`, `TRACE.md`
+
+**Source:** user request 2026-11-05. All new and changed units approved by isolomatov-gd on 2026-11-05.
+
+- `FR-CUST-0001` added: customization roots merge into the main source, folder into folder.
+- `FR-CUST-0002` added: a customization folder must be a declared folder.
+- `FR-CUST-0003` added: customization root validity.
+- `FR-ARCH-0026` added: `SourceFile` order key `<source letter>:<VFS path>`.
+- `FR-ARCH-0024` rewritten: every overwrite replaces only its predecessors, so the last overwrite wins; an overwrite with no predecessor is an error. `Approved` -> `Draft`, `implementation` -> `ToBeModified`.
+- `FR-CLI-0035` added: `--customizations` option. `FR-CLI-0036` added: `--publish` filter.
+- `FR-ARCH-0021`, `FR-ARCH-0022` rewritten: `OrderToken` shape `^[0-9][0-9a-z]{0,3}$`; it is the third part of the order key. `Approved` -> `Draft`.
+- `FR-ARCH-0010` references the order-key format. `FR-ARCH-0020` implementation note: the OrderToken is to be implemented.
+- Order key is `<source letter>:<VFS path>:<OrderToken>`, sorted explicitly after all sources load (`FR-ARCH-0026`).
+- `FR-CLI-0036`: unnamed plugins run the full pipeline and write nothing.
+- `FR-ARCH-0024`: the no-predecessor check runs per build, after filtering.
+- Glossary terms added: main instruction source, customization root, order key, OrderToken, plugin name.
+- `FR-CUST-0002` amended: only `<root>/<release>/` is checked; dot-entries ignored; root-level repository files ignored. Re-approved by isolomatov-gd on 2026-11-05.
+- Open questions OQ-8 to OQ-15 added and resolved. Goals G15, G16 added. `FR-ARCH-0021`, `FR-ARCH-0022` traced to G15.
+
+---
+
 ## 2026-10-14 — Gemini 4 Argon takes the Gemini Pro tier; other Gemini tokens stay on Gemini 3.8 Flash
 
 **Files:** `FR-ARCH.md`, `FR-COPY.md`, `docs/ARCHITECTURE.md`

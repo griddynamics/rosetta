@@ -56,4 +56,4 @@ The full menu is the [Scenarios index](../README.md#scenarios-at-a-glance) and t
 ## Sources
 
 - Workflow: [`instructions/r3/core/workflows/help-flow.md`](../../instructions/r3/core/workflows/help-flow.md)
-- Router: [`aqa-flow.md`](../../instructions/r3/qe/workflows/aqa-flow.md)
+- Router: [`aqa-flow.md`](../../instructions/r3/core/workflows/aqa-flow.md)

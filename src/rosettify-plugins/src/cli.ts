@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { initLogger } from './logging.js';
 import { generate } from './generate.js';
+import { parseListArg, dedupe, resolveCustomizationRoots } from './cli-args.js';
 import { resolveConfigPath, SET_FIELDS, VARIANT_FIELDS, MANIFEST_FIELDS } from './spec/plugin-sets.js';
 import type { GenerateOptions, ResolvedSources } from './types.js';
 
@@ -54,6 +55,8 @@ program
   .option('--profileSource <dir>', 'Override profile source directory (default: <source>/src/rosettify-plugins/profiles)')
   .option('--config <path>', 'Override the plugin-set catalog location; a relative path resolves against --source (default: <source>/src/rosettify-plugins/plugins.json)')
   .option('--deterministic-hooks <bool>', 'Override the deterministic_hooks value (true|false); default: false regardless of release', parseBooleanArg)
+  .option('--customizations <dir[,dir...]>', 'Customization root(s) layered over the main instruction source, in order, repeatable; a relative path resolves against --source, an absolute path is used verbatim', parseListArg)
+  .option('--publish <name[,name...]>', 'Write only the named plugins (e.g. rosetta,rosetta-light), repeatable; others are still built and validated but not written. Default: write every built plugin', parseListArg)
   .option('--dry-run', 'Print what would be written, but do not write', false)
   .option('--verbose', 'Enable verbose logging', false);
 
@@ -67,6 +70,21 @@ Source model:
     --output              <source>/plugins
     --profileSource       <source>/src/rosettify-plugins/profiles
     --config              <source>/src/rosettify-plugins/plugins.json
+
+Customizations (--customizations):
+  --customizations <dir>[,<dir>...] names customization roots, each laid out as
+  <root>/<release>/<folder>/... and layered over the main source in the order written
+  (left to right, across repeats). A relative <dir> resolves against --source; an absolute
+  <dir> is used verbatim. An empty value is a usage error. Without it, only the main
+  instruction source is used.
+
+Publish filter (--publish):
+  --publish <name>[,<name>...] writes only the named plugins. A plugin name is a set's
+  manifest name plus the variant's manifest-name suffix (e.g. rosetta, rosetta-light); one
+  name covers that variant for every IDE target. All plugins are still loaded, validated and
+  built, and errors in unnamed plugins still fail the run, but only named output folders are
+  written; other declared output folders stay untouched. A name matching no declared plugin
+  is a pre-flight error. Repeatable; empty value is a usage error. Default: write all.
 
 Source structure:
   <instructionsSource>/<release>/<folder>/{rules,workflows,agents,skills,templates}/
@@ -95,6 +113,10 @@ Plugin sets (--config, --domain):
 Directives (in filenames, tilde-separated, opening and closing tilde fence around the
 token list: name~token[~token...]~.ext). There are four disjoint '-only' namespaces:
   file~overwrite~.md                 — overwrite earlier layers
+  file~01~overwrite~.md              — OrderToken: a token matching [0-9][0-9a-z]{0,3} (e.g. 01, 2b);
+                                        orders same-path files within one layer, sorted as text
+                                        (pad with zeros: 01 before 10); at most one per filename,
+                                        and it must be the first token
   file~target-claude-only~.md        — include only for that exact IDE target
                                         (claude, cursor, copilot, codex, antigravity,
                                         cursor-standalone, copilot-standalone)
@@ -171,6 +193,12 @@ async function main(): Promise<void> {
     verbose,
     deterministicHooks: opts.deterministicHooks as boolean | undefined, // FR-CLI-0012
     profile: opts.profile as string | undefined, // FR-CLI-0032
+    // FR-CLI-0035: relative roots resolve against <source>; consumed by generate() (S6b)
+    customizations: opts.customizations === undefined
+      ? undefined
+      : resolveCustomizationRoots(sourceRoot, opts.customizations as string[]),
+    // FR-CLI-0036: de-duplicated plugin names; absent = write all
+    publish: opts.publish === undefined ? undefined : dedupe(opts.publish as string[]),
   };
 
   const exitCode = await generate(options);

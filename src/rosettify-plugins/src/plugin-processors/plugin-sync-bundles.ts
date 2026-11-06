@@ -3,31 +3,33 @@
 // DATA-CFG-0002: bundle source and hook folder read from PluginSpec data.
 // No per-target-name branching (F-F-adjacent fix).
 // FR-CLI-0050: dry-run → skip all disk writes.
+// FR-CLI-0036: suppressed → run the checks and report errors, but copy and remove nothing.
 
 import fs from 'fs';
 import path from 'path';
 import { updatePluginFrame } from '../frames.js';
 import { getLogger } from '../logging.js';
-import type { GenError, PluginProcessingFrame } from '../types.js';
+import type { GenError, PluginProcessingFrame, WriteMode } from '../types.js';
 
 /**
  * pluginSyncBundles: r3 → copy <hooksSource>/dist/bundles/<bundleSource>/*.js to target hook folder.
  * r2 → remove stale .js files (from any previous r3 run).
  * hooksSource: absolute path to hooks root (FR-CLI-0020, e.g. <source>/src/hooks).
  * Reads bundleSource and hookFolder from PluginSpec data (DATA-CFG-0002).
- * dry-run → no-op (FR-CLI-0050, FR-ARCH-0045).
+ * dry-run → no-op (FR-CLI-0050, FR-ARCH-0045). suppressed → checks only (FR-CLI-0036).
  * FR-HOOK-0020–0022
  */
 export function pluginSyncBundles(
   hooksSource: string,
   outputDir: string,
   deterministicHooks: boolean,
-  dryRun = false,
+  mode: WriteMode = 'write',
 ) {
   return function pluginSyncBundlesProcessor(
     p: PluginProcessingFrame,
   ): PluginProcessingFrame {
-    if (dryRun) return p; // FR-CLI-0050: zero disk writes in dry-run
+    if (mode === 'dry-run') return p; // FR-CLI-0050: zero disk writes in dry-run
+    const suppressed = mode === 'suppressed'; // FR-CLI-0036: checks yes, mutations no
 
     const { spec } = p;
     const targetDir = path.join(outputDir, spec.destination);
@@ -65,13 +67,13 @@ export function pluginSyncBundles(
         }]);
       }
 
-      fs.mkdirSync(hookFolder, { recursive: true });
+      if (!suppressed) fs.mkdirSync(hookFolder, { recursive: true });
 
       const missing: string[] = [];
       for (const filename of declared) {
         const srcPath = path.join(bundleSourceDir, filename);
         if (fs.existsSync(srcPath)) {
-          fs.copyFileSync(srcPath, path.join(hookFolder, filename));
+          if (!suppressed) fs.copyFileSync(srcPath, path.join(hookFolder, filename));
         } else {
           missing.push(filename);
         }
@@ -91,7 +93,7 @@ export function pluginSyncBundles(
     // the hook catalog entirely) would otherwise persist in the output forever, and the plugin
     // would keep registering a hook its own hooks.json no longer references. Same silent-staleness
     // class as the orphan output folders swept in generate(), one level down.
-    const swept = sweepUndeclaredBundles(hookFolder, bundleSourceDir, declared, keep);
+    const swept = suppressed ? [] : sweepUndeclaredBundles(hookFolder, bundleSourceDir, declared, keep);
     if (swept.length > 0) {
       getLogger().info(
         { target: spec.destination, removed: swept },

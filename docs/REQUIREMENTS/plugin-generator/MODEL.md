@@ -174,7 +174,7 @@ Reference valid profile:
 
 <req id="DATA-CFG-0007" type="DATA" level="System" ticketId="315" classification="technical"
      source="User" priority="Must" verification="Inspection"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
      depends="DATA-CFG-0003, DATA-CFG-0006"
      implementation="Implemented">
   <title>Plugin-set descriptor</title>
@@ -186,14 +186,14 @@ Reference valid profile:
     <criteria id="DATA-CFG-0007.AC2" ears="unwanted" if="a set descriptor omits `template`, `releases` or `bootstrap`" system="the generator" shall="treat the configuration as invalid, naming the set and the missing field"/>
     <criteria id="DATA-CFG-0007.AC3" ears="event" when="a set descriptor omits `requires` and `hooks`" system="the generator" shall="read an empty `requires` list and an empty hook list"/>
     <criteria id="DATA-CFG-0007.AC4" ears="ubiquitous" system="the generator" shall="read each `hooks` entry as a bare hook module name, such as `dangerous-actions`, resolving its event and matcher from that target's hook configuration templates rather than from the descriptor"/>
-    <criteria id="DATA-CFG-0007.AC5" ears="ubiquitous" system="the generator" shall="read `manifest.name` as the set's base marketplace plugin name — `rosetta`, `core`, `workflows`, `qe`, `search`, `modernization` — independently of the output folder name, the variant's `manifestNameSuffix` producing the shipped name (so `rosetta` plus `-light` gives `rosetta-light`)"/>
+    <criteria id="DATA-CFG-0007.AC5" ears="ubiquitous" system="the generator" shall="read `manifest.name` as the set's base marketplace plugin name — for example `rosetta` or `core` — independently of the output folder name, the variant's `manifestNameSuffix` producing the shipped name (so `rosetta` plus `-light` gives `rosetta-light`)"/>
     <criteria id="DATA-CFG-0007.AC6" ears="event" when="a set declares `releases: [r2]`" system="the generator" shall="build it only when release `r2` is selected"/>
     <criteria id="DATA-CFG-0007.AC7" ears="unwanted" if="two set descriptors declare the same `name`, whatever releases they name" system="the generator" shall="treat the configuration as invalid, naming the duplicated set name"/>
     <criteria id="DATA-CFG-0007.AC8" ears="unwanted" if="a set descriptor carries a top-level field the descriptor does not define, such as `indexes`" system="the generator" shall="treat the configuration as invalid"/>
     <criteria id="DATA-CFG-0007.AC9" ears="unwanted" if="a set descriptor declares an empty `folders`, an empty `releases` or an empty `variants` list" system="the generator" shall="treat the configuration as invalid"/>
   </acceptance>
-  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/plugin-sets.ts defines the contract as PluginSetDecl, SetVariant, SetManifest and PluginCatalog, and enforces it in loadPluginCatalog via readSet, readVariants and readManifest against the closed allow-lists CATALOG_FIELDS, SET_FIELDS, VARIANT_FIELDS and MANIFEST_FIELDS, every violation raising PluginCatalogError before any output is written. requireString/requireStringArray/requireBoolean make template, releases, bootstrap and manifest mandatory, while requires and hooks default through ?? [] and the three variant suffixes through optionalString. readVariants additionally rejects two variants sharing a destinationSuffix. src/rosettify-plugins/plugins.json ships six sets in exactly this shape.</implementationNotes>
-  <notes>Reference configuration (verified to load through `loadPluginCatalog`):
+  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/plugin-sets.ts defines the contract as PluginSetDecl, SetVariant, SetManifest and PluginCatalog, and enforces it in loadPluginCatalog via readSet, readVariants and readManifest against the closed allow-lists CATALOG_FIELDS, SET_FIELDS, VARIANT_FIELDS and MANIFEST_FIELDS, every violation raising PluginCatalogError before any output is written. requireString/requireStringArray/requireBoolean make template, releases, bootstrap and manifest mandatory, while requires and hooks default through ?? [] and the three variant suffixes through optionalString. readVariants additionally rejects two variants sharing a destinationSuffix. src/rosettify-plugins/plugins.json ships the sets `rosetta` and `core` in exactly this shape.</implementationNotes>
+  <notes>Reference configuration in the shape of the split catalog `assets/plugins.split.json` (verified to load through `loadPluginCatalog`); the current catalog `src/rosettify-plugins/plugins.json` declares `rosetta` and `core` only:
 ```json
 {
   "targets": ["claude", "cursor", "copilot", "codex",

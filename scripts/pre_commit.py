@@ -106,7 +106,7 @@ def build_checks() -> list[Check]:
         # build. Publish rosettify-plugins before running this script whenever the
         # local generator is ahead of the published one; until then, build plugins
         # with `npm --prefix src/rosettify-plugins start -- ...` and run checks alone.
-        Check(name="plugin sync",     runner=lambda: run_command(["npx", "-y", "rosettify-plugins@latest", "--release", "r3", "--deterministic-hooks", "false"])),
+        Check(name="plugin sync",     runner=lambda: run_command(["npx", "-y", "rosettify-plugins@latest", "--release", "r3", "--deterministic-hooks", "false", "--publish", "rosetta,rosetta-light"])),
         Check(name="verify structure",     runner=verify_bash("ac_structure.sh")),
         Check(name="verify crossrefs",     runner=verify_python("ac_crossrefs.py")),
         Check(name="verify hooks content", runner=verify_python("ac_hooks_content.py")),

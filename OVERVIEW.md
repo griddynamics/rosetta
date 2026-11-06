@@ -48,7 +48,7 @@ These terms are defined here and referenced everywhere else.
 | **Subagent**       | Delegated specialist with fresh context and its own system prompt. Alias: **Agent**. Examples: orchestrator, planner, executor, and others. |
 | **Template**       | Parameterized prompt with variables and validated placeholders.                                                                             |
 | **Release**        | Versioned instruction set (r1, r2, r3). R3 is the final numbered release; updates land incrementally within it.                             |
-| **Domain set**     | A subject-scoped slice of the instruction library: `core`, `workflows`, `qe`, `search`, `modernization`. Every top-level folder under a release is one. Sets are siblings and each ships as its own plugin. |
+| **Customization** | Organization-owned instructions merged on top of the library at build time with `--customizations`. No fork needed. |
 | **Guardrails**     | Safety measures: scope limits, data protection, transparency rules, approval gates, risk assessment.                                        |
 | **HITL**           | Human-in-the-loop. Approval gates at critical decision points (specs, plans, risky actions).                                                |
 | **Meta-prompting** | Rosetta consults the AI agent on what should be done and how using meta-prompts.                                                            |
@@ -91,19 +91,13 @@ Read more about the [bootstrap flow](docs/ARCHITECTURE.md#bootstrap-flow) in the
 6. Evolve      Updates ship incrementally to the current release; rollback if needed
 ```
 
-## Domain Sets
+## Instruction Library and Customization
 
-Every top-level folder under `instructions/<release>/` is a domain set. There is one kind of folder and one axis.
+All instructions live in one folder, `instructions/<release>/core`: skills, subagents, workflows, always-on rules, bootstrap, templates. Filenames are unique across the tree. The `rosetta` plugin ships all of it.
 
-- **`core`** — composable skills, the always-on rules, bootstrap, templates. No subagents, deliberately.
-- **`workflows`** — subagents and the orchestrated workflows that spawn them.
-- **`qe`** — test automation and test generation.
-- **`search`** — Solr and search engineering.
-- **`modernization`** — conversion, upgrade, re-architecture.
+A team that wants its own instructions keeps them in its own repository with the same layout (`<root>/<release>/core/...`) and builds with `--customizations <root>`. Files are added, appended to existing files, or overwritten, in a defined order. See [PLUGINS.md — Build customized plugins](PLUGINS.md#build-customized-plugins).
 
-Sets are siblings. None of them overrides another, filenames are unique across the whole tree, and each set ships as an installable plugin. A team that wants its own instructions adds a domain, it does not shadow files inside someone else's.
-
-Your project's own context (`docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `gain.json` and friends) sits on top of whichever sets you installed. See [Architecture](docs/ARCHITECTURE.md#instruction-structure) for component details and data flow.
+Your project's own context (`docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `gain.json` and friends) sits on top of the installed plugin. See [Architecture](docs/ARCHITECTURE.md#instruction-structure) for component details and data flow.
 
 ## What Rosetta Does Not Do
 

@@ -1,5 +1,7 @@
 // FR-ARCH-0045 — pluginWrite: null→no file, ''→empty file, content→file, dry-run writes nothing
 import { describe, it, expect } from 'vitest';
+import { PassThrough as LogSink } from 'stream';
+import { initLogger } from '../../../src/logging.js';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -37,7 +39,7 @@ describe('pluginWrite', () => {
     try {
       const frame = makeFrame('rules/test.md', '# Hello\n');
       const p = makePluginFrame([frame]);
-      pluginWrite(outputDir, false)(p);
+      pluginWrite(outputDir, 'write')(p);
       const filePath = path.join(outputDir, 'core-claude', 'rules', 'test.md');
       expect(fs.existsSync(filePath)).toBe(true);
       expect(fs.readFileSync(filePath, 'utf-8')).toBe('# Hello\n');
@@ -52,7 +54,7 @@ describe('pluginWrite', () => {
     try {
       const frame = makeFrame('rules/empty.md', '');
       const p = makePluginFrame([frame]);
-      pluginWrite(outputDir, false)(p);
+      pluginWrite(outputDir, 'write')(p);
       const filePath = path.join(outputDir, 'core-claude', 'rules', 'empty.md');
       expect(fs.existsSync(filePath)).toBe(true);
       expect(fs.readFileSync(filePath, 'utf-8')).toBe('');
@@ -67,7 +69,7 @@ describe('pluginWrite', () => {
     try {
       const frame = makeFrame('rules/dropped.md', null);
       const p = makePluginFrame([frame]);
-      pluginWrite(outputDir, false)(p);
+      pluginWrite(outputDir, 'write')(p);
       const filePath = path.join(outputDir, 'core-claude', 'rules', 'dropped.md');
       expect(fs.existsSync(filePath)).toBe(false);
     } finally {
@@ -83,7 +85,7 @@ describe('pluginWrite', () => {
       const p = makePluginFrame([frame]);
       const discard = new PassThrough();
       discard.resume(); // this test checks disk side effects only; discard the dump
-      pluginWrite(outputDir, true, discard)(p);
+      pluginWrite(outputDir, 'dry-run', discard)(p);
       const targetDir = path.join(outputDir, 'core-claude');
       // No files written
       expect(fs.existsSync(targetDir)).toBe(false);
@@ -107,7 +109,7 @@ describe('pluginWrite', () => {
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
 
-      pluginWrite(outputDir, true, sink)(p);
+      pluginWrite(outputDir, 'dry-run', sink)(p);
       sink.end();
 
       // Must emit the full target path
@@ -128,7 +130,7 @@ describe('pluginWrite', () => {
     try {
       const frame = makeFrame('rules/crlf.md', '# Hello\r\nLine 2\r\n');
       const p = makePluginFrame([frame]);
-      pluginWrite(outputDir, false)(p);
+      pluginWrite(outputDir, 'write')(p);
       const filePath = path.join(outputDir, 'core-claude', 'rules', 'crlf.md');
       const content = fs.readFileSync(filePath, 'utf-8');
       expect(content.includes('\r')).toBe(false);
@@ -152,9 +154,37 @@ describe('pluginWrite', () => {
         templateContext: {},
         errors: [],
       };
-      pluginWrite(outputDir, false)(p);
+      pluginWrite(outputDir, 'write')(p);
       // No files → no output directory created at all
       expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(false);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+});
+
+// FR-CLI-0036 — suppressed: no disk write, nothing to the dry-run sink, no per-file log
+describe('pluginWrite — suppressed', () => {
+  it('writes nothing, emits nothing to the sink, logs nothing', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'write-suppressed-'));
+    const outputDir = path.join(tmpDir, 'output');
+    try {
+      let captured = '';
+      const sink = new PassThrough();
+      sink.on('data', (c: Buffer | string) => { captured += c.toString(); });
+      let logged = '';
+      const logSink = new LogSink();
+      logSink.on('data', (c: Buffer | string) => { logged += c.toString(); });
+      initLogger(false, logSink);
+
+      const p = makePluginFrame([makeFrame('rules/test.md', '# Hello\n'), makeFrame('bin.dat', 'x', true)]);
+      const result = pluginWrite(outputDir, 'suppressed', sink)(p);
+      sink.end();
+
+      expect(result).toBe(p);
+      expect(captured).toBe('');
+      expect(logged).toBe('');
+      expect(fs.existsSync(outputDir)).toBe(false);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }

@@ -6,7 +6,7 @@ Multiple RAGFlow documents at the same VFS resource path are merged into a singl
 
 A resource path is a lookup key, not a file handle, and more than one published document can answer it: a deployment that publishes two instruction repositories into the same collection, or a transitional state during a rename. The agent should get all of them in one call rather than a truncated arbitrary pick. XML wrapping adds metadata without polluting document content.
 
-Within Rosetta's own tree this rarely fires. Filenames are unique across the domain sets, so a path normally resolves to exactly one document.
+Within Rosetta's own tree this rarely fires. Filenames are unique across the tree, so a path normally resolves to exactly one document.
 
 ## When to Use
 
@@ -41,4 +41,4 @@ Documents sorted by `sort_order` metadata (default `1000000`), then by name. A p
 - `src/rosetta-mcp-server/rosetta_mcp/services/bundler.py` — `Bundler` class
 - `src/rosetta-mcp-server/rosetta_mcp/tools/instructions.py` — threshold decision
 - `src/rosetta-mcp-server/rosetta_mcp/tools/resources.py` — VFS resource reads
-- `instructions/r3/{core,workflows,qe,search,modernization}/` — the domain sets that supply bundled content
+- `instructions/r3/core/` — the folder that supplies bundled content

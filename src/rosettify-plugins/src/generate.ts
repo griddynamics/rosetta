@@ -1,10 +1,14 @@
 // FR-CLI-0002, FR-ARCH-0032 — orchestration: load catalog → pre-flight → per-set VFS → pipeline run
 // FR-CLI-0050: dryRun threads into buildSpecsForSet → buildPipeline; no processor swapping here.
 // FR-CLI-0020: all source roots resolved externally and passed via GenerateOptions.sources.
+// FR-CLI-0035/0036, FR-CUST-0001..0003, FR-ARCH-0024/0026: customization roots, --publish filter and
+// orphan-overwrite detection are ALL pre-flight (before the orphan sweep and any pipeline write).
 
 import fs from 'fs';
 import path from 'path';
 import { buildVfs } from './vfs/build-vfs.js';
+import { validateCustomizationRoots } from './vfs/customizations.js';
+import { findOrphanOverwrites } from './vfs/effective-sources.js';
 import { createPluginFrame } from './frames.js';
 import { getRelease, listReleases } from './spec/releases.js';
 import { loadProfile } from './spec/profiles.js';
@@ -15,6 +19,9 @@ import {
   allDeclaredDestinations,
   resolveHookModules,
   parseDomainTokens,
+  pluginName,
+  allDeclaredPluginNames,
+  declaredFoldersForRelease,
 } from './spec/plugin-sets.js';
 import type { PluginCatalog, PluginSetDecl, SetVariant } from './spec/plugin-sets.js';
 import { buildSpecsForSet } from './spec/targets.js';
@@ -29,6 +36,10 @@ interface PlannedBuild {
   variant: SetVariant;
   vfs: Vfs;
   specs: PluginSpec[];
+  /** FR-CLI-0036: false → writes suppressed for every spec of this build. */
+  published: boolean;
+  /** Active profile of this build (variant's, or the --profile override). */
+  activeProfile: string | null;
 }
 
 /**
@@ -39,6 +50,8 @@ interface PlannedBuild {
 export async function generate(options: GenerateOptions): Promise<number> {
   const logger = getLogger();
   const { sources, release: releaseName, domain, dryRun, out, profile: profileOverride } = options;
+  const customizationRoots = options.customizations ?? [];
+  const publish = options.publish;
   const {
     instructionsSource, pluginsSource, hooksSource, outputDir, profileSource, configPath,
   } = sources;
@@ -58,6 +71,30 @@ export async function generate(options: GenerateOptions): Promise<number> {
     catalog = loadPluginCatalog(configPath);
   } catch (err) {
     process.stderr.write(`Failed to load plugin sets: ${(err as Error).message}\n`);
+    return 1;
+  }
+
+  // FR-CLI-0036.AC3: every --publish name must be a declared plugin name (whole catalog, all
+  // releases — A2). Reported before anything else that touches the output.
+  if (publish !== undefined) {
+    const declaredNames = allDeclaredPluginNames(catalog);
+    const unknown = [...new Set(publish)].filter((n) => !declaredNames.includes(n));
+    if (unknown.length > 0) {
+      process.stderr.write(
+        `[hard] Unknown plugin name(s) in --publish: ${unknown.join(', ')}. ` +
+          `Declared plugin names: ${declaredNames.join(', ')}.\n`,
+      );
+      return 1;
+    }
+  }
+
+  // FR-CUST-0002/0003, FR-ARCH-0026.AC5: validate customization roots against folders the WHOLE
+  // catalog declares for this release (not the --domain selection).
+  const rootErrors = validateCustomizationRoots(
+    customizationRoots, releaseName, declaredFoldersForRelease(catalog, releaseName),
+  );
+  if (rootErrors.length > 0) {
+    for (const message of rootErrors) process.stderr.write(`[hard] ${message}\n`);
     return 1;
   }
 
@@ -152,18 +189,24 @@ export async function generate(options: GenerateOptions): Promise<number> {
   };
 
   // VFS: build every selected set's VFS before processing any of them, so a missing instruction
-  // folder aborts the whole run rather than half of it. resolveSourceDirs THROWS on a missing
-  // directory — deliberately, so a typo in plugins.json cannot degrade into a silent empty build.
+  // folder aborts the whole run rather than half of it. resolveLayerDirs THROWS on a missing main
+  // folder (customization roots are skipped when absent, FR-CUST-0003.AC3) — deliberately, so a typo in plugins.json cannot degrade into a silent empty build.
   const planned: PlannedBuild[] = [];
+  // FR-CUST-0002/FR-ARCH-0024: de-duplicate pre-flight messages — several sets share one customization fault.
+  const vfsFaults = new Map<string, { sets: string[]; index: number }>();
   for (const set of sets) {
     let vfs: Vfs;
     try {
-      vfs = buildVfs(instructionsSource, releaseName, set.folders.join(','));
+      vfs = buildVfs(instructionsSource, releaseName, set.folders.join(','), customizationRoots);
     } catch (err) {
-      preflightErrors.push(
-        `Plugin set "${set.name}" (declared in ${configPath}) could not resolve its instruction ` +
-          `folders [${set.folders.join(', ')}]: ${(err as Error).message}`,
-      );
+      const reason = (err as Error).message;
+      const seen = vfsFaults.get(reason);
+      if (seen) {
+        seen.sets.push(set.name);
+      } else {
+        vfsFaults.set(reason, { sets: [set.name], index: preflightErrors.length });
+        preflightErrors.push('');
+      }
       continue;
     }
 
@@ -178,8 +221,10 @@ export async function generate(options: GenerateOptions): Promise<number> {
         continue;
       }
 
+      const published = publish === undefined || publish.includes(pluginName(set, variant));
       const specs = buildSpecsForSet({
         pluginsSource, hooksSource, outputDir, release, dryRun, out,
+        publish: published,
         profile,
         // FR-PROF-0030: --profile is a debugging OVERRIDE of the variant's declared profile; the
         // normal path is the variant itself.
@@ -188,8 +233,42 @@ export async function generate(options: GenerateOptions): Promise<number> {
         hookSupportModules: catalog.hookSupportModules,
       });
 
-      planned.push({ set, variant, vfs, specs });
+      planned.push({
+        set, variant, vfs, specs, published, activeProfile: profileOverride ?? variant.profile,
+      });
     }
+  }
+
+  // One line per distinct VFS fault, naming every plugin set it affects (placeholders keep order).
+  for (const [reason, { sets: names, index }] of vfsFaults) {
+    preflightErrors[index] =
+      `Plugin ${names.length > 1 ? 'sets' : 'set'} ${names.map((n) => `"${n}"`).join(', ')} ` +
+      `(declared in ${configPath}) could not resolve ${names.length > 1 ? 'their' : 'its'} instruction ` +
+      `folders: ${reason}`;
+  }
+
+  // FR-ARCH-0024.AC4/AC6: an overwrite with no surviving predecessor is a hard error, checked for
+  // every planned spec (target + set + active profile) BEFORE anything is written. One line per
+  // (origin file, set-variant); the line names every target destination of that build it affects.
+  const orphanGroups = new Map<string, { origin: string; destinations: string[] }>();
+  for (const build of planned) {
+    for (const spec of build.specs) {
+      const orphans = findOrphanOverwrites(
+        build.vfs, { target: spec.name, set: spec.set }, build.activeProfile,
+      );
+      for (const { origin } of orphans) {
+        const key = `${origin}\u0000${build.set.name}\u0000${build.variant.destinationSuffix}`;
+        const group = orphanGroups.get(key) ?? { origin, destinations: [] };
+        group.destinations.push(spec.destination);
+        orphanGroups.set(key, group);
+      }
+    }
+  }
+  for (const { origin, destinations } of orphanGroups.values()) {
+    preflightErrors.push(
+      `${origin}: overwrite has no predecessor in ${destinations.length > 1 ? 'builds' : 'build'} ` +
+        destinations.join(', '),
+    );
   }
 
   if (preflightErrors.length > 0) {
@@ -227,6 +306,9 @@ export async function generate(options: GenerateOptions): Promise<number> {
 
     for (const spec of build.specs) {
       logger.info({ target: spec.destination, set: spec.set, ide: spec.name }, 'Processing target');
+      if (!build.published) {
+        logger.info({ target: spec.destination }, 'Not published (--publish): writes suppressed');
+      }
 
       // destination: the spec's output folder name. Only the Copilot plugin-form template
       // references it (its 14 fixed install-location probes), but strict rendering only throws

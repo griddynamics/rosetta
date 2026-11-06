@@ -1,6 +1,8 @@
 // FR-ARCH-0053, FR-SEED-0001/0002 — pluginCopy: preserved-source copy, tmpl frame registration,
 // standalone manifest, readParentVersion fallback
 import { describe, it, expect } from 'vitest';
+import { PassThrough as LogSink } from 'stream';
+import { initLogger } from '../../../src/logging.js';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -40,7 +42,7 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
         preservedSource,
       };
       const frame = makePluginFrame(spec);
-      const result = pluginCopy(outputDir, false)(frame);
+      const result = pluginCopy(outputDir, 'write')(frame);
 
       // Files should be on disk
       expect(fs.existsSync(path.join(outputDir, 'core-claude', 'plugin.json'))).toBe(true);
@@ -77,7 +79,7 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
         preservedSource,
       };
       const frame = makePluginFrame(spec);
-      const result = pluginCopy(outputDir, true)(frame);
+      const result = pluginCopy(outputDir, 'dry-run')(frame);
 
       // In dry-run: no files written to disk
       expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(false);
@@ -114,7 +116,7 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
         bootstrap: false,
         preservedSource,
       };
-      const result = pluginCopy(outputDir, false)(makePluginFrame(spec));
+      const result = pluginCopy(outputDir, 'write')(makePluginFrame(spec));
 
       // Non-.tmpl file physically copied
       expect(fs.existsSync(path.join(outputDir, 'core-claude', 'plugin.json'))).toBe(true);
@@ -147,7 +149,7 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
         bootstrap: false,
         preservedSource,
       };
-      pluginCopy(outputDir, false)(makePluginFrame(spec));
+      pluginCopy(outputDir, 'write')(makePluginFrame(spec));
 
       expect(fs.existsSync(path.join(outputDir, 'core-claude', '.DS_Store'))).toBe(false);
       expect(fs.existsSync(path.join(outputDir, 'core-claude', 'real.md'))).toBe(true);
@@ -172,7 +174,7 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
       };
       const frame = makePluginFrame(spec);
       // Should not throw; returns the same frame (no tmpl frames added)
-      const result = pluginCopy(tmp, false)(frame);
+      const result = pluginCopy(tmp, 'write')(frame);
       expect(result).toBe(frame); // no tmpl frames → returns same reference
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
@@ -215,7 +217,7 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
       };
       const frame = makePluginFrame(spec);
-      const result = pluginCopy(outputDir, false)(frame);
+      const result = pluginCopy(outputDir, 'write')(frame);
 
       // standaloneTemplates entry registered as a frame
       const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === '.cursor/hooks.json.tmpl');
@@ -259,7 +261,7 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
       };
-      pluginCopy(outputDir, false)(makePluginFrame(spec));
+      pluginCopy(outputDir, 'write')(makePluginFrame(spec));
 
       const manifest = JSON.parse(
         fs.readFileSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'), 'utf-8'),
@@ -295,7 +297,7 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
       };
-      pluginCopy(outputDir, false)(makePluginFrame(spec));
+      pluginCopy(outputDir, 'write')(makePluginFrame(spec));
 
       const manifest = JSON.parse(
         fs.readFileSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'), 'utf-8'),
@@ -332,7 +334,7 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
       };
-      pluginCopy(outputDir, false)(makePluginFrame(spec));
+      pluginCopy(outputDir, 'write')(makePluginFrame(spec));
 
       const manifest = JSON.parse(
         fs.readFileSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'), 'utf-8'),
@@ -364,7 +366,7 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
       };
-      const result = pluginCopy(outputDir, true)(makePluginFrame(spec));
+      const result = pluginCopy(outputDir, 'dry-run')(makePluginFrame(spec));
 
       // Template frame registered even in dry-run
       const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === '.cursor/hooks.json.tmpl');
@@ -399,7 +401,7 @@ describe('pluginCopy — standalone target (manifestOverride set)', () => {
         standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']],
       };
       // dry-run=true to skip manifest disk write and focus on frame collection
-      const result = pluginCopy(outputDir, true)(makePluginFrame(spec));
+      const result = pluginCopy(outputDir, 'dry-run')(makePluginFrame(spec));
       // Missing source → no frame added
       expect(result.frames.length).toBe(0);
     } finally {
@@ -441,7 +443,7 @@ describe('pluginCopy — set-driven manifest overlay (DATA-CFG-0007)', () => {
         JSON.stringify({ version: '2.0.40', author: 'griddynamics' }, null, 2) + '\n',
       );
 
-      pluginCopy(outputDir, false)(makePluginFrame({
+      pluginCopy(outputDir, 'write')(makePluginFrame({
         ...baseSpec(preservedSource),
         manifest: { name: 'rosetta-light', description: 'Rosetta. (lightweight)' },
       }));
@@ -473,7 +475,7 @@ describe('pluginCopy — set-driven manifest overlay (DATA-CFG-0007)', () => {
       const frame = makePluginFrame(spec);
       (frame as { vfs: unknown }).vfs = [{ path: 'skills/solr-query/SKILL.md', sourceFiles: [] }];
 
-      pluginCopy(outputDir, false)(frame);
+      pluginCopy(outputDir, 'write')(frame);
 
       const written = JSON.parse(
         fs.readFileSync(path.join(outputDir, 'rosetta-claude', 'plugin.json'), 'utf-8'),
@@ -487,7 +489,7 @@ describe('pluginCopy — set-driven manifest overlay (DATA-CFG-0007)', () => {
     withTemp((preservedSource, outputDir) => {
       fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{"version":"1.0.0"}');
 
-      pluginCopy(outputDir, false)(makePluginFrame({
+      pluginCopy(outputDir, 'write')(makePluginFrame({
         ...baseSpec(preservedSource),
         manifestConditionalFields: [
           { field: 'hooks', requires: '@hooks', value: './hooks/hooks.json' },
@@ -515,7 +517,7 @@ describe('pluginCopy — set-driven manifest overlay (DATA-CFG-0007)', () => {
       fs.writeFileSync(path.join(preservedSource, 'hooks.json.tmpl'), '{{{hooks_json}}}');
 
       const outputDir = path.join(tmp, 'output');
-      pluginCopy(outputDir, false)(makePluginFrame({
+      pluginCopy(outputDir, 'write')(makePluginFrame({
         ...baseSpec(preservedSource),
         name: 'cursor-standalone',
         destination: 'rosetta-cursor-standalone-light',
@@ -568,7 +570,7 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
 
-      pluginCopy(outputDir, true, sink)(makePluginFrame(spec));
+      pluginCopy(outputDir, 'dry-run', sink)(makePluginFrame(spec));
       sink.end();
 
       // Reported: full target path and full content, same shape pluginWrite uses.
@@ -615,7 +617,7 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
 
-      pluginCopy(outputDir, true, sink)(makePluginFrame(spec));
+      pluginCopy(outputDir, 'dry-run', sink)(makePluginFrame(spec));
       sink.end();
 
       const expectedManifestPath = path.join(outputDir, 'core-cursor-standalone', 'plugin.json');
@@ -662,7 +664,7 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
 
-      pluginCopy(outputDir, true, sink)(makePluginFrame(spec));
+      pluginCopy(outputDir, 'dry-run', sink)(makePluginFrame(spec));
       sink.end();
 
       expect(captured).toContain('"name": "rosetta-core"');
@@ -697,7 +699,7 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
 
       // Real run.
       const realOutputDir = path.join(tmp, 'real-output');
-      pluginCopy(realOutputDir, false)(makePluginFrame(spec));
+      pluginCopy(realOutputDir, 'write')(makePluginFrame(spec));
       const realPaths = new Set<string>();
       const walk = (dir: string, prefix: string): void => {
         for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -715,7 +717,7 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
       sink.on('data', (chunk: Buffer | string) => {
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
-      pluginCopy(dryOutputDir, true, sink)(makePluginFrame(spec));
+      pluginCopy(dryOutputDir, 'dry-run', sink)(makePluginFrame(spec));
       sink.end();
 
       expect(realPaths.size).toBe(2); // plugin.json + nested/readme.md
@@ -755,7 +757,7 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
 
-      pluginCopy(outputDir, true, sink)(makePluginFrame(spec));
+      pluginCopy(outputDir, 'dry-run', sink)(makePluginFrame(spec));
       sink.end();
 
       const expectedPath = path.join(outputDir, 'core-claude', 'icon.bin');
@@ -794,13 +796,90 @@ describe('pluginCopy — dry-run reports every write it would make (FR-ARCH-0045
         return true;
       }) as typeof process.stdout.write;
       try {
-        expect(() => pluginCopy(outputDir, true)(makePluginFrame(spec))).not.toThrow();
+        expect(() => pluginCopy(outputDir, 'dry-run')(makePluginFrame(spec))).not.toThrow();
       } finally {
         process.stdout.write = originalWrite;
       }
 
       expect(sawOutput).toBe(true);
       expect(fs.existsSync(outputDir)).toBe(false);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});
+
+// FR-CLI-0036 + F8 — suppressed: full processing (tmpl frames still returned), zero side effects
+describe('pluginCopy — suppressed', () => {
+  function setup(standalone: boolean) {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-suppressed-'));
+    const preservedSource = path.join(tmp, 'preserved');
+    const outputDir = path.join(tmp, 'output');
+    fs.mkdirSync(preservedSource, { recursive: true });
+    fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{"name":"t","version":"1.0.0"}');
+    fs.writeFileSync(path.join(preservedSource, 'readme.md'), '# readme');
+    fs.writeFileSync(path.join(preservedSource, 'hooks.json.tmpl'), '{"hooks":{}}');
+    const spec: Partial<PluginSpec> = {
+      name: standalone ? 'cursor-standalone' : 'claude',
+      destination: 'core-claude',
+      set: 'core',
+      manifest: { name: 'rosetta-core', description: 'Rosetta Core.' },
+      manifestConditionalFields: [],
+      hookModules: [],
+      bootstrap: true,
+      preservedSource,
+      ...(standalone ? {
+        manifestOverride: { name: 'core-cursor-standalone', version: 'parent' },
+        standaloneTemplates: [['hooks.json.tmpl', '.cursor/hooks.json.tmpl']] as [string, string][],
+      } : {}),
+    };
+    return { tmp, outputDir, spec };
+  }
+
+  function capture() {
+    let captured = ''; let logged = '';
+    const sink = new PassThrough();
+    sink.on('data', (c: Buffer | string) => { captured += c.toString(); });
+    const logSink = new LogSink();
+    logSink.on('data', (c: Buffer | string) => { logged += c.toString(); });
+    initLogger(false, logSink);
+    return { sink, out: () => captured, log: () => logged };
+  }
+
+  it('main target: no disk write, no sink output, no log, .tmpl frame still returned', () => {
+    const { tmp, outputDir, spec } = setup(false);
+    try {
+      const c = capture();
+      const result = pluginCopy(outputDir, 'suppressed', c.sink)(makePluginFrame(spec));
+      expect(result.frames.some((f: FileProcessingFrame) => f.target === 'hooks.json.tmpl')).toBe(true);
+      expect(fs.existsSync(outputDir)).toBe(false);
+      expect(c.out()).toBe('');
+      expect(c.log()).toBe('');
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('standalone target: manifest not written nor reported, tmpl frame returned', () => {
+    const { tmp, outputDir, spec } = setup(true);
+    try {
+      const c = capture();
+      const result = pluginCopy(outputDir, 'suppressed', c.sink)(makePluginFrame(spec));
+      expect(result.frames.some((f: FileProcessingFrame) => f.target === '.cursor/hooks.json.tmpl')).toBe(true);
+      expect(fs.existsSync(outputDir)).toBe(false);
+      expect(c.out()).toBe('');
+      expect(c.log()).toBe('');
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('frames are identical to write mode (same tmpl frames)', () => {
+    const { tmp, outputDir, spec } = setup(false);
+    try {
+      const w = pluginCopy(outputDir, 'write')(makePluginFrame(spec));
+      const s = pluginCopy(path.join(tmp, 'other'), 'suppressed')(makePluginFrame(spec));
+      expect(s.frames).toEqual(w.frames);
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }

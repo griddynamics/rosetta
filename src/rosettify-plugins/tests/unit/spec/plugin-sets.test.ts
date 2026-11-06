@@ -8,6 +8,9 @@ import {
   loadPluginCatalog,
   selectSets,
   allDeclaredDestinations,
+  allDeclaredPluginNames,
+  declaredFoldersForRelease,
+  pluginName,
   resolveHookModules,
   defaultConfigPath,
   resolveConfigPath,
@@ -245,11 +248,12 @@ describe('allDeclaredDestinations — the orphan sweep keep-list', () => {
   });
 });
 
-// The whole feature in one assertion: the committed catalog must expand to exactly 49 folders.
+// The whole feature in one assertion: the committed catalog must expand to exactly 21 folders
+// (rosetta: 7 targets x 2 variants = 14 published; core: 7 targets x 1 variant = 7 declared).
 describe('the committed plugins.json', () => {
-  it('is valid and declares exactly 49 output folders', () => {
+  it('is valid and declares exactly 21 output folders', () => {
     const catalog = loadPluginCatalog(REPO_CONFIG);
-    expect(allDeclaredDestinations(catalog).size).toBe(49);
+    expect(allDeclaredDestinations(catalog).size).toBe(21);
   });
 
   it('builds 7 folders for r2 — the legacy path, whose instructions tree has only core/', () => {
@@ -316,5 +320,37 @@ describe('resolveConfigPath', () => {
       fs.rmSync(sourceRoot, { recursive: true, force: true });
       fs.rmSync(elsewhere, { recursive: true, force: true });
     }
+  });
+});
+
+describe('plugin-name helpers (FR-CLI-0036, FR-CUST-0002)', () => {
+  const cat = (m: (c: any) => void) => withCatalog(mutate(m), (p) => loadPluginCatalog(p));
+
+  it('pluginName = manifest name + variant manifestNameSuffix', () => {
+    const c = cat((x) => {
+      x.sets[0].manifest.name = 'rosetta';
+      x.sets[0].variants = [
+        { profile: null, destinationSuffix: '', manifestNameSuffix: '', manifestDescriptionSuffix: '' },
+        { profile: null, destinationSuffix: '-light', manifestNameSuffix: '-light', manifestDescriptionSuffix: ' (light)' },
+      ];
+    });
+    expect(c.sets[0].variants.map((v) => pluginName(c.sets[0], v))).toEqual(['rosetta', 'rosetta-light']);
+    expect(allDeclaredPluginNames(c)).toContain('rosetta-light');
+  });
+
+  it('allDeclaredPluginNames is sorted, unique and spans all releases', () => {
+    const c = loadPluginCatalog(REPO_CONFIG);
+    const names = allDeclaredPluginNames(c);
+    expect(names).toEqual([...new Set(names)].sort());
+    expect(names.length).toBeGreaterThan(0);
+  });
+
+  it('declaredFoldersForRelease unions folders of sets available for the release, whole catalog', () => {
+    const c = loadPluginCatalog(REPO_CONFIG);
+    const r2 = declaredFoldersForRelease(c, 'r2');
+    expect([...r2]).toEqual(['core']);
+    const r3Expected = new Set(c.sets.filter((s) => s.releases.includes('r3')).flatMap((s) => s.folders));
+    expect(declaredFoldersForRelease(c, 'r3')).toEqual(r3Expected);
+    expect(declaredFoldersForRelease(c, 'r9').size).toBe(0);
   });
 });

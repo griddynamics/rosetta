@@ -4,7 +4,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import type { Writable } from 'stream';
-import type { PluginSpec, SpecEntry, FileProcessor, PluginProcessor, ReleaseDescriptor } from '../types.js';
+import type { PluginSpec, SpecEntry, FileProcessor, PluginProcessor, ReleaseDescriptor, WriteMode } from '../types.js';
 import { TARGET_NAMES } from './target-names.js';
 import type { TargetName } from './target-names.js';
 import type { PluginSetDecl, SetVariant } from './plugin-sets.js';
@@ -177,6 +177,8 @@ export interface SpecBuildContext {
   release: ReleaseDescriptor;
   /** FR-CLI-0050: when true, all pipeline processors skip disk writes */
   dryRun?: boolean;
+  /** FR-CLI-0036: false → this plugin is not published; writers run in 'suppressed' mode. Default true. */
+  publish?: boolean;
   /** FR-ARCH-0045/FR-CLI-0050: dry-run output sink; defaults to process.stdout */
   out?: Writable;
   /** FR-PROF-0001/0010: the loaded profile descriptor for this variant, or null. */
@@ -719,10 +721,12 @@ function base(
 export function buildSpecsForSet(ctx: SpecBuildContext): PluginSpec[] {
   const {
     pluginsSource, hooksSource, outputDir, release,
-    dryRun = false, out = process.stdout,
+    dryRun = false, publish = true, out = process.stdout,
     profile = null, activeProfile = null,
     set, variant, targets, hookModules, hookSupportModules,
   } = ctx;
+  // FR-CLI-0036: unpublished beats dry-run (nothing at all is emitted for it)
+  const mode: WriteMode = publish === false ? 'suppressed' : dryRun ? 'dry-run' : 'write';
 
   const manifest = {
     name: set.manifest.name + variant.manifestNameSuffix,
@@ -741,7 +745,7 @@ export function buildSpecsForSet(ctx: SpecBuildContext): PluginSpec[] {
       manifestNameSuffix: variant.manifestNameSuffix,
       buildPipeline: (bootstrapAssembler, extraAfterIndexes = []) =>
         buildPipeline(
-          hooksSource, outputDir, release, dryRun, bootstrapAssembler, out,
+          hooksSource, outputDir, release, mode, bootstrapAssembler, out,
           extraAfterIndexes, activeProfile,
         ),
     };
@@ -759,15 +763,15 @@ function buildPipeline(
   hooksSource: string,
   outputDir: string,
   release: ReleaseDescriptor,
-  dryRun: boolean,
+  mode: WriteMode,
   bootstrapAssembler: PluginProcessor,
   out: Writable = process.stdout,
   extraAfterIndexes: PluginProcessor[] = [],
   activeProfile: string | null = null,
 ) {
   return [
-    pluginCleanup(outputDir, dryRun),
-    pluginCopy(outputDir, dryRun, out),
+    pluginCleanup(outputDir, mode),
+    pluginCopy(outputDir, mode, out),
     pluginProcessSpecEntries(release, activeProfile),
     pluginRewriteReferences,
     pluginGenerateIndexes,
@@ -778,7 +782,7 @@ function buildPipeline(
     // payload is injected by pluginRenderTemplates via bootstrap_hooks, plumbed above.
     pluginRenderTemplates,
     pluginMirrorFiles,
-    pluginSyncBundles(hooksSource, outputDir, release.deterministicHooks, dryRun),
-    pluginWrite(outputDir, dryRun, out),
+    pluginSyncBundles(hooksSource, outputDir, release.deterministicHooks, mode),
+    pluginWrite(outputDir, mode, out),
   ];
 }

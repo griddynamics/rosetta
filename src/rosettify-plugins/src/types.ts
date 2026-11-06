@@ -4,10 +4,14 @@ import type { Writable } from 'stream';
 
 export type DirectiveToken = string;
 
+/** Per-spec disk-write behavior; `suppressed`: no fs mutation, nothing to the dry-run sink, no per-file log. */
+export type WriteMode = 'write' | 'dry-run' | 'suppressed';
+
 export interface SourceFile {
   origin: string; // absolute path to source file
   frontmatter?: Frontmatter;
-  order: string; // for stable sort (from VFS build)
+  /** FR-ARCH-0026 order key `<letter>:<cleanPath>:<orderToken|''>`; plain string order, set by the VFS build. */
+  order: string;
   conditions: Set<DirectiveToken>;
   /** Populated by fileRead: raw content (LF-normalized, frontmatter included for source 0,
    *  body only for sources 1+). Consumed by fileBundle to avoid re-reading from disk.
@@ -240,6 +244,10 @@ export interface GenerateOptions {
    * `undefined` (the default) builds every set available for the release — the 49-folder run.
    */
   domain?: string;
+  /** FR-CLI-0035: absolute customization roots in CLI order; absent = []. */
+  customizations?: string[];
+  /** FR-CLI-0036: plugin names to write; absent = write all. */
+  publish?: string[];
   dryRun: boolean;
   verbose: boolean;
   deterministicHooks?: boolean; // FR-CLI-0012 — per-run override; undefined → false (fixed default, not the release descriptor value)

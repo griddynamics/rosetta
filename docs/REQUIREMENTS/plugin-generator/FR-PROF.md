@@ -146,7 +146,7 @@ about which plugin set is being built (DATA-CFG-0003, FR-SET-0040).
   `spec.name` carries, are FR-SET-0040 and are not restated here; manifest identity strings are out of
   scope of this unit.</statement>
   <rationale>One profile now serves variants that must land at different folder names — `-light` for
-  the combo set and no suffix for the split sets — so a suffix carried by the profile cannot express
+  one variant and no suffix for another — so a suffix carried by the profile cannot express
   both, and a profile that named folders would force a second near-identical descriptor per suffix.
   Keeping the profile out of `spec.name` preserves the existing property that a profiled build still
   matches every target-scoped directive.</rationale>
@@ -168,7 +168,7 @@ about which plugin set is being built (DATA-CFG-0003, FR-SET-0040).
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
      depends="DATA-CFG-0006, DATA-CFG-0007, FR-SET-0030"
      implementation="Implemented">
   <title>A profile shall not modify manifest name or description</title>
@@ -181,11 +181,11 @@ about which plugin set is being built (DATA-CFG-0003, FR-SET-0040).
   (FR-PROF-0020).</statement>
   <rationale>The marketplace treats each distribution as a distinct plugin, so manifest identity must
   vary per set and per variant — dimensions a profile does not know about. A profile-carried suffix
-  would force every set sharing that profile to share one manifest name, which is exactly what the
-  split sets must not do.</rationale>
+  would force every set sharing that profile to share one manifest name, which is exactly what separate
+  sets must not do.</rationale>
   <acceptance>
     <criteria id="FR-PROF-0021.AC1" ears="event" when="set `rosetta` builds its variant declaring plugin-name suffix `-light`" system="the generator" shall="write manifest name `rosetta-light`, appending the suffix to the set's declared manifest name"/>
-    <criteria id="FR-PROF-0021.AC2" ears="event" when="set `qe` builds its only variant, which declares empty manifest suffixes" system="the generator" shall="write manifest name `qe` exactly as the set declares it"/>
+    <criteria id="FR-PROF-0021.AC2" ears="event" when="set `core` builds its only variant, which declares empty manifest suffixes" system="the generator" shall="write manifest name `core` exactly as the set declares it"/>
     <criteria id="FR-PROF-0021.AC3" ears="unwanted" if="a profile descriptor declares `pluginNameSuffix` or `pluginDescriptionSuffix`" system="the generator" shall="treat the descriptor as invalid and abort before any output (FR-PROF-0001)"/>
     <criteria id="FR-PROF-0021.AC4" ears="ubiquitous" system="the generator" shall="apply one set variant's manifest suffixes identically across every IDE target of that set"/>
   </acceptance>
@@ -193,11 +193,11 @@ about which plugin set is being built (DATA-CFG-0003, FR-SET-0040).
   description as set.manifest.<field> + variant.manifestNameSuffix/manifestDescriptionSuffix, consulting
   no profile, and applyOverlay in plugin-copy.ts writes them. Verified on generated output after the
   marketplace-name fix: rosetta-claude/.claude-plugin/plugin.json is 'rosetta' and rosetta-claude-light is
-  'rosetta-light' (AC1), qe-claude is exactly 'qe' (AC2), and the qe manifest name is identical across
+  'rosetta-light' (AC1), core-claude is exactly 'core' (AC2), and the core manifest name is identical across
   claude, cursor, copilot, codex and antigravity (AC4). AC3 verified by live load: loadProfile rejects a
   descriptor carrying pluginNameSuffix or pluginDescriptionSuffix with 'Unrecognized profile field ... A
   profile descriptor defines exactly: modelOverrides', while a bare modelOverrides descriptor is accepted.</implementationNotes>
-  <notes>Marketplace plugin names carry no prefix: `rosetta`, `rosetta-light`, `core`, `workflows`, `qe`, `search`, `modernization`.</notes>
+  <notes>Marketplace plugin names carry no prefix: `rosetta`, `rosetta-light` and `core` in the current catalog; `workflows`, `qe`, `search` and `modernization` in `assets/plugins.split.json`.</notes>
 </req>
 
 ## Profile-scoped filename directive

@@ -115,13 +115,13 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-11-05</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: no domain argument When: invoked Then: every set the configuration declares is built.</criteria>
-    <criteria>Given: `--domain qe` When: invoked Then: only the `qe` set is built and nothing is written for any other set.</criteria>
-    <criteria>Given: `--domain core,workflows` and sets `core` (`folders: [core]`), `workflows` (`folders: [workflows]`) and `rosetta` (`folders: [core, workflows, qe, search, modernization]`) When: invoked Then: `core` and `workflows` are built and `rosetta` is not, because not all of its folders are named.</criteria>
-    <criteria>Given: `--domain qe` When: the `qe` set is built Then: its folder composition and layering order are exactly its declared `folders`, unaffected by the filter.</criteria>
+    <criteria>Given: a catalog declaring a set `qe` with `folders: [qe]` (as `assets/plugins.split.json` does) and `--domain qe` When: invoked Then: only the `qe` set is built and nothing is written for any other set.</criteria>
+    <criteria>Given: `--domain core,workflows` and a catalog declaring sets `core` (`folders: [core]`), `workflows` (`folders: [workflows]`) and `rosetta` (`folders: [core, workflows, qe, search, modernization]`), as `assets/plugins.split.json` does, When: invoked Then: `core` and `workflows` are built and `rosetta` is not, because not all of its folders are named.</criteria>
+    <criteria>Given: a catalog declaring a set `qe` with `folders: [qe]` and `--domain qe` When: the `qe` set is built Then: its folder composition and layering order are exactly its declared `folders`, unaffected by the filter.</criteria>
     <criteria>Given: `--domain acme` and no `instructions/<release>/acme/` folder When: invoked Then: the missing folder is reported and the run exits non-zero without generating output.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
@@ -130,24 +130,24 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   --domain token against <instructionsSource>/<release>/ before selection and aborts naming the unresolved
   folder and the absolute path searched. Tests: tests/unit/generate.test.ts.</implementationNotes>
   <depends>DATA-CFG-0001, DATA-CFG-0007, FR-SET-0020</depends>
-  <notes>Organization content is declared as its own plugin set in the configuration rather than passed on the command line; org-overlay layering is retired entirely, so the argument no longer introduces a layer the configuration does not declare.</notes>
+  <notes>This argument introduces no layer. Organization content joins the build through customization roots (FR-CLI-0035, FR-CUST-0001), which merge into folders the configuration declares.</notes>
 </req>
 
 <req id="FR-CLI-0031" type="FR" level="System" ticketId="315" classification="technical">
   <title>Domain filter matching and empty selection</title>
   <statement>The domain filter shall match a declared set when every folder that set's `folders` list names appears in the argument list. Matching shall be by exact folder name, shall be insensitive to the order of the argument values, and shall ignore argument values no matched set uses. A set naming a folder absent from the list shall not be built. Where the filter matches no declared set, the run shall write no plugin output, report that the filter selected nothing, and exit zero — an empty selection is a legitimate outcome, distinct from the non-existent-folder abort in FR-CLI-0030.</statement>
-  <rationale>Requiring every one of a set's folders to be named is what keeps the filter from producing a partial set: naming `core` alone must not yield a `rosetta` plugin missing four folders, because that output would be indistinguishable from a correct one. An empty selection exits zero because filtering to a set that exists but was not asked for is a caller's choice, while a folder name that resolves to nothing on disk is a mistake.</rationale>
+  <rationale>Requiring every one of a set's folders to be named is what keeps the filter from producing a partial set: naming `core` alone must not yield a plugin of a multi-folder set that lacks its other folders, because that output would be indistinguishable from a correct one. An empty selection exits zero because filtering to a set that exists but was not asked for is a caller's choice, while a folder name that resolves to nothing on disk is a mistake.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-11-05</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: `--domain workflows,core` and a set declaring `folders: [core, workflows]` When: matched Then: the set is built; argument order is immaterial.</criteria>
+    <criteria>Given: `--domain workflows,core` and a set declaring `folders: [core, workflows]` (folders of `assets/plugins.split.json`) When: matched Then: the set is built; argument order is immaterial.</criteria>
     <criteria>Given: `--domain core` and a set declaring `folders: [core, workflows]` When: matched Then: the set is not built.</criteria>
-    <criteria>Given: `--domain core,workflows,qe,search,modernization` When: matched Then: every declared set is built, the combo `rosetta` set included.</criteria>
-    <criteria>Given: `--domain search,qe` where `qe` is used only by sets the filter does not otherwise match When: matched Then: the unused value is ignored rather than reported as an error.</criteria>
+    <criteria>Given: `--domain core,workflows,qe,search,modernization` and the catalog of `assets/plugins.split.json` When: matched Then: every declared set is built, the combined `rosetta` set included.</criteria>
+    <criteria>Given: `--domain search,qe` and the catalog of `assets/plugins.split.json`, where `qe` is used only by sets the filter does not otherwise match When: matched Then: the unused value is ignored rather than reported as an error.</criteria>
     <criteria>Given: a filter whose named folders exist but match no declared set When: the run completes Then: no plugin output is written, the empty selection is reported, and exit status is zero.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
@@ -188,6 +188,46 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   rather than the usage report the criterion words; the required outcome holds and only the diagnostic
   form differs.</implementationNotes>
   <notes></notes>
+</req>
+
+## Customization sources and publish filter
+
+<req id="FR-CLI-0035" type="FR" level="System" ticketId="" classification="technical"
+     source="User" priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
+     depends="FR-CLI-0020, FR-CUST-0001, FR-CUST-0003"
+     implementation="Implemented">
+  <title>Customization roots option</title>
+  <statement>The generator shall accept a `--customizations <dir>[,<dir>...]` argument naming one or more customization roots (FR-CUST-0001). The argument may be repeated; the customization order is the order of the values as written, left to right across all occurrences. A relative value resolves against `<source>` in the manner FR-CLI-0034 resolves `--config`; an absolute value is used verbatim. Without the argument, the run uses the main instruction source alone. An empty value shall be a usage error.</statement>
+  <rationale>A command-line option keeps the catalog free of deployment-specific paths. Resolving against `<source>` keeps every input moving together under one `--source` override.</rationale>
+  <acceptance>
+    <criteria id="FR-CLI-0035.AC1" ears="event" when="`--customizations acme,team` is supplied" system="the generator" shall="use `<source>/acme` as the first and `<source>/team` as the second customization root"/>
+    <criteria id="FR-CLI-0035.AC2" ears="event" when="`--customizations acme --customizations team` is supplied" system="the generator" shall="use the same two roots in the same order as AC1"/>
+    <criteria id="FR-CLI-0035.AC3" ears="event" when="`--customizations /opt/acme` is supplied" system="the generator" shall="use `/opt/acme` verbatim"/>
+    <criteria id="FR-CLI-0035.AC4" ears="unwanted" if="`--customizations ''` or `--customizations acme,,team` is supplied" system="the generator" shall="report usage and exit non-zero without generating output"/>
+  </acceptance>
+  <implementationNotes>Implemented: the `--customizations` option and its help block (src/rosettify-plugins/src/cli.ts); parseListArg (comma-split, repeatable, empty value rejected), dedupe and resolveCustomizationRoots (relative value resolved against `--source`) in src/rosettify-plugins/src/cli-args.ts; the resolved roots enter GenerateOptions.customizations (src/rosettify-plugins/src/types.ts). Tests: tests/unit/cli-args.test.ts, tests/unit/cli-help.test.ts.</implementationNotes>
+  <notes>Resolution against `<source>` was proposed by AI and accepted by the user on 2026-11-05.</notes>
+</req>
+
+<req id="FR-CLI-0036" type="FR" level="System" ticketId="" classification="technical"
+     source="User" priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
+     depends="FR-SET-0010, FR-SET-0030, FR-SET-0040, FR-CLI-0030"
+     implementation="Implemented">
+  <title>Publish filter over plugin names</title>
+  <statement>The generator shall accept a `--publish <name>[,<name>...]` argument naming the plugins to write. A plugin name is a set's manifest name followed by a variant's manifest-name suffix, for example `rosetta` and `rosetta-light`; one name covers that variant's output folder for every IDE target. The generator shall still load and validate the whole catalog, build the VFS of every selected set, and run the full processor pipeline for every plugin; it shall write only the output folders of the named plugins. An error in an unnamed plugin's pipeline shall fail the run as it does for a named one. Output folders of declared plugins that are not named shall stay untouched: not cleaned, not written, not removed. Without the argument, every built plugin is written. A name that matches no declared plugin shall be a hard error at pre-flight, before any output is written. The `--domain` filter (FR-CLI-0030) and this filter both apply.</statement>
+  <rationale>A catalog can declare sets that are not shipped today, such as `core`, without generating plugins for them, while their sources are still read and validated.</rationale>
+  <acceptance>
+    <criteria id="FR-CLI-0036.AC1" ears="event" when="the catalog declares sets `rosetta` (variants with suffixes `` and `-light`) and `core`, and `--publish rosetta,rosetta-light` is supplied" system="the generator" shall="write `rosetta-<ide>` and `rosetta-<ide>-light` for all 7 IDE targets and write no `core-<ide>` folder"/>
+    <criteria id="FR-CLI-0036.AC2" ears="event" when="`plugins/core-claude/` exists from an earlier run and `--publish rosetta,rosetta-light` is supplied" system="the generator" shall="leave `plugins/core-claude/` byte-identical"/>
+    <criteria id="FR-CLI-0036.AC3" ears="unwanted" if="`--publish rosseta` is supplied" system="the generator" shall="exit non-zero naming `rosseta` and listing the declared plugin names, without writing any output folder"/>
+    <criteria id="FR-CLI-0036.AC4" ears="event" when="no `--publish` argument is supplied" system="the generator" shall="write the output folders of every built plugin"/>
+    <criteria id="FR-CLI-0036.AC5" ears="unwanted" if="set `core` is not named in `--publish` and its instruction folder is missing" system="the generator" shall="still fail at pre-flight per FR-SET-0010"/>
+    <criteria id="FR-CLI-0036.AC6" ears="unwanted" if="set `core` is not named in `--publish` and its `codex` pipeline raises a processing error" system="the generator" shall="report the error, exit non-zero, and write no `core-*` folder"/>
+  </acceptance>
+  <implementationNotes>Implemented: the `--publish` option (src/rosettify-plugins/src/cli.ts) with parseListArg and dedupe (src/rosettify-plugins/src/cli-args.ts); pluginName and allDeclaredPluginNames (src/rosettify-plugins/src/spec/plugin-sets.ts) give the declared names; generate (src/rosettify-plugins/src/generate.ts) rejects an unknown name at pre-flight and records PlannedBuild.published per set variant; buildSpecsForSet (src/rosettify-plugins/src/spec/targets.ts) maps an unpublished plugin to WriteMode `suppressed`, which pluginCleanup, pluginCopy, pluginSyncBundles and pluginWrite (src/rosettify-plugins/src/plugin-processors/) honour, so every pipeline runs and nothing is written. Tests: tests/unit/generate.test.ts, tests/unit/plugin-processors/, tests/unit/cli-args.test.ts.</implementationNotes>
+  <notes>The no-argument default and the unknown-name error were proposed by AI and accepted by the user on 2026-11-05.</notes>
 </req>
 
 ## Profile selection — NEW
@@ -404,7 +444,7 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   written to stderr and stdout stays empty on a normal run. buildPipeline's `out` parameter
   (src/rosettify-plugins/src/spec/targets.ts, default process.stdout) threads into pluginCopy and
   pluginWrite (src/rosettify-plugins/src/plugin-processors/plugin-write.ts): stdout is the `--dry-run`
-  payload channel (FR-ARCH-0045), not a progress channel. Verified empirically: a normal `--domain qe`
+  payload channel (FR-ARCH-0045), not a progress channel. Verified empirically on the split catalog (assets/plugins.split.json): a normal `--domain qe`
   run produced 0 bytes on stdout and 2,079 bytes of progress on stderr; `--dry-run --domain qe`
   produced 2,707,684 bytes of file payload on stdout and 131,276 bytes of progress on stderr. Writing
   progress to stdout would corrupt `--dry-run > file` redirection, so the prior statement was wrong

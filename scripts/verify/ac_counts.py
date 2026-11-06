@@ -111,9 +111,11 @@ def compute(cfg, fails):
     if not base.is_dir():
         die(f"missing {base.relative_to(ROOT)}")
     dirs = sorted(p.name for p in base.iterdir() if p.is_dir())
-    if dirs != sorted(cfg["counts"]["sets"]):
-        fails.append(f"FAIL SETS instructions/{rel}: found {dirs} expected {sorted(cfg['counts']['sets'])}"
-                     f" (found {len(dirs)} sets)")
+    # Catalog-driven: sets are whatever folders exist under instructions/<release>;
+    # configured "sets" only name folders that must be present.
+    missing = [x for x in cfg["counts"]["sets"] if x not in dirs]
+    if missing:
+        fails.append(f"FAIL SETS instructions/{rel}: missing {missing} (found {dirs})")
     per = {}
     for st in dirs:
         d = base / st

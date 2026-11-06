@@ -1,7 +1,8 @@
 // hooks-registered.test.ts — Regression guard: every hook-carrying plugin folder ships hook
 // documents whose registrations and bundles agree, in BOTH directions, at BOTH postures.
 //
-// Both install paths are covered: the full plugin (`rosetta*`) and the split plugin (`core*`).
+// Every hook-carrying set the catalog declares is covered. A declared set with no folder built in the
+// tree (unpublished, e.g. `core` today) is skipped; a partially built set fails.
 // The hook-carrying folders are DERIVED from src/rosettify-plugins/plugins.json (sets with a
 // non-empty `hooks` list x variant destinationSuffix x target), never hard-coded. A census
 // guard requires the hooks.json documents found in each folder to equal the per-target table.
@@ -100,11 +101,13 @@ const catalog: Catalog = JSON.parse(readFileSync(CATALOG, 'utf-8'));
 const hookCarryingFolders = (): { folder: string; target: string }[] =>
   catalog.sets
     .filter((s) => s.hooks.length > 0)
-    .flatMap((s) =>
+    .map((s) =>
       s.variants.flatMap((v) =>
         catalog.targets.map((target) => ({ folder: `${s.name}-${target}${v.destinationSuffix}`, target })),
       ),
-    );
+    )
+    .filter((fs) => fs.some(({ folder }) => existsSync(path.join(PLUGINS_DIR, folder))))
+    .flat();
 
 const discoverHooks = (): string[] =>
   readdirSync(HOOKS_DIR)

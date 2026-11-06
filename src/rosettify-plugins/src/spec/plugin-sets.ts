@@ -305,7 +305,7 @@ function readVariants(value: unknown, file: string, setName: string): SetVariant
  * The sets to build for a run.
  *
  * `release` selects on the set's declared availability — this is what keeps the r2 legacy path
- * working: `instructions/r2/` contains ONLY `core/`, and resolveSourceDirs THROWS on a missing
+ * working: `instructions/r2/` contains ONLY `core/`, and resolveLayerDirs THROWS on a missing
  * directory (turning into a whole-run exit 1), so r2 must resolve to the one set built from
  * `core/`. It is declared availability, never a silent skip of a missing folder: a typo in
  * plugins.json must not quietly degrade into an empty build.
@@ -436,4 +436,29 @@ function requireStringArray(value: unknown, file: string, at: string): string[] 
     fail(`${file}: "${at}" must be an array of strings.`);
   }
   return value as string[];
+}
+
+// FR-CLI-0036: a plugin name is the set's manifest name followed by the variant's manifest-name
+// suffix (e.g. `rosetta` + `-light`); one name covers that variant for every IDE target.
+export function pluginName(set: PluginSetDecl, variant: SetVariant): string {
+  return set.manifest.name + variant.manifestNameSuffix;
+}
+
+// FR-CLI-0036 (A2): every declared plugin name across the whole catalog (all releases), sorted, unique.
+export function allDeclaredPluginNames(catalog: PluginCatalog): string[] {
+  const names = new Set<string>();
+  for (const set of catalog.sets) {
+    for (const variant of set.variants) names.add(pluginName(set, variant));
+  }
+  return [...names].sort();
+}
+
+// FR-CUST-0002: union of `folders` of every set available for `release`, over the whole catalog —
+// deliberately NOT the --domain selection.
+export function declaredFoldersForRelease(catalog: PluginCatalog, release: string): Set<string> {
+  const out = new Set<string>();
+  for (const set of catalog.sets) {
+    if (set.releases.includes(release)) for (const f of set.folders) out.add(f);
+  }
+  return out;
 }

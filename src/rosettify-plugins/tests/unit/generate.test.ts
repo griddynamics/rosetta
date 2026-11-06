@@ -8,6 +8,11 @@ import { generate, sweepOrphanDestinations } from '../../src/generate.js';
 import { loadPluginCatalog } from '../../src/spec/plugin-sets.js';
 import type { PluginCatalog } from '../../src/spec/plugin-sets.js';
 import type { ResolvedSources } from '../../src/types.js';
+import { PassThrough } from 'stream';
+import {
+  buildCustRepo, buildCustSources, captureStderr, copyDirSync as copyTree, CUSTOMIZATIONS_DIR,
+  listFilesRecursive, snapshotTree, write,
+} from '../helpers/cust-repo.js';
 
 // generate() writes user-facing error messages (unknown release, unresolved sources)
 // directly to process.stderr (generate.ts). Error-path tests only assert the exit code,
@@ -653,7 +658,7 @@ describe('generate() — plugin sets end to end', () => {
 describe('generate() — real catalog: requires is reflected in the shipped manifest prose', () => {
   const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 
-  it('a built qe-* manifest description names both sets it requires', async () => {
+  it('the built rosetta-* manifest and set list reflect the committed catalog', async () => {
     const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-real-catalog-'));
     try {
       const code = await generate({
@@ -666,19 +671,329 @@ describe('generate() — real catalog: requires is reflected in the shipped mani
           configPath: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins.json'),
         },
         release: 'r3',
-        domain: 'qe',
+        domain: 'core',
         dryRun: false,
         verbose: false,
         deterministicHooks: false,
       });
       expect(code).toBe(0);
       const manifest = JSON.parse(fs.readFileSync(
-        path.join(outputDir, 'qe-claude', '.claude-plugin', 'plugin.json'), 'utf-8',
+        path.join(outputDir, 'rosetta-claude', '.claude-plugin', 'plugin.json'), 'utf-8',
       ));
-      expect(manifest.description).toContain('Core');
-      expect(manifest.description).toContain('Workflows');
+      expect(manifest.name).toBe('rosetta');
+      expect(manifest.description).toContain('Software Engineering Accelerator');
+      expect(fs.readdirSync(outputDir).filter((d) => d.startsWith('rosetta-')).length).toBe(14);
+      expect(fs.readdirSync(outputDir).some((d) => /^(workflows|qe|search|modernization)-/.test(d))).toBe(false);
     } finally {
       fs.rmSync(outputDir, { recursive: true, force: true });
     }
+  }, 60_000);
+});
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// plugin-customizations: --publish (FR-CLI-0036) and customization roots (FR-CUST-0002/0003,
+// FR-ARCH-0024.AC4/AC6, FR-ARCH-0026.AC5). Every violation is a PRE-FLIGHT error: exit 1 and the
+// output directory is never created/touched (ASR-2).
+// ─────────────────────────────────────────────────────────────────────────────
+describe('generate() — --publish filter (FR-CLI-0036)', () => {
+  let repo: string;
+  beforeAll(() => { repo = buildCustRepo(); });
+  afterAll(() => { fs.rmSync(repo, { recursive: true, force: true }); });
+
+  const run = (outName: string, extra: Record<string, unknown> = {}) =>
+    captureStderr(() => generate({
+      sources: buildCustSources(repo, path.join(repo, outName)),
+      release: 'r3', dryRun: false, verbose: false, ...extra,
+    }));
+  const dirs = (outName: string) => fs.readdirSync(path.join(repo, outName)).sort();
+
+  it('AC1: --publish rosetta,rosetta-light writes rosetta-<ide> and rosetta-<ide>-light, no core-<ide>', async () => {
+    const { result } = await run('o-ac1', { publish: ['rosetta', 'rosetta-light'] });
+    expect(result).toBe(0);
+    expect(dirs('o-ac1')).toEqual([
+      'rosetta-claude', 'rosetta-claude-light', 'rosetta-codex', 'rosetta-codex-light',
+    ]);
+  });
+
+  it('AC2: a pre-existing core-claude/ stays byte-identical (not cleaned, written or swept)', async () => {
+    const out = path.join(repo, 'o-ac2');
+    write(path.join(out, 'core-claude', 'stale.txt'), 'keep me');
+    write(path.join(out, 'core-claude', 'deep', 'x.bin'), 'BIN\u0000\u00ff');
+    const before = snapshotTree(path.join(out, 'core-claude'));
+    const { result } = await run('o-ac2', { publish: ['rosetta', 'rosetta-light'] });
+    expect(result).toBe(0);
+    expect(snapshotTree(path.join(out, 'core-claude'))).toEqual(before);
+    expect(fs.existsSync(path.join(out, 'core-codex'))).toBe(false);
+    expect(fs.existsSync(path.join(out, 'rosetta-claude'))).toBe(true);
+  });
+
+  it('AC3: unknown name exits 1 naming it and listing declared names; nothing written', async () => {
+    const { result, stderr } = await run('o-ac3', { publish: ['rosseta'] });
+    expect(result).toBe(1);
+    expect(stderr).toContain('rosseta');
+    for (const name of ['core', 'rosetta', 'rosetta-light']) expect(stderr).toContain(name);
+    expect(fs.existsSync(path.join(repo, 'o-ac3'))).toBe(false);
+  });
+
+  it('AC4: no --publish writes every built plugin', async () => {
+    const { result } = await run('o-ac4');
+    expect(result).toBe(0);
+    expect(dirs('o-ac4')).toEqual([
+      'core-claude', 'core-codex',
+      'rosetta-claude', 'rosetta-claude-light', 'rosetta-codex', 'rosetta-codex-light',
+    ]);
+  });
+
+  it('AC5: unpublished core with a missing instruction folder still fails at pre-flight; nothing written', async () => {
+    const r = buildCustRepo();
+    try {
+      const cfgPath = path.join(r, 'src', 'rosettify-plugins', 'plugins.json');
+      const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+      cfg.sets.find((x: { name: string }) => x.name === 'core').folders = ['missing-folder'];
+      fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+      const out = path.join(r, 'o-ac5');
+      const { result, stderr } = await captureStderr(() => generate({
+        sources: buildCustSources(r, out), release: 'r3', dryRun: false, verbose: false,
+        publish: ['rosetta', 'rosetta-light'],
+      }));
+      expect(result).toBe(1);
+      expect(stderr).toContain('missing-folder');
+      expect(fs.existsSync(out)).toBe(false);
+    } finally {
+      fs.rmSync(r, { recursive: true, force: true });
+    }
+  });
+
+  it('AC6: a processing error in the unpublished core codex pipeline fails the run; no core-* written', async () => {
+    const r = buildCustRepo();
+    try {
+      // Oversize bootstrap lead, scoped to set `core` and the codex target only.
+      write(
+        path.join(r, 'instructions', 'r3', 'core', 'rules', 'plugin-files-mode~set-core-only~ide-codex-only~overwrite~.md'),
+        `---\nname: plugin-files-mode\ntags: ["bootstrap"]\n---\n${'X'.repeat(11000)}`,
+      );
+      const out = path.join(r, 'o-ac6');
+      const { result, stderr } = await captureStderr(() => generate({
+        sources: buildCustSources(r, out), release: 'r3', dryRun: false, verbose: false,
+        publish: ['rosetta', 'rosetta-light'],
+      }));
+      expect(result).toBe(1);
+      expect(stderr).toContain('core-codex');
+      expect(stderr).toContain('Bootstrap entry exceeds');
+      expect(fs.readdirSync(out).filter((d) => d.startsWith('core-'))).toEqual([]);
+      expect(fs.existsSync(path.join(out, 'rosetta-codex'))).toBe(true);
+    } finally {
+      fs.rmSync(r, { recursive: true, force: true });
+    }
+  });
+
+  it('dry-run + unpublished: the sink lists published plugins only; no output folder is created', async () => {
+    const out = path.join(repo, 'o-dry');
+    const sink = new PassThrough();
+    let text = '';
+    sink.on('data', (c) => { text += c.toString(); });
+    const { result } = await captureStderr(() => generate({
+      sources: buildCustSources(repo, out), release: 'r3', dryRun: true, verbose: false,
+      publish: ['rosetta'], out: sink,
+    }));
+    sink.end();
+    expect(result).toBe(0);
+    expect(text).toContain('rosetta-claude');
+    expect(text).not.toContain('core-claude');
+    expect(text).not.toContain('rosetta-claude-light');
+    expect(fs.existsSync(out)).toBe(false);
+  });
+
+  it('pre-flight order: an unknown --publish name is reported before customization-root problems', async () => {
+    const { result, stderr } = await run('o-order', {
+      publish: ['nope'], customizations: [path.join(repo, 'does-not-exist')],
+    });
+    expect(result).toBe(1);
+    expect(stderr).toContain('nope');
+    expect(stderr).not.toContain('does-not-exist');
+  });
+});
+
+describe('generate() — customization roots pre-flight (FR-CUST-0002/0003, FR-ARCH-0024/0026)', () => {
+  let repo: string;
+  beforeAll(() => {
+    repo = buildCustRepo();
+    copyTree(CUSTOMIZATIONS_DIR, path.join(repo, 'roots'));
+    // not committed (.gitignore / nested repo): created in the temp copy only
+    fs.mkdirSync(path.join(repo, 'roots', 'repo-like', '.git'), { recursive: true });
+    write(path.join(repo, 'roots', 'repo-like', '.git', 'HEAD'), 'ref: refs/heads/main');
+    write(path.join(repo, 'roots', 'repo-like', 'r3', '.DS_Store'), 'junk');
+  });
+  afterAll(() => { fs.rmSync(repo, { recursive: true, force: true }); });
+
+  const root = (n: string) => path.join(repo, 'roots', n);
+  const run = (outName: string, customizations: string[], extra: Record<string, unknown> = {}) =>
+    captureStderr(() => generate({
+      sources: buildCustSources(repo, path.join(repo, outName)),
+      release: 'r3', dryRun: false, verbose: false, customizations, ...extra,
+    }));
+  const notWritten = (outName: string) => expect(fs.existsSync(path.join(repo, outName))).toBe(false);
+
+  it('FR-CUST-0002.AC1: undeclared folder under <root>/<release>/ -> exit 1 naming it, no output', async () => {
+    const { result, stderr } = await run('o-u1', [root('bad-folder')]);
+    expect(result).toBe(1);
+    expect(stderr).toContain(path.join(root('bad-folder'), 'r3', 'acme'));
+    notWritten('o-u1');
+  });
+
+  it('FR-CUST-0002.AC2: loose file under <root>/<release>/ -> exit 1 naming it, no output', async () => {
+    const { result, stderr } = await run('o-u2', [root('bad-loose')]);
+    expect(result).toBe(1);
+    expect(stderr).toContain(path.join(root('bad-loose'), 'r3', 'README.md'));
+    notWritten('o-u2');
+  });
+
+  it('FR-CUST-0002.AC3: a root holding only r3/core is accepted', async () => {
+    const { result } = await run('o-u3', [root('acme')]);
+    expect(result).toBe(0);
+  });
+
+  it('FR-CUST-0002.AC4: repo-like root (README, LICENSE, .git/, docs/) -> only r3/core used, exit 0', async () => {
+    const { result } = await run('o-u4', [root('repo-like')]);
+    expect(result).toBe(0);
+    const files = listFilesRecursive(path.join(repo, 'o-u4')).map((f) => f.split(path.sep).join('/'));
+    expect(files.some((f) => f.endsWith('rosetta-claude/skills/repolike/SKILL.md'))).toBe(true);
+    // README / LICENSE / docs/ / .git/ of the root carry unique markers that must never ship.
+    for (const f of files) {
+      const text = fs.readFileSync(f, 'latin1');
+      expect(text, f).not.toMatch(/REPO-LIKE-MARKER-(README|LICENSE|DOCS)|ref: refs\/heads/);
+    }
+  });
+
+  it('FR-CUST-0002.AC5: r3/.DS_Store is ignored, exit 0, absent from every output', async () => {
+    const { result } = await run('o-u5', [root('repo-like')]);
+    expect(result).toBe(0);
+    expect(listFilesRecursive(path.join(repo, 'o-u5')).filter((f) => path.basename(f) === '.DS_Store')).toEqual([]);
+  });
+
+  it('FR-CUST-0003.AC1: missing path -> exit 1 naming the resolved path, no output', async () => {
+    const missing = path.join(repo, 'roots', 'missing');
+    const { result, stderr } = await run('o-m1', [missing]);
+    expect(result).toBe(1);
+    expect(stderr).toContain(missing);
+    notWritten('o-m1');
+  });
+
+  it('FR-CUST-0003.AC2: a file instead of a directory -> exit 1 naming it, no output', async () => {
+    const file = path.join(root('repo-like'), 'README.md');
+    const { result, stderr } = await run('o-m2', [file]);
+    expect(result).toBe(1);
+    expect(stderr).toContain(file);
+    notWritten('o-m2');
+  });
+
+  it('FR-CUST-0003.AC3: a root with only r3/ contributes nothing to an r2 run (main source alone), exit 0', async () => {
+    const r2repo = buildFakeRepo();
+    try {
+      copyTree(root('r3-only'), path.join(r2repo, 'r3-only'));
+      const out = path.join(r2repo, 'out');
+      const { result } = await captureStderr(() => generate({
+        sources: buildSources(r2repo, out), release: 'r2', domain: 'core', dryRun: false, verbose: false,
+        customizations: [path.join(r2repo, 'r3-only')],
+      }));
+      expect(result).toBe(0);
+      expect(listFilesRecursive(out).some((f) => f.includes('r3only'))).toBe(false);
+    } finally {
+      fs.rmSync(r2repo, { recursive: true, force: true });
+    }
+  });
+
+  it('FR-ARCH-0026.AC5: 25 roots accepted, 26 roots -> exit 1, no output', async () => {
+    const make = (n: number) => Array.from({ length: n }, (_, i) => {
+      const d = path.join(repo, 'many', `r${i}`);
+      fs.mkdirSync(d, { recursive: true });
+      return d;
+    });
+    expect((await run('o-n25', make(25))).result).toBe(0);
+    const { result, stderr } = await run('o-n26', make(26));
+    expect(result).toBe(1);
+    expect(stderr).toMatch(/Too many customization roots/);
+    notWritten('o-n26');
+  });
+
+  it('FR-ARCH-0024.AC4: an overwrite that is the only contribution -> exit 1 naming the file, no output', async () => {
+    const file = path.join(repo, 'cust-a4', 'r3', 'core', 'workflows', 'codin-flow~overwrite~.md');
+    write(file, '---\nname: codin-flow\ndescription: x\ntags: ["workflow"]\n---\nbody');
+    const { result, stderr } = await run('o-a4', [path.join(repo, 'cust-a4')]);
+    expect(result).toBe(1);
+    expect(stderr).toContain(file);
+    expect(stderr).toContain('overwrite has no predecessor');
+    notWritten('o-a4');
+  });
+
+  it('FR-ARCH-0024.AC6: a target-scoped overwrite with no predecessor in that build names the file and the claude build', async () => {
+    const dir = path.join(repo, 'cust-a6', 'r3', 'core', 'rules');
+    write(path.join(dir, 'x~target-codex-only~.md'), 'codex x');
+    const bad = path.join(dir, 'x~target-claude-only~overwrite~.md');
+    write(bad, 'claude x');
+    const { result, stderr } = await run('o-a6', [path.join(repo, 'cust-a6')]);
+    expect(result).toBe(1);
+    expect(stderr).toContain(bad);
+    expect(stderr).toContain('rosetta-claude');
+    expect(stderr).not.toMatch(/predecessor in build [^\n]*codex/);
+    notWritten('o-a6');
+  });
+
+  it('M1: a dangling symlink folder under <root>/r3/ -> exit 1 (no thrown error), nothing written', async () => {
+    const dir = path.join(repo, 'cust-dangling', 'r3');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.symlinkSync(path.join(repo, 'cust-dangling', 'nowhere'), path.join(dir, 'core'));
+    const { result, stderr } = await run('o-dangling', [path.join(repo, 'cust-dangling')]);
+    expect(result).toBe(1);
+    expect(stderr).toContain('broken symlink');
+    notWritten('o-dangling');
+  });
+
+  it('M1: a folder-level symlink <root>/r3/core -> dir is accepted and its files ship', async () => {
+    const real = path.join(repo, 'cust-linked-real');
+    write(path.join(real, 'skills', 'linked', 'SKILL.md'), '---\nname: linked\ndescription: l\n---\nLINKED-BODY');
+    const dir = path.join(repo, 'cust-linked', 'r3');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.symlinkSync(real, path.join(dir, 'core'));
+    const { result } = await run('o-linked', [path.join(repo, 'cust-linked')]);
+    expect(result).toBe(0);
+    const hit = listFilesRecursive(path.join(repo, 'o-linked', 'rosetta-claude'))
+      .find((f) => f.split(path.sep).join('/').endsWith('skills/linked/SKILL.md'));
+    expect(hit).toBeDefined();
+    expect(fs.readFileSync(hit!, 'utf-8')).toContain('LINKED-BODY');
+  });
+
+  it('L1: a pre-flight failure leaves a pre-seeded undeclared folder alone (sweep runs only after pre-flight)', async () => {
+    const out = path.join(repo, 'o-sweep');
+    write(path.join(out, 'stale-undeclared', 'keep.txt'), 'survive');
+    const file = path.join(repo, 'cust-sweep', 'r3', 'core', 'workflows', 'codin-flow~overwrite~.md');
+    write(file, '---\nname: codin-flow\ndescription: x\ntags: ["workflow"]\n---\nbody');
+    const { result } = await run('o-sweep', [path.join(repo, 'cust-sweep')]);
+    expect(result).toBe(1);
+    expect(fs.readFileSync(path.join(out, 'stale-undeclared', 'keep.txt'), 'utf-8')).toBe('survive');
+    expect(fs.readdirSync(out)).toEqual(['stale-undeclared']);
+  });
+
+  it('FR-ARCH-0024.AC4/AC6: one orphan fault is not repeated per IDE/variant/set (one line per file and set-variant)', async () => {
+    const bad = path.join(repo, 'cust-m6', 'r3', 'core', 'rules', 'y~overwrite~.md');
+    write(bad, 'orphan');
+    const { result, stderr } = await run('o-m6', [path.join(repo, 'cust-m6')]);
+    expect(result).toBe(1);
+    // 3 set-variants (rosetta, rosetta-light, core) x 2 targets = 6 specs -> 3 lines, not 6
+    expect(stderr.split('\n').filter((l) => l.includes(bad))).toHaveLength(3);
+    notWritten('o-m6');
+  });
+
+  it('FR-CUST-0002: one VFS-build fault shared by several sets is reported once, naming every set', async () => {
+    const bad = path.join(repo, 'cust-m6b', 'r3', 'core', 'rules', 'z~bogus~.md');
+    write(bad, 'bad directive');
+    const { result, stderr } = await run('o-m6b', [path.join(repo, 'cust-m6b')]);
+    expect(result).toBe(1);
+    const lines = stderr.split('\n').filter((l) => l.includes('bogus'));
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain('"rosetta"');
+    expect(lines[0]).toContain('"core"');
+    notWritten('o-m6b');
   });
 });

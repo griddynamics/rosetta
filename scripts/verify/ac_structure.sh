@@ -22,18 +22,37 @@ say(){ printf '%s\n' "$*"; }
 ok(){  say "  PASS  $*"; }
 no(){  say "  FAIL  $*"; fail=1; }
 
-say "=== AC1 — 49 output folders, one generator call ==="
-n=$(ls "$TREE" 2>/dev/null | wc -l | tr -d ' ')
-[ "$n" = 49 ] && ok "$TREE has 49 folders" || no "$TREE has $n folders, expected 49"
-missing=""
-for set in rosetta core workflows qe search modernization; do
-  for ide in claude cursor copilot codex antigravity cursor-standalone copilot-standalone; do
-    [ -d "$TREE/$set-$ide" ] || missing="$missing $set-$ide"
+# Catalog-driven (src/rosettify-plugins/plugins.json): expected folders = declared
+# set x variant x target. A set with no folder in the tree at all is declared but
+# unpublished/not built: skipped, not failed. A partially built set fails.
+CATALOG="src/rosettify-plugins/plugins.json"
+FOLDERS_INSTR=$(ls -d instructions/r3/*/ 2>/dev/null | xargs -n1 basename)
+STEMS=$(python3 - "$CATALOG" <<'PY'
+import json, sys
+c = json.load(open(sys.argv[1]))
+for s in c["sets"]:
+    for v in s.get("variants", []):
+        print(s["name"] + "-{t}" + v.get("destinationSuffix", ""))
+PY
+)
+TARGETS=$(python3 -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["targets"]))' "$CATALOG")
+NTEMPLATES=0
+for t in $TARGETS; do case "$t" in *-standalone) ;; *) NTEMPLATES=$((NTEMPLATES+1));; esac; done
+say "=== AC1 — catalog-declared output folders, one generator call ==="
+expected=0; missing=""; skipped=""
+for stem in $STEMS; do
+  built=0
+  for t in $TARGETS; do [ -d "$TREE/${stem//\{t\}/$t}" ] && built=$((built+1)); done
+  if [ "$built" = 0 ]; then skipped="$skipped ${stem//\{t\}/<ide>}"; continue; fi
+  for t in $TARGETS; do
+    expected=$((expected+1))
+    [ -d "$TREE/${stem//\{t\}/$t}" ] || missing="$missing ${stem//\{t\}/$t}"
   done
 done
-for ide in claude cursor copilot codex antigravity cursor-standalone copilot-standalone; do
-  [ -d "$TREE/rosetta-$ide-light" ] || missing="$missing rosetta-$ide-light"
-done
+n=$(ls "$TREE" 2>/dev/null | wc -l | tr -d ' ')
+[ "$n" = "$expected" ] && ok "$TREE has $expected folders (built sets only)" || no "$TREE has $n folders, expected $expected"
+[ -n "$skipped" ] && say "  SKIP  declared, no folders built:$skipped"
+[ "$expected" -gt 0 ] || no "no built set found in $TREE (vacuous)"
 [ -z "$missing" ] && ok "every expected folder present" || no "missing:$missing"
 # Count only NON-comment lines holding the bare token; comments may explain the call.
 c=$(grep -v '^[[:space:]]*#' scripts/pre_commit.py 2>/dev/null | grep -c 'rosettify-plugins')
@@ -43,8 +62,7 @@ c=$(grep -v '^[[:space:]]*#' scripts/pre_commit.py 2>/dev/null | grep -c 'rosett
 say ""
 say "=== AC4 — MECE across instructions/r3 folders ==="
 tmp=$(mktemp)
-for d in core workflows qe search modernization; do
-  [ -d "instructions/r3/$d" ] || { no "instructions/r3/$d does not exist"; continue; }
+for d in $FOLDERS_INSTR; do
   (cd "instructions/r3/$d" && find . -type f | sed 's|^\./||') >> "$tmp"
 done
 dupes=$(sort "$tmp" | uniq -d)
@@ -52,24 +70,22 @@ dupes=$(sort "$tmp" | uniq -d)
   || { no "duplicate relative paths across folders:"; echo "$dupes" | head -20; }
 rm -f "$tmp"
 [ -d instructions/r3/core/configure ] && no "instructions/r3/core/configure still exists" || ok "configure/ removed"
-[ -f instructions/r3/workflows/workflows/self-help-flow.md ] || \
-  [ -f instructions/r3/core/workflows/self-help-flow.md ] && no "self-help-flow.md still exists" || ok "self-help-flow.md deleted"
-if [ -f instructions/r3/core/workflows/arrange-workspace-flow-modernization.md ]; then
-  ok "arrange-workspace-flow-modernization.md is in core (glob trap avoided)"
+ls instructions/r3/*/workflows/self-help-flow.md >/dev/null 2>&1 && no "self-help-flow.md still exists" || ok "self-help-flow.md deleted"
+if ls instructions/r3/*/workflows/arrange-workspace-flow-modernization.md >/dev/null 2>&1; then
+  ok "arrange-workspace-flow-modernization.md is a workflow file (glob trap avoided)"
 else
-  no "arrange-workspace-flow-modernization.md NOT in core/workflows"
+  no "arrange-workspace-flow-modernization.md NOT found under instructions/r3/*/workflows"
 fi
 
 say ""
-say "=== AC9 — exactly 5 template folders ==="
+say "=== AC9 — one template folder per non-standalone target ==="
 n=$(ls src/rosettify-plugins/plugins 2>/dev/null | wc -l | tr -d ' ')
-[ "$n" = 5 ] && ok "src/rosettify-plugins/plugins has 5 folders: $(ls src/rosettify-plugins/plugins | tr '\n' ' ')" \
+[ "$n" = "$NTEMPLATES" ] && ok "src/rosettify-plugins/plugins has $NTEMPLATES folders: $(ls src/rosettify-plugins/plugins | tr '\n' ' ')" \
   || no "has $n folders: $(ls src/rosettify-plugins/plugins 2>/dev/null | tr '\n' ' ')"
 
 say ""
 say "=== per-folder counts ==="
-for d in core workflows qe search modernization; do
-  [ -d "instructions/r3/$d" ] || continue
+for d in $FOLDERS_INSTR; do
   printf '  %-15s skills=%-3s workflows=%-3s agents=%-3s rules=%s\n' "$d" \
     "$(ls instructions/r3/$d/skills 2>/dev/null | wc -l | tr -d ' ')" \
     "$(ls instructions/r3/$d/workflows 2>/dev/null | wc -l | tr -d ' ')" \

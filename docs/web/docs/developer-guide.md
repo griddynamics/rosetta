@@ -32,7 +32,7 @@ fork/clone → branch → edit → validate → push → PR
 
      Example invocations:
 
-     - Run the flow by slash-command (requires the plugin installed — see [Plugins](/rosetta/docs/plugins/#step-1-install-plugin)):
+     - Run the flow by slash-command (after installing the plugin, see [Plugins](/rosetta/docs/plugins/#step-1-install-plugin)):
 
        ```
        /coding-agents-prompting-flow to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
@@ -41,13 +41,13 @@ fork/clone → branch → edit → validate → push → PR
      - Refactor an old prompt into the new format using local instructions:
 
        ```
-       MUST FULLY EXECUTE `instructions/r3/workflows/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
+       MUST FULLY EXECUTE `instructions/r3/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
        ```
 
      - Author a new prompt using local instructions:
 
        ```
-       MUST FULLY EXECUTE `instructions/r3/workflows/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       MUST FULLY EXECUTE `instructions/r3/core/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
        ```
 
      - Author a new prompt via Rosetta MCP:
@@ -401,15 +401,15 @@ venv/bin/rosetta-cli list-dataset --dataset aia-r3
 
 ## Where to Change What
 
-Instruction sources live in five sibling domain sets under `instructions/r3/` (`core`, `workflows`, `qe`, `search`, `modernization`). Every top-level folder under a release is one of these, and none of them overrides another. Pick the set by subject, not by importance. See [Instruction Structure](/rosetta/docs/architecture/#instruction-structure).
+Instruction sources live in `instructions/r3/core/`. Organization-specific additions go in a customization root, not in this repository. See [Instruction Structure](/rosetta/docs/architecture/#instruction-structure).
 
 | Change type            | Location                                              | Validation                               |
 | ---------------------- | ----------------------------------------------------- | ---------------------------------------- |
-| New/modified skill     | `instructions/r3/<set>/skills/<name>/SKILL.md`. `core` for general engineering, `qe` for testing, `search` for Solr | Publish, test via MCP |
-| New/modified agent     | `instructions/r3/workflows/agents/<name>.md`. `workflows` is the only set with agents | Publish, test via MCP   |
-| New/modified workflow  | `instructions/r3/<set>/workflows/<name>.md`. `core` for workspace setup and help, `workflows` for orchestrated flows, `qe` for test automation, `modernization` for conversions | Publish, test via MCP |
-| New/modified rule      | `instructions/r3/core/rules/<name>.md`. `core` is the only set with rules | Publish, test via MCP  |
-| New domain             | `instructions/r3/<domain>/` plus a `plugins.json` entry | Publish, test via MCP                  |
+| New/modified skill     | `instructions/r3/core/skills/<name>/SKILL.md` | Publish, test via MCP |
+| New/modified agent     | `instructions/r3/core/agents/<name>.md` | Publish, test via MCP |
+| New/modified workflow  | `instructions/r3/core/workflows/<name>.md` | Publish, test via MCP |
+| New/modified rule      | `instructions/r3/core/rules/<name>.md` | Publish, test via MCP |
+| Organization-specific instructions | A customization root built with `--customizations`. See [Build customized plugins](https://github.com/griddynamics/rosetta/blob/main/PLUGINS.md#build-customized-plugins) | Generate the plugin, inspect output |
 | MCP tool or prompt     | `src/rosetta-mcp-server/rosetta_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, src/validate-types.sh |
 | CLI command            | `src/rosetta-cli/rosetta_cli/commands/`               | pytest, dry-run, publish to dev          |
 | Website                | `docs/web/`                                           | Local Jekyll build                       |

@@ -296,6 +296,15 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     expect(targetsContaining('order-swap-fixture')).toEqual(['core-claude']);
   });
 
+  it('FR-ARCH-0024: the overwrite~claude-only contribution replaces its claude-only base in core-claude', () => {
+    const root = path.join(outputDir, 'core-claude');
+    const file = listFilesRecursive(root).find((f) => path.basename(f).startsWith('order-swap-fixture'));
+    expect(file).toBeDefined();
+    const content = fs.readFileSync(file!, 'utf-8');
+    expect(content).toContain('ORDER-SWAP-OVERWRITE');
+    expect(content).not.toContain('ORDER-SWAP-BASE');
+  });
+
   it('a target token AND a profile token combine: with no profile active the file is excluded everywhere', () => {
     // The copilot-only family key alone would reach both Copilot targets; the profile token vetoes
     // it because no profile is active. Proves the two -only namespaces compose rather than compete.

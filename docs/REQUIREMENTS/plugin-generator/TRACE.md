@@ -1,6 +1,6 @@
 # plugin-generator — Traceability
 
-Goal -> requirement -> acceptance criteria -> verification method. Covers the profiles change (G1-G5) and the plugin-set change (G6-G12, ticket #315).
+Goal -> requirement -> acceptance criteria -> verification method. Covers the profiles change (G1-G5) the plugin-set change (G6-G14, ticket #315), and customization sources with the publish filter (G15-G16).
 
 ## Goals
 
@@ -9,8 +9,8 @@ Goal -> requirement -> acceptance criteria -> verification method. Covers the pr
 - **G3** A profiled build never overwrites or perturbs standard plugin output.
 - **G4** A profile can substitute an individual instruction document (e.g. a simpler coding-flow.md).
 - **G5** A disallowed model appears nowhere in a shipped plugin — frontmatter or body text.
-- **G6** Ship each subject area as its own installable plugin, so a user takes only what they need. PRIMARY for #315.
-- **G7** Keep shipping one combined Rosetta plugin, content-equivalent to today's, for users who want everything.
+- **G6** The catalog can declare each subject area as its own installable plugin set (`assets/plugins.split.json`), so a user takes only what they need. PRIMARY for #315.
+- **G7** Ship one combined Rosetta plugin holding every instruction folder, for users who want everything.
 - **G8** One generator invocation produces every plugin set and variant; no second call for the lightweight build.
 - **G9** Adding, removing, or recomposing a plugin set is a configuration edit, never a generator code change.
 - **G10** Hand-maintained preserved configuration does not grow with the plugin-set inventory.
@@ -18,6 +18,8 @@ Goal -> requirement -> acceptance criteria -> verification method. Covers the pr
 - **G12** No plugin ships an index that misrepresents a multi-plugin install.
 - **G13** IDE target identity is the bare IDE name and every scoping directive carries its own namespace, so plugin identity can be two-dimensional without ambiguity.
 - **G14** `configure/` and `templates/` leave the plugin output; the per-IDE guides ship as `harness` skill references and keep verbatim treatment.
+- **G15** An organization adds, extends or replaces instructions from its own folders without forking Rosetta.
+- **G16** The catalog can declare sets that are read and validated but not shipped.
 
 ## Matrix
 
@@ -143,6 +145,15 @@ Criteria owned by units another file authors are marked `(other file)`; their `.
 | G13 | FR-VAR-0042 | (other file — FR-VAR.md) | Test |
 | G13 | FR-VAR-0050 | (other file — FR-VAR.md) | Test |
 | G13 | FR-VAR-0051 | (other file — FR-VAR.md) | Test |
+| G15 | FR-CUST-0001 | (other file — FR-CUST.md) | Test |
+| G15 | FR-CUST-0002 | (other file — FR-CUST.md) | Test |
+| G15 | FR-CUST-0003 | (other file — FR-CUST.md) | Test |
+| G15 | FR-ARCH-0024 | (other file — FR-ARCH.md) | Test |
+| G15 | FR-ARCH-0026 | (other file — FR-ARCH.md) | Test |
+| G15 | FR-ARCH-0021 | (other file — FR-ARCH.md) | Test |
+| G15 | FR-ARCH-0022 | (other file — FR-ARCH.md) | Test |
+| G15 | FR-CLI-0035 | (other file — FR-CLI.md) | Test |
+| G16 | FR-CLI-0036 | (other file — FR-CLI.md) | Test |
 
 ## Coverage
 
@@ -150,7 +161,7 @@ Criteria owned by units another file authors are marked `(other file)`; their `.
 - Every listed unit traces to at least one goal:
   DATA-CFG-0002 (G9,G14) · DATA-CFG-0003 (G6) · DATA-CFG-0005 (G10) ·
   DATA-CFG-0006 (G1,G2,G9) · DATA-CFG-0007 (G6,G9) · FR-ARCH-0001 (G13) ·
-  FR-ARCH-0020 (G13) · FR-ARCH-0021 (G13) · FR-ARCH-0023 (G6,G13) ·
+  FR-ARCH-0020 (G13) · FR-ARCH-0021 (G13,G15) · FR-ARCH-0022 (G15) · FR-ARCH-0023 (G6,G13) ·
   FR-ARCH-0025 (G6,G13) · FR-ARCH-0049 (G14) · FR-ARCH-0057 (G13) ·
   FR-ARCH-0058 (G13) · FR-ARCH-0059 (G1,G2) · FR-ARCH-0060 (G13) ·
   FR-CLI-0001 (G9) · FR-CLI-0030 (G8) · FR-CLI-0031 (G8) ·
@@ -175,8 +186,10 @@ Criteria owned by units another file authors are marked `(other file)`; their `.
   FR-VAR-0041 (G12) · FR-VAR-0042 (G13) · FR-VAR-0050 (G13) ·
   FR-VAR-0051 (G13) · FR-VAR-0072 (G12) · FR-VAR-0080 (G12) ·
   FR-VAR-0081 (G14) · FR-VAR-0083 (G11) · INT-IDE-0001 (G14) ·
-  INT-IDE-0002 (G14) · INT-IDE-0003 (G6,G14) · NFR-0001 (G7).
-- No orphan goal, no orphan unit. 14 goals, 83 distinct units, 117 goal-to-unit links.
+  INT-IDE-0002 (G14) · INT-IDE-0003 (G6,G14) · NFR-0001 (G7) ·
+  FR-CUST-0001 (G15) · FR-CUST-0002 (G15) · FR-CUST-0003 (G15) · FR-ARCH-0024 (G15) ·
+  FR-ARCH-0026 (G15) · FR-CLI-0035 (G15) · FR-CLI-0036 (G16).
+- No orphan goal, no orphan unit. 16 goals, 91 distinct units, 126 goal-to-unit links.
 - `DATA-CFG-0008` (per-target hook-layout descriptor) was retired on 2026-09-03 and carries no row: it
   traced no goal of its own, the goal it served (G11) being traced through `FR-GEN-0011`, `FR-SET-0070`
   and `FR-VAR-0071`, which now own the hook-document-structure contract.

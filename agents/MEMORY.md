@@ -13,6 +13,12 @@ Before resolving any conflict, read the branch's handoff/execution state, its pl
 ### Absence From This Repo Is Not Proof A Referenced Thing Does Not Exist [ACTIVE]
 Before calling a reference dangling, establish what it is FOR. `/goal` and `/advisor` are Claude Code features the user sets; `graphify` is a third-party skill installed via `graphify install`. None is defined in this repo by design. Web-search and read `docs/definitions/workflows.md` first. Six issues in one batch rested on this error, and acting on them deleted working features.
 
+### Spec-First Components: Search Requirements Before Saying A Concept Does Not Exist [ACTIVE]
+For `src/rosettify-plugins` and other requirements-first components, "not in code" ≠ "not in the design". Before claiming a mechanism does not exist, grep `docs/REQUIREMENTS/<component>/` for its domain terms and synonyms (priority → order, OrderToken, sort). Report status precisely: specified + `NotStarted` is not the same as absent. Failure: told the user "no priority token" while `FR-ARCH-0022 OrderToken` was specified and unimplemented.
+
+### Hand-Formatted JSON: Edit Text, Never Re-Serialize The Whole File [ACTIVE]
+Repo JSON (e.g. `docs/definitions/live_counts.json`, `plugins.json`) uses hand-chosen inline arrays/objects. `json.dump` of the whole file rewrites hundreds of lines and hides the real change in review. Insert or replace the exact lines as text, then `git diff --stat` must show only the intended lines.
+
 ### Prescriptive Schemas Outrank Observed Patterns [ACTIVE]
 When an instruction file looks wrong, check `docs/schemas/*.md`, `instructions/r*/core/templates/shell-schemas/*.md`, and the sibling `README.md` "Invariants" section before changing it. A line repeated verbatim across many files is a convention, not a defect — `All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed` is mandated by all three schemas and `skills/coding/README.md` forbids rewording it locally.
 
@@ -255,6 +261,7 @@ Skill `README.md` files are maintainer docs; paraphrasing their sections yields 
 `thinking: {type: "disabled"}` is a 400 on Opus 5.5 and Sonnet 5.5. Changing a default model id without reading the request code (here the `rosettify-prompts` judge calls) breaks the tool at runtime while the unit tests, which mock the client, stay green. Grep for `thinking`, `budget_tokens`, sampling parameters and forced `tool_choice` whenever a model id changes.
 
 ### `scripts/pre_commit.py` Regenerates Plugins With The PUBLISHED Generator [ACTIVE]
+SETTLED (user, repeated across sessions): generator changes → regenerate with the LOCAL build; never edit `pre_commit.py` for this; never ask the user again. Rule lives in `docs/ARCHITECTURE.md` § Plugins. Before asking any question, grep MEMORY.md and ARCHITECTURE.md for an existing answer.
 It runs `npx -y rosettify-plugins@latest`, so a local change to `model-maps.ts` is ignored and the old maps overwrite the plugin tree. After editing the generator: run pre-commit first, then build locally (`npm run build` in `src/rosettify-plugins`) and run `node dist/cli.js --source <repo> --release r3 --deterministic-hooks false` (and again with `--profile lightweight`). Until the new version is published, any later pre-commit run drifts `plugins/` back.
 
 ### A Silent Gate Is Not A Slow Gate — Probe The Launchers It Calls Before Waiting On It [ACTIVE]

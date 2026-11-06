@@ -1,5 +1,9 @@
 # Patterns Change Log
 
+## 2026-11-05 — Customization roots and single `core` folder
+
+Rewrote `domain-set-architecture.md` (now titled Instruction Folder Architecture) for one `core` folder, plugin sets as a catalog capability, and customization roots. Resynced instruction paths in `document-bundling.md`, `tag-based-retrieval.md`, `vfs-resource-paths.md`, `pre-commit-plugin-sync.md`, and `shell-proxy-pattern.md`.
+
 ## 2026-08-24 — Policy-based authorization pattern removed
 
 Removed `policy-based-authorization.md` after the dead `team` authorization path and project-dataset policy surface were removed from the MCP implementation. The remaining read-policy behavior is limited to the live `all` and `none` paths; this change log entry records the pattern deletion rather than replacing it with a new pattern.

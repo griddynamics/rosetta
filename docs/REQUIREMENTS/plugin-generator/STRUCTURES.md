@@ -114,20 +114,20 @@ Note: for the `antigravity` target, the generator emits no `model:` (FR-COPY-008
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-11-05</changed>
   <verification>Inspection</verification>
   <acceptance>
     <criteria>Given: a marketplace IDE target When: the generator completes generation and its tree is inspected Then: it matches the documented structure, with `[P]` paths preserved and `[G]` paths regenerated.</criteria>
     <criteria>Given: the `codex` target When: the generator completes generation and its tree is inspected Then: workflows are skills under `.agents/skills/`, phase files have no frontmatter, and no `.agents/workflows/` folder exists.</criteria>
-    <criteria>Given: the `search` set, which contributes only skills, built for `claude` When: its tree is inspected Then: `skills/` is present and no `agents/`, `rules/` or `workflows/` folder is emitted.</criteria>
+    <criteria>Given: a set whose folders contribute only skills (the `search` set of `assets/plugins.split.json`) built for `claude` When: its tree is inspected Then: `skills/` is present and no `agents/`, `rules/` or `workflows/` folder is emitted.</criteria>
     <criteria>Given: any marketplace plugin When: its tree is inspected Then: it contains no `INDEX.md` at any path.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: verified by a live generation run (49 output folders, exit 0). search-claude contains only
-  .claude-plugin/ and its four solr skills - no agents, rules or workflows folder. core-codex maps
+  <implementationNotes>Implemented: verified by a live generation run of the current catalog (21 output folders, exit 0). rosetta-codex maps
   workflows to .agents/skills/<name>/phases/*.md with no frontmatter, has no .agents/workflows/ folder,
-  and retains .codex-plugin/ and .codex/ configuration. A search for INDEX.md across all 49 folders
-  returns zero matches. No .agents/rules/INDEX.md exists in the shipped
+  and retains .codex-plugin/ and .codex/ configuration. A search for INDEX.md across all 21 folders
+  returns zero matches. The skills-only layout (AC3) was verified on search-claude of the split catalog
+  (assets/plugins.split.json): only .claude-plugin/ and its four solr skills. No .agents/rules/INDEX.md exists in the shipped
   output; index generation is dormant. Tests:
   tests/unit/spec/targets-codex-output.test.ts and tests/e2e/parity.e2e.test.ts.</implementationNotes>
   <depends>FR-VAR-0010, FR-VAR-0020, FR-VAR-0030, FR-VAR-0031, FR-VAR-0041, FR-VAR-0042, FR-SET-0040</depends>

@@ -1,9 +1,12 @@
-// hook-set-isolation.test.ts — Regression guard: the domain sets (workflows, qe, search,
-// modernization) carry NO hooks. Hooks ship only in the hook-carrying sets (`rosetta*` and
-// `core*`), so installing a domain set beside `core` can never register a hook twice.
+// hook-set-isolation.test.ts — Regression guard: hook-less (domain) sets carry NO hooks.
+// Hooks ship only in the hook-carrying sets, so installing a domain set beside the
+// hook-carrying set can never register a hook twice. The current catalog has a single
+// content set (`core`) and so no hook-less set; the guard then skips (not fails) and
+// activates again as soon as a re-split catalog declares one.
 //
 // The folders are DERIVED from src/rosettify-plugins/plugins.json (sets with an empty `hooks`
-// list x variant destinationSuffix x target), never hard-coded. Each folder must exist and hold
+// list x variant destinationSuffix x target), never hard-coded. A set with no folder built in the
+// tree (declared but unpublished) is skipped; a partially built set fails. Each folder must hold
 // no hooks.json and no *.js, except the harness skill's reference copies under
 // skills/harness/references/hooks/.
 //
@@ -29,7 +32,9 @@ const catalog: Catalog = JSON.parse(readFileSync(CATALOG, 'utf-8'));
 const domainFolders = (): string[] =>
   catalog.sets
     .filter((s) => s.hooks.length === 0)
-    .flatMap((s) => s.variants.flatMap((v) => catalog.targets.map((t) => `${s.name}-${t}${v.destinationSuffix}`)));
+    .map((s) => s.variants.flatMap((v) => catalog.targets.map((t) => `${s.name}-${t}${v.destinationSuffix}`)))
+    .filter((fs) => fs.some((f) => existsSync(path.join(PLUGINS_DIR, f))))
+    .flat();
 
 /** Relative paths of every file under a folder, harness reference copies excluded. */
 function listFiles(folderPath: string): string[] {
@@ -48,11 +53,8 @@ function listFiles(folderPath: string): string[] {
 
 const folders = domainFolders();
 
-describe('hook-set-isolation — domain-set plugins carry no hooks', () => {
-  test('the catalog yields domain-set folders', () => {
-    expect(folders.length).toBeGreaterThan(0);
-  });
-
+// Skipped (not failed) while no hook-less set is built, e.g. the single-set catalog.
+describe.skipIf(folders.length === 0)('hook-set-isolation — domain-set plugins carry no hooks', () => {
   for (const folder of folders) {
     describe(folder, () => {
       const folderPath = path.join(PLUGINS_DIR, folder);

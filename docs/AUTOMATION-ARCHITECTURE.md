@@ -144,7 +144,7 @@ Python with named arguments.
 ### The plugin lands in the workspace, and the agent must be told
 
 Codex has no out-of-repo install path for a plugin — the documented install is "extract
-into your repository" — so `codex-setup` unzips `core-codex` at the workspace root. The
+into your repository" — so `codex-setup` unzips `rosetta-codex` at the workspace root. The
 Claude branch does not do this: `claude-code-action` takes `plugin_marketplaces`/`plugins`
 and keeps the instruction set outside the checkout.
 
@@ -172,7 +172,7 @@ that fail silently. A throwaway commit is worse than ugly: it would put plugin f
 ### Model tiers
 
 The two branches run matched tiers, not arbitrary models. The ladder is not invented
-here — it is the pairing `instructions/r3/workflows/agents/*.md` already uses, position by
+here — it is the pairing `instructions/r3/core/agents/*.md` already uses, position by
 position in each agent's `model:` candidate list:
 
 | Claude | Codex | Seen in |

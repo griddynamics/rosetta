@@ -1,4 +1,4 @@
-// FR-ARCH-0020–0024 — FilenameDirective parse and validate
+// FR-ARCH-0020–0024, FR-ARCH-0022 — FilenameDirective parse and validate
 
 import { TARGET_FAMILIES, TARGET_FAMILY_KEYS, TARGET_NAME_LIST } from '../spec/target-names.js';
 
@@ -12,8 +12,13 @@ export type DirectiveToken = string;
  */
 export interface ParsedFilename {
   cleanName: string;    // filename without directive tokens (for VFS path)
-  conditions: Set<DirectiveToken>;
+  conditions: Set<DirectiveToken>; // never holds the OrderToken
+  /** FR-ARCH-0021/0022: optional first-position OrderToken; '' when absent (sorts first). */
+  orderToken: string;
 }
+
+/** FR-ARCH-0021: OrderToken shape — 1 to 4 chars, digit first, digits and lowercase letters only. */
+export const ORDER_TOKEN_PATTERN = /^[0-9][0-9a-z]{0,3}$/;
 
 /**
  * The four `-only` namespaces, and why two are enumerated while two are shape-matched.
@@ -63,20 +68,37 @@ export function parseDirectives(filename: string): ParsedFilename {
   const rawDirectives = parts.slice(1);
   if (rawDirectives[rawDirectives.length - 1] === '') rawDirectives.pop();
 
+  // FR-ARCH-0021: an OrderToken is recognized only as the FIRST token; a first token without that
+  // shape is validated as a DirectiveToken (so a misspelled directive is not read as an order).
+  let orderToken = '';
+  if (rawDirectives.length > 0 && ORDER_TOKEN_PATTERN.test(rawDirectives[0])) {
+    orderToken = rawDirectives[0];
+    rawDirectives.shift();
+  }
+
+  const seen = new Set<DirectiveToken>();
   for (const directive of rawDirectives) {
+    if (ORDER_TOKEN_PATTERN.test(directive)) {
+      throw new Error(
+        `OrderToken "${directive}" in "${filename}" must be the first token after the name`,
+      );
+    }
     if (!isKnownDirective(directive)) {
       const allowed = [...KNOWN_DIRECTIVES, 'set-<name>-only', 'profile-<name>-only'].join(', ');
       throw new Error(
         `Unknown filename directive "${directive}" in "${filename}". Allowed directives: ${allowed}`,
       );
     }
+    if (seen.has(directive)) {
+      throw new Error(`Duplicate filename directive "${directive}" in "${filename}"`);
+    }
+    seen.add(directive);
   }
-
-  const conditions = new Set<DirectiveToken>(rawDirectives);
 
   return {
     cleanName: baseStem + ext,
-    conditions,
+    conditions: seen,
+    orderToken,
   };
 }
 

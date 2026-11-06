@@ -84,7 +84,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 - Same instructions, same behavior across all teams and projects
 - Organization-wide rollout from a single instructions repository
 - Release-based versioning (r1, r2, r3) for safe evolution and rollback
-- Domain sets: install the whole library or only the domains a project needs, plus project-specific context on top
+- Customizations: an organization adds its own instructions on top of one shared library, without forking it
 - Plugin distribution via IDE marketplaces (Claude Code, Cursor) for instant installation across projects. See [Installation — Plugin-Based Installation](../INSTALLATION.md#plugin-based-installation)
 
 ### Governance

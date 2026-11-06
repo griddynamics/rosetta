@@ -117,7 +117,7 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0010" type="FR" level="System" ticketId="" classification="technical">
   <title>Flat VFS model</title>
-  <statement>The generator shall build a flat virtual file system as an ordered list of `VirtualFile`s, each `VirtualFile` having a VFS path and an ordered collection of `SourceFile`s, where each `SourceFile` carries its absolute origin path, a frontmatter slot, an order key, and a conditions set.</statement>
+  <statement>The generator shall build a flat virtual file system as an ordered list of `VirtualFile`s, each `VirtualFile` having a VFS path and an ordered collection of `SourceFile`s, where each `SourceFile` carries its absolute origin path, a frontmatter slot, an order key (format: FR-ARCH-0026), and a conditions set.</statement>
   <rationale>The VFS is the single intermediate model the processors operate on; precise types (`VirtualFile`, `SourceFile`) replace the ambiguous word "file".</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -129,8 +129,8 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: the source structure When: the VFS is built Then: each `VirtualFile` has shape `{path, sourceFiles:[{origin, frontmatter, order, conditions}]}`.</criteria>
     <criteria>Given: two source files mapping to the same VFS path When: built Then: both appear as `SourceFile`s in that `VirtualFile`'s collection in order.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: buildVfs (src/rosettify-plugins/src/vfs/build-vfs.ts) builds the flat VirtualFile list; SourceFile (src/rosettify-plugins/src/types.ts) carries origin, frontmatter slot, order key and conditions; the order key is `<source letter>:<VFS path>:<OrderToken>` (FR-ARCH-0026). Tests: tests/unit/vfs/build-vfs.test.ts.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0011" type="FR" level="System" ticketId="" classification="technical">
@@ -164,8 +164,8 @@ Architecture requirements: the configuration-driven generation model — uniform
   <acceptance>
     <criteria>Given: a built VFS When: inspected Then: the `VirtualFile`s and each `VirtualFile`'s `SourceFile` collection are in stable sorted order.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: buildVfs (src/rosettify-plugins/src/vfs/build-vfs.ts) stable-sorts each VirtualFile's SourceFiles by order key with lexicographicCompare and sorts the VirtualFiles by path with sortPaths (src/rosettify-plugins/src/vfs/sort.ts) before the VFS is frozen. Tests: tests/unit/vfs/build-vfs.test.ts, tests/unit/vfs/sort.test.ts.</implementationNotes>
   <depends>NFR-0002</depends>
 </req>
 
@@ -225,58 +225,51 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: `bootstrap-core-policy~target-claude-only~overwrite~.md` When: mapped Then: conditions are `{target-claude-only, overwrite}`; a `target-<id>-only` token compares its `<id>` against the target `name`, whose values are `claude`, `cursor`, `copilot`, `codex`, `cursor-standalone`, `copilot-standalone`, `antigravity` (so the correct form is `target-claude-only`, not `claude-only` and not `core-claude-only`).</criteria>
     <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: mapped Then: the clean name is `coding-flow.md` and conditions are `{profile-lightweight-only, overwrite}`; the profile token's selection semantics are governed by FR-PROF-0030.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: the tilde grammar, the four namespaced token families (target-<id>-only,
-  ide-<family>-only, set-<id>-only, profile-<name>-only) and clean-name stripping are all implemented in
-  parseDirectives (src/rosettify-plugins/src/vfs/directives.ts). The OrderToken in the first criterion did
-  NOT ship: parseDirectives throws 'Unknown filename directive "1a"' on a ~1a~ token, ParsedFilename
-  carries no order field, and VFS ordering instead comes from the layer array index set in
-  src/rosettify-plugins/src/vfs/build-vfs.ts, unrelated to any filename token. Either drop the order-token
-  grammar from this unit or implement it.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: parseDirectives (src/rosettify-plugins/src/vfs/directives.ts) implements the tilde grammar, the four namespaced token families (target-<id>-only, ide-<family>-only, set-<id>-only, profile-<name>-only), clean-name stripping and the first-position OrderToken (ParsedFilename.orderToken, ORDER_TOKEN_PATTERN). buildVfs (src/rosettify-plugins/src/vfs/build-vfs.ts) maps the clean name to the VFS path. Tests: tests/unit/vfs/directives.test.ts.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0021" type="FR" level="System" ticketId="315" classification="technical">
   <title>Directive grammar and validation</title>
-  <statement>The generator shall parse a `FilenameDirective`, whose form FR-ARCH-0020 defines, as an ordered token list where an optional `OrderToken`, if present, appears first and the remaining `DirectiveToken`s appear in any order; it shall reject the `SourceFile` with an error if any `DirectiveToken` is unknown or if any appears more than once. A token lacking one of the recognized namespace prefixes is unknown, whatever else it resembles.</statement>
+  <statement>The generator shall parse a `FilenameDirective`, whose form FR-ARCH-0020 defines, as an ordered token list where an optional `OrderToken`, if present, appears first and the remaining `DirectiveToken`s appear in any order; it shall reject the `SourceFile` with an error if any `DirectiveToken` is unknown or if any appears more than once. A token lacking one of the recognized namespace prefixes is unknown, whatever else it resembles. An `OrderToken` is 1 to 4 characters, starts with a digit, and holds only digits and lowercase letters (`^[0-9][0-9a-z]{0,3}$`). A first token that does not have this shape is validated as a `DirectiveToken`, so a misspelled directive in first position is still rejected. A token with the `OrderToken` shape in any later position shall be an error.</statement>
   <rationale>Strict validation prevents silent misconfiguration.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-11-05</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: `policy~1a~overwrite~target-claude-only~.md` When: parsed Then: it is accepted.</criteria>
     <criteria>Given: a duplicate token or an unknown token When: parsed Then: it errors naming the file and token.</criteria>
     <criteria>Given: an order token not in first position When: parsed Then: it errors.</criteria>
+    <criteria>Given: `coding-flow~1a~.md`, `coding-flow~10~.md`, `coding-flow~2abc~.md` When: parsed Then: each is accepted with OrderToken `1a`, `10`, `2abc`.</criteria>
+    <criteria>Given: `coding-flow~1abcd~.md` (5 characters) or `coding-flow~1A~.md` (uppercase) When: parsed Then: it errors naming the file and token.</criteria>
+    <criteria>Given: `coding-flow~overwrit~.md` (misspelled, first position) When: parsed Then: it errors as an unknown directive and is not read as an OrderToken.</criteria>
     <criteria>Given: `bootstrap-guardrails~overwrite~.md` When: parsed Then: the token set is `{overwrite}` and the closing tilde fence contributes no token.</criteria>
     <criteria>Given: `bootstrap-core-policy~target-claude-only~overwrite~.md` When: parsed Then: the token set is `{target-claude-only, overwrite}`; the `target-<id>-only` token compares its `<id>` against the target `name` (e.g. `claude`), while `ide-claude-only` matches every target of the Claude family (FR-ARCH-0023) and a bare `claude-only` carries no namespace prefix and is rejected.</criteria>
     <criteria>Given: `coding-flow~profile-lightweight-only~overwrite~.md` When: parsed Then: the token set is `{profile-lightweight-only, overwrite}`; the profile token's selection semantics are governed by FR-PROF-0030.</criteria>
   </acceptance>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>ToBeModified: token-set derivation for the known directives matches the spec exactly. Two criteria fail.
-  The OrderToken grammar does not exist at all, so the order-token-first acceptance and the
-  order-token-misplacement rejection are both unimplementable as written (see FR-ARCH-0020).
-  Duplicate-token rejection is also absent: parseDirectives (src/rosettify-plugins/src/vfs/directives.ts)
-  collects conditions into a Set, so a doubled token is silently de-duplicated instead of raising the
-  error this unit requires; no duplicate check exists in the parser.</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: parseDirectives and ORDER_TOKEN_PATTERN (src/rosettify-plugins/src/vfs/directives.ts) accept an OrderToken only as the first token, validate any other first token as a DirectiveToken, reject an OrderToken-shaped token in a later position, reject an unknown token and reject a duplicate token (the `seen` set); buildVfs (src/rosettify-plugins/src/vfs/build-vfs.ts) prefixes the file path to every parse error. Tests: tests/unit/vfs/directives.test.ts.</implementationNotes>
 </req>
 
-<req id="FR-ARCH-0022" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-ARCH-0022" type="FR" level="System" ticketId="" classification="technical"
+     source="User" priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
+     depends="FR-ARCH-0021, FR-ARCH-0026"
+     implementation="Implemented">
   <title>OrderToken semantics</title>
-  <statement>The generator shall treat the `OrderToken` as an opaque sort key and order a `VirtualFile`'s `SourceFile`s by it as a filesystem/IDE would sort the equivalent name (WYSIWYG lexicographic), defaulting to the plain filename order when absent.</statement>
-  <rationale>Authors control bundling order by what they literally see in the name.</rationale>
-  <source>User</source>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
-  <verification>Test</verification>
+  <statement>The generator shall treat the `OrderToken` as an opaque sort key. It is the third part of the `SourceFile` order key (FR-ARCH-0026), so it orders contributions within one source and never moves a contribution ahead of an earlier source. The order is plain string order (lexicographic, by character code). The generator does not interpret numbers: `10` sorts before `2`. Authors who want numeric order pad with zeros (`001`, `002`, `010`). A `SourceFile` without an `OrderToken` has an empty third part and sorts before every `SourceFile` of the same source and path that has one.</statement>
+  <rationale>Authors control order inside one source by what they literally see in the name; source order stays fixed by the invocation.</rationale>
   <acceptance>
-    <criteria>Given: files with order `1a`, `2a`, `10a` When: ordered Then: ordering follows lexicographic name sort (`10a` before `2a`), matching the filesystem.</criteria>
+    <criteria id="FR-ARCH-0022.AC1" ears="event" when="one source holds `coding-flow~1a~.md`, `coding-flow~2a~.md` and `coding-flow~10a~.md`" system="the generator" shall="order them `10a`, `1a`, `2a` (lexicographic, matching the filesystem)"/>
+    <criteria id="FR-ARCH-0022.AC2" ears="event" when="the main source holds `coding-flow.md` and `coding-flow~5~.md`" system="the generator" shall="order `coding-flow.md` first"/>
+    <criteria id="FR-ARCH-0022.AC3" ears="event" when="the main source holds `coding-flow~9z~.md` and customization root `acme` holds `coding-flow~0~.md`" system="the generator" shall="order the main source's file first, because the source letter `A` precedes `B`"/>
+    <criteria id="FR-ARCH-0022.AC4" ears="event" when="one source holds `coding-flow~001~.md`, `coding-flow~002~.md` and `coding-flow~010~.md`" system="the generator" shall="order them `001`, `002`, `010`"/>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes>NotStarted: `SourceFile.order` is populated in src/rosettify-plugins/src/vfs/build-vfs.ts as the layer array index (`order: ${i}`), not from a filename token, and no code reads it. No filename order token is parsed, consumed, or tested — no `OrderToken` reference exists in src or tests. Current ordering comes from the layer order plus the stable lexicographic filename sort in src/rosettify-plugins/src/vfs/source-resolver.ts, which is exactly this requirement's own documented fallback ("plain filename order when absent"); present output is therefore correct for every current input, since no source file uses an order token.</implementationNotes>
+  <implementationNotes>Implemented: parseDirectives (src/rosettify-plugins/src/vfs/directives.ts) returns the OrderToken, empty when absent; buildVfs (src/rosettify-plugins/src/vfs/build-vfs.ts) puts it in the third part of the order key and stable-sorts with lexicographicCompare (src/rosettify-plugins/src/vfs/sort.ts), so an empty token sorts first and numbers are not interpreted. Tests: tests/unit/vfs/build-vfs.test.ts, tests/unit/vfs/directives.test.ts.</implementationNotes>
+  <notes></notes>
 </req>
 
 <req id="FR-ARCH-0023" type="FR" level="System" ticketId="315" classification="technical">
@@ -305,21 +298,24 @@ Architecture requirements: the configuration-driven generation model — uniform
   copilot alone; an IDE token is unaffected by which set is building.</implementationNotes>
 </req>
 
-<req id="FR-ARCH-0024" type="FR" level="System" ticketId="" classification="technical">
+<req id="FR-ARCH-0024" type="FR" level="System" ticketId="" classification="technical"
+     source="User" priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
+     depends="FR-ARCH-0026, FR-ARCH-0041"
+     implementation="Implemented">
   <title>OverwriteToken condition</title>
-  <statement>Where a `SourceFile` declares the `OverwriteToken` (`overwrite`), the generator shall, during override application, render all earlier-ordered `SourceFile`s for that `VirtualFile` irrelevant so only the overwriting `SourceFile` and later ones remain.</statement>
-  <rationale>Lets a target- or domain-specific file replace accumulated content for a path.</rationale>
-  <source>User</source>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
-  <verification>Test</verification>
+  <statement>Where a `SourceFile` declares the `OverwriteToken` (`overwrite`), the generator shall, during override application, remove every `SourceFile` of that `VirtualFile` ordered before it (FR-ARCH-0026), so only the overwriting `SourceFile` and later ones remain. An overwrite replaces only its predecessors. The rule applies to every surviving overwrite, so the last overwrite in order wins and each `SourceFile` after it is appended. Filtering by `-only` directives (FR-ARCH-0041) runs first: a filtered-out `SourceFile` neither overwrites nor counts as a predecessor. In each build, an overwriting `SourceFile` that survives filtering with no surviving predecessor has nothing to replace and shall be a hard error naming the file and the build.</statement>
+  <rationale>Lets a later source replace accumulated content for a path while still letting even later sources append to it. The no-predecessor error catches a typo or an upstream rename that would otherwise ship the overwrite as an unrelated new file.</rationale>
   <acceptance>
-    <criteria>Given: a path with files ordered A, B(overwrite), C When: overrides applied Then: A is removed; B and C remain in order.</criteria>
+    <criteria id="FR-ARCH-0024.AC1" ears="event" when="`workflows/coding-flow.md` has five surviving contributions in order — 1 `instructions/r3/core/workflows/coding-flow.md`, 2 `cust1/r3/core/workflows/coding-flow~overwrite~.md`, 3 `cust2/r3/core/workflows/coding-flow.md`, 4 `cust3/r3/core/workflows/coding-flow~overwrite~.md`, 5 `cust4/r3/core/workflows/coding-flow.md`" system="the generator" shall="ship `coding-flow.md` as the content of 4 followed by the body of 5"/>
+    <criteria id="FR-ARCH-0024.AC2" ears="event" when="the five contributions of AC1 are the same except that 4 is `coding-flow~profile-lightweight-only~overwrite~.md`" system="the generator" shall="ship 2, then 3, then 5 in the `rosetta-*` plugins, and 4, then 5 in the `rosetta-*-light` plugins"/>
+    <criteria id="FR-ARCH-0024.AC3" ears="event" when="a path has contributions ordered 1 normal, 2 overwrite, 3 normal" system="the generator" shall="ship 2 followed by the body of 3"/>
+    <criteria id="FR-ARCH-0024.AC4" ears="unwanted" if="`cust1/r3/core/workflows/codin-flow~overwrite~.md` is the only contribution to `workflows/codin-flow.md`" system="the generator" shall="exit non-zero naming that file, without writing any output folder"/>
+    <criteria id="FR-ARCH-0024.AC5" ears="event" when="`instructions/r3/core/agents/architect.md` and `instructions/r3/core/agents/architect~profile-lightweight-only~overwrite~.md` both exist" system="the generator" shall="ship the first in the `rosetta-*` plugins and the second in the `rosetta-*-light` plugins, raising no error"/>
+    <criteria id="FR-ARCH-0024.AC6" ears="unwanted" if="a source holds only `rules/x~target-cursor-only~.md` and `rules/x~target-claude-only~overwrite~.md`" system="the generator" shall="exit non-zero naming `x~target-claude-only~overwrite~.md` and the `claude` build, because nothing precedes the overwrite there"/>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementationNotes>Implemented: resolveEffectiveSources and findOrphanOverwrites (src/rosettify-plugins/src/vfs/effective-sources.ts) filter by `-only` directives first, keep every SourceFile from the last surviving overwrite onward, and report an overwrite with no surviving predecessor; fileApplyOverrides (src/rosettify-plugins/src/file-processors/file-apply-overrides.ts) delegates to them and raises a hard frame error for an orphan; generate (src/rosettify-plugins/src/generate.ts) reports every orphan per build at pre-flight, before any output is written. Tests: tests/unit/vfs/effective-sources.test.ts, tests/unit/file-processors/file-apply-overrides.test.ts, tests/e2e/customizations.e2e.test.ts, tests/unit/generate.test.ts.</implementationNotes>
+  <notes>Contribution numbers in the criteria are positions in the order FR-ARCH-0026 defines.</notes>
 </req>
 
 <req id="FR-ARCH-0025" type="FR" level="System"
@@ -360,7 +356,26 @@ Architecture requirements: the configuration-driven generation model — uniform
   src/rosettify-plugins/src/file-processors/file-apply-overrides.ts runs the matchesTarget/matchesProfile
   filter strictly before overwrite truncation, so a set-scoped exclusion cannot be bypassed by an
   overwrite directive.</implementationNotes>
-  <notes></notes>
+  <notes>Criteria that name set `qe` are examples: no set of the current catalog is `qe`; the set is declared in `assets/plugins.split.json`.</notes>
+</req>
+
+<req id="FR-ARCH-0026" type="FR" level="System" ticketId="" classification="technical"
+     source="User" priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
+     depends="FR-ARCH-0010, FR-ARCH-0012, FR-ARCH-0022, FR-CUST-0001, FR-SET-0020"
+     implementation="Implemented">
+  <title>SourceFile order key across sources</title>
+  <statement>The generator shall give every `SourceFile` an order key string `<source letter>:<VFS path>:<OrderToken>`. The source letter is `A` for the main instruction source, `B` for the first customization root, `C` for the second, and so on in the order FR-CLI-0035 supplies them. The VFS path is the file's path relative to its folder with the `FilenameDirective` removed. The OrderToken part is the file's `OrderToken` (FR-ARCH-0022), or empty when the file has none. After every source is loaded, the generator shall sort the `SourceFile`s of each `VirtualFile` by order key in plain string order (FR-ARCH-0022); filtering, overwrite and append (FR-ARCH-0041, FR-ARCH-0024, FR-ARCH-0042) then operate on that order with no other ordering rule. The sort is stable: `SourceFile`s with equal keys keep their load order, which is the set's declared `folders` order (FR-SET-0020), then raw filename in string order within a folder. More than 25 customization roots shall be a hard error at pre-flight, before any output is written.</statement>
+  <rationale>One explicit key makes the order deterministic, visible from the invocation and the filenames alone, and inspectable in logs and tests. Placing the source letter first means no filename token can move a contribution ahead of an earlier source.</rationale>
+  <acceptance>
+    <criteria id="FR-ARCH-0026.AC1" ears="event" when="the main source holds `instructions/r3/core/agents/architect.md` and the first customization root holds `acme/r3/core/agents/architect~overwrite~.md`" system="the generator" shall="assign the keys `A:agents/architect.md:` and `B:agents/architect.md:` and order the main file first"/>
+    <criteria id="FR-ARCH-0026.AC2" ears="event" when="`--customizations acme,team` is supplied and both roots hold `r3/core/workflows/coding-flow.md`" system="the generator" shall="order the contributions main (`A`), then `acme` (`B`), then `team` (`C`)"/>
+    <criteria id="FR-ARCH-0026.AC3" ears="event" when="the main source holds `agents/architect.md` and `agents/architect~profile-lightweight-only~overwrite~.md`" system="the generator" shall="give both the key `A:agents/architect.md:` and order `architect.md` first by raw filename"/>
+    <criteria id="FR-ARCH-0026.AC4" ears="event" when="customization root `acme` holds `workflows/coding-flow~2~.md` and `workflows/coding-flow~1~overwrite~.md`" system="the generator" shall="assign `B:workflows/coding-flow.md:1` and `B:workflows/coding-flow.md:2`, so the main file is replaced by the overwrite and `~2~` is appended after it"/>
+    <criteria id="FR-ARCH-0026.AC5" ears="unwanted" if="26 customization roots are supplied" system="the generator" shall="exit non-zero stating the limit of 25, without writing any output folder"/>
+  </acceptance>
+  <implementationNotes>Implemented: sourceLetter and MAX_CUSTOMIZATION_ROOTS (src/rosettify-plugins/src/vfs/customizations.ts) give letters A to Z and the limit of 25; resolveLayerDirs and collectSourceFiles (src/rosettify-plugins/src/vfs/source-resolver.ts) fix load order (source, declared folder, raw path); buildVfs (src/rosettify-plugins/src/vfs/build-vfs.ts) assigns `<letter>:<VFS path>:<OrderToken>` and stable-sorts each VirtualFile before freezing; validateCustomizationRoots rejects more than 25 roots at pre-flight. Tests: tests/unit/vfs/build-vfs.test.ts, tests/unit/vfs/customizations.test.ts, tests/unit/generate.test.ts.</implementationNotes>
+  <notes>The 25-root limit was proposed by AI and accepted by the user on 2026-11-05.</notes>
 </req>
 
 ## Processing model: frames and tiers
@@ -1020,4 +1035,5 @@ Architecture requirements: the configuration-driven generation model — uniform
   misspelled clade-only is rejected; set-qe-only and ide-copilot-only are accepted without consulting any
   plugin-set or IDE-family configuration, keeping validation shape-only; matchesProfile excludes
   profile-scoped files rather than erroring when no profile is active.</implementationNotes>
+  <notes>The criterion that names `set-qe-only` is an example: no set of the current catalog is `qe`; the set is declared in `assets/plugins.split.json`.</notes>
 </req>

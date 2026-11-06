@@ -198,7 +198,17 @@ describe('read-once hook registration — plugin-set catalog', () => {
     expect(catalog.hookSupportModules['read-once']).toEqual(['read-once-reset', 'read-once-shared']);
   });
 
-  for (const name of ['rosetta', 'core']) {
+  interface CatalogSet { name: string; hooks: string[]; bootstrap: boolean }
+  const sets: CatalogSet[] = catalog.sets;
+  const hookSets = sets.filter((x) => x.hooks.length > 0);
+  const noHookSets = sets.filter((x) => x.hooks.length === 0);
+
+  test('the catalog declares the hook-carrying rosetta set', () => {
+    expect(set('rosetta')).toBeDefined();
+  });
+
+  // Catalog-driven: every set that carries hooks declares the same 6 modules and bootstraps.
+  for (const { name } of hookSets) {
     test(`${name} declares the 6 hook modules and bootstraps`, () => {
       expect(set(name).hooks).toEqual([
         'dangerous-actions',
@@ -212,7 +222,9 @@ describe('read-once hook registration — plugin-set catalog', () => {
     });
   }
 
-  for (const name of ['workflows', 'qe', 'search', 'modernization']) {
+  // Catalog-driven: any hook-less (domain) set declares no hooks and no bootstrap.
+  // Vacuous when the catalog has none (single-set catalog).
+  for (const { name } of noHookSets) {
     test(`${name} declares no hooks and no bootstrap`, () => {
       expect(set(name).hooks).toEqual([]);
       expect(set(name).bootstrap).toBe(false);

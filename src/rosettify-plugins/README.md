@@ -78,6 +78,11 @@ folders the catalog no longer declares are swept from the output directory.
   available for the release.
 - `--profile <name>` — a debugging **override** of every variant's declared profile. The normal
   path is the `profile` field on the variant itself.
+- `--publish <name>[,<name>...]` — writes only the named plugins (for example `rosetta,rosetta-light`).
+  Names are plugin names: a set's manifest name plus a variant's manifest-name suffix, and one name
+  covers that plugin's folder for every IDE target. The whole catalog is still validated and built;
+  output folders of unnamed plugins are not cleaned, written, or removed. A name that matches no
+  declared plugin is a hard error before anything is written. Omit it to write every plugin.
 
 ## Filename directives
 
@@ -91,6 +96,47 @@ Directives are tilde-fenced in a filename: `name~token[~token...]~.ext`. There a
 | `~ide-<family>-only~` | every target of one IDE (`ide-cursor-only` covers both Cursor forms) |
 | `~set-<name>-only~` | one plugin set |
 | `~profile-<name>-only~` | one active build profile |
+
+An **OrderToken** is an optional first token that matches `^[0-9][0-9a-z]{0,3}$`, for example
+`coding-flow~001~.md` or `bootstrap~010~overwrite~.md`. It sets the order in which contributions to
+the same document merge. It is not a filter. The order is a plain string sort, and the generator
+does not interpret numbers: `10` sorts before `9`. Authors who want numeric order pad with zeros
+(`001`, `010`, `100`).
+An OrderToken must come first among the tokens; placed later, or repeated, it is a hard error that
+names the file.
+
+## Customizations
+
+`--customizations <dir>[,<dir>...]` (repeatable) adds customization roots: separate instruction
+trees that merge into the main `--instructionsSource` folder by folder, as if all files came from
+one source. Relative paths resolve against `--source`; absolute paths are used as written.
+
+```bash
+rosettify-plugins --source . --release r3 \
+  --customizations acme,/opt/team-rosetta \
+  --publish rosetta,rosetta-light
+```
+
+Each root uses the same layout as `instructions/`: `<root>/<release>/<folder>/…`.
+
+- Only `<root>/<release>/` is checked. Entries directly under `<root>/` (`README.md`, `LICENSE`,
+  `.git/`, `docs/`) and dot-entries under `<release>/` (`.DS_Store`, `.gitkeep`) are ignored.
+- Every directory under `<root>/<release>/` must name a folder some set declares for that release,
+  and loose files there are errors. Both are caught at pre-flight and name the path.
+- A root without `<release>/` contributes nothing to that run and is not an error. A missing root
+  path, or a path that is a file, is an error.
+- A folder under `<root>/<release>/` may be a symlink to a directory; symlinks nested inside a
+  folder are not followed (same as `instructions/`). A dangling symlink there is an error.
+
+Merge order: the main source first, then each root in `--customizations` order (letters `A`, `B`,
+…). Within one document, contributions sort by letter, then by path, then by OrderToken.
+
+- A new path is added.
+- A contribution to a path an earlier one holds is **appended**; the first contribution's
+  frontmatter is kept.
+- A `~overwrite~` contribution **replaces** earlier contributions. Several overwrites at one path
+  apply in order, so the last one wins. An overwrite with no earlier contribution to replace is a
+  pre-flight error.
 
 ## Profiles
 

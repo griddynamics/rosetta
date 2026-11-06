@@ -5,17 +5,17 @@
 <req id="FR-HOOK-0001" type="FR" level="System" ticketId="315" classification="technical">
   <title>Assemble per-plugin bootstrap context entries</title>
   <statement>For each (set variant × IDE target) pair whose set declares the bootstrap flag, the `pluginAssembleBootstrap()` processor (FR-ARCH-0055) shall build session-start context entries from the bootstrap files present in that plugin, taken in the order of the bootstrap-file manifest (FR-HOOK-0009), reading each file's body from that plugin's own `frames` (the per-file `FileProcessingFrame`s), and shall make these entries available to template rendering. A set whose bootstrap flag is unset shall yield no entries at all. Because the manifest is matched against the files a set actually contains, a set that carries no bootstrap rule produces an empty payload rather than an error. Absent variants are skipped (but logged), not reordered.</statement>
-  <rationale>Each plugin injects its own bootstrap rules into the agent's context at session start, in the IDE's hook format. The manifest order is what fixes the payload sequence. The bootstrap flag is declared per set because only the sets that own the always-on rules can meaningfully inject them; a domain set that ships no rule has nothing to assemble.</rationale>
+  <rationale>Each plugin injects its own bootstrap rules into the agent's context at session start, in the IDE's hook format. The manifest order is what fixes the payload sequence. The bootstrap flag is declared per set because only the sets that own the always-on rules can meaningfully inject them; a set that ships no rule has nothing to assemble.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-11-05</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a plugin containing a subset of bootstrap files When: assembled Then: only present files yield entries, in manifest order; absent variants are skipped.</criteria>
     <criteria>Given: the assembled entries When: rendering Then: they are exposed as that plugin's payload values.</criteria>
-    <criteria>Given: a set whose bootstrap flag is unset, such as `qe` When: assembled Then: no session-start entry is produced.</criteria>
+    <criteria>Given: a set whose bootstrap flag is unset, such as set `qe` of `assets/plugins.split.json` When: assembled Then: no session-start entry is produced.</criteria>
     <criteria>Given: the `core` set, which owns the always-on rules When: assembled Then: its payload carries those rules' bodies in manifest order.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>

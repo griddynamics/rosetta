@@ -18,27 +18,18 @@ Every plugin supports two installation methods:
 
 ## Which plugin do I install
 
-Rosetta ships as seven plugins. Five of them are domain sets; the other two bundle all five.
+Rosetta ships as two plugins.
 
-| Plugin | Contains | Requires |
-| ------ | -------- | -------- |
-| `rosetta` | Everything. Skills, rules, subagents, and all workflows. | nothing |
-| `rosetta-light` | Everything, lightweight profile (simpler workflows, smaller models). | nothing |
-| `core` | Composable skills, always-on rules, bootstrap, guardrail hooks. No subagents. | nothing |
-| `workflows` | Subagents and the orchestrated workflows that spawn them. | `core` |
-| `qe` | Test automation and test generation. | `core`, `workflows` |
-| `search` | Solr and search engineering. | `core`, `workflows` |
-| `modernization` | Conversion, upgrade, and re-architecture workflows. | `core`, `workflows` |
+| Plugin | Contains |
+| ------ | -------- |
+| `rosetta` | Skills, rules, subagents, workflows, and guardrail hooks. |
+| `rosetta-light` | The same content, lightweight profile (simpler workflows, smaller models). |
 
-**Most people want `rosetta`.** It is the whole product in one install, and it is what the rest of this page assumes.
+Install one of them, not both. Installing both puts every skill, agent, and workflow into your session twice under two namespaces. Nothing stops you; nothing warns you either.
 
-Install the split plugins instead when you want a smaller footprint or only one domain. Two things to know before you do.
+**Most people want `rosetta`.** It is what the rest of this page assumes.
 
-`core` on its own is deliberately incomplete. It carries no subagents at all, so `skills/orchestration` has nothing to spawn and the routing skills have very little to route to. `core` plus `workflows` is the smallest setup that behaves like Rosetta.
-
-Install the combo **or** the split, never both. Installing `rosetta` alongside `core` and `workflows` puts every skill, agent, and workflow into your session twice under two namespaces. Nothing stops you; nothing warns you either.
-
-The five split plugins are themselves lightweight builds, so `core` plus `workflows` lands closer to `rosetta-light` than to `rosetta`.
+To add your organization's own instructions to either plugin, see [Build customized plugins](#build-customized-plugins).
 
 ## Step 1: Install Plugin
 
@@ -54,13 +45,7 @@ claude plugin marketplace add griddynamics/rosetta
 claude plugin install rosetta@rosetta
 ```
 
-For the split plugins instead, install each by name from the same marketplace:
-
-```sh
-claude plugin install core@rosetta
-claude plugin install workflows@rosetta
-claude plugin install qe@rosetta        # optional, needs core + workflows
-```
+For the lightweight plugin, install `rosetta-light@rosetta` instead.
 </details>
 
 <details>
@@ -179,6 +164,94 @@ The agent will follow Rosetta prompts and show Rosetta workflows and execute `he
 **GitHub Copilot:**
 
 <img src="docs/images/Rosetta-ProperResponse-Copilot.png" alt="Rosetta proper response in GitHub Copilot" width="710"/>
+
+## Build customized plugins
+
+For organizations that add or adjust Rosetta instructions without forking the repository. You keep your additions in a separate folder, the generator merges them into Rosetta, and you install the plugin it produces.
+
+Requires `rosettify-plugins` 3.5.0 or newer. Customization applies to plugins you generate yourself.
+
+### Layout
+
+A customization root mirrors `instructions/`: `<root>/<release>/<folder>/...`. Rosetta's own files live in `instructions/r3/core/`, so yours go in `<root>/r3/core/`.
+
+```text
+acme-rosetta/
+  r3/
+    core/
+      skills/acme-deploy/SKILL.md                 new skill
+      skills/coding/references/acme-rules.md      new file in an existing skill
+      workflows/coding-flow.md                    appended to Rosetta's coding-flow.md
+      rules/speckit-integration-policy~overwrite~.md   replaces Rosetta's file of that name
+```
+
+A customization root can be its own repository. Only `<root>/<release>/` is checked. Files at the root (`README.md`, `LICENSE`, `.git/`, `docs/`) and entries starting with `.` under the release folder are ignored. Any other folder or loose file under `<root>/r3/` is an error, so a typo does not silently ship nothing.
+
+### What a file does
+
+The file's path decides.
+
+- **New path, new file.** `skills/acme-deploy/SKILL.md` adds a skill Rosetta does not have.
+- **Same path as a Rosetta file, appended.** Your body goes after Rosetta's content. Rosetta's frontmatter stays and the frontmatter of your file is dropped. To change frontmatter, such as a skill `description`, replace the file.
+- **`name~overwrite~.md`, replaced.** The file replaces everything that came before it at that path. With several overwrites at one path, the last wins. An overwrite with nothing to replace in a build is an error.
+
+Example, appending to a workflow. Rosetta ships `coding-flow.md` with its own frontmatter. Your `r3/core/workflows/coding-flow.md`:
+
+```markdown
+---
+description: ACME
+---
+## ACME rules
+Run `make lint` before every commit.
+```
+
+The generated `coding-flow.md` is Rosetta's file followed by `## ACME rules ...`. The `description: ACME` is dropped.
+
+### Limit a file to some builds
+
+Filename tokens work as in the main source. Put them between `~` marks before the extension.
+
+- `coding-flow~profile-lightweight-only~.md` appends only in `rosetta-light`.
+- `coding-flow~ide-claude-only~.md` appends only in Claude Code builds.
+- Combine tokens: `speckit-integration-policy~overwrite~ide-claude-only~.md`.
+
+Filtering happens first. A file filtered out of a build neither overwrites nor counts as something to replace.
+
+### Control the order
+
+Several files can contribute to one path. They apply in this order.
+
+1. Source: Rosetta first, then each customization root.
+2. File path.
+3. OrderToken: a leading token such as `001`, as in `coding-flow~001~.md` and `coding-flow~002~.md`.
+
+OrderToken is 1 to 4 characters, starts with a digit, and holds only digits and lowercase letters. It sorts as plain text, so `10` comes before `2`. Pad it yourself: `001`, `002`, `010`. A file with no token sorts before files with one.
+
+### Several roots
+
+`--customizations acme,team` merges Rosetta, then `acme`, then `team`. Later roots append after earlier ones and an overwrite replaces what came before it. The option can be repeated; order is left to right. Maximum 25 roots. Duplicates are allowed.
+
+A relative path resolves against `--source`. An absolute path is used as written. A root with no folder for the release you build contributes nothing and is not an error. A missing path or a path to a file is an error.
+
+### Build
+
+Clone Rosetta, then run the generator against it:
+
+```sh
+npx -y rosettify-plugins@latest \
+  --source <rosetta checkout> \
+  --customizations <path to acme-rosetta> \
+  --publish rosetta,rosetta-light \
+  --output <dir>
+```
+
+`--publish` names the plugins to write. Without it, the generator also writes the internal `core` plugin. Errors in a customization root are reported before anything is written.
+
+The result is the same `rosetta` and `rosetta-light` plugins, one folder per IDE, with your files merged in. Option details are in the [generator README](src/rosettify-plugins/README.md#customizations).
+
+### Install
+
+The output holds one plugin folder per IDE (for example `rosetta-claude`, `rosetta-claude-light`), the same layout as the standalone download. Install it the way [Step 1](#step-1-install-plugin) describes for standalone: copy or extract the folder for your IDE into your repository. Then continue with [Step 2: Verify](#step-2-verify).
 
 ## Upgrading
 

@@ -10,7 +10,7 @@ import { updatePluginFrame } from '../frames.js';
 import { emitJson, emitStandaloneManifest } from '../serialize/json.js';
 import { getLogger } from '../logging.js';
 import { HOOKS_PSEUDO_FOLDER } from '../spec/hooks.js';
-import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec, Vfs } from '../types.js';
+import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec, Vfs, WriteMode } from '../types.js';
 
 /**
  * True when this spec emits a hooks.json at all. A set with no hook modules and no bootstrap
@@ -98,13 +98,17 @@ function applyOverlay(parsed: Record<string, unknown>, overlay: ManifestOverlay)
  */
 export function pluginCopy(
   outputDir: string,
-  dryRun = false,
+  mode: WriteMode = 'write',
   out: Writable = process.stdout,
 ) {
   return function pluginCopyProcessor(
     p: PluginProcessingFrame,
   ): PluginProcessingFrame {
     const { spec } = p;
+    // FR-CLI-0036: suppressed = no disk write, no sink output, no log — but .tmpl frames are
+    // still produced because pluginRenderTemplates needs them (full processing).
+    const dryRun = mode === 'dry-run';
+    const suppressed = mode === 'suppressed';
     const overlay = buildManifestOverlay(spec, p.vfs);
     const targetDir = path.join(outputDir, spec.destination);
     const sourceDir = spec.preservedSource;
@@ -142,7 +146,7 @@ export function pluginCopy(
       // (copyDirRecursive itself branches on dryRun so both modes share one traversal).
       if (fs.existsSync(sourceDir)) {
         collectTmplFrames(sourceDir, '', tmplFrames, emitsHooks);
-        copyDirRecursive(sourceDir, targetDir, '', overlay, dryRun, out);
+        if (!suppressed) copyDirRecursive(sourceDir, targetDir, '', overlay, dryRun, out);
       }
     }
 
@@ -157,7 +161,9 @@ export function pluginCopy(
       // applied once in buildSpecsForSet, so it is used verbatim here.
       const manifestContent = emitStandaloneManifest(spec.manifestOverride.name, version);
       const manifestPath = path.join(targetDir, 'plugin.json');
-      if (dryRun) {
+      if (suppressed) {
+        // FR-CLI-0036: nothing written or reported
+      } else if (dryRun) {
         reportDryRunWrite(manifestPath, manifestContent, out);
       } else {
         fs.mkdirSync(path.dirname(manifestPath), { recursive: true });

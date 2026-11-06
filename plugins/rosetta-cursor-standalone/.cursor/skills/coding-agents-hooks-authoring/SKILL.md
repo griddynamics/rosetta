@@ -23,7 +23,7 @@ Helper/data files without `runAsCli` belong in a named subdirectory: `src/hooks/
 `src/hooks/scripts/build-bundles.mjs:29` uses `readdirSync(hooksDir).filter(f => f.endsWith('.ts'))`.
 There is **no `{ recursive: true }`**. Subdirectories are invisible to the bundler.
 Adding a top-level `.ts` without `runAsCli` produces a dead bundle for every plugin.
-A plugin may opt a hook OUT via `excludeHooks` in the `PLUGINS` array (`build-bundles.mjs`) — e.g. `core-antigravity` excludes the advise-only hooks, which have no delivery channel there.
+A plugin may opt a hook OUT via `excludeHooks` in the `PLUGINS` array (`build-bundles.mjs`) — e.g. the `antigravity` entry excludes the advise-only hooks, which have no delivery channel there.
 
 ### Adding a SemanticKind
 
@@ -41,12 +41,12 @@ Order matters: `run-hook.ts:316` gates on `toolKinds` before calling `def.run(ct
 Every new hook must appear in each registering plugin's `hooks.json`. The canonical sources are the `hooks.json.tmpl` templates; direct edits to generated `hooks.json` files are overwritten on the next `npx rosettify-plugins` run.
 
 Template paths by plugin, all under `src/rosettify-plugins/plugins/` (templates are generator input only — `.tmpl` files are not emitted into the generated `plugins/` tree):
-- `core-claude/hooks/hooks.json.tmpl`
-- `core-codex/.codex-plugin/hooks.json.tmpl`
-- `core-copilot/hooks/hooks.json.tmpl` (+ `core-copilot/.github/plugin/hooks.json.tmpl`)
-- `core-cursor/hooks.json.tmpl` (+ `core-cursor/hooks/hooks.json.tmpl`)
-- `core-antigravity/hooks.json.tmpl`
-- `core-windsurf` is a `build-bundles.mjs` `PLUGINS` bundle target but has no plugin directory / `hooks.json` registration yet.
+- `template-claude/hooks/hooks.json.tmpl`
+- `template-codex/.codex-plugin/hooks.json.tmpl`
+- `template-copilot/hooks/hooks.json.tmpl` (+ `template-copilot/.github/plugin/hooks.json.tmpl`)
+- `template-cursor/hooks.json.tmpl` (+ `template-cursor/hooks/hooks.json.tmpl`)
+- `template-antigravity/hooks.json.tmpl`
+- Windsurf has no `build-bundles.mjs` `PLUGINS` entry, no `template-windsurf` folder and no `hooks.json` registration.
 
 ### Platform-scoped events
 
@@ -83,7 +83,7 @@ src/hooks/scripts/build-bundles.mjs
 src/hooks/src/runtime/ide-registry.ts
 src/hooks/src/runtime/ide-rows/claude-code.ts
 src/hooks/src/runtime/run-hook.ts:316
-plugins/core-claude/hooks/hooks.json.tmpl
+src/rosettify-plugins/plugins/template-claude/hooks/hooks.json.tmpl
 src/hooks/tests/regression/hooks-registered.test.ts
 ```
 

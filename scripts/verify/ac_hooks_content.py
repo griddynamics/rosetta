@@ -51,11 +51,26 @@ import argparse, hashlib, json, pathlib, sys
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 GOLD = ROOT / "agents/TEMP/315-golden"
 
-# Every set that emits hooks, as the destination stem before the target suffix.
-HOOK_SETS = ["core", "rosetta", "rosetta-light"]
+CATALOG = ROOT / "src/rosettify-plugins/plugins.json"
 
-# Sets that must carry NO hooks at either posture (AN A.4.5).
-NO_HOOK_SETS = ["workflows", "qe", "search", "modernization"]
+
+def load_catalog():
+    """Catalog-driven (set x variant) stems: (hook_stems, no_hook_stems).
+
+    A stem is the destination name with the target left as '{t}', for example
+    'rosetta-{t}-light'. Sets that emit hooks have a non-empty `hooks` list;
+    the rest must carry none. Declared-but-unpublished sets have no folders in
+    the tree and are skipped per set in main() (vacuous, not failing).
+    """
+    cat = json.loads(CATALOG.read_text())
+    hook, nohook = [], []
+    for st in cat["sets"]:
+        for v in st.get("variants", []):
+            stem = f"{st['name']}-{{t}}{v.get('destinationSuffix', '')}"
+            (hook if st.get("hooks") else nohook).append(stem)
+    return hook, nohook
+
+
 HARNESS_HOOKS_REF = "skills/harness/references/hooks/"
 
 # The hooks.json path set each target must emit, and the relations between them.
@@ -124,9 +139,8 @@ class Check:
         self.checked += 1
 
 
-def plugin_name(s: str, target: str) -> str:
-    # rosetta-light is the -light variant suffix, not a set stem
-    return f"rosetta-{target}-light" if s == "rosetta-light" else f"{s}-{target}"
+def plugin_name(stem: str, target: str) -> str:
+    return stem.replace("{t}", target)
 
 
 def check_no_hooks(tree: pathlib.Path, plugin: str, c: Check):
@@ -242,12 +256,20 @@ def main():
     print(f"=== B2 hooks.json content gate — tree={tree} "
           f"--deterministic-hooks {args.posture} ===")
 
+    all_hook, all_nohook = load_catalog()
+    present = lambda stem: any((tree / plugin_name(stem, t)).is_dir() for t in TARGETS)
+    HOOK_SETS = [x for x in all_hook if present(x)]
+    NO_HOOK_SETS = [x for x in all_nohook if present(x)]
+    for x in all_hook + all_nohook:
+        if x not in HOOK_SETS + NO_HOOK_SETS:
+            print(f"  SKIP  {x}: no folder in tree (declared, not built)")
+
     c = Check()
     for target, spec in TARGETS.items():
         for s in HOOK_SETS:
             check_plugin(tree, plugin_name(s, target), spec, posture_true, c)
         for s in NO_HOOK_SETS:
-            check_no_hooks(tree, f"{s}-{target}", c)
+            check_no_hooks(tree, plugin_name(s, target), c)
 
     # --- F. HASHES ----------------------------------------------------------
     print("\n--- content hashes per (set x target) ---")

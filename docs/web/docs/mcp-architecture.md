@@ -138,8 +138,8 @@ The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instr
 **Auto-tagging and metadata extraction.** The CLI reads each file during publishing and extracts everything MCP needs to serve it efficiently:
 - **Tags:** all folder names + filename + composite pairs/triples (`core/skills`, `r3/core/skills`, etc.). These are what the typed load aliases query against.
 - **Frontmatter:** parsed from file content, saved as metadata. Exposed later in `<rosetta:file>` attributes so agents see document structure without loading full content.
-- **Resource path:** `skills/planning/SKILL.md` (domain-set prefix stripped). This is the VFS path used everywhere in MCP.
-- **Domain** (the set folder under the release: `core`, `workflows`, `qe`, `search`, `modernization`), **release** (`r3`), **collection** (`aia-r3`): derived from folder structure.
+- **Resource path:** `skills/planning/SKILL.md` (top-level folder prefix stripped). This is the VFS path used everywhere in MCP.
+- **Domain** (the top-level folder under the release: `core`), **release** (`r3`), **collection** (`aia-r3`): derived from folder structure.
 - **Title:** `[r3][core][skills][planning] SKILL.md` (tag-in-title format).
 
 **Environment:** `.env.dev` (dev RAGFlow) or `.env.prod` (production). Switch with `cp .env.dev .env`.
@@ -222,7 +222,7 @@ All three modes issue FastMCP JWTs to MCP clients and store upstream tokens in R
 
 ## VFS and Tags
 
-Everything MCP works with is VFS (virtual file system) resource paths. The CLI strips the domain-set prefix during publishing, so both `core/skills/planning/SKILL.md` and `qe/skills/qa-knowledge/SKILL.md` lose their first segment. That is why filenames must be globally unique across the whole tree: two sets cannot both own `skills/planning/SKILL.md`. Files at the same resource path get bundled together.
+Everything MCP works with is VFS (virtual file system) resource paths. The CLI strips the top-level folder prefix during publishing, so `core/skills/planning/SKILL.md` loses its first segment. That is why filenames must be globally unique across the whole tree: two folders cannot both own `skills/planning/SKILL.md`. Files at the same resource path get bundled together.
 
 **Tags are the primary access mechanism.** Typed load aliases (`USE SKILL`, `READ RULE`, `APPLY PHASE`, ...) query by tags, which provides the most direct and fastest access. The CLI's auto-tagging was designed specifically for this: every folder name, filename, and composite pair/triple becomes a tag, so agents can request exactly what they need. Keyword search (`query_instructions(query=...)`) remains an MCP-level fallback for discovery.
 
@@ -240,7 +240,7 @@ Three tools and one resource are exposed to agents.
 
 ## Bundler
 
-The Bundler merges multiple documents at the same VFS resource path into a single XML response. Filenames are globally unique across the domain sets, so a single-domain deployment normally has one document per path; the merge exists for deployments that publish more than one instructions repository into the same collection:
+The Bundler merges multiple documents at the same VFS resource path into a single XML response. Filenames are globally unique across the tree, so a deployment normally has one document per path; the merge exists for deployments that publish more than one instructions repository into the same collection:
 
 ```xml
 <rosetta:file id="..." dataset="..." path="skills/planning/SKILL.md" name="..." tags="..." frontmatter="...">
@@ -255,15 +255,15 @@ Documents sorted by `sort_order` (default: 1000000), then by name.
 
 ### Instruction root filter
 
-`INSTRUCTION_ROOT_FILTER` is a comma-separated list of domain sets. Its purpose is to restrict what a deployment serves, for example `CORE,WORKFLOWS` for a deployment that wants the general engineering library without the QE, search, and modernization content.
+`INSTRUCTION_ROOT_FILTER` is a comma-separated list of instruction roots (top-level folders under the release). Its purpose is to restrict what a deployment serves.
 
 Two things to know before you set it.
 
 **It is not applied today.** The server parses the variable into `Config.root_filter` (`src/rosetta-mcp-server/rosetta_mcp/config.py:283,325,343`) and nothing reads it afterwards. Setting it changes nothing about what MCP returns.
 
-**Roots are domain sets.** `instructions/r3/` holds five of them: `core`, `workflows`, `qe`, `search`, `modernization`. Once the filter is wired up, `INSTRUCTION_ROOT_FILTER=CORE` would serve the `core` set alone, roughly a fifth of Rosetta, with no subagents and no orchestrated workflows. A filter value has to name every domain you want.
+**Roots are the top-level folders under the release.** `instructions/r3/` currently holds one: `core`. A filter value has to name every root you want.
 
-Plugin mode has no runtime Bundler. The generator selects domain sets at build time instead, via `--domain` and the `plugins.json` catalog. See [Architecture — Instruction Structure](/rosetta/docs/architecture/#instruction-structure).
+Plugin mode has no runtime Bundler. The generator selects folders at build time instead, via `--domain` and the `plugins.json` catalog. See [Architecture — Instruction Structure](/rosetta/docs/architecture/#instruction-structure).
 
 ## Listing
 

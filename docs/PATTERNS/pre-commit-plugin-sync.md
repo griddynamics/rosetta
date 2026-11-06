@@ -1,6 +1,6 @@
 # Pre-Commit Plugin Sync Pattern
 
-A pre-commit hook (`scripts/pre_commit.py`) regenerates every plugin under `plugins/` from the domain sets in `instructions/r3/` on every commit, keeping IDE plugin artifacts in sync with source instructions without manual steps. Generation is a single call to `npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false`.
+A pre-commit hook (`scripts/pre_commit.py`) regenerates every plugin under `plugins/` from `instructions/r3/` on every commit, keeping IDE plugin artifacts in sync with source instructions without manual steps. Generation is a single call to `npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false --publish rosetta,rosetta-light`.
 
 ## Problem Solved
 
@@ -27,10 +27,10 @@ IDE plugin trees are derived artifacts, not source. Manual sync is error-prone a
 
 ## What Gets Generated
 
-One invocation reads `src/rosettify-plugins/plugins.json` and expands sets, variants, and IDE targets into 49 plugin trees under `plugins/`, named `<set>-<ide>`:
+One invocation reads `src/rosettify-plugins/plugins.json` and expands sets, variants, and IDE targets, and writes the published plugins (`--publish rosetta,rosetta-light`) as 14 trees under `plugins/`:
 
-- `plugins/rosetta-<ide>` and `plugins/rosetta-<ide>-light` — the combo set, all five subject folders
-- `plugins/core-<ide>`, `workflows-<ide>`, `qe-<ide>`, `search-<ide>`, `modernization-<ide>` — one domain set each
+- `plugins/rosetta-<ide>` and `plugins/rosetta-<ide>-light` — the `rosetta` set, standard and lightweight
+- The `core` set is declared and not published
 
 The seven IDE targets are `claude`, `cursor`, `copilot`, `codex`, `cursor-standalone`, `copilot-standalone`, `antigravity`. `plugins.json` is validated before anything is written, so a malformed catalog aborts the run rather than emitting a partial tree.
 
@@ -41,5 +41,5 @@ The seven IDE targets are `claude`, `cursor`, `copilot`, `codex`, `cursor-standa
 - `scripts/verify/` — the verify checks run by the orchestration
 - `docs/definitions/live_counts.json` — scope and rules shared by `verify counts` and `verify links`
 - `src/rosettify-plugins/plugins.json` — the set catalog the single invocation expands
-- `plugins/` — generated output (49 plugin trees)
+- `plugins/` — generated output (14 plugin trees)
 - `docs/ARCHITECTURE.md` — "Plugins" section

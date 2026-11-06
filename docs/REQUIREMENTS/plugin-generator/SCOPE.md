@@ -15,6 +15,8 @@ The plugin generator produces ready-to-install IDE plugin distributions from the
 - Profile effects: resolving the effective model vocabulary (a profile's per-target block replaces that target's built-in map) and the profile filename-directive token (`ProfileOnlyToken`). Destination and manifest suffixing belong to the set variant, not the profile.
 - Always-on `subagent_required_model` filtering through the same per-IDE selection and effective model vocabulary, de-duplicating survivors and re-emitting them. This applies on every run, with or without a profile.
 - Command-line invocation and process exit status.
+- Customization roots (`--customizations`): additional instruction sources merged folder into folder with the main source (FR-CUST-*).
+- Publish filter (`--publish`): writing only the named plugins while every selected set is still read and validated (FR-CLI-0036).
 
 ## Out of Scope (Non-Goals)
 
@@ -31,6 +33,7 @@ The plugin generator produces ready-to-install IDE plugin distributions from the
 - Authoring the plugin-set configuration's content; the generator consumes it, it does not compose it.
 - Profile influence over release selection or hook posture.
 - Changing Antigravity's model handling.
+- Customization for the MCP delivery path (`rosetta-cli` publish, server bundling); see ASSUMPTIONS OQ-14.
 
 ## Deprecations
 

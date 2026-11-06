@@ -63,5 +63,5 @@ The full menu is the [Scenarios index](/rosetta/user-guide/#scenarios-at-a-glanc
 ## Sources
 
 - Workflow: [`instructions/r3/core/workflows/help-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/help-flow.md?plain=1)
-- Router: [`aqa-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/qe/workflows/aqa-flow.md?plain=1)
+- Router: [`aqa-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/aqa-flow.md?plain=1)
 

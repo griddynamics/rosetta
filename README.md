@@ -80,8 +80,8 @@ Reusable units of work the AI loads on demand. Workflows pick them for you, and 
 
 **Test automation and QA**
 
-1. [`qa-knowledge`](instructions/r3/qe/skills/qa-knowledge/README.md): QA engineering end to end: sources into requirements, gap analysis, Given-When-Then specs, TMS export, runnable API and UI tests, failure triage. Every case is implemented or recorded as a gap, never dropped.
-2. [`qa-structure`](instructions/r3/qe/skills/qa-structure/README.md): Canonical paths, slugs, and state files for QA runs. Each session in its own folder, so parallel runs never collide and a long flow knows which phase is done.
+1. [`qa-knowledge`](instructions/r3/core/skills/qa-knowledge/README.md): QA engineering end to end: sources into requirements, gap analysis, Given-When-Then specs, TMS export, runnable API and UI tests, failure triage. Every case is implemented or recorded as a gap, never dropped.
+2. [`qa-structure`](instructions/r3/core/skills/qa-structure/README.md): Canonical paths, slugs, and state files for QA runs. Each session in its own folder, so parallel runs never collide and a long flow knows which phase is done.
 3. [`data-collection`](instructions/r3/core/skills/data-collection/README.md): Read-only pull from issue tracker, test management, wiki, and the codebase. A ticket gets recorded, not acted on. Gaps and permission walls recorded, never guessed.
 
 **Delegate the work**
@@ -117,10 +117,10 @@ Reusable units of work the AI loads on demand. Workflows pick them for you, and 
 
 **Domain packs**
 
-1. [`solr-query`](instructions/r3/search/skills/solr-query/README.md): Apache Solr queries that return what you meant: eDisMax, block join, JSON facets, kNN, explain output, relevancy tuning.
-2. [`solr-schema`](instructions/r3/search/skills/solr-schema/README.md): Apache Solr schema and solrconfig, audit or design: field types, analyzer symmetry, docValues, synonyms, commit strategy.
-3. [`solr-extending`](instructions/r3/search/skills/solr-extending/README.md): Custom Apache Solr plugins: SearchComponent, DocTransformer, QParser, update processors, function queries, and their solrconfig wiring.
-4. [`solr-semantic-search`](instructions/r3/search/skills/solr-semantic-search/README.md): Phrase-tagging semantic search on Solr: concept tagging, taxonomy, graph paths, ambiguity resolution. Lexical, not vector.
+1. [`solr-query`](instructions/r3/core/skills/solr-query/README.md): Apache Solr queries that return what you meant: eDisMax, block join, JSON facets, kNN, explain output, relevancy tuning.
+2. [`solr-schema`](instructions/r3/core/skills/solr-schema/README.md): Apache Solr schema and solrconfig, audit or design: field types, analyzer symmetry, docValues, synonyms, commit strategy.
+3. [`solr-extending`](instructions/r3/core/skills/solr-extending/README.md): Custom Apache Solr plugins: SearchComponent, DocTransformer, QParser, update processors, function queries, and their solrconfig wiring.
+4. [`solr-semantic-search`](instructions/r3/core/skills/solr-semantic-search/README.md): Phrase-tagging semantic search on Solr: concept tagging, taxonomy, graph paths, ambiguity resolution. Lexical, not vector.
 5. [`specflow-use`](instructions/r3/core/skills/specflow-use/README.md): Connects your workspace to Grid Dynamics SpecFlow through its MCP.
 
 ## [Top Workflows](USAGE_GUIDE.md#workflows)
@@ -260,7 +260,7 @@ AI coding agents can read code, generate code, and run commands. But that is onl
 
 12. **One system, every AI tool, customizable at every level.** Rosetta works across Cursor, Claude Code, VS Code, JetBrains, Windsurf, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Instructions are written once and adapt to each environment. Organizations that switch between AI tools or use multiple tools simultaneously keep their entire instruction investment intact. No vendor lock-in. No per-tool maintenance.
 
-    Rosetta's own instructions are split into five domain sets: `core` (composable skills, rules, bootstrap), `workflows` (subagents and orchestrated workflows), `qe`, `search`, and `modernization`. Install the combo `rosetta` plugin for all five, or install only the domains you need. Your project's own context (architecture, conventions, constraints) layers on top of whichever sets you installed. Teams customize without forking. Improvements to higher layers propagate to every project automatically. Instructions are versioned in place: R3 is the current release and evolves through incremental, reviewed updates without breaking agents on it. Rollback is immediate. AI behavior is authored in markdown, version-controlled in Git, reviewed in pull requests, and approved before deployment — the same engineering rigor applied to the instructions that control your AI agents.
+    Rosetta ships as two plugins: `rosetta` and `rosetta-light` (lightweight profile). Your project's own context (architecture, conventions, constraints) layers on top. Organizations add or adjust Rosetta instructions without forking by building a customized plugin, see [Build customized plugins](PLUGINS.md#build-customized-plugins). Instructions are versioned in place: R3 is the current release and evolves through incremental, reviewed updates without breaking agents on it. Rollback is immediate. AI behavior is authored in markdown, version-controlled in Git, reviewed in pull requests, and approved before deployment, the same engineering rigor applied to the instructions that control your AI agents.
 
 </details>
 
@@ -277,6 +277,7 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and e
 | Use Rosetta day to day                               | [User Guide](user-guide/README.md)         |
 | Set up Rosetta                                       | [QUICKSTART.md](QUICKSTART.md)             |
 | Install as a plugin (recommended)                    | [PLUGINS.md](PLUGINS.md)                   |
+| Customize Rosetta for your organization              | [Build customized plugins](PLUGINS.md#build-customized-plugins) |
 | Connect over MCP (optional, secondary)               | [MCPs.md](MCPs.md)                         |
 | Configure your coding-agent workspace                | [CONFIGURATION.md](CONFIGURATION.md)       |
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md)                 |

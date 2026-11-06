@@ -10,13 +10,13 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-11-05</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: release r3 generated for any (set variant × IDE target) pair When: its generated output file-path set is compared to the set derived from that set's folders and that target's mapping contract Then: the two sets are equal — no path is only-in-expected and none only-in-actual.</criteria>
     <criteria>Given: a skill, workflow, rule, or agent added to or removed from the instruction source When: the target is regenerated Then: the derived-expected and generated-actual path sets change identically and remain equal, with no change to the parity test.</criteria>
     <criteria>Given: a pair generated under an active profile When: its generated output file-path set is compared to the set derived from that set's folders, the target's mapping contract, and the variant's `destination` suffixing plus profile-directive resolution Then: the two sets are equal.</criteria>
-    <criteria>Given: the union of the file sets of `core-<ide>`, `workflows-<ide>`, `qe-<ide>`, `search-<ide>` and `modernization-<ide>` When: compared with the file set of `rosetta-<ide>-light`, excluding per-plugin manifests and hook configuration Then: the two are equal.</criteria>
+    <criteria>Given: a catalog that declares a combined set and sets splitting the combined set's folders (as `assets/plugins.split.json` does) When: the union of the file sets of the splitting sets for one IDE target is compared with the file set of the combined set's lightweight variant for that target, excluding per-plugin manifests and hook configuration Then: the two are equal.</criteria>
     <criteria>Given: any generated plugin output tree When: inspected Then: it contains no `*.tmpl` file and no `INDEX.md`, and under `deterministicHooks:false` it contains no `*.js` hook bundle.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>

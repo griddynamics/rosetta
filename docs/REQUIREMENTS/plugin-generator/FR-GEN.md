@@ -23,10 +23,10 @@
   buildPipeline in src/rosettify-plugins/src/spec/targets.ts, and is covered by
   tests/unit/plugin-processors/plugin-generate-indexes.test.ts. No plugin set declares an index - indexes
   is empty on every spec and src/rosettify-plugins/plugins.json carries no index key - so no INDEX.md
-  reaches any output, verified as zero INDEX.md files across a real --release r3 build of all 49 folders.
+  reaches any output, verified as zero INDEX.md files across a real --release r3 build of all 21 folders.
   Retained capability, not dead code: an index is generated per plugin and would misrepresent a
   multi-plugin install, so the sets declare none while the capability stays ready to be declared again.</implementationNotes>
-  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
+  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why no set declares one. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
 <req id="FR-GEN-0002" type="FR" level="System" ticketId="315" classification="technical">
@@ -49,8 +49,8 @@
   (src/rosettify-plugins/src/plugin-processors/plugin-generate-indexes.ts) with the title derivation in
   src/rosettify-plugins/src/serialize/markdown-index.ts, covered by
   tests/unit/plugin-processors/plugin-generate-indexes.test.ts. No set declares an index, so no INDEX.md
-  reaches any output (zero across all 49 generated folders). See FR-GEN-0001 for the dormancy rationale.</implementationNotes>
-  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
+  reaches any output (zero across all 21 generated folders). See FR-GEN-0001 for the dormancy rationale.</implementationNotes>
+  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why no set declares one. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
 <req id="FR-GEN-0003" type="FR" level="System" ticketId="315" classification="technical">
@@ -75,7 +75,7 @@
   declares an index, so the filter never runs in a shipped build. See FR-GEN-0001 for the dormancy
   rationale.</implementationNotes>
   <depends>FR-ARCH-0037</depends>
-  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
+  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why no set declares one. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
 <req id="FR-GEN-0004" type="FR" level="System" ticketId="315" classification="technical">
@@ -97,7 +97,7 @@
   src/rosettify-plugins/src/serialize/markdown-index.ts and is applied by pluginGenerateIndexes; covered
   by tests/unit/plugin-processors/plugin-generate-indexes.test.ts. No set declares an index, so no heading
   is ever emitted in a shipped build. See FR-GEN-0001 for the dormancy rationale.</implementationNotes>
-  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why the split sets declare none. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
+  <notes>Dormant since 2026-09-01 (ticket #315): the capability is retained in full, but no plugin set declares a generated index, so no `PluginSpec` composes `pluginGenerateIndexes()` and no `INDEX.md` reaches any output. An index is generated per plugin and could never list another plugin's documents, which is why no set declares one. The unit stays Approved so the capability may be declared again without re-authoring it.</notes>
 </req>
 
 ## Template rendering
@@ -123,7 +123,7 @@
   sibling with the suffix removed under Handlebars strict: true, never emits the .tmpl frame itself, and
   warns-and-continues on a missing template or render error - verified, zero .tmpl files reach the output
   tree. The per-set emit decision suppresses both hooks.json and the hooks/ folder
-  for a set declaring an empty hook list with bootstrap unset: verified on a real --release r3 build, all
+  for a set declaring an empty hook list with bootstrap unset: verified on a real --release r3 build of the split catalog (assets/plugins.split.json), all
   four add-on sets (workflows, qe, search, modernization) ship zero hooks.json and zero hooks/ directories
   across every IDE target. The render context in generate.ts becomes { release,
   deterministic_hooks, bootstrap_hooks, destination }, every key plumbed explicitly so strict rendering

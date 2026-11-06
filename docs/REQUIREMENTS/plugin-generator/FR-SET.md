@@ -5,8 +5,9 @@ instruction folders compose each, their build variants, destination naming, `req
 bootstrap and hook footprint.
 
 Area abbreviation: `SET`. All units use the canonical `<req>` schema (attributes + EARS criteria with
-`.AC#` sub-ids). A "set" is one declared plugin composition (`rosetta`, `core`, `workflows`, `qe`,
-`search`, `modernization`); an "IDE target" is one `spec.name` identity (`claude`, `cursor`, `copilot`,
+`.AC#` sub-ids). A "set" is one declared plugin composition (the current catalog declares `rosetta` and
+`core`; [assets/plugins.split.json](assets/plugins.split.json) declares a six-set split, and criteria
+below that name `workflows`, `qe`, `search` or `modernization` refer to it); an "IDE target" is one `spec.name` identity (`claude`, `cursor`, `copilot`,
 `codex`, `cursor-standalone`, `copilot-standalone`, `antigravity`). One built plugin is one (set
 variant × IDE target) pair.
 
@@ -39,14 +40,14 @@ variant × IDE target) pair.
     <criteria id="FR-SET-0001.AC5" ears="event" when="a set is added to the resolved document and nothing else changes" system="the generator" shall="build that set with no change to generator control flow"/>
   </acceptance>
   <implementationNotes>Implemented: src/rosettify-plugins/plugins.json is the sole declaration of the 7-entry targets
-  inventory, hookSupportModules and 6 sets (rosetta, core, workflows, qe, search, modernization), each
-  carrying folders/template/releases/requires/bootstrap/hooks/manifest/variants; loadPluginCatalog in
+  inventory, hookSupportModules and the sets `rosetta` (two variants, folders [core]) and `core` (one
+  variant, declared and unpublished), each carrying folders/template/releases/requires/bootstrap/hooks/manifest/variants; loadPluginCatalog in
   src/rosettify-plugins/src/spec/plugin-sets.ts parses it and buildSpecsForSet in
   src/rosettify-plugins/src/spec/targets.ts consults no built-in set list, so adding a set changes no
   control flow. Where the document is found is FR-CLI-0034 and is deliberately not restated here - the
   resolution rule and its two criteria were removed from this unit on 2026-09-02, having drifted to a
   status opposite to their owner's.</implementationNotes>
-  <notes></notes>
+  <notes>Record of the split (per-set file lists, destination paths, marker lines, re-split procedure): [plugin-sets-split.md](assets/plugin-sets-split.md); catalog copy [plugins.split.json](assets/plugins.split.json).</notes>
 </req>
 
 ## Configuration validation
@@ -98,7 +99,7 @@ variant × IDE target) pair.
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
      depends="FR-SET-0001, FR-ARCH-0011, FR-ARCH-0042, FR-ARCH-0024"
      implementation="Implemented">
   <title>Set-to-folder layering and precedence</title>
@@ -109,24 +110,24 @@ variant × IDE target) pair.
   directive on a later contribution prunes the earlier ones (FR-ARCH-0024). A set naming one folder
   resolves to that folder alone. This unit governs which folders compose a set and in what order; which
   sets are built is FR-CLI-0030.</statement>
-  <rationale>Reusing the existing layer mechanism rather than a set-specific merge makes the combo set
-  literally the merge of the split folders, so the distributions cannot drift apart in composition.
+  <rationale>Reusing the existing layer mechanism rather than a set-specific merge makes a combined set
+  literally the merge of the folders a split catalog declares separately, so the distributions cannot drift apart in composition.
   Taking order from the declared array makes composition a property of the set, not the invocation —
   required once one run builds every set and no per-set command line carries an order.</rationale>
-  <evidence>src/rosettify-plugins/src/vfs/source-resolver.ts (layer resolution over an ordered list of instruction roots, the mechanism a set's folders reuse); src/rosettify-plugins/src/vfs/build-vfs.ts (SourceFile.order carries the layer array index, fixing bundle order across layers)</evidence>
+  <evidence>src/rosettify-plugins/src/vfs/source-resolver.ts (layer resolution over an ordered list of instruction roots, the mechanism a set's folders reuse); src/rosettify-plugins/src/vfs/build-vfs.ts buildVfs (load order is the declared folder order; SourceFile.order is the order key of FR-ARCH-0026, stable-sorted per VirtualFile)</evidence>
   <acceptance>
-    <criteria id="FR-SET-0020.AC1" ears="event" when="set `rosetta` declares `folders: [core, workflows, qe, search, modernization]` under release `r3`" system="the generator" shall="layer `instructions/r3/core/`, `instructions/r3/workflows/`, `instructions/r3/qe/`, `instructions/r3/search/` and `instructions/r3/modernization/` in that order"/>
-    <criteria id="FR-SET-0020.AC2" ears="event" when="set `qe` declares `folders: [qe]`" system="the generator" shall="resolve its instruction source to `instructions/r3/qe/` alone, contributing no file from `core`, `workflows`, `search` or `modernization`"/>
+    <criteria id="FR-SET-0020.AC1" ears="event" when="a set declares `folders: [core, workflows, qe, search, modernization]` under release `r3`, as set `rosetta` does in `assets/plugins.split.json`" system="the generator" shall="layer `instructions/r3/core/`, `instructions/r3/workflows/`, `instructions/r3/qe/`, `instructions/r3/search/` and `instructions/r3/modernization/` in that order"/>
+    <criteria id="FR-SET-0020.AC2" ears="event" when="a set declares `folders: [qe]`, as set `qe` does in `assets/plugins.split.json`" system="the generator" shall="resolve its instruction source to `instructions/r3/qe/` alone, contributing no file from `core`, `workflows`, `search` or `modernization`"/>
     <criteria id="FR-SET-0020.AC3" ears="ubiquitous" system="the generator" shall="take layering order from the declared `folders` array, never from the order of `--domain` values on the command line"/>
     <criteria id="FR-SET-0020.AC4" ears="event" when="two folders of one set contribute a file at the same VFS path" system="the generator" shall="bundle them in declared-folder order per FR-ARCH-0042"/>
     <criteria id="FR-SET-0020.AC5" ears="optional" where="a set's declared folders are disjoint, so no two contribute a file at the same VFS path" system="the generator" shall="produce a VFS equal to the plain union of those folders, performing no bundling"/>
   </acceptance>
   <implementationNotes>Implemented: src/rosettify-plugins/src/generate.ts calls buildVfs(instructionsSource, releaseName,
-  set.folders.join(',')) so layering order is the declared folders array and nothing else;
-  src/rosettify-plugins/src/vfs/source-resolver.ts resolves the ordered instruction roots and
-  src/rosettify-plugins/src/vfs/build-vfs.ts carries the layer index on SourceFile.order, fixing bundle
-  order across layers. Command-line argument order never reaches layering.</implementationNotes>
-  <notes></notes>
+  set.folders.join(','), customizationRoots) so layering order is the declared folders array and nothing else;
+  resolveLayerDirs in src/rosettify-plugins/src/vfs/source-resolver.ts lists the folders of the main source in declared order,
+  and buildVfs in src/rosettify-plugins/src/vfs/build-vfs.ts stable-sorts each VirtualFile's SourceFiles by the order key (FR-ARCH-0026),
+  so equal keys keep declared-folder order. Command-line argument order never reaches layering.</implementationNotes>
+  <notes>Record of the split (per-set file lists, destination paths, marker lines, re-split procedure): [plugin-sets-split.md](assets/plugin-sets-split.md); catalog copy [plugins.split.json](assets/plugins.split.json).</notes>
 </req>
 
 ## Set variants
@@ -135,7 +136,7 @@ variant × IDE target) pair.
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
      depends="FR-SET-0001, DATA-CFG-0007"
      implementation="Implemented">
   <title>Per-set build variants</title>
@@ -148,14 +149,14 @@ variant × IDE target) pair.
   profile that variant names. No two variants of one set may declare the same destination suffix.
   This unit governs what a variant is; a `--profile` override of the
   named profile is FR-CLI-0032.</statement>
-  <rationale>Suffixes move to the variant because one `lightweight` profile must yield `-light` for the
-  combo set and no suffix for the split sets; a suffix on the descriptor cannot express both, and a
+  <rationale>Suffixes move to the variant because one `lightweight` profile must yield `-light` for one
+  set and no suffix for another; a suffix on the descriptor cannot express both, and a
   second profile copy carrying a second suffix would drift. Distinct destination suffixes within a set
   keep two variants from resolving to one folder, the second silently overwriting the first.</rationale>
   <evidence>src/rosettify-plugins/src/spec/profiles.ts ProfileDescriptor (the descriptor these three suffix fields are moving off); src/rosettify-plugins/src/spec/targets.ts buildAllSpecs (destination composed as a literal plus the profile suffix, the composition this replaces)</evidence>
   <acceptance>
     <criteria id="FR-SET-0030.AC1" ears="event" when="set `rosetta` declares one variant naming no profile with empty suffixes and one naming `lightweight` with destination suffix `-light`" system="the generator" shall="build both, writing `rosetta-claude` and `rosetta-claude-light`"/>
-    <criteria id="FR-SET-0030.AC2" ears="event" when="set `qe` declares a single variant naming profile `lightweight` with an empty destination suffix" system="the generator" shall="write `qe-claude` and no `qe-claude-light` folder"/>
+    <criteria id="FR-SET-0030.AC2" ears="event" when="set `core` declares a single variant naming profile `lightweight` with an empty destination suffix" system="the generator" shall="write `core-claude` and no `core-claude-light` folder"/>
     <criteria id="FR-SET-0030.AC3" ears="optional" where="a variant names no profile" system="the generator" shall="build it with each IDE target's built-in model vocabulary and exclude every `profile-<name>-only` file (FR-PROF-0040)"/>
     <criteria id="FR-SET-0030.AC4" ears="ubiquitous" system="the generator" shall="read the destination, plugin-name and plugin-description suffixes from the variant, consulting no suffix field on any profile descriptor"/>
     <criteria id="FR-SET-0030.AC5" ears="event" when="`--profile lightweight` is supplied" system="the generator" shall="build every variant with the `lightweight` profile while each variant keeps its own declared suffixes (FR-CLI-0032)"/>
@@ -174,7 +175,7 @@ variant × IDE target) pair.
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
      depends="FR-SET-0030, DATA-CFG-0003, FR-ARCH-0023"
      implementation="Implemented">
   <title>Set-and-target destination naming</title>
@@ -192,9 +193,9 @@ variant × IDE target) pair.
   <evidence>src/rosettify-plugins/src/spec/targets.ts buildAllSpecs (name and destination held as separate spec fields, which is what allows one to carry the set and the other not to); src/rosettify-plugins/src/file-processors/file-apply-overrides.ts fileApplyOverrides (matches a directive token against ctx.spec.name)</evidence>
   <acceptance>
     <criteria id="FR-SET-0040.AC1" ears="event" when="set `rosetta` builds its `-light` variant for IDE target `claude`" system="the generator" shall="write the output folder `rosetta-claude-light` directly under the output directory"/>
-    <criteria id="FR-SET-0040.AC2" ears="event" when="set `modernization` builds for IDE target `copilot-standalone`" system="the generator" shall="write the output folder `modernization-copilot-standalone`"/>
+    <criteria id="FR-SET-0040.AC2" ears="event" when="set `rosetta` builds for IDE target `copilot-standalone`" system="the generator" shall="write the output folder `rosetta-copilot-standalone`"/>
     <criteria id="FR-SET-0040.AC3" ears="ubiquitous" system="the generator" shall="keep `spec.name` the bare IDE identity, such as `claude`, carrying neither a set name nor a destination suffix"/>
-    <criteria id="FR-SET-0040.AC4" ears="event" when="set `core` builds for IDE target `claude`" system="the generator" shall="write `core-claude`, which now holds the `core` set's content rather than the combined content it held before this change"/>
+    <criteria id="FR-SET-0040.AC4" ears="event" when="set `core` builds for IDE target `claude`" system="the generator" shall="write `core-claude`"/>
     <criteria id="FR-SET-0040.AC5" ears="event" when="release `r2` is selected and the configuration declares for it one set with id `core`, folders `[core]`, and two variants whose destination suffixes are the empty string and `-light`" system="the generator" shall="write `core-<ide>` and `core-<ide>-light` for each IDE target and no other folder"/>
     <criteria id="FR-SET-0040.AC6" ears="ubiquitous" system="the generator" shall="write every set variant into the same output directory rather than a per-set or per-variant tree"/>
   </acceptance>
@@ -212,7 +213,7 @@ variant × IDE target) pair.
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-03"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
      depends="FR-SET-0001, FR-SET-0020, DATA-CFG-0007"
      implementation="Implemented">
   <title>`requires` is metadata, never composition</title>
@@ -223,10 +224,10 @@ variant × IDE target) pair.
   built, and shall not impose any ordering between a set and the sets it requires. No IDE the generator
   targets enforces plugin dependencies, so `requires` states an install-time expectation and carries no
   runtime guarantee. Validating that each entry names a declared set is FR-SET-0010.</statement>
-  <rationale>Domain sets ship only their own files and resolve cross-set references by name through the
+  <rationale>A set ships only the files of its own folders and resolves cross-set references by name through the
   agent's registries, so composition stays driven by `folders` alone — letting `requires` add files
-  would duplicate every core document into four domain plugins and reintroduce the drift the split
-  removes. A manifest description line is the only enforcement available, no target IDE having a
+  would duplicate every required set's documents into the requiring plugin and reintroduce the drift a
+  split of the folders removes. A manifest description line is the only enforcement available, no target IDE having a
   plugin dependency mechanism. That line is authored, not generated: the generator enforces the
   invariant rather than composing the sentence, because generated prose reads worse than the authored
   wording and a derived clause would give one fact two sources. Validating at catalog load closes the
@@ -234,7 +235,7 @@ variant × IDE target) pair.
   contradicts the list.</rationale>
   <evidence>src/rosettify-plugins/src/plugin-processors/plugin-copy.ts pluginCopy (manifest name and description are the only identity fields the generator writes, so a description line is where install-time metadata can land)</evidence>
   <acceptance>
-    <criteria id="FR-SET-0050.AC1" ears="event" when="set `qe` declares `requires: [core, workflows]`" system="the generator" shall="produce `qe-claude` holding no file originating under `instructions/r3/core/` or `instructions/r3/workflows/`"/>
+    <criteria id="FR-SET-0050.AC1" ears="event" when="a set declares a non-empty `requires` list, as set `qe` does with `requires: [core, workflows]` in `assets/plugins.split.json`" system="the generator" shall="produce that set's plugin holding no file that originates under a required set's folders, unless the set's own `folders` also name that folder"/>
     <criteria id="FR-SET-0050.AC2" ears="ubiquitous" system="the generator" shall="produce a manifest description that names every set name in that set's `requires` list"/>
     <criteria id="FR-SET-0050.AC3" ears="ubiquitous" system="the generator" shall="build no set merely because another set requires it, and impose no build order between the two"/>
     <criteria id="FR-SET-0050.AC4" ears="optional" where="a `requires` entry names a set declared later in the configuration document" system="the generator" shall="accept it, since the list imposes no ordering"/>
@@ -247,11 +248,10 @@ variant × IDE target) pair.
   name cannot match inside a longer one. Composition is unchanged: buildSpecsForSet
   (src/rosettify-plugins/src/spec/targets.ts) still writes set.manifest.description +
   variant.manifestDescriptionSuffix, and the 'Requires Rosetta Core and Workflows' wording in
-  src/rosettify-plugins/plugins.json stays hand-authored. The shipped catalog passes: workflows names
-  'Core'; qe, search and modernization name 'Core' and 'Workflows'; rosetta and core declare an empty
-  requires list. Tests: tests/unit/spec/plugin-sets.test.ts (a description omitting a required set
-  raises, and the shipped catalog still loads), tests/unit/generate.test.ts (a built qe manifest
-  description contains both names).</implementationNotes>
+  src/rosettify-plugins/plugins.json stays hand-authored. The current catalog passes: rosetta and core
+  declare an empty requires list. The split catalog (assets/plugins.split.json) passes as well: workflows
+  names 'Core'; qe, search and modernization name 'Core' and 'Workflows'. Test: tests/unit/spec/plugin-sets.test.ts (a
+  description omitting a required set raises).</implementationNotes>
   <notes>Status moved Approved to Draft: the statement's duty changed from composing the description
   to enforcing an authored one, which is a new obligation on catalog load and awaits re-approval. The
   observable outcome AC2 asserts is unchanged.</notes>
@@ -263,33 +263,33 @@ variant × IDE target) pair.
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-01"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
      depends="FR-SET-0030, FR-CLI-0030, FR-CLI-0040, FR-CLI-0041"
      implementation="Implemented">
   <title>Every set variant and IDE target built in one invocation</title>
   <statement>One invocation shall produce every (set variant × IDE target) pair the resolved
   configuration declares for the selected release, reduced further only by the `--domain` folder
-  filter (FR-CLI-0030). A set whose `releases` list omits the selected release shall not be built and
+  filter (FR-CLI-0030) and, for the output folders written, the `--publish` filter (FR-CLI-0036). A set whose `releases` list omits the selected release shall not be built and
   shall not be reported as an error. No second
   invocation shall be required to obtain a variant, a profile, or a set. Pair independence is
   FR-CLI-0040, per-pair error recovery and exit status are FR-CLI-0041, and pre-flight abort is
   FR-SET-0010; none of those rules is restated here.</statement>
   <rationale>Two invocations — one plain, one `--profile lightweight` — are what the variant model
   replaces; leaving the second in place lets the builds diverge in release, hook posture or output root
-  with nothing checking they agree. Explicit pair independence makes the matrix safe to grow: 49 pairs
-  are 49 independent builds, not a dependency graph.</rationale>
+  with nothing checking they agree. Explicit pair independence makes the matrix safe to grow: N pairs
+  are N independent builds, not a dependency graph.</rationale>
   <evidence>src/rosettify-plugins/src/generate.ts (one buildAllSpecs call per invocation drives the whole run, the loop this matrix extends); src/rosettify-plugins/src/spec/targets.ts buildAllSpecs (returns an independent PluginSpec per target with no cross-target reads)</evidence>
   <acceptance>
-    <criteria id="FR-SET-0060.AC1" ears="event" when="the configuration declares sets `rosetta` (two variants), `core`, `workflows`, `qe`, `search` and `modernization` (one variant each) over 7 IDE targets" system="the generator" shall="write 49 output folders in one run — 14 under `rosetta-*` and 7 under each of the other five set names"/>
+    <criteria id="FR-SET-0060.AC1" ears="event" when="the configuration declares sets `rosetta` (two variants) and `core` (one variant) over 7 IDE targets and no `--publish` argument is supplied" system="the generator" shall="write 21 output folders in one run — 14 under `rosetta-*` and 7 under `core-*`"/>
     <criteria id="FR-SET-0060.AC2" ears="ubiquitous" system="the generator" shall="require no second invocation to produce a set's lightweight variant"/>
-    <criteria id="FR-SET-0060.AC5" ears="event" when="`--domain qe` is supplied" system="the generator" shall="build the `qe` set's pairs only and write nothing for any other set (FR-CLI-0030)"/>
-    <criteria id="FR-SET-0060.AC6" ears="event" when="`--release r2` is selected and only the set with id `core` declares `r2`" system="the generator" shall="build that set's two variants across the IDE targets and write nothing for any set available only to `r3`"/>
+    <criteria id="FR-SET-0060.AC5" ears="event" when="`--domain qe` is supplied and the configuration declares a set `qe` with `folders: [qe]`, as `assets/plugins.split.json` does" system="the generator" shall="build the `qe` set's pairs only and write nothing for any other set (FR-CLI-0030)"/>
+    <criteria id="FR-SET-0060.AC6" ears="event" when="`--release r2` is selected and only the set with id `core` declares `r2`" system="the generator" shall="build every variant that set declares across the IDE targets and write nothing for any set available only to `r3`"/>
   </acceptance>
   <implementationNotes>Implemented: src/rosettify-plugins/src/spec/plugin-sets.ts selectSets filters the catalog by release and
   the --domain folder list; src/rosettify-plugins/src/generate.ts loops every (set, variant) pair, builds
   specs through buildSpecsForSet, and continues past a recoverable per-target error while pre-flight
-  violations abort the run first. Exit status is anyError ? 1 : 0. Verified: 49 output folders from one
-  invocation, exit 0.</implementationNotes>
+  violations abort the run first. Exit status is anyError ? 1 : 0. Verified: 21 output folders (14 `rosetta-*`, 7 `core-*`) from one
+  invocation without `--publish`, exit 0; 49 output folders for the split catalog of assets/plugins.split.json.</implementationNotes>
   <notes></notes>
 </req>
 
@@ -299,7 +299,7 @@ variant × IDE target) pair.
      ticketId="315" classification="technical"
      source="User"
      priority="Must" verification="Test"
-     status="Approved" approved_by="isolomatov-gd" changed="2026-09-03"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-11-05"
      depends="FR-SET-0001, DATA-CFG-0007, FR-GEN-0011, FR-CLI-0012"
      implementation="Implemented">
   <title>Per-set bootstrap flag and hook list</title>
@@ -328,7 +328,7 @@ variant × IDE target) pair.
   <acceptance>
     <criteria id="FR-SET-0070.AC1" ears="event" when="a set declares the bootstrap flag set and the full hook module list" system="the generator" shall="render, for every target whose templates bind those modules, a hook configuration carrying that target's session-start bootstrap block where its template provides one, and an entry for each bound module"/>
     <criteria id="FR-SET-0070.AC2" ears="event" when="a set declares the bootstrap flag unset and an empty hook list" system="the generator" shall="write neither a `hooks/` folder nor a `hooks.json` in any of that set's target outputs"/>
-    <criteria id="FR-SET-0070.AC3" ears="event" when="set `qe` declares the bootstrap flag unset and an empty hook list" system="the generator" shall="write neither a `hooks/` folder nor a `hooks.json` in any `qe-<ide>` output"/>
+    <criteria id="FR-SET-0070.AC3" ears="event" when="a set declares the bootstrap flag unset and an empty hook list, as set `qe` does in `assets/plugins.split.json`" system="the generator" shall="write neither a `hooks/` folder nor a `hooks.json` in any output folder of that set"/>
     <criteria id="FR-SET-0070.AC7" ears="event" when="a set declaring hooks is built for a target whose layout contributes no bootstrap block, with the effective deterministic-hooks value false" system="the generator" shall="emit a valid but entry-less `hooks.json`, keeping any IDE manifest reference to it resolvable"/>
     <criteria id="FR-SET-0070.AC4" ears="ubiquitous" system="the generator" shall="emit no hook entry that the building set's declared list does not name"/>
     <criteria id="FR-SET-0070.AC5" ears="state" while="the effective deterministic-hooks value is false" system="the generator" shall="emit no entry from any set's declared hook list, leaving only the session-start bootstrap block where the flag is set"/>
@@ -341,9 +341,9 @@ variant × IDE target) pair.
   the modules the target's templates actually invoke, which is what decides which bundles ship; and one
   declaration reaches every IDE target of a set identically, so no entry appears that the list does not
   name. The per-set emit decision suppresses the hooks/ folder and hooks.json for a set declaring an empty
-  hook list with bootstrap unset - verified on a real --release r3 build: workflows, qe, search and modernization ship
+  hook list with bootstrap unset - verified on a real --release r3 build of the split catalog (assets/plugins.split.json): workflows, qe, search and modernization ship
   zero hooks.json and zero hooks/ directories across all seven IDE targets, while rosetta and core ship
-  theirs. At the default deterministic-hooks=false (FR-CLI-0012) no entry from any declared list is
+  theirs. The current catalog declares no hook-less set. At the default deterministic-hooks=false (FR-CLI-0012) no entry from any declared list is
   emitted, which AC5 requires.</implementationNotes>
-  <notes>Four targets — Cursor, Cursor-standalone, Copilot-standalone and Antigravity — emit a valid but ENTRY-LESS `hooks.json` when the effective deterministic-hooks value (FR-CLI-0012) suppresses the hooks its set declares. The cause is in each one's template: the two Cursor templates and the Antigravity template carry no bootstrap placeholder at all, and the Copilot standalone-form template carries a literal empty session-start array. This predates #315: the pre-change golden tree shipped the same 12 files (`core-cursor{,-light}` and `core-cursor-standalone{,-light}` at 37 bytes, `core-copilot-standalone*` at 60, `core-antigravity{,-light}` at 68), and the current tree ships the equivalent set, the byte counts differing only because the assembler emits compact JSON where the template carried whitespace. Suppressing the file is DEFERRED: an IDE manifest references it — Cursor's `plugin.json` declares `"hooks": "./hooks/hooks.json"` — so removing it requires per-IDE verification that a dangling manifest reference does not break plugin load, which cannot be tested here. The narrower guarantee that a set declaring no hooks with `bootstrap: false` ships neither a `hooks/` folder nor a `hooks.json` is unaffected and verified. AC1 and AC2 were restated on 2026-09-03: they named per-set hook subsets — `core` with two modules, `workflows` with four — that no declared set has ever carried. `plugins.json` declares exactly two configurations, the full module list with the bootstrap flag set (`rosetta`, `core`) or the empty list with it unset (`workflows`, `qe`, `search`, `modernization`), so the criteria now state the rule over those two rather than an untested partial list. AC3 is kept as the named `qe` instance of the rule AC2 states generally. Status moved Approved to Draft for that restatement, and awaits re-approval.</notes>
+  <notes>Four targets — Cursor, Cursor-standalone, Copilot-standalone and Antigravity — emit a valid but ENTRY-LESS `hooks.json` when the effective deterministic-hooks value (FR-CLI-0012) suppresses the hooks its set declares. The cause is in each one's template: the two Cursor templates and the Antigravity template carry no bootstrap placeholder at all, and the Copilot standalone-form template carries a literal empty session-start array. This predates #315: the pre-change golden tree shipped the same 12 files (`core-cursor{,-light}` and `core-cursor-standalone{,-light}` at 37 bytes, `core-copilot-standalone*` at 60, `core-antigravity{,-light}` at 68), and the current tree ships the equivalent set, the byte counts differing only because the assembler emits compact JSON where the template carried whitespace. Suppressing the file is DEFERRED: an IDE manifest references it — Cursor's `plugin.json` declares `"hooks": "./hooks/hooks.json"` — so removing it requires per-IDE verification that a dangling manifest reference does not break plugin load, which cannot be tested here. The narrower guarantee that a set declaring no hooks with `bootstrap: false` ships neither a `hooks/` folder nor a `hooks.json` is unaffected and verified. AC1 and AC2 were restated on 2026-09-03: they named per-set hook subsets — `core` with two modules, `workflows` with four — that no declared set has ever carried. The split catalog (`assets/plugins.split.json`) declares exactly two configurations, the full module list with the bootstrap flag set (`rosetta`, `core`) or the empty list with it unset (`workflows`, `qe`, `search`, `modernization`); the current `plugins.json` declares only the first. The criteria state the rule over those two rather than an untested partial list. AC3 is kept as the named `qe` instance of the rule AC2 states generally. Status moved Approved to Draft for that restatement, and awaits re-approval.</notes>
 </req>

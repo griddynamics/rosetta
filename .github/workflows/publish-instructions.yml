@@ -120,7 +120,7 @@ jobs:
 
           ARCHIVES=""
           # One archive per generated plugin folder: <set>-<ide>[-light] for every set
-          # (rosetta, core, workflows, qe, search, modernization) and standalone variants
+          # (the published sets in plugins.json) and standalone variants
           # (rosetta-cursor-standalone, rosetta-copilot-standalone).
           for plugin_dir in plugins/*/; do
             folder=$(basename "$plugin_dir")
@@ -153,7 +153,7 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           # Builds RELEASE_INDEX.md: this run's dated zips grouped per IDE in 3 blocks
-          # (1: rosetta, rosetta-light; 2: core..modernization; 3: all standalones).
+          # (1: rosetta, rosetta-light; 2: any other published sets, omitted when none has an archive; 3: all standalones).
           # Blocks are separated by an HTML comment: GitHub keeps blank-line-separated
           # blocks as ONE list. Runs before any tag moves. Portable (no bash 4 features).
           set -euo pipefail
