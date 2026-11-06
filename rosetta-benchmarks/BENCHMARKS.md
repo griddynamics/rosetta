@@ -415,7 +415,7 @@ The prompts are short on purpose, like a real ticket, so agents will also ask th
 | 4 | Can the customer set and change their own birthday? Verification? | Yes, at any time, through their account. No identity verification. | L-CC-02 |
 | 5 | Scope: which repos? | All three: backend, dashboard and storefront, with tests in each. | L-CC-02 |
 | 6 | Terms / glossary names? | Customer, Birthday, Minimum age, Age-restricted product. | L-CC-02 |
-| 8 | Audit log: what is stored? | Only the actor, the time and the action (read or change), no birthday values. The customer's own changes, staff changes and every staff read are logged. | L-CC-02 |
+| 8 | Audit log: what is stored? | Only the actor, the time and the action (read or change), no birthday values. The customer's own changes, staff changes and every staff read are logged. (Row 83 adds an immutable customer identifier that survives customer deletion.) | L-CC-02 |
 | 9 | Nested objects (`order.user`, `checkout.user`) and leak tests? | The owner-or-super-admin check applies on every route including nested user objects, with leak tests for webhooks, exports and nested objects. | L-CC-02 |
 | 10 | Existing carts and orders when a product becomes restricted? | Carts that hold it fail at checkout completion with an error that names the product. Orders already placed stay unchanged. | L-CC-02 |
 | 11 | Who changes the store-wide minimum age, and how? | A field in the site settings, default 18, editable in the dashboard by staff with the site-settings permission. A change applies to all later checks. | L-CC-02 |
