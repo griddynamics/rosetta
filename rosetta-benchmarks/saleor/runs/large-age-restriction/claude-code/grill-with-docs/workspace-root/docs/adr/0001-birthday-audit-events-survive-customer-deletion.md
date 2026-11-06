@@ -1,0 +1,3 @@
+# Birthday audit events survive customer deletion
+
+Birthday audit events (`BIRTHDAY_CHANGED`, `BIRTHDAY_READ`) are stored in `CustomerEvent`, whose `user` foreign key cascades on delete. We decided the birthday audit trail must outlive both the customer and the staff member who read it, so these events have no foreign keys: the customer, actor user and actor app ids are kept as plain values in `parameters`. The alternative, accepting the cascade, was rejected because the record of who read personal data would vanish with the customer. A side effect is that these events never appear in `User.events`, which is what keeps them from support staff; superusers read them through `User.birthdayAuditEvents`.

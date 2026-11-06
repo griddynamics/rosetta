@@ -1,0 +1,2427 @@
+diff --git a/data-layer.lock.md b/data-layer.lock.md
+index 5cbd13c..0cd1a58 100644
+--- a/data-layer.lock.md
++++ b/data-layer.lock.md
+@@ -32,6 +32,7 @@ Rows are keyed by file and enclosing function, not line, so formatting does not
+ | mutate           | AccountRequestDeletionDocument          | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › requestAccountDeletion    |
+ | mutate           | AccountSetDefaultAddressDocument        | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › setDefaultAddress         |
+ | mutate           | AccountAddressUpdateDocument            | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › updateAddress             |
++| mutate           | AccountUpdateDocument                   | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › updateBirthday            |
+ | mutate           | AccountUpdateDocument                   | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › updateProfile             |
+ | mutate           | CheckoutAddLineDocument                 | —                                             | src/app/actions.ts › addVariantToCart                                                         |
+ | mutate           | CheckoutDeleteLinesDocument             | —                                             | src/app/actions.ts › deleteCartLine                                                           |
+@@ -53,9 +54,10 @@ Rows are keyed by file and enclosing function, not line, so formatting does not
+ | cachedQuery      | ProductListByCollectionDocument         | CACHE_PROFILES.collections                    | src/lib/catalog/get-collection-data.ts › getCollectionData.fetchCollection                    |
+ | cachedQuery      | ProductListByCollectionDocument         | CACHE_PROFILES.collections                    | src/lib/catalog/get-featured-products.ts › getFeaturedProducts                                |
+ | cachedQuery      | PageGetBySlugDocument                   | CACHE_PROFILES.pages                          | src/lib/catalog/get-page-data.ts › getPageData.fetchPage                                      |
+-| cachedQuery      | ProductVariantsForPdpDocument           | CACHE_PROFILES.products                       | src/lib/catalog/get-product-data.ts › fetchVariantPage                                        |
++| cachedQuery      | document                                | CACHE_PROFILES.products                       | src/lib/catalog/get-product-data.ts › cachedRead                                              |
+ | cachedQuery      | ProductDetailsDocument                  | CACHE_PROFILES.products                       | src/lib/catalog/get-product-data.ts › getProductData.fetchProduct                             |
+-| cachedQuery      | ProductVariantForPdpDocument            | CACHE_PROFILES.products                       | src/lib/catalog/get-product-data.ts › getProductVariantForPdp                                 |
++| viewerQuery      | ProductDetailsDocument                  | —                                             | src/lib/catalog/get-product-data.ts › getViewerProductData.fetchProduct                       |
++| viewerQuery      | document                                | —                                             | src/lib/catalog/get-product-data.ts › viewerRead                                              |
+ | cachedQuery      | CategoriesBySlugDocument                | CACHE_PROFILES.categories                     | src/lib/catalog/resolve-category-slugs.ts › resolveCategorySlugsCached                        |
+ | cachedQuery      | ChannelsListDocument                    | CACHE_PROFILES.channels (allows partial data) | src/lib/channels/get-channels-data.ts › readChannelsList                                      |
+ | mutate           | CheckoutCreateDocument                  | —                                             | src/lib/checkout.ts › create                                                                  |
+@@ -67,7 +69,6 @@ Rows are keyed by file and enclosing function, not line, so formatting does not
+ | cachedQuery      | ProductListByCategoryProductsDocument   | input.profile                                 | src/lib/listing/providers/saleor/index.ts › kernelTransport                                   |
+ | cachedQuery      | ProductListByCollectionProductsDocument | input.profile                                 | src/lib/listing/providers/saleor/index.ts › kernelTransport                                   |
+ | cachedQuery      | ProductListPaginatedDocument            | input.profile                                 | src/lib/listing/providers/saleor/index.ts › kernelTransport                                   |
+-| liveQuery        | ProductListByCategoryProductsDocument   | —                                             | src/lib/listing/providers/saleor/index.ts › kernelTransport                                   |
+-| liveQuery        | ProductListByCollectionProductsDocument | —                                             | src/lib/listing/providers/saleor/index.ts › kernelTransport                                   |
+-| liveQuery        | ProductListPaginatedDocument            | —                                             | src/lib/listing/providers/saleor/index.ts › kernelTransport                                   |
++| liveQuery ×2     | document                                | —                                             | src/lib/listing/providers/saleor/index.ts › kernelTransport.read                              |
++| viewerQuery      | document                                | —                                             | src/lib/listing/providers/saleor/index.ts › kernelTransport.read                              |
+ | cachedQuery      | MenuGetBySlugDocument                   | STOREFRONT_MENU_SLUGS[slug]                   | src/lib/menus/get-menu-data.ts › getCachedMenuItems                                           |
+diff --git a/eslint/paper-data-layer.mjs b/eslint/paper-data-layer.mjs
+index 13572a9..db7abcb 100644
+--- a/eslint/paper-data-layer.mjs
++++ b/eslint/paper-data-layer.mjs
+@@ -135,6 +135,7 @@ const CACHE_DIRECTIVE_BANNED = new Set([
+ 	"connection",
+ 	"liveQuery",
+ 	"sessionQuery",
++	"viewerQuery",
+ 	"mutate",
+ ]);
+ 
+@@ -286,7 +287,7 @@ const plugin = {
+ 					hooks:
+ 						"Do not import checkout urql hooks. Checkout reads go through server actions and `@/lib/saleor`.",
+ 					fetch:
+-						"Do not fetch NEXT_PUBLIC_SALEOR_API_URL directly. Use cachedQuery, liveQuery, sessionQuery, or mutate from `@/lib/saleor`. See rules/data-access.md.",
++						"Do not fetch NEXT_PUBLIC_SALEOR_API_URL directly. Use cachedQuery, liveQuery, sessionQuery, viewerQuery, or mutate from `@/lib/saleor`. See rules/data-access.md.",
+ 					raw: "rawMutation skips the operation registry. Use mutate() with a .graphql document. Auth BFF exceptions are listed in RAW_MUTATION_ALLOW in eslint/paper-data-layer.mjs.",
+ 				},
+ 			},
+diff --git a/messages/de.json b/messages/de.json
+index cd8d760..321e35e 100644
+--- a/messages/de.json
++++ b/messages/de.json
+@@ -20,6 +20,11 @@
+ 			"yourTotal": "Ihre Gesamtsumme",
+ 			"shippingNote": "Versand wird im nächsten Schritt berechnet",
+ 			"checkout": "Zur Kasse"
++		},
++		"errors": {
++			"ageRestricted": "Dieses Produkt ist altersbeschränkt und kann mit diesem Konto nicht gekauft werden.",
++			"ageRestrictedSignIn": "Altersbeschränkte Produkte können nur von angemeldeten Kunden im zulässigen Alter gekauft werden. Bitte melde dich an.",
++			"signIn": "Anmelden"
+ 		}
+ 	},
+ 	"productsListing": {
+@@ -77,6 +82,15 @@
+ 			"previous": "Vorheriges Bild",
+ 			"next": "Nächstes Bild",
+ 			"counter": "{current} / {total}"
++		},
++		"ageGate": {
++			"underage": "Du bist minderjährig; wir dürfen dir dieses Produkt nicht anzeigen.",
++			"signInRequired": "Dieses Produkt ist altersbeschränkt. Melde dich an, um zu prüfen, ob du es ansehen darfst.",
++			"signInAction": "Anmelden",
++			"birthdayRequired": "Dieses Produkt ist altersbeschränkt. Trage dein Geburtsdatum in den Kontoeinstellungen ein, um zu prüfen, ob du es ansehen darfst.",
++			"birthdayAction": "Kontoeinstellungen öffnen",
++			"metaTitle": "Altersbeschränktes Produkt",
++			"placeholderLabel": "Altersbeschränktes Produkt (verborgen)"
+ 		}
+ 	},
+ 	"plp": {
+@@ -190,7 +204,8 @@
+ 				"postal": "Postleitzahl",
+ 				"postTown": "Ort",
+ 				"prefecture": "Präfektur"
+-			}
++			},
++			"birthday": "Geburtsdatum"
+ 		},
+ 		"placeholders": {
+ 			"email": "sie@beispiel.de",
+@@ -364,7 +379,8 @@
+ 		"settings": {
+ 			"title": "Einstellungen",
+ 			"subtitle": "Verwalten Sie Ihre Kontoeinstellungen",
+-			"memberSince": "Mitglied seit {date}"
++			"memberSince": "Mitglied seit {date}",
++			"birthdayHint": "Erforderlich, um altersbeschränkte Produkte zu kaufen. Es ist privat und wird nur zur Altersprüfung verwendet."
+ 		},
+ 		"addresses": {
+ 			"title": "Adressen",
+@@ -615,7 +631,9 @@
+ 			"validationRulesUnavailable": "Validierungsregeln nicht verfügbar",
+ 			"setDefaultAddressFailed": "Standardadresse konnte nicht festgelegt werden",
+ 			"dummyNotAllowed": "Testzahlung ist in dieser Umgebung nicht verfügbar.",
+-			"stripeNotEnabled": "Stripe-Zahlungen sind in dieser Umgebung nicht aktiviert. Setzen Sie NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true in der Storefront."
++			"stripeNotEnabled": "Stripe-Zahlungen sind in dieser Umgebung nicht aktiviert. Setzen Sie NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true in der Storefront.",
++			"ageRestricted": "Diese Bestellung enthält ein altersbeschränktes Produkt, das du mit diesem Konto nicht kaufen kannst.",
++			"ageRestrictedSignIn": "Altersbeschränkte Produkte können nur von angemeldeten Kunden im zulässigen Alter gekauft werden. Bitte melde dich an."
+ 		},
+ 		"gateways": {
+ 			"noneTitle": "Kein Zahlungsgateway konfiguriert",
+diff --git a/messages/en.json b/messages/en.json
+index 94a1cf3..9d61994 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -20,6 +20,11 @@
+ 			"yourTotal": "Your Total",
+ 			"shippingNote": "Shipping will be calculated in the next step",
+ 			"checkout": "Checkout"
++		},
++		"errors": {
++			"ageRestricted": "This product is age-restricted and can't be bought with this account.",
++			"ageRestrictedSignIn": "Age-restricted products can only be bought by signed-in customers of legal age. Please sign in.",
++			"signIn": "Sign in"
+ 		}
+ 	},
+ 	"productsListing": {
+@@ -77,6 +82,15 @@
+ 			"previous": "Previous image",
+ 			"next": "Next image",
+ 			"counter": "{current} / {total}"
++		},
++		"ageGate": {
++			"underage": "You are under age; we cannot display this product to you.",
++			"signInRequired": "This product is age-restricted. Sign in to check whether you can view it.",
++			"signInAction": "Sign in",
++			"birthdayRequired": "This product is age-restricted. Add your birthday in your account settings to check whether you can view it.",
++			"birthdayAction": "Open account settings",
++			"metaTitle": "Age-restricted product",
++			"placeholderLabel": "Age-restricted product (hidden)"
+ 		}
+ 	},
+ 	"plp": {
+@@ -190,7 +204,8 @@
+ 				"postal": "Postal code",
+ 				"postTown": "Post town",
+ 				"prefecture": "Prefecture"
+-			}
++			},
++			"birthday": "Birthday"
+ 		},
+ 		"placeholders": {
+ 			"email": "you@example.com",
+@@ -364,7 +379,8 @@
+ 		"settings": {
+ 			"title": "Settings",
+ 			"subtitle": "Manage your account settings",
+-			"memberSince": "Member since {date}"
++			"memberSince": "Member since {date}",
++			"birthdayHint": "Needed to buy age-restricted products. It is private and only used to check your age."
+ 		},
+ 		"addresses": {
+ 			"title": "Addresses",
+@@ -614,7 +630,9 @@
+ 			"validationRulesUnavailable": "Validation rules not available",
+ 			"setDefaultAddressFailed": "Failed to set default address",
+ 			"dummyNotAllowed": "Test payment is not available in this environment.",
+-			"stripeNotEnabled": "Stripe payments are not enabled in this environment. Set NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true on the storefront."
++			"stripeNotEnabled": "Stripe payments are not enabled in this environment. Set NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true on the storefront.",
++			"ageRestricted": "This order contains an age-restricted product you can't buy with this account.",
++			"ageRestrictedSignIn": "Age-restricted products can only be bought by signed-in customers of legal age. Please sign in."
+ 		},
+ 		"gateways": {
+ 			"noneTitle": "No payment gateway configured",
+diff --git a/messages/fi.json b/messages/fi.json
+index 4fd92e3..8cf9f3f 100644
+--- a/messages/fi.json
++++ b/messages/fi.json
+@@ -20,6 +20,11 @@
+ 			"yourTotal": "Kokonaissumma",
+ 			"shippingNote": "Toimitus lasketaan seuraavassa vaiheessa",
+ 			"checkout": "Kassalle"
++		},
++		"errors": {
++			"ageRestricted": "Tämä tuote on ikärajoitettu, eikä sitä voi ostaa tällä tilillä.",
++			"ageRestrictedSignIn": "Ikärajoitettuja tuotteita voivat ostaa vain kirjautuneet, riittävän ikäiset asiakkaat. Kirjaudu sisään.",
++			"signIn": "Kirjaudu sisään"
+ 		}
+ 	},
+ 	"productsListing": {
+@@ -77,6 +82,15 @@
+ 			"previous": "Edellinen kuva",
+ 			"next": "Seuraava kuva",
+ 			"counter": "{current} / {total}"
++		},
++		"ageGate": {
++			"underage": "Olet alaikäinen, emme voi näyttää tätä tuotetta sinulle.",
++			"signInRequired": "Tämä tuote on ikärajoitettu. Kirjaudu sisään nähdäksesi, voitko katsoa sitä.",
++			"signInAction": "Kirjaudu sisään",
++			"birthdayRequired": "Tämä tuote on ikärajoitettu. Lisää syntymäaikasi tilin asetuksiin nähdäksesi, voitko katsoa sitä.",
++			"birthdayAction": "Avaa tilin asetukset",
++			"metaTitle": "Ikärajoitettu tuote",
++			"placeholderLabel": "Ikärajoitettu tuote (piilotettu)"
+ 		}
+ 	},
+ 	"plp": {
+@@ -190,7 +204,8 @@
+ 				"postal": "Postinumero",
+ 				"postTown": "Postitoimipaikka",
+ 				"prefecture": "Prefektuuri"
+-			}
++			},
++			"birthday": "Syntymäaika"
+ 		},
+ 		"placeholders": {
+ 			"email": "sinä@esimerkki.fi",
+@@ -364,7 +379,8 @@
+ 		"settings": {
+ 			"title": "Asetukset",
+ 			"subtitle": "Hallitse tilisi asetuksia",
+-			"memberSince": "Jäsen {date} lähtien"
++			"memberSince": "Jäsen {date} lähtien",
++			"birthdayHint": "Tarvitaan ikärajoitettujen tuotteiden ostamiseen. Tieto on yksityinen ja sitä käytetään vain iän tarkistamiseen."
+ 		},
+ 		"addresses": {
+ 			"title": "Osoitteet",
+@@ -615,7 +631,9 @@
+ 			"validationRulesUnavailable": "Validointisäännöt eivät ole saatavilla",
+ 			"setDefaultAddressFailed": "Oletusosoitteen asettaminen epäonnistui",
+ 			"dummyNotAllowed": "Testimaksu ei ole käytettävissä tässä ympäristössä.",
+-			"stripeNotEnabled": "Stripe-maksut eivät ole käytössä tässä ympäristössä. Aseta NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true kaupassa."
++			"stripeNotEnabled": "Stripe-maksut eivät ole käytössä tässä ympäristössä. Aseta NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true kaupassa.",
++			"ageRestricted": "Tilaus sisältää ikärajoitetun tuotteen, jota et voi ostaa tällä tilillä.",
++			"ageRestrictedSignIn": "Ikärajoitettuja tuotteita voivat ostaa vain kirjautuneet, riittävän ikäiset asiakkaat. Kirjaudu sisään."
+ 		},
+ 		"gateways": {
+ 			"noneTitle": "Maksuyhdyskäytävää ei ole määritetty",
+diff --git a/messages/fr.json b/messages/fr.json
+index 6662017..7a875fa 100644
+--- a/messages/fr.json
++++ b/messages/fr.json
+@@ -20,6 +20,11 @@
+ 			"yourTotal": "Votre total",
+ 			"shippingNote": "Livraison calculée à l'étape suivante",
+ 			"checkout": "Commander"
++		},
++		"errors": {
++			"ageRestricted": "Ce produit est soumis à une limite d'âge et ne peut pas être acheté avec ce compte.",
++			"ageRestrictedSignIn": "Les produits soumis à une limite d'âge ne peuvent être achetés que par des clients connectés ayant l'âge requis. Veuillez vous connecter.",
++			"signIn": "Se connecter"
+ 		}
+ 	},
+ 	"productsListing": {
+@@ -77,6 +82,15 @@
+ 			"previous": "Image précédente",
+ 			"next": "Image suivante",
+ 			"counter": "{current} / {total}"
++		},
++		"ageGate": {
++			"underage": "Vous êtes mineur ; nous ne pouvons pas vous afficher ce produit.",
++			"signInRequired": "Ce produit est soumis à une limite d'âge. Connectez-vous pour vérifier si vous pouvez le consulter.",
++			"signInAction": "Se connecter",
++			"birthdayRequired": "Ce produit est soumis à une limite d'âge. Ajoutez votre date de naissance dans les paramètres de votre compte pour vérifier si vous pouvez le consulter.",
++			"birthdayAction": "Ouvrir les paramètres du compte",
++			"metaTitle": "Produit soumis à une limite d'âge",
++			"placeholderLabel": "Produit soumis à une limite d'âge (masqué)"
+ 		}
+ 	},
+ 	"plp": {
+@@ -190,7 +204,8 @@
+ 				"postal": "Code postal",
+ 				"postTown": "Ville",
+ 				"prefecture": "Préfecture"
+-			}
++			},
++			"birthday": "Date de naissance"
+ 		},
+ 		"placeholders": {
+ 			"email": "vous@exemple.com",
+@@ -364,7 +379,8 @@
+ 		"settings": {
+ 			"title": "Paramètres",
+ 			"subtitle": "Gérez les paramètres de votre compte",
+-			"memberSince": "Membre depuis {date}"
++			"memberSince": "Membre depuis {date}",
++			"birthdayHint": "Nécessaire pour acheter des produits soumis à une limite d'âge. Elle reste privée et sert uniquement à vérifier votre âge."
+ 		},
+ 		"addresses": {
+ 			"title": "Adresses",
+@@ -615,7 +631,9 @@
+ 			"validationRulesUnavailable": "Règles de validation non disponibles",
+ 			"setDefaultAddressFailed": "Échec de la définition de l'adresse par défaut",
+ 			"dummyNotAllowed": "Le paiement test n'est pas disponible dans cet environnement.",
+-			"stripeNotEnabled": "Les paiements Stripe ne sont pas activés dans cet environnement. Définissez NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true sur la boutique."
++			"stripeNotEnabled": "Les paiements Stripe ne sont pas activés dans cet environnement. Définissez NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true sur la boutique.",
++			"ageRestricted": "Cette commande contient un produit soumis à une limite d'âge que vous ne pouvez pas acheter avec ce compte.",
++			"ageRestrictedSignIn": "Les produits soumis à une limite d'âge ne peuvent être achetés que par des clients connectés ayant l'âge requis. Veuillez vous connecter."
+ 		},
+ 		"gateways": {
+ 			"noneTitle": "Aucune passerelle de paiement configurée",
+diff --git a/messages/ja.json b/messages/ja.json
+index c8be825..be76270 100644
+--- a/messages/ja.json
++++ b/messages/ja.json
+@@ -20,6 +20,11 @@
+ 			"yourTotal": "合計金額",
+ 			"shippingNote": "送料は次のステップで計算されます",
+ 			"checkout": "レジへ進む"
++		},
++		"errors": {
++			"ageRestricted": "この商品は年齢制限があり、このアカウントでは購入できません。",
++			"ageRestrictedSignIn": "年齢制限のある商品は、サインイン済みで年齢条件を満たすお客様のみ購入できます。サインインしてください。",
++			"signIn": "サインイン"
+ 		}
+ 	},
+ 	"productsListing": {
+@@ -77,6 +82,15 @@
+ 			"previous": "前の画像",
+ 			"next": "次の画像",
+ 			"counter": "{current} / {total}"
++		},
++		"ageGate": {
++			"underage": "未成年のため、この商品を表示できません。",
++			"signInRequired": "この商品には年齢制限があります。サインインして閲覧できるか確認してください。",
++			"signInAction": "サインイン",
++			"birthdayRequired": "この商品には年齢制限があります。アカウント設定で生年月日を追加して、閲覧できるか確認してください。",
++			"birthdayAction": "アカウント設定を開く",
++			"metaTitle": "年齢制限のある商品",
++			"placeholderLabel": "年齢制限のある商品（非表示）"
+ 		}
+ 	},
+ 	"plp": {
+@@ -190,7 +204,8 @@
+ 				"postal": "郵便番号",
+ 				"postTown": "郵便区",
+ 				"prefecture": "都道府県"
+-			}
++			},
++			"birthday": "生年月日"
+ 		},
+ 		"placeholders": {
+ 			"email": "you@example.com",
+@@ -364,7 +379,8 @@
+ 		"settings": {
+ 			"title": "設定",
+ 			"subtitle": "アカウント設定を管理",
+-			"memberSince": "{date} からメンバー"
++			"memberSince": "{date} からメンバー",
++			"birthdayHint": "年齢制限のある商品の購入に必要です。非公開で、年齢の確認にのみ使用されます。"
+ 		},
+ 		"addresses": {
+ 			"title": "住所",
+@@ -612,7 +628,9 @@
+ 			"validationRulesUnavailable": "検証ルールを利用できません",
+ 			"setDefaultAddressFailed": "既定の住所の設定に失敗しました",
+ 			"dummyNotAllowed": "この環境ではテスト決済を利用できません。",
+-			"stripeNotEnabled": "この環境ではStripe決済が有効になっていません。ストアフロントで NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true を設定してください。"
++			"stripeNotEnabled": "この環境ではStripe決済が有効になっていません。ストアフロントで NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true を設定してください。",
++			"ageRestricted": "この注文には、このアカウントでは購入できない年齢制限のある商品が含まれています。",
++			"ageRestrictedSignIn": "年齢制限のある商品は、サインイン済みで年齢条件を満たすお客様のみ購入できます。サインインしてください。"
+ 		},
+ 		"gateways": {
+ 			"noneTitle": "決済ゲートウェイが設定されていません",
+diff --git a/messages/ko.json b/messages/ko.json
+index 218b88d..6f33273 100644
+--- a/messages/ko.json
++++ b/messages/ko.json
+@@ -20,6 +20,11 @@
+ 			"yourTotal": "총 결제 금액",
+ 			"shippingNote": "배송비는 다음 단계에서 계산됩니다",
+ 			"checkout": "결제하기"
++		},
++		"errors": {
++			"ageRestricted": "이 상품은 연령 제한 상품이라 이 계정으로 구매할 수 없습니다.",
++			"ageRestrictedSignIn": "연령 제한 상품은 로그인한 성인 고객만 구매할 수 있습니다. 로그인해 주세요.",
++			"signIn": "로그인"
+ 		}
+ 	},
+ 	"productsListing": {
+@@ -69,6 +74,15 @@
+ 			"previous": "이전 이미지",
+ 			"next": "다음 이미지",
+ 			"counter": "{current} / {total}"
++		},
++		"ageGate": {
++			"underage": "미성년자이므로 이 상품을 표시할 수 없습니다.",
++			"signInRequired": "이 상품은 연령 제한 상품입니다. 로그인하여 열람 가능 여부를 확인하세요.",
++			"signInAction": "로그인",
++			"birthdayRequired": "이 상품은 연령 제한 상품입니다. 계정 설정에 생년월일을 추가하여 열람 가능 여부를 확인하세요.",
++			"birthdayAction": "계정 설정 열기",
++			"metaTitle": "연령 제한 상품",
++			"placeholderLabel": "연령 제한 상품 (숨김)"
+ 		}
+ 	},
+ 	"plp": {
+@@ -181,7 +195,8 @@
+ 				"postal": "우편번호",
+ 				"postTown": "우체국 관할 지역",
+ 				"prefecture": "현"
+-			}
++			},
++			"birthday": "생년월일"
+ 		},
+ 		"placeholders": {
+ 			"email": "you@example.com",
+@@ -355,7 +370,8 @@
+ 		"settings": {
+ 			"title": "설정",
+ 			"subtitle": "계정 설정을 관리하세요",
+-			"memberSince": "{date}부터 회원"
++			"memberSince": "{date}부터 회원",
++			"birthdayHint": "연령 제한 상품을 구매하는 데 필요합니다. 비공개이며 연령 확인에만 사용됩니다."
+ 		},
+ 		"addresses": {
+ 			"title": "주소",
+@@ -603,7 +619,9 @@
+ 			"validationRulesUnavailable": "검증 규칙을 사용할 수 없습니다",
+ 			"setDefaultAddressFailed": "기본 주소 설정에 실패했습니다",
+ 			"dummyNotAllowed": "이 환경에서는 테스트 결제를 사용할 수 없습니다.",
+-			"stripeNotEnabled": "이 환경에서는 Stripe 결제가 활성화되어 있지 않습니다. 스토어에 NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true를 설정하세요."
++			"stripeNotEnabled": "이 환경에서는 Stripe 결제가 활성화되어 있지 않습니다. 스토어에 NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true를 설정하세요.",
++			"ageRestricted": "이 주문에는 이 계정으로 구매할 수 없는 연령 제한 상품이 포함되어 있습니다.",
++			"ageRestrictedSignIn": "연령 제한 상품은 로그인한 성인 고객만 구매할 수 있습니다. 로그인해 주세요."
+ 		},
+ 		"gateways": {
+ 			"noneTitle": "결제 게이트웨이가 설정되지 않았습니다",
+diff --git a/messages/nb.json b/messages/nb.json
+index d1d7039..81bec64 100644
+--- a/messages/nb.json
++++ b/messages/nb.json
+@@ -20,6 +20,11 @@
+ 			"yourTotal": "Din totalsum",
+ 			"shippingNote": "Frakt beregnes i neste steg",
+ 			"checkout": "Til kassen"
++		},
++		"errors": {
++			"ageRestricted": "Dette produktet har aldersgrense og kan ikke kjøpes med denne kontoen.",
++			"ageRestrictedSignIn": "Produkter med aldersgrense kan bare kjøpes av innloggede kunder i riktig alder. Logg inn.",
++			"signIn": "Logg inn"
+ 		}
+ 	},
+ 	"productsListing": {
+@@ -77,6 +82,15 @@
+ 			"previous": "Forrige bilde",
+ 			"next": "Neste bilde",
+ 			"counter": "{current} / {total}"
++		},
++		"ageGate": {
++			"underage": "Du er mindreårig; vi kan ikke vise deg dette produktet.",
++			"signInRequired": "Dette produktet har aldersgrense. Logg inn for å sjekke om du kan se det.",
++			"signInAction": "Logg inn",
++			"birthdayRequired": "Dette produktet har aldersgrense. Legg til fødselsdatoen din i kontoinnstillingene for å sjekke om du kan se det.",
++			"birthdayAction": "Åpne kontoinnstillinger",
++			"metaTitle": "Produkt med aldersgrense",
++			"placeholderLabel": "Produkt med aldersgrense (skjult)"
+ 		}
+ 	},
+ 	"plp": {
+@@ -190,7 +204,8 @@
+ 				"postal": "Postnummer",
+ 				"postTown": "Poststed",
+ 				"prefecture": "Prefektur"
+-			}
++			},
++			"birthday": "Fødselsdato"
+ 		},
+ 		"placeholders": {
+ 			"email": "deg@eksempel.no",
+@@ -364,7 +379,8 @@
+ 		"settings": {
+ 			"title": "Innstillinger",
+ 			"subtitle": "Administrer kontoinnstillingene dine",
+-			"memberSince": "Medlem siden {date}"
++			"memberSince": "Medlem siden {date}",
++			"birthdayHint": "Trengs for å kjøpe produkter med aldersgrense. Den er privat og brukes bare til å sjekke alderen din."
+ 		},
+ 		"addresses": {
+ 			"title": "Adresser",
+@@ -615,7 +631,9 @@
+ 			"validationRulesUnavailable": "Valideringsregler er ikke tilgjengelige",
+ 			"setDefaultAddressFailed": "Kunne ikke angi standardadresse",
+ 			"dummyNotAllowed": "Testbetaling er ikke tilgjengelig i dette miljøet.",
+-			"stripeNotEnabled": "Stripe-betalinger er ikke aktivert i dette miljøet. Sett NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true i butikken."
++			"stripeNotEnabled": "Stripe-betalinger er ikke aktivert i dette miljøet. Sett NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true i butikken.",
++			"ageRestricted": "Denne bestillingen inneholder et produkt med aldersgrense som du ikke kan kjøpe med denne kontoen.",
++			"ageRestrictedSignIn": "Produkter med aldersgrense kan bare kjøpes av innloggede kunder i riktig alder. Logg inn."
+ 		},
+ 		"gateways": {
+ 			"noneTitle": "Ingen betalingsgateway konfigurert",
+diff --git a/messages/pl.json b/messages/pl.json
+index ecaf8f2..05753cc 100644
+--- a/messages/pl.json
++++ b/messages/pl.json
+@@ -20,6 +20,11 @@
+ 			"yourTotal": "Twoja suma",
+ 			"shippingNote": "Dostawa obliczana w następnym kroku",
+ 			"checkout": "Przejdź do kasy"
++		},
++		"errors": {
++			"ageRestricted": "Ten produkt ma ograniczenie wiekowe i nie można go kupić na tym koncie.",
++			"ageRestrictedSignIn": "Produkty z ograniczeniem wiekowym mogą kupować tylko zalogowani klienci w odpowiednim wieku. Zaloguj się.",
++			"signIn": "Zaloguj się"
+ 		}
+ 	},
+ 	"productsListing": {
+@@ -77,6 +82,15 @@
+ 			"previous": "Poprzednie zdjęcie",
+ 			"next": "Następne zdjęcie",
+ 			"counter": "{current} / {total}"
++		},
++		"ageGate": {
++			"underage": "Jesteś niepełnoletni; nie możemy wyświetlić Ci tego produktu.",
++			"signInRequired": "Ten produkt ma ograniczenie wiekowe. Zaloguj się, aby sprawdzić, czy możesz go zobaczyć.",
++			"signInAction": "Zaloguj się",
++			"birthdayRequired": "Ten produkt ma ograniczenie wiekowe. Dodaj datę urodzenia w ustawieniach konta, aby sprawdzić, czy możesz go zobaczyć.",
++			"birthdayAction": "Otwórz ustawienia konta",
++			"metaTitle": "Produkt z ograniczeniem wiekowym",
++			"placeholderLabel": "Produkt z ograniczeniem wiekowym (ukryty)"
+ 		}
+ 	},
+ 	"plp": {
+@@ -190,7 +204,8 @@
+ 				"postal": "Kod pocztowy",
+ 				"postTown": "Miejscowość",
+ 				"prefecture": "Prefektura"
+-			}
++			},
++			"birthday": "Data urodzenia"
+ 		},
+ 		"placeholders": {
+ 			"email": "ty@example.com",
+@@ -364,7 +379,8 @@
+ 		"settings": {
+ 			"title": "Ustawienia",
+ 			"subtitle": "Zarządzaj ustawieniami konta",
+-			"memberSince": "Członek od {date}"
++			"memberSince": "Członek od {date}",
++			"birthdayHint": "Wymagana do kupowania produktów z ograniczeniem wiekowym. Jest prywatna i służy wyłącznie do sprawdzenia wieku."
+ 		},
+ 		"addresses": {
+ 			"title": "Adresy",
+@@ -615,7 +631,9 @@
+ 			"validationRulesUnavailable": "Reguły walidacji są niedostępne",
+ 			"setDefaultAddressFailed": "Nie udało się ustawić domyślnego adresu",
+ 			"dummyNotAllowed": "Płatność testowa nie jest dostępna w tym środowisku.",
+-			"stripeNotEnabled": "Płatności Stripe nie są włączone w tym środowisku. Ustaw NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true w witrynie."
++			"stripeNotEnabled": "Płatności Stripe nie są włączone w tym środowisku. Ustaw NEXT_PUBLIC_ENABLE_STRIPE_PAYMENTS=true w witrynie.",
++			"ageRestricted": "To zamówienie zawiera produkt z ograniczeniem wiekowym, którego nie możesz kupić na tym koncie.",
++			"ageRestrictedSignIn": "Produkty z ograniczeniem wiekowym mogą kupować tylko zalogowani klienci w odpowiednim wieku. Zaloguj się."
+ 		},
+ 		"gateways": {
+ 			"noneTitle": "Brak skonfigurowanej bramki płatności",
+diff --git a/paper-version.json b/paper-version.json
+index 8135a6a..0dff9cf 100644
+--- a/paper-version.json
++++ b/paper-version.json
+@@ -105,5 +105,34 @@
+ 			"skipped": false
+ 		}
+ 	],
+-	"coreOverrides": []
++	"coreOverrides": [
++		{
++			"path": "src/lib/saleor/access.ts",
++			"reason": "Age-restricted products: signed-in customers get an uncached, token-authenticated catalog read (viewerQuery / ListingLoadOptions.viewer); the shared cache stays anonymous."
++		},
++		{
++			"path": "src/lib/saleor/index.ts",
++			"reason": "Age-restricted products: signed-in customers get an uncached, token-authenticated catalog read (viewerQuery / ListingLoadOptions.viewer); the shared cache stays anonymous."
++		},
++		{
++			"path": "src/lib/saleor/operations.ts",
++			"reason": "Age-restricted products: signed-in customers get an uncached, token-authenticated catalog read (viewerQuery / ListingLoadOptions.viewer); the shared cache stays anonymous."
++		},
++		{
++			"path": "src/lib/listing/load.ts",
++			"reason": "Age-restricted products: signed-in customers get an uncached, token-authenticated catalog read (viewerQuery / ListingLoadOptions.viewer); the shared cache stays anonymous."
++		},
++		{
++			"path": "src/lib/listing/policy.ts",
++			"reason": "Age-restricted products: signed-in customers get an uncached, token-authenticated catalog read (viewerQuery / ListingLoadOptions.viewer); the shared cache stays anonymous."
++		},
++		{
++			"path": "src/lib/listing/provider.ts",
++			"reason": "Age-restricted products: signed-in customers get an uncached, token-authenticated catalog read (viewerQuery / ListingLoadOptions.viewer); the shared cache stays anonymous."
++		},
++		{
++			"path": "src/lib/listing/providers/saleor/index.ts",
++			"reason": "Age-restricted products: signed-in customers get an uncached, token-authenticated catalog read (viewerQuery / ListingLoadOptions.viewer); the shared cache stays anonymous."
++		}
++	]
+ }
+diff --git a/scripts/data-layer-lock.mjs b/scripts/data-layer-lock.mjs
+index 8902858..aec2285 100644
+--- a/scripts/data-layer-lock.mjs
++++ b/scripts/data-layer-lock.mjs
+@@ -19,6 +19,7 @@ const CALLS = new Set([
+ 	"cachedQuery",
+ 	"liveQuery",
+ 	"sessionQuery",
++	"viewerQuery",
+ 	"mutate",
+ 	"rawMutation",
+ 	"bindCacheProfile",
+diff --git a/src/app/(checkout)/actions.ts b/src/app/(checkout)/actions.ts
+index 388b7ad..9162250 100644
+--- a/src/app/(checkout)/actions.ts
++++ b/src/app/(checkout)/actions.ts
+@@ -91,6 +91,8 @@ import { checkoutGraphqlLanguageCode, resolveCheckoutLocaleSlug } from "@/lib/ch
+ import { emitCommerceEvent } from "@/lib/analytics/emit.server";
+ import { checkoutCreateContextMetadata } from "@/lib/commerce-context/checkout-create-context";
+ import { graphqlLanguageCodeVariables } from "@/lib/graphql-locale";
++import { pickAgeRestrictedError } from "@/lib/age/age-restricted-error";
++import { hasAuthSession } from "@/lib/auth/has-auth-session";
+ import { isAllowedRedirectUrl } from "@/lib/auth/validate-redirect-url";
+ import { liveQuery, mutate, rawMutation } from "@/lib/saleor";
+ import * as Checkout from "@/lib/checkout";
+@@ -581,6 +583,20 @@ export async function runCheckoutComplete(checkoutId: string): Promise<CheckoutC
+ 
+ 	if (payload.errors?.length) {
+ 		const { server: t } = await getCheckoutServerTranslations();
++		const ageError = pickAgeRestrictedError(payload.errors, await hasAuthSession());
++		if (ageError) {
++			// The API message names the product(s). Guests also learn they need to sign in.
++			const message = ageError.message || t("ageRestricted");
++			return {
++				ok: false,
++				error: ageError.signedIn ? message : `${message} ${t("ageRestrictedSignIn")}`,
++				fieldErrors: payload.errors.map((error) => ({
++					field: error.field,
++					message: error.message ?? t("completeOrderFailed"),
++					code: error.code,
++				})),
++			};
++		}
+ 		return {
+ 			ok: false,
+ 			error: payload.errors[0].message ?? t("completeOrderFailed"),
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts b/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
+index 0e2ad45..01490e8 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
+@@ -40,6 +40,33 @@ export async function updateProfile(formData: FormData): Promise<AccountActionRe
+ 	return { success: true };
+ }
+ 
++/**
++ * Save the customer's birthday (`YYYY-MM-DD`). Personal data: not logged, not returned,
++ * not part of any URL or analytics event. The API reports a bad date on the `birthday` field.
++ */
++export async function updateBirthday(formData: FormData): Promise<AccountActionResult> {
++	const birthday = getFormString(formData, "birthday");
++
++	const result = await mutate(AccountUpdateDocument, {
++		variables: { input: { birthday } },
++	});
++
++	if (!result.ok) {
++		return { success: false, error: result.error.message };
++	}
++
++	const errors = result.data.accountUpdate?.errors;
++	if (errors?.length) {
++		const fieldError = errors.find((error) => error.field === "birthday") ?? errors[0];
++		return fieldError.message
++			? { success: false, error: fieldError.message }
++			: { success: false, errorKey: "updateProfileFailed" };
++	}
++
++	revalidateAccountLayout();
++	return { success: true };
++}
++
+ export async function changePassword(formData: FormData): Promise<AccountActionResult> {
+ 	const oldPassword = getFormString(formData, "oldPassword");
+ 	const newPassword = getFormString(formData, "newPassword");
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+index 51a91eb..8384f9b 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+@@ -9,7 +9,8 @@ import { templates } from "@/config/templates";
+ import { resolveChannelCurrency } from "@/lib/channels/resolve-channel-currency";
+ import { catalogPathSuffix, redirectToCanonicalCatalogSlug } from "@/lib/catalog/canonical-slug";
+ import { CatalogIdentityBridge } from "@/lib/catalog/catalog-identity-bridge";
+-import { getProductData } from "@/lib/catalog/get-product-data";
++import { getProductData, getViewerProductData, isAgeGatedStub } from "@/lib/catalog/get-product-data";
++import { hasAuthSession } from "@/lib/auth/has-auth-session";
+ import { buildCatalogPathSuffixByLocale, buildLocaleSlugMap } from "@/lib/catalog/locale-slugs";
+ import { buildPolicyLabelValues } from "@/lib/content";
+ import { getStorefrontContent } from "@/lib/content/server";
+@@ -24,6 +25,8 @@ import { buildStorefrontPath } from "@/lib/storefront-path";
+ import { pickTranslatedSlug } from "@/lib/saleor-translations";
+ import { Breadcrumbs } from "@/ui/components/breadcrumbs";
+ import {
++	AgeGatedProduct,
++	type AgeGateReason,
+ 	ProductAttributes,
+ 	activeGalleryVariant,
+ 	VariantGalleryDynamic,
+@@ -52,6 +55,13 @@ export async function generateMetadata(props: {
+ 		return { title: "Product Not Found" };
+ 	}
+ 
++	// Shared (anonymous) metadata must never carry restricted data. An age-gated product
++	// is not indexable and has no real name to show.
++	if (isAgeGatedStub(product)) {
++		const tGate = await getTranslations({ locale: params.locale, namespace: "pdp.ageGate" });
++		return { title: tGate("metaTitle"), robots: { index: false, follow: false } };
++	}
++
+ 	// Translated description (Editor.js → plain text) so meta/OG never collapse to the
+ 	// bare product name when the merchant left seoDescription empty.
+ 	const description = resolveSeoDescription({
+@@ -114,7 +124,7 @@ async function ProductShell({
+ }) {
+ 	const params = await paramsPromise;
+ 	const browse = (suffix: string) => buildStorefrontPath(params.locale, params.channel, suffix);
+-	const [product, tPdp, tNav, content, currency] = await Promise.all([
++	const [sharedProduct, tPdp, tNav, content, currency] = await Promise.all([
+ 		getProductData(params.slug, params.channel, params.locale),
+ 		getTranslations({ locale: params.locale, namespace: "pdp" }),
+ 		getTranslations({ locale: params.locale, namespace: "nav" }),
+@@ -127,10 +137,36 @@ async function ProductShell({
+ 		locale: intlLocale,
+ 	});
+ 
+-	if (!product) {
++	if (!sharedProduct) {
+ 		notFound();
+ 	}
+ 
++	// The shared (cached, anonymous) shell is all a guest or an unrestricted product needs.
++	// Only an age-restricted product is fetched again, uncached, with the signed-in
++	// customer's token, so eligible customers see it and the rest get the blurred stub.
++	// Unrestricted products never read cookies here, so they keep the static shell.
++	const viewer = sharedProduct.isAgeRestricted && (await hasAuthSession());
++	const product =
++		(viewer ? await getViewerProductData(params.slug, params.channel, params.locale) : null) ?? sharedProduct;
++
++	if (isAgeGatedStub(product)) {
++		const tGate = await getTranslations({ locale: params.locale, namespace: "pdp.ageGate" });
++		return (
++			<AgeGatedProduct
++				reason={product.ageAccess as AgeGateReason}
++				loginHref={browse("/login")}
++				messages={{
++					underage: tGate("underage"),
++					signInRequired: tGate("signInRequired"),
++					signInAction: tGate("signInAction"),
++					birthdayRequired: tGate("birthdayRequired"),
++					birthdayAction: tGate("birthdayAction"),
++					placeholderLabel: tGate("placeholderLabel"),
++				}}
++			/>
++		);
++	}
++
+ 	// Only await searchParams on the rare non-canonical slug path so the common
+ 	// (already-canonical) PDP shell stays params-only / PPR-static.
+ 	if (decodeURIComponent(params.slug) !== pickTranslatedSlug(product)) {
+@@ -244,6 +280,7 @@ async function ProductShell({
+ 								channel={params.channel}
+ 								localeSlug={params.locale}
+ 								searchParams={searchParams}
++								viewer={viewer}
+ 							/>
+ 						</Suspense>
+ 					),
+@@ -255,6 +292,7 @@ async function ProductShell({
+ 									channel={params.channel}
+ 									localeSlug={params.locale}
+ 									searchParams={searchParams}
++									viewer={viewer}
+ 								/>
+ 							</Suspense>
+ 						</ErrorBoundary>
+diff --git a/src/app/actions.ts b/src/app/actions.ts
+index 1392671..3be9049 100644
+--- a/src/app/actions.ts
++++ b/src/app/actions.ts
+@@ -9,6 +9,8 @@ import {
+ 	CheckoutDeleteLinesDocument,
+ 	CheckoutLinesUpdateDocument,
+ } from "@/gql/graphql";
++import { hasAuthSession } from "@/lib/auth/has-auth-session";
++import { pickAgeRestrictedError, type CartActionError } from "@/lib/age/age-restricted-error";
+ import { emitCommerceEvent } from "@/lib/analytics/emit.server";
+ import * as Checkout from "@/lib/checkout";
+ 
+@@ -82,29 +84,43 @@ export async function deleteCartLine(checkoutId: string, lineId: string) {
+ 	refresh();
+ }
+ 
+-export async function updateCartLineQuantity(checkoutId: string, lineId: string, quantity: number) {
++/** Returns the age-restriction error to show, or `null` when the update went through (or failed otherwise). */
++export async function updateCartLineQuantity(
++	checkoutId: string,
++	lineId: string,
++	quantity: number,
++): Promise<CartActionError | null> {
+ 	if (quantity < 1) {
+-		return deleteCartLine(checkoutId, lineId);
++		await deleteCartLine(checkoutId, lineId);
++		return null;
+ 	}
+ 
+-	await mutate(CheckoutLinesUpdateDocument, {
++	const result = await mutate(CheckoutLinesUpdateDocument, {
+ 		variables: {
+ 			checkoutId,
+ 			lines: [{ lineId, quantity }],
+ 		},
+ 	});
+ 
++	const ageError = result.ok
++		? pickAgeRestrictedError(result.data.checkoutLinesUpdate?.errors, await hasAuthSession())
++		: null;
++
+ 	refresh();
++	return ageError;
+ }
+ 
+-/** Add a variant to the channel cart. Private refresh only — never busts the shared cache. */
++/**
++ * Add a variant to the channel cart. Private refresh only — never busts the shared cache.
++ * Returns the error to show when the API refuses the line (age-restricted product), else `null`.
++ */
+ export async function addVariantToCart(input: {
+ 	channel: string;
+ 	localeSlug: string;
+ 	variantId: string;
+ 	value?: number;
+ 	currency?: string;
+-}) {
++}): Promise<CartActionError | null> {
+ 	const checkout = await Checkout.findOrCreate({
+ 		checkoutId: await Checkout.getIdFromCookies(input.channel),
+ 		channel: input.channel,
+@@ -113,7 +129,7 @@ export async function addVariantToCart(input: {
+ 
+ 	if (!checkout) {
+ 		console.error("Add to cart: Failed to create checkout");
+-		return;
++		return { code: "FAILED" };
+ 	}
+ 
+ 	await Checkout.saveIdToCookie(input.channel, checkout.id);
+@@ -127,12 +143,13 @@ export async function addVariantToCart(input: {
+ 
+ 	if (!addResult.ok) {
+ 		console.error("Add to cart failed:", addResult.error.message);
+-		return;
++		return { code: "FAILED" };
+ 	}
+ 
+-	if (addResult.data.checkoutLinesAdd?.errors?.length) {
+-		console.error("Add to cart failed:", addResult.data.checkoutLinesAdd.errors);
+-		return;
++	const addErrors = addResult.data.checkoutLinesAdd?.errors;
++	if (addErrors?.length) {
++		console.error("Add to cart failed:", addErrors);
++		return pickAgeRestrictedError(addErrors, await hasAuthSession()) ?? { code: "FAILED" };
+ 	}
+ 
+ 	emitCommerceEvent({
+@@ -143,4 +160,5 @@ export async function addVariantToCart(input: {
+ 	});
+ 
+ 	refresh();
++	return null;
+ }
+diff --git a/src/graphql/CheckoutAddLine.graphql b/src/graphql/CheckoutAddLine.graphql
+index 222e882..b1692db 100644
+--- a/src/graphql/CheckoutAddLine.graphql
++++ b/src/graphql/CheckoutAddLine.graphql
+@@ -14,7 +14,9 @@ mutation CheckoutAddLine($id: ID!, $productVariantId: ID!) {
+ 			}
+ 		}
+ 		errors {
++			field
+ 			message
++			code
+ 		}
+ 	}
+ }
+diff --git a/src/graphql/CurrentUserProfile.graphql b/src/graphql/CurrentUserProfile.graphql
+index 9bb3519..0228636 100644
+--- a/src/graphql/CurrentUserProfile.graphql
++++ b/src/graphql/CurrentUserProfile.graphql
+@@ -2,6 +2,9 @@ query CurrentUserProfile {
+ 	me {
+ 		...UserDetails
+ 		dateJoined
++		# Personal data. Only the account pages read it; never add it to UserDetails
++		# (header, checkout, and other non-account requests).
++		birthday
+ 		addresses {
+ 			...AddressDetails
+ 		}
+diff --git a/src/graphql/extensions/ProductDetailsExtension.graphql b/src/graphql/extensions/ProductDetailsExtension.graphql
+index 0a67217..1c8ef66 100644
+--- a/src/graphql/extensions/ProductDetailsExtension.graphql
++++ b/src/graphql/extensions/ProductDetailsExtension.graphql
+@@ -1,4 +1,8 @@
+ # Fork-owned fields on the PDP shell. Add selections here; do not edit ProductDetails.graphql.
++# Age gate: for a viewer who may not see an age-restricted product the API returns only
++# id, slug, isAgeRestricted and ageAccess (name is "", everything else null/empty).
+ fragment ProductDetailsExtension on Product {
+ 	__typename
++	isAgeRestricted
++	ageAccess
+ }
+diff --git a/src/i18n/age-gate-messages.test.ts b/src/i18n/age-gate-messages.test.ts
+new file mode 100644
+index 0000000..409d685
+--- /dev/null
++++ b/src/i18n/age-gate-messages.test.ts
+@@ -0,0 +1,48 @@
++import { readdirSync, readFileSync } from "node:fs";
++import { join } from "node:path";
++import { describe, expect, it } from "vitest";
++
++const DIR = join(import.meta.dirname, "../../messages");
++
++const KEYS = [
++	"cart.errors.ageRestricted",
++	"cart.errors.ageRestrictedSignIn",
++	"cart.errors.signIn",
++	"pdp.ageGate.underage",
++	"pdp.ageGate.signInRequired",
++	"pdp.ageGate.signInAction",
++	"pdp.ageGate.birthdayRequired",
++	"pdp.ageGate.birthdayAction",
++	"pdp.ageGate.metaTitle",
++	"pdp.ageGate.placeholderLabel",
++	"account.fields.birthday",
++	"account.settings.birthdayHint",
++	"checkout.server.ageRestricted",
++	"checkout.server.ageRestrictedSignIn",
++];
++
++function read(messages: unknown, path: string): unknown {
++	return path
++		.split(".")
++		.reduce<unknown>((node, key) => (node as Record<string, unknown> | undefined)?.[key], messages);
++}
++
++describe("age-gate messages", () => {
++	const locales = readdirSync(DIR).filter((file) => file.endsWith(".json"));
++
++	it("ships the exact underage sentence in English", () => {
++		const en = JSON.parse(readFileSync(join(DIR, "en.json"), "utf8"));
++		expect(read(en, "pdp.ageGate.underage")).toBe(
++			"You are under age; we cannot display this product to you.",
++		);
++	});
++
++	for (const file of locales) {
++		it(`has every key in ${file}`, () => {
++			const messages = JSON.parse(readFileSync(join(DIR, file), "utf8"));
++			for (const key of KEYS) {
++				expect(typeof read(messages, key), `${file}: ${key}`).toBe("string");
++			}
++		});
++	}
++});
+diff --git a/src/lib/age/age-gate-privacy.test.ts b/src/lib/age/age-gate-privacy.test.ts
+new file mode 100644
+index 0000000..346a35b
+--- /dev/null
++++ b/src/lib/age/age-gate-privacy.test.ts
+@@ -0,0 +1,23 @@
++import { readdirSync, readFileSync } from "node:fs";
++import { join } from "node:path";
++import { describe, expect, it } from "vitest";
++
++const ROOT = join(import.meta.dirname, "../../..");
++
++/** The birthday is personal data: only the account profile query may select it. */
++const BIRTHDAY_READERS = new Set(["src/graphql/CurrentUserProfile.graphql"]);
++
++describe("birthday privacy", () => {
++	it("is selected only by the account profile query", () => {
++		const offenders: string[] = [];
++		for (const dir of ["src/graphql", "src/checkout/graphql"]) {
++			for (const file of readdirSync(join(ROOT, dir), { recursive: true })) {
++				if (typeof file !== "string" || !file.endsWith(".graphql")) continue;
++				const path = `${dir}/${file}`;
++				const text = readFileSync(join(ROOT, path), "utf8").replace(/#.*$/gm, "");
++				if (/\bbirthday\b/.test(text) && !BIRTHDAY_READERS.has(path)) offenders.push(path);
++			}
++		}
++		expect(offenders).toEqual([]);
++	});
++});
+diff --git a/src/lib/age/age-restricted-error.test.ts b/src/lib/age/age-restricted-error.test.ts
+new file mode 100644
+index 0000000..11b076f
+--- /dev/null
++++ b/src/lib/age/age-restricted-error.test.ts
+@@ -0,0 +1,30 @@
++import { describe, expect, it } from "vitest";
++import { AGE_RESTRICTED_CODE, pickAgeRestrictedError } from "./age-restricted-error";
++
++describe("pickAgeRestrictedError", () => {
++	it("maps the AGE_RESTRICTED error and keeps the API message", () => {
++		expect(
++			pickAgeRestrictedError(
++				[
++					{ code: "INSUFFICIENT_STOCK", message: "nope" },
++					{ code: AGE_RESTRICTED_CODE, message: " Cannot buy Whisky. " },
++				],
++				false,
++			),
++		).toEqual({ code: AGE_RESTRICTED_CODE, message: "Cannot buy Whisky.", signedIn: false });
++	});
++
++	it("carries the session flag and tolerates a missing message", () => {
++		expect(pickAgeRestrictedError([{ code: AGE_RESTRICTED_CODE }], true)).toEqual({
++			code: AGE_RESTRICTED_CODE,
++			message: "",
++			signedIn: true,
++		});
++	});
++
++	it("returns null for other errors or no errors", () => {
++		expect(pickAgeRestrictedError([{ code: "INVALID" }], true)).toBeNull();
++		expect(pickAgeRestrictedError([], true)).toBeNull();
++		expect(pickAgeRestrictedError(undefined, true)).toBeNull();
++	});
++});
+diff --git a/src/lib/age/age-restricted-error.ts b/src/lib/age/age-restricted-error.ts
+new file mode 100644
+index 0000000..117e3cc
+--- /dev/null
++++ b/src/lib/age/age-restricted-error.ts
+@@ -0,0 +1,24 @@
++/** Saleor error code for buying an age-restricted product the customer may not buy. */
++export const AGE_RESTRICTED_CODE = "AGE_RESTRICTED";
++
++type AgeRestrictedError = {
++	code: typeof AGE_RESTRICTED_CODE;
++	/** API message; names the product(s). Empty when the API sent none. */
++	message: string;
++	/** Whether a customer session was present. Guests are told to sign in. */
++	signedIn: boolean;
++};
++
++export type CartActionError = AgeRestrictedError | { code: "FAILED" };
++
++type ApiError = { code?: string | null; message?: string | null };
++
++/** The AGE_RESTRICTED error in a mutation's `errors`, mapped for the UI. `null` when there is none. */
++export function pickAgeRestrictedError(
++	errors: readonly ApiError[] | null | undefined,
++	signedIn: boolean,
++): AgeRestrictedError | null {
++	const hit = errors?.find((error) => error.code === AGE_RESTRICTED_CODE);
++	if (!hit) return null;
++	return { code: AGE_RESTRICTED_CODE, message: hit.message?.trim() ?? "", signedIn };
++}
+diff --git a/src/lib/catalog/get-product-data.ts b/src/lib/catalog/get-product-data.ts
+index fc20ac1..153267f 100644
+--- a/src/lib/catalog/get-product-data.ts
++++ b/src/lib/catalog/get-product-data.ts
+@@ -4,6 +4,7 @@ import {
+ 	ProductDetailsDocument,
+ 	ProductVariantForPdpDocument,
+ 	ProductVariantsForPdpDocument,
++	ProductAgeAccessEnum,
+ 	type LanguageCodeEnum,
+ 	type ProductDetailsQuery,
+ 	type ProductVariantsForPdpQuery,
+@@ -16,7 +17,9 @@ import {
+ } from "@/lib/catalog/buy-box-strategy";
+ import { resolveByPossiblyTranslatedSlug } from "@/lib/catalog/resolve-by-slug";
+ import { tagPrimaryCatalogSlug } from "@/lib/catalog/tag-primary-slug";
+-import { CACHE_PROFILES, cachedQuery } from "@/lib/saleor";
++import { isDefinitiveAuthFailure } from "@/lib/auth/session-auth-state";
++import { CACHE_PROFILES, SaleorDataError, cachedQuery, viewerQuery } from "@/lib/saleor";
++import type { TypedDocumentString } from "@/gql/graphql";
+ import { graphqlLanguageCodeVariables } from "@/lib/graphql-locale";
+ import { pickTranslatedName, withTranslatedProductFields } from "@/lib/saleor-translations";
+ 
+@@ -82,6 +85,61 @@ export async function getProductData(
+ 	return withTranslatedProductFields(product);
+ }
+ 
++/**
++ * True when the shared (anonymous) PDP shell is the age-gate stub: the API returned only
++ * id, slug and the gate flags, so there is nothing real to render for this viewer.
++ */
++export function isAgeGatedStub(product: Pick<ProductShell, "isAgeRestricted" | "ageAccess">): boolean {
++	return product.isAgeRestricted && product.ageAccess !== ProductAgeAccessEnum.Allowed;
++}
++
++/**
++ * PDP shell for a signed-in customer. NOT cached: the API decides per viewer whether an
++ * age-restricted product is real data or the stub, so the response must never enter the
++ * shared `"use cache"` entry that {@link getProductData} fills for everyone.
++ * Call only after confirming a session (`hasAuthSession()`); a rejected session falls back
++ * to the anonymous shell.
++ */
++export async function getViewerProductData(
++	slug: string,
++	channel: string,
++	localeSlug: string,
++): Promise<ProductShell | null> {
++	const decodedSlug = decodeURIComponent(slug);
++	const languageVariables = graphqlLanguageCodeVariables(localeSlug);
++
++	const fetchProduct = async (vars: { slug: string; slugLanguageCode?: LanguageCodeEnum }) => {
++		const result = await viewerQuery(ProductDetailsDocument, {
++			variables: {
++				slug: vars.slug,
++				channel,
++				...languageVariables,
++				...(vars.slugLanguageCode ? { slugLanguageCode: vars.slugLanguageCode } : {}),
++			},
++		});
++		if (!result.ok) throw new SaleorDataError(result.error);
++		return result.data.product;
++	};
++
++	let product: ProductShell | null | undefined;
++	try {
++		product = await resolveByPossiblyTranslatedSlug({
++			localeSlug,
++			urlSlug: decodedSlug,
++			fetchByPrimarySlug: (urlSlug) => fetchProduct({ slug: urlSlug }),
++			fetchByTranslatedSlug: (urlSlug, slugLanguageCode) => fetchProduct({ slug: urlSlug, slugLanguageCode }),
++		});
++	} catch (error) {
++		// Expired or revoked session: this viewer is a guest, serve the anonymous shell.
++		if (error instanceof SaleorDataError && isDefinitiveAuthFailure(error.graphqlError)) {
++			return getProductData(slug, channel, localeSlug);
++		}
++		throw error;
++	}
++
++	return product ? withTranslatedProductFields(product) : null;
++}
++
+ /**
+  * Resolve variants for PDP islands (gallery + buy box).
+  *
+@@ -97,8 +155,14 @@ export async function resolvePdpVariants(
+ 	product: ProductShell,
+ 	channel: string,
+ 	localeSlug: string,
+-	options?: { variantId?: string | null; sku?: string | null },
++	options?: {
++		variantId?: string | null;
++		sku?: string | null;
++		/** Product came from {@link getViewerProductData}: fetch variants per viewer, uncached. */
++		viewer?: boolean;
++	},
+ ): Promise<ProductVariantsForPdpResult> {
++	const viewer = options?.viewer === true;
+ 	const shellTotalCount = product.productVariants?.totalCount ?? null;
+ 	const strategy = resolveBuyBoxStrategy({
+ 		totalCount: shellTotalCount,
+@@ -115,7 +179,14 @@ export async function resolvePdpVariants(
+ 			return { variants: [], totalCount, overBudget: true, strategy };
+ 		}
+ 
+-		const resolved = await getProductVariantForPdp(deepLink, channel, localeSlug, product.id, product.slug);
++		const resolved = await readProductVariantForPdp(
++			deepLink,
++			channel,
++			localeSlug,
++			product.id,
++			product.slug,
++			viewer,
++		);
+ 		return {
+ 			variants: resolved ? [resolved] : [],
+ 			totalCount,
+@@ -124,14 +195,23 @@ export async function resolvePdpVariants(
+ 		};
+ 	}
+ 
+-	const list = await getProductVariantsForPdp(product.slug, channel, localeSlug);
++	const list = viewer
++		? await loadPdpVariantList(product.slug, channel, localeSlug, viewerRead)
++		: await getProductVariantsForPdp(product.slug, channel, localeSlug);
+ 	// Shell `totalCount` can lag PRODUCT_* updates — if the list fetch is over cap,
+ 	// honor deep-link ATC instead of stranding the shopper with an empty buy box.
+ 	if (list.overBudget) {
+ 		if (!deepLink) {
+ 			return { ...list, strategy: "over_budget" };
+ 		}
+-		const resolved = await getProductVariantForPdp(deepLink, channel, localeSlug, product.id, product.slug);
++		const resolved = await readProductVariantForPdp(
++			deepLink,
++			channel,
++			localeSlug,
++			product.id,
++			product.slug,
++			viewer,
++		);
+ 		return {
+ 			variants: resolved ? [resolved] : [],
+ 			totalCount: list.totalCount,
+@@ -159,6 +239,16 @@ export async function getProductVariantsForPdp(
+ 	localeSlug: string,
+ ): Promise<ProductVariantsForPdpResult> {
+ 	"use cache";
++	return loadPdpVariantList(slug, channel, localeSlug, cachedRead(decodeURIComponent(slug)));
++}
++
++/** Shared by the cached list and the per-viewer list; `read` decides cached vs customer token. */
++async function loadPdpVariantList(
++	slug: string,
++	channel: string,
++	localeSlug: string,
++	read: VariantRead,
++): Promise<ProductVariantsForPdpResult> {
+ 	const decodedSlug = decodeURIComponent(slug);
+ 	const languageVariables = graphqlLanguageCodeVariables(localeSlug);
+ 
+@@ -168,6 +258,7 @@ export async function getProductVariantsForPdp(
+ 		languageVariables,
+ 		SALEOR_VARIANT_PAGE_SIZE,
+ 		null,
++		read,
+ 	);
+ 	if (!firstPage) {
+ 		throw new Error(`[getProductVariantsForPdp] Failed to fetch variants for ${decodedSlug} (${channel})`);
+@@ -190,6 +281,7 @@ export async function getProductVariantsForPdp(
+ 			languageVariables,
+ 			remaining,
+ 			firstPage.endCursor,
++			read,
+ 		);
+ 		if (!secondPage) {
+ 			// Fail closed: a partial matrix would silently drop options.
+@@ -219,6 +311,18 @@ export async function getProductVariantsForPdp(
+ 	};
+ }
+ 
++const readProductVariantForPdp = (
++	deepLink: PdpVariantDeepLink,
++	channel: string,
++	localeSlug: string,
++	expectedProductId: string,
++	productSlug: string,
++	viewer: boolean,
++) =>
++	viewer
++		? loadProductVariantForPdp(deepLink, channel, localeSlug, expectedProductId, viewerRead)
++		: getProductVariantForPdp(deepLink, channel, localeSlug, expectedProductId, productSlug);
++
+ /**
+  * Cached single-variant lookup for deep links (`?variant=` / `?sku=`) on
+  * non-matrix buy-box strategies.
+@@ -232,20 +336,25 @@ async function getProductVariantForPdp(
+ ): Promise<PdpVariant | null> {
+ 	"use cache";
+ 	// Same product:{slug} tag as the shell/list so PRODUCT_* webhooks bust this entry.
++	return loadProductVariantForPdp(deepLink, channel, localeSlug, expectedProductId, cachedRead(productSlug));
++}
+ 
++async function loadProductVariantForPdp(
++	deepLink: PdpVariantDeepLink,
++	channel: string,
++	localeSlug: string,
++	expectedProductId: string,
++	read: VariantRead,
++): Promise<PdpVariant | null> {
+ 	const id = deepLink.kind === "id" ? decodeURIComponent(deepLink.id) : undefined;
+ 	const sku = deepLink.kind === "sku" ? deepLink.sku : undefined;
+ 	const cacheKey = deepLink.kind === "id" ? id! : `sku:${sku}`;
+ 
+-	const data = await cachedQuery(ProductVariantForPdpDocument, {
+-		profile: CACHE_PROFILES.products,
+-		tag: productSlug,
+-		variables: {
+-			id,
+-			sku,
+-			channel,
+-			...graphqlLanguageCodeVariables(localeSlug),
+-		},
++	const data = await read(ProductVariantForPdpDocument, {
++		id,
++		sku,
++		channel,
++		...graphqlLanguageCodeVariables(localeSlug),
+ 	});
+ 
+ 	const variant = data.productVariant;
+@@ -264,6 +373,28 @@ async function getProductVariantForPdp(
+ 	};
+ }
+ 
++/** One PDP variant read. Cached reads fill the shared entry; viewer reads use the customer token. */
++type VariantRead = <Result, Variables>(
++	document: TypedDocumentString<Result, Variables>,
++	variables: Variables,
++) => Promise<Result>;
++
++/** Shared cache read. Call only from inside `"use cache"`. */
++const cachedRead =
++	(tag: string): VariantRead =>
++	(document, variables) =>
++		cachedQuery(document, { profile: CACHE_PROFILES.products, tag, variables });
++
++/** Per-viewer read with the customer's token. Never cached, never inside `"use cache"`. */
++const viewerRead: VariantRead = async (document, variables) => {
++	const result = await viewerQuery(document, { variables });
++	if (!result.ok) throw new SaleorDataError(result.error);
++	if (result.partialErrors?.length) {
++		throw new Error(result.partialErrors.map((e) => e.message).join("\n"));
++	}
++	return result.data;
++};
++
+ type LanguageVariables = ReturnType<typeof graphqlLanguageCodeVariables>;
+ 
+ async function fetchVariantPage(
+@@ -272,22 +403,19 @@ async function fetchVariantPage(
+ 	languageVariables: LanguageVariables,
+ 	first: number,
+ 	after: string | null,
++	read: VariantRead,
+ ): Promise<{
+ 	nodes: PdpVariant[];
+ 	totalCount: number | null | undefined;
+ 	hasNextPage: boolean;
+ 	endCursor: string | null | undefined;
+ } | null> {
+-	const data = await cachedQuery(ProductVariantsForPdpDocument, {
+-		profile: CACHE_PROFILES.products,
+-		tag: slug,
+-		variables: {
+-			slug,
+-			channel,
+-			first,
+-			after,
+-			...languageVariables,
+-		},
++	const data = await read(ProductVariantsForPdpDocument, {
++		slug,
++		channel,
++		first,
++		after,
++		...languageVariables,
+ 	});
+ 
+ 	const connection = data.product?.productVariants;
+diff --git a/src/lib/catalog/get-product-data.viewer.test.ts b/src/lib/catalog/get-product-data.viewer.test.ts
+new file mode 100644
+index 0000000..faff9e0
+--- /dev/null
++++ b/src/lib/catalog/get-product-data.viewer.test.ts
+@@ -0,0 +1,77 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++
++vi.mock("next/cache", () => ({ cacheLife: vi.fn(), cacheTag: vi.fn(), io: vi.fn(async () => {}) }));
++
++const viewerQuery = vi.fn();
++const cachedQuery = vi.fn();
++vi.mock("@/lib/saleor", async (importOriginal) => ({
++	...(await importOriginal<typeof import("@/lib/saleor")>()),
++	viewerQuery,
++	cachedQuery,
++	bindCacheProfile: vi.fn(),
++}));
++
++const { getViewerProductData, isAgeGatedStub } = await import("@/lib/catalog/get-product-data");
++
++const stub = {
++	__typename: "Product",
++	id: "p1",
++	name: "",
++	slug: "whisky",
++	isAgeRestricted: true,
++	ageAccess: "UNDERAGE",
++};
++
++describe("isAgeGatedStub", () => {
++	it("is true only for a restricted product the viewer may not see", () => {
++		expect(isAgeGatedStub({ isAgeRestricted: true, ageAccess: "UNDERAGE" } as never)).toBe(true);
++		expect(isAgeGatedStub({ isAgeRestricted: true, ageAccess: "SIGN_IN_REQUIRED" } as never)).toBe(true);
++		expect(isAgeGatedStub({ isAgeRestricted: true, ageAccess: "BIRTHDAY_REQUIRED" } as never)).toBe(true);
++		expect(isAgeGatedStub({ isAgeRestricted: true, ageAccess: "ALLOWED" } as never)).toBe(false);
++		expect(isAgeGatedStub({ isAgeRestricted: false, ageAccess: "ALLOWED" } as never)).toBe(false);
++	});
++});
++
++describe("getViewerProductData", () => {
++	beforeEach(() => {
++		viewerQuery.mockReset();
++		cachedQuery.mockReset();
++	});
++
++	it("reads with the customer token and never through the shared cache", async () => {
++		viewerQuery.mockResolvedValue({ ok: true, data: { product: stub } });
++		const product = await getViewerProductData("whisky", "default-channel", "en");
++		expect(product).toMatchObject({ slug: "whisky", ageAccess: "UNDERAGE" });
++		expect(viewerQuery).toHaveBeenCalledTimes(1);
++		expect(cachedQuery).not.toHaveBeenCalled();
++	});
++
++	it("returns null for a missing product", async () => {
++		viewerQuery.mockResolvedValue({ ok: true, data: { product: null } });
++		await expect(getViewerProductData("nope", "default-channel", "en")).resolves.toBeNull();
++	});
++
++	it("falls back to the anonymous shell when the session was rejected", async () => {
++		viewerQuery.mockResolvedValue({
++			ok: false,
++			error: {
++				type: "graphql",
++				message: "Signature has expired",
++				isRetryable: false,
++				codes: ["ExpiredSignatureError"],
++			},
++		});
++		cachedQuery.mockResolvedValue({ product: { ...stub, ageAccess: "SIGN_IN_REQUIRED" } });
++		const product = await getViewerProductData("whisky", "default-channel", "en");
++		expect(product?.ageAccess).toBe("SIGN_IN_REQUIRED");
++		expect(cachedQuery).toHaveBeenCalled();
++	});
++
++	it("surfaces other failures", async () => {
++		viewerQuery.mockResolvedValue({
++			ok: false,
++			error: { type: "network", message: "boom", isRetryable: true },
++		});
++		await expect(getViewerProductData("whisky", "default-channel", "en")).rejects.toThrow("boom");
++	});
++});
+diff --git a/src/lib/listing/__contracts__/viewer.contract.test.ts b/src/lib/listing/__contracts__/viewer.contract.test.ts
+new file mode 100644
+index 0000000..fd579dc
+--- /dev/null
++++ b/src/lib/listing/__contracts__/viewer.contract.test.ts
+@@ -0,0 +1,59 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++import type { ListingProvider } from "@/lib/listing/provider";
++import type { ListingQuery } from "@/lib/storefront/contract/listing";
++
++const load = vi.fn();
++const provider: ListingProvider = {
++	id: "stub",
++	capabilities: {
++		surfaces: ["all", "category", "collection", "search"],
++		facetCounts: false,
++		pagination: "cursor",
++		sorts: {},
++	},
++	freshness: { kind: "saleor-webhooks" },
++	load,
++};
++
++vi.mock("@/lib/listing/registry", () => ({
++	listingProviderFor: () => provider,
++	getListingProvider: () => provider,
++}));
++vi.mock("@/lib/saleor", () => ({ applyListingTtl: vi.fn() }));
++
++const { loadListing } = await import("@/lib/listing/policy");
++
++const query: ListingQuery = {
++	surface: { kind: "category", slug: "wine" },
++	channel: "default-channel",
++	locale: "en",
++	selections: {},
++	page: { mode: "cursor", direction: "next" },
++	pageSize: 12,
++};
++
++describe("loadListing per viewer", () => {
++	beforeEach(() => {
++		load.mockReset();
++		load.mockResolvedValue({ items: [] });
++	});
++
++	it("tells the provider a customer is asking, so it can send their token", async () => {
++		await loadListing(query, { viewer: true });
++		expect(load).toHaveBeenCalledTimes(1);
++		expect(load).toHaveBeenCalledWith(expect.objectContaining({ surface: query.surface }), { viewer: true });
++	});
++
++	it("takes the live path for a customer even when the query is cacheable", async () => {
++		// The cached wrappers call `provider.load(query)` with no options. A customer load must
++		// not go through them, or a customer-specific response could fill the shared entry.
++		await loadListing(query, { viewer: true });
++		expect(load.mock.calls.every((call) => call[1]?.viewer === true)).toBe(true);
++	});
++
++	it("leaves the anonymous load on the shared path (no viewer option)", async () => {
++		await loadListing(query);
++		expect(load).toHaveBeenCalledTimes(1);
++		expect(load.mock.calls[0]?.[1]).toBeUndefined();
++	});
++});
+diff --git a/src/lib/listing/load.ts b/src/lib/listing/load.ts
+index ab70ee8..f6edb0b 100644
+--- a/src/lib/listing/load.ts
++++ b/src/lib/listing/load.ts
+@@ -2,6 +2,7 @@ import "server-only";
+ 
+ import type { ListingPayload, ListingSurface } from "@/lib/catalog/listing-query";
+ import type { ListingViewParams } from "@/lib/catalog/listing-view";
++import { hasAuthSession } from "@/lib/auth/has-auth-session";
+ import { loadListing } from "@/lib/listing/policy";
+ import { toListingPayload } from "@/lib/listing/payload";
+ import { listingQueryFromInput } from "@/lib/listing/query";
+@@ -15,6 +16,8 @@ export async function loadListingView(input: {
+ }): Promise<ListingPayload | null> {
+ 	const query = listingQueryFromInput(input);
+ 	if (!query) return null;
+-	const result = await loadListing(query);
++	// A signed-in customer gets a live, token-authenticated load (the API hides or shows
++	// age-restricted products per viewer). Guests keep the shared, anonymous cache.
++	const result = await loadListing(query, { viewer: await hasAuthSession() });
+ 	return result ? toListingPayload(result) : null;
+ }
+diff --git a/src/lib/listing/policy.ts b/src/lib/listing/policy.ts
+index 0875c90..582139f 100644
+--- a/src/lib/listing/policy.ts
++++ b/src/lib/listing/policy.ts
+@@ -4,7 +4,7 @@ import { applyListingTtl } from "@/lib/saleor";
+ import type { ListingQuery, ListingResult } from "@/lib/storefront/contract/listing";
+ import { isCacheableListingQuery } from "@/lib/listing/cacheability";
+ import { getListingProvider, listingProviderFor } from "@/lib/listing/registry";
+-import { normalizeListingQuery, type ListingProvider } from "@/lib/listing/provider";
++import { normalizeListingQuery, type ListingLoadOptions, type ListingProvider } from "@/lib/listing/provider";
+ 
+ export { isCacheableListingQuery } from "@/lib/listing/cacheability";
+ 
+@@ -33,10 +33,16 @@ async function loadCachedTtl(providerId: string, query: ListingQuery): Promise<L
+  * The query is normalized to the provider's sorts and pagination before the cache key.
+  * Canonical category, collection, and all-products grids are cached.
+  * Search, filters, and cursors are live so a provider cannot explode the cache key space.
++ * With `viewer` (a signed-in customer) the load is always live and is never written to the
++ * shared cache: the response depends on who is asking (age-restricted products).
+  */
+-export async function loadListing(input: ListingQuery): Promise<ListingResult | null> {
++export async function loadListing(
++	input: ListingQuery,
++	options?: ListingLoadOptions,
++): Promise<ListingResult | null> {
+ 	const provider = listingProviderFor(input.surface.kind);
+ 	const query = normalizeListingQuery(provider, input);
++	if (options?.viewer) return provider.load(query, { viewer: true });
+ 	const mode = listingFetchMode(query, provider);
+ 	if (mode === "cached-saleor") return loadCachedSaleor(provider.id, query);
+ 	if (mode === "cached-ttl") return loadCachedTtl(provider.id, query);
+diff --git a/src/lib/listing/provider.ts b/src/lib/listing/provider.ts
+index ebe7352..6667fce 100644
+--- a/src/lib/listing/provider.ts
++++ b/src/lib/listing/provider.ts
+@@ -9,6 +9,15 @@ import type {
+  * One backend for one or more listing surfaces.
+  * Cache policy is not a provider concern — `load` only fetches.
+  */
++export type ListingLoadOptions = {
++	/**
++	 * The request carries a signed-in customer. Core never caches such a load; a provider
++	 * that talks to Saleor must send the customer's token so the API can gate per viewer
++	 * (age-restricted products). A provider with no per-viewer data may ignore it.
++	 */
++	viewer?: boolean;
++};
++
+ export type ListingProvider = {
+ 	id: string;
+ 	capabilities: {
+@@ -23,7 +32,7 @@ export type ListingProvider = {
+ 	 * provider declared for the surface, and the page is in its pagination mode.
+ 	 * `null` means the category or collection slug does not exist. Transport failures throw.
+ 	 */
+-	load(query: ListingQuery): Promise<ListingResult | null>;
++	load(query: ListingQuery, options?: ListingLoadOptions): Promise<ListingResult | null>;
+ };
+ 
+ /**
+diff --git a/src/lib/listing/providers/saleor/contract.test.ts b/src/lib/listing/providers/saleor/contract.test.ts
+index ace1181..dfbdeaf 100644
+--- a/src/lib/listing/providers/saleor/contract.test.ts
++++ b/src/lib/listing/providers/saleor/contract.test.ts
+@@ -113,3 +113,26 @@ describe("saleor listing provider", () => {
+ 		expect(seen[0]?.search).toBeUndefined();
+ 	});
+ });
++
++describe("saleor listing provider per-viewer loads", () => {
++	function transportSeen(viewer: boolean) {
++		const seen: Array<{ cached: boolean; viewer?: boolean }> = [];
++		const provider = createSaleorListingProvider(async (input) => {
++			seen.push({ cached: input.cached, viewer: input.viewer });
++			return sliceConnection(input.variables);
++		});
++		return { provider, seen, run: () => provider.load(categoryQuery, viewer ? { viewer: true } : undefined) };
++	}
++
++	it("keeps the canonical anonymous load cacheable", async () => {
++		const { seen, run } = transportSeen(false);
++		await run();
++		expect(seen).toEqual([{ cached: true, viewer: false }]);
++	});
++
++	it("never marks a signed-in customer's load cacheable, even for the canonical query", async () => {
++		const { seen, run } = transportSeen(true);
++		await run();
++		expect(seen).toEqual([{ cached: false, viewer: true }]);
++	});
++});
+diff --git a/src/lib/listing/providers/saleor/index.ts b/src/lib/listing/providers/saleor/index.ts
+index 68fdd65..8dd8394 100644
+--- a/src/lib/listing/providers/saleor/index.ts
++++ b/src/lib/listing/providers/saleor/index.ts
+@@ -7,8 +7,9 @@ import {
+ 	ProductListPaginatedDocument,
+ 	type ProductListItemFragment,
+ } from "@/gql/graphql";
++import { isDefinitiveAuthFailure } from "@/lib/auth/session-auth-state";
+ import { graphqlLanguageCodeVariables } from "@/lib/graphql-locale";
+-import { CACHE_PROFILES, cachedQuery, liveQuery, type CacheProfile } from "@/lib/saleor";
++import { CACHE_PROFILES, cachedQuery, liveQuery, viewerQuery, type CacheProfile } from "@/lib/saleor";
+ import { resolveCategorySlugsToIds } from "@/lib/catalog/resolve-category-slugs";
+ import { isCacheableListingQuery } from "@/lib/listing/cacheability";
+ import type { ListingProvider } from "@/lib/listing/provider";
+@@ -53,6 +54,8 @@ export type SaleorListingTransport = (input: {
+ 	kind: ListingQuery["surface"]["kind"];
+ 	variables: Record<string, unknown>;
+ 	cached: boolean;
++	/** Signed-in customer: send their token, never cache. */
++	viewer?: boolean;
+ 	profile?: CacheProfile;
+ 	tag?: { channel: string; slug?: string };
+ }) => Promise<SaleorTransportData>;
+@@ -102,38 +105,45 @@ function unwrap(kind: ListingQuery["surface"]["kind"], data: SaleorTransportData
+ 
+ async function kernelTransport(input: Parameters<SaleorListingTransport>[0]): Promise<SaleorTransportData> {
+ 	const variables = input.variables as never;
++	const read: typeof liveQuery = async (document, options) => {
++		if (!input.viewer) return liveQuery(document, options);
++		const result = await viewerQuery(document, options);
++		// A stale or expired session is a guest: serve the anonymous (restricted-hidden) view.
++		if (!result.ok && isDefinitiveAuthFailure(result.error)) return liveQuery(document, options);
++		return result;
++	};
+ 	if (input.kind === "category") {
+-		if (input.cached && input.profile && input.tag) {
++		if (!input.viewer && input.cached && input.profile && input.tag) {
+ 			return cachedQuery(ProductListByCategoryProductsDocument, {
+ 				profile: input.profile,
+ 				tag: input.tag,
+ 				variables,
+ 			});
+ 		}
+-		const result = await liveQuery(ProductListByCategoryProductsDocument, { variables });
++		const result = await read(ProductListByCategoryProductsDocument, { variables });
+ 		if (!result.ok) throw new Error(`[listing:saleor] category: ${result.error.message}`);
+ 		return result.data;
+ 	}
+ 	if (input.kind === "collection") {
+-		if (input.cached && input.profile && input.tag) {
++		if (!input.viewer && input.cached && input.profile && input.tag) {
+ 			return cachedQuery(ProductListByCollectionProductsDocument, {
+ 				profile: input.profile,
+ 				tag: input.tag,
+ 				variables,
+ 			});
+ 		}
+-		const result = await liveQuery(ProductListByCollectionProductsDocument, { variables });
++		const result = await read(ProductListByCollectionProductsDocument, { variables });
+ 		if (!result.ok) throw new Error(`[listing:saleor] collection: ${result.error.message}`);
+ 		return result.data;
+ 	}
+-	if (input.cached && input.profile && input.tag) {
++	if (!input.viewer && input.cached && input.profile && input.tag) {
+ 		return cachedQuery(ProductListPaginatedDocument, {
+ 			profile: input.profile,
+ 			tag: input.tag,
+ 			variables,
+ 		});
+ 	}
+-	const result = await liveQuery(ProductListPaginatedDocument, { variables });
++	const result = await read(ProductListPaginatedDocument, { variables });
+ 	if (!result.ok) throw new Error(`[listing:saleor] ${input.kind}: ${result.error.message}`);
+ 	return result.data;
+ }
+@@ -155,7 +165,8 @@ export function createSaleorListingProvider(
+ 			},
+ 		},
+ 		freshness: { kind: "saleor-webhooks" },
+-		async load(query) {
++		async load(query, options) {
++			const viewer = options?.viewer === true;
+ 			const kind = query.surface.kind;
+ 			const slug = kind === "category" || kind === "collection" ? query.surface.slug : undefined;
+ 
+@@ -175,7 +186,7 @@ export function createSaleorListingProvider(
+ 			const constraints = buildProductListingConstraints(constraintInput);
+ 			const search = query.surface.kind === "search" ? query.surface.text : undefined;
+ 
+-			const cached = isCacheableListingQuery(query);
++			const cached = !viewer && isCacheableListingQuery(query);
+ 			const profile =
+ 				kind === "category"
+ 					? CACHE_PROFILES.listingCategory
+@@ -187,6 +198,7 @@ export function createSaleorListingProvider(
+ 			const data = await transport({
+ 				kind,
+ 				cached,
++				viewer,
+ 				profile,
+ 				tag,
+ 				variables: {
+diff --git a/src/lib/saleor/__contracts__/viewer-query.contract.test.ts b/src/lib/saleor/__contracts__/viewer-query.contract.test.ts
+new file mode 100644
+index 0000000..7ec280b
+--- /dev/null
++++ b/src/lib/saleor/__contracts__/viewer-query.contract.test.ts
+@@ -0,0 +1,20 @@
++import { describe, expect, it } from "vitest";
++import { resolveOperationCall } from "../operations";
++
++describe("viewer reads", () => {
++	it("allow a public cached catalog operation with the customer token", () => {
++		expect(resolveOperationCall("ProductDetails", "viewer").auth).toBe("none");
++		expect(resolveOperationCall("ProductListPaginated", "viewer").access).toBe("cached");
++	});
++
++	it("reject operations that are not public cached catalog reads", () => {
++		// Session reads use sessionQuery, mutations use mutate, app-token reads stay allowlisted.
++		expect(() => resolveOperationCall("CurrentUser", "viewer")).toThrow(/Do not call it via viewer/);
++		expect(() => resolveOperationCall("CheckoutCreate", "viewer")).toThrow(/Do not call it via viewer/);
++		expect(() => resolveOperationCall("ChannelsList", "viewer")).toThrow(/Do not call it via viewer/);
++	});
++
++	it("do not widen what cachedQuery accepts", () => {
++		expect(() => resolveOperationCall("CurrentUser", "cached")).toThrow();
++	});
++});
+diff --git a/src/lib/saleor/access.ts b/src/lib/saleor/access.ts
+index 89a9c14..724d7ea 100644
+--- a/src/lib/saleor/access.ts
++++ b/src/lib/saleor/access.ts
+@@ -11,7 +11,7 @@ import {
+ 	type GraphQLResult,
+ } from "./client";
+ import { applyCacheProfile, type CacheProfile, type CacheTagParams } from "./cache/manifest";
+-import { operationNameFromDocument, resolveOperationCall } from "./operations";
++import { operationNameFromDocument, resolveOperationCall, type OperationCall } from "./operations";
+ 
+ type CallExtras = {
+ 	maxRetries?: number;
+@@ -113,10 +113,13 @@ const memoizedRead = cache(
+ 
+ async function uncachedRead<Result, Variables>(
+ 	operation: TypedDocumentString<Result, Variables>,
+-	via: "live" | "session",
++	via: Extract<OperationCall, "live" | "session" | "viewer">,
+ 	options: CallExtras & { variables?: Variables },
+ ): Promise<GraphQLResult<Result>> {
+ 	const spec = resolveOperationCall(operationNameFromDocument(operation), via);
++	// `viewer` runs a catalog operation with the customer's token, so the API can decide
++	// what this viewer may see (age gate). Never a shared-cache read.
++	const auth: GraphQLAuth = via === "viewer" ? "session" : spec.auth;
+ 	if (via === "live" && spec.auth === "session") {
+ 		throw new Error(
+ 			`[saleor] "${operationNameFromDocument(operation)}" needs the customer session. Use sessionQuery().`,
+@@ -126,7 +129,7 @@ async function uncachedRead<Result, Variables>(
+ 	const result = await memoizedRead(
+ 		operation.toString(),
+ 		JSON.stringify(options.variables ?? null),
+-		spec.auth,
++		auth,
+ 		via,
+ 		options.maxRetries ?? null,
+ 		options.timeoutMs ?? null,
+@@ -150,6 +153,19 @@ export async function sessionQuery<Result, Variables>(
+ 	return uncachedRead(operation, "session", options ?? {});
+ }
+ 
++/**
++ * Per-viewer read of a catalog operation, sent with the customer's token. Request-memoized.
++ * Use it for signed-in customers where the API gates by viewer (age-restricted products).
++ * The response is customer-specific: never call it from `"use cache"`, never store the
++ * result in a shared cache. (The `paper/cache-directive-banned` lint rule enforces the first.)
++ */
++export async function viewerQuery<Result, Variables>(
++	operation: TypedDocumentString<Result, Variables>,
++	options?: CallExtras & { variables?: Variables },
++): Promise<GraphQLResult<Result>> {
++	return uncachedRead(operation, "viewer", options ?? {});
++}
++
+ /** Mutation. Server actions only. Always `no-cache`. */
+ export async function mutate<Result, Variables>(
+ 	operation: TypedDocumentString<Result, Variables>,
+diff --git a/src/lib/saleor/index.ts b/src/lib/saleor/index.ts
+index ddddaa7..a51ccef 100644
+--- a/src/lib/saleor/index.ts
++++ b/src/lib/saleor/index.ts
+@@ -1,6 +1,6 @@
+ import "server-only";
+ 
+-export { cachedQuery, liveQuery, mutate, SaleorDataError, sessionQuery } from "./access";
++export { cachedQuery, liveQuery, mutate, SaleorDataError, sessionQuery, viewerQuery } from "./access";
+ export { asValidationError, getUserMessage, SaleorError } from "./client";
+ export type {
+ 	GraphQLError,
+diff --git a/src/lib/saleor/operations.ts b/src/lib/saleor/operations.ts
+index 611ba7f..79f564d 100644
+--- a/src/lib/saleor/operations.ts
++++ b/src/lib/saleor/operations.ts
+@@ -5,9 +5,12 @@ import { extensionOperations } from "./extensions";
+  *
+  * `cached` operations may also be read with `liveQuery` (filtered listings).
+  * The reverse is rejected: a session read or a mutation cannot be cached.
++ * A `cached` operation may also be read per viewer with `viewerQuery` (customer token, never cached).
+  */
+ 
+ export type OperationAccess = "cached" | "live" | "session" | "mutate";
++/** How a call reaches an operation. `viewer` is a per-customer read of a `cached` catalog operation. */
++export type OperationCall = OperationAccess | "viewer";
+ export type OperationAuth = "none" | "session" | "app";
+ export type CacheScope = "channel-locale" | "locale" | "global";
+ 
+@@ -125,7 +128,7 @@ export function operationNameFromDocument(operation: { toString(): string }): st
+  * Reject the calls that poison the cache. A cached catalog query may still be
+  * read live (filter permutations). A session read or a mutation may not be cached.
+  */
+-export function resolveOperationCall(name: string, via: OperationAccess): OperationSpec {
++export function resolveOperationCall(name: string, via: OperationCall): OperationSpec {
+ 	const spec = getOperation(name);
+ 	if (!spec) {
+ 		throw new Error(
+@@ -139,7 +142,9 @@ export function resolveOperationCall(name: string, via: OperationAccess): Operat
+ 			? spec.access === "cached"
+ 			: via === "live"
+ 				? spec.access === "live" || spec.access === "cached"
+-				: spec.access === via;
++				: via === "viewer"
++					? spec.access === "cached" && spec.auth === "none"
++					: spec.access === via;
+ 
+ 	if (!allowed) {
+ 		throw new Error(
+diff --git a/src/ui/components/account/edit-birthday-form.tsx b/src/ui/components/account/edit-birthday-form.tsx
+new file mode 100644
+index 0000000..b551276
+--- /dev/null
++++ b/src/ui/components/account/edit-birthday-form.tsx
+@@ -0,0 +1,116 @@
++"use client";
++
++import { useState, useTransition, useCallback } from "react";
++import { useRouter } from "next/navigation";
++import { useTranslations } from "next-intl";
++import { Button } from "@/ui/components/ui/button";
++import { Input } from "@/ui/components/ui/input";
++import { Label } from "@/ui/components/ui/label";
++import { updateBirthday } from "@/app/(storefront)/[locale]/[channel]/(main)/account/actions";
++import { resolveAccountActionError } from "@/ui/components/account/account-action-result";
++
++type Props = {
++	/** `YYYY-MM-DD` or `null` when the customer has not set one. */
++	birthday: string | null;
++};
++
++/** The API rejects dates before this (and in the future); the input mirrors it. */
++const MIN_BIRTHDAY = "1900-01-01";
++
++function todayIso(): string {
++	return new Date().toISOString().slice(0, 10);
++}
++
++export function EditBirthdayForm({ birthday }: Props) {
++	const t = useTranslations("account");
++	const tSettings = useTranslations("account.settings");
++	const router = useRouter();
++	const [isEditing, setIsEditing] = useState(false);
++	const [isPending, startTransition] = useTransition();
++	const [error, setError] = useState("");
++	const [success, setSuccess] = useState(false);
++
++	const handleSubmit = useCallback(
++		(formData: FormData) => {
++			setError("");
++			setSuccess(false);
++
++			startTransition(async () => {
++				const result = await updateBirthday(formData);
++				if (!result.success) {
++					setError(resolveAccountActionError(t, result));
++				} else {
++					setSuccess(true);
++					setIsEditing(false);
++					router.refresh();
++				}
++			});
++		},
++		[router, startTransition, t],
++	);
++
++	if (!isEditing) {
++		return (
++			<div className="flex items-center justify-between gap-4">
++				<div>
++					<p className="text-sm text-muted-foreground">{t("fields.birthday")}</p>
++					<p className="font-medium">{birthday ?? t("common.notSet")}</p>
++					<p className="mt-1 text-sm text-muted-foreground">{tSettings("birthdayHint")}</p>
++				</div>
++				<div className="flex items-center gap-2">
++					{success && (
++						<span aria-live="polite" className="text-sm text-green-600">
++							{t("common.updated")}
++						</span>
++					)}
++					<Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
++						{t("common.edit")}
++					</Button>
++				</div>
++			</div>
++		);
++	}
++
++	return (
++		<form action={handleSubmit} className="space-y-4">
++			{error && (
++				<p role="alert" className="text-sm text-destructive">
++					{error}
++				</p>
++			)}
++			<div className="space-y-1.5">
++				<Label htmlFor="birthday">{t("fields.birthday")}</Label>
++				<Input
++					id="birthday"
++					name="birthday"
++					type="date"
++					autoComplete="bday"
++					defaultValue={birthday ?? ""}
++					min={MIN_BIRTHDAY}
++					max={todayIso()}
++					aria-describedby="birthday-hint"
++					required
++				/>
++				<p id="birthday-hint" className="text-sm text-muted-foreground">
++					{tSettings("birthdayHint")}
++				</p>
++			</div>
++			<div className="flex gap-2">
++				<Button type="submit" size="sm" disabled={isPending}>
++					{isPending ? t("common.saving") : t("common.save")}
++				</Button>
++				<Button
++					type="button"
++					variant="ghost"
++					size="sm"
++					onClick={() => {
++						setIsEditing(false);
++						setError("");
++					}}
++				>
++					{t("common.cancel")}
++				</Button>
++			</div>
++		</form>
++	);
++}
+diff --git a/src/ui/components/account/settings-page.tsx b/src/ui/components/account/settings-page.tsx
+index d2154d6..904727c 100644
+--- a/src/ui/components/account/settings-page.tsx
++++ b/src/ui/components/account/settings-page.tsx
+@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
+ import { Mail, Calendar } from "lucide-react";
+ import { resolveLocaleFromSlug } from "@/config/locale";
+ import { EditNameForm } from "@/ui/components/account/edit-name-form";
++import { EditBirthdayForm } from "@/ui/components/account/edit-birthday-form";
+ import { ChangePasswordForm } from "@/ui/components/account/change-password-form";
+ import { DeleteAccountSection } from "@/ui/components/account/delete-account-section";
+ import { useAccountUser } from "@/ui/components/account/account-context";
+@@ -45,6 +46,10 @@ export function AccountSettingsPage() {
+ 					<EditNameForm firstName={user.firstName} lastName={user.lastName} />
+ 				</div>
+ 
++				<div className="p-4 sm:p-6">
++					<EditBirthdayForm birthday={user.birthday ?? null} />
++				</div>
++
+ 				<div className="p-4 sm:p-6">
+ 					<ChangePasswordForm />
+ 				</div>
+@@ -57,7 +62,7 @@ export function AccountSettingsPage() {
+ 				</div>
+ 			</div>
+ 
+-			<div className="border-destructive/20 rounded-lg border p-4 sm:p-6">
++			<div className="rounded-lg border border-destructive/20 p-4 sm:p-6">
+ 				<DeleteAccountSection />
+ 			</div>
+ 		</div>
+diff --git a/src/ui/components/cart/cart-action-error.tsx b/src/ui/components/cart/cart-action-error.tsx
+new file mode 100644
+index 0000000..2801ade
+--- /dev/null
++++ b/src/ui/components/cart/cart-action-error.tsx
+@@ -0,0 +1,36 @@
++"use client";
++
++import { useParams } from "next/navigation";
++import { useTranslations } from "next-intl";
++import type { CartActionError } from "@/lib/age/age-restricted-error";
++import { buildStorefrontPath } from "@/lib/storefront-path";
++import { StorefrontHardLink } from "@/ui/atoms/storefront-hard-link";
++
++/**
++ * Why the API refused a cart change. Only AGE_RESTRICTED has its own copy: the API
++ * message names the product(s); without one we show a translated generic line. Guests
++ * are told to sign in, because only a signed-in customer with a birthday can pass the gate.
++ */
++export function CartActionErrorMessage({ error }: { error: CartActionError | null }) {
++	const t = useTranslations("cart.errors");
++	const params = useParams<{ locale?: string; channel?: string }>();
++
++	if (!error || error.code !== "AGE_RESTRICTED") return null;
++
++	const loginHref =
++		params.locale && params.channel ? buildStorefrontPath(params.locale, params.channel, "/login") : "/login";
++
++	return (
++		<div role="alert" className="space-y-1 text-sm text-destructive">
++			<p>{error.message || t("ageRestricted")}</p>
++			{!error.signedIn && (
++				<p>
++					{t("ageRestrictedSignIn")}{" "}
++					<StorefrontHardLink href={loginHref} className="font-medium underline underline-offset-2">
++						{t("signIn")}
++					</StorefrontHardLink>
++				</p>
++			)}
++		</div>
++	);
++}
+diff --git a/src/ui/components/cart/cart-drawer.tsx b/src/ui/components/cart/cart-drawer.tsx
+index bbeaac2..e72542f 100644
+--- a/src/ui/components/cart/cart-drawer.tsx
++++ b/src/ui/components/cart/cart-drawer.tsx
+@@ -9,6 +9,8 @@ import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Truck, RotateCcw } from "
+ import { Button, buttonClassName } from "@/ui/components/ui/button";
+ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetCloseButton } from "@/ui/components/ui/sheet";
+ import { useCart } from "./cart-context";
++import { CartActionErrorMessage } from "./cart-action-error";
++import type { CartActionError } from "@/lib/age/age-restricted-error";
+ import type { DeleteCartLine, UpdateCartLineQuantity } from "./cart-mutations";
+ import { bumpChromeVersion } from "@/lib/chrome-sync";
+ import { cn } from "@/lib/utils";
+@@ -134,6 +136,7 @@ export function CartDrawer({
+ }: CartDrawerProps) {
+ 	const { isOpen, closeCart } = useCart();
+ 	const [isCartBusy, setIsCartBusy] = useState(false);
++	const [cartError, setCartError] = useState<CartActionError | null>(null);
+ 	// Functional drawer chrome (totals, buttons, a11y labels) — code-owned i18n (ADR 0002).
+ 	const t = useTranslations("cart.drawer");
+ 
+@@ -142,14 +145,17 @@ export function CartDrawer({
+ 	const currency = totalPrice?.gross.currency ?? localeConfig.fallbackCurrency;
+ 	const intlLocale = resolveLocaleFromSlug(localeSlug).bcp47;
+ 
+-	const runCartMutation = (mutation: () => Promise<void>) => {
++	const runCartMutation = (mutation: () => Promise<CartActionError | null | void>) => {
+ 		setIsCartBusy(true);
+-		void mutation().finally(() => {
+-			// This tab re-renders via `refresh()` inside the action; other tabs
+-			// sync their cart chrome on next focus.
+-			bumpChromeVersion();
+-			setIsCartBusy(false);
+-		});
++		setCartError(null);
++		void mutation()
++			.then((error) => setCartError(error ?? null))
++			.finally(() => {
++				// This tab re-renders via `refresh()` inside the action; other tabs
++				// sync their cart chrome on next focus.
++				bumpChromeVersion();
++				setIsCartBusy(false);
++			});
+ 	};
+ 
+ 	const handleRemove = (lineId: string) => {
+@@ -221,6 +227,12 @@ export function CartDrawer({
+ 					</div>
+ 				)}
+ 
++				{cartError && (
++					<div className="border-b border-border px-6 py-3">
++						<CartActionErrorMessage error={cartError} />
++					</div>
++				)}
++
+ 				{/* Cart Items */}
+ 				<div className="flex-1 overflow-y-auto">
+ 					{lines.length === 0 ? (
+diff --git a/src/ui/components/cart/cart-mutations.ts b/src/ui/components/cart/cart-mutations.ts
+index 43bbf08..01a8bd2 100644
+--- a/src/ui/components/cart/cart-mutations.ts
++++ b/src/ui/components/cart/cart-mutations.ts
+@@ -1,3 +1,9 @@
++import type { CartActionError } from "@/lib/age/age-restricted-error";
++
+ export type DeleteCartLine = (checkoutId: string, lineId: string) => Promise<void>;
+ 
+-export type UpdateCartLineQuantity = (checkoutId: string, lineId: string, quantity: number) => Promise<void>;
++export type UpdateCartLineQuantity = (
++	checkoutId: string,
++	lineId: string,
++	quantity: number,
++) => Promise<CartActionError | null>;
+diff --git a/src/ui/components/pdp/add-to-cart-form.tsx b/src/ui/components/pdp/add-to-cart-form.tsx
+new file mode 100644
+index 0000000..dd0c82a
+--- /dev/null
++++ b/src/ui/components/pdp/add-to-cart-form.tsx
+@@ -0,0 +1,28 @@
++"use client";
++
++import { useActionState, type ReactNode } from "react";
++import type { CartActionError } from "@/lib/age/age-restricted-error";
++import { CartActionErrorMessage } from "@/ui/components/cart/cart-action-error";
++
++/**
++ * Add-to-cart `<form>` that can show why the API refused the line (age-restricted product).
++ * The server action returns the error to show, or `null` on success.
++ */
++export function AddToCartForm({
++	action,
++	className,
++	children,
++}: {
++	action: (previous: CartActionError | null) => Promise<CartActionError | null>;
++	className?: string;
++	children: ReactNode;
++}) {
++	const [error, formAction] = useActionState(action, null);
++
++	return (
++		<form action={formAction} className={className}>
++			{children}
++			<CartActionErrorMessage error={error} />
++		</form>
++	);
++}
+diff --git a/src/ui/components/pdp/age-gated-product.test.ts b/src/ui/components/pdp/age-gated-product.test.ts
+new file mode 100644
+index 0000000..01a1982
+--- /dev/null
++++ b/src/ui/components/pdp/age-gated-product.test.ts
+@@ -0,0 +1,46 @@
++import { createElement } from "react";
++import { renderToStaticMarkup } from "react-dom/server";
++import { describe, expect, it, vi } from "vitest";
++import enMessages from "../../../../messages/en.json";
++
++vi.mock("next/navigation", () => ({ useParams: () => ({ locale: "en", channel: "default-channel" }) }));
++
++const { AgeGatedProduct } = await import("./age-gated-product");
++
++const messages = {
++	...enMessages.pdp.ageGate,
++};
++
++function render(reason: "UNDERAGE" | "SIGN_IN_REQUIRED" | "BIRTHDAY_REQUIRED") {
++	return renderToStaticMarkup(
++		createElement(AgeGatedProduct, { reason, loginHref: "/en/default-channel/login", messages }),
++	);
++}
++
++describe("AgeGatedProduct", () => {
++	it("tells an underage viewer exactly why, with no link", () => {
++		const html = render("UNDERAGE");
++		expect(html).toContain("You are under age; we cannot display this product to you.");
++		expect(html).not.toContain("<a ");
++	});
++
++	it("asks a guest to sign in and links to the login flow", () => {
++		const html = render("SIGN_IN_REQUIRED");
++		expect(html).toContain(enMessages.pdp.ageGate.signInRequired);
++		expect(html).toContain('href="/en/default-channel/login"');
++	});
++
++	it("asks a customer without a birthday to add it in account settings", () => {
++		const html = render("BIRTHDAY_REQUIRED");
++		expect(html).toContain(enMessages.pdp.ageGate.birthdayRequired);
++		expect(html).toContain("/en/default-channel/account/settings");
++	});
++
++	it("blurs a placeholder and offers no buy controls", () => {
++		const html = render("UNDERAGE");
++		expect(html).toContain("blur-xl");
++		expect(html).toContain('aria-hidden="true"');
++		expect(html).not.toContain("<button");
++		expect(html).not.toContain("<form");
++	});
++});
+diff --git a/src/ui/components/pdp/age-gated-product.tsx b/src/ui/components/pdp/age-gated-product.tsx
+new file mode 100644
+index 0000000..0ea1733
+--- /dev/null
++++ b/src/ui/components/pdp/age-gated-product.tsx
+@@ -0,0 +1,87 @@
++import { cn } from "@/lib/utils";
++import { LinkWithChannel } from "@/ui/atoms/link-with-channel";
++import { StorefrontHardLink } from "@/ui/atoms/storefront-hard-link";
++import { PDP_GALLERY_LAYOUT, PDP_LAYOUT_CLASSES } from "./gallery-layout";
++
++export type AgeGateReason = "UNDERAGE" | "SIGN_IN_REQUIRED" | "BIRTHDAY_REQUIRED";
++
++type AgeGatedProductProps = {
++	reason: AgeGateReason;
++	/** Prebuilt login URL (`/{locale}/{channel}/login`). */
++	loginHref: string;
++	messages: {
++		underage: string;
++		signInRequired: string;
++		signInAction: string;
++		birthdayRequired: string;
++		birthdayAction: string;
++		placeholderLabel: string;
++	};
++};
++
++/**
++ * Blurred PDP for a viewer who may not see an age-restricted product.
++ * The API returns no product data for this viewer, so this renders a generic placeholder
++ * (never real name, media or price) under an overlay that says why and what to do.
++ * There are no add-to-cart controls here.
++ */
++export function AgeGatedProduct({ reason, loginHref, messages }: AgeGatedProductProps) {
++	const layout = PDP_LAYOUT_CLASSES[PDP_GALLERY_LAYOUT];
++
++	const text =
++		reason === "UNDERAGE"
++			? messages.underage
++			: reason === "SIGN_IN_REQUIRED"
++				? messages.signInRequired
++				: messages.birthdayRequired;
++
++	return (
++		<div className={cn("relative", layout.main)} data-age-gate={reason}>
++			<div
++				aria-hidden="true"
++				inert
++				className="pointer-events-none select-none blur-xl"
++				data-testid="age-gate-placeholder"
++			>
++				<div className={layout.grid}>
++					<div className={layout.galleryColumn}>
++						<div className="aspect-square w-full rounded bg-muted" />
++					</div>
++					<div className={layout.infoColumn}>
++						<div className="order-2 h-10 w-3/4 max-w-md rounded bg-muted" />
++						<div className="order-3 mt-4 space-y-3">
++							<div className="h-6 w-24 rounded bg-muted" />
++							<div className="h-14 w-full rounded bg-muted" />
++						</div>
++					</div>
++				</div>
++			</div>
++
++			<div className="absolute inset-0 flex items-start justify-center px-4 pt-16 sm:items-center sm:pt-0">
++				<div
++					role="alert"
++					aria-label={messages.placeholderLabel}
++					className="max-w-md space-y-4 rounded-lg border border-border bg-background/95 p-6 text-center shadow-lg"
++				>
++					<p className="text-balance text-base font-medium">{text}</p>
++					{reason === "SIGN_IN_REQUIRED" && (
++						<StorefrontHardLink
++							href={loginHref}
++							className="inline-block font-medium underline underline-offset-2"
++						>
++							{messages.signInAction}
++						</StorefrontHardLink>
++					)}
++					{reason === "BIRTHDAY_REQUIRED" && (
++						<LinkWithChannel
++							href="/account/settings"
++							className="inline-block font-medium underline underline-offset-2"
++						>
++							{messages.birthdayAction}
++						</LinkWithChannel>
++					)}
++				</div>
++			</div>
++		</div>
++	);
++}
+diff --git a/src/ui/components/pdp/index.ts b/src/ui/components/pdp/index.ts
+index 9c51bbc..a117592 100644
+--- a/src/ui/components/pdp/index.ts
++++ b/src/ui/components/pdp/index.ts
+@@ -18,6 +18,7 @@ export {
+ } from "./gallery-layout";
+ export { ProductAttributes } from "./product-attributes";
+ export { AddToCart } from "./add-to-cart";
++export { AgeGatedProduct, type AgeGateReason } from "./age-gated-product";
+ export { StickyBar } from "./sticky-bar";
+ 
+ // Variant Selection System
+diff --git a/src/ui/components/pdp/variant-gallery-dynamic.tsx b/src/ui/components/pdp/variant-gallery-dynamic.tsx
+index 48e0854..6f685c2 100644
+--- a/src/ui/components/pdp/variant-gallery-dynamic.tsx
++++ b/src/ui/components/pdp/variant-gallery-dynamic.tsx
+@@ -7,6 +7,8 @@ interface VariantGalleryDynamicProps {
+ 	channel: string;
+ 	localeSlug: string;
+ 	searchParams: Promise<{ variant?: string; sku?: string }>;
++	/** Product came from the per-viewer (signed-in) fetch: read variants with the customer's token. */
++	viewer?: boolean;
+ }
+ 
+ /**
+@@ -22,11 +24,13 @@ export async function VariantGalleryDynamic({
+ 	channel,
+ 	localeSlug,
+ 	searchParams,
++	viewer = false,
+ }: VariantGalleryDynamicProps) {
+ 	const { variant: variantParam, sku: skuParam } = await searchParams;
+ 	const { variants, totalCount, overBudget } = await resolvePdpVariants(product, channel, localeSlug, {
+ 		variantId: variantParam,
+ 		sku: skuParam,
++		viewer,
+ 	});
+ 
+ 	const productWithVariants: Product = {
+diff --git a/src/ui/components/pdp/variant-section-dynamic.tsx b/src/ui/components/pdp/variant-section-dynamic.tsx
+index af0bf04..62ca06f 100644
+--- a/src/ui/components/pdp/variant-section-dynamic.tsx
++++ b/src/ui/components/pdp/variant-section-dynamic.tsx
+@@ -8,7 +8,9 @@ import { getTranslations } from "next-intl/server";
+ import { resolvePdpVariants } from "@/lib/catalog/get-product-data";
+ import { pickTranslatedSlug } from "@/lib/saleor-translations";
+ 
++import type { CartActionError } from "@/lib/age/age-restricted-error";
+ import { AddToCart } from "./add-to-cart";
++import { AddToCartForm } from "./add-to-cart-form";
+ import { NonMatrixBuyBox } from "./non-matrix-buy-box";
+ import { VariantSelectionSection } from "./variant-selection";
+ import { StickyBar } from "./sticky-bar";
+@@ -21,6 +23,8 @@ interface VariantSectionDynamicProps {
+ 	channel: string;
+ 	localeSlug: string;
+ 	searchParams: Promise<{ variant?: string; sku?: string }>;
++	/** Product came from the per-viewer (signed-in) fetch: read variants with the customer's token. */
++	viewer?: boolean;
+ }
+ 
+ /**
+@@ -37,6 +41,7 @@ export async function VariantSectionDynamic({
+ 	channel,
+ 	localeSlug,
+ 	searchParams,
++	viewer = false,
+ }: VariantSectionDynamicProps) {
+ 	const { variant: variantParam, sku: skuParam } = await searchParams;
+ 	const intlLocale = resolveLocaleFromSlug(localeSlug).bcp47;
+@@ -48,6 +53,7 @@ export async function VariantSectionDynamic({
+ 		resolvePdpVariants(product, channel, localeSlug, {
+ 			variantId: variantParam,
+ 			sku: skuParam,
++			viewer,
+ 		}),
+ 	]);
+ 
+@@ -115,16 +121,16 @@ export async function VariantSectionDynamic({
+ 			: null;
+ 	const secureCheckoutLabel = content.surfaces.checkout.trust.secureCheckout;
+ 
+-	async function addToCart() {
++	async function addToCart(_previous: CartActionError | null): Promise<CartActionError | null> {
+ 		"use server";
+ 
+ 		if (!selectedVariantID) {
+-			return;
++			return null;
+ 		}
+ 
+ 		try {
+ 			const linePrice = selectedVariant?.pricing?.price?.gross;
+-			await addVariantToCart({
++			return await addVariantToCart({
+ 				channel,
+ 				localeSlug,
+ 				variantId: selectedVariantID,
+@@ -133,6 +139,7 @@ export async function VariantSectionDynamic({
+ 			});
+ 		} catch (error) {
+ 			console.error("Add to cart failed:", error);
++			return { code: "FAILED" };
+ 		}
+ 	}
+ 
+@@ -165,7 +172,7 @@ export async function VariantSectionDynamic({
+ 				)}
+ 			</div>
+ 
+-			<form action={addToCart} className="order-3 mt-4 space-y-6">
++			<AddToCartForm action={addToCart} className="order-3 mt-4 space-y-6">
+ 				{buyBox}
+ 
+ 				<AddToCart
+@@ -179,7 +186,7 @@ export async function VariantSectionDynamic({
+ 				/>
+ 
+ 				<StickyBar productName={product.name} price={price} show={!isAddToCartDisabled} />
+-			</form>
++			</AddToCartForm>
+ 		</>
+ 	);
+ }

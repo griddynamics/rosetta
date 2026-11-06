@@ -1,0 +1,60 @@
+# copilot --no-auto-update --prefer-version 1.0.101 --version
+GitHub Copilot CLI 1.0.101.
+
+# copilot plugin list
+Built-in plugins:
+  • browser-use (v0.0.4) [disabled]
+Live Plugins (loaded from a local marketplace directory, never copied):
+  • superpowers@superpowers-dev (v6.4.2) (enabled)
+      from /Users/agavrilita/saleor-benchmark/envs/superpowers/src
+
+# copilot mcp list
+Builtin servers:
+  github-mcp-server (http)
+
+# copilot instruction list (cwd: ~/saleor-benchmark)
+No instruction sources found.
+
+# copilot skill list (names only, cwd: ~/saleor-benchmark)
+Plugin skills:
+  brainstorming
+  diagnosing-superpowers
+  dispatching-parallel-agents
+  executing-plans
+  finishing-a-development-branch
+  receiving-code-review
+  requesting-code-review
+  subagent-driven-development
+  systematic-debugging
+  test-driven-development
+  using-git-worktrees
+  using-superpowers
+  verification-before-completion
+  writing-plans
+  writing-skills
+Builtin skills:
+  customize-cloud-agent
+  github-pr-media
+
+# copilot config --list (subagent models)
+enabledPlugins.superpowers@superpowers-dev=true
+subagents.agents.explore.model=inherit
+subagents.agents.explore.modelPolicy=required
+subagents.agents.task.model=inherit
+subagents.agents.general-purpose.model=inherit
+subagents.agents.rubber-duck.model=inherit
+subagents.agents.code-review.model=inherit
+subagents.agents.research.model=inherit
+subagents.agents.security-review.model=inherit
+
+saleor: baseline-v1 superpowers-v1 
+saleor-dashboard: baseline-v1 superpowers-v1 
+react-storefront: baseline-v1 superpowers-v1 
+
+# files in ~/saleor-benchmark
+envs
+logs
+react-storefront
+saleor
+saleor-dashboard
+seed.dump

@@ -1,0 +1,31 @@
+{
+  "description": "Saleor e-commerce platform: GraphQL API, admin dashboard, and Next.js storefront.",
+  "servicesDescription": {
+    "saleor": "Saleor core: Python/Django GraphQL commerce API",
+    "saleor-dashboard": "Saleor admin dashboard (React/TypeScript)",
+    "react-storefront": "Next.js storefront consuming the Saleor GraphQL API"
+  },
+  "codingAgents": [
+    "claude-code",
+    "copilot"
+  ],
+  "sdlc": {
+    "issue_tracker": "GitHub Issues",
+    "issue_tracker_project": "[ISSUE_TRACKER_URL - e.g. https://myorg.atlassian.net/jira/...]",
+    "wiki": "[WIKI - e.g. Confluence, Notion, GitHub Wiki]",
+    "wiki_project": "[WIKI_URL - e.g. https://myorg.atlassian.net/wiki/...]",
+    "scm": "GitHub",
+    "scm_project": "https://github.com/saleor",
+    "build_management": "[BUILD_MANAGEMENT - e.g. GitHub Actions, Jenkins, CircleCI]",
+    "build_management_project": "[BUILD_MANAGEMENT_URL - e.g. https://github.com/org/repo/actions]",
+    "unit_tests": "in-repository",
+    "integration_tests": "in-repository",
+    "e2e_tests": "in-repository"
+  },
+  "vocabulary": {
+    "[TERM]": "[DEFINITION - domain-specific term AI should know; add more entries as needed]"
+  },
+  "versions": {
+    "rosetta": "3.1.17"
+  }
+}

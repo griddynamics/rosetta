@@ -1,0 +1,5 @@
+# 02 handoff — core API (DONE, security-reviewed)
+- Fields: Product.isAgeRestricted; Shop.minimumAge/timeZone; User.birthday/isAgeEligible/isSuperuser (null for unauthorized, apps always null). Helpers `graphql/account/birthday.py`. Audit: per-request dedup via `_age_audit_logged` on info.context; fail closed; owner reads/own-eligibility unlogged. `User.events` hides 3 age types except superuser.
+- Deviations: customerBulkUpdate rejects birthday (INVALID, no PERMISSION_DENIED code on that enum); `""` clears birthday (Date scalar); isAgeRestricted null = keep current; accountRegister audit in same txn (+probe write on existing-email path, gap vs new-email path not fully closed: existing difference ~6 queries pre-dates us).
+- Security review: no BLOCKER. ACCEPTED RISKS: (1) MANAGE_USERS+MANAGE_SETTINGS staff can binary-search a customer's age via minimumAge+isAgeEligible (each read logged, minimumAge changes not audited); (2) one audit INSERT per customer on non-owner list reads; (3) accountRegister timing gap residual.
+- Tests: ~140 new in account/product/shop; area suites 4873 pass.

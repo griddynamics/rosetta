@@ -1,0 +1,290 @@
+diff --git a/messages/de.json b/messages/de.json
+index cd8d760..706c7ed 100644
+--- a/messages/de.json
++++ b/messages/de.json
+@@ -64,6 +64,7 @@
+ 			"description": "Beschreibung",
+ 			"productDetails": "Produktdetails",
+ 			"careInstructions": "Pflegehinweise",
++			"storageConditions": "Lagerbedingungen",
+ 			"shippingReturns": "Versand & Rückgabe",
+ 			"shippingBody": "Kostenloser Versand bei Bestellungen über {freeShippingThreshold}. Standardlieferung in 3–5 Werktagen.",
+ 			"returnsBody": "Kostenlose Rückgabe innerhalb von {returnsWindowDays} Tagen nach dem Kauf. Artikel müssen ungetragen und mit Etiketten versehen sein.",
+diff --git a/messages/en.json b/messages/en.json
+index 94a1cf3..6764623 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -64,6 +64,7 @@
+ 			"description": "Description",
+ 			"productDetails": "Product Details",
+ 			"careInstructions": "Care Instructions",
++			"storageConditions": "Storage conditions",
+ 			"shippingReturns": "Shipping & Returns",
+ 			"shippingBody": "Free shipping on orders over {freeShippingThreshold}. Standard delivery 3-5 business days.",
+ 			"returnsBody": "Free returns within {returnsWindowDays} days of purchase. Items must be unworn with tags attached.",
+diff --git a/messages/fi.json b/messages/fi.json
+index 4fd92e3..36e59be 100644
+--- a/messages/fi.json
++++ b/messages/fi.json
+@@ -64,6 +64,7 @@
+ 			"description": "Kuvaus",
+ 			"productDetails": "Tuotetiedot",
+ 			"careInstructions": "Hoito-ohjeet",
++			"storageConditions": "Säilytysolosuhteet",
+ 			"shippingReturns": "Toimitus ja palautukset",
+ 			"shippingBody": "Ilmainen toimitus tilauksille yli {freeShippingThreshold}. Normaali toimitus 3–5 arkipäivää.",
+ 			"returnsBody": "Ilmaiset palautukset {returnsWindowDays} päivän kuluessa ostosta. Tuotteiden on oltava käyttämättömiä ja tunnisteineen.",
+diff --git a/messages/fr.json b/messages/fr.json
+index 6662017..bc2591f 100644
+--- a/messages/fr.json
++++ b/messages/fr.json
+@@ -64,6 +64,7 @@
+ 			"description": "Description",
+ 			"productDetails": "Détails du produit",
+ 			"careInstructions": "Entretien",
++			"storageConditions": "Conditions de conservation",
+ 			"shippingReturns": "Livraison et retours",
+ 			"shippingBody": "Livraison gratuite pour les commandes supérieures à {freeShippingThreshold}. Livraison standard sous 3 à 5 jours ouvrés.",
+ 			"returnsBody": "Retours gratuits sous {returnsWindowDays} jours après l'achat. Les articles doivent être non portés et avec leurs étiquettes.",
+diff --git a/messages/ja.json b/messages/ja.json
+index c8be825..6e83e5c 100644
+--- a/messages/ja.json
++++ b/messages/ja.json
+@@ -64,6 +64,7 @@
+ 			"description": "商品説明",
+ 			"productDetails": "商品詳細",
+ 			"careInstructions": "お手入れ方法",
++			"storageConditions": "保存方法",
+ 			"shippingReturns": "配送と返品",
+ 			"shippingBody": "{freeShippingThreshold}以上のご注文で送料無料。通常配送は3〜5営業日です。",
+ 			"returnsBody": "ご購入から{returnsWindowDays}日以内は返品無料。タグ付き・未使用の商品に限ります。",
+diff --git a/messages/ko.json b/messages/ko.json
+index 218b88d..bc4e2cd 100644
+--- a/messages/ko.json
++++ b/messages/ko.json
+@@ -56,6 +56,7 @@
+ 			"description": "상세 설명",
+ 			"productDetails": "상품 정보",
+ 			"careInstructions": "세탁 및 관리 방법",
++			"storageConditions": "보관 조건",
+ 			"shippingReturns": "배송 및 반품",
+ 			"shippingBody": "{freeShippingThreshold} 이상 구매 시 무료 배송. 영업일 기준 3~5일 내 배송됩니다.",
+ 			"returnsBody": "구매 후 {returnsWindowDays}일 이내 무료 반품이 가능합니다. 상품은 미착용 상태여야 하며 태그가 부착되어 있어야 합니다.",
+diff --git a/messages/nb.json b/messages/nb.json
+index d1d7039..ecec235 100644
+--- a/messages/nb.json
++++ b/messages/nb.json
+@@ -64,6 +64,7 @@
+ 			"description": "Beskrivelse",
+ 			"productDetails": "Produktdetaljer",
+ 			"careInstructions": "Vaskeanvisning",
++			"storageConditions": "Oppbevaringsforhold",
+ 			"shippingReturns": "Frakt og retur",
+ 			"shippingBody": "Gratis frakt på bestillinger over {freeShippingThreshold}. Standardlevering på 3–5 virkedager.",
+ 			"returnsBody": "Gratis retur innen {returnsWindowDays} dager etter kjøp. Varene må være ubrukte med merkelapper.",
+diff --git a/messages/pl.json b/messages/pl.json
+index ecaf8f2..2a970b3 100644
+--- a/messages/pl.json
++++ b/messages/pl.json
+@@ -64,6 +64,7 @@
+ 			"description": "Opis",
+ 			"productDetails": "Szczegóły produktu",
+ 			"careInstructions": "Instrukcje pielęgnacji",
++			"storageConditions": "Warunki przechowywania",
+ 			"shippingReturns": "Dostawa i zwroty",
+ 			"shippingBody": "Darmowa dostawa przy zamówieniach powyżej {freeShippingThreshold}. Standardowa dostawa w 3–5 dni roboczych.",
+ 			"returnsBody": "Darmowe zwroty w ciągu {returnsWindowDays} dni od zakupu. Produkty muszą być nieużywane i z metkami.",
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+index 51a91eb..43a63f3 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+@@ -212,6 +212,7 @@ async function ProductShell({
+ 	const productAttributesNode = (
+ 		<ProductAttributes
+ 			descriptionHtml={view.descriptionHtml}
++			storageConditions={view.storageConditions}
+ 			attributes={view.attributes}
+ 			careInstructions={view.careInstructions}
+ 			policyLabels={policyLabels}
+diff --git a/src/graphql/ProductDetails.graphql b/src/graphql/ProductDetails.graphql
+index 86b7c36..b359fb3 100644
+--- a/src/graphql/ProductDetails.graphql
++++ b/src/graphql/ProductDetails.graphql
+@@ -9,12 +9,14 @@ query ProductDetails(
+ 		name
+ 		slug
+ 		description
++		storageConditions
+ 		seoTitle
+ 		seoDescription
+ 		isAvailable
+ 		translation(languageCode: $languageCode) {
+ 			name
+ 			description
++			storageConditions
+ 			seoTitle
+ 			seoDescription
+ 			slug
+diff --git a/src/lib/saleor-translations.test.ts b/src/lib/saleor-translations.test.ts
+index 289dd65..7225931 100644
+--- a/src/lib/saleor-translations.test.ts
++++ b/src/lib/saleor-translations.test.ts
+@@ -46,7 +46,12 @@ describe("withTranslatedProductFields", () => {
+ 		const product = withTranslatedProductFields({
+ 			name: "Hoodie",
+ 			slug: "hoodie",
+-			translation: { name: "Bluza", slug: "bluza" },
++			storageConditions: "Keep refrigerated",
++			translation: {
++				name: "Bluza",
++				slug: "bluza",
++				storageConditions: "Przechowywać w lodówce",
++			},
+ 			category: {
+ 				name: "Apparel",
+ 				slug: "apparel",
+@@ -56,9 +61,21 @@ describe("withTranslatedProductFields", () => {
+ 		});
+ 
+ 		expect(product.name).toBe("Bluza");
++		expect(product.storageConditions).toBe("Przechowywać w lodówce");
+ 		expect(product.slug).toBe("hoodie");
+ 		expect(pickTranslatedSlug(product)).toBe("bluza");
+ 		expect(product.category?.name).toBe("Odzież");
+ 		expect(product.variants?.[0]?.name).toBe("Średni");
+ 	});
++
++	it("falls back to base storage conditions when the translation is empty", () => {
++		const product = withTranslatedProductFields({
++			name: "Hoodie",
++			slug: "hoodie",
++			storageConditions: "Keep refrigerated",
++			translation: { storageConditions: "  " },
++		});
++
++		expect(product.storageConditions).toBe("Keep refrigerated");
++	});
+ });
+diff --git a/src/lib/saleor-translations.ts b/src/lib/saleor-translations.ts
+index 0182e3a..4fdc69c 100644
+--- a/src/lib/saleor-translations.ts
++++ b/src/lib/saleor-translations.ts
+@@ -123,11 +123,13 @@ export function withTranslatedPageFields<T extends TranslatablePage>(page: T): T
+ type TranslatableProduct = {
+ 	name: string;
+ 	description?: string | null;
++	storageConditions?: string | null;
+ 	seoTitle?: string | null;
+ 	seoDescription?: string | null;
+ 	translation?: {
+ 		name?: string | null;
+ 		description?: string | null;
++		storageConditions?: string | null;
+ 		seoTitle?: string | null;
+ 		seoDescription?: string | null;
+ 		slug?: string | null;
+@@ -148,6 +150,9 @@ export function withTranslatedProductFields<T extends TranslatableProduct>(produ
+ 		...product,
+ 		name: pickTranslatedName(product),
+ 		description: pickTranslatedDescription(product) ?? product.description,
++		storageConditions:
++			pickTranslatedField(product.translation, "storageConditions", product.storageConditions) ??
++			product.storageConditions,
+ 		seoTitle: pickTranslatedSeoTitle(product) ?? product.seoTitle,
+ 		seoDescription: pickTranslatedSeoDescription(product) ?? product.seoDescription,
+ 		category: product.category
+diff --git a/src/lib/storefront/__contracts__/templates.contract.test.ts b/src/lib/storefront/__contracts__/templates.contract.test.ts
+index 1666981..5213ef6 100644
+--- a/src/lib/storefront/__contracts__/templates.contract.test.ts
++++ b/src/lib/storefront/__contracts__/templates.contract.test.ts
+@@ -18,6 +18,7 @@ const product: ProductView = {
+ 	name: "Tee",
+ 	category: null,
+ 	descriptionHtml: ["<p>Soft</p>"],
++	storageConditions: null,
+ 	attributes: [{ name: "Material", value: "Cotton" }],
+ 	careInstructions: null,
+ 	images: [],
+diff --git a/src/lib/storefront/contract/product.ts b/src/lib/storefront/contract/product.ts
+index a743cc9..af054d8 100644
+--- a/src/lib/storefront/contract/product.ts
++++ b/src/lib/storefront/contract/product.ts
+@@ -39,6 +39,8 @@ export interface ProductView {
+ 	category: ProductViewCategory | null;
+ 	/** Sanitized HTML blocks from the product description. */
+ 	descriptionHtml: string[] | null;
++	/** Storage conditions resolved for the active locale. */
++	storageConditions: string | null;
+ 	/** Specs. Size, color, care, and bestseller flags are already removed. */
+ 	attributes: ProductViewAttribute[];
+ 	careInstructions: string | null;
+diff --git a/src/lib/storefront/mappers/product.test.ts b/src/lib/storefront/mappers/product.test.ts
+index 6d7cf17..c4c320c 100644
+--- a/src/lib/storefront/mappers/product.test.ts
++++ b/src/lib/storefront/mappers/product.test.ts
+@@ -9,6 +9,7 @@ function shell(): ProductShell {
+ 		slug: "tee",
+ 		name: "Tee",
+ 		description: "Soft cotton",
++		storageConditions: "Keep refrigerated at 2-8 C.",
+ 		seoTitle: "SEO tee",
+ 		seoDescription: null,
+ 		category: { id: "c1", name: "Tops", slug: "tops" },
+@@ -63,6 +64,7 @@ describe("toProductView", () => {
+ 			name: "Tee",
+ 			category: { id: "c1", name: "Tops", slug: "tops" },
+ 			careInstructions: "Cold wash",
++			storageConditions: "Keep refrigerated at 2-8 C.",
+ 			isAvailable: true,
+ 			isBestseller: true,
+ 			variantCount: 3,
+diff --git a/src/lib/storefront/mappers/product.ts b/src/lib/storefront/mappers/product.ts
+index d65ed5c..69bd2f8 100644
+--- a/src/lib/storefront/mappers/product.ts
++++ b/src/lib/storefront/mappers/product.ts
+@@ -33,6 +33,7 @@ export function toProductView(product: ProductShell): ProductView {
+ 			? { id: product.category.id, name: product.category.name, slug: product.category.slug }
+ 			: null,
+ 		descriptionHtml: parseDescription(product.description),
++		storageConditions: product.storageConditions ?? null,
+ 		attributes: extractProductAttributes(product),
+ 		careInstructions: extractCareInstructions(product),
+ 		images: defaultProductImages(product),
+diff --git a/src/ui/components/pdp/product-attributes.tsx b/src/ui/components/pdp/product-attributes.tsx
+index 004d495..3b18ea8 100644
+--- a/src/ui/components/pdp/product-attributes.tsx
++++ b/src/ui/components/pdp/product-attributes.tsx
+@@ -23,6 +23,7 @@ interface ProductAttributesProps {
+ 	 * Already sanitized with xss on the server
+ 	 */
+ 	descriptionHtml?: string[] | null;
++	storageConditions?: string | null;
+ 	attributes?: Attribute[];
+ 	careInstructions?: string | null;
+ 	policyLabels: PolicyLabelValues;
+@@ -39,6 +40,7 @@ const attributeIcons: Record<string, ReactNode> = {
+ 
+ export function ProductAttributes({
+ 	descriptionHtml,
++	storageConditions,
+ 	attributes = [],
+ 	careInstructions,
+ 	policyLabels,
+@@ -113,6 +115,17 @@ export function ProductAttributes({
+ 				</AccordionItemWithContext>
+ 			)}
+ 
++			{storageConditions && (
++				<AccordionItemWithContext value="storage-conditions" className="border-border">
++					<AccordionTrigger className="py-4 text-sm font-medium hover:no-underline">
++						{t("storageConditions")}
++					</AccordionTrigger>
++					<AccordionContent className="leading-relaxed text-muted-foreground">
++						{storageConditions}
++					</AccordionContent>
++				</AccordionItemWithContext>
++			)}
++
+ 			<AccordionItemWithContext value="shipping" className="border-border">
+ 				<AccordionTrigger className="py-4 text-sm font-medium hover:no-underline">
+ 					{t("shippingReturns")}
