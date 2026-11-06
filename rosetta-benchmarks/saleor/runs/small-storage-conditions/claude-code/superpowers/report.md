@@ -53,7 +53,7 @@ hidden_matches_answer:     # how many of the 7 the final code follows the answer
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 7
-red_flags:                 # number of ticked red flags
+red_flags: 0                # number of ticked red flags (section 5: none ticked)
 tests_pass: yes # yes | no (operator ran them at T2)
 operator_score: 3
 operator_merge_ready: no   # yes | no
@@ -191,7 +191,7 @@ First-pass coverage (asked + covered): 6 of 7.
 
 ## 4. Done when: checked by the operator at T2
 
-**Operator result, as reported by the operator: 7 of 8 checks passed, 1 did not pass.** The per-row results (which check failed, how each was checked and the evidence) were not recorded, so the rows below are left empty. Tests (check 7) and merge-ready were not reported, so `tests_pass` and `operator_merge_ready` in the data block stay empty. The stack no longer holds this run's code (it was reset to `superpowers-v1` for the next run), so the checks cannot be repeated now; the code survives as the saved diffs.
+**Operator result, as reported by the operator: 7 of 8 checks passed, 1 did not pass.** The per-row results (which check failed, how each was checked and the evidence) were not recorded, so the rows below are left empty. Tests (check 7) and merge-ready were filled in later in the data block: `tests_pass: yes` (commit `0c2ba893`) and `operator_merge_ready: no` (operator, commit `e5b3e486`; score 3: translations still shown after the value is removed, section 8 "Why not 5"). The stack no longer holds this run's code (it was reset to `superpowers-v1` for the next run), so the checks cannot be repeated now; the code survives as the saved diffs.
 
 What the agent reported (not verified by the operator): backend 3,674 tests in the csv/webhook/graphql suites and an earlier 244-test translations suite passed, ruff clean; dashboard 792 products/translations/lock-schema tests, tsc, tsc-strict and eslint clean; the full dashboard Jest run was flaky under load; the storefront suite was not re-run after the follow-up.
 
@@ -267,7 +267,7 @@ The operator did not verify these (see section 4). Agent's own report, in short:
   - **T0 corrected from the log.** The operator first reported T0 as 14:53; the session log showed the prompt at 14:43:55.
   - **Time without the operator's gaps (BENCHMARKS.md, "Time without the operator's gaps").** Real T0 14:43:55, T1 15:27:13: first pass 43m 18s. The agent was blocked waiting for the operator before T1: 14:44:11→14:45:50 (1m 39s), 14:46:03→14:47:22 (1m 19s), 14:47:34→14:48:42 (1m 08s), 14:48:51→14:49:38 (0m 47s), 14:50:18→14:52:41 (2m 23s); total 7m 16s. Gap-free first pass = 43m 18s − 7m 16s = 36m 02s, so `t0` in the data block is the effective start, T1 − 36m 02s = 14:51; `t1` (15:27) and `t2` (15:45) are real. After T1 and before T2 the agent was blocked by the operator for another 13m 26s (15:27:13→15:31:34 4m 21s; 15:31:51→15:34:41 2m 50s; 15:34:45→15:35:07 0m 22s; 15:35:13→15:40:03 4m 50s; 15:40:34→15:41:37 1m 03s); that time is inside `t2 − t0`. The waits were read from the session log before it was deleted.
   - **Tests (check 7):** passed, reported by the operator on 2026-10-21 via Oleksii Poletaiev (`tests_pass: yes`); commands and counts not recorded.
-  - **Operator checks (section 4):** 7 of 8 passed according to the operator; the per-row detail was not recorded, and `tests_pass` and `operator_merge_ready` were not reported.
+  - **Operator checks (section 4):** 7 of 8 passed according to the operator; the per-row detail was not recorded, `tests_pass: yes` and `operator_merge_ready: no` were filled in later (commits `0c2ba893`, `e5b3e486`; section 8, "Why not 5").
   - **Operator score 3** (works with notable gaps), given by the operator: the first follow-up showed that a large part of the requirements had not been handled, and the cost weighed in. Cost is not part of the score anchors in `templates/README.md`.
   - **`/context` at T2** was not taken (`context_end_pct` empty); `subagents` not counted (the Opus reviewer ran as a subagent; the `/cost` skills panel shows `general-purpose` at 18%).
 - **Token fields corrected on 2026-10-27.** The data block had only the Sonnet line of `/cost` (T1: 4,900 input, 94,600 output, 26,000,000 cache read, 252,200 cache write; T2: 7,400, 114,100, 35,700,000, 290,900), which left out the Opus reviewer, while the cost fields are the runner's totals including it. They now hold the sums of the model rows of the `/cost` panels (T1: 32,100 / 120,017 / 30,900,000 / 372,200; T2: 34,600 / 139,517 / 40,600,000 / 410,900), as BENCHMARKS.md step 10 says. The real size of the change was added to section 2.
