@@ -30,40 +30,11 @@ The instructions repo defines *how agents should behave*. The target repo is *wh
 
 Plugins are the primary delivery mode: instructions are generated once and shipped as files inside the IDE. No server, no live connection at request time.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│              Target Repository + IDE                    │
-│  Claude Code · Cursor · Copilot · Codex · Antigravity  │
-│  (plugin installed locally — no server, no live         │
-│   connection needed at request time)                    │
-└────────────────────────▲────────────────────────────────┘
-                         │ install (marketplace or standalone zip)
-              ┌──────────┴──────────┐
-              │   Rosetta Plugin    │
-              │ (rosetta-<ide> pkg) │
-              │                     │
-              │  Bootstrap rule     │
-              │  Skills · Agents    │
-              │  Workflows · Rules  │
-              └──────────▲──────────┘
-                         │ generate (build time only)
-              ┌──────────┴──────────┐
-              │     Rosettify       │
-              │ (plugin generator)  │
-              │ rosettify-plugins   │
-              └──────────▲──────────┘
-                         │ reads
-              ┌──────────┴──────────┐
-              │  Instructions Repo  │
-              │  /instructions/r3/  │
-              │                     │
-              │  core/ · workflows/ │
-              │  qe/ · search/      │
-              │  modernization/     │
-              └─────────────────────┘
-```
+<img src="{{ '/assets/architecture/system-context.svg' | relative_url }}" alt="Rosetta system context" width="100%"/>
 
-Instructions flow up at build time: the plugin generator reads the instructions repo and produces IDE-native plugin packages. Once installed, the agent works entirely from local files — Rosetta does not see or process your source code, by design.
+<sub>Arrows show instructions and artifacts moving toward the coding agent. Solid edges are the primary plugin path; dashed edges are the optional MCP path. Diagram source: [`docs/web/assets/architecture/system-context.d2`](https://github.com/griddynamics/rosetta/blob/main/docs/web/assets/architecture/system-context.d2).</sub>
+
+Instructions flow at build time: the plugin generator reads the instructions repo and produces IDE-native plugin packages. Once installed, the agent works entirely from local files — Rosetta does not see or process your source code, by design.
 
 Generator internals (model rewriting, per-IDE format, hooks bundling, standalone variants) are in [Development — Plugins](#plugins) below.
 
@@ -132,6 +103,12 @@ The runtime footprint is minimal: `bootstrap-alwayson.md` (core policies, `reaso
    └── Applies guardrails and HITL gates throughout
 ```
 
+How the loaded pieces activate each other once the session is prepared:
+
+<img src="{{ '/assets/architecture/instruction-model.svg' | relative_url }}" alt="Instruction composition at runtime" width="100%"/>
+
+<sub>Arrows mean "loads or delegates to" through command aliases, not file includes. Diagram source: [`docs/web/assets/architecture/instruction-model.d2`](https://github.com/griddynamics/rosetta/blob/main/docs/web/assets/architecture/instruction-model.d2).</sub>
+
 Requests are classified only when the user invokes `/rosetta`; a plain request legitimately runs lean. In MCP mode the agent calls `get_context_instructions` exactly once per session.
 
 ---
@@ -141,6 +118,8 @@ Requests are classified only when the user invokes `/rosetta`; a plain request l
 Each individual solution component follows its own version (except major).
 
 All plugins follow the same version.
+
+Every change bumps each affected component (`src/<component>/**`; `instructions/**` or `plugins/**` → plugins) in the same commit, using `scripts/bump_versions.sh` (covers all components). Prefer patch; minor/major only when warranted. Package publish pipelines fail on an already-published version.
 
 ---
 
@@ -194,14 +173,15 @@ Instructions live in `/instructions/r3/` in the instructions repository. One top
     ├── rules/
     │   └── <name>.md
     └── templates/
+        └── shell-schemas/
 ```
 
 **What `core` carries** (counted on `instructions/r3/`, distinct components after collapsing `~profile-lightweight-only~` variants):
 
 | Set | Skills | Workflows | Workflow files | Rules | Agents |
 | --- | ------ | --------- | -------------- | ----- | ------ |
-| `core` | 42 | 17 | 70 | 5 | 10 |
-| **total (`rosetta`)** | **42** | **17** | **70** | **5** | **10** |
+| `core` | 43 | 17 | 70 | 5 | 10 |
+| **total (`rosetta`)** | **43** | **17** | **70** | **5** | **10** |
 
 15 of them are distinct request types. "Workflow files" = every workflow and phase file.
 
@@ -256,6 +236,10 @@ The `load-project-context` prep action reads `CONTEXT.md` and `ARCHITECTURE.md` 
 Instructions Repo ──► Rosettify-Plugins (generate) ──► Plugin Package ──► Target Repo + IDE
 ```
 
+<img src="{{ '/assets/architecture/plugin-build.svg' | relative_url }}" alt="Plugin generation pipeline" width="100%"/>
+
+<sub>Stages group the processors in `src/rosettify-plugins/src/plugin-processors/`. One run builds every declared set variant, the `-light` variant included; `scripts/pre_commit.py` passes `--publish rosetta,rosetta-light`. Diagram source: [`docs/web/assets/architecture/plugin-build.d2`](https://github.com/griddynamics/rosetta/blob/main/docs/web/assets/architecture/plugin-build.d2).</sub>
+
 1. **Generate.** The generator reads the folders named by `src/rosettify-plugins/plugins.json` under `instructions/<release>/`, rewrites models per IDE, converts agent/workflow formats, renders templates, and bundles hooks — once, at build time.
 2. **Install.** The user installs the generated package from an IDE marketplace or extracts a standalone zip. No server, no credentials, no live connection.
 3. **Prepare, route, load, execute.** Identical to every other mode from this point — see [Bootstrap Flow](#bootstrap-flow) above. The agent reads `bootstrap-alwayson.md` locally, then follows the same classification, loading, and execution model as MCP or local mode.
@@ -284,7 +268,7 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are the primary delivery mechanism for Rosetta. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-The `rosetta` plugin contains the `core` set (42 skills, 17 workflows, 10 agents, 5 rules).
+The `rosetta` plugin contains the `core` set (43 skills, 17 workflows, 10 agents, 5 rules).
 
 Plugin folders are named `<plugin>-<ide>`. `plugins.json` declares two published plugins, `rosetta` and `rosetta-light`, both built from `core`. Two plugins times seven IDE targets gives 14 folders. The content is identical across IDEs; only the format differs. Users install one plugin.
 
@@ -355,7 +339,7 @@ Source lives in `src/hooks/` and is compiled per-IDE before sync:
 
 Each hook is bundled separately per IDE via esbuild so each bundle contains only its adapter code. To add a new hook: create the `.ts` source in `src/hooks/src/hooks/`, then add its filename to the `HOOK_SOURCES` array in `src/hooks/scripts/build-bundles.mjs`.
 
-**Active hooks (the five bundles available to every plugin and standalone when deterministic hooks are enabled; the shipped plugins are generated with `--deterministic-hooks false`, so they carry the r3 content with SessionStart bootstrap only):**
+**Active hooks (the bundles available to every plugin and standalone when deterministic hooks are enabled; the shipped plugins are generated with `--deterministic-hooks false`, so they carry the r3 content with SessionStart bootstrap only):**
 
 | Hook | Event | Purpose |
 |---|---|---|
@@ -363,6 +347,8 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 | `loose-files.js` | PostToolUse (Write) | Nudges agent when `.py`/`.js` files are created without a module marker (`__init__.py` / `package.json`) |
 | `md-file-advisory.js` | PostToolUse (Write\|Edit) | Advises on markdown formatting/placement after `.md` edits |
 | `lint-format-advisory.js` | PostToolUse (Write\|Edit) | Suggests a syntax/type/lint/format check step after code edits |
+| `read-once.js` | PreRead / PreToolUse (Read, shell) | Flags a repeated full read of a file whose modification time has not changed since this session last read it. TTL from `READ_ONCE_TTL` (seconds, default 20 min). Advises by default; `READ_ONCE_MODE=deny` soft-denies, a shell retry carrying `# READ-OVERRIDE` bypasses it, `READ_ONCE_DISABLED=1` turns it off. |
+| `read-once-reset.js` | PreCompact / PostCompact | Clears the session's read-once state on context compaction so files can be read again. |
 | `codemap-refresh.js` | PostToolUse (Write\|Edit) | Refreshes the active code-map backend when source files change. Detects GitNexus (`.gitnexus/` marker, runs `npx -y gitnexus@latest analyze --force`) and Graphify (`graphify-out/graph.json` marker, runs `graphify update .`); no-op when neither is installed. When both are present, each backend gets an independent debounced refresh. |
 
 **`hooks.json` locations and forms per plugin variant** (each form references the bundles using paths appropriate to its runtime):
@@ -379,7 +365,11 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 
 Cursor and Copilot are the only plugins that need two distinct templates because they have distinct standalone distributions. Templates: cursor — `hooks/hooks.json.tmpl` (plugin) + `hooks.json.tmpl` at root (standalone); copilot — `.github/plugin/hooks.json.tmpl` (plugin) + `hooks/hooks.json.tmpl` (standalone). Both are rendered during sync; the standalone generator's bulk-copy lands each at the right path inside the standalone subfolder.
 
-- **IDE normalization** — `src/adapter.ts` detects the IDE (env signature first, then stdin shape: codex > cursor > claude-code > windsurf > copilot) and normalizes to a canonical `NormalizedInput`, which MUST be fully mapped: a field is empty only when the value is genuinely absent from the raw input AND not derivable from the event name, another field, or the IDE's documented tool/event vocabulary
+<img src="{{ '/assets/architecture/hooks-runtime.svg' | relative_url }}" alt="Hook execution path" width="100%"/>
+
+<sub>One bundle per hook per IDE; only the entrypoint's adapter is compiled in. Diagram source: [`docs/web/assets/architecture/hooks-runtime.d2`](https://github.com/griddynamics/rosetta/blob/main/docs/web/assets/architecture/hooks-runtime.d2).</sub>
+
+- **IDE normalization** — `src/adapter.ts` detects the IDE (env signature first, then stdin shape: codex > cursor > claude-code > windsurf > antigravity > copilot; Antigravity IDE is a VS Code fork, so its `ANTIGRAVITY_CONVERSATION_ID` env signal is checked before the generic `VSCODE_*` copilot catch-all) and normalizes to a canonical `NormalizedInput`, which MUST be fully mapped: a field is empty only when the value is genuinely absent from the raw input AND not derivable from the event name, another field, or the IDE's documented tool/event vocabulary
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
 
 `scripts/pre_commit.py` runs, in order: the hooks build; the plugin sync (`npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false --publish rosetta,rosetta-light`); the five verify steps `verify structure`, `verify crossrefs`, `verify hooks content`, `verify counts` and `verify links` (`scripts/verify/`, scope and rules in `docs/definitions/live_counts.json`); type validation; and tests. `--only <slug>` runs selected steps. When deterministic hooks are enabled the generator syncs the bundles into each hook-carrying plugin's hooks directory (`plugins/{rosetta,rosetta-light}-{claude,cursor,copilot}/hooks/`, `plugins/{rosetta,rosetta-light}-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.

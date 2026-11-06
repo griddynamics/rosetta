@@ -132,11 +132,15 @@ jobs:
             version=$(jq -r '.version' "$plugin_json")
             zip_name="${folder}-${version}-${DATE}.zip"
             echo "Creating archive: ${zip_name} (version: ${version})"
-            if [[ "$folder" == *-standalone ]]; then
+            expected_files=$(cd "$plugin_dir" && find . -path './.git' -prune -o -type f -print | sed 's|^\./||' | LC_ALL=C sort)
+            if [[ "$folder" == *-standalone || "$folder" == *-standalone-* ]]; then
               (cd "$plugin_dir" && zip -r "../../${zip_name}" . -x ".git" -x ".git/*" -x "plugin.json")
+              expected_files=$(printf '%s\n' "$expected_files" | sed '/^plugin\.json$/d')
             else
-              (cd "$plugin_dir" && zip -r "../../${zip_name}" . -x "*.git*")
+              (cd "$plugin_dir" && zip -r "../../${zip_name}" . -x ".git" -x ".git/*")
             fi
+            actual_files=$(unzip -Z1 "$zip_name" | sed '/\/$/d' | LC_ALL=C sort)
+            diff -u <(printf '%s\n' "$expected_files") <(printf '%s\n' "$actual_files")
             echo "  Size: $(du -h "${zip_name}" | cut -f1)"
             ARCHIVES="${ARCHIVES} ${zip_name}"
           done

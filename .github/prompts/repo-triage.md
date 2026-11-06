@@ -139,9 +139,11 @@ Read the `Event` field from the prompt context and dispatch to the matching acti
 
 ---
 
-## Activity: New Pull Request (`Event == pull_request_target`)
+## Activity: New or Updated Pull Request (`Event == pull_request_target`)
 
 **Input**: PR Number, PR URL from prompt context.
+
+**Skills**: Must use `daily-oss` and `backlog` skills logically merged and adapted (no human -> no auto-approvals -> recommend approval, can and should automatically request changes).
 
 **Step 1 — Fetch PR details**
 ```bash
@@ -195,9 +197,11 @@ Format:
 
 ---
 
-## Activity: New Issue (`Event == issues`)
+## Activity: New or Updated Issue (`Event == issues`)
 
 **Input**: Issue Number, Issue URL from prompt context.
+
+**Skills**: Must use `daily-oss` and `backlog` skills logically merged and adapted.
 
 **Step 1 — Fetch issue details**
 ```bash

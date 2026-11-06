@@ -1,5 +1,5 @@
 ---
-name: coding-flow
+name: coding-light-flow
 description: "Light coding workflow: features, fixes, refactors, unit tests, etc.; scales small to large."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md

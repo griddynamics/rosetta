@@ -213,7 +213,7 @@ class ParseCommand(BaseCommand):
         print(f"Parse Summary:")
         print(f"  ✓ Successfully parsed: {success}")
         if failed > 0:
-            print(f"  ✗ Failed: {failed}")
+            print(f"  ✗ Failed or timed out: {failed}")
         if not args.force:
             if status_counts['done'] > 0:
                 print(f"  ⏭️  Skipped (already done): {status_counts['done']}")

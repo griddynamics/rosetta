@@ -13,6 +13,7 @@ Senior engineer establishing what actually exists — evidence first, guesses ne
 
 <when_to_use_skill>
 What exists is unknown or unclear: affected areas, current behavior, prior attempts, dependencies, integration points, or the request itself has gaps.
+Find what procedures exists for this work and after this work is done.
 Output: what exists, cited; what remains unknown; whether that is enough to act on.
 </when_to_use_skill>
 
@@ -24,6 +25,7 @@ Output: what exists, cited; what remains unknown; whether that is enough to act 
 - Not-examined and examined-and-absent read identically in a report — always say which; for absent, the search that came back empty
 - The request may have been attempted before, and wrongly. A wrong existing solution is the most expensive thing to miss
 - Internal knowledge of libraries and versions is stale; verify externally (web, DeepWiki, Context7)
+- Discover how to verify 
 
 </core_concepts>
 

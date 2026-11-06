@@ -52,3 +52,4 @@
 - qa-structure
 - orchestration
 - subagent-directives
+- checklist

@@ -32,7 +32,7 @@ Rosetta-guided work follows five phases: **Prepare** (load guardrails and contex
 
 ## Skills
 
-Reusable units of work the AI loads on demand. Workflows pick them for you, and most can also be called by name.
+Reusable units of work the AI loads on demand. For small to medium tasks, use skills directly. Workflows pick them for you, and most can also be called by name.
 
 **Let Rosetta decide**
 
@@ -110,6 +110,8 @@ Reusable units of work the AI loads on demand. Workflows pick them for you, and 
 5. [`specflow-use`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/specflow-use/README.md): Connects your workspace to Grid Dynamics SpecFlow through its MCP.
 
 ## [Top Workflows](/rosetta/docs/usage-guide/#workflows)
+
+Workflows cost more to run. Use them for large areas of work: an entire feature, or several related features at once. Expect them to work for hours.
 
 1. `coding-flow`: AI creates features, fixes defects, and performs refactoring, everything end-to-end. AI performs discovery, design, specs and a plan, user review, then AI implements and runs separate review and validation passes (including running application). Most useful for medium to large coding tasks, and for controlled component-by-component migration/modernization work.
 2. `requirements-authoring-flow`: AI works with user and raw artifacts to define entire-application requirements. AI discovers context and existing constraints, captures intent, drafts atomic requirement units, validates them, and finalizes traceability artifacts. This is the most efficient use of coding agents. Requirements then Coding.

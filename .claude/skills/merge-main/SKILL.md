@@ -1,7 +1,7 @@
 ---
 name: merge-main
 description: To merge main branch, exact context and instructions
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 You are a thoughtful and meticulous senior software engineer.
@@ -48,3 +48,7 @@ If you learned something new which is reusable, there are process efficiency imp
 - **Rename detection does not carry version bumps to moved manifests.** Main bumped `core-*/plugin.json`; the branch's `template-<ide>` copies and branch-only marketplaces stayed old. Set the group by hand.
 - **Never add a total beside an existing per-set table.** It created a second number with a different "workflows" meaning. Define terms once, then align every statement to them.
 - **Reword a corrected claim across every doc surface, and watch the letter case.** "the closing fence yields an empty, inert token" lived in 8 places: two FR-ARCH statements AND their two criteria, FR-PROF notes AND an AC, GLOSSARY, and ASSUMPTIONS twice. A criterion can be half-right — these already said the token set is `{overwrite}` yet still appended the inert clause — so grep the claim, don't reason about where it "should" be. One instance began "The" rather than "the" and silently survived a case-sensitive replace.
+- **One side replaced a line the other kept: keep both meanings.** Branch swapped an `r3` criterion for `--release r2`; main kept `r3`. Both test different behavior; picking one silently dropped a criterion.
+- **A guard in a function the branch deleted must move, not vanish.** Main hardened `resolveSourceDirs` (empty `--domain`); the branch had replaced that function. Port the guard to where input is now parsed, with its tests.
+- **Main's diagrams are facts too.** Main replaced ASCII diagrams with D2 SVGs that named pre-split plugins. Fix the `.d2` source, re-render with `d2 --dark-theme 200` (byte-reproduces committed SVGs), never keep stale art.
+- **Merge one behavior's tests by intent, not by hunk.** Main removed real-tree model assertions (models are owner-tunable) and also dropped a model-agnostic TOML-parse test as collateral; read the commit message to separate intent from collateral.

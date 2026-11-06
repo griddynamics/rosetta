@@ -39,6 +39,12 @@ import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { parse as parseToml } from 'smol-toml';
+import matter from 'gray-matter';
+import {
+  normalizeClaude, normalizeCursor, normalizeCopilot, normalizeCodex,
+  CLAUDE_VOCABULARY, CURSOR_VOCABULARY, COPILOT_VOCABULARY, CODEX_VOCABULARY,
+  type CodexModelResult,
+} from '../../src/spec/model-maps.js';
 import { generate } from '../../src/index.js';
 import type { ResolvedSources } from '../../src/types.js';
 
@@ -196,75 +202,6 @@ describe('Variant E2E — one run emits both the base and the -light variant', (
     expect(baseBody).toContain(BASE_ONLY_PHASE);
   });
 
-  // The lightweight profile selects its models by shipping profile-scoped agent documents whose
-  // `model:` candidate list differs, resolved through each target's UNCHANGED built-in vocabulary —
-  // it declares no modelOverrides at all (the descriptor is empty). These assertions cover every
-  // resolution strategy: Claude's exact-token tier and its family-substring fallback, Cursor's and
-  // Copilot's first-token exact match, and Codex's first-gpt-token match plus reasoning-effort split.
-  it('light agents resolve to the profile-scoped models on all four vocabularies', () => {
-    // Claude, exact-token tier: architect's light list carries claude-opus-5-5-high, which the Claude
-    // map resolves through the opus tier (the exact key `claude-opus-5-5-high` and the `opus` family key
-    // agree). The `opus` family key resolves to the same value, so this agrees with the base build
-    // rather than diverging from it — Claude Code exposes three tiers and the light profile asks for
-    // the same one here. What an exact entry guarantees is that an author naming a version explicitly
-    // keeps getting THAT version even if the family default later moves.
-    expect(fs.readFileSync(light('claude', 'agents', 'architect.md'), 'utf-8'))
-      .toMatch(/^model: claude-opus-5-5$/m);
-
-    // Claude, family fallback: discoverer's light list carries claude-haiku-5-5. CLAUDE_CODE_MAP has
-    // exact keys only for the opus tokens, so this has no exact entry and the `haiku` family key
-    // resolves it, so the family-substring fallback remains covered by the real source tree. (The base
-    // list leads with claude-sonnet-5-5-medium, also family-resolved, via `sonnet`.)
-    expect(fs.readFileSync(light('claude', 'agents', 'discoverer.md'), 'utf-8'))
-      .toMatch(/^model: claude-haiku-5-5$/m);
-
-    // Haiku rule: where the light lists used to pair luna with sonnet (engineer, reviewer, validator,
-    // researcher) they now carry claude-haiku-5-5-high; the heavy-reasoning light agents keep sonnet.
-    for (const agent of ['engineer', 'reviewer', 'validator', 'researcher']) {
-      expect(fs.readFileSync(light('claude', 'agents', `${agent}.md`), 'utf-8'),
-        `${agent} (light)`).toMatch(/^model: claude-haiku-5-5$/m);
-    }
-    for (const agent of ['planner', 'requirements-engineer', 'prompt-engineer']) {
-      expect(fs.readFileSync(light('claude', 'agents', `${agent}.md`), 'utf-8'),
-        `${agent} (light)`).toMatch(/^model: claude-sonnet-5-5$/m);
-    }
-    expect(fs.readFileSync(light('claude', 'agents', 'engineer.md'), 'utf-8'))
-      .toMatch(/^effort: high$/m);
-
-    // Cursor: reviewer's light list leads with gemini-3.8-flash-medium, mapped to the IDE-native
-    // gemini-3.8-flash (the base list leads with gpt-6-luna-high -> gpt-6-luna).
-    expect(fs.readFileSync(light('cursor', 'agents', 'reviewer.md'), 'utf-8'))
-      .toMatch(/^model: gemini-3\.8-flash$/m);
-
-    // Copilot: architect's light list leads with claude-opus-5-5-high (Copilot takes the FIRST token),
-    // mapped to Copilot's display name.
-    expect(fs.readFileSync(light('copilot', 'agents', 'architect.agent.md'), 'utf-8'))
-      .toMatch(/^model: Claude Opus 5\.5$/m);
-
-    // Codex: engineer's light list's first gpt- token is gpt-6-luna-xhigh, split into model +
-    // reasoning effort (the base list's first gpt- token is gpt-6-luna-high).
-    const codexEngineer = fs.readFileSync(
-      light('codex', '.codex', 'agents', 'engineer.toml'), 'utf-8');
-    expect(codexEngineer).toContain('model = "gpt-6-luna"');
-    expect(codexEngineer).toContain('model_reasoning_effort = "xhigh"');
-  });
-
-  it('base agents keep their base models (FR-PROF-0040.AC3)', () => {
-    expect(fs.readFileSync(base('claude', 'agents', 'discoverer.md'), 'utf-8'))
-      .toMatch(/^model: claude-sonnet-5-5$/m);
-    // The base architect resolves to the current Opus through the Claude vocabulary.
-    expect(fs.readFileSync(base('claude', 'agents', 'architect.md'), 'utf-8'))
-      .toMatch(/^model: claude-opus-5-5$/m);
-    expect(fs.readFileSync(base('cursor', 'agents', 'reviewer.md'), 'utf-8'))
-      .toMatch(/^model: gpt-6-luna$/m);
-
-    const codexEngineer = fs.readFileSync(
-      base('codex', '.codex', 'agents', 'engineer.toml'), 'utf-8');
-    // The base engineer's first gpt- token is the old terra-medium, now gpt-6-luna-high.
-    expect(codexEngineer).toContain('model = "gpt-6-luna"');
-    expect(codexEngineer).toContain('model_reasoning_effort = "high"');
-  });
-
   it('every emitted agent TOML parses, in BOTH variants (NFR-0005, #271)', () => {
     expectEveryCodexAgentTomlParses(outputDir, `${SET}-codex`);
     expectEveryCodexAgentTomlParses(outputDir, `${SET}-codex-light`);
@@ -309,4 +246,108 @@ describe('Variant E2E — --profile overrides every variant (debugging path)', (
       fs.rmSync(tmpRoot, { recursive: true, force: true });
     }
   }, 60000);
+});
+
+// ---------------------------------------------------------------------------------------------
+// Model resolution on a FIXTURE source tree (FR-PROF-0040.AC3/AC4, FR-PROF-0011, FR-PROF-0020).
+//
+// The real `instructions/` models and efforts are owner-tunable (cost tiers), so no assertion here
+// names a real agent's model. A test-only agent pair carries a base and a profile-scoped lightweight
+// `model:` list that are fixed and deliberately different on every vocabulary; expected values are
+// derived from the fixture frontmatter through the generator's own mapping.
+// ---------------------------------------------------------------------------------------------
+const FIXTURE_INSTRUCTIONS = path.join(__dirname, '..', 'fixtures', 'profile-instructions');
+const FIXTURE_AGENT = 'zz-model-fixture';
+
+function fixtureModel(file: string): { model: string; effort: string } {
+  const data = matter(fs.readFileSync(
+    path.join(FIXTURE_INSTRUCTIONS, 'r3', 'core', 'agents', file), 'utf-8')).data;
+  return { model: data.model as string, effort: data.effort as string };
+}
+
+const BASE_SRC = fixtureModel(`${FIXTURE_AGENT}.md`);
+const LIGHT_SRC = fixtureModel(`${FIXTURE_AGENT}~profile-lightweight-only~overwrite~.md`);
+
+interface Resolved { claude: string; cursor: string; copilot: string; codex: CodexModelResult }
+function resolveExpected(modelField: string): Resolved {
+  return {
+    claude: normalizeClaude(modelField, CLAUDE_VOCABULARY.map) as string,
+    cursor: normalizeCursor(modelField, CURSOR_VOCABULARY.map) as string,
+    copilot: normalizeCopilot(modelField, COPILOT_VOCABULARY.map) as string,
+    codex: normalizeCodex(modelField, CODEX_VOCABULARY.map) as CodexModelResult,
+  };
+}
+
+function readFixtureOutputs(outputDir: string, suffix: string) {
+  const rd = (...p: string[]) => fs.readFileSync(path.join(outputDir, ...p), 'utf-8');
+  const modelLine = (c: string) => /^model: (.*)$/m.exec(c)?.[1];
+  const dest = (ide: string) => `${SET}-${ide}${suffix}`;
+  return {
+    claude: modelLine(rd(dest('claude'), 'agents', `${FIXTURE_AGENT}.md`)),
+    claudeRaw: rd(dest('claude'), 'agents', `${FIXTURE_AGENT}.md`),
+    cursor: modelLine(rd(dest('cursor'), 'agents', `${FIXTURE_AGENT}.md`)),
+    copilot: modelLine(rd(dest('copilot'), 'agents', `${FIXTURE_AGENT}.agent.md`)),
+    codex: parseToml(rd(dest('codex'), '.codex', 'agents', `${FIXTURE_AGENT}.toml`)) as
+      Record<string, unknown>,
+  };
+}
+
+describe('Profile E2E — model resolution on a fixture tree', () => {
+  let tmpRoot: string;
+  let baseDir: string;
+  let lightDir: string;
+
+  // One catalog run builds the base variant (no profile) and the -light variant (lightweight
+  // profile) of the rosetta set side by side (FR-SET-0030); both read the fixture instructions.
+  beforeAll(async () => {
+    tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'profile-e2e-fixture-'));
+    const outputDir = path.join(tmpRoot, 'output');
+    fs.mkdirSync(outputDir, { recursive: true });
+    baseDir = outputDir;
+    lightDir = outputDir;
+    const code = await generate({
+      sources: { ...buildSources(outputDir), instructionsSource: FIXTURE_INSTRUCTIONS },
+      release: 'r3', dryRun: false, verbose: false, deterministicHooks: false,
+      publish: ['rosetta', 'rosetta-light'],
+    });
+    expect(code).toBe(0);
+  }, 180000);
+
+  afterAll(() => {
+    if (tmpRoot) fs.rmSync(tmpRoot, { recursive: true, force: true });
+  });
+
+  it('fixture sanity: base and light lists resolve differently on every vocabulary', () => {
+    const b = resolveExpected(BASE_SRC.model);
+    const l = resolveExpected(LIGHT_SRC.model);
+    expect(b.claude).not.toBe(l.claude);
+    expect(b.cursor).not.toBe(l.cursor);
+    expect(b.copilot).not.toBe(l.copilot);
+    expect(b.codex).not.toEqual(l.codex);
+  });
+
+  it('no-profile run: the base agent keeps the base model; the light document is excluded (FR-PROF-0040.AC3, AC4)', () => {
+    const out = readFixtureOutputs(baseDir, '');
+    const exp = resolveExpected(BASE_SRC.model);
+    expect(out.claude).toBe(exp.claude);
+    expect(out.cursor).toBe(exp.cursor);
+    expect(out.copilot).toBe(exp.copilot);
+    expect(out.codex.model).toBe(exp.codex.model);
+    expect(out.codex.model_reasoning_effort).toBe(exp.codex.effort);
+    expect(out.claudeRaw).toContain('Base fixture body.');
+    expect(out.claudeRaw).not.toContain('Lightweight fixture body.');
+    expect(out.claudeRaw).toMatch(new RegExp(`^effort: ${BASE_SRC.effort}$`, 'm'));
+  });
+
+  it('lightweight run: the agent resolves to the profile-scoped model on all four vocabularies (FR-PROF-0020)', () => {
+    const out = readFixtureOutputs(lightDir, '-light');
+    const exp = resolveExpected(LIGHT_SRC.model);
+    expect(out.claude).toBe(exp.claude);
+    expect(out.cursor).toBe(exp.cursor);
+    expect(out.copilot).toBe(exp.copilot);
+    expect(out.codex.model).toBe(exp.codex.model);
+    expect(out.codex.model_reasoning_effort).toBe(exp.codex.effort);
+    expect(out.claudeRaw).toContain('Lightweight fixture body.');
+    expect(out.claudeRaw).toMatch(new RegExp(`^effort: ${LIGHT_SRC.effort}$`, 'm'));
+  });
 });

@@ -12,7 +12,7 @@ baseSchema: docs/schemas/phase.md
 ## Phase Flow
 
 **Phase 6: Implementation Mapping**
-1. Complete Phase 5 first
+1. Complete Phase 5 first, unless on the reduced route recorded in the state file
 2. Define technical approaches
 3. Compare multiple alternatives
 4. Map source to target
@@ -24,7 +24,7 @@ baseSchema: docs/schemas/phase.md
 
 ## Context
 
-**PREREQUISITES:** Complete Phase 5 (cross-project analysis)
+**PREREQUISITES:** Complete Phase 5 (cross-project analysis), unless on the reduced route recorded in the state file
 
 **OBJECTIVES:**
 - Define technical approaches for modernization
@@ -53,7 +53,7 @@ baseSchema: docs/schemas/phase.md
 ## Requirements
 
 - **MUST** process each project separately
-- **MUST** re-read `docs/cross-project-analysis.md`
+- **MUST** re-read `docs/cross-project-analysis.md` if it exists
 - **MUST** re-read matching `docs/original-code-specs-<lib/project>.md`
 - **MUST** re-read both incoming/outgoing dependency if those exist `docs/target-code-specs-<lib/project>.md`
 - **MUST** create `docs/target-code-specs-<lib/project>.md` for each project

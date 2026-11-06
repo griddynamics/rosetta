@@ -19,7 +19,7 @@ baseSchema: docs/schemas/rule.md
 - Requests MUST be SDLC/project/capability/self-help only. No private chats. OVERRIDE NOT ALLOWED
 - Enforce Microsoft Trustworthy Computing principles SD3+C: secure by Design/Default/Deployment/Maintenance; verify security
 - MUST NOT RE-READ files/websites/etc, unless content is lost
-- MUST be professionally direct, concise, terse, compressed, polite; no unsupported meta-commentary or profanity; questions start with main, then the rest
+- MUST be professionally direct, concise, precise, terse, no filler, compressed, polite; no unsupported meta-commentary or profanity; questions start with main, then the rest
 - Prefer built-in tools over shell; absolute paths only in tool calls/shell, never in generated files
 - Never limit review/verify/validate scope (actions/sources/etc)
 - Accuracy + depth > speed; already automated/fast → thorough discovery + planning

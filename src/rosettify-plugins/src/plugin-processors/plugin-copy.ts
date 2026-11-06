@@ -10,7 +10,7 @@ import { updatePluginFrame } from '../frames.js';
 import { emitJson, emitStandaloneManifest } from '../serialize/json.js';
 import { getLogger } from '../logging.js';
 import { HOOKS_PSEUDO_FOLDER } from '../spec/hooks.js';
-import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec, Vfs, WriteMode } from '../types.js';
+import type { FileProcessingFrame, GenError, PluginProcessingFrame, PluginSpec, Vfs, WriteMode } from '../types.js';
 
 /**
  * True when this spec emits a hooks.json at all. A set with no hook modules and no bootstrap
@@ -154,28 +154,41 @@ export function pluginCopy(
     // Real run writes it to disk; dry-run reports the path instead (FR-CLI-0050, FR-ARCH-0045) —
     // manifest content is otherwise not represented anywhere in the frame pipeline, so it must be
     // reported here or a dry-run preview would silently omit it.
+    const errors: GenError[] = [];
     if (spec.manifestOverride) {
-      const version = readParentVersion(spec);
-      // Standalone manifests carry only {name, version} (emitStandaloneManifest) — there is no
-      // description field. The name already carries the set identity and the variant's suffix,
-      // applied once in buildSpecsForSet, so it is used verbatim here.
-      const manifestContent = emitStandaloneManifest(spec.manifestOverride.name, version);
-      const manifestPath = path.join(targetDir, 'plugin.json');
-      if (suppressed) {
-        // FR-CLI-0036: nothing written or reported
-      } else if (dryRun) {
-        reportDryRunWrite(manifestPath, manifestContent, out);
+      const parent = readParentVersion(spec);
+      if ('problem' in parent) {
+        // FR-VAR-0060: an unusable parent manifest is a hard error; no version is guessed.
+        // Attributed to the output folder (spec.destination), like every other run error.
+        errors.push({
+          target: spec.destination,
+          file: parent.file,
+          message: `Standalone plugin.json not generated: ${parent.problem} (FR-VAR-0060)`,
+          kind: 'hard',
+        });
       } else {
-        fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
-        fs.writeFileSync(manifestPath, manifestContent, { encoding: 'utf-8' });
+        // Standalone manifests carry only {name, version} (emitStandaloneManifest) — there is no
+        // description field. The name already carries the set identity and the variant's suffix,
+        // applied once in buildSpecsForSet, so it is used verbatim here.
+        const manifestContent = emitStandaloneManifest(spec.manifestOverride.name, parent.version);
+        const manifestPath = path.join(targetDir, 'plugin.json');
+        if (suppressed) {
+          // FR-CLI-0036: nothing written or reported
+        } else if (dryRun) {
+          reportDryRunWrite(manifestPath, manifestContent, out);
+        } else {
+          fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+          fs.writeFileSync(manifestPath, manifestContent, { encoding: 'utf-8' });
+        }
       }
     }
 
-    if (tmplFrames.length === 0) return p;
+    if (tmplFrames.length === 0 && errors.length === 0) return p;
 
     // Add .tmpl frames so pluginRenderTemplates can render them
     return updatePluginFrame(p, (draft) => {
       draft.frames = [...draft.frames, ...tmplFrames] as typeof draft.frames;
+      draft.errors = [...draft.errors, ...errors];
     });
   };
 }
@@ -322,29 +335,46 @@ function looksBinary(buf: Buffer): boolean {
 }
 
 /**
- * Read version from preserved plugin.json for standalone manifests.
- * FR-VAR-0060: version copied from parent target (2.0.40).
+ * FR-VAR-0060: a standalone manifest's version is the parent target's preserved manifest version.
+ * The first candidate that exists is the parent's manifest; when it is missing, unreadable, or has
+ * no non-empty string version, the problem is returned instead of a guessed version.
  */
-function readParentVersion(spec: PluginProcessingFrame['spec']): string {
+function readParentVersion(
+  spec: PluginProcessingFrame['spec'],
+): { version: string } | { problem: string; file?: string } {
   const preservedDir = spec.preservedSource;
 
   const candidates = [
-    path.join(preservedDir, '.claude-plugin', 'plugin.json'),
-    path.join(preservedDir, '.cursor-plugin', 'plugin.json'),
-    path.join(preservedDir, '.github', 'plugin', 'plugin.json'),
-    path.join(preservedDir, '.codex-plugin', 'plugin.json'),
+    path.join('.claude-plugin', 'plugin.json'),
+    path.join('.cursor-plugin', 'plugin.json'),
+    path.join('.github', 'plugin', 'plugin.json'),
+    path.join('.codex-plugin', 'plugin.json'),
   ];
 
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      try {
-        const data = JSON.parse(fs.readFileSync(candidate, 'utf-8'));
-        if (data.version) return data.version as string;
-      } catch {
-        // ignore
-      }
-    }
+  const found = candidates.find((candidate) => fs.existsSync(path.join(preservedDir, candidate)));
+  if (found === undefined) {
+    return { problem: `no parent plugin.json in ${preservedDir} (looked for ${candidates.join(', ')})` };
   }
 
-  return '2.0.40'; // fallback (GT-7)
+  const file = path.join(preservedDir, found);
+  let text: string;
+  try {
+    text = fs.readFileSync(file, 'utf-8');
+  } catch {
+    return { problem: 'parent plugin.json could not be read', file };
+  }
+
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    // JSON.parse messages can quote the manifest text, so only the reason is reported.
+    return { problem: 'parent plugin.json is not valid JSON', file };
+  }
+
+  const version = typeof data === 'object' && data !== null && 'version' in data ? data.version : undefined;
+  if (typeof version !== 'string' || version === '') {
+    return { problem: 'parent plugin.json "version" is missing, empty, or not a string', file };
+  }
+  return { version };
 }

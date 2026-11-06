@@ -97,4 +97,28 @@ describe('cli run (end-to-end, mock agent)', () => {
     const code = await runRun({ source, config, out: join(work, 'results') });
     expect(code).toBe(ExitCode.CONFIG_ERROR);
   });
+
+  it('run --source where every agent id is mistyped → exit 2 (#326)', async () => {
+    const work = mkdtempSync(join(tmpdir(), 'curio-cli-allskipped-'));
+    const config = writeConfig(work);
+    const source = join(work, 'cases');
+    mkdirSync(source);
+    // A complete case whose declared agent id does not resolve to any profile:
+    // the matrix is non-empty, but every cell resolves to a `skipped` trial.
+    // CI must not pass on a run that executed nothing.
+    writeCase(source, 'hello');
+    writeFileSync(
+      join(source, 'hello', 'config.json'),
+      JSON.stringify({ agents: ['typo-agent'] }),
+    );
+    const out = join(work, 'results');
+
+    const code = await runRun({ source, config, out });
+    expect(code).toBe(ExitCode.CONFIG_ERROR);
+
+    const runDir = readdirRuns(out)[0]!;
+    const loaded = loadRun(runDir);
+    expect(loaded.trials).toHaveLength(1);
+    expect(loaded.trials[0]!.status).toBe('skipped');
+  });
 });

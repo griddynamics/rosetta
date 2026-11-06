@@ -32,7 +32,7 @@ describe('resolveLayerDirs', () => {
     try {
       const dirs = mainLayers(tmpDir, 'r2', 'core');
       expect(dirs).toHaveLength(1);
-      expect(dirs[0].dir).toContain('r2/core');
+      expect(dirs[0].dir).toBe(path.join(tmpDir, 'r2', 'core'));
       expect(dirs[0].letter).toBe('A');
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });

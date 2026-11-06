@@ -70,16 +70,28 @@ You provide best practices and reasoning frameworks, not arbitrary opinions.
 - Whole-week diff FIRST: `git diff $(git rev-list -1 --before='<Mon> 00:00' main)..$(git rev-list -1 --before='<next Mon> 00:00' main) -- . ':!plugins/'`
 - Verify window: author-date count == committer-date count, base predates Monday
 - Then per-commit diffs for what the window diff leaves unexplained
+- Save the full window diff to a scratchpad file and read it end to end before drafting. Not only `instructions/` and `src/`: docs, CODEMAP, `llms-full.txt`, CI, tests
 - Read EVERY changed line under `instructions/**`. No sampling
+- Read the specific files around a change (the whole skill, the workflow that loads it, its callers) to see how the change fits the big picture. The diff shows what moved, not what it means
+- Each skill, agent, and workflow loads on its own. Keep each rule and number with its own file; never merge rules from separate skills into one claim
+- Take each statement (diff, issue, user) at its stated scope. A general fact is context, not an order to edit; do not add assumptions on top of it
 - `instructions/**` change = behavior change. Write what the AI now does, not what the file says
 - Version bump = wrapper. State what shipped inside it
 - Understand a reason why it was changed, what AI failure modes were addressed in instructions folder changes
 - Understand what was already updated
 - Deep understand code changes too - why those were made
 - Document both change and benefits of this change
+- Then ask "so what": who is affected, under what condition, what the whole set means together. Write that. Re-read as a cold reader before presenting: is anything misleading or half-said?
 - Attribute changes to people too; if a commit only has a GitHub handle (no full name in git log), ask the user for the full name instead of guessing or leaving the handle
 - Attribute releases (R2 vs R3 vs Rx), CI, Tooling, Docs, Hooks, etc
 - Ask the user if there's other branches with staged/gated work relevant for this change (e.g. a `docs/stories/*.md` release-batch tracker, or an open draft PR against main whose description says it merges only at a future publish/release). If yes: diff that branch against its merge-base with main (`git diff main...origin/<branch>`, still excluding `plugins/`), and report it as its own clearly-labeled Detailed Change section — tag it distinctly (e.g. `[R3 — staged, unmerged]`) and never describe it as live/shipped/merged. Check for overlap with what already merged to main this week before writing it up, so the same work isn't counted twice.
+
+### 1a. Output the analysis first (no user action)
+- Before any changelog text, output one block per topic. Never mix topics in one block
+- Per block: changed lines (quoted, with file), the issue each line addresses, consequence before → after, who is affected (users get plugins; tooling and CI serve maintainers)
+- For each rule, ask what it prevents and what follows from it. Paraphrase is not analysis
+- Then name the common aim across topics, if there is one
+- No questions and no proposals in this turn. Draft the changelog from this analysis in the next turn
 
 ### 2. Find respective section in CHANGELOG.md
 - Use grep/search by md headers
@@ -100,15 +112,19 @@ Use weekly template:
 
 #### [Detailed Change 1]
 
-[Short-description-bullet-points]
+- **What you get.** [value: who, before, now]
+- **What changed.** [mechanism: the actual rules or code]
 
 #### [Detailed Change 2]
 
-[Short-description-bullet-points]
+- **What you get.** ...
+- **What changed.** ...
 ```
 
 ### 3. HITL
 - Present recommendations and plan with exact was-became mapping
+- Every open point carries its evidence: the draft sentence, the source quote with `file:line`, what is not verified, and a recommendation. Never ask the user to "check" without showing it
+- When the user corrects you, stay on that topic until it is closed. Do not open new areas in the same turn
 - EXPLICIT approval only, Questions are not approval, Suggestions are not approval
 
 ### 4. Apply changes
@@ -158,19 +174,24 @@ Verbosity kills documentation. These are hard rules.
 - **No fake engagement.** Ban: "Let's take a look", "Join me", "Buckle up", "Ready to get started?", "Let's explore".
 - **Casual grammar is fine.** Starting with "And" or "But" is OK if it reads naturally. Stiff formal prose is worse than slightly casual prose.
 - **Bullet > paragraph.** If content can be a list, make it a list.
+- **Precise language.** If statement may be understood incorrectly or overgeneralizes then it must be broken down and grounded more. No overstatement, no exaggeration, no sales pitches, no mechanical "larger"/"bigger"/"smaller", but precise and what it actually means for the user, what it actually provides ("better reasoning", "smarter", "faster", "cheaper").
 
 ### Mechanical-writing test
 
 Subject of every sentence: the AI, the team, or the user. Never a file, section, field, script, or flag. Rewrite if it is.
 
-Order: cost before → what you can do now → mechanism, only if the claim needs it.
+Order: cost before → what you can do now → mechanism. Summary and Highlights carry mechanism only if the claim needs it. Detailed sections always carry both.
+
+**Balance, not extremes.** Value first, then mechanism, both present. Not diff-only, not value-only. Claim exactly what the evidence supports: no understatement, no overreach.
 
 Value written, not value appended.
+
+Summary + Highlights: the outcome the reader gets now (more capable, cheaper, safer, simpler). Never the event, chronology, or vague rename. Wrong: "Models moved forward twice", "Argon takes the Pro tier". Right: "Gemini 4 Argon added for architect, planner, requirements, prompt roles; other Gemini roles stay on Flash". Say added, replaced, or removed, and name the scope (which roles, profiles, tools), so a reader with zero context cannot misread it. "Now" only for what the before/after diff changed; if the base already did it, say so or omit it. Mechanism lives in Details only.
 
 ### Length
 
 - One weekly entry, not an essay. Summary of 2 short paragraphs, 8-12 highlight bullets, 4-6 detailed sections.
-- Each detailed section: Change 3-6 sentences, Why it helps 2-4 sentences. If it runs longer, it is trees.
+- Each detailed section: What you get 3-6 sentences, What changed 3-6 sentences. If it runs longer, it is trees.
 - Never enumerate every commit. Bundle routine work (stats refresh, site sync, changelog landing) into one line.
 
 ### Review tests (apply all after every doc)
@@ -178,7 +199,7 @@ Value written, not value appended.
 1. Read it aloud. Does it sound like a real person wrote it, or does it sound like a bot?
 2. For every sentence, ask: "Does deleting this hurt the reader?" If no, delete it.
 3. Would an engineer skim past this section? If yes, it's too long or too obvious. Cut or restructure.
-4. For every detailed section, ask: "Is this the value or the diff?" If it is the diff, rewrite it as the value.
+4. For every detailed section, ask: "Does it give the value first, then the mechanism?" Both must be there.
 
 # Working with user
 
@@ -199,3 +220,26 @@ If you learned something new which is reusable, there are process efficiency imp
 - **Verify asymmetric changes before flagging** Model/effort differences across similar items (e.g. one role restored, others not) can be deliberate tuning, not a gap; confirm with the user before calling it out.
 - **Resolve a bare git-log name via `gh pr view`** `gh pr view <n> --json author` returns the contributor's real GitHub display name, avoiding a needless ask when git log shows only a short name.
 - **`.claude/skills/*` changes get a highlight, not a tagged section** Maintainer-internal skill edits (checklist, daily-oss) have only ever appeared as one `(maintainer-internal)` highlight bullet, never a bracket-tagged detailed section.
+- **Effect first, mechanics after** Wrote chronology ("moved forward twice"), size ("larger model"), tallies ("two tiers instead of three"). Say what readers get or where their work runs now, and why. Every highlight carries its reason.
+- **Diff every file, not commit messages** Messages and a deduped line scan hid role-level model changes and a subagent-reporting rule. Compare before/after per file, then check each claim against it.
+- **User wording is an example, not text** Copying a user's sample phrases overstated scope ("Argon for most tasks"). Verify each claim against the diff and write it fresh.
+- **Never present old behavior as new** Wrote "Rosetta now puts the strongest model on key decisions"; Opus and Sol already did. Check each claim against the base state.
+- **Stopping at the diff list is too early** Listed changes but missed meaning: Argon only affects Gemini runs, and its roles make the key decisions. Derive who, when, and the principle across changes.
+- **Unknown reason: search, then ask** Guessed why Terra was dropped ("lower tier", "two tiers"). Real reason: GPT-6 has no Terra, and Luna matches it at about 1/8 the cost. Search the repo; still unclear, ask.
+- **Id format is not a tool limit** Commit said Cursor/Copilot ids carry no effort; I wrote "cannot set effort". Effort is set elsewhere (orchestration). Claim a limit only when verified, else ask.
+- **Use known facts, hedge real doubt** Dropped "Flash costs less" for lack of repo pricing. Flash is cheaper than Pro-class models; common knowledge needs no repo source.
+- **Flag inferences in the plan** A claim not run or not in the diff (e.g. "binary files re-upload once") goes in a "points to check" list before approval, not silently into text.
+- **Users get plugins; tooling is ours** Wrote rosetta-cli, Helm, generator, Curiocity fixes as user value. Users get Rosetta plugins; tooling and CI serve maintainers. Split value by audience.
+- **Analysis before changelog text** Drafted from what files say and missed the issue each line fixes. Output per-topic analysis first (lines, issue, before/after); changelog next turn.
+- **Balance value and mechanism** Draft 1 gave mechanics only, draft 2 value only. Each section gives value first, then mechanism. Avoid both extremes.
+- **Read the full diff file** Read only `instructions/` and `src/`; missed stale CODEMAP, stale `llms-full.txt` lines, and the `publish` gap.
+- **Skills load separately; keep numbers separate** Merged `requirements-authoring` "3-5" with `hitl` "3-10". Each skill runs alone; attribute every rule to its own skill.
+- **Think consequences, not paraphrase** Wrote "key questions mixed with minor". Real point: minor questions depend on key decisions and often vanish once those are made.
+- **Do not bend the user's words** Turned a general fact into edit proposals and "two levels" into a claim about outputs. Keep stated scope; tell back.
+- **Evidence with every open point** Asked the user to "check" items without showing them. Give draft sentence, source quote with `file:line`, unverified part, recommendation.
+- **One topic at a time when corrected** Sent eight points at once; the user could not answer and answers could not be mapped. Close one topic before the next.
+- **Name the common aim, not features** Week's changes shared one aim: remove points where meaning drifts. Summary and Slack lead with that aim, not a feature list.
+- **Cold-reader test for every Slack line** Wrote "a contradiction, two mismatched names, an impossible MUST are gone"; a reader without context learns nothing. Each line states what the reader now gets.
+- **Check final text against own analysis** Analysis said "full process costs, restart is expensive"; Slack said "stuck". Every claim must match the consequence already established, no more dramatic word.
+- **Capability across all tools, not changed files** Wrote "Claude Code and OpenCode" because only their files changed; Codex too. State what the AI can do wherever it applies, plus which files changed.
+- **Take all information in when correcting** Fixed one point and dropped another (cost, Codex). A correction adds to what is known; keep every established fact in the text.

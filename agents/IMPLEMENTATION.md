@@ -89,7 +89,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Publishing reuses in-process dataset lookups during a CLI run and clears that cache after dataset create/delete operations.
 - Auth checks were tightened so API-backed commands fail earlier and more predictably.
 - A dedicated `version` command was added so package version inspection does not require config loading or auth.
-- `--parse-timeout` resolves as explicit flag > `RAGFLOW_PARSE_TIMEOUT` > 1200, and reaches both `wait_for_parsing` call sites (single-file and folder-batch).
+- `--parse-timeout` resolves as explicit flag > `RAGFLOW_PARSE_TIMEOUT` > 1200, and reaches `wait_for_parsing_results` for both single-file and folder-batch publishing.
 - `RAGFLOW_TIMEOUT` configures the RAGFlow client HTTP timeout (default 30), used by the health check.
 - Package metadata and publish flows were repaired to keep CI/CD and PyPI publishing functional.
 

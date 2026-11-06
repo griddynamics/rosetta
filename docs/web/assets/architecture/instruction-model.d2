@@ -1,0 +1,39 @@
+# Instruction composition at runtime inside the target repo's coding agent.
+# Arrows = "loads / delegates to" (runtime activation), not file includes.
+direction: down
+
+always: Always loaded {
+  boot: "bootstrap-alwayson.md\n(policies, tasks, skill engagement)"
+  mode: "one mode file\nplugin- | mcp- | local-files-mode.md"
+}
+
+entry: Entry (user's choice) {
+  plain: "plain request\n(lean path)"
+  rosetta: "/rosetta <request>\n(rosetta skill routes)"
+  direct: "/<workflow> <request>"
+}
+
+wf: Workflow {
+  main: "workflows/<name>-flow.md"
+  phase: "phase files\n<name>-flow-<phase>.md"
+  main -> phase: APPLY PHASE
+}
+
+agents: "Subagents\nagents/<name>.md"
+skills: "Skills\nskills/<name>/SKILL.md\n(+ references/, assets/)"
+plan: "rosettify plan\n(LARGE work only)"
+
+always.boot -> entry.plain: skills auto-engage
+always.boot -> entry.rosetta: "/rosetta"
+always.mode -> skills: "binds command aliases\nto the delivery mode" {
+  style.stroke-dash: 4
+}
+entry.rosetta -> wf.main: USE FLOW
+entry.direct -> wf.main
+entry.plain -> skills: USE SKILL
+wf.phase -> agents: INVOKE SUBAGENT
+wf.phase -> skills: USE SKILL
+agents -> skills: USE SKILL
+wf.phase -> plan: "EXECUTION_CONTROLLER" {
+  style.stroke-dash: 4
+}

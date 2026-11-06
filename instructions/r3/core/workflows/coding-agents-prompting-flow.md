@@ -26,7 +26,7 @@ Orchestrates prompt authoring/adaptation via `discover -> extract+intake -> blue
 5. Orchestrator and subagents MUST USE SKILL `coding-agents-prompt-authoring`.
 6. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping.
 7. This workflow MUST be used with Fable, Opus, GPT-6.1-Sol+ class models => IF NOT - DEMAND USER TO SWITCH MODEL.
-8. Workflow state MUST be saved to `agents/TEMP/<FEATURE>/coding-agents-prompting-flow-state` file.
+8. Workflow state MUST be saved to `agents/TEMP/<FEATURE>/coding-agents-prompting-flow-state.md` file.
 
 </prerequisites>
 
@@ -88,7 +88,7 @@ Orchestrates prompt authoring/adaptation via `discover -> extract+intake -> blue
 <validate step="7" subagent="prompt-engineer" role="Quality validator" subagent_required_model="claude-opus-5-5, gpt-6.1-sol-high, gemini-4-argon-high, gemini-3.8-flash-high">
 
 1. Validate final artifacts against intent, contracts, failure modes, and traceability.
-2. Input: `Prompt Brief` + `Blueprint` + `Candidate Prompt Set` + `Simulation Notes`. Output: `Final Prompt Set` + `Validation Pack` (`Checklist Results`, `Tests`, `Failure Modes`, `Traceability`; persistent report optional in FEATURE PLAN folder as validation-report.md).
+2. Input: `Prompt Brief` + `Blueprint` + `Prompt Set` + `Simulation Notes`. Output: `Final Prompt Set` + `Validation Pack` (`Checklist Results`, `Tests`, `Failure Modes`, `Traceability`; persistent report optional in FEATURE PLAN folder as validation-report.md).
 3. Update `coding-agents-prompting-flow-state.md` and mark complete.
 4. HITL final approval required before persistence; small tasks may stay in-memory and be returned in message.
 

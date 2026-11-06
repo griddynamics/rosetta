@@ -24,6 +24,7 @@ Produce documentation guidance that is:
 - using simple language
 - introducing for people seeing it first time
 - keeping separate independent items, do not combine
+- MUST follow ASD-STE100 (Simplified Technical English)
 
 ## Core principle
 

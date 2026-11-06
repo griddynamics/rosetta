@@ -12,7 +12,7 @@ baseSchema: docs/schemas/phase.md
 ## Context
 
 **PREREQUISITES:** 
-- Complete Phase 7 (final cross-project review)
+- Complete Phase 7 (final cross-project review), unless on the reduced route recorded in the state file
 - **EXPLICIT HUMAN APPROVAL** of all target specs
 
 ## Requirements

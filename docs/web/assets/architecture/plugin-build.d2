@@ -1,0 +1,36 @@
+# Plugin generation: inputs, generator stages and outputs of `npx rosettify-plugins`.
+# Arrows = data flowing into the next stage. Stage names follow
+# src/rosettify-plugins/src/plugin-processors/*.ts (grouped, not one box per file).
+direction: down
+
+inputs: Inputs {
+  instr: "instructions/<release>/core\n(+ --customizations roots)"
+  catalog: "src/rosettify-plugins/plugins.json\n(plugin sets · variants)"
+  tmpl: "src/rosettify-plugins/plugins/template-*\n(manifests, hooks.json.tmpl)"
+  bundles: "src/hooks/dist/bundles/<plugin>/*.js"
+  profile: "profiles/<name>.json\n(per variant, e.g. lightweight)"
+}
+
+gen: rosettify-plugins {
+  direction: down
+  select: "1. Select sets + sources\norder key · directives (~overwrite~, ~ide-x-only~)"
+  adapt: "2. Adapt per target\nmodel rewriting · agent format\nfolder layout · reference rewriting"
+  assemble: "3. Assemble\nbootstrap · templates\nhook bundle sync (if enabled)"
+  derive: "4. Derive standalone variants\nfrom built main plugins"
+  select -> adapt -> assemble -> derive
+}
+
+out: "plugins/ (published: rosetta, rosetta-light)" {
+  main: "Main plugins\nrosetta-claude · rosetta-cursor · rosetta-copilot\nrosetta-codex · rosetta-antigravity"
+  standalone: "Standalone\nrosetta-cursor-standalone (.cursor/)\nrosetta-copilot-standalone (.github/)"
+  light: "rosetta-*-light\n(lightweight variant)"
+}
+
+inputs.instr -> gen.select
+inputs.catalog -> gen.select
+inputs.profile -> gen.select
+inputs.tmpl -> gen.assemble
+inputs.bundles -> gen.assemble: "only with\n--deterministic-hooks true"
+gen.assemble -> out.main
+gen.derive -> out.standalone
+gen -> out.light: "same run,\n-light suffix"

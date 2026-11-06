@@ -16,54 +16,11 @@ Covers: the full MCP pipeline (Instructions Repo → CLI → RAGFlow → `rosett
 
 ## System Overview
 
-```
-┌─────────────────────────────────────────────────────────┐
-│              Target Repository + IDE                    │
-│  Cursor · Claude Code · VS Code · JetBrains · Codex     │
-│  Windsurf · Antigravity · OpenCode                      │
-│  (MCP integration; native hooks vary by IDE)            │
-│                         │                               │
-│                    MCP Protocol                         │
-│             (Streamable HTTP + OAuth)                   │
-└────────────────────────┬────────────────────────────────┘
-                         │ PULL
-              ┌──────────▼──────────┐
-              │    Rosetta MCP      │
-              │   (rosetta-mcp on PyPI) │
-              │                     │
-              │  VFS resource paths │
-              │  Bundler · Tags     │
-              │  Context headers    │
-              └──────────┬──────────┘
-                         │ PULL
-              ┌──────────▼──────────┐
-              │   RAGFlow (Server)  │
-              │  (document engine)  │
-              │                     │
-              │  parse · chunk      │
-              │  embed · retrieve   │
-              └──────────▲──────────┘
-                         │ PUSH
-              ┌──────────┴──────────┐
-              │    Rosetta CLI      │
-              │ (rosetta-cli PyPI)  │
-              │                     │
-              │  publish · parse    │
-              │  verify · cleanup   │
-              └──────────▲──────────┘
-                         │ PUSH
-              ┌──────────┴──────────┐
-              │  Instructions Repo  │
-              │  /instructions/r3/  │
-              │                     │
-              │  core/ · workflows/ │
-              │  qe/ · search/      │
-              │  modernization/     │
-              │  skills · agents    │
-              └─────────────────────┘
-```
+<img src="{{ '/assets/architecture/mcp-delivery.svg' | relative_url }}" alt="MCP delivery pipeline" width="100%"/>
 
-Instructions flow up: files are published by the CLI into RAGFlow, served by Rosetta MCP to IDEs. Rosetta does not see or process your source code — by design, it only delivers knowledge and instructions.
+<sub>Solid arrows show instruction content moving toward the coding agent; dashed arrows show authentication and optional server state. Diagram source: [`docs/web/assets/architecture/mcp-delivery.d2`](https://github.com/griddynamics/rosetta/blob/main/docs/web/assets/architecture/mcp-delivery.d2).</sub>
+
+Instructions flow downstream: files are published by the CLI into RAGFlow, served by Rosetta MCP to IDEs. Rosetta does not see or process your source code — by design, it only delivers knowledge and instructions.
 
 Plugins have their own, separate delivery pipeline (generator, not CLI/RAGFlow) — see [Architecture — System Overview](/rosetta/docs/architecture/#system-overview) and [Plugin Delivery Flow](/rosetta/docs/architecture/#plugin-delivery-flow).
 
@@ -133,7 +90,7 @@ The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instr
 
 **Critical rule:** Always publish the entire `/instructions` folder. Never subfolders or single files (breaks tag extraction).
 
-**Change detection:** MD5 hash of content. Only modified files publish (~77% time savings). Use `--force` to bypass.
+**Change detection:** MD5 hash of content and metadata. Only modified files publish (~77% time savings). Recognized text files must be valid UTF-8; binary content is hashed from its raw bytes. If any local file fails to read, duplicate and orphan cleanup is skipped for that run and the file is reported as failed. Use `--force` to bypass.
 
 **Auto-tagging and metadata extraction.** The CLI reads each file during publishing and extracts everything MCP needs to serve it efficiently:
 - **Tags:** all folder names + filename + composite pairs/triples (`core/skills`, `r3/core/skills`, etc.). These are what the typed load aliases query against.

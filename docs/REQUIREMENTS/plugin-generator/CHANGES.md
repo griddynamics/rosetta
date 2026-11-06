@@ -1,5 +1,15 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-11-05 — Merge of `main` composed into the plugin-set units
+
+**Files:** `FR-CLI.md`, `FR-VAR.md`
+
+- `FR-CLI-0030`: the empty-domain rejection from `main` (#377) is kept as one statement sentence and one criterion, worded for the set filter: an empty `--domain` value does not mean "every set"; the criterion's existing output folder is `rosetta-claude/`.
+- `FR-CLI-0010`: both sides set the default-release criterion to `r3`; both release criteria are kept: explicit `r3` (from `main`) and `--release r2` (from this branch).
+- `FR-VAR-0060`: criterion and `Implemented` notes from `main` (#386) taken as is.
+
+---
+
 ## 2026-11-05 — Draft units approved
 
 - Approved by isolomatov-gd: FR-SET-0020, FR-SET-0030, FR-SET-0040, FR-SET-0050, FR-SET-0060, FR-SET-0070, FR-CLI-0030, FR-CLI-0031, FR-SEED-0001, FR-PROF-0021, FR-STRUCT-0010, DATA-CFG-0007, NFR-0001, FR-HOOK-0001.
@@ -44,6 +54,28 @@
 - Glossary terms added: main instruction source, customization root, order key, OrderToken, plugin name.
 - `FR-CUST-0002` amended: only `<root>/<release>/` is checked; dot-entries ignored; root-level repository files ignored. Re-approved by isolomatov-gd on 2026-11-05.
 - Open questions OQ-8 to OQ-15 added and resolved. Goals G15, G16 added. `FR-ARCH-0021`, `FR-ARCH-0022` traced to G15.
+
+---
+
+## 2026-10-29 — `FR-CLI-0010`: default-release criterion matches the statement
+
+**Files:** `FR-CLI.md`
+
+**Source:** owner. The statement says the default release is `r3`; the first criterion said `r2`.
+
+- `FR-CLI-0010` criteria: "no release argument" now expects release `r3`. `<changed>` -> 2026-10-29.
+
+---
+
+## 2026-10-29 — `FR-CLI-0030`: a domain argument that names no domain is rejected before output is written
+
+**Files:** `FR-CLI.md`
+
+**Source:** issue #343, PR #377. A domain argument with only whitespace or separators gave an empty source list, and the run could then remove existing output. Approved by the owner.
+
+- `FR-CLI-0030` statement: one sentence added. A supplied domain argument that holds no domain name after comma splitting and whitespace trimming does not default to `core`; the generator rejects it before any output is written.
+- `FR-CLI-0030` criteria: one criterion added (`--domain " , , "` with an existing `<output>/core-claude/` file: stderr report, non-zero exit, no file under `<output>` created, deleted, or modified). `<changed>` -> 2026-10-29.
+- `status`/`approved_by` stay `Approved`/`User`; `implementation` unchanged.
 
 ---
 

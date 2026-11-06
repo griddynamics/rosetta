@@ -8,3 +8,5 @@ How it works:
 1. User installs Rosetta plugin(s) xor mcp. 
 2. On any user session start: AI Coding Agents load `instructions/r3/core/rules/bootstrap-alwayson.md` and one mode-specific file (`plugin-files-mode.md`, `mcp-files-mode.md`, `local-files-mode.md`).
 3. User uses `/` or `$` commands to do his work on his repo with any or all our instructions (skills, subagents, workflows, rules).
+
+Bump versions for changes in `src` folder if not bumped already, prefer patch increase (`scripts/bump_versions.sh`).

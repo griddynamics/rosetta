@@ -47,5 +47,5 @@ Research prompt: `research-prompt.md` in FEATURE PLAN folder
 </researcher>
 """
 model = "gpt-6-luna"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"

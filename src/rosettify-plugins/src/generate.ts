@@ -102,6 +102,14 @@ export async function generate(options: GenerateOptions): Promise<number> {
   // any set selection happens, so a typo is reported precisely rather than falling through to the
   // generic "no plugin sets to build" message with the missing folder never named.
   const domainTokens = parseDomainTokens(domain);
+  // FR-CLI-0030: a supplied --domain that names no folder after splitting and trimming is not
+  // "every set" — reject it here, before the orphan sweep or any processor touches output.
+  if (domain !== undefined && domainTokens.length === 0) {
+    process.stderr.write(
+      `[hard] Domain input must include at least one non-empty domain (got ${JSON.stringify(domain)}).\n`,
+    );
+    return 1;
+  }
   const missingFolders = domainTokens
     .map((token) => ({ token, dir: path.resolve(instructionsSource, releaseName, token) }))
     .filter(({ dir }) => !fs.existsSync(dir));

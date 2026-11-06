@@ -118,6 +118,170 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 26.10 – Sun 01.11
+
+This week Rosetta closes points where the AI drifts from what was meant. In questions, the AI no longer adds its own assumptions to your words: it asks key questions first, shows real examples, tells back what it understood, and stays on one topic when it got an answer wrong. In handoffs, subagents read the tech specs instead of a summary, and the prompts they get must be precise. In its own instructions, four defects that forced the AI to guess are fixed. Small upgrades no longer hit phase rules that contradict each other or pay for the full process, interrupted prompt-authoring runs resume instead of restarting on top-tier models, research no longer requires tools that may not be installed, and the AI no longer believes that subagents cannot start subagents in Codex, Claude Code, and OpenCode.
+
+The work also follows your team's process and costs less. Discovery finds how the team builds, tests, verifies, and closes work, and workspace initialization records it without inventing anything. Sessions and subagent tasks are planned larger, so context is loaded fewer times. For maintainers, the release tooling is safer: dataset cleanup, parse results, Helm publishing, and the plugin generator.
+
+**Highlights**
+
+- `[R3]` `hitl` and `questioning`: quality, precision, and completeness come first. Key questions come first, because their answers remove most minor questions. Each question has a real example. The AI tells back what it understood in its own words, so you can see if it added its own assumptions. When it misreads an answer, it stops opening new topics and goes deeper on that one until it is resolved. `hitl` asks 3 to 10 questions per batch, as many as you can manage (was 5 to 10)
+- `[R3]` `requirements-authoring`: the same rules, in chunks of 3 to 5 questions. A question that either side did not understand is asked again in other words. Not entering focus mode, and not leaving it, are listed as pitfalls
+- `[R3]` The work follows the team's process. Discovery finds the team's existing procedures for the work and for closing it (for example a version bump or regenerated files), and how the team verifies a change. Workspace initialization records them per module in `ARCHITECTURE.md` and must not invent any, because every later session loads that file
+- `[R3]` Subagents work from the source, not a retelling. They must read the tech specs when these exist. Plans reference the specs and add EARS requirements instead of copying them, so plan and spec cannot drift apart
+- `[R3]` The same work costs less. A session is sized by its contexts of change: one large single-agent session, or several contexts with subagents. Before, every session was expected to use orchestration. Subagents get larger tasks, so context is loaded fewer times
+- `[R3]` Precise prompts to subagents. The always-on bootstrap rule adds "precise" and "no filler". It covers every message the AI writes, including prompts to subagents, where vague wording makes the subagent interpret
+- `[R3]` Modernization: a small upgrade such as Java 17 to 21 runs only Phases 2 and 6 before implementation, without instructions that contradict each other, instead of paying for the full process. The AI records the route in the state file, so a reviewer sees why phases were skipped (Arteom Balanuta, issue #356)
+- `[R3]` Prompt authoring: an interrupted run finds its state file and resumes instead of an expensive restart on top-tier models, and final validation receives the prompt set it must check (Arteom Balanuta, issue #357)
+- `[R3]` Research: DeepWiki and Context7 are required only when installed. A MUST that cannot be met no longer teaches the AI that MUSTs are optional (Arteom Balanuta, issue #355)
+- `[R3]` In Codex, Claude Code, and OpenCode, subagents can start their own subagents. The false claim that they cannot is removed from the Claude Code and OpenCode setup guidance and from `llms-full.txt`. The AI no longer designs around it, and research keeps its parallel subagents
+- `[Tooling, CI]` Maintainers: `cleanup-dataset` deletes only matching documents, so a mistyped tag cannot empty the server dataset (Arteom Balanuta, issue #312). `parse` fails on a timeout; `publish` does not check this yet (David Turner, issue #351). A Helm chart version cannot be overwritten (Vedant Madane, issue #324). An empty `--domain` stops the generator before it touches output (David Turner, issue #343). Curiocity skips a case that lists one agent twice (David Turner, issue #353)
+- `[Docs]` Five architecture diagrams replace the text drawings. `CODEMAP.md` and `ARCHITECTURE.md` match the current repo again, so contributors and their AI agents navigate from a correct map (Arteom Balanuta, #365)
+- Routine: plugins 3.1.18 → 3.1.21, rosettify-plugins 3.3.9, rosetta-cli 3.0.8, curiocity 0.2.9, Helm chart 0.4.4; unused code removed from rosetta-cli and hooks (#374); a Windows path fix in a generator test; `daily-oss` and `update-change-log` lessons (maintainer-internal); stats refreshed; last week's entry landed
+
+#### Questions aim at exact understanding
+
+- **What you get.** `[R3]` Before, the AI asked a set of 5 to 10 questions from mixed areas. It asked about minor details before the key decisions they depend on, so you answered questions that a later decision made void. It read answers literally and added its own assumptions. You saw the drift only later, in specs or code. After a wrong answer, it brought new questions from other areas, and neither side could tell which answer belonged to which question. Now key decisions come first, examples show what the AI means, and the tell-back shows how the AI read you. Only one topic stays open until it is resolved. You answer fewer questions, and what you said reaches the spec without a change in meaning.
+- **What changed.** `hitl` and `questioning` get the same "Questions Guidance" block. It puts quality, precision, and completeness first, without nitpicking. It asks for key questions first, real examples, a tell-back in the AI's own words, and attention to the user's word choice and how answers are given. Focus mode applies after a misread answer: one question at a time on that topic, big-picture questions, and exit once resolved. `hitl` batches 3 to 10 manageable questions (was 5 to 10). `requirements-authoring` has its own copy of these rules. It asks in chunks of 3 to 5, rephrases a question that either side did not understand, and lists not entering and not leaving focus mode as pitfalls. (Igor Solomatov, isolomatov-gd)
+
+#### The work follows the team's process
+
+- **What you get.** `[R3]` Discovery used to find what exists (code, files, patterns) but not how the team works on it. The AI then made the right change in its own default way: its own build and test commands, its own checks, and no closing steps. The work was done by the AI's standard but not by the team's, and you had to remind it every session. Now the AI follows the team's way of working and proves the change the way the team does. Workspace initialization records this once, so later sessions start with it.
+- **What changed.** The `discovery` skill and both `discoverer` variants (standard and lightweight) now look for the procedures that exist for the work and for after it, such as a version bump, regenerated files, or a docs update. Discovery also establishes how to verify the result. In workspace initialization, `ARCHITECTURE.md` now lists the existing SDLC processes per module, short, by command or file reference. The AI must not invent a process: every later session loads this file, so an invented process would be repeated as an instruction. (Igor Solomatov, isolomatov-gd)
+
+#### Subagents work from the source, at lower cost
+
+- **What you get.** `[R3]` Each retelling bends the meaning a little. A subagent that works from the orchestrator's summary, or from a vague prompt, builds something slightly different from what was agreed. Now subagents read the tech specs, and the prompts they get must be precise. The work is also cheaper. Every session and every subagent pays to load the same context, so fewer, larger units cost less for the same work. You also start and hand over fewer sessions.
+- **What changed.** `planning` sizes a session by its contexts of change: one large single-agent session, or larger with orchestration and subagents (several contexts). Before, every session was expected to use orchestration and subagents, which added overhead where one agent was enough. A plan that fits one session, even a large one, stays in one plan file plus a handoff. With tech specs present, the plan references them and focuses on EARS requirements, instead of copying them into a second source that drifts. `orchestration` prefers large subagent tasks and requires subagents to read the tech specs when available. The always-on bootstrap rule adds "precise" and "no filler", which covers the prompts the AI writes for subagents. (Igor Solomatov, isolomatov-gd)
+
+#### Instructions that no longer force the AI to guess
+
+- **What you get.** `[R3]` When instructions contradict each other, name something that does not exist, or demand the impossible, the AI has to guess. Each guess is a deviation. Four such cases are fixed. A small upgrade such as Java 17 to 21 runs at the size of the job, not at the cost of the full process. An interrupted prompt-authoring run resumes instead of restarting on top-tier models. Research works in every IDE. The AI no longer plans around a delegation limit that does not exist: in Codex, Claude Code, and OpenCode, subagents can start their own subagents.
+- **What changed.**
+  - Modernization: the flow allowed Phases 2 and 6 for a small upgrade, but the phase files required Phases 1, 5, and 7. The AI could run the full process for a version bump, stop, or skip without a record. The exception is now in the phase files the AI loads, and the AI records the route in the state file. The run can resume, and a reviewer sees why phases were skipped. Phase 6 re-reads the cross-project analysis only if it exists. The full route still applies when the AI discovers dependencies (issue #356).
+  - Prompt authoring: the prerequisites named the state file without `.md`, while every step wrote `coding-agents-prompting-flow-state.md`, so a resumed run did not find its state. Final validation took a `Candidate Prompt Set` that no step produced. Both names now match (issue #357). This workflow requires top-tier models, so a restart was expensive.
+  - Research: "MUST use DeepWiki and Context7" is now "when available" (issue #355). Plugin installs do not guarantee either one. A MUST that cannot be met teaches the AI that MUSTs are optional. (Arteom Balanuta, #368)
+  - Subagent limit: the Claude Code and OpenCode setup guidance said that subagents cannot start subagents. That is false: in Codex, Claude Code, and OpenCode, subagents can start their own subagents. The AI reads this guidance when it initializes a workspace, adapts prompts for an IDE, or builds a harness. The claim is removed there, from the `harness` copies, and from `llms-full.txt`. Research keeps its parallel subagents, and its README now says that the executing agent decides on dispatch, with no caller-specific rules. (Igor Solomatov, isolomatov-gd)
+
+#### Maintainers: instruction publishing and Helm releases
+
+- **What you get.** `[Tooling, CI]` A mistyped tag in a cleanup can no longer empty the server dataset that the MCP serves. A `parse` that times out shows as a failure, so a maintainer does not move on with unparsed documents. A Helm chart version can no longer be overwritten by a later push, so every install of a version gets the same chart.
+- **What changed.** RAGFlow returns the whole dataset when a metadata filter matches nothing. `cleanup-dataset` used to pass that list to delete. It now checks tags and prefix on each returned document, and deletes nothing when nothing matches (Arteom Balanuta, #366, issue #312). `parse` used to count documents still pending at the timeout as neither parsed nor failed, so it exited 0. It now counts them as failed, prints "Still pending", and exits non-zero. `publish` waits for parsing the same way but does not check the result yet (David Turner, #379, issue #351). The Helm publish job used to push whatever version `Chart.yaml` named, so re-pushing an existing version replaced the chart. Now the job asks Docker Hub first. It fails if the version exists, and it also fails if the registry cannot answer (Vedant Madane, #331, issue #324).
+
+#### Maintainers: plugin generator and Curiocity
+
+- **What you get.** `[Tooling]` A typo in `--domain` can no longer delete the generated plugins before a release. Curiocity evaluations, which we use to judge instruction changes, run each agent once per case.
+- **What changed.** A `--domain` value with no domain name in it (for example `" , , "`) gave an empty source, and output cleanup could then run. The generator now stops with "Domain input must include at least one non-empty domain" before it writes or removes anything. Requirement `FR-CLI-0030` now states this, and `FR-CLI-0010` now gives `r3` as the default release, as its statement already said (David Turner, #377, issue #343). A Curiocity case that repeated an agent id made two trials run at the same time into the same artifact folder. The case config now requires unique agent ids. A case that breaks this rule is skipped with a reason, and the rest of the run continues (David Turner, #378, issue #353).
+
+### Week Mon 19.10 – Sun 25.10
+
+Rosetta gains a `checklist` skill. The AI writes a checklist of requirements before it starts, keeps it current, and checks every item before it says the work is done. A fresh reviewer subagent then checks the result independently. In the same week, the AI asks questions in manageable batches instead of one at a time, and workspace initialization runs its reverse-engineering sub-work on cheaper models.
+
+Three fixes close gaps in tooling. A dangerous-actions override now works on MCP tools whose shell field is `cmd` or `shell_command`. Publishing to the server detects changed binary files of equal size and no longer deletes server documents after an unreadable local file. A Curiocity run in which every trial is skipped now fails with exit code 2 instead of passing.
+
+**Highlights**
+
+- `[R3]` New `checklist` skill: the AI builds a checklist of requirements, constraints, and evidence before implementation, keeps it in sync with scope, and validates every item before reporting completion. A fresh reviewer subagent then checks independently and gives a confidence score. This addresses drift and work that only looks complete
+- `[R3]` Question skills (`hitl`, `questioning`): the AI asks questions in manageable batches in every client. Before, it batched only when the client had an ask-user tool and otherwise asked strictly one at a time
+- `[R3]` Workspace initialization, documentation phase: the final documents still use the top-tier model. Reverse-engineering sub-work now goes to the discoverer subagent or a cheap, fast model at high reasoning (Haiku, Luna, Flash), in manageable-sized tasks. Before, the phase ran full reverse engineering on the expensive model
+- `[R3]` Planning: each session in a plan is expected to run with orchestration and subagents, and a session too small for that is now listed as a pitfall
+- `[R3]` Orchestration: reads and tool outputs are named as the main contributors to context size. A new rule states that a newer model generation at one reasoning step higher equals the older one (GPT-6 Luna xhigh = GPT-5.6 Terra high = GPT-5.5 medium)
+- `[Hooks]` The `Rosetta-AI-reviewed` override marker is now accepted in MCP `cmd` and `shell_command` fields. Before, an MCP tool that took its command in those fields could never be self-approved after a review
+- `[Tooling]` Publishing to the server detects binary files that change without changing size (David Turner)
+- `[Tooling]` Publishing fails a text file that is not valid UTF-8 instead of uploading it with bytes dropped. After an unreadable local file, duplicate and orphan cleanup is skipped so an incomplete inventory cannot delete server documents
+- `[Tooling]` A Curiocity run in which every trial is skipped (for example, a mistyped agent id) exits with code 2, "no runnable trials". Before, it exited 0 and the CI gate passed (Arteom Balanuta)
+- `[Tooling, CI]` Model-resolution tests for the plugin generator use a fixture agent pair. Retiering a real subagent no longer breaks pre-commit or the Rosettify Plugins pipeline. `docs/ARCHITECTURE.md` now states that every change bumps each affected component's version in the same commit
+- `[CI]` GitHub triage of new or updated PRs and issues uses the `daily-oss` and `backlog` skills. With no human present, it recommends approval and requests changes automatically
+- Routine (maintainer-internal): `checklist-A` and `checklist-B` project skills replaced by the published `checklist` skill; `daily-oss` proposals are self-contained (5W1H) and resume earlier subagents; `daily-oss` and `merge-main` can be invoked by the model; `update-change-log` tightened; plugins 3.1.16 → 3.1.18; stats snapshot refreshed; last week's changelog entry landed
+
+#### Checklist skill: self-verification before "done"
+
+- **Change.** `[R3]` Long sessions drift, forget requirements, and sometimes report completion early. The new `checklist` skill has the AI write a checklist before implementation context biases it. The list is grouped by category and aspect, with items of under 8 words that mix general checks (build clean, all unit tests pass) with request-specific ones and evidence items. Each item is scored 0 to 100, not ticked. The AI adds items as scope grows and never deletes or weakens one without a recorded reason. Before reporting completion it validates every item and repeats until it finds no unresolved medium or higher issue. It then spawns a fresh reviewer subagent with the source of truth, the checklist, and the evidence, but not its own conclusion. The reviewer checks checklist coverage and each item, and returns findings with a 0 to 100% confidence score. The AI reports completion only when both sides have zero unresolved medium+ findings. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Completion is claimed against a written list instead of the AI's memory of the request. The costly independent review runs once the AI's own checks pass, and the same reviewer is reused where possible.
+
+#### Questions in manageable batches
+
+- **Change.** `[R3]` The `hitl` skill told the AI to batch questions only through an ask-user tool and otherwise ask strictly one at a time. The `questioning` skill said to ask "few" questions. Both now say to ask in manageable batches unless the user requests otherwise. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Clients without an ask-user tool no longer turn a 5 to 10 question round into 5 to 10 round trips.
+
+#### Workspace initialization: reverse engineering on cheaper models
+
+- **Change.** `[R3]` The documentation phase of workspace initialization writes the five context documents that every later session loads. It ran full reverse engineering on the top-tier model. It still requires the top tier for the final documents. For the reverse-engineering sub-work, it now tells the AI to prefer the discoverer subagent or a built-in subagent on a cheap, fast model at high reasoning (Haiku, Luna, Flash), and to give each one a manageable-sized task. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Reading code costs less. The expensive model is kept for the documents themselves.
+
+#### Hooks: override marker works in MCP command fields
+
+- **Change.** `[Hooks]` The `dangerous-actions` hook lets the AI approve a flagged action by adding a `Rosetta-AI-reviewed` marker after a blast-radius check. For MCP tools, the marker was accepted only in `command`, `sql`, `query`, `new_string`, and `content`. A flagged call on a tool that takes its command in `cmd` or `shell_command` could not carry the marker. The accepted fields are now the MCP shell fields plus the content fields. Path fields stay excluded, so changing an operation's target cannot carry the override. A comment now warns that no danger pattern may contain the marker, or a match would override itself. (Igor Solomatov, #358, issue #173)
+- **Why it helps.** A flagged MCP shell call can now be approved after a review like any other tool. Marker placement in a path cannot approve a dangerous command.
+
+#### Publishing to the server: safer change detection and cleanup
+
+- **Change.** `[Tooling]` Rosetta publishes the instructions folder to the server and uploads only changed files. For binary files, the change hash used the file size. A replacement of the same size looked unchanged and was skipped. The hash now uses the file's content, so such changes are detected (David Turner, #359, issue #350). Binary files will re-upload once, because the stored hash changes. A text file that is not valid UTF-8 now fails with a named error. Before, the undecodable bytes were dropped. An unreadable local file is now reported as failed, and duplicate and orphan cleanup is skipped for that run. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Replaced binaries reach the server. A read error on one local file cannot make server documents look stale and delete them.
+
+#### Curiocity: a run with nothing to run now fails
+
+- **Change.** `[Tooling]` Curiocity runs agent evaluations and gates CI on the result. A suite in which every trial resolved to `skipped` (for example, every agent id mistyped) exited 0, so CI passed on a run that executed nothing. The gate now exits 2, "no runnable trials", as the architecture document already specified. One skipped trial among runnable ones stays non-fatal, and error statuses keep exit 3. Re-gating a saved all-skipped suite with `report` gives the same exit code. (Arteom Balanuta, #367, issue #326)
+- **Why it helps.** CI no longer shows a green gate for a run that evaluated nothing.
+
+### Week Mon 12.10 – Sun 18.10
+
+When Rosetta runs on Gemini, it now uses a more capable model, Gemini 4 Argon, for the architect, planner, requirements-engineer, and prompt-engineer subagents (lightweight profile: architect only). These subagents make the decisions that shape everything built afterwards. Claude and GPT already ran them on Opus and Sol, while Gemini used Flash. On Claude, discovery and research moved to the cheaper Haiku 5.5.
+
+Every model list also moved to new versions for each vendor. Work that ran on GPT-5.6 Terra now runs on GPT-6 Luna one reasoning step higher, which matches Terra in capability at about one eighth of the cost. Orchestration sizes work by expected code volume and context limits rather than mainly by file count, subagents report what they did not finish, and prompts are authored shorter.
+
+**Highlights**
+
+- Model versions updated for every vendor: Claude Opus 5.5, Sonnet 5.5, and Haiku 5.5 (were Opus 5, Sonnet 5, Haiku 4.5), GPT-6.1 Sol (was GPT-5.6 Sol), GPT-6 Luna (was GPT-5.6 Luna), Gemini 3.8 Flash (was 3.7), Grok 4.7 (was 4.6); Cursor Composer 2.5 is unchanged
+- Gemini 4 Argon added. When Rosetta runs on Gemini, the architect, planner, requirements-engineer, and prompt-engineer subagents, which make the decisions that shape the rest of the work, now use Argon (lightweight profile: architect only). All other subagents keep Gemini 3.8 Flash, and Claude, GPT, and Grok runs are unaffected. Before, Gemini used Flash for these subagents too
+- Lower cost on GPT: work that ran on GPT-5.6 Terra, the middle GPT tier, now runs on GPT-6 Luna, which matches Terra in capability at about one eighth of the cost (GPT-6 has no Terra model). In Codex model lists, reasoning effort is raised one step
+- Lower cost on Claude: discoverer and researcher moved from Sonnet to Haiku 5.5, and so did the lightweight profile's engineer, reviewer, and validator
+- Orchestration sizes a task as small, medium, or large from expected lines of code (under 200, under 2,000, more) and areas touched, with file count only a rough hint, and aims to keep each agent under 250K tokens of context (price doubles above 200K)
+- Orchestrators pick a subagent's model and reasoning effort from a written ladder (Strategist, Tactician, Implementer), and the large-work playbook gains a "worker pull" tactic
+- Subagent reports now state what was not done, fully or partly, so the orchestrator sees gaps before it accepts a result
+- Prompts are authored shorter: drafts keep only key points and leave decisions to the agent that runs them; `rosettify-prompts` compression follows the same rule
+- Workspace initialization is much faster and cheaper: it no longer extracts code patterns unless the user asks for it
+- Reference files for each IDE (Claude Code, Cursor, Copilot, Codex, OpenCode, Windsurf) and the agent-launching skill list the new models in each tool's own id format; older entries stay listed
+- Tooling and CI: Cursor and Copilot subagents no longer get a raw model id when a prompt names a Claude model with an effort suffix (for example `claude-sonnet-5-medium`); the `rosettify-prompts` quality judge works on Claude 5.5 models, which reject the `thinking: disabled` setting it used to send; CI jobs use the new models (Codex jobs run GPT-6 Luna at one step higher effort)
+- Routine: maintainer-internal skills tightened (`documentation`, `update-change-log`, `compress-prompt`, `sync-web-site`; the last two can now be invoked by the model, not only by name); weekly GitHub stats snapshot refreshed; last week's changelog entry landed
+
+#### Model lists moved to new versions for each vendor, GPT Terra tier removed
+
+- **Change.** `[R3]` Every agent and workflow step lists the model to use for each vendor, and each coding agent takes the entry for its own vendor. All entries moved to new versions:
+  - Claude: Opus 5 to Opus 5.5, Sonnet 5 to Sonnet 5.5, Haiku 4.5 to Haiku 5.5.
+  - OpenAI: GPT-5.6 Sol to GPT-6.1 Sol, GPT-5.6 Luna to GPT-6 Luna.
+  - OpenAI "Terra" (GPT-5.6 Terra, the middle tier): GPT-6 has no Terra model, so its work runs on GPT-6 Luna, which matches Terra in capability at about one eighth of the cost. In Codex model lists, reasoning effort is raised one step (low to medium, medium to high, high to xhigh).
+  - Google: Gemini 3.7 Flash to Gemini 3.8 Flash. xAI: Grok 4.6 to Grok 4.7. Cursor Composer 2.5 is unchanged.
+
+  The plugin generator translates these entries into each IDE's own model names and keeps older ids as inputs, so a prompt that still names an older model resolves to the current one. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Agents run on current models without anyone editing prompts one by one. Work that ran on Terra costs about one eighth as much, with matching capability.
+
+#### Lower cost: Claude Haiku 5.5 for discovery, research, and the lightweight profile
+
+- **Change.** `[R3]` On Claude, the discoverer and researcher subagents ran Sonnet. They now run Haiku 5.5, the cheaper model, at high effort (the researcher also gains Cursor Composer 2.5 as an option). In the lightweight profile, the engineer, reviewer, and validator moved from Sonnet to Haiku 5.5, and so did the matching steps of the lightweight coding workflow (implementation, review, tests, validation). The light engineer's reasoning effort rose from medium to high, and the light discoverer and researcher now run at medium effort. Architect, planner, requirements-engineer, prompt-engineer, and the full profile's engineer, reviewer, and validator keep their models. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Searching, reading, and routine checks run on a cheaper model, so each run costs less. Roles that make design decisions keep the stronger models.
+
+#### Gemini 4 Argon added for the subagents that make the main decisions
+
+- **Change.** `[R3]` Every subagent has a model list with one entry per vendor, and a coding agent takes the entry for its own vendor. Rosetta listed only Gemini Flash, so Gemini runs used Flash for every subagent, including the architect and planner. Gemini 4 Argon, Google's top-tier model in Rosetta's model ladder, is now listed before Gemini 3.8 Flash for the architect, planner, requirements-engineer, and prompt-engineer subagents (lightweight profile: the architect only), and for the workflow steps those subagents run (plus one research step and the workspace documentation step). These subagents make the decisions that shape the rest of the work, and Opus 5.5 and GPT-6.1 Sol already ran them on Claude and GPT. All other subagents keep Gemini 3.8 Flash, which stays in these lists as the next option. Claude, GPT, and Grok runs are unaffected. The plugin generator now maps Argon, and the older Gemini Pro ids, for Cursor and Copilot; before, those ids were dropped there. The agent-launching skill names Argon as Google's complex tier and, if the Gemini CLI rejects the id (Google's rollout is limited), drops the model flag and uses the CLI default. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** On Gemini, the decisions that shape the rest of the work now run on a more capable model, and the faster, cheaper Flash keeps the rest of the work. A rejected id does not stop a launch.
+
+#### Orchestration: sizing by code volume and context, with a written model ladder
+
+- **Change.** `[R3]` The orchestration skill sized a request from a rough file count, which says little about how much an agent must hold in context. It now sizes by expected lines of code and areas touched: small is under 200 lines in one area, medium is under 2,000 lines in up to three areas, and large is anything bigger. Files stay as a rough hint (about 5, 20, 40 or more). The skill states the goal: keep every agent and subagent under 250K tokens of context, because price doubles above 200K, and treat efficiency as organizing and adapting work, not skipping steps. The team-manager playbook now applies to large requests (it applied to medium before), and the orchestrator reports how it will organize that work. A new section sets a model ladder: Strategist (Opus 5.5, GPT-6.1 Sol, Gemini 4 Argon), Tactician (Sonnet 5.5, Gemini 3.8 Flash, Grok 4.7), Implementer (Haiku 5.5, GPT-6 Luna, Gemini 3.8 Flash, Composer 2.5), with what each reasoning effort allows and a few exceptions, for example Luna at xhigh counts as Tactician. The models above Strategist (Fable, GPT Astra) are not used. The playbook also gains a "worker pull" tactic. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Task size follows how much an agent must hold in context, so large work is meant to be split before its price doubles. An orchestrator picks a subagent's model by looking up a tier.
+
+#### Subagents report what they did not finish
+
+- **Change.** `[R3]` When an orchestrator hands work to a subagent, the prompt asks for proof of each claim (links, line ranges, short quotes). It now also asks the subagent to state what it did not do, fully or partly. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** The orchestrator has the stated gaps in hand when it checks the result.
+
+#### Prompt authoring: shorter prompts, decisions left to the running agent
+
+- **Change.** `[R3]` A prompt that spelled out a decision in full duplicated reasoning the running agent redid anyway, padding every prompt without adding anything it needed to act correctly. The `coding-agents-prompt-authoring` skill's draft and hardening rules now call for compressing a prompt to key points and terse phrases, keeping only "thinking points" rather than decisions, shrinking direction text to one to three words per step without dropping any step, and leaving the decision to whichever agent runs the prompt later. `rosettify-prompts`'s automated compression step and its "value lost" audit carry the same rule; the audit now restores only genuinely missing value, tersely, instead of re-adding verbose direction text. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Shorter prompts cost less per call and leave the decision with the agent that has the actual context to make it.
+
 ### Week Mon 28.09 – Sun 04.10
 
 A new `docs/air/INTENT.md` sets out Rosetta Air, a longer-term direction built on an atoms/molecules/organisms skill hierarchy and per-project "software factory" automation. It is a vision document, not a shipped change. The maintainer-internal `checklist` skill is split into two variants, run side by side to find out which produces better completion checks.

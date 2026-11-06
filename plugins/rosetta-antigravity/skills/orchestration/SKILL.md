@@ -1,6 +1,6 @@
 ---
 name: orchestration
-description: "To delegate, prompt and manage subagents. MUST activate to spawn subagent with a quality prompt, unless trivial."
+description: "To delegate, prompt and manage subagents. MUST activate to spawn subagent with a quality prompt, unless small task."
 ---
 
 <orchestration>
@@ -21,9 +21,9 @@ Prerequisites: USE SKILL `hitl`, `load-project-context`
 
 <request_sizing>
 
-- <200 LOC expected and =1 area → SMALL → hold it yourself on todo-task ledger; subagents for fresh-eye review.
-- <2000 LOC expected and ≤3 areas → MEDIUM → keep todo-task ledger; build + manage a subagent team — no longer a worker.
-- >2000 LOC expected or >3 areas → LARGE → orchestrator context will be overloaded, so it must delegate everything to subagents, todo tasks must be at a higher level and help orchestrator itself. MUST APPLY SKILL FILE `assets/o-team-manager.md`. Report how you will organize and orchestrate that work.
+- <200 LOC expected and =1 area → SMALL → handle it by yourself with todo-task ledger; subagents are only for fresh-eye review.
+- <2000 LOC expected and ≤3 areas → MEDIUM → keep todo-task ledger; use subagents only if context is separated (like frontend and backend work), it is warranted, or for fresh-eye review.
+- >2000 LOC expected or >3 areas → LARGE → build + manage a subagent team — no longer a worker, orchestrator context will be overloaded, so it must delegate everything to subagents, todo tasks must be at a higher level and help orchestrator itself. MUST APPLY SKILL FILE `assets/o-team-manager.md`. Report how you will organize and orchestrate that work.
 
 Roughly 5 files to change/write likely means small; 20 files - medium; 40+ files - large; 
 
@@ -31,7 +31,7 @@ If requested directly `use session-level EXECUTION_CONTROLLER` then (plan ⊃ ph
 
 Complexity may shift one band; re-size as reality changes — discovery, surprises, clarification, target already done.
 
-Request sizing point is to keep all agents/subagents context under 250K tokens. Once above 200K the price is doubled.
+Request sizing point is to keep all agents/subagents context under 250K tokens (reads and tool outputs here are major contributors). Once above 200K the price is doubled.
 
 Optimize for efficient execution reasonably especially if result or impact or effect will be the same. It is not about skipping, it is about organizing and adapting.
 
@@ -52,9 +52,10 @@ Reasoning Efforts:
 4. xhigh - allows to think deeply (gemini models)
 
 Exceptions:
-1. gpt-6-luna-xhigh becomes tactician, while high and below is implementer
+1. gpt-6-luna-xhigh becomes tactician, while `high` and below is implementer
 2. haiku-5.5-low and gpt-6-luna-low can only summarize, search and similar easy activities 
 3. gemini-3.8-flash-high tactician, while medium - implementer
+4. Model generations are smarter vs previous (with one reasoning step higher): gpt-6-luna-xhigh = gpt-5.6-terra-high = gpt-5.5-medium
 
 </model_and_efforts_tiers>
 
@@ -68,7 +69,7 @@ Dispatch:
 
 Routing:
 
-4. Parallelize collision-free; make collision-safe: own fileset, git worktree, return-diff-only.
+4. Parallelize collision-free; make collision-safe: own fileset, git worktree, return-diff-only; prefer large tasks to subagents for efficiency; require subagents to read tech specs if available.
 5. TEMP folder for coordination + large I/O.
 
 Quality:

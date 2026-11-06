@@ -138,6 +138,8 @@ Each individual solution component follows its own version (except major).
 
 All plugins follow the same version.
 
+Every change bumps each affected component (`src/<component>/**`; `instructions/**` or `plugins/**` → plugins) in the same commit, using `scripts/bump_versions.sh` (covers all components). Prefer patch; minor/major only when warranted. Package publish pipelines fail on an already-published version.
+
 ---
 
 ## Rosettify
@@ -196,6 +198,7 @@ Instructions live in `/instructions/r3/` in the instructions repository. Every t
     ├── rules/
     │   └── <name>.md
     └── templates/
+        └── shell-schemas/
 ```
 
 A new folder is a new sibling folder here plus a `folders` entry of a set in `src/rosettify-plugins/plugins.json`.
@@ -204,8 +207,8 @@ A new folder is a new sibling folder here plus a `folders` entry of a set in `sr
 
 | Set | Skills | Workflows | Workflow files | Rules | Agents |
 | --- | ------ | --------- | -------------- | ----- | ------ |
-| `core` | 42 | 17 | 70 | 5 | 10 |
-| **total (`rosetta`)** | **42** | **17** | **70** | **5** | **10** |
+| `core` | 43 | 17 | 70 | 5 | 10 |
+| **total (`rosetta`)** | **43** | **17** | **70** | **5** | **10** |
 
 "Workflows" = entry points (front-matter `tags` contains `workflow`); 15 of them are distinct request types. "Workflow files" = every workflow and phase file.
 
@@ -311,7 +314,7 @@ Plugins are the primary delivery mechanism for Rosetta. They deliver instruction
 
 Plugin folders are named `rosetta-<ide>` and `rosetta-<ide>-light`: seven IDE targets, two variants, 14 folders. The content is identical across IDEs; only the format differs.
 
-`plugins.json` declares two *plugin* sets: `rosetta` (bundles the `core` folder (42 skills, 17 workflows, 10 agents, 5 rules); standard and `lightweight` variants) and `core` (declared, not published). `--publish <name>[,<name>...]` limits writing to the named plugins (FR-CLI-0036). `scripts/pre_commit.py` passes `--publish rosetta,rosetta-light`, so only those 14 folders are written. Catalogs may declare more sets and more folders; the split catalog is in [plugins.split.json](REQUIREMENTS/plugin-generator/assets/plugins.split.json).
+`plugins.json` declares two *plugin* sets: `rosetta` (bundles the `core` folder (43 skills, 17 workflows, 10 agents, 5 rules); standard and `lightweight` variants) and `core` (declared, not published). `--publish <name>[,<name>...]` limits writing to the named plugins (FR-CLI-0036). `scripts/pre_commit.py` passes `--publish rosetta,rosetta-light`, so only those 14 folders are written. Catalogs may declare more sets and more folders; the split catalog is in [plugins.split.json](REQUIREMENTS/plugin-generator/assets/plugins.split.json).
 
 | Plugin folder | Contains | Published |
 | ------------- | -------- | --------- |
@@ -404,6 +407,8 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 | `loose-files.js`          | PostToolUse (Write)       | Nudges agent when `.py`/`.js` files are created without a module marker (`__init__.py` / `package.json`)                                                                                                                                                                                                                                                                                                                                    |
 | `md-file-advisory.js`     | PostToolUse (Write\|Edit) | Advises on markdown formatting/placement after `.md` edits                                                                                                                                                                                                                                                                                                                                                                                  |
 | `lint-format-advisory.js` | PostToolUse (Write\|Edit) | Suggests a syntax/type/lint/format check step after code edits                                                                                                                                                                                                                                                                                                                                                                              |
+| `read-once.js`            | PreRead / PreToolUse (Read, shell) | Flags a repeated full read of a file whose modification time has not changed since this session last read it. TTL from `READ_ONCE_TTL` (seconds, default 20 min). Advises by default; `READ_ONCE_MODE=deny` soft-denies, a shell retry carrying `# READ-OVERRIDE` bypasses it, `READ_ONCE_DISABLED=1` turns it off. |
+| `read-once-reset.js`      | PreCompact / PostCompact  | Clears the session's read-once state on context compaction so files can be read again. |
 | `codemap-refresh.js`      | PostToolUse (Write\|Edit) | Refreshes the active code-map backend when source files change. Detects GitNexus (`.gitnexus/` marker, runs `npx -y gitnexus@latest analyze --force`) and Graphify (`graphify-out/graph.json` marker, runs `graphify update .`); no-op when neither is installed. When both are present, each backend gets an independent debounced refresh. Manager must review the GitNexus license before use; Graphify is the MIT-licensed alternative. |
 
 **`dangerous-actions` registration scope.** The hook evaluates five tool kinds — `bash`, `mcp-call`, `write`, `edit`, `multi-edit` (`toolKinds` in `src/hooks/src/hooks/dangerous-actions.ts`; `evalWrite`, `evalEdit`, and `evalMultiEdit` in `dangerous-actions/evaluate.ts` check both the target path and the content being written). Registration is deliberately narrower as a release step: every IDE `hooks.json` matcher names shell and MCP tools only — `Bash|mcp__.*` for Claude, Codex, and Copilot, `Bash|Shell|mcp__.*` for Cursor, `run_command|mcp__.*` for Antigravity. Matchers filter by tool name, so `Write`, `Edit`, and `MultiEdit` calls never reach the hook as shipped. The write and edit evaluation is implemented and held back, not missing. There is no `hard-deny` tier: every match is either a non-blocking `advise` notice or an overridable `reconsider` soft-deny.

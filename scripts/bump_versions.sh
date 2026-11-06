@@ -197,8 +197,8 @@ printf "  %-55s %s\n" "[chart]       src/helm-charts/rosetta-mcp-server/Chart.ya
 echo ""
 echo "Bump type:"
 echo "  [0] pre   [1] patch   [2] minor   [3] major   [4] custom"
-read -r -p "Choose (default: 0 = pre): " bump_choice
-bump_choice="${bump_choice:-0}"
+read -r -p "Choose (default: 1 = pre): " bump_choice
+bump_choice="${bump_choice:-1}"
 
 CUSTOM_VERSION=""
 case "$bump_choice" in
@@ -250,8 +250,7 @@ echo "--- src/helm-charts/rosetta-mcp-server/Chart.yaml ---"
 # values.yaml leaves image.tag commented out and deployment.yaml defaults it to
 # .Chart.AppVersion, so appVersion MUST track the server version or a default
 # `helm install` pulls a stale image. The chart `version` must move in the same
-# commit: publish-mcp-helm-chart.yml pushes whatever `version:` says with no
-# version-exists guard, so reusing it overwrites the published chart in place.
+# commit: publish-mcp-helm-chart.yml fails when that `version:` is already published.
 # Chart versions are SemVer 2, so pre-releases use the "-" separator (0.4.3-b00).
 f="$ROOT/src/helm-charts/rosetta-mcp-server/Chart.yaml"
 current="$(get_yaml_top_version "$f" version)"

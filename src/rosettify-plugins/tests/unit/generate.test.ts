@@ -134,6 +134,27 @@ describe('generate() — error coverage', () => {
     }
   });
 
+  // FR-CLI-0030: a supplied --domain naming no folder is rejected before any output is touched.
+  it.each(['', '   ', ' , \t, '])('empty domain %j fails before existing plugin output is mutated', async (domain) => {
+    const outputDir = path.join(tmpRepo, `out-empty-domain-${domain.length}`);
+    const targetDir = path.join(outputDir, 'core-claude');
+    fs.mkdirSync(targetDir, { recursive: true });
+    const sentinelPath = path.join(targetDir, 'existing-output.txt');
+    fs.writeFileSync(sentinelPath, 'preserve this output', 'utf-8');
+
+    const code = await silencingStderr(() => generate({
+      sources: buildSources(tmpRepo, outputDir),
+      release: 'r2',
+      domain,
+      dryRun: false,
+      verbose: false,
+    }));
+
+    expect(code).toBe(1);
+    expect(fs.readFileSync(sentinelPath, 'utf-8')).toBe('preserve this output');
+    expect(fs.readdirSync(targetDir)).toEqual(['existing-output.txt']);
+  });
+
   it('soft errors (bootstrap size violation) → exit code 1 (NFR-0004/QF-2, G-1)', async () => {
     // Write a plugin-files-mode.md with >10000 chars to trigger the soft error path.
     // The generate() must return exit 1 even though all output is still emitted.
@@ -252,6 +273,30 @@ describe('generate() — error coverage', () => {
       expect(fs.existsSync(path.join(hookDir, 'dangerous-actions.js'))).toBe(false);
       const parsed = JSON.parse(fs.readFileSync(path.join(hookDir, 'hooks.json'), 'utf-8'));
       expect(parsed.hooks.PreToolUse).toBeUndefined();
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('versionless parent manifest → exit code 1 and no standalone plugin.json, instead of a guessed version (FR-VAR-0060)', async () => {
+    const repo = buildFakeRepo();
+    try {
+      const parentManifest = path.join(repo, 'src', 'rosettify-plugins', 'plugins', 'template-cursor', '.cursor-plugin', 'plugin.json');
+      fs.writeFileSync(parentManifest, '{"name":"rosetta"}');
+      const outputDir = path.join(repo, 'out-versionless-parent');
+      const code = await silencingStderr(() => generate({
+        sources: buildSources(repo, outputDir),
+        release: 'r2',
+        domain: 'core',
+        dryRun: false,
+        verbose: false,
+      }));
+      expect(code).toBe(1);
+      expect(fs.existsSync(path.join(outputDir, 'core-cursor-standalone', 'plugin.json'))).toBe(false);
+      // FR-CLI-0041: the rest of that target is still generated; only its manifest is withheld.
+      expect(fs.readdirSync(path.join(outputDir, 'core-cursor-standalone')).length).toBeGreaterThan(0);
+      // Only the standalone whose parent is broken is affected.
+      expect(fs.existsSync(path.join(outputDir, 'core-copilot-standalone', 'plugin.json'))).toBe(true);
     } finally {
       fs.rmSync(repo, { recursive: true, force: true });
     }

@@ -1,9 +1,9 @@
 Code map of the Rosetta workspace — modules, key files, and entry points, 3-4 levels deep.
 
-## / — repo root (7,095 tracked files; 1,923 excluding the generated `plugins/` tree)
+## / — repo root (7,054 tracked files; 2,020 excluding the generated `plugins/` tree)
 
 README.md OVERVIEW.md QUICKSTART.md USAGE_GUIDE.md DEVELOPER_GUIDE.md CONTRIBUTING.md
-INSTALLATION.md TROUBLESHOOTING.md REVIEW.md SECURITY.md
+INSTALLATION.md PLUGINS.md MCPs.md CONFIGURATION.md FAQ.md TROUBLESHOOTING.md REVIEW.md SECURITY.md
 CHANGELOG.md AGENTS.md NOTICE LICENSE
 requirements.txt mypy.ini src/validate-types.sh
 .mcp.json .gitignore .claude-plugin .cursor-plugin .cursorignore
@@ -71,9 +71,31 @@ test_cli.py test_command_auth_order.py test_document_data.py test_rosetta_config
 test_packaged_runtime_assumptions.py test_publish_domain_scoped_orphan_cleanup.py
 test_ragflow_client_upload_exception_handling.py
 
-## src/rosetta-mcp-server/ — thin re-export package (rosetta-mcp on PyPI)
+## src/ims-mcp-server/ — deprecated `ims-mcp` alias package (depends on rosetta-mcp)
 
 pyproject.toml README.md
+
+## src/hooks/ — IDE hook runtime (TypeScript, esbuild per-IDE bundles)
+
+src/adapter.ts src/adapters/ src/entrypoints/ src/hooks/ src/runtime/ scripts/build-bundles.mjs tests/
+
+## src/rosettify-plugins/ — plugin generator (rosettify-plugins on npm)
+
+src/cli.ts src/generate.ts src/spec/ src/plugin-processors/ plugins/ (generator templates) profiles/ tests/
+
+## src/rosettify/ — local plan/specs CLI + MCP (rosettify on npm)
+
+src/bin/rosettify.ts src/frontends/ src/registry/ src/commands/plan/ src/commands/specs/ src/shared/ tests/
+
+## src/rosettify-prompts/ — prompt A/B/N bench against the Anthropic API (dev tool)
+
+src/ tests/ evals.json
+
+## src/curiocity/ — eval harness driving agent CLIs over a PTY (curiocity on npm)
+
+src/orchestrator/ src/curion/ src/agents/ src/evaluators/ src/reporters/ docs/architecture.md
+
+## src/helm-charts/rosetta-mcp-server/ — Helm chart for self-hosted MCP
 
 ## instructions/ — prompt library (published to RAGFlow)
 
@@ -81,9 +103,9 @@ One folder, `core`, lives under `instructions/r3/`. `src/rosettify-plugins/plugi
 
 ### instructions/r3/core/ — skills, agents, workflows, rules, bootstrap (current release)
 
-#### instructions/r3/core/skills/ — 42 skill folders
+#### instructions/r3/core/skills/ — 43 skill folders
 
-backlog/ codemap/ coding/ coding-agents-farm/ coding-agents-hooks-authoring/
+backlog/ checklist/ codemap/ coding/ coding-agents-farm/ coding-agents-hooks-authoring/
 coding-agents-prompt-authoring/ dangerous-actions/ data-collection/ debugging/ design/
 deviation/ discovery/ harness/ hitl/ large-workspace-handling/ load-project-context/
 natural-writing/ orchestration/ planning/ post-mortem/ qa-knowledge/ qa-structure/
@@ -125,7 +147,7 @@ shell-schemas/ (workflow-shell.md agent-shell.md skill-shell.md)
 
 ### instructions/r2/core/ — previous release, backported fixes only (146 tracked files)
 
-In r3 `core`: 42 skills, 70 workflow files, 5 rules, 10 agents (20 files).
+In r3 `core`: 43 skills, 70 workflow files, 5 rules, 10 agents (20 files).
 17 of the workflow files are entry points (frontmatter `tags: ["workflow"]`); 15 of those
 are distinct request types, since `aqa-flow` is a backward-compat router over
 `ui-aqa-flow`/`api-aqa-flow`/`testgen-flow` and `coding-light-flow` is a variant of
@@ -167,9 +189,9 @@ styles.css brand/
 
 ### docs/ — architecture and reference docs
 
-CONTEXT.md ARCHITECTURE.md MCP-CONTEXT.md MCP-ARCHITECTURE.md TODO.md
-TECHSTACK.md CODEMAP.md DEPENDENCIES.md
-definitions/ images/ requirements/ schemas/ mcp/
+CONTEXT.md ARCHITECTURE.md MCP-CONTEXT.md MCP-ARCHITECTURE.md AUTOMATION-ARCHITECTURE.md TODO.md
+TECHSTACK.md CODEMAP.md DEPENDENCIES.md ASSUMPTIONS.md MODERNIZATION.md hooks-verify.md
+definitions/ hooks/ images/ PATTERNS/ requirements/ schemas/ mcp/
 
 ### docs/mcp/ — MCP-only deep reference (self-hosted deployment)
 
@@ -181,16 +203,19 @@ IMPLEMENTATION.md MEMORY.md init-workspace-flow-state.md TEMP/
 
 ## scripts/ — developer tooling
 
-pre_commit.py bump_versions.sh
+pre_commit.py bump_versions.sh sync_user_guide_web.py
 
 ## test-library/ — integration test scenarios
 
-aqa/ code-analysis/ coding/ help/ init/ modernization/ planning/
-prompting/ questions/ reasoning/ research/ techspecs/ testgen/
+aqa/ code-analysis/ coding/ help/ hooks/ init/ modernization/ planning/
+prompting/ questions/ reasoning/ research/ techspecs/ test-cases/ testgen/
 
-## .github/workflows/ — CI/CD pipelines (12 files)
+## .github/workflows/ — CI/CD pipelines (26 files)
 
-publish-ims-mcp.yml publish-rosetta-cli.yml publish-rosetta-mcp.yml
-publish-instructions.yml pages.yml rosetta-mcp-dockerhub.yaml
-validate-prompts.yml validate-test-cases.yml repo-analysis.yml
-repo-implement.yml repo-plan.yml repo-triage.yml
+ci-curiocity.yml ci-rosetta-cli.yml ci-rosetta-hooks.yml ci-rosetta-mcp.yml
+ci-rosettify.yml ci-rosettify-plugins.yml ci-rosettify-prompts.yml
+publish-curiocity.yml publish-ims-mcp.yml publish-instructions.yml publish-mcp-helm-chart.yml
+publish-rosetta-cli.yml publish-rosetta-mcp.yml publish-rosettify.yml
+publish-rosettify-plugins.yml publish-rosettify-prompts.yml rosetta-mcp-dockerhub.yaml
+pages.yml codeql.yml e2e-testing.yml validate-prompts.yml validate-test-cases.yml
+repo-analysis.yml repo-implement.yml repo-plan.yml repo-triage.yml

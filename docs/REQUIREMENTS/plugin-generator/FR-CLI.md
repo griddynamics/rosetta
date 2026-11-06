@@ -52,10 +52,11 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-09-01</changed>
+  <changed>2026-10-29</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: no release argument When: invoked Then: release `r3` is used.</criteria>
+    <criteria>Given: `r3` When: invoked Then: release `r3` and its template variables are used.</criteria>
     <criteria>Given: `--release r2` When: invoked Then: release `r2` and its template variables are used.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
@@ -109,7 +110,7 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
 
 <req id="FR-CLI-0030" type="FR" level="System" ticketId="315" classification="technical">
   <title>Domain folder filter over plugin sets</title>
-  <statement>The generator shall accept a domain argument naming one or more comma-separated instruction folders under the selected release and shall build only those declared sets whose `folders` are all present in the named list; when the argument is absent every declared set shall be built. The argument shall select which sets build and shall neither alter any set's own folder composition nor its layering order, both fixed by that set's `folders` declaration (FR-SET-0020). A named folder that does not exist under `<instructionsSource>/<release>/` shall be reported and shall abort the run before any output is written.</statement>
+  <statement>The generator shall accept a domain argument naming one or more comma-separated instruction folders under the selected release and shall build only those declared sets whose `folders` are all present in the named list; when the argument is absent every declared set shall be built. The argument shall select which sets build and shall neither alter any set's own folder composition nor its layering order, both fixed by that set's `folders` declaration (FR-SET-0020). A named folder that does not exist under `<instructionsSource>/<release>/` shall be reported and shall abort the run before any output is written. A supplied domain argument that holds no folder name after splitting on commas and trimming whitespace shall not mean "every set"; the generator shall reject it before any output is written.</statement>
   <rationale>Set composition is declared per set now, so the argument that used to choose the instruction layer has nothing left to choose; keeping the flag as a filter preserves the one operational use it had — building a single subject area without regenerating everything — while removing its power to produce a set whose composition differs from its declaration. Aborting on a folder that does not exist keeps a typo from silently selecting nothing.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -123,6 +124,7 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
     <criteria>Given: `--domain core,workflows` and a catalog declaring sets `core` (`folders: [core]`), `workflows` (`folders: [workflows]`) and `rosetta` (`folders: [core, workflows, qe, search, modernization]`), as `assets/plugins.split.json` does, When: invoked Then: `core` and `workflows` are built and `rosetta` is not, because not all of its folders are named.</criteria>
     <criteria>Given: a catalog declaring a set `qe` with `folders: [qe]` and `--domain qe` When: the `qe` set is built Then: its folder composition and layering order are exactly its declared `folders`, unaffected by the filter.</criteria>
     <criteria>Given: `--domain acme` and no `instructions/<release>/acme/` folder When: invoked Then: the missing folder is reported and the run exits non-zero without generating output.</criteria>
+    <criteria>Given: `--domain " , , "` and an existing file in `<output>/rosetta-claude/` When: invoked Then: stderr reports that no domain is selected, exit status is non-zero, and no file under `<output>` is created, deleted, or modified.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>Implemented: parseDomainTokens and selectSets (src/rosettify-plugins/src/spec/plugin-sets.ts)

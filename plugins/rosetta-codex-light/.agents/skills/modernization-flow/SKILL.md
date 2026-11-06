@@ -30,7 +30,7 @@ This modernization process is designed to systematically analyze, specify, and i
 
 - If user did not specify any preferences perform all steps except optional.
 - User CAN customize and ask only for specific steps OR steps could have been done already OR towards specific goal OR for specific case, in this case LISTEN and ADOPT to the user.
-- Modernization scope could be small or could be done in place (example: upgrade Java 8 to 17 or 17 to 21), in this case only use `Phase 2` and `Phase 6`, unless you discover dependencies and project becomes bigger.
+- Modernization scope could be small or could be done in place (example: upgrade Java 8 to 17 or 17 to 21), in this case only use `Phase 2` and `Phase 6`, skip the other phases and their prerequisites, record this in the state file, unless you discover dependencies and project becomes bigger.
 - If there is no need to rewrite code (example: upgrade .NET 6 to .NET 8), then take original and target code specs LIGHTLY, only document WHAT IS NECESSARY TO CHANGE (example: new way to use app builder).
 
 ## Modernization Flow - Phase Overview

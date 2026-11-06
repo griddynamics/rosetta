@@ -98,6 +98,19 @@ describe('caseConfigSchema (§9)', () => {
   it('rejects an empty agents array', () => {
     expect(caseConfigSchema.safeParse({ agents: [] }).success).toBe(false);
   });
+  it('rejects repeated agent IDs at the agents config boundary', () => {
+    const parsed = caseConfigSchema.safeParse({ agents: ['codex', 'claude-code', 'codex'] });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues[0]?.path).toEqual(['agents']);
+      expect(parsed.error.issues[0]?.message).toMatch(/unique/i);
+    }
+  });
+
+  it('accepts distinct agent IDs, preserving their original order', () => {
+    const parsed = caseConfigSchema.parse({ agents: ['claude-code', 'codex'] });
+    expect(parsed.agents).toEqual(['claude-code', 'codex']);
+  });
   it('passes through unknown evaluator params but requires `use`', () => {
     const parsed = caseConfigSchema.parse({
       agents: ['x'],

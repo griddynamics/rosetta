@@ -18,6 +18,12 @@ import type { TrialResult } from '../results/schema';
  *
  * Exit codes: gate failure → 1; else any error-status trial → 3; else 0. Gate
  * failure takes precedence over partial-infra (§13).
+ *
+ * All-skipped rule (#326): when the suite has trials but NONE of them is runnable
+ * (every status is `skipped`), the run executed nothing — that is "no runnable
+ * trials" per §13, so the gate returns CONFIG_ERROR (2), the same code the CLI
+ * emits for an empty matrix. A skipped trial stays non-fatal when at least one
+ * other trial is runnable; error statuses keep their precedence (→ 3).
  */
 
 export interface GateOutcome {
@@ -37,6 +43,11 @@ function stddev(xs: number[]): number {
 }
 
 export function gatekeeper(trials: TrialResult[], gate: GateConfig): GateOutcome {
+  // All-skipped (#326): the run executed nothing — "no runnable trials" per §13.
+  if (trials.length > 0 && trials.every((t) => t.status === 'skipped')) {
+    return { passed: false, exitCode: ExitCode.CONFIG_ERROR, failures: [] };
+  }
+
   const groups = new Map<string, TrialResult[]>();
   for (const t of trials) {
     const key = `${t.case}::${t.agent}`;
