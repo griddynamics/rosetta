@@ -50,7 +50,7 @@ hidden_total: 7
 hidden_asked: 0
 hidden_covered: 4
 hidden_missed: 3
-hidden_matches_answer: 7      # how many of the 7 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: 4      # first pass (before any follow-up), yes = 1, partly = 0.5: yes: 3, 4, 5, 7; missed (0): 1, 2, 6 (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 7
@@ -250,17 +250,17 @@ It reads the session log Claude Code writes for every run and reports tokens per
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 Hidden-question check at T1: the exact wordings are in methods/baseline.md, step 8 (send only the ones not asked).
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Plain text, max 250 chars | missed | yes | At T1 `saleor/product/models.py:187` was `TextField(blank=True, default="")`: plain text, no max length; agent at 02:46: "Plain text, with no maximum length". Final: `CharField(max_length=250, blank=True, default="")` (`saleor/product/models.py`); API rejects 251 (tests); dashboard input stops at 250 and empty is allowed (Done when 2) |
-| 2 | Translatable | missed | yes | No changes in `saleor/graphql/translations` or ProductTranslation at T1; agent at 02:46: "Not translatable". At T2 (after follow-up 2): operator saved a Polish translation on Bean Juice in the dashboard translations page; the storefront in Polish showed it. Translation deleted afterwards |
+| 1 | Plain text, max 250 chars | missed | partly (first pass: plain text but no max length; follow-up fixed it) | At T1 `saleor/product/models.py:187` was `TextField(blank=True, default="")`: plain text, no max length; agent at 02:46: "Plain text, with no maximum length". Final: `CharField(max_length=250, blank=True, default="")` (`saleor/product/models.py`); API rejects 251 (tests); dashboard input stops at 250 and empty is allowed (Done when 2) |
+| 2 | Translatable | missed | no (first pass: "Not translatable"; follow-up fixed it) | No changes in `saleor/graphql/translations` or ProductTranslation at T1; agent at 02:46: "Not translatable". At T2 (after follow-up 2): operator saved a Polish translation on Bean Juice in the dashboard translations page; the storefront in Polish showed it. Translation deleted afterwards |
 | 3 | Product level, not variant | covered | yes | Field only on `Product` (`saleor/product/models.py:187`, `saleor/graphql/product/types/products.py:947`); agent at 02:46: "Per product". Final: field only on `Product` and `ProductTranslation`; nothing on variants in any diff |
 | 4 | Shown only on the product page | covered | yes | Shown only in `react-storefront/src/ui/components/pdp/product-attributes.tsx:83`; no cart / checkout / email changes at T1. Final: storefront changes only in the product page, `pdp/product-attributes.tsx` (description section) and their mapper/contract; no cart, checkout or email files in any diff (Done when 4) |
 | 5 | Existing products: empty, schema migration only | covered | yes | `0211_product_storage_conditions.py` adds the column with `default=""`, no data migration; agent at 02:46. Final: migrations 0211 and 0212 are `AddField` only (`default=""`, translation nullable), no `RunPython`/`RunSQL`; existing products work (Done when 6) |
-| 6 | In API, webhook payload, CSV export; no filter | missed | yes | In the API, no filter; no changes in `saleor/csv` or the webhook serializer at T1; agent at 02:46: "I didn't handle any of these". Final: `storage_conditions` in `PRODUCT_FIELDS` (`saleor/webhook/payloads.py`) and in the subscription Product type; CSV column `storage conditions` (`ProductFieldEnum.STORAGE_CONDITIONS`); no filter, `where` or search changes in `saleor.diff`. Operator at T2: dashboard → Products → ⋯ → Export Products shows a "Storage Conditions" checkbox (in the "SEO Information" group) |
+| 6 | In API, webhook payload, CSV export; no filter | missed | partly (first pass: in API, no filter, but no webhook or CSV; "I didn't handle any of these"; follow-up fixed it) | In the API, no filter; no changes in `saleor/csv` or the webhook serializer at T1; agent at 02:46: "I didn't handle any of these". Final: `storage_conditions` in `PRODUCT_FIELDS` (`saleor/webhook/payloads.py`) and in the subscription Product type; CSV column `storage conditions` (`ProductFieldEnum.STORAGE_CONDITIONS`); no filter, `where` or search changes in `saleor.diff`. Operator at T2: dashboard → Products → ⋯ → Export Products shows a "Storage Conditions" checkbox (in the "SEO Information" group) |
 | 7 | Edit permission `MANAGE_PRODUCTS` | covered | yes | `saleor/graphql/product/mutations/product/product_create.py:141` `MANAGE_PRODUCTS`; field on `Product` type has no own permission (public read). Final: unchanged — edit through `productCreate`/`productUpdate`/`productBulkCreate` (`MANAGE_PRODUCTS`); public read confirmed without a token (Done when 3) |
 
 ## 4. Done when: checked by the operator at T2

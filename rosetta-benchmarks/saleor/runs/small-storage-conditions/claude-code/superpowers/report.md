@@ -49,7 +49,7 @@ hidden_total: 7
 hidden_asked: 1
 hidden_covered: 5
 hidden_missed: 1
-hidden_matches_answer:     # how many of the 7 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: 6      # first pass (before any follow-up), yes = 1, partly = 0.5: yes: 1, 2, 3, 4, 5, 7; missed (0): 6 (cell partly, not counted) (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 7
@@ -175,17 +175,17 @@ Measured from the three saved `<repo>.diff` files in this folder (post-implement
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`. **Matches is left empty:** the per-requirement result was not recorded by the operator (section 4); the evidence column cites the saved diff and the agent's answer at T1.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Plain text, max 250 chars | covered | | `saleor.diff:1028,1036` `CharField(max_length=250, blank=True, null=True)` on Product and ProductTranslation; agent at T1: plain text, 250, INVALID error on create/update/translate/bulk translate, single-line dashboard input (stated as an assumption in its first reply) |
-| 2 | Translatable | asked | | Answered by the operator (timeline #2) |
-| 3 | Product level, not variant | covered | | Agent at T1: product level only, no variant field (stated assumption) |
-| 4 | Shown only on the product page | covered | | Agent at T1: only the storefront description section and the dashboard (product + translations pages); not in cart, checkout, order lines, emails, listing cards, search, SEO |
-| 5 | Existing products: empty, schema migration only | covered | | `saleor/product/migrations/0211_product_storage_conditions.py` (nullable columns, no backfill); agent: existing products show nothing |
-| 6 | In API, webhook payload, CSV export; no filter | missed | | At T1 the agent said product webhook payload and CSV export omit it "by omission". After follow-up 1: `saleor/webhook/payloads.py` (`"storage_conditions"` in `PRODUCT_FIELDS`), `saleor/csv/utils/__init__.py` (`"storage conditions": "storage_conditions"`), `saleor/graphql/csv/enums.py` (`STORAGE_CONDITIONS`), plus tests |
-| 7 | Edit permission `MANAGE_PRODUCTS` | covered | | Agent at T1: edit uses existing `MANAGE_PRODUCTS` (create/update) and `MANAGE_TRANSLATIONS` (translate); anyone can read; no new permission. The diff changes no permission code (inherited) |
+| 1 | Plain text, max 250 chars | covered | yes | `saleor.diff:1028,1036` `CharField(max_length=250, blank=True, null=True)` on Product and ProductTranslation; agent at T1: plain text, 250, INVALID error on create/update/translate/bulk translate, single-line dashboard input (stated as an assumption in its first reply) |
+| 2 | Translatable | asked | yes | Answered by the operator (timeline #2) |
+| 3 | Product level, not variant | covered | yes | Agent at T1: product level only, no variant field (stated assumption) |
+| 4 | Shown only on the product page | covered | yes | Agent at T1: only the storefront description section and the dashboard (product + translations pages); not in cart, checkout, order lines, emails, listing cards, search, SEO |
+| 5 | Existing products: empty, schema migration only | covered | yes | `saleor/product/migrations/0211_product_storage_conditions.py` (nullable columns, no backfill); agent: existing products show nothing |
+| 6 | In API, webhook payload, CSV export; no filter | missed | partly (first pass: in API, no filter, but no webhook or CSV; "by omission"; follow-up fixed it) | At T1 the agent said product webhook payload and CSV export omit it "by omission". After follow-up 1: `saleor/webhook/payloads.py` (`"storage_conditions"` in `PRODUCT_FIELDS`), `saleor/csv/utils/__init__.py` (`"storage conditions": "storage_conditions"`), `saleor/graphql/csv/enums.py` (`STORAGE_CONDITIONS`), plus tests |
+| 7 | Edit permission `MANAGE_PRODUCTS` | covered | yes | Agent at T1: edit uses existing `MANAGE_PRODUCTS` (create/update) and `MANAGE_TRANSLATIONS` (translate); anyone can read; no new permission. The diff changes no permission code (inherited) |
 
 First-pass coverage (asked + covered): 6 of 7.
 

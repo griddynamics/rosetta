@@ -50,7 +50,7 @@ hidden_total: 7
 hidden_asked: 5
 hidden_covered: 2
 hidden_missed: 0
-hidden_matches_answer: 7   # how many of the 7 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: 7   # first pass (before any follow-up), yes = 1, partly = 0.5: yes: 1, 2, 3, 4, 5, 6, 7; no follow-ups, no missed rows (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 8
@@ -167,7 +167,7 @@ It reads the session log Claude Code writes for every run and reports tokens per
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |

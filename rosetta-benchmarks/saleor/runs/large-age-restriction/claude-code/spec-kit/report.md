@@ -47,9 +47,9 @@ retries: 0
 # Hidden questions (section 3). asked + covered + missed = hidden_total
 hidden_total: 9
 hidden_asked: 0
-hidden_covered: 5   # section 3: #1, #2, #3, #4, #7 (#4 covered, final code matches partly); was 4, so the sum was 8 of 9 (corrected 2026-10-26)
+hidden_covered: 5   # section 3: #1, #2, #3, #4, #7 (#4 covered, first pass matches partly); was 4 before 2026-10-26
 hidden_missed: 4
-hidden_matches_answer: not run   # needs a code check of the final diff (judge step); the earlier 5 was based on T1 answers
+hidden_matches_answer: 4.5   # yes: 1, 2, 3, 7; partly: 4; no: none; missed (0): 5, 6, 8, 9 (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
@@ -167,7 +167,7 @@ Raw `/cost` output at T1 and T2: paste it into Appendix A at the end of this fil
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |

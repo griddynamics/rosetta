@@ -49,7 +49,7 @@ hidden_total: 9
 hidden_asked: 1
 hidden_covered: 4
 hidden_missed: 4
-hidden_matches_answer:     # how many of the 9 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: 4.5   # yes: 1, 2, 3, 4; partly: 7; no: none; missed (0): 5, 6, 8, 9 (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12          # checked on 2026-11-04 after the run, on the saved diffs applied to a clean stack (section 4)
@@ -174,19 +174,19 @@ Measured from the three saved `<repo>.diff` files in this folder (made by the op
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`. **Matches is left empty:** the code has not been checked yet (section 4) and the diffs are not taken yet; the evidence below is the agent's own answer at T1 and its message at T2.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Existing customers with no birthday | covered | | T1: `User.date_of_birth` nullable, no backfill (`saleor/account/migrations/0106_user_date_of_birth.py`); no birthday = blocked from restricted products only (`AGE_RESTRICTION_NOT_MET`, `saleor/checkout/age_restrictions.py`); storefront settings page with a birthday editor and a notice why they were sent there |
-| 2 | Existing products unrestricted by default | covered | | T1: `Product.minimum_age` nullable, null = unrestricted (`saleor/product/migrations/0211_product_minimum_age.py`) |
-| 3 | Schema migration only, no backfill | covered | | T1: both migrations add a nullable column, no data step |
-| 4 | Guest: can browse, can't buy restricted | asked | | Answered by the operator (timeline #3). T1: guests get `AGE_RESTRICTED_LOGIN_REQUIRED`, storefront sends them to sign-in |
-| 5 | Lists / search / discounts / banners: visible with age label | missed | | T1: visible as before but no "18+" label ("not handled"). After follow-up 1 (T2 message): "18+" label on product cards, product page and cart drawer |
-| 6 | Marketing emails checked | missed | | T1: "not touched", payloads unverified. After follow-up 1: checked, Saleor core sends none; CHANGELOG documents the rule that recommendation emails/apps must exclude restricted products for ineligible customers |
-| 7 | Legal policies flagged for review | covered | | T1 answer (not in the first-pass final message): no terms/privacy changes; a self-declared, editable birthday "needs legal review". Flagged only when asked |
-| 8 | Birthday boundary + shop time zone | missed | | T1: calendar-date comparison, turn-today and Feb 29 → Mar 1 tested, but "today" was the UTC date. After follow-up 1: `Shop.timeZone` setting, "today" = shop-local date |
-| 9 | PII: only customer + super-admin see birthday; audit log | missed | | T1: readable by any staff/app with `MANAGE_USERS`/`MANAGE_STAFF`, no audit, plain text. In the T1 code: `resolve_date_of_birth` in `saleor/graphql/account/types.py`. After follow-up 1: customer + super-admin single lookups only, lists refused, apps and other staff refused, audit events for every super-admin read and change, `isAgeEligible` flag for others |
+| 1 | Existing customers with no birthday | covered | yes | T1: `User.date_of_birth` nullable, no backfill (`saleor/account/migrations/0106_user_date_of_birth.py`); no birthday = blocked from restricted products only (`AGE_RESTRICTION_NOT_MET`, `saleor/checkout/age_restrictions.py`); storefront settings page with a birthday editor and a notice why they were sent there |
+| 2 | Existing products unrestricted by default | covered | yes | T1: `Product.minimum_age` nullable, null = unrestricted (`saleor/product/migrations/0211_product_minimum_age.py`) |
+| 3 | Schema migration only, no backfill | covered | yes | T1: both migrations add a nullable column, no data step |
+| 4 | Guest: can browse, can't buy restricted | asked | yes | Answered by the operator (timeline #3). T1: guests get `AGE_RESTRICTED_LOGIN_REQUIRED`, storefront sends them to sign-in |
+| 5 | Lists / search / discounts / banners: visible with age label | missed | no (first pass: visible but no "18+" label; follow-up added it) | T1: visible as before but no "18+" label ("not handled"). After follow-up 1 (T2 message): "18+" label on product cards, product page and cart drawer |
+| 6 | Marketing emails checked | missed | no (first pass: "not touched", payloads unverified; follow-up checked it) | T1: "not touched", payloads unverified. After follow-up 1: checked, Saleor core sends none; CHANGELOG documents the rule that recommendation emails/apps must exclude restricted products for ineligible customers |
+| 7 | Legal policies flagged for review | covered | partly (first pass: the agent named neither the terms nor the privacy policy and raised a different legal concern, the self-declared birthday as an age-verification duty) | T1 answer (not in the first-pass final message): no terms/privacy changes; a self-declared, editable birthday "needs legal review". Flagged only when asked |
+| 8 | Birthday boundary + shop time zone | missed | partly (first pass: date comparison and Feb 29 right, but "today" was the UTC date, not the shop time zone; follow-up fixed it) | T1: calendar-date comparison, turn-today and Feb 29 → Mar 1 tested, but "today" was the UTC date. After follow-up 1: `Shop.timeZone` setting, "today" = shop-local date |
+| 9 | PII: only customer + super-admin see birthday; audit log | missed | no (first pass: any staff/app with `MANAGE_USERS`/`MANAGE_STAFF` could read it, no audit; follow-up fixed it) | T1: readable by any staff/app with `MANAGE_USERS`/`MANAGE_STAFF`, no audit, plain text. In the T1 code: `resolve_date_of_birth` in `saleor/graphql/account/types.py`. After follow-up 1: customer + super-admin single lookups only, lists refused, apps and other staff refused, audit events for every super-admin read and change, `isAgeEligible` flag for others |
 
 First-pass coverage (asked + covered): 5 of 9.
 

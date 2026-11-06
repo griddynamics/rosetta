@@ -49,7 +49,7 @@ hidden_total: 7
 hidden_asked: 4  
 hidden_covered: 3  
 hidden_missed: 0  
-hidden_matches_answer:     # how many of the 7 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: 7 # first pass (before any follow-up), yes = 1, partly = 0.5; yes: 1, 2, 3, 4, 5, 6, 7; no follow-ups, none missed (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 8  
@@ -145,17 +145,17 @@ Raw `/cost` output at T1 and T2: paste it into Appendix A at the end of this fil
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Plain text, max 250 chars | asked | | Asked in round 2 (timeline #3); answered with the key text |
-| 2 | Translatable | asked | | Asked in round 1 (timeline #2); answered with the key text |
-| 3 | Product level, not variant | covered | | Agent at T1: per product; the field is on `Product` and `ProductTranslation`, nothing on `ProductVariant` (spec §3, migration 0211, `ProductInput` / `Product.storageConditions`). It says it took "on a product" literally and did not ask about variants |
-| 4 | Shown only on the product page | asked | | Asked in round 1 as "how should the storefront show it" (timeline #2); answered with the key text and extra 2 |
-| 5 | Existing products: empty, schema migration only | covered | | Agent at T1: existing products get NULL; migration 0211 only adds two nullable columns, no default, no data migration or backfill; a fresh test DB applied it; a read-only product query on the dev DB returned null for existing products; dashboard shows an empty input, the storefront hides the block |
-| 6 | In API, webhook payload, CSV export; no filter | asked | | Asked in round 2 (timeline #3); answered with the key text |
-| 7 | Edit permission `MANAGE_PRODUCTS` | covered | | Agent at T1: edit needs `MANAGE_PRODUCTS` (create, update, bulk create), translate needs `MANAGE_TRANSLATIONS`; read is public with the same visibility as name and description; webhooks and CSV export inherit their own permissions. It says it did not specifically check that the new tests assert permission denial |
+| 1 | Plain text, max 250 chars | asked | yes | Asked in round 2 (timeline #3); answered with the key text |
+| 2 | Translatable | asked | yes | Asked in round 1 (timeline #2); answered with the key text |
+| 3 | Product level, not variant | covered | yes | Agent at T1: per product; the field is on `Product` and `ProductTranslation`, nothing on `ProductVariant` (spec §3, migration 0211, `ProductInput` / `Product.storageConditions`). It says it took "on a product" literally and did not ask about variants |
+| 4 | Shown only on the product page | asked | yes | Asked in round 1 as "how should the storefront show it" (timeline #2); answered with the key text and extra 2 |
+| 5 | Existing products: empty, schema migration only | covered | yes | Agent at T1: existing products get NULL; migration 0211 only adds two nullable columns, no default, no data migration or backfill; a fresh test DB applied it; a read-only product query on the dev DB returned null for existing products; dashboard shows an empty input, the storefront hides the block |
+| 6 | In API, webhook payload, CSV export; no filter | asked | yes | Asked in round 2 (timeline #3); answered with the key text |
+| 7 | Edit permission `MANAGE_PRODUCTS` | covered | yes | Agent at T1: edit needs `MANAGE_PRODUCTS` (create, update, bulk create), translate needs `MANAGE_TRANSLATIONS`; read is public with the same visibility as name and description; webhooks and CSV export inherit their own permissions. It says it did not specifically check that the new tests assert permission denial |
 
 ## 4. Done when: checked by the operator at T2
 

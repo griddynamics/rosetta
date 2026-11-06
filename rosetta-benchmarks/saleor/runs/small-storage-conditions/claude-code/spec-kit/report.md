@@ -49,7 +49,7 @@ hidden_total: 7
 hidden_asked: 0   
 hidden_covered: 4   
 hidden_missed: 3   
-hidden_matches_answer: 7 # how many of the 7 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: 4 # first pass (before any follow-up), yes = 1, partly = 0.5; yes: 3, 4, 5, 7; missed (0): 1, 2, 6 (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 8 
@@ -159,17 +159,17 @@ Raw `/cost` output at T1 and T2: paste it into Appendix A at the end of this fil
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Plain text, max 250 chars | yes | operator: works (overall check, not each step separately) | Agent's live check (T2 converge): product page saves the field |
-| 2 | Translatable | yes | operator: works (overall check, not each step separately) | Agent's live check: product page reloads and clears it; translation page save/reload/clear |
-| 3 | Product level, not variant | yes | operator: works (overall check, not each step separately) | Agent: field in API types and inputs, schema matches |
-| 4 | Shown only on the product page | yes | operator: works (overall check, not each step separately) | Agent's live check: storefront shows it, translation incl. `/pl` |
-| 5 | Existing products: empty, schema migration only | yes | operator: works (overall check, not each step separately) | Agent: storefront falls back / shows nothing when empty |
-| 6 | In API, webhook payload, CSV export; no filter | yes | operator: works (overall check, not each step separately) | Agent: migrations 0211/0212 nullable, no backfill; full suites pass |
-| 7 | Edit permission `MANAGE_PRODUCTS` | yes | operator: works (overall check, not each step separately) | Agent at T2: backend 4086 pass, ruff, no drift; dashboard type-check + jest 6153 pass; storefront tsc 0, vitest 811, eslint 0. Pre-existing failures: ruff on `.semgrep/` fixtures, storefront `core:lock:check`, `docs:check` |
+| 1 | Plain text, max 250 chars | missed | partly (first pass: plain text, optional, blank clears, but max 500, not 250; follow-up 1 fixed it) | Timeline #3: specify assumed optional plain text, max 500 chars; #6: max 500, trim, blank clears; #15: not covered (500 instead of 250); fixed by follow-up 1 (#16) |
+| 2 | Translatable | missed | no (first pass: not translatable; follow-up 2 fixed it) | Timeline #3: specify assumed not translated; #15: not covered (not translatable); fixed by follow-up 2 (#17-#19, #21), translation webhook keys completed at #24-#25 |
+| 3 | Product level, not variant | covered | yes | Timeline #3: own assumption product level (not variants); #6: field on Product; #15: covered |
+| 4 | Shown only on the product page | covered | yes | Timeline #3: no emails; #4/#6: storefront labelled line in the product description section only; #15: covered |
+| 5 | Existing products: empty, schema migration only | covered | yes | Timeline #4: migration after 0210; #6: migration 0211, blank allowed, no data step; #8: migration applied on the dev DB; #15: covered |
+| 6 | In API, webhook payload, CSV export; no filter | missed | partly (first pass: in API, no filter, but no webhook payload, no CSV export; follow-up 3 fixed it) | Timeline #3: CSV import/export out of scope, no search; #6: field in API schema; #15: not covered (no webhook payload, no CSV export); fixed by follow-up 3 (#22-#23) |
+| 7 | Edit permission `MANAGE_PRODUCTS` | covered | yes | Timeline #3: existing edit permissions; #9: permission claim holds (/products behind MANAGE_PRODUCTS); #15: covered |
 
 ## 4. Done when: checked by the operator at T2
 

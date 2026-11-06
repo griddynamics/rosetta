@@ -49,7 +49,7 @@ hidden_total: 7
 hidden_asked: 3  
 hidden_covered: 3  
 hidden_missed: 1  
-hidden_matches_answer:     # how many of the 7 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: 6 # first pass (before any follow-up), yes = 1, partly = 0.5; yes: 1, 2, 3, 4, 5, 7; missed (0): 6 (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 8  
@@ -156,17 +156,17 @@ Raw `/cost` output at T1 and T2: paste it into Appendix A at the end of this fil
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Plain text, max 250 chars | asked | | Asked in round 1 (timeline #2); answered with the key text |
-| 2 | Translatable | asked | | Asked in round 1 (timeline #2); answered with the key text |
-| 3 | Product level, not variant | covered | | Agent at T1: per product only, `Product.storage_conditions` in `saleor/product/models.py`, nothing on `ProductVariant`; spec §5 and CATALOG-CONTEXT.md ("Not on variants"). Asked-after check, answered correctly |
-| 4 | Shown only on the product page | asked | | Asked in round 1 (timeline #2); answered with the key text |
-| 5 | Existing products: empty, schema migration only | covered | | Agent at T1: migration 0211 adds the column with default "", existing rows "", no backfill; translation column nullable (NULL = use base value); test `test_product_storage_conditions_defaults_to_empty_string` |
-| 6 | In API, webhook payload, CSV export; no filter | missed | | Spec has no CSV export and nothing on product webhook payloads; follow-up sent 13:03 (timeline #6). Real CSV export checked at 14:51 as extra work 2 (see timeline #16): column present, value exact, empty value = empty cell (run as the task directly, no worker). After it, the spec (13:07) has webhooks (`PRODUCT_FIELDS`, subscription payloads) and CSV export (`ProductExportFields`), each with a test, no filter/search; recheck in code at T1 |
-| 7 | Edit permission `MANAGE_PRODUCTS` | covered | | Agent at T1: write needs `MANAGE_PRODUCTS` (tests), translations `MANAGE_TRANSLATIONS`; read public like `description`, test with an anonymous query; CSV export staff-only. Dashboard role gating not tested in the UI |
+| 1 | Plain text, max 250 chars | asked | yes | Asked in round 1 (timeline #2); answered with the key text |
+| 2 | Translatable | asked | yes | Asked in round 1 (timeline #2); answered with the key text |
+| 3 | Product level, not variant | covered | yes | Agent at T1: per product only, `Product.storage_conditions` in `saleor/product/models.py`, nothing on `ProductVariant`; spec §5 and CATALOG-CONTEXT.md ("Not on variants"). Asked-after check, answered correctly |
+| 4 | Shown only on the product page | asked | yes | Asked in round 1 (timeline #2); answered with the key text |
+| 5 | Existing products: empty, schema migration only | covered | yes | Agent at T1: migration 0211 adds the column with default "", existing rows "", no backfill; translation column nullable (NULL = use base value); test `test_product_storage_conditions_defaults_to_empty_string` |
+| 6 | In API, webhook payload, CSV export; no filter | missed | partly (first pass: in API, no filter, but no CSV export and nothing on product webhook payloads; the follow-up at the spec stage added them) | Spec has no CSV export and nothing on product webhook payloads; follow-up sent 13:03 (timeline #6). Real CSV export checked at 14:51 as extra work 2 (see timeline #16): column present, value exact, empty value = empty cell (run as the task directly, no worker). After it, the spec (13:07) has webhooks (`PRODUCT_FIELDS`, subscription payloads) and CSV export (`ProductExportFields`), each with a test, no filter/search; recheck in code at T1 |
+| 7 | Edit permission `MANAGE_PRODUCTS` | covered | yes | Agent at T1: write needs `MANAGE_PRODUCTS` (tests), translations `MANAGE_TRANSLATIONS`; read public like `description`, test with an anonymous query; CSV export staff-only. Dashboard role gating not tested in the UI |
 
 ## 4. Done when: checked by the operator at T2
 

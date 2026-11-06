@@ -49,7 +49,7 @@ hidden_total: 9
 hidden_asked: 6
 hidden_covered: 3
 hidden_missed: 0
-hidden_matches_answer: 8  # of 8 applicable; #5 replaced by the operator's variant
+hidden_matches_answer: 7.5  # of 8 applicable; yes: 1, 2, 3, 4, 6, 7, 9; partly: 8; #5 replaced by the operator's variant (n/a); missed (0): none (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
@@ -159,7 +159,7 @@ Raw `/cost` output at T1 and T2: paste it into Appendix A at the end of this fil
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
@@ -170,7 +170,7 @@ Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` /
 | 5 | Lists / search / discounts / banners: visible with age label | asked (variant) | n/a | operator replaced key #5 with a visibility rule (hidden for ineligible viewers); rounds 2–4; section 8 |
 | 6 | Marketing emails checked | covered | yes | T1 answer: grepped backend, no email recommends products; external apps must apply the rule themselves |
 | 7 | Legal policies flagged for review | covered | yes | T1 answer: privacy policy and terms need review (birthday collection, visibility, log retention, self-declared age); text outside the repos |
-| 8 | Birthday boundary + shop time zone | asked | yes | round 1 Q2; `saleor/account/age.py`: date-only comparison with `timezone.localdate()` (settings TIME_ZONE, UTC here; Saleor has no per-shop time zone), 29 Feb → 1 Mar |
+| 8 | Birthday boundary + shop time zone | asked | partly (date-only comparison, turns-today and 29 Feb ok; "today" is the server `TIME_ZONE`, not a shop time zone, same as L-CC-01 and L-CP-02) | round 1 Q2; `saleor/account/age.py`: date-only comparison with `timezone.localdate()` (settings TIME_ZONE, UTC here; Saleor has no per-shop time zone), 29 Feb → 1 Mar |
 | 9 | PII: only customer + super-admin see birthday; audit log | asked | yes | round 1 Q5, rounds 2, 4, 5; `resolve_birthday` owner/superuser only (superuser read logged); customer webhook payload uses a fixed field list without birthday; `test_birthday_leaks.py`; live check Done when #10 |
 
 ## 4. Done when: checked by the operator at T2

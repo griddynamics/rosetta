@@ -49,7 +49,7 @@ hidden_total: 9
 hidden_asked: 7
 hidden_covered: 2
 hidden_missed: 0
-hidden_matches_answer: not run   # how many of the 9 the ORIGINAL result (first pass, before follow-ups) follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: 7     # yes: 1, 2, 3, 4, 6, 7; partly: 5, 9; no: 8 (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
@@ -268,10 +268,10 @@ Matches = the ORIGINAL result (first pass, before any follow-up) follows the ans
 | 2 | Existing products unrestricted by default | asked | yes | Q26 and Q28: key text; `isAgeRestricted` nullable, `null` for existing products (API check) |
 | 3 | Schema migration only, no backfill | asked | yes | Q26 and Q28: schema migrations only (account 0106–0108, product 0211, site 0053), no backfill |
 | 4 | Guest: can browse, can't buy restricted | asked | yes | Q2, Q14, Q21: key text; guest blocked at add and at completion (`AGE_RESTRICTED_PRODUCT_GUEST`), storefront asks to sign in (section 4, #5, #9) |
-| 5 | Lists / search / discounts / banners: visible with age label | asked | yes | Q9, Q17, Q27: key text; all four juices listed, Carrot Juice labelled 18+ in the list and on the product page (section 4, #9) |
+| 5 | Lists / search / discounts / banners: visible with age label | asked | partly (first pass, reconstructed, not observed at T1: the label code was in place, but the product page awaits an anonymous `getMinimumPurchaseAge()` with no `try/catch` (`react-storefront.diff`), and `Shop.minimumPurchaseAge` required `MANAGE_SETTINGS` until follow-up 5 (timeline row 16), so the page would have thrown, as the home page did. No follow-up changed storefront code (timeline rows 12–16). The hidden-check at T1 skipped #5 because it was asked, so the label was first checked after follow-up 5) | Q9, Q17, Q27: key text; all four juices listed, Carrot Juice labelled 18+ in the list and on the product page (section 4, #9) |
 | 6 | Marketing emails checked | covered | yes | Hidden-question check (row 11): no product-recommendation email flow found in the three repos, none added |
 | 7 | Legal policies flagged for review | covered | yes | Row 11: policy text not changed; privacy policy should be updated, terms depend on jurisdiction |
-| 8 | Birthday boundary + shop time zone | asked | partly | Q3: key text. Today's birthday and 29 February are handled (after follow-up 3); "today" uses Django's `timezone.localdate()`, not a shop time-zone setting |
+| 8 | Birthday boundary + shop time zone | asked | no (first pass: `is_old_enough` blocked adults whose birthday had not come yet this year; follow-up 3 fixed it; "today" is still the server date, no shop time zone) | Q3: key text. Today's birthday and 29 February are handled (after follow-up 3); "today" uses Django's `timezone.localdate()`, not a shop time-zone setting |
 | 9 | PII: only customer + super-admin see birthday; audit log | asked | partly | Q6, Q15, Q16, Q25, Q30: key text; date visible to the owner and superuser only, flag to owner and MANAGE_USERS staff, value-free CustomerEvents. Audit of every change not verified by the operator |
 
 ## 4. Done when: checked by the operator at T2

@@ -49,7 +49,7 @@ hidden_total: 7
 hidden_asked: 3
 hidden_covered: 3
 hidden_missed: 1
-hidden_matches_answer:     # how many of the 7 the final code follows the answer key (yes = 1, partly = 0.5)
+hidden_matches_answer: 6     # yes: 1, 2, 3, 4, 5, 7; missed (0): 6 (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 8
@@ -311,17 +311,17 @@ Raw `/usage` and `/context` output at T1 and T2: in the block above, next to the
 ## 3. Hidden questions
 
 Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
-Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
+Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Plain text, max 250 chars | asked |  | Asked in the design talk (timeline row 7); answered with the key text |
-| 2 | Translatable | asked |  | Asked in the design talk (timeline row 4); answered with the key text |
-| 3 | Product level, not variant | covered |  | T1 answer: per product, `Product.storage_conditions` and `ProductTranslation.storage_conditions`; no variant field |
-| 4 | Shown only on the product page | asked |  | Asked in the design talk (timeline row 9); answered with the key text and extra answer 2 |
-| 5 | Existing products: empty, schema migration only | covered |  | T1 answer: migration `0211_product_storage_conditions.py`, nullable columns, existing rows NULL, no backfill |
-| 6 | In API, webhook payload, CSV export; no filter | not covered |  | T1 answer: "Not handled / intentionally out of scope": no CSV import/export, webhook payload or filter changes. Follow-up pending (the operator writes it) |
-| 7 | Edit permission `MANAGE_PRODUCTS` | covered |  | T1 answer: `MANAGE_PRODUCTS` for create/update/translate; reads follow existing product visibility rules, storefront customers read it through the PDP query |
+| 1 | Plain text, max 250 chars | asked | yes | Asked in the design talk (timeline row 7); answered with the key text |
+| 2 | Translatable | asked | yes | Asked in the design talk (timeline row 4); answered with the key text |
+| 3 | Product level, not variant | covered | yes | T1 answer: per product, `Product.storage_conditions` and `ProductTranslation.storage_conditions`; no variant field |
+| 4 | Shown only on the product page | asked | yes | Asked in the design talk (timeline row 9); answered with the key text and extra answer 2 |
+| 5 | Existing products: empty, schema migration only | covered | yes | T1 answer: migration `0211_product_storage_conditions.py`, nullable columns, existing rows NULL, no backfill |
+| 6 | In API, webhook payload, CSV export; no filter | missed | partly (first pass: API exposure and no filter met; webhook payload and CSV export not done; follow-up fixed it) | T1 answer: "Not handled / intentionally out of scope": no CSV import/export, webhook payload or filter changes. Follow-ups sent (timeline rows 39, 41); webhook payload and CSV export added by row 58 |
+| 7 | Edit permission `MANAGE_PRODUCTS` | covered | yes | T1 answer: `MANAGE_PRODUCTS` for create/update/translate; reads follow existing product visibility rules, storefront customers read it through the PDP query |
 
 ## 4. Done when: checked by the operator at T2
 
