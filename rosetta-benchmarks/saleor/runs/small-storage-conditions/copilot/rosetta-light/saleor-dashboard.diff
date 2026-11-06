@@ -1,36 +1,27 @@
 diff --git a/locale/defaultMessages.json b/locale/defaultMessages.json
-index 93af9bf..81ee7a1 100644
+index 93af9bf..78ae516 100644
 --- a/locale/defaultMessages.json
 +++ b/locale/defaultMessages.json
-@@ -8499,6 +8499,9 @@
-     "context": "column title assigned to customer",
-     "string": "Assigned to"
+@@ -12477,6 +12477,10 @@
+     "context": "onboarding title",
+     "string": "Let’s Get Started ({count}/{total})"
    },
-+  "TctHNm": {
-+    "string": "{count} / {max} characters"
-+  },
-   "TdTXXf": {
-     "string": "Learn more"
-   },
-@@ -9301,6 +9304,9 @@
-     "context": "settings search alias",
-     "string": "returns"
-   },
-+  "WfpOuz": {
++  "iJVHSn": {
++    "context": "product storage conditions",
 +    "string": "Storage conditions"
 +  },
-   "WhKGPA": {
-     "context": "page title",
-     "string": "Set up new password"
+   "iK8hZU": {
+     "context": "activate app",
+     "string": "Are you sure you want to activate this extension? Activating will start gathering events."
 diff --git a/schema-main.graphql b/schema-main.graphql
-index 0565113..2e45076 100644
+index 0565113..fbce76c 100644
 --- a/schema-main.graphql
 +++ b/schema-main.graphql
 @@ -4198,6 +4198,9 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes {
    """
    description: JSONString
  
-+  """Product storage conditions."""
++  """Storage conditions of the product."""
 +  storageConditions: String
 +
    """Type of the product."""
@@ -40,7 +31,7 @@ index 0565113..2e45076 100644
    """
    description: JSONString
  
-+  """Translated product storage conditions."""
++  """Translated storage conditions of the product."""
 +  storageConditions: String
 +
    """
@@ -51,7 +42,7 @@ index 0565113..2e45076 100644
    """
    description: JSONString
 +
-+  """Translated product storage conditions."""
++  """Translated storage conditions."""
 +  storageConditions: String
  }
  
@@ -87,26 +78,26 @@ index 0565113..2e45076 100644
    name: String
  
 diff --git a/src/fragments/products.ts b/src/fragments/products.ts
-index c17c983..7fec869 100644
+index c17c983..de08f7e 100644
 --- a/src/fragments/products.ts
 +++ b/src/fragments/products.ts
 @@ -218,6 +218,7 @@ export const productFragmentDetails = gql`
      name
      slug
      description
-+    storageConditions
++    storageConditions @lockSchema(schema: "main")
      seoTitle
      seoDescription
      rating
 diff --git a/src/fragments/translations.ts b/src/fragments/translations.ts
-index f7b23c7..442e2a7 100644
+index f7b23c7..733ba7d 100644
 --- a/src/fragments/translations.ts
 +++ b/src/fragments/translations.ts
 @@ -80,6 +80,7 @@ export const productTranslationFragment = gql`
        id
        name
        description
-+      storageConditions
++      storageConditions @lockSchema(schema: "main")
        slug
        seoDescription
        seoTitle
@@ -114,19 +105,19 @@ index f7b23c7..442e2a7 100644
        seoDescription
        name
        description
-+      storageConditions
++      storageConditions @lockSchema(schema: "main")
        language {
          code
          language
 diff --git a/src/graphql/fabbrica.generated.ts b/src/graphql/fabbrica.generated.ts
-index 9d7f6c6..5466f01 100644
+index 9d7f6c6..cf0e0a5 100644
 --- a/src/graphql/fabbrica.generated.ts
 +++ b/src/graphql/fabbrica.generated.ts
 @@ -25388,6 +25388,8 @@ export type OptionalProduct = {
    seoTitle?: Product['seoTitle'] | undefined;
    /** Slug of the product. */
    slug?: Product['slug'] | undefined;
-+  /** Product storage conditions. */
++  /** Storage conditions of the product. */
 +  storageConditions?: Product['storageConditions'] | undefined;
    /**
   * Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
@@ -162,7 +153,7 @@ index 9d7f6c6..5466f01 100644
   * Added in Saleor 3.21.
   */
    slug?: ProductTranslation['slug'] | undefined;
-+  /** Translated product storage conditions. */
++  /** Translated storage conditions of the product. */
 +  storageConditions?: ProductTranslation['storageConditions'] | undefined;
    /** Represents the product fields to translate. */
    translatableContent?: Maybe<OptionalProductTranslatableContent> | undefined;
@@ -171,20 +162,20 @@ index 9d7f6c6..5466f01 100644
    seoDescription?: TranslationInput['seoDescription'] | undefined;
    seoTitle?: TranslationInput['seoTitle'] | undefined;
    slug?: TranslationInput['slug'] | undefined;
-+  /** Translated product storage conditions. */
++  /** Translated storage conditions. */
 +  storageConditions?: TranslationInput['storageConditions'] | undefined;
  };
  
  /**
 diff --git a/src/graphql/fabbricaTypes.generated.ts b/src/graphql/fabbricaTypes.generated.ts
-index ed61f5c..5831f3e 100644
+index ed61f5c..b649a11 100644
 --- a/src/graphql/fabbricaTypes.generated.ts
 +++ b/src/graphql/fabbricaTypes.generated.ts
 @@ -22386,6 +22386,8 @@ export type Product = Node & ObjectWithAttributes & ObjectWithMetadata & {
    seoTitle: Maybe<Scalars['String']['output']>;
    /** Slug of the product. */
    slug: Scalars['String']['output'];
-+  /** Product storage conditions. */
++  /** Storage conditions of the product. */
 +  storageConditions: Maybe<Scalars['String']['output']>;
    /**
     * Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
@@ -220,7 +211,7 @@ index ed61f5c..5831f3e 100644
     * Added in Saleor 3.21.
     */
    slug: Maybe<Scalars['String']['output']>;
-+  /** Translated product storage conditions. */
++  /** Translated storage conditions of the product. */
 +  storageConditions: Maybe<Scalars['String']['output']>;
    /** Represents the product fields to translate. */
    translatableContent: Maybe<ProductTranslatableContent>;
@@ -229,20 +220,20 @@ index ed61f5c..5831f3e 100644
    seoDescription: InputMaybe<Scalars['String']['input']>;
    seoTitle: InputMaybe<Scalars['String']['input']>;
    slug: InputMaybe<Scalars['String']['input']>;
-+  /** Translated product storage conditions. */
++  /** Translated storage conditions. */
 +  storageConditions: InputMaybe<Scalars['String']['input']>;
  };
  
  export type TranslationTypes = AttributeTranslation | AttributeValueTranslation | CategoryTranslation | CollectionTranslation | MenuItemTranslation | PageTranslation | ProductMediaTranslation | ProductTranslation | ProductVariantTranslation | PromotionRuleTranslation | PromotionTranslation | SaleTranslation | ShippingMethodTranslation | VoucherTranslation;
 diff --git a/src/graphql/hooks.generated.ts b/src/graphql/hooks.generated.ts
-index 3bb8791..ddaf440 100644
+index 3bb8791..1cf3dd3 100644
 --- a/src/graphql/hooks.generated.ts
 +++ b/src/graphql/hooks.generated.ts
 @@ -3462,6 +3462,7 @@ export const ProductFragmentDoc = gql`
    name
    slug
    description
-+  storageConditions
++  storageConditions @lockSchema(schema: "main")
    seoTitle
    seoDescription
    rating
@@ -250,7 +241,7 @@ index 3bb8791..ddaf440 100644
      id
      name
      description
-+    storageConditions
++    storageConditions @lockSchema(schema: "main")
      slug
      seoDescription
      seoTitle
@@ -258,7 +249,7 @@ index 3bb8791..ddaf440 100644
      seoDescription
      name
      description
-+    storageConditions
++    storageConditions @lockSchema(schema: "main")
      language {
        code
        language
@@ -266,14 +257,14 @@ index 3bb8791..ddaf440 100644
        id
        name
        description
-+      storageConditions
++      storageConditions @lockSchema(schema: "main")
        seoDescription
        seoTitle
        slug
        translation(languageCode: $language) {
          id
          description
-+        storageConditions
++        storageConditions @lockSchema(schema: "main")
          language {
            code
            language
@@ -316,7 +307,7 @@ index 560c483..934f343 100644
  };
  export type ProductTypeKeySpecifier = ('assignedVariantAttributes' | 'availableAttributes' | 'hasVariants' | 'id' | 'isDigital' | 'isShippingRequired' | 'kind' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productAttributes' | 'products' | 'slug' | 'taxClass' | 'taxType' | 'variantAttributes' | 'weight' | ProductTypeKeySpecifier)[];
 diff --git a/src/graphql/types.generated.ts b/src/graphql/types.generated.ts
-index 8738069..857aafa 100644
+index 8738069..5f68f85 100644
 --- a/src/graphql/types.generated.ts
 +++ b/src/graphql/types.generated.ts
 @@ -7079,6 +7079,8 @@ export type ProductBulkCreateInput = {
@@ -350,7 +341,7 @@ index 8738069..857aafa 100644
    seoDescription?: InputMaybe<Scalars['String']['input']>;
    seoTitle?: InputMaybe<Scalars['String']['input']>;
    slug?: InputMaybe<Scalars['String']['input']>;
-+  /** Translated product storage conditions. */
++  /** Translated storage conditions. */
 +  storageConditions?: InputMaybe<Scalars['String']['input']>;
  };
  
@@ -409,405 +400,314 @@ index 8738069..857aafa 100644
  
  export type ProductVariantTranslationDetailsQueryVariables = Exact<{
    id: Scalars['ID']['input'];
+diff --git a/src/intl.ts b/src/intl.ts
+index 3f22ba6..23b72c7 100644
+--- a/src/intl.ts
++++ b/src/intl.ts
+@@ -38,6 +38,11 @@ export const commonMessages = defineMessages({
+     id: "Q8Qw5B",
+     defaultMessage: "Description",
+   },
++  storageConditions: {
++    id: "iJVHSn",
++    defaultMessage: "Storage conditions",
++    description: "product storage conditions",
++  },
+   descriptionOptional: {
+     id: "bZenNC",
+     defaultMessage: "Description (optional)",
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
+index 417fff3..39374a2 100644
+--- a/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
+@@ -29,7 +29,12 @@ const ProductDetailsFormPlayground = ({
+   rating,
+   withShippingWeight = false,
+ }: PlaygroundProps): React.ReactNode => {
+-  const [data, setData] = useState({ name: "Olive oil", description: { blocks: [] }, rating });
++  const [data, setData] = useState({
++    name: "Olive oil",
++    description: { blocks: [] },
++    rating,
++    storageConditions: "",
++  });
+   const [weight, setWeight] = useState("0.5");
+   const richText = useRichText({ initial: description, triggerChange: () => undefined });
+ 
 diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
-index f54cb77..60d9704 100644
+index f54cb77..f7f62a4 100644
 --- a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
 +++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
-@@ -6,6 +6,11 @@ import { RichTextEditorClamp } from "@dashboard/components/RichTextEditor/RichTe
- import { RichTextEditorLoading } from "@dashboard/components/RichTextEditor/RichTextEditorLoading";
- import { type ProductErrorFragment } from "@dashboard/graphql";
- import { commonMessages } from "@dashboard/intl";
-+import {
-+  isStorageConditionsValid,
-+  normalizeStorageConditions,
-+  STORAGE_CONDITIONS_MAX_LENGTH,
-+} from "@dashboard/products/storageConditions";
- import { getFormErrors, getProductErrorMessage } from "@dashboard/utils/errors";
- import createNonNegativeValueChangeHandler from "@dashboard/utils/handlers/nonNegativeValueChangeHandler";
- import { useRichTextContext } from "@dashboard/utils/richText/context";
-@@ -18,6 +23,7 @@ interface ProductDetailsFormProps {
+@@ -18,6 +18,7 @@ interface ProductDetailsFormProps {
      description: OutputData;
      name: string;
      rating: number | null;
-+    storageConditions?: string;
++    storageConditions: string;
    };
    /** Simple products carry weight here. Variants keep it on the variant. */
    shippingWeight?: {
-@@ -38,9 +44,15 @@ export const ProductDetailsForm = ({
+@@ -38,7 +39,10 @@ export const ProductDetailsForm = ({
    onDescriptionChange,
  }: ProductDetailsFormProps) => {
    const intl = useIntl();
 -  const formErrors = getFormErrors(["name", "description", "rating", "weight"], errors);
 +  const formErrors = getFormErrors(
-+    ["name", "description", "rating", "storageConditions", "weight"],
++    ["name", "description", "rating", "weight", "storageConditions"],
 +    errors,
 +  );
    const { editorRef, defaultValue, isReadyForMount, handleChange } = useRichTextContext();
    const handleWeightChange = createNonNegativeValueChangeHandler(onChange);
-+  const storageConditions = data.storageConditions ?? "";
-+  const storageConditionsLength = normalizeStorageConditions(storageConditions)?.length ?? 0;
-+  const storageConditionsInvalid = !isStorageConditionsValid(storageConditions);
  
-   return (
-     <DetailSettingsCard
-@@ -90,6 +102,29 @@ export const ProductDetailsForm = ({
+@@ -90,6 +94,18 @@ export const ProductDetailsForm = ({
          />
        )}
        <FormSpacer />
 +      <Input
-+        label={intl.formatMessage({
-+          id: "WfpOuz",
-+          defaultMessage: "Storage conditions",
-+        })}
++        label={intl.formatMessage(commonMessages.storageConditions)}
 +        size="small"
-+        value={storageConditions}
++        value={data.storageConditions || ""}
 +        onChange={onChange}
-+        error={storageConditionsInvalid || !!formErrors.storageConditions}
++        error={!!formErrors.storageConditions}
 +        name="storageConditions"
++        maxLength={255}
 +        disabled={disabled}
-+        helperText={
-+          getProductErrorMessage(formErrors.storageConditions, intl) ||
-+          intl.formatMessage(
-+            {
-+              id: "TctHNm",
-+              defaultMessage: "{count} / {max} characters",
-+            },
-+            { count: storageConditionsLength, max: STORAGE_CONDITIONS_MAX_LENGTH },
-+          )
-+        }
++        helperText={getProductErrorMessage(formErrors.storageConditions, intl)}
 +      />
 +      <FormSpacer />
        <Box display="grid" __gridTemplateColumns="1fr 1fr" gap={4} alignItems="start">
          <Input
            label={intl.formatMessage({
-diff --git a/src/products/components/ProductUpdatePage/form.tsx b/src/products/components/ProductUpdatePage/form.tsx
-index a03c8de..93b46dd 100644
---- a/src/products/components/ProductUpdatePage/form.tsx
-+++ b/src/products/components/ProductUpdatePage/form.tsx
-@@ -45,6 +45,7 @@ import {
-   syncVariantGridStagedEditsFromPage,
-   type VariantGridStagedEditsState,
- } from "@dashboard/products/hooks/variantGridStagedEdits";
-+import { isStorageConditionsValid } from "@dashboard/products/storageConditions";
- import {
-   getAttributeInputFromProduct,
-   getProductUpdatePageFormData,
-@@ -549,7 +550,7 @@ export function useProductUpdateForm(
-       return false;
-     }
+diff --git a/src/products/components/ProductUpdatePage/form.test.ts b/src/products/components/ProductUpdatePage/form.test.ts
+index db3d2b4..34a75a5 100644
+--- a/src/products/components/ProductUpdatePage/form.test.ts
++++ b/src/products/components/ProductUpdatePage/form.test.ts
+@@ -39,6 +39,7 @@ const formOpts = { variants: [] } as unknown as UseProductUpdateFormOpts;
+ const productWithName = {
+   name: "Original product",
+   slug: "original-product",
++  storageConditions: "Store in a cool, dry place",
+   channelListings: [],
+   attributes: [],
+ } as unknown as ProductFragment;
+@@ -216,6 +217,51 @@ describe("useProductUpdateForm", () => {
+       expect(result.current.isSaveDisabled).toBe(false);
+     });
  
--    return true;
-+    return isStorageConditionsValid(data.storageConditions);
-   };
-   const isSaveDisabled = disabled || !hasUnsavedChanges || !isValid();
-   const isSubmitDisabled = isSaveDisabled;
++    it("initializes and submits changed storage conditions", async () => {
++      // Arrange
++      const mockOnSubmit = jest.fn().mockResolvedValue([]);
++      const { result } = renderHook(() =>
++        useProductUpdateForm(productWithName, mockOnSubmit, false, jest.fn(), formOpts),
++      );
++
++      expect(result.current.data.storageConditions).toBe("Store in a cool, dry place");
++
++      // Act
++      act(() => {
++        result.current.change({
++          target: { name: "storageConditions", value: "Keep refrigerated" },
++        });
++      });
++      await act(async () => {
++        await result.current.submit();
++      });
++
++      // Assert
++      expect(mockOnSubmit.mock.calls[0][0]).toHaveProperty(
++        "storageConditions",
++        "Keep refrigerated",
++      );
++    });
++
++    it("submits an empty storage conditions value when explicitly cleared", async () => {
++      // Arrange
++      const mockOnSubmit = jest.fn().mockResolvedValue([]);
++      const { result } = renderHook(() =>
++        useProductUpdateForm(productWithName, mockOnSubmit, false, jest.fn(), formOpts),
++      );
++
++      // Act
++      act(() => {
++        result.current.change({ target: { name: "storageConditions", value: "" } });
++      });
++      await act(async () => {
++        await result.current.submit();
++      });
++
++      // Assert
++      expect(mockOnSubmit.mock.calls[0][0]).toHaveProperty("storageConditions", "");
++    });
++
+     it("clears Save composition and disables Save after name is reverted", () => {
+       // Arrange
+       const { result } = renderHook(() =>
 diff --git a/src/products/components/ProductUpdatePage/saveComposition.ts b/src/products/components/ProductUpdatePage/saveComposition.ts
-index 9e2c6bd..b945320 100644
+index 9e2c6bd..63cfdc2 100644
 --- a/src/products/components/ProductUpdatePage/saveComposition.ts
 +++ b/src/products/components/ProductUpdatePage/saveComposition.ts
-@@ -6,6 +6,7 @@ export const PRODUCT_DETAILS_SAVE_FIELDS: ReadonlyArray<keyof ProductUpdateFormD
+@@ -4,6 +4,7 @@ import { type ProductUpdateFormData } from "./types";
+ export const PRODUCT_DETAILS_SAVE_FIELDS: ReadonlyArray<keyof ProductUpdateFormData> = [
+   "name",
    "slug",
++  "storageConditions",
    "seoTitle",
    "seoDescription",
-+  "storageConditions",
    "rating",
-   "weight",
-   "taxClassId",
 diff --git a/src/products/components/ProductUpdatePage/types.ts b/src/products/components/ProductUpdatePage/types.ts
-index e236f93..46d6adf 100644
+index e236f93..8bd1118 100644
 --- a/src/products/components/ProductUpdatePage/types.ts
 +++ b/src/products/components/ProductUpdatePage/types.ts
-@@ -47,6 +47,7 @@ export interface ProductUpdateFormData {
+@@ -44,6 +44,7 @@ export interface ProductUpdateFormData {
+   name: string;
+   rating: number;
+   slug: string;
++  storageConditions: string;
    seoDescription: string;
    seoTitle: string;
    sku: string;
-+  storageConditions: string;
-   trackInventory: boolean;
-   weight: string;
- }
 diff --git a/src/products/fixtures.ts b/src/products/fixtures.ts
-index 15487df..b81d6ad 100644
+index 15487df..b5d54d0 100644
 --- a/src/products/fixtures.ts
 +++ b/src/products/fixtures.ts
-@@ -273,6 +273,7 @@ export const product: (
-     trackInventory: true,
-   },
-   description: JSON.stringify(content),
+@@ -333,6 +333,7 @@ export const product: (
+     },
+   ],
+   name: "Ergonomic Plastic Bacon",
 +  storageConditions: null,
-   id: "p10171",
-   isAvailable: false,
-   isAvailableForPurchase: false,
-diff --git a/src/products/storageConditions.test.ts b/src/products/storageConditions.test.ts
-new file mode 100644
-index 0000000..8f06c72
---- /dev/null
-+++ b/src/products/storageConditions.test.ts
-@@ -0,0 +1,22 @@
-+import {
-+  isStorageConditionsValid,
-+  normalizeStorageConditions,
-+  STORAGE_CONDITIONS_MAX_LENGTH,
-+} from "./storageConditions";
+   privateMetadata: [],
+   productType: {
+     __typename: "ProductType",
+diff --git a/src/products/utils/data.test.ts b/src/products/utils/data.test.ts
+index fb12c7c..1e88c98 100644
+--- a/src/products/utils/data.test.ts
++++ b/src/products/utils/data.test.ts
+@@ -1,4 +1,6 @@
+-import { getSelectedMedia } from "./data";
++import { type ProductFragment } from "@dashboard/graphql";
 +
-+describe("storage conditions", () => {
-+  it("normalizes whitespace and accepts exactly 250 characters", () => {
-+    const value = `\n ${"a".repeat(STORAGE_CONDITIONS_MAX_LENGTH)} \r\n`;
++import { getProductUpdatePageFormData, getSelectedMedia } from "./data";
+ 
+ type GetSelectedMediaParams = Parameters<typeof getSelectedMedia>;
+ 
+@@ -44,6 +46,7 @@ describe("Product media utils", () => {
+ 
+     expect(result).toEqual(expectedResult);
+   });
 +
-+    expect(normalizeStorageConditions(value)).toHaveLength(STORAGE_CONDITIONS_MAX_LENGTH);
-+    expect(isStorageConditionsValid(value)).toBe(true);
-+  });
+   it("should return empty array of media when no media ids passed", () => {
+     // Arrange
+     const media: GetSelectedMediaParams[0] = [
+@@ -72,3 +75,19 @@ describe("Product media utils", () => {
+     expect(result).toEqual([]);
+   });
+ });
 +
-+  it("rejects normalized values longer than 250 characters", () => {
-+    expect(isStorageConditionsValid("a".repeat(STORAGE_CONDITIONS_MAX_LENGTH + 1))).toBe(false);
-+  });
++describe("getProductUpdatePageFormData", () => {
++  it("initializes storage conditions from the product default", () => {
++    const product = {
++      storageConditions: "Keep refrigerated",
++    } as ProductFragment;
 +
-+  it("maps whitespace-only values to null", () => {
-+    expect(normalizeStorageConditions(" \n\t ")).toBeNull();
-+  });
++    expect(getProductUpdatePageFormData(product, []).storageConditions).toBe("Keep refrigerated");
++  }, 1000);
++
++  it("defaults missing storage conditions to an empty string", () => {
++    const product = {} as ProductFragment;
++
++    expect(getProductUpdatePageFormData(product, []).storageConditions).toBe("");
++  }, 1000);
 +});
-diff --git a/src/products/storageConditions.ts b/src/products/storageConditions.ts
-new file mode 100644
-index 0000000..479f369
---- /dev/null
-+++ b/src/products/storageConditions.ts
-@@ -0,0 +1,10 @@
-+export const STORAGE_CONDITIONS_MAX_LENGTH = 250;
-+
-+export const normalizeStorageConditions = (value: string): string | null => {
-+  const normalized = value.replace(/\s+/g, " ").trim();
-+
-+  return normalized || null;
-+};
-+
-+export const isStorageConditionsValid = (value: string): boolean =>
-+  (normalizeStorageConditions(value)?.length ?? 0) <= STORAGE_CONDITIONS_MAX_LENGTH;
 diff --git a/src/products/utils/data.ts b/src/products/utils/data.ts
-index fd355af..d11b51f 100644
+index fd355af..4716b5c 100644
 --- a/src/products/utils/data.ts
 +++ b/src/products/utils/data.ts
-@@ -214,6 +214,7 @@ export function getProductUpdatePageFormData(
-       "",
-     ),
-     slug: product?.slug || "",
-+    storageConditions: product?.storageConditions ?? "",
-     trackInventory: !!variant?.trackInventory,
-     weight: product?.weight?.value.toString() || "",
-   };
+@@ -207,6 +207,7 @@ export function getProductUpdatePageFormData(
+     isAvailable: !!product?.isAvailable,
+     name: maybe(() => product.name, ""),
+     rating: maybe(() => product.rating, null),
++    storageConditions: maybe(() => product.storageConditions, ""),
+     seoDescription: maybe(() => product.seoDescription, ""),
+     seoTitle: maybe(() => product.seoTitle, ""),
+     sku: maybe(
 diff --git a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
-index fd11549..bfa4be8 100644
+index fd11549..cf699b3 100644
 --- a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
 +++ b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
 @@ -100,6 +100,7 @@ const submitData: ProductUpdateSubmitData = {
    seoTitle: "",
    sku: "",
    slug: product.slug,
-+  storageConditions: "",
++  storageConditions: undefined as unknown as string,
    taxClassId: "",
    trackInventory: true,
    weight: "",
 diff --git a/src/products/views/ProductUpdate/handlers/utils.test.ts b/src/products/views/ProductUpdate/handlers/utils.test.ts
-index f5bcd9c..ba5e80c 100644
+index f5bcd9c..34fabf8 100644
 --- a/src/products/views/ProductUpdate/handlers/utils.test.ts
 +++ b/src/products/views/ProductUpdate/handlers/utils.test.ts
-@@ -558,4 +558,56 @@ describe("getProductUpdateVariables", () => {
-     // Assert
-     expect(result.input.seo).toBeUndefined();
-   });
-+
-+  it("normalizes and includes changed storage conditions", () => {
-+    const data = {
-+      ...baseData,
-+      storageConditions: `  ${"a".repeat(250)}\n`,
-+    } as ProductUpdateSubmitData;
-+
-+    const result = getProductUpdateVariables(baseProduct, data, []);
-+
-+    expect(result.input.storageConditions).toBe("a".repeat(250));
-+  });
-+
-+  it("does not include overlong storage conditions", () => {
-+    const data = {
-+      ...baseData,
-+      storageConditions: "a".repeat(251),
-+    } as ProductUpdateSubmitData;
-+
-+    const result = getProductUpdateVariables(baseProduct, data, []);
+@@ -309,6 +309,7 @@ describe("getProductUpdateVariables", () => {
+     collections: [],
+     description: null,
+     name: "Test Product",
++    storageConditions: undefined,
+     rating: null,
+     slug: "test-product",
+     taxClassId: null,
+@@ -316,6 +317,28 @@ describe("getProductUpdateVariables", () => {
+     seoTitle: null,
+   } as ProductUpdateSubmitData;
+ 
++  it("omits unchanged storage conditions from product update variables", () => {
++    const result = getProductUpdateVariables(baseProduct, baseData, []);
 +
 +    expect(result.input.storageConditions).toBeUndefined();
 +  });
 +
-+  it("sends null to clear storage conditions", () => {
-+    const productWithStorageConditions = {
-+      ...baseProduct,
-+      storageConditions: "Keep chilled",
-+    };
-+    const data = {
-+      ...baseData,
-+      storageConditions: " \n ",
-+    } as ProductUpdateSubmitData;
++  it("includes changed and explicitly cleared storage conditions in product update variables", () => {
++    const changed = getProductUpdateVariables(
++      baseProduct,
++      { ...baseData, storageConditions: "Keep refrigerated" } as ProductUpdateSubmitData,
++      [],
++    );
++    const cleared = getProductUpdateVariables(
++      baseProduct,
++      { ...baseData, storageConditions: "" } as ProductUpdateSubmitData,
++      [],
++    );
 +
-+    const result = getProductUpdateVariables(productWithStorageConditions, data, []);
-+
-+    expect(result.input.storageConditions).toBeNull();
++    expect(changed.input.storageConditions).toBe("Keep refrigerated");
++    expect(cleared.input.storageConditions).toBe("");
 +  });
 +
-+  it("omits unchanged normalized storage conditions", () => {
-+    const productWithStorageConditions = {
-+      ...baseProduct,
-+      storageConditions: "Keep chilled",
-+    };
-+    const data = {
-+      ...baseData,
-+      storageConditions: " Keep \n chilled ",
-+    } as ProductUpdateSubmitData;
-+
-+    const result = getProductUpdateVariables(productWithStorageConditions, data, []);
-+
-+    expect(result.input.storageConditions).toBeUndefined();
-+  });
- });
+   it("should include weight when valid number is provided", () => {
+     // Arrange
+     const data = {
 diff --git a/src/products/views/ProductUpdate/handlers/utils.ts b/src/products/views/ProductUpdate/handlers/utils.ts
-index 74f714e..082e113 100644
+index 74f714e..7646fb2 100644
 --- a/src/products/views/ProductUpdate/handlers/utils.ts
 +++ b/src/products/views/ProductUpdate/handlers/utils.ts
-@@ -17,6 +17,10 @@ import {
- } from "@dashboard/graphql";
- import { weight } from "@dashboard/misc";
- import { type ProductUpdateSubmitData } from "@dashboard/products/components/ProductUpdatePage/types";
-+import {
-+  isStorageConditionsValid,
-+  normalizeStorageConditions,
-+} from "@dashboard/products/storageConditions";
- import { getAttributeInputFromProduct } from "@dashboard/products/utils/data";
- import { getParsedDataForJsonStringField } from "@dashboard/utils/richText/misc";
- import pick from "lodash/pick";
-@@ -77,6 +81,17 @@ export function getProductUpdateVariables(
+@@ -77,6 +77,10 @@ export function getProductUpdateVariables(
      variables.input["slug"] = data.slug;
    }
  
 +  if (data.storageConditions !== undefined) {
-+    const storageConditions = normalizeStorageConditions(data.storageConditions);
-+
-+    if (
-+      isStorageConditionsValid(data.storageConditions) &&
-+      storageConditions !== product.storageConditions
-+    ) {
-+      variables.input["storageConditions"] = storageConditions;
-+    }
++    variables.input["storageConditions"] = data.storageConditions;
 +  }
 +
    if (data.taxClassId !== undefined) {
      // Empty string clears the product override so Saleor falls back to the product type.
      variables.input["taxClass"] = data.taxClassId || null;
-diff --git a/src/translations/components/TranslationFieldRow/TranslationFieldRow.tsx b/src/translations/components/TranslationFieldRow/TranslationFieldRow.tsx
-index 808b2b6..4722d6e 100644
---- a/src/translations/components/TranslationFieldRow/TranslationFieldRow.tsx
-+++ b/src/translations/components/TranslationFieldRow/TranslationFieldRow.tsx
-@@ -49,6 +49,7 @@ const renderSourceValue = (
-         disabled={disabled}
-         edit={false}
-         initial={field.value}
-+        maxLength={field.maxLength}
-         saveButtonState="default"
-         onDiscard={() => undefined}
-         onSubmit={undefined}
-@@ -106,6 +107,7 @@ const renderTranslationInput = (
-           disabled={disabled}
-           edit={false}
-           initial={initial}
-+          maxLength={field.maxLength}
-           saveButtonState="default"
-           onDiscard={onDiscard}
-           onSubmit={undefined}
-@@ -150,6 +152,7 @@ const renderTranslationInput = (
-         hideActions={hideFieldActions}
-         saveDisabled={saveDisabled}
-         initial={initial}
-+        maxLength={field.maxLength}
-         saveButtonState={saveButtonState}
-         onDiscard={onDiscard}
-         onSubmit={data => onSubmit(data)}
-diff --git a/src/translations/components/TranslationFields/TranslationFieldsShort.tsx b/src/translations/components/TranslationFields/TranslationFieldsShort.tsx
-index bdb9649..6b2e8d5 100644
---- a/src/translations/components/TranslationFields/TranslationFieldsShort.tsx
-+++ b/src/translations/components/TranslationFields/TranslationFieldsShort.tsx
-@@ -2,6 +2,10 @@ import { type ConfirmButtonTransitionState } from "@dashboard/components/Confirm
- import Form from "@dashboard/components/Form/Form";
- import { SendFormKeyboardShortcutHint } from "@dashboard/components/SendFormKeyboardShortcutHint/SendFormKeyboardShortcutHint";
- import { type SubmitPromise } from "@dashboard/hooks/useForm";
-+import {
-+  isStorageConditionsValid,
-+  normalizeStorageConditions,
-+} from "@dashboard/products/storageConditions";
- import {
-   createCmdEnterSubmitHandler,
-   preventPlainEnterSubmit,
-@@ -19,6 +23,7 @@ interface TranslationFieldsShortProps {
-   hideActions?: boolean;
-   saveDisabled?: boolean;
-   initial: string | null;
-+  maxLength?: number;
-   saveButtonState: ConfirmButtonTransitionState;
-   onDiscard: () => void;
-   onSubmit?: (data: string) => SubmitPromise<any[]>;
-@@ -32,6 +37,7 @@ const TranslationFieldsShort = ({
-   hideActions = false,
-   saveDisabled = false,
-   initial,
-+  maxLength,
-   saveButtonState,
-   onDiscard,
-   onSubmit,
-@@ -48,8 +54,11 @@ const TranslationFieldsShort = ({
-       onSubmit={data => (onSubmit ? onSubmit(data.translation ?? "") : Promise.resolve([]))}
-     >
-       {({ change, data, submit }) => {
-+        const normalizedLength = normalizeStorageConditions(data.translation ?? "")?.length ?? 0;
-+        const invalid =
-+          maxLength !== undefined && !isStorageConditionsValid(data.translation ?? "");
-         const canSubmitWithShortcut =
--          showShortcut && !disabled && !saveDisabled && saveButtonState !== "loading";
-+          showShortcut && !disabled && !saveDisabled && !invalid && saveButtonState !== "loading";
-         const handleCmdEnterSubmit = createCmdEnterSubmitHandler(submit, canSubmitWithShortcut);
-         const handleKeyDown: KeyboardEventHandler = event => {
-           preventPlainEnterSubmit(event, hideActions);
-@@ -67,6 +76,18 @@ const TranslationFieldsShort = ({
-               name="translation"
-               data-test-id="translation-field"
-               value={data.translation || ""}
-+              error={invalid}
-+              helperText={
-+                maxLength === undefined
-+                  ? undefined
-+                  : intl.formatMessage(
-+                      {
-+                        id: "TctHNm",
-+                        defaultMessage: "{count} / {max} characters",
-+                      },
-+                      { count: normalizedLength, max: maxLength },
-+                    )
-+              }
-               onChange={event => {
-                 change(event);
- 
-@@ -86,7 +107,7 @@ const TranslationFieldsShort = ({
-             {!hideActions && (
-               <TranslationFieldsSave
-                 saveButtonState={saveButtonState}
--                saveDisabled={saveDisabled}
-+                saveDisabled={saveDisabled || invalid}
-                 onDiscard={onDiscard}
-                 onSave={submit}
-               />
 diff --git a/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
-index 53fbacb..09c56aa 100644
+index 53fbacb..4ee134f 100644
 --- a/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
 +++ b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
-@@ -136,6 +136,8 @@ export const TranslationsProductsPage = ({
+@@ -134,8 +134,10 @@ export const TranslationsProductsPage = ({
+         {
+           description: data?.product?.description,
            name: data?.product?.name,
++          storageConditions: data?.product?.storageConditions,
            translationDescription: data?.translation?.description ?? null,
            translationName: data?.translation?.name ?? null,
-+          storageConditions: data?.product?.storageConditions,
 +          translationStorageConditions: data?.translation?.storageConditions ?? null,
          },
          {
@@ -825,65 +725,80 @@ index cd1527c..71ddc0a 100644
      seoDescription: "Original SEO Description",
      seoTitle: "Original SEO Title",
 diff --git a/src/translations/mutations.ts b/src/translations/mutations.ts
-index f075f27..a0b47c5 100644
+index f075f27..d1b91c5 100644
 --- a/src/translations/mutations.ts
 +++ b/src/translations/mutations.ts
 @@ -14,12 +14,14 @@ export const updateProductTranslations = gql`
          id
          name
          description
-+        storageConditions
++        storageConditions @lockSchema(schema: "main")
          seoDescription
          seoTitle
          slug
          translation(languageCode: $language) {
            id
            description
-+          storageConditions
++          storageConditions @lockSchema(schema: "main")
            language {
              code
              language
+diff --git a/src/translations/translationSectionBuilders.test.ts b/src/translations/translationSectionBuilders.test.ts
+new file mode 100644
+index 0000000..b4ae2eb
+--- /dev/null
++++ b/src/translations/translationSectionBuilders.test.ts
+@@ -0,0 +1,27 @@
++import { type IntlShape } from "react-intl";
++
++import { createGeneralNameDescriptionSection } from "./translationSectionBuilders";
++import { TranslationFieldType, TranslationInputFieldName } from "./types";
++
++const intl = {
++  formatMessage: ({ defaultMessage }: { defaultMessage?: string }) => defaultMessage ?? "",
++} as IntlShape;
++
++describe("createGeneralNameDescriptionSection", () => {
++  it("adds storage conditions as a plain-text field with default and translated values", () => {
++    const section = createGeneralNameDescriptionSection(intl, {
++      name: "Product",
++      description: "Description",
++      storageConditions: "Keep chilled",
++      translationStorageConditions: "Conserver au frais",
++    });
++
++    expect(section.fields).toContainEqual({
++      displayName: "Storage conditions",
++      name: TranslationInputFieldName.storageConditions,
++      translation: "Conserver au frais",
++      type: TranslationFieldType.SHORT,
++      value: "Keep chilled",
++    });
++  }, 1000);
++});
 diff --git a/src/translations/translationSectionBuilders.ts b/src/translations/translationSectionBuilders.ts
-index b724d8f..a896449 100644
+index b724d8f..658b6ea 100644
 --- a/src/translations/translationSectionBuilders.ts
 +++ b/src/translations/translationSectionBuilders.ts
-@@ -1,4 +1,5 @@
- import { commonMessages } from "@dashboard/intl";
-+import { STORAGE_CONDITIONS_MAX_LENGTH } from "@dashboard/products/storageConditions";
- import { rippleSlugTranslation } from "@dashboard/translations/ripples/slugTranslation";
- import {
-   PageTranslationInputFieldName,
-@@ -26,6 +27,8 @@ interface GeneralTranslationData {
+@@ -24,8 +24,10 @@ interface SeoTranslationData {
+ interface GeneralTranslationData {
+   description?: string | null;
    name?: string | null;
++  storageConditions?: string | null;
    translationDescription?: string | null;
    translationName?: string | null;
-+  storageConditions?: string | null;
 +  translationStorageConditions?: string | null;
  }
  
  export function createGeneralNameDescriptionSection(
-@@ -34,6 +37,7 @@ export function createGeneralNameDescriptionSection(
-   options?: {
-     descriptionLabel?: string;
-     nameLabel?: string;
-+    storageConditionsLabel?: string;
-   },
- ): TranslationSectionConfig {
-   return {
-@@ -58,6 +62,23 @@ export function createGeneralNameDescriptionSection(
+@@ -58,6 +60,17 @@ export function createGeneralNameDescriptionSection(
          type: TranslationFieldType.RICH,
          value: data.description ?? "",
        },
-+      ...(data.storageConditions !== undefined
++      ...(data.storageConditions !== undefined || data.translationStorageConditions !== undefined
 +        ? [
 +            {
-+              displayName:
-+                options?.storageConditionsLabel ??
-+                intl.formatMessage({
-+                  id: "WfpOuz",
-+                  defaultMessage: "Storage conditions",
-+                }),
-+              maxLength: STORAGE_CONDITIONS_MAX_LENGTH,
++              displayName: intl.formatMessage(commonMessages.storageConditions),
 +              name: TranslationInputFieldName.storageConditions,
 +              translation: data.translationStorageConditions ?? null,
 +              type: TranslationFieldType.SHORT,
@@ -895,99 +810,82 @@ index b724d8f..a896449 100644
    };
  }
 diff --git a/src/translations/types.ts b/src/translations/types.ts
-index e0880a3..1265480 100644
+index e0880a3..90ec420 100644
 --- a/src/translations/types.ts
 +++ b/src/translations/types.ts
-@@ -12,6 +12,7 @@ export enum TranslationInputFieldName {
+@@ -10,6 +10,7 @@ import { type OutputData } from "@editorjs/editorjs";
+ export enum TranslationInputFieldName {
+   description = "description",
    name = "name",
++  storageConditions = "storageConditions",
    seoDescription = "seoDescription",
    seoTitle = "seoTitle",
-+  storageConditions = "storageConditions",
    slug = "slug",
-   richText = "richText",
- }
-@@ -43,6 +44,7 @@ export interface TranslationField<T extends string = string> {
-   type: TranslationFieldType;
-   value: string;
-   hint?: string;
-+  maxLength?: number;
-   ripple?: Ripple;
- }
- 
 diff --git a/src/translations/utils.test.ts b/src/translations/utils.test.ts
-index b5a3621..27bccf1 100644
+index b5a3621..959ec31 100644
 --- a/src/translations/utils.test.ts
 +++ b/src/translations/utils.test.ts
-@@ -41,6 +41,24 @@ describe("getParsedTranslationInputData", () => {
+@@ -41,6 +41,17 @@ describe("getParsedTranslationInputData", () => {
      // Assert
      expect(result).toEqual({ seoTitle: "SEO Title" });
    });
 +
-+  it("normalizes storage conditions before building translation input", () => {
++  it("preserves an explicitly cleared storage conditions translation", () => {
++    // Arrange & Act
 +    const result = getParsedTranslationInputData({
 +      fieldName: TranslationInputFieldName.storageConditions,
-+      data: `  ${"a".repeat(250)}\n`,
++      data: "",
 +    });
 +
-+    expect(result).toEqual({ storageConditions: "a".repeat(250) });
-+  });
-+
-+  it("clears storage conditions with whitespace-only translation input", () => {
-+    const result = getParsedTranslationInputData({
-+      fieldName: TranslationInputFieldName.storageConditions,
-+      data: " \n\t ",
-+    });
-+
-+    expect(result).toEqual({ storageConditions: null });
++    // Assert
++    expect(result).toEqual({ storageConditions: "" });
 +  });
  });
  
  describe("getTranslationFields", () => {
-diff --git a/src/translations/utils.ts b/src/translations/utils.ts
-index 3dfb5d1..39efbf9 100644
---- a/src/translations/utils.ts
-+++ b/src/translations/utils.ts
-@@ -4,6 +4,7 @@ import {
-   type AttributeValueTranslatableFragment,
-   type AttributeValueTranslationInput,
- } from "@dashboard/graphql";
-+import { normalizeStorageConditions } from "@dashboard/products/storageConditions";
- import { isFieldTranslationComplete } from "@dashboard/translations/progress";
- import {
-   PageTranslationInputFieldName,
-@@ -37,6 +38,10 @@ export const getParsedTranslationInputData = ({
-     };
-   }
- 
-+  if (fieldName === TranslationInputFieldName.storageConditions) {
-+    return { [fieldName]: normalizeStorageConditions(data as string) };
-+  }
-+
-   return { [fieldName]: data as string };
- };
- 
 diff --git a/src/translations/views/EntityLists/utils.test.ts b/src/translations/views/EntityLists/utils.test.ts
-index 179065a..af500c4 100644
+index 179065a..058473e 100644
 --- a/src/translations/views/EntityLists/utils.test.ts
 +++ b/src/translations/views/EntityLists/utils.test.ts
-@@ -229,6 +229,7 @@ describe("getProductTranslationCompletion", () => {
+@@ -228,6 +228,7 @@ describe("getProductTranslationCompletion", () => {
+         __typename: "ProductTranslation",
          id: "t-1",
          name: "Product",
-         description: JSON.stringify({ blocks: [] }),
 +        storageConditions: null,
+         description: JSON.stringify({ blocks: [] }),
          seoDescription: null,
          seoTitle: null,
-         slug: null,
-@@ -238,7 +239,7 @@ describe("getProductTranslationCompletion", () => {
+@@ -238,7 +239,28 @@ describe("getProductTranslationCompletion", () => {
      });
  
      // Assert
 -    expect(result).toEqual({ current: 1, max: 5 });
 +    expect(result).toEqual({ current: 1, max: 6 });
++  });
++
++  it("counts translated storage conditions toward product translation completion", () => {
++    // Arrange & Act
++    const result = getProductTranslationCompletion({
++      translation: {
++        __typename: "ProductTranslation",
++        id: "t-1",
++        name: null,
++        description: null,
++        storageConditions: "Keep refrigerated",
++        seoDescription: null,
++        seoTitle: null,
++        slug: null,
++        language: { __typename: "LanguageDisplay", code: LanguageCodeEnum.PL, language: "Polish" },
++      },
++      attributeValues: [],
++    });
++
++    // Assert
++    expect(result).toEqual({ current: 1, max: 6 });
    });
  
    it("counts plain text attribute translations toward completion", () => {
-@@ -249,6 +250,7 @@ describe("getProductTranslationCompletion", () => {
+@@ -249,6 +271,7 @@ describe("getProductTranslationCompletion", () => {
          id: "t-1",
          name: "Product",
          description: null,
@@ -995,7 +893,7 @@ index 179065a..af500c4 100644
          seoDescription: null,
          seoTitle: null,
          slug: null,
-@@ -284,7 +286,7 @@ describe("getProductTranslationCompletion", () => {
+@@ -284,7 +307,7 @@ describe("getProductTranslationCompletion", () => {
      });
  
      // Assert
@@ -1004,7 +902,7 @@ index 179065a..af500c4 100644
    });
  
    it("does not count rich text attribute with empty blocks as complete", () => {
-@@ -295,6 +297,7 @@ describe("getProductTranslationCompletion", () => {
+@@ -295,6 +318,7 @@ describe("getProductTranslationCompletion", () => {
          id: "t-1",
          name: null,
          description: null,
@@ -1012,7 +910,7 @@ index 179065a..af500c4 100644
          seoDescription: null,
          seoTitle: null,
          slug: null,
-@@ -330,6 +333,6 @@ describe("getProductTranslationCompletion", () => {
+@@ -330,6 +354,6 @@ describe("getProductTranslationCompletion", () => {
      });
  
      // Assert

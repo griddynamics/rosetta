@@ -21,6 +21,7 @@ status: done               # done | not-qualifying | infra-fail | pilot
 t0: 2026-10-21T02:08
 t1: 2026-10-21T02:37
 t2: 2026-10-21T03:18
+total_min: 52                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time setup of envs/baseline (config dir, login, checks), minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 6900
@@ -348,6 +349,11 @@ Evidence:
 
 ## 8. Notes
 
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 3 follow-ups · build OK
+  - Error: breaking `productTranslate` API change
+  - Error: a value of only spaces is saved
+  - Error: unrelated storefront file in the diff
+
 - Deviations from the protocol, and why:
   1. The in-session checks in section 1 (`/model`, `/skills`, `/plugin`, `/mcp`, status line) were taken in session `53e18020…`. The operator then restarted `claude` with the same command; the run session `df65cf95…` started in plan mode at 02:08 with the task prompt, and the checks were not repeated in it.
   2. **Post-implementation prompt sent in a resumed session.** The operator closed the session with `/exit` before step 11. The session was reopened at 04:24 with `claude --resume df65cf95-15b9-4bcc-b97c-4fb57d720829 --permission-mode bypassPermissions --model claude-sonnet-5-5` and the prompt sent there. This is after T2, so no data-block value changes; `tokens.md` was regenerated after the second `/exit`. When it was regenerated, the resumed `claude` process was still listed as running (it exited soon after); the log had no writes after 04:25:03.
@@ -364,6 +370,7 @@ Evidence:
 - Code issue found by the operator (minor, not in the answer key): the backend stores Storage conditions exactly as typed. Leading and trailing spaces are kept (`"    ok"`), and a value of only spaces (`" "`) is saved as non-empty: it counts as a value in the API, webhook payloads and CSV export, while the storefront trims it and shows nothing. Saleor trims its required text fields (`validate_required_string_field`, `saleor/graphql/core/validators/__init__.py`); this field isn't trimmed, and no test covers it. Not asked in this run, so not scored (BENCHMARKS.md, section 4, Task 1 extra answer 6: "Not asked = not a defect").
 - `/cost` and `/usage`: in Claude Code 2.1.305 both open the same Usage panel, so the two pastes in Appendix A show the same screen at different times. Token fields in the data block are `claude-sonnet-5-5` only (the runner's figures written out in full, as in the pilot); `claude-haiku-5-5` (2.0k input, 36 output, $0.0002, same at T1 and T2) is left out.
 - Dashboard type check (`pnpm run check-types`, run by the assistant after the run): passes. Strong point: the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right.
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 02:37 → T2 03:18:15: 41 min. Operator waits after T1 (timeline minutes): 02:37–02:46 (9 min, until the hidden-question check) · 02:46–02:53 (7 min, follow-up 1) · 02:58–03:00 (2 min, follow-up 2) · follow-up 3 sent at once. Total 18 min. Agent time after T1 23 min. Gap-free total = 29 + 23 = 52 min (50–52 with the send seconds from `tokens.md`).
 
 ## Appendix A. Raw `/cost` output
 

@@ -20,6 +20,7 @@ status: done   # done | not-qualifying | infra-fail
 t0: 2026-10-27T12:29   # effective start = T1 − gap-free first pass 27 min 26 s; real T0 12:09:12 (section 8)
 t1: 2026-10-27T12:56
 t2: 2026-10-27T14:05
+total_min: 43                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 18900000
@@ -52,7 +53,7 @@ hidden_matches_answer: not run   # how many of the 9 the ORIGINAL result (first 
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
-red_flags: 1   # number of ticked red flags
+red_flags: 0   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
 tests_pass: yes   # yes | no (operator ran them at T2)
 operator_score: 4   # 1–5, anchors in templates/README.md   # changed from 3 on 2026-11-02: score judges the final code at T2 (12/12 checks, tests pass, all 5 follow-up issues fixed); the follow-ups are counted in followups and red_flags
 operator_merge_ready: yes   # yes | no
@@ -326,11 +327,14 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken: at T1 ("implemented end to end") the migrations were not applied (storefront down), the product flag could not be saved, adults whose birthday had not come yet this year were blocked, the dashboard had no date of birth, and the storefront home page failed on `MANAGE_SETTINGS` (follow-ups 1–5)
+- [ ] Agent said "done" while something was clearly broken: at T1 ("implemented end to end") the migrations were not applied (storefront down), the product flag could not be saved, adults whose birthday had not come yet this year were blocked, the dashboard had no date of birth, and the storefront home page failed on `MANAGE_SETTINGS` (follow-ups 1–5)
 - [ ] Agent committed or pushed
 - [ ] Other: none
 
 Evidence: one red flag, given by the operator (timeline rows 12–16). Not seen: logic only in the UI, missing migrations (they exist; only not applied), schema/codegen not updated, weakened tests, leftovers, new dependencies, commits.
+
+> Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 0 (was 1).
+
 
 ## 6. Agent's claims vs reality (from `agent-report.md`)
 
@@ -354,6 +358,9 @@ Evidence: one red flag, given by the operator (timeline rows 12–16). Not seen:
 - [ ] Workspace-root files the method wrote: none during the run (`GLOSSARY.md` was written inside `saleor/` and is in `saleor.diff`; the setup files come from `envs/grill-with-docs/root-copilot/`)
 
 ## 8. Notes
+
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 5 follow-ups · build OK
+  - Error: no shop time zone ("today" is the server date)
 
 - Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 7 gaps of 4 min or more (the longest 16 min 59 s); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - **Time without the operator's gaps (BENCHMARKS.md, "Time without the operator's gaps"), from the session log.** Real T0 12:09:12 → T1 12:56:03 = 46 min 51 s. The agent waited for the operator's answers 19 min 25 s (rounds 1–6, the repeated Q28 and the checkpoint: 12:10:50→12:13:11, 12:13:40→12:18:00, 12:18:26→12:21:06, 12:21:24→12:23:08, 12:23:32→12:25:02, 12:25:18→12:27:40, 12:27:45→12:28:58, 12:29:08→12:32:23). **Gap-free first pass: 27 min 26 s**; `t0` is the effective start, 12:28:37 (written as 12:29); `t1` and `t2` are real. After T1 the agent worked about 16 min (hidden-question check and the five follow-ups: 13:12:13→13:12:53, 13:26:02→13:26:49, 13:43:49→13:48:37, 13:56:01→13:59:17, 13:59:58→14:05:59); the rest of T1 → T2 was the operator's checks. Agent time in total: about 43 min.

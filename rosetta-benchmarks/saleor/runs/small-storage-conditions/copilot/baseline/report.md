@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-27T09:05               # effective start = t1 minus the gap-free first pass 13 min 36 s; real T0 08:58:44 (timeline row 1), see section 8
 t1: 2026-10-27T09:18
 t2: 2026-10-27T10:29
+total_min: 27                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 15               # one-time setup of envs/baseline/copilot (config, login, folder trust, isolation check); operator's estimate 10–15 min, not timed
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 7.1m              # as /usage shows it (includes cached); exact counts in tokens.md
@@ -52,10 +53,10 @@ hidden_matches_answer: 5           # yes: #2, #3, #4, #5, #7; #1 and #6 missed (
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 8               # at T2; #1 needed follow-up 4, #3/#6 follow-up 3, #7 follow-up 5
-red_flags: 2
+red_flags: 1   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
 tests_pass: yes                    # at T2 (after follow-up 5): backend 268, storefront 788, dashboard 4835 passed (related tests), 0 failed
-operator_score: 3                  # operator; final result at T2 (works with notable gaps)
-operator_merge_ready: no
+operator_score: 4   # was 3; aligned on 2026-11-05 by the team lead to the rule in section 8 ("Why not 5")
+operator_merge_ready: yes   # was no; aligned on 2026-11-05 (section 8)
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
 judge_absolute:            # /40
@@ -276,11 +277,14 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken
+- [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
 - [x] Other: new GraphQL fields not marked `@lockSchema`, so a dashboard test failed on the staging schema until follow-up 5
 
 Evidence (ticked by the operator):
+
+> Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 1 (was 2).
+
 - Other (new GraphQL fields not marked `@lockSchema`): the agent updated the schema and codegen (Saleor `schema.graphql`, dashboard `schema-main.graphql` and generated files), so "codegen not updated" is not ticked. But `storageConditions` was neither added to `schema-staging.graphql` nor marked `@lockSchema`, so `src/graphql/lockSchema.test.ts` failed on the staging schema from the first pass (fields added 09:06–09:08) until follow-up 5 (row 15).
 - Agent said "done" while something was clearly broken: at T1 (09:18) it wrote "All checks passed", but the dev API failed on every product query because migration `0211` was not applied to the dev database (follow-up 3), the dashboard Save button stayed disabled when only storage conditions changed (follow-up 4), and `lockSchema.test.ts` failed (follow-up 5).
 
@@ -315,10 +319,14 @@ Evidence (ticked by the operator):
 
 ## 8. Notes
 
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 5 follow-ups · build OK
+  - Error: spaces not trimmed
+  - Error: the 250-character limit stops typing without a message
+
 - Deviations from the protocol, and why: none. `/env` lists the built-in `computer-use` plugin; its MCP server is off and not connected. `enabledPlugins.computer-use=false` was tried, didn't remove it, and was taken out again.
 - **Leading spaces are kept** (operator: not what they expected): the value is stored as entered, without trimming. On Carrot Juice the saved 250-character value starts with the space that was left in the field (`" Keep refrig…"`, API at 10:11:04).
 - **Whitespace-only value is saved as is** (operator's own check, 10:08, between follow-ups 4 and 5): the operator entered only spaces in "Storage conditions" on Carrot Juice in the dashboard and saved; the public API then returned `storageConditions: "    "` (4 spaces, updated 10:08:03 local; assistant read-only `curl`, 10:10). The value is not trimmed or turned into empty. The storefront page data at that time still had `storageConditions: null` (storefront cache), so how the storefront shows a whitespace-only value was not seen. The agent was not asked about whitespace (extra answer #6 was never given in this run), so per BENCHMARKS.md section 4 ("Not asked = not a defect") it is an observation; whether it counts is the operator's call.
-- **Operator's remarks for the score and merge-ready** (operator's words, summarised): the migration was also an issue (not applied to the local database); then the limit (no 250 maximum at the first "done"); and at the first "done" the storage conditions text could not even be saved in the dashboard (Save stayed disabled). Merge-ready: no.
+- **Operator's remarks for the score and merge-ready** (operator's words, summarised): the migration was also an issue (not applied to the local database); then the limit (no 250 maximum at the first "done"); and at the first "done" the storage conditions text could not even be saved in the dashboard (Save stayed disabled). Merge-ready: no at the time; changed to yes (score 3 → 4) by the team lead on 2026-11-05, since all of these were fixed by follow-ups (section 8, "Why not 5").
 - **Gap-free time** (BENCHMARKS.md section 5, times from the session log, local time): real T0 08:58:44 (task prompt), T1 09:18:52 (first "done") = 20 min 8 s. Blocked waiting for the operator before T1: (1) question about translation, 08:59:07 → 09:00:14 = 1 min 7 s; (2) plan approval, 09:00:39 → 09:06:04 = 5 min 25 s; total 6 min 32 s. No subagent waits. Gap-free first pass = 20 min 8 s − 6 min 32 s = **13 min 36 s**; data block `t0` = t1 − 13 min 36 s = 09:05:16 → `09:05`. Follow-up phase (not part of the first-pass time): T1 09:18 → T2 10:29, 5 follow-ups; the operator's own checks between them are not agent time.
 - **Follow-up 5 came from the "Done when" #7 check:** #7 is "Tests pass locally (backend + changed frontends)", and the assistant runs the "Done when" checks (BENCHMARKS.md section 5). For the changed dashboard it ran `jest --findRelatedTests` on the changed dashboard sources, which found the `lockSchema.test.ts` failure; the template's command list has only the backend `pytest`. A failure found in the operator's own "Done when" check is a follow-up (BENCHMARKS.md section 5, step 7 (b)).
 - **Context compaction:** Copilot CLI compacted the session context automatically once, at 10:00 (log 09:00:23Z–09:00:53Z), at the end of follow-up 4 (it started 6 s before the final message at 09:00:29Z), when the conversation reached 200k tokens (405 messages before compaction). It was not triggered by the operator. The runner said "Compaction completed. A new checkpoint has been added to your session." `/context` fell from 76% (after follow-up 3) to 8% (after follow-up 4, `/usage` read 10:01), then 13% at T2, so `context_end_pct` shows the state after compaction. Any agent work after 10:00 runs on the compacted summary, not on the full conversation.
@@ -327,6 +335,7 @@ Evidence (ticked by the operator):
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a (Baseline)
 - Strong point of the method in this run: fast first turn: the first "done" came 13 min 36 s after T0 without the waits for the operator (20 min on the clock), with one question and one plan approval (operator).
 - Weak point of the method in this run: whitespace is not handled: leading spaces are kept and a value of only spaces is saved as is (operator).
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 09:18:52 → T2 10:29:32: 70m40s. Operator waits after T1: 09:18:52–09:21:00 (2m08s, until the hidden-question check) · 09:21:09–09:25:15 (4m06s, follow-up 1) · 09:27:40–09:29:00 (1m20s, follow-up 2) · 09:35:09–09:49:01 (13m52s, operator's check, follow-up 3) · 09:49:40–09:58:59 (9m19s, operator's dashboard check, follow-up 4) · 10:00:29–10:26:54 (26m25s, operator's tests check, follow-up 5). Total 57m10s. Agent time after T1 13m30s. Gap-free total = 13m36s + 13m30s = 27m06s ≈ 27 min.
 
 ## Appendix A. Raw `/usage` output
 

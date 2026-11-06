@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-28T14:41   # effective start = t1 minus the gap-free first pass 6 min 42 s; real T0 14:30:56 (timeline row 1), see section 8
 t1: 2026-10-28T14:48   # log time of the first "done" (14:48:02)
 t2: 2026-10-30T10:26   # log time when the last follow-up was done (10:26:15); after an auth outage and an overnight pause (section 8)
+total_min: 37                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 0
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 6.4m              # as /usage shows it (includes cached); exact counts in tokens.md
@@ -52,7 +53,7 @@ hidden_matches_answer: 4.0         # #2, #3 yes; #1, #4, #5, #7 partly; #6, #8, 
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12             # at T2, after follow-ups; first check: #1, #2, #3, #6 (storefront), #8, #9 failed
-red_flags: 3
+red_flags: 2   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
 tests_pass: yes                    # run at T2 (section 4, #11)
 operator_score: 3
 operator_merge_ready: no
@@ -423,11 +424,14 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken
+- [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
 - [x] Other: claimed backend validation was impossible while the Docker stack was available
 
 Evidence:
+
+> Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 2 (was 3).
+
 - "Done" while broken: T1 (timeline #8) said "Implementation is complete" while the migrations were not applied (dev API failing, section 4 #8), saving a birthday crashed (#1), no dashboard product page opened (#2) and an underage customer could buy (#3). Backend tests had not been run.
 - Schema not updated: Saleor's committed `saleor/graphql/schema.graphql` was never regenerated. It is not in `saleor.diff`, has no `minimumAge`, `birthday` or `AGE_RESTRICTION` (0 matches; unchanged since setup, modified 2026-10-28 13:36, before T0), while the live API serves all three (read-only introspection during the report audit, code unchanged since T2). The session log has no `get_graphql_schema` call, also not after follow-up 4, when the agent ran `manage.py` in Docker. Saleor requires it (`poe build-schema`, pre-commit hook "Check GraphQL schema is up to date"). The dashboard's `schema-main.graphql` was edited by hand (`apply_patch`, 2026-10-28 14:42), not generated; the dashboard and storefront codegen outputs were updated.
 - Other: at T1 and after follow-up 3 the agent said backend tests and migration checks were "blocked" because "no usable Python/Django environment is installed"; the stack ran in Docker the whole time, and the agent used `docker exec saleor-benchmark-api …` for migrations and pytest from follow-up 4 on (timeline #17, #18).
@@ -456,6 +460,10 @@ Evidence:
 
 ## 8. Notes
 
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 10 follow-ups · build OK
+  - Error: Saleor `schema.graphql` not regenerated; dashboard schema edited by hand
+  - Error: no shop time zone ("today" in UTC)
+
 - Deviations from the protocol, and why: listed in the "Deviation:" items below. The session folder also holds two earlier sessions of the first start (`37fa52fb…` and the in-session restart `29295305…`), with 0 user messages each.
 - Session log: at T0 Copilot CLI called `gpt-4o-mini` once to make the session title ("Implement Age Verification Feature"); it is the CLI's own title call (price 0 in the log), not a subagent.
 - `plan.md` in this folder is the session's plan file as of 2026-10-30 10:26 (162 lines). The version approved at 14:39 on 2026-10-28 (timeline #6) is kept in the session log (`human_response.recorded` 13:39:31Z, `planContent`, 106 lines) and is identical to lines 1–106 of `plan.md`; after approval the agent only appended a `## Progress` section (lines 107–162) with the follow-up fixes.
@@ -471,6 +479,7 @@ Evidence:
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a
 - Strong point of the method in this run: fixed everything fast after the follow-ups (operator).
 - Weak point of the method in this run: it says "done" while the main things are broken, not just details: e.g. staff could not save a minimum age in the dashboard (operator).
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 14:48:02 (28 Oct) → T2 10:26:15 (30 Oct): 43h38m13s. Operator waits after T1: 14:48:02–14:50:42 (2m40s) · 14:50:55–14:53:39 (2m44s) · 14:54:37–14:55:29 (52s) · 14:55:44–14:56:51 (1m07s) · 14:58:17–16:09:58 next day (25h11m41s: operator's check, the Copilot outage (401 on every send from 15:03:35 to at least 15:29:05, no agent work), overnight) · 16:11:09–16:34:36 (23m27s) · 16:42:07–16:52:53 (10m46s) · 16:57:45–17:13:54 (16m09s) · 17:16:38–17:34:29 (17m51s) · 17:39:56–10:17:40 next day (16h37m44s, overnight) · 10:20:11–10:22:42 (2m31s). Total 43h07m32s. Agent time after T1 30m41s (hidden check 13s + follow-ups 1–10). The outage lies inside an operator wait, so the total is comparable: 6m42s + 30m41s = 37m23s ≈ 37 min.
 
 ## Appendix A. Raw `/usage` output
 

@@ -1,5 +1,7 @@
 # Saleor benchmark: preliminary results (2026-11-02)
 
+> **Snapshot of 2 Nov.** On 5 Nov the team lead aligned scores and red flags to one rule for all runs (the score judges the final code; follow-ups are counted separately). Changed since this snapshot: `S-CP-01` 3 → 4 (merge-ready yes), `S-CP-04` 3 → 4, `S-CC-02` 4 → 3, `S-CP-02` 3.5 → 3, `L-CP-03` merge-ready yes → no; red flags recounted in 8 runs. Current values: [summary.md](summary.md), [runs.csv](runs.csv) and section 8 ("Why not 5") of each run report.
+
 **Status: preliminary, 25 of 32 runs done (78 %): 22 with a result, 19 of them usable now (59 %), and 3 AWS AI-DLC runs that ended without a result.** 15 runs on **Claude Code** (Sonnet 5.5, effort medium: small task, product "storage conditions" field across backend, dashboard and storefront; large task, age-restricted products) and 10 on **Copilot CLI** (GPT-5.6 Terra, effort medium). The full version will be published later.
 
 **Known benchmark deficiency (found 2026-10-28): dashboard type check.** The operator's "Tests pass locally" check did not run the dashboard type check (`pnpm run check-types`), which CI runs. A run that fails it gets +1 follow-up, not a blocker; a run that passes gets a strong point. Decision and procedure: BENCHMARKS.md, section 5, "Known deficiency: dashboard type check". Small task, Claude Code: Grill-with-docs and Rosetta Skills fail it (+1 follow-up each); Baseline, Superpowers, Spec Kit, Rosetta coding flow and Rosetta Light pass it.

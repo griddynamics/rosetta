@@ -17,9 +17,10 @@ start_tag: speckit-v1
 operator: Rustem Cimendur
 status: done  # done | not-qualifying | infra-fail
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
-t0: 2026-10-22T13:50
+t0: 2026-10-22T14:42          # effective start = t1 − gap-free first pass 51m31s (section 8); real T0 13:50
 t1: 2026-10-22T15:33
 t2: 2026-10-22T20:03
+total_min: 85                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 15
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 27500
@@ -265,6 +266,11 @@ Evidence:
 - [x] Workspace-root files the method wrote: `workspace-root/specs/` (the spec kit feature folder)
 
 ## 8. Notes
+
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 5 follow-ups · build OK
+  - Error: staff without superuser rights get a permission error on customer pages
+  - Error: birthday tests weakened (read the DB, not the mutation response)
+  - Error: dashboard schema copy not updated; time zone is an env variable, not a site setting
 - Gap-free time to T1 (first "done", 15:33:39 per session log): T1 − T0 − waits. T0 = 13:50:19. Waits while the agent sat idle for the operator before T1: 13:50:50 → 14:32:27 (spec to plan, 41 min 37 s); 14:33:26 → 14:36:36 (plan to tasks, 3 min 10 s); 14:37:14 → 14:38:02 (tasks to implement, 48 s); 15:15:20 → 15:20:09 (implement to converge, 4 min 49 s); 15:20:32 → 15:21:57 (converge to implement, 1 min 25 s). Total waits 51 min 49 s. Gap-free time to T1 = 1 h 43 min 20 s − 51 min 49 s = 51 min 31 s. The 13:45 interrupted send is not counted (operator's personal interruption, before T0).
 - Waits after T1, from the session log (local time = UTC+3): agent idle 15:40:46 → 19:06:33 (waiting for follow-up 1 after the post-T1 check): 3 h 25 min 47 s; agent idle 19:12 → 19:13 (follow-up 2): 55 s; agent idle 19:23 → 19:24 (follow-up 3): 1 min 17 s; agent idle 19:29 → 19:32 (follow-up 4): 3 min 14 s; agent idle 19:33 → 19:35 (follow-up 5): 1 min 49 s; agent waiting on its audit-storage question 19:35:08 → 19:48:39: 13 min 31 s (includes the operator's interruption at 19:48:18); agent idle 20:00 → 20:02 (time-zone decision and stop): 2 min 05 s. Total waits after T1: 3 h 55 min 25 s.
 - Gap-free time to T2 (20:03): (T2 − T0) − all waits = (20:03 − 13:50:19 = 6 h 12 min 41 s) − (51 min 49 s + 3 h 55 min 25 s) = 1 h 25 min 27 s. Gap-free after T1 = 33 min 56 s.

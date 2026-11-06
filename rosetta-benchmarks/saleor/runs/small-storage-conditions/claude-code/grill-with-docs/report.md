@@ -21,6 +21,7 @@ status: done               # done | not-qualifying | infra-fail
 t0: 2026-10-20T11:37
 t1: 2026-10-20T12:15
 t2: 2026-10-20T12:15
+total_min: 38                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 952
@@ -55,8 +56,8 @@ done_checks_total: 8
 done_checks_passed: 8
 red_flags: 0               # number of ticked red flags
 tests_pass: yes   # yes | no (operator ran them at T2)
-operator_score: 4          # 1–5, anchors in templates/README.md
-operator_merge_ready: no   # yes | no   # changed from yes on 2026-11-02: breaking productTranslate change, as S-CC-01 (section 8)
+operator_score: 3   # was 4; aligned on 2026-11-05 by the team lead to the rule in section 8 ("Why not 5")
+operator_merge_ready: no   # was no; aligned on 2026-11-05 (section 8)
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
 judge_total: 71.6               # diff score: total + bonus, from the totals script
@@ -247,6 +248,10 @@ Evidence: none ticked. Checked: no debug prints, TODOs, `skip`/`xfail` in the 3 
 - [x] Workspace-root files: none in this run (the glossary went to `saleor-dashboard/CONTEXT.md`, which is in `saleor-dashboard.diff`)
 
 ## 8. Notes
+
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 1 follow-up · build broken
+  - Build: dashboard type check fails
+  - Error: breaking `productTranslate` / `productBulkTranslate` API change
 
 - Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 2 gaps of 4 min or more (5 min 49 s, 19 min 21 s); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - Deviations from the protocol, and why:

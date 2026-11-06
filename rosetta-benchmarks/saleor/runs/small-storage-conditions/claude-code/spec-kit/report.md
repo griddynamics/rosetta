@@ -20,6 +20,7 @@ status: done # done | not-qualifying | infra-fail
 t0: 2026-10-21T11:24
 t1: 2026-10-21T13:09
 t2: 2026-10-21T14:47
+total_min: 158                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 2                # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 3900   
@@ -241,6 +242,9 @@ Evidence: `<one line per ticked item>`
 
 ## 8. Notes
 
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 3 follow-ups · build OK
+  - Error: breaking `productTranslate` API change
+
 - Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 7 gaps of 4 min or more (the longest 14 min 53 s); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - Deviations from the protocol, and why:
   1. **First attempt restarted** (11:18): the pasted prompt lost its last line, and a stray ` /model` reached the agent. Reset, new session; T0 = 11:24 (`retries: 1`).
@@ -250,6 +254,7 @@ Evidence: `<one line per ticked item>`
 - Weak point of the method in this run: a lot of manual commands and a long run. `/speckit-specify` asked nothing and assumed 500 chars / not translatable / no CSV, so 3 of 7 hidden requirements needed follow-ups; the operator drove 14 method commands (specify, plan, tasks, 4× implement, 7× converge) plus 3 follow-ups; 1 h 45 min to the first "done" and 3 h 23 min in total (T0 11:24 → T2 14:47), ≈ $12.65.
 - Operator score and merge-ready, why: 3, not merge-ready (set on 2026-11-02; was not stated): not merge-ready: `productTranslate` now takes a new `ProductTranslationInput!` instead of `TranslationInput!`, a breaking change for existing API clients; restoring compatibility is rework (backend, schema and dashboard). Same reason as Baseline `S-CC-01` (decision of 2026-11-02, Oleksii Poletaiev, for consistency between operators). Works end to end (8/8), but very long (3 h 23 min) and with a lot of operator effort: 14 method commands and 3 follow-ups for the hidden requirements `specify` did not ask about.
 - Dashboard type check (`pnpm run check-types`, run by the assistant after the run): passes. Strong point: the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right.
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 13:09:56 → T2 14:47:31 (session log, UTC+2): 97m35s. Operator waits after T1: 13:09:56–13:15:47 (5m51s, until the hidden-question check) · 13:16:08–13:18:14 (2m06s, follow-up 1) · 13:22:18–13:22:49 (31s, follow-up 2) · 13:24:19–13:28:12 (3m53s, session interruption, re-login and re-send) · 13:55:13–13:56:24 (1m11s, after the operator's interrupt) · 13:56:45–13:57:27 (42s) · 14:00:08–14:17:17 (17m09s, follow-up 3) · 14:30:33–14:41:34 (11m01s, converge round 6) · 14:42:05–14:43:47 (1m42s) · 14:46:29–14:47:15 (46s, converge round 7). Total 44m52s. Agent time after T1 52m43s. Gap-free total = 105 + 52m43s ≈ 158 min. Note: the first pass (105 min) is still wall time; the log shows 13m51s of operator waits between method commands before T1 (gap-free first pass ≈ 92 min); not applied, pending the team lead's decision.
 
 ## Appendix A. Raw `/cost` output
 

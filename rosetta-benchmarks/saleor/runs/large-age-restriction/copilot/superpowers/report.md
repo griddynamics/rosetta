@@ -20,6 +20,7 @@ status: done               # done | not-qualifying | infra-fail
 t0: 2026-10-28T11:59   # effective start = t1 minus the gap-free first pass 2h39m34s (11 pre-T1 operator waits, total 43m11s, section 8); real T0 11:15:53 (timeline row 1)
 t1: 2026-10-28T14:38
 t2: 2026-10-29T10:34
+total_min: 160                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 51500000
@@ -54,8 +55,8 @@ done_checks_total: 12
 done_checks_passed: 7      # strict count: clean passes only (3,4,6,7,8,10,11). Check 5 not testable (environment) and check 9 partial are excluded.
 red_flags: 2               # number of ticked red flags
 tests_pass: yes            # yes | no (operator ran them at T2)
-operator_score: 3          # 1–5, anchors in templates/README.md
-operator_merge_ready: yes  # yes | no
+operator_score: 3   # was 3; aligned on 2026-11-05 by the team lead to the rule in section 8 ("Why not 5")
+operator_merge_ready: no   # was yes; aligned on 2026-11-05 (section 8)
 # Filled later by the assistant: verified_in_code from step 0.3, judge_* from the diff judge's JSON
 verified_in_code: 7/9      # items verified in code / items checked (e.g. 8/9) — items 1,2,3,5,8,9 verified directly in run-output/saleor.diff; item 4 verified live (check 5) + the uncommitted storefront redirect code (check 12); items 6,7 are advisory-only (no code expected), not counted
 judge_total:               # diff score: total + bonus, from the totals script
@@ -363,6 +364,10 @@ Evidence:
 
 ## 8. Notes
 
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 2 follow-ups · build OK
+  - Error: Save not enabled when only the birthday or only the age flag changes
+  - Error: 22 storefront files never committed; unrelated Stripe and login changes in the diff
+
 - Deviations from the protocol, and why:
   - Before T0, the earlier sessions of this workspace were not deleted: `session-state` held three sessions from 09:09–09:11 (folder trust, login, the "react todo list" trigger check; ids `eb2942f6…`, `6187dfb7…`, `c930af2a…`) besides this run's session `87563543…`. The first start with the cleanup lines was apparently skipped (found at 11:16 by the assistant, from the session folders). They hold no part of this run's context (this run's session started at 11:15:27 with no earlier chat, memory off; the run log never mentions their ids). `session-usage.py` takes the newest session of the folder and `--copy-to` copies only that one, so they do not enter `tokens.md` (checked in the script during the run; an earlier line of this note said otherwise and was wrong for Copilot). Theoretical channel, not used: the agent has the `session_store_sql` tool and `session-store.db` holds one earlier session (the "Create React Todo List" trigger check, 1 turn); the agent made no `session_store_sql` call (its 9 `sql` calls up to 11:53 touch only its own todos), and the method's cleanup removes only the session folders. Decision (operator): leave them — confirmed harmless, left in place.
   - Copilot CLI 1.0.101 runs as 1.0.101 only with `COPILOT_AUTO_UPDATE=false` (without it the loader starts the cached 1.0.102): the variable was exported in every terminal of this run. Not a deviation, recorded for the setup.
@@ -386,6 +391,7 @@ Evidence:
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a — this is a Superpowers run
 - Strong point of the method in this run: goes through the flows and steps on its own (operator).
 - Weak point of the method in this run: heavy for small tasks (operator).
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 14:38:38 (28 Oct) → T2 10:34:06 (29 Oct): 19h55m28s. Operator waits after T1: 14:38:38–15:11:56 (33m18s, laptop freezing, check delay) · 15:12:10–15:31:41 (19m31s) · 15:32:05–16:11:09 (39m04s) · 16:11:09–10:33:53 next day (18h22m44s: the Copilot outage (401 from 16:11:09 to at least 16:39:07), overnight). Total 19h54m37s. Agent time after T1 51s (hidden check 14s, follow-up 1 24s, follow-up 2 13s). The outage lies inside an operator wait, so the total is comparable: 2h39m34s + 51s ≈ 160 min.
 
 ## Appendix A. Raw `/usage` output
 

@@ -1,13 +1,60 @@
+CLAUDE_CONFIG_DIR=/Users/agavrilita/saleor-benchmark/envs/rosetta/claude
+2.1.305 (Claude Code)
+v24.22.0
+{
+  "syncClaudeAiSkills": false,
+  "syncClaudeAiPlugins": false,
+  "env": {
+    "DISABLE_AUTOUPDATER": "1",
+    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
+    "ENABLE_CLAUDEAI_MCP_SERVERS": "false",
+    "CLAUDE_CODE_AUTO_CONNECT_IDE": "false"
+  },
+  "model": "claude-sonnet-5-5",
+  "disableClaudeAiConnectors": true,
+  "enabledPlugins": {
+    "cc-plugin-plugin-authoring@builtin": false,
+    "cc-plugin-sec-default@builtin": false,
+    "cc-plugin-telemetry@builtin": false,
+    "rosetta@rosetta": true
+  },
+  "extraKnownMarketplaces": {
+    "rosetta": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/agavrilita/saleor-benchmark/envs/rosetta/src"
+      }
+    }
+  },
+  "sandbox": { "enabled": false },
+  "effortLevel": "medium",
+  "autoMemoryEnabled": false,
+  "theme": "dark",
+  "skipDangerousModePermissionPrompt": true
+}
 Installed plugins:
 
   ❯ rosetta@rosetta
     Version: 3.1.17
-    Read from: /Users/njakovljevic/saleor-benchmark/envs/rosetta/src/plugins/core-claude
+    Read from: /Users/agavrilita/saleor-benchmark/envs/rosetta/src/plugins/core-claude
     Scope: user
     Status: ✔ enabled
 
 No MCP servers configured. Use `claude mcp add` to add a server.
 (no skills dir)
-saleor: baseline-v1 rosetta-v1 
-saleor-dashboard: baseline-v1 rosetta-v1 
-react-storefront: baseline-v1 rosetta-v1 
+"sandbox": { "enabled": false }
+saleor: CLAUDE.md = baseline rules
+saleor: copilot-instructions.md = baseline rules
+saleor: ai-file: .github/copilot-instructions.md
+saleor: ai-file: CLAUDE.md
+saleor-dashboard: CLAUDE.md = baseline rules
+saleor-dashboard: copilot-instructions.md = baseline rules
+saleor-dashboard: ai-file: .github/copilot-instructions.md
+saleor-dashboard: ai-file: CLAUDE.md
+react-storefront: CLAUDE.md = baseline rules
+react-storefront: copilot-instructions.md = baseline rules
+react-storefront: ai-file: .github/copilot-instructions.md
+react-storefront: ai-file: CLAUDE.md
+saleor: rosetta-light-v1 rosetta-skills-v1 rosetta-v1 
+saleor-dashboard: rosetta-light-v1 rosetta-skills-v1 rosetta-v1 
+react-storefront: rosetta-light-v1 rosetta-skills-v1 rosetta-v1 

@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-23T09:27           # effective start = t1 − gap-free time (37 min); real T0 09:26 is timeline row #1, arithmetic in section 8
 t1: 2026-10-23T10:04
 t2: 2026-10-23T11:07
+total_min: 68                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 18100            # /cost at T1: haiku 2.0k + sonnet 16.1k (rounded as the runner shows them)
@@ -52,7 +53,7 @@ hidden_matches_answer: 7.5      # yes: 1, 2, 3, 6, 7, 9; partly: 4, 5, 8 (sectio
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
-red_flags: 1
+red_flags: 0   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
 tests_pass: yes                 # one backend failure is pre-existing (fails the same on baseline-v1), section 4 #11
 operator_score: 3
 operator_merge_ready: no
@@ -224,11 +225,14 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken
+- [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
 - [ ] Other: none
 
 Evidence: said "done" while broken: at T1 (10:04) the agent wrote "Age-restricted products now work across the backend, the dashboard and the storefront. Everything I added passes locally", but the local stack was broken: the storefront showed "Something went wrong" (Error ID 1032743740) and the API failed with `column product_product.minimum_age does not exist`, because the migrations were never applied to the dev database. Fixed only by follow-up 1 (row 5). A mild case: the code itself was correct, and one `manage.py migrate` on the dev database fixed it with no code change (10:17:41, log). The strongest reason to untick it: nothing the agent ran showed the problem (its tests passed on pytest's own database, and `bench.sh health` also printed all OK), so the break was not "clearly" visible to it. Kept ticked (operator decision) because its first sentence claimed the storefront works while the storefront was down.
+
+> Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 0 (was 1).
+
 
 Not ticked, notes:
 
@@ -258,6 +262,11 @@ Not ticked, notes:
 
 ## 8. Notes
 
+- **Why not 5** (score 3; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 5 follow-ups · build OK
+  - Error: no shop time zone for "today"
+  - Error: one refusal message for guest / no birthday / underage; no sign-in prompt for guests
+  - Error: a future birthday shows "Invalid or expired token" in the dashboard; minimum age 0 blocks guests without a label
+
 - Deviations from the protocol, and why: One message went to the agent outside the protocol. At 10:24:40, during the operator's own check, the operator pasted the storefront error text ("This product is age restricted. You need to be signed in …") into the agent session by mistake and then rewound it. The agent answered without changing code. It is recorded as `extra-work` (timeline row 6a), not counted as a follow-up, and its tokens are in Appendix A under `## Extra work`.
 - Hidden #7 (legal policies): Marked `missed`, but no follow-up was sent. It needs no code change, and the agent already flagged the legal review of the terms and privacy policy in its answer to the hidden-question check (10:08). So `followups` stays 5.
 - Question or offer: The agent ended three messages with "say if you want …" (rows 3, 8, 16), and it isn't always clear whether that is a question. Only row 8 was treated as a question (row 9). It named work that wasn't done (no label in the cart drawer, checkout lines, order history and dashboard product list) and asked whether to do it, and extra answer row 32 already covered it. Rows 3 and 16 described choices already built and offered to change them, and no table had an answer for them, so they weren't answered. The work done after row 9 counts as answering a question, not as a follow-up.
@@ -271,6 +280,7 @@ Not ticked, notes:
 - Operator remark (minimum age 0): Staff can save 0. The backend treats 0 as restricted, so guests and customers without a birthday can't buy. The storefront treats 0 as no restriction and shows no label. So a guest sees a normal product and is refused at Add to bag (checked on Banana Juice, screenshot). Confusing but minor, and it fails safe. The agent mentioned it in follow-up 2. Not in the answer key. Banana Juice was set back to 18 after the test.
 - Operator remark (questions): The agent never asks before it builds. It makes its own choice, says what it chose, and offers a change at the end ("say if you want it different", row 3; "Say if you want any of those.", row 8; "say if you want a different shape.", row 16). Plan mode had 0 questions (row 2).
 - Operator remark (cleanup, positive): The agent cleaned up after its own testing. It set Apple Juice to 18 to check the label and then back to unrestricted (10:29:18 log). It didn't touch the operator's test data (Banana Juice stayed at 18).
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 10:04:54 → T2 11:07:36: 62m42s. Operator waits after T1: 10:04:54–10:08:13 (3m19s, until the hidden-question check) · 10:08:34–10:17:27 (8m53s, operator's check, follow-up 1) · 10:18:13–10:24:40 (6m27s) · 10:24:47–10:27:54 (3m07s, follow-up 2) · 10:29:30–10:32:50 (3m20s, agent's question) · 10:40:46–10:41:46 (1m00s, follow-up 3) · 10:42:05–10:42:51 (46s, follow-up 4) · 10:45:08–10:50:17 (5m09s, follow-up 5). Total 32m01s. Agent time after T1 30m41s. Gap-free total = 37m25s + 30m41s = 68m06s ≈ 68 min.
 
 ## Appendix A. Raw `/cost` output
 

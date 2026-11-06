@@ -20,6 +20,7 @@ status:                    done   # done | not-qualifying | infra-fail
 t0: 2026-10-26T20:24   # effective start = t1 minus gap-free time to T1 (32 min 57 s); real T0 is 20:11:26 (timeline row 1)
 t1: 2026-10-26T20:57   # log time of the first "done"; operator saw 20:58
 t2: 2026-10-26T21:45   # log time when the last follow-up was done (operator saw 21:45)
+total_min: 39                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 38   # Copilot home, specify, tag, login, trust and constitution, 19:25 to 20:03 (operator's times, incl. troubleshooting)                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 23.3m   # runner /usage at 21:00; includes 22.9m cached
@@ -53,10 +54,10 @@ hidden_matches_answer: 7     # how many of the 7 the ORIGINAL result (first pass
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 8   # operator's verdict at T2 after the follow-ups; see section 4
-red_flags: 3                 # number of ticked red flags
+red_flags: 1   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
 tests_pass:                yes   # yes | no (operator ran them at T2): backend 241 passed; dashboard 761 passed; storefront 104 passed
-operator_score: 3            # 1–5, anchors in templates/README.md
-operator_merge_ready: yes      # yes | no
+operator_score: 4   # was 3; aligned on 2026-11-05 by the team lead to the rule in section 8 ("Why not 5")
+operator_merge_ready: yes   # was yes; aligned on 2026-11-05 (section 8)
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
 judge_absolute:            # /40
@@ -299,11 +300,14 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [x] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken
+- [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
-- [x] Other: two functional defects that the agent reported as done (save of a storage-only edit, and the cleared value still shown on the storefront), plus the migration not applied to the dev database until follow-up 1
+- [ ] Other: two functional defects that the agent reported as done (save of a storage-only edit, and the cleared value still shown on the storefront), plus the migration not applied to the dev database until follow-up 1
 
 Evidence:
+
+> Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 1 (was 3).
+
 - Leftovers: `schema.graphql-e`, a stray file from the agent's earlier `sed` command. The agent removed it itself.
 - "Done" while broken: first "done" at 20:57 (log); follow-ups at 21:02, 21:30, 21:35 and 21:43 fixed the API error, the storage-only save, the cleared storefront value and the dashboard test.
 - Other: follow-up 1 (21:02), follow-up 2 (21:30), follow-up 3 (21:35); see timeline rows 20, 23 and 25.
@@ -330,6 +334,9 @@ Evidence:
 - [x] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: `workspace-root/` (contains `specs/`)
 
 ## 8. Notes
+
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 4 follow-ups · build OK
+  - No errors left in the final code; below 5 only because of the 4 follow-ups
 
 - Deviations from the protocol, and why:
   - **Copilot CLI 1.0.103**, not 1.0.101 (protocol part 4.1). The operator chose to keep the installed version; it is in the data block.

@@ -20,6 +20,7 @@ status: done               # done | not-qualifying | infra-fail
 t0: 2026-10-22T20:43   # effective start = t1 minus the gap-free first pass 1 h 47 min 12 s; real T0 22 Oct 16:29:01 (timeline row 2), see section 8
 t1: 2026-10-22T22:30
 t2: 2026-10-26T10:57
+total_min: 154                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min:                 # one-time method setup, minutes (not part of the run)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 41100000
@@ -392,6 +393,10 @@ Evidence: none ticked (operator: no red flags)
 - [ ] Workspace-root files the method wrote: none (the spec and plans are inside the `saleor` repo, `saleor/docs/superpowers/`, and appear in `saleor.diff`)
 
 ## 8. Notes
+
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 2 follow-ups · build OK
+  - Error: whole dashboard schema regenerated (+2,243 / −2,554 lines of diff noise)
+  - Error: spec and plan files left in the `saleor` repo
 
 - **Attempt 1 of this run ID was aborted by the operator** (T0 15:00, interrupted 15:56, session shut down 15:58) because the Copilot CLI built-in subagents (`general-purpose`, `code-review`) ran on `gpt-5.3-codex` instead of GPT-5.6 Terra, against BENCHMARKS.md section 2 (one model per runner). This report is attempt 2. **Correction found during attempt 2:** the subagent model is not a Copilot default. The Superpowers skill makes the main agent pass an explicit `model` in each task call (`modelSelectionSource: explicit_override`), so the `inherit` setting made no difference and the subagents again ran on `gpt-5.3-codex`. The subagent model is therefore chosen by the method as shipped; the run continues and this is a characteristic of the method in this runner, not a configuration error. Attempt 1's evidence is kept outside the repo in `~/saleor-benchmark-backups/S-CP-03-attempt1-aborted-20261022-1600/`. Before attempt 2 the subagents were set to follow the main session (`subagents.agents.<name>.model = inherit` for all seven built-in subagents: explore, task, general-purpose, rubber-duck, code-review, research, security-review), the saved sessions were moved aside, and the stack was reset to `superpowers-v1`.
 - **Restart before T0 counted (attempt 2, 16:13):** the first launch of attempt 2 received a truncated task message: the "Definition of done" paragraph was missing and the text had stray spaces from the paste (session log, 16:13:23). The agent had only read files and asked its first question; no answer was given, no subagent ran, and the repos and workspace had 0 changes. The operator ended that session at 16:14:58 (log); it is kept in `~/.copilot-sessions-aside-20261022-1615-truncated-t0`. No new reset was done (state verified clean). The task message was then sent from a file copied with `pbcopy`, after checking all three parts were in the input box.

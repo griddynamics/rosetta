@@ -20,6 +20,7 @@ status: done                # done | not-qualifying | infra-fail
 t0: 2026-10-21T15:56   # EFFECTIVE T0 = T1 minus the agent's active time (92 min): free of the operator's waiting gaps (13 min). Real T0 = 15:43, timeline #1
 t1: 2026-10-21T17:28
 t2: 2026-10-21T17:28
+total_min: 92                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 60                # /init-workspace-flow, once for all Rosetta methods: about 1 h including answering its questions (cost in rosetta-skills.md part 7, test-library zips)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 100.8k  

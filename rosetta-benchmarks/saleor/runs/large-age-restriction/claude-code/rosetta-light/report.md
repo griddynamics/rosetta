@@ -20,6 +20,7 @@ status: done
 t0: 2026-10-23T14:09        # effective start = t1 − gap-free time (real T0 10:22, timeline row 1; waits and the 2 runner stalls in section 8)
 t1: 2026-10-23T18:44
 t2: 2026-10-23T20:07        # real time of the last follow-up done (follow-up 2, log 20:07:09); gap-free total in section 8
+total_min: 309                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 60                # /init-workspace-flow, once for all Rosetta methods (see methods/rosetta-light.md, part 7)
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 594.5k      # sum over the 3 models in /cost (514.9k + 50.7k + 28.9k); /cost is cumulative
@@ -269,6 +270,9 @@ Evidence: no red flag ticked by the assistant (the operator decides). Checked: t
 - [ ] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: `workspace-root/`
 
 ## 8. Notes
+
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 2 follow-ups · build OK
+  - Error: `accountUpdate` accepts a partial date such as `2008-10`
 
 - Waiting for the operator (excluded from the run time, times from the session log): round 1: 10:28:07 → 10:58:21 = 30 min 14 s; round 2: 10:58:40 → 11:03:34 = 4 min 54 s. round 3: 11:18:25 → 11:23:11 = 4 min 46 s. round 4: 11:23:15 → 11:25:03 = 1 min 48 s; specs approval: 11:28:44 → 11:47:51 = 19 min 07 s (includes the time the operator took to bring the stop to the assistant). plan approval: 12:08:44 → 12:37:20 = 28 min 36 s (includes the time the operator took to bring the stop to the assistant). permission prompts not seen by the operator: 14:45:24 → 15:43:27 = 58 min 03 s (whole run idle; timeline row 21). second permission prompt: 15:47:07 → 15:52:26 = 5 min 19 s (timeline row 22). two Claude Code stalls where the whole run was idle until the operator typed `continue` (timeline rows 23, 24): 13:37:20 → 13:45:01 = 7 min 41 s and 16:59:59 → 18:05:36 = 65 min 37 s, excluded as runner stalls (decision of 2026-10-28; until then they were counted as agent time and the total was 152 min 47 s). Total before T1: 226 min 05 s (3 h 46 min 05 s). The gaps between the rounds (19 s; 11:03:34 → 11:18:25 while the architect wrote the specs) are agent time and stay in.
 - Waiting for the operator after T1 (for the total time T2): follow-up 1 question 19:02:56 → 19:06:26 = 3 min 30 s.

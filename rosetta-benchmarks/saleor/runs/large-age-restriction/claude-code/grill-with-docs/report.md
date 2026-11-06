@@ -20,6 +20,7 @@ status: done  # task variant: operator replaced hidden key #5, see section 8
 t0: 2026-10-22T13:27  # effective start = t1 − 53 gap-free min; real T0 12:29 (timeline #1), section 8
 t1: 2026-10-22T14:20
 t2: 2026-10-22T14:50
+total_min: 55                # gap-free total: first pass + agent time after T1, operator waits removed (section 8)
 setup_min: 9
 # Usage at T1 (first "done") and at T2 (end). Copy from the runner; don't recompute.
 t1_input_tokens: 560
@@ -52,9 +53,9 @@ hidden_matches_answer: 8  # of 8 applicable; #5 replaced by the operator's varia
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
-red_flags: 1
+red_flags: 0   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
 tests_pass: yes
-operator_score: 4
+operator_score: 4  # not 5: dashboard UI only on the staging-schema build (section 8, "Why not 5")
 operator_merge_ready: yes  # changed from no by the operator on 2026-10-28
 # Filled later by the evaluator from the judge reports
 verified_in_code: 8/8
@@ -225,11 +226,14 @@ Tick every one you see; one line of evidence each.
 - [ ] Unrelated files changed or refactored
 - [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
-- [x] Agent said "done" while something was clearly broken
+- [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
 - [ ] Other: `<...>`
 
 Evidence: at T1 (14:20) the three new migrations were not applied to the running database, and the dashboard UI was behind `FF_USE_STAGING_SCHEMA` (off in the running dashboard), so the feature was not usable in the running app; fixed by follow-ups 1 and 2 (timeline #16, #18). Operator confirmed the flag.
+
+> Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 0 (was 1).
+
 
 ## 6. Agent's claims vs reality (from `agent-report.md`)
 
@@ -254,6 +258,9 @@ Evidence: at T1 (14:20) the three new migrations were not applied to the running
 
 ## 8. Notes
 
+- **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 2 follow-ups · build OK
+  - Error: age fields shown only on the staging-schema dashboard build
+
 - Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 10 gaps of 4 min or more (the longest 33 min 22 s); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - Deviations from the protocol, and why:
   1. **Task variant (not comparable with other large runs).** The operator replaced hidden key #5 ("visible everywhere with an age label") with an own visibility rule: ineligible viewers (under-age, no birthday, guests) don't see restricted products; product page blurred with "You are under age; we cannot display this product to you." Rounds 2–4 of the interview follow from it (backend withholding, caching, staff/app visibility). Key #5 is marked n/a.
@@ -271,7 +278,10 @@ Evidence: at T1 (14:20) the three new migrations were not applied to the running
 - **Time without the operator's gaps:** T0 12:29:08 → T1 14:20:21 = 111.2 min. The agent waited for the operator 58.1 min before T1 (session log: 12:29:31→13:05:56 36.4, 13:06:20→13:13:47 7.5, 13:14:04→13:14:33 0.5, 13:14:49→13:17:13 2.4, 13:17:21→13:24:13 6.9, 13:24:23→13:28:49 4.4). Gap-free time 53.2 min; effective t0 = 13:27. Waits for its own background subagents (13:55) are agent time and are not removed.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a (not a Rosetta run)
 - Strong point of the method in this run: `<...>`
-- Weak point of the method in this run: the first "done" had errors: the feature was not usable in the running app (database not migrated, dashboard UI behind a staging flag) until 2 follow-ups. Merge-ready (operator, changed from no on 2026-10-28); points for the review: dashboard UI only on the staging-schema build, 10 `test_tasks.py` tests excluded without the operator's verification, agent-written translations in 8 locales.
+- **Kept as a task variant, no rerun** (team decision of 2026-11-04): hidden #5 follows the operator's visibility rule, so hidden #5, time and cost are not compared with the other large runs; the other results count.
+- **Why the score is 4, not 5** (added 2026-11-02, asked in the team chat): all 12 Done-when checks pass, but two things in the final code would come up in a normal review: (1) the dashboard UI (product "Age restricted" flag, store "Minimum age") is shown only on the staging-schema build (`isStagingSchema()`), so staff don't see it in the normal dashboard build; (2) 10 `saleor/checkout/tests/test_tasks.py` tests were left out of the agent's full backend run, not verified by the operator. The wrong first "done" (2 follow-ups) is counted in `followups` and `red_flags`, not in the score. Storefront translations in 8 locales are not a minus: 3 other large runs did the same (L-CC-04, L-CC-08 with score 5, L-CP-04), the others added English only.
+- Weak point of the method in this run: the first "done" had errors: the feature was not usable in the running app (database not migrated, dashboard UI behind a staging flag) until 2 follow-ups. Merge-ready (operator, changed from no on 2026-10-28); points for the review: dashboard UI only on the staging-schema build, 10 `test_tasks.py` tests excluded without the operator's verification.
+- **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 14:20:22 → T2 14:50:59 (session log): 30m37s. Operator waits after T1: 14:20:22–14:25:26 (5m04s, until the hidden-question check) · 14:25:39–14:37:19 (11m40s, operator's check, follow-up 1) · 14:37:49–14:49:58 (12m10s, operator's check, follow-up 2). Total 28m54s. Agent time after T1 1m43s. Gap-free total = 53.2 + 1.7 ≈ 55 min.
 
 ## Appendix A. Raw `/cost` output
 
