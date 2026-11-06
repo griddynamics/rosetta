@@ -49,7 +49,7 @@ hidden_total: 9
 hidden_asked: 0
 hidden_covered: 4               # 1, 2, 3, 4
 hidden_missed: 5                # 5, 6, 7, 8, 9 (7: not flagged before the check, no follow-up sent, section 8)
-hidden_matches_answer: 6.5      # yes: 1, 2, 3, 7, 9; partly: 4, 5, 8; no: 6 (section 3)
+hidden_matches_answer: 5.5      # yes: 1, 2, 3, 7; partly: 4, 5, 8; no: 6, 9 (section 3)
 # Outcome (sections 4–5)
 done_checks_total: 12
 done_checks_passed: 12
@@ -170,7 +170,7 @@ Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` /
 | 6 | Marketing emails checked | missed | no (first pass: no check, no statement that core sends no marketing emails; same as the other runs) | T1 answer: "didn't look for recommendation emails". Follow-up 3 (row 11): checked `saleor/core/notify.py` and searched all three repos; core sends transactional emails only, no code change |
 | 7 | Legal policies flagged for review | missed (not flagged before the check; no follow-up sent) | yes | Not in the plan, the work before T1 or the T1 message (session log). First raised in the hidden-question check answer (10:08): "Terms and privacy policy: not handled, and I can't judge it. … You'd likely want legal review of the privacy policy (purpose, retention) and of how the terms describe age-restricted sales." The agent: "Items 5, 6, 7 and most of 9 were not, and I didn't flag them earlier." No code change needed; that answer already flags the review, so no follow-up was sent (section 8) |
 | 8 | Birthday boundary + shop time zone | missed | partly | T1 answer: date comparison, turns-today and 29 Feb → 1 Mar handled, but "today" = server UTC date (`timezone.now().date()`); agent named this limit itself. Follow-up 4 (row 13): `calculate_age` and `clean_birthday` now use `timezone.localdate()` = Django `settings.TIME_ZONE` (server config, "UTC"); no shop time zone setting, nothing staff can change in the dashboard, so on this stack the result is the same as before. Operator decision: no further follow-up; the agent tried to fix it, but the "shop's time zone" part is still not met |
-| 9 | PII: only customer + super-admin see birthday; audit log | missed | yes | T1 answer: plain field readable by anyone who can resolve a User, added to the customer webhook payload, no audit log. Follow-up 5 (row 15): owner / super-admin only, removed from webhooks, change + read audit log (`BirthdayAuditLog`), yes/no `ageEligible` flag for MANAGE_USERS / MANAGE_STAFF (row 16) |
+| 9 | PII: only customer + super-admin see birthday; audit log | missed | no (first pass: any user who can resolve a User could read the birthday, it was in the customer webhook payload, no audit log; the follow-up fixed it) | T1 answer: plain field readable by anyone who can resolve a User, added to the customer webhook payload, no audit log. Follow-up 5 (row 15): owner / super-admin only, removed from webhooks, change + read audit log (`BirthdayAuditLog`), yes/no `ageEligible` flag for MANAGE_USERS / MANAGE_STAFF (row 16) |
 
 ## 4. Done when: checked by the operator at T2
 
