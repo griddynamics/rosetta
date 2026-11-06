@@ -227,12 +227,12 @@ Matches = the ORIGINAL result (first pass, before any follow-up) follows the ans
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |
 | ---: | --- | --- | --- | --- |
-| 1 | Plain text, max 250 chars | missed (not covered at T1) | partly | T1 check: "Plain text; no explicit maximum length", nullable `TextField` on `Product` and `ProductTranslation`, no max-length constraint |
+| 1 | Plain text, max 250 chars | missed | partly | T1 check: "Plain text; no explicit maximum length", nullable `TextField` on `Product` and `ProductTranslation`, no max-length constraint |
 | 2 | Translatable | asked | yes | timeline #2 (09:00), answered with hidden #2 + extra #8. Plan and T1: base field + translation field, storefront falls back to the base value on an empty translation. Operator check at T2 (10:15): base value `" Keep refrigerated at 2–8 °C in english"` on Apple Juice; translation saved on the dashboard translations page under **Polish (Poland)** (`PL_PL`): API `translation(languageCode: PL_PL) { storageConditions }` = `"Keep refrigerated at 2-8 C in poland"` (the seed's `PL` "Polish" translation, with the name, is a separate record and has no storage conditions). Storefront in Polish not viewable: the local storefront has only English enabled (`/pl/…` → 308 to `/en/…`; extra #24: config not changed). Cleared by the operator (10:19): base `null`; `PL_PL` translation `storageConditions: ""` (empty string, not `null`; the `PL_PL` translation record created in this check stays, with empty fields) |
 | 3 | Product level, not variant | covered | yes | T1 check: field on `Product` / `ProductTranslation`, not `ProductVariant`; all variants share the value |
 | 4 | Shown only on the product page | covered | yes | T1 check: PDP only, optional "Storage conditions" accordion entry; not in cart, checkout, order views or emails |
 | 5 | Existing products: empty, schema migration only | covered | yes | T1 check: nullable columns, no default, existing products NULL, no backfill |
-| 6 | In API, webhook payload, CSV export; no filter | missed (not covered at T1) | partly | T1 check: in GraphQL `Product`/`ProductTranslation`, no filter (matches); CSV import/export not changed; existing webhook payloads don't include it (only subscriptions that select it) |
+| 6 | In API, webhook payload, CSV export; no filter | missed | partly | T1 check: in GraphQL `Product`/`ProductTranslation`, no filter (matches); CSV import/export not changed; existing webhook payloads don't include it (only subscriptions that select it) |
 | 7 | Edit permission `MANAGE_PRODUCTS` | covered | yes | T1 check: base value `MANAGE_PRODUCTS`, translations `MANAGE_TRANSLATIONS`; read through the normal product API with existing visibility rules |
 
 ## 4. Done when: checked by the operator at T2

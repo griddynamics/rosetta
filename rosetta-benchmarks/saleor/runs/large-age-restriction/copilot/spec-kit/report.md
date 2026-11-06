@@ -257,9 +257,9 @@ Matches = the ORIGINAL result (first pass, before any follow-up) follows the ans
 | 2 | Existing products unrestricted by default | covered | yes | Agent's T1 answer: `Product.is_age_restricted` defaults to `False` in the model and migration. Not asked. |
 | 3 | Schema migration only, no backfill | covered | yes | Agent's T1 answer: no backfill; migrations add nullable or defaulted fields. Not asked. |
 | 4 | Guest: can browse, can't buy restricted | covered | yes | Agent's T1 answer: guests can view restricted products; checkout rejects them with `AGE_RESTRICTED_GUEST`; storefront prompts sign-in. Not asked. |
-| 5 | Lists / search / discounts / banners: visible with age label | not covered | partly | Agent's T1 answer: restricted products stay visible, but no age label is mentioned for lists, search, discounts or banners. Visibility half matches; the age-label half is missing. |
-| 6 | Marketing emails checked | not covered | no | Agent's T1 answer: "not handled"; no statement that Saleor core sends no marketing emails. |
-| 7 | Legal policies flagged for review | not covered | no | Agent's T1 answer: terms and privacy policy "not changed"; no flag that they need legal review. |
+| 5 | Lists / search / discounts / banners: visible with age label | missed | partly | Agent's T1 answer: restricted products stay visible, but no age label is mentioned for lists, search, discounts or banners. Visibility half matches; the age-label half is missing. |
+| 6 | Marketing emails checked | missed | no | Agent's T1 answer: "not handled"; no statement that Saleor core sends no marketing emails. |
+| 7 | Legal policies flagged for review | missed | no | Agent's T1 answer: terms and privacy policy "not changed"; no flag that they need legal review. |
 | 8 | Birthday boundary + shop time zone | covered | yes | Agent's T1 answer: current calendar date in the shop time zone (`shopTimezone`, default UTC); 29 February reaches the anniversary on 1 March in non-leap years. Not asked. |
 | 9 | PII: only customer + super-admin see birthday; audit log | covered | yes | Agent's T1 answer: only the customer and super-admin read or change Birthday; absent from public, app, and webhook outputs; `MANAGE_USERS` sees only the boolean status; sensitive reads and changes are redacted audit events visible to super-admins. Not asked. |
 
