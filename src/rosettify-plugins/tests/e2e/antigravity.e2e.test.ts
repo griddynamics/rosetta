@@ -22,6 +22,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../../src/index.js';
 import type { ResolvedSources } from '../../src/types.js';
+import { loadPluginCatalog, resolveHookModules } from '../../src/spec/plugin-sets.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Repo root: go up from tests/e2e/ → tests/ → rosettify-plugins/ → src/ → <repo root>
@@ -76,24 +77,35 @@ describe('Antigravity E2E — the rosetta set over real instructions/r3', () => 
     tmpFalse = fs.mkdtempSync(path.join(os.tmpdir(), 'ag-e2e-false-'));
     outFalse = path.join(tmpFalse, 'output');
     fs.mkdirSync(outFalse, { recursive: true });
-    await generate({
+    expect(await generate({
       sources: buildSources(outFalse),
       release: 'r3',
       dryRun: false,
       verbose: false,
       deterministicHooks: false,
-    });
+    })).toBe(0);
 
     tmpTrue = fs.mkdtempSync(path.join(os.tmpdir(), 'ag-e2e-true-'));
     outTrue = path.join(tmpTrue, 'output');
     fs.mkdirSync(outTrue, { recursive: true });
-    await generate({
-      sources: buildSources(outTrue),
+    // The true run needs hook bundles (a missing bundle directory or file is a hard error).
+    // Stub one .js per hook module the catalog declares, per IDE family, so the test does not
+    // depend on a local `src/hooks` build; it asserts hooks.json content, not bundle content.
+    const stubHooks = path.join(tmpTrue, 'hooks');
+    const catalog = loadPluginCatalog(buildSources(outTrue).configPath);
+    const modules = new Set(catalog.sets.flatMap((set) => resolveHookModules(catalog, set)));
+    for (const family of new Set(catalog.targets.map((t) => t.replace(/-standalone$/, '')))) {
+      const dir = path.join(stubHooks, 'dist', 'bundles', family);
+      fs.mkdirSync(dir, { recursive: true });
+      for (const mod of modules) fs.writeFileSync(path.join(dir, `${mod}.js`), '// stub\n');
+    }
+    expect(await generate({
+      sources: { ...buildSources(outTrue), hooksSource: stubHooks },
       release: 'r3',
       dryRun: false,
       verbose: false,
       deterministicHooks: true,
-    });
+    })).toBe(0);
   }, 180000);
 
   afterAll(() => {
