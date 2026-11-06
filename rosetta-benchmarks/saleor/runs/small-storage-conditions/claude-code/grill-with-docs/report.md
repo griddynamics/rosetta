@@ -274,6 +274,7 @@ Evidence: none ticked. Checked: no debug prints, TODOs, `skip`/`xfail` in the 3 
 - Strong point of the method in this run: a short, cheap interview (2 rounds, 14 questions, ~11 min, ~1% of tokens) asked 5 of 7 hidden questions; the other 2 were handled correctly. 8/8 Done when checks, 0 follow-ups.
 - Weak point of the method in this run: the interview's own recommendations would have been wrong on hidden 6 (it proposed CSV export out of scope) and close-but-off on hidden 1 (255 chars), so the result depends on the operator's answers. The method adds nothing to implementation: 95% of tokens, 167 Bash calls, files edited through the shell. The glossary went into an upstream file (`saleor-dashboard/CONTEXT.md`).
 - Dashboard type check (`pnpm run check-types`, run by the assistant after the run): fails (`ProductDetailsForm.test.tsx(108,11)`: TS2353, `'attributes' does not exist in type 'ProductErrorFragment'`). +1 follow-up (known benchmark deficiency, BENCHMARKS.md section 5).
+- **First pass is wall time (6 Nov).** 38 min (T0 11:37 → T1 12:15) still includes the operator's answers during the interview; no session log is kept, so those waits can't be measured and nothing is removed. The other small Claude Code runs remove operator waits before T1.
 
 ## Appendix A. Raw `/cost` output
 

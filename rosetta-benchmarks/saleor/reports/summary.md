@@ -19,10 +19,10 @@
 | `L-CP-04` | `large-age-restriction/copilot/spec-kit` | run | done | 51 | 56 | 964.1 cr | 1024.0 cr | 6% | 0 / 6 / 3 | 67% | 3 | 9 | 12/12 | no | 2 | no | – | – / – / – | – | – |
 | `L-CP-08` | `large-age-restriction/copilot/rosetta-skills` | run | done | 65 | 73 | 1303.4 cr | 1644.4 cr | 21% | 4 / 3 / 2 | 78% | 1 | 10 | 11/12 | yes | 4 | yes | – | – / – / – | – | – |
 | `L-CP-07` | `large-age-restriction/copilot/rosetta-light` | run | done | 251 | 260 | 1962.2 cr | 2215.1 cr | 11% | 5 / 3 / 1 | 89% | 3 | 15 | 12/12 | yes | 4 | yes | – | – / – / – | – | – |
-| `S-CC-01` | `small-storage-conditions/claude-code/baseline` | run | done | 29 | 52 | $1.24 | $3.31 | 63% | 0 / 4 / 3 | 57% | 3 | 1 | 7/8 | yes | 3 | no | 66.2 | 0 / 2 / 8 | 1 | 0 |
+| `S-CC-01` | `small-storage-conditions/claude-code/baseline` | run | done | 27 | 50 | $1.24 | $3.31 | 63% | 0 / 4 / 3 | 57% | 3 | 1 | 7/8 | yes | 3 | no | 66.2 | 0 / 2 / 8 | 1 | 0 |
 | `S-CC-02` | `small-storage-conditions/claude-code/grill-with-docs` | run | done | 38 | 38 | $4.82 | $4.89 | 1% | 5 / 2 / 0 | 100% | 1 | 1 | 8/8 | yes | 3 | no | 71.6 | 0 / 1 / 6 | 1 | 4.15 |
 | `S-CC-03` | `small-storage-conditions/claude-code/superpowers` | run | done | 36 | 41 | $6.76 | $8.08 | 16% | 1 / 5 / 1 | 86% | 1 | 5 | 7/8 | yes | 3 | no | 73.5 | 0 / 1 / 7 | 2 | 5.45 |
-| `S-CC-04` | `small-storage-conditions/claude-code/spec-kit` | run | done | 105 | 158 | $4.58 | $12.65 | 64% | 0 / 4 / 3 | 57% | 3 | 14 | 8/8 | yes | 3 | no | 70.7 | 0 / 1 / 6 | 2 | 2.65 |
+| `S-CC-04` | `small-storage-conditions/claude-code/spec-kit` | run | done | 91 | 144 | $4.58 | $12.65 | 64% | 0 / 4 / 3 | 57% | 3 | 14 | 8/8 | yes | 3 | no | 70.7 | 0 / 1 / 6 | 2 | 2.65 |
 | `S-CC-06` | `small-storage-conditions/claude-code/rosetta-flow` | run | done | 69 | 71 | $20.02 | $20.13 | 1% | 4 / 3 / 0 | 100% | 0 | 4 | 8/8 | yes | 5 | yes | – | – / – / – | – | – |
 | `S-CC-08` | `small-storage-conditions/claude-code/rosetta-skills` | run | done | 56 | 56 | $5.64 | $5.64 | 0% | 3 / 3 / 1 | 86% | 2 | 4 | 8/8 | yes | 5 | yes | 73.6 | 0 / 0 / 5 | 2 | 4.7 |
 | `S-CC-07` | `small-storage-conditions/claude-code/rosetta-light` | run | done | 92 | 92 | $5.48 | $5.48 | 0% | 4 / 3 / 0 | 100% | 0 | 2 | 8/8 | yes | 5 | yes | 73.4 | 0 / 0 / 8 | 3 | 5.2 |
@@ -41,10 +41,10 @@
 
 | Method | n | Time first (min) | Time total (min) | Usage total | First-pass coverage | Follow-ups | Method steps | Done checks passed | Operator score | Diff score |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| baseline | 1 | 29 | 52 | $3.31 | 57% | 3 | 1 | 7 | 3 | 66 |
+| baseline | 1 | 27 | 50 | $3.31 | 57% | 3 | 1 | 7 | 3 | 66 |
 | grill-with-docs | 1 | 38 | 38 | $4.89 | 100% | 1 | 1 | 8 | 3 | 72 |
 | superpowers | 1 | 36 | 41 | $8.08 | 86% | 1 | 5 | 7 | 3 | 74 |
-| spec-kit | 1 | 105 | 158 | $12.65 | 57% | 3 | 14 | 8 | 3 | 71 |
+| spec-kit | 1 | 91 | 144 | $12.65 | 57% | 3 | 14 | 8 | 3 | 71 |
 | rosetta | 1 | 69 | 71 | $20.13 | 100% | 0 | 4 | 8 | 5 | – |
 | rosetta-skills | 1 | 56 | 56 | $5.64 | 86% | 2 | 4 | 8 | 5 | 74 |
 | rosetta-light | 1 | 92 | 92 | $5.48 | 100% | 0 | 2 | 8 | 5 | 73 |
