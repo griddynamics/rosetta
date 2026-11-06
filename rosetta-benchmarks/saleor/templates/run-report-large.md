@@ -57,6 +57,7 @@ red_flags:                 # number of ticked red flags
 tests_pass:                # yes | no (operator ran them at T2)
 operator_score:            # 1–5, anchors in templates/README.md
 operator_merge_ready:      # yes | no
+operator_merge_ready_reason:  # the items that decided it; for each "no"
 # Filled later by the assistant: verified_in_code from step 0.3, judge_* from the diff judge's JSON
 verified_in_code:          # items verified in code / items checked (e.g. 8/9)
 judge_total:               # diff score: total + bonus, from the totals script
