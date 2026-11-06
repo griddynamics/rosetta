@@ -15,7 +15,7 @@ model: claude-sonnet-5-5
 effort: medium
 start_tag: grill-v1
 operator: Oleksii Poletaiev
-status: done  # task variant: operator replaced hidden key #5, see section 8
+status: done  # operator replaced hidden key #5 during the run; compared with the other runs as is (team lead, 2026-11-06), see section 8
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
 t0: 2026-10-22T13:27  # effective start = t1 − 53 gap-free min; real T0 12:29 (timeline #1), section 8
 t1: 2026-10-22T14:20
@@ -167,7 +167,7 @@ Matches = the final code follows the answer in BENCHMARKS.md, section 4: `yes` /
 | 2 | Existing products unrestricted by default | asked | yes | round 1 Q1 (timeline #2–3) |
 | 3 | Schema migration only, no backfill | covered | yes | account/0106, product/0211, site/0053 contain only `AddField` (nullable / defaults), no `RunPython`. T1 answer: migrations account/0106, product/0211, site/0053; nullable/default fields; no backfill |
 | 4 | Guest: can browse, can't buy restricted | asked | yes (buying; browsing per the variant) | round 1 Q3; browsing later replaced by the operator's visibility variant (round 2–3, section 8) |
-| 5 | Lists / search / discounts / banners: visible with age label | asked (variant) | n/a | operator replaced key #5 with a visibility rule (hidden for ineligible viewers); rounds 2–4; not comparable, section 8 |
+| 5 | Lists / search / discounts / banners: visible with age label | asked (variant) | n/a | operator replaced key #5 with a visibility rule (hidden for ineligible viewers); rounds 2–4; section 8 |
 | 6 | Marketing emails checked | covered | yes | T1 answer: grepped backend, no email recommends products; external apps must apply the rule themselves |
 | 7 | Legal policies flagged for review | covered | yes | T1 answer: privacy policy and terms need review (birthday collection, visibility, log retention, self-declared age); text outside the repos |
 | 8 | Birthday boundary + shop time zone | asked | yes | round 1 Q2; `saleor/account/age.py`: date-only comparison with `timezone.localdate()` (settings TIME_ZONE, UTC here; Saleor has no per-shop time zone), 29 Feb → 1 Mar |
@@ -263,7 +263,7 @@ Evidence: at T1 (14:20) the three new migrations were not applied to the running
 
 - Runner stalls checked on 2026-11-02 (rule of 2 Nov: runner stalls and outages are not run time): none. The session log has 10 gaps of 4 min or more (the longest 33 min 22 s); each one is either the operator's turn (the agent had ended its turn and waited for an answer, a check or a follow-up) or a running tool or subagent (agent time). Run time unchanged.
 - Deviations from the protocol, and why:
-  1. **Task variant (not comparable with other large runs).** The operator replaced hidden key #5 ("visible everywhere with an age label") with an own visibility rule: ineligible viewers (under-age, no birthday, guests) don't see restricted products; product page blurred with "You are under age; we cannot display this product to you." Rounds 2–4 of the interview follow from it (backend withholding, caching, staff/app visibility). Key #5 is marked n/a.
+  1. **Hidden #5 replaced by the operator (compared with the other large runs as is, see the last bullet).** The operator replaced hidden key #5 ("visible everywhere with an age label") with an own visibility rule: ineligible viewers (under-age, no birthday, guests) don't see restricted products; product page blurred with "You are under age; we cannot display this product to you." Rounds 2–4 of the interview follow from it (backend withholding, caching, staff/app visibility). Key #5 is marked n/a.
   2. **Operator corrected an own answer within the run.** Round 1 Q1: "EU 18, US 21 by shipping country"; round 2: "no regions, one store-wide minimum age 18".
   3. **Round-1 answer cut off by the paste** at "Also: … must not"; the agent asked to finish it in round 2.
   4. **Round 3 answered with yes/no directly to the agent** (`1 yes, 2 yes, 3 no, …`), i.e. accepting the agent's proposals; key #1 for Q7 not sent word for word.
@@ -278,7 +278,7 @@ Evidence: at T1 (14:20) the three new migrations were not applied to the running
 - **Time without the operator's gaps:** T0 12:29:08 → T1 14:20:21 = 111.2 min. The agent waited for the operator 58.1 min before T1 (session log: 12:29:31→13:05:56 36.4, 13:06:20→13:13:47 7.5, 13:14:04→13:14:33 0.5, 13:14:49→13:17:13 2.4, 13:17:21→13:24:13 6.9, 13:24:23→13:28:49 4.4). Gap-free time 53.2 min; effective t0 = 13:27. Waits for its own background subagents (13:55) are agent time and are not removed.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a (not a Rosetta run)
 - Strong point of the method in this run: `<...>`
-- **Kept as a task variant, no rerun** (team decision of 2026-11-04): hidden #5 follows the operator's visibility rule, so hidden #5, time and cost are not compared with the other large runs; the other results count.
+- **No rerun; compared as is** (team lead, 2026-11-06): the replaced hidden #5 is a small difference, so the run, including its time, cost and hidden coverage, is compared with the other large runs as is. Earlier (team decision of 2026-11-04) it was kept as a task variant with hidden #5, time and cost not compared; that marking is removed from the results page.
 - **Why the score is 4, not 5** (added 2026-11-02, asked in the team chat): all 12 Done-when checks pass, but two things in the final code would come up in a normal review: (1) the dashboard UI (product "Age restricted" flag, store "Minimum age") is shown only on the staging-schema build (`isStagingSchema()`), so staff don't see it in the normal dashboard build; (2) 10 `saleor/checkout/tests/test_tasks.py` tests were left out of the agent's full backend run, not verified by the operator. The wrong first "done" (2 follow-ups) is counted in `followups` and `red_flags`, not in the score. Storefront translations in 8 locales are not a minus: 3 other large runs did the same (L-CC-04, L-CC-08 with score 5, L-CP-04), the others added English only.
 - Weak point of the method in this run: the first "done" had errors: the feature was not usable in the running app (database not migrated, dashboard UI behind a staging flag) until 2 follow-ups. Merge-ready (operator, changed from no on 2026-10-28); points for the review: dashboard UI only on the staging-schema build, 10 `test_tasks.py` tests excluded without the operator's verification.
 - **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 14:20:22 → T2 14:50:59 (session log): 30m37s. Operator waits after T1: 14:20:22–14:25:26 (5m04s, until the hidden-question check) · 14:25:39–14:37:19 (11m40s, operator's check, follow-up 1) · 14:37:49–14:49:58 (12m10s, operator's check, follow-up 2). Total 28m54s. Agent time after T1 1m43s. Gap-free total = 53.2 + 1.7 ≈ 55 min.
