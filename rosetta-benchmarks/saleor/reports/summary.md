@@ -1,6 +1,6 @@
 # Benchmark results
 
-28 reports in `saleor/runs/`. Compare methods only within one task and one runner (templates/README.md).
+29 reports in `saleor/runs/`. Compare methods only within one task and one runner (templates/README.md).
 
 ## Every run
 
@@ -17,6 +17,7 @@
 | `L-CP-02` | `large-age-restriction/copilot/grill-with-docs` | run | done | 27 | 43 | 600.8 cr | 848.9 cr | 29% | 7 / 2 / 0 | 100% | 5 | 1 | 12/12 | yes | 4 | yes | – | – / – / – | – | – |
 | `L-CP-03` | `large-age-restriction/copilot/superpowers` | run | done | 159 | 160 | 1776.8 cr | 1887.9 cr | 6% | 2 / 5 / 2 | 78% | 2 | 6 | 7/12 | yes | 3 | no | – | – / – / – | – | – |
 | `L-CP-04` | `large-age-restriction/copilot/spec-kit` | run | done | 51 | 56 | 964.1 cr | 1024.0 cr | 6% | 0 / 6 / 3 | 67% | 3 | 9 | 12/12 | no | 2 | no | – | – / – / – | – | – |
+| `L-CP-06` | `large-age-restriction/copilot/rosetta-flow` | run | done | 63 | 86 | 1276.3 cr | 1900.8 cr | 33% | 2 / 3 / 4 | 56% | 10 | 25 | 11/12 | yes | 4 | yes | – | – / – / – | – | – |
 | `L-CP-08` | `large-age-restriction/copilot/rosetta-skills` | run | done | 65 | 73 | 1303.4 cr | 1644.4 cr | 21% | 4 / 3 / 2 | 78% | 1 | 10 | 11/12 | yes | 4 | yes | – | – / – / – | – | – |
 | `L-CP-07` | `large-age-restriction/copilot/rosetta-light` | run | done | 251 | 260 | 1962.2 cr | 2215.1 cr | 11% | 5 / 3 / 1 | 89% | 3 | 15 | 12/12 | yes | 4 | yes | – | – / – / – | – | – |
 | `S-CC-01` | `small-storage-conditions/claude-code/baseline` | run | done | 27 | 50 | $1.24 | $3.31 | 63% | 0 / 4 / 3 | 57% | 3 | 1 | 7/8 | yes | 3 | no | 66.2 | 0 / 2 / 8 | 1 | 0 |
@@ -81,6 +82,7 @@
 | grill-with-docs | 1 | 27 | 43 | 848.9 cr | 100% | 5 | 1 | 12 | 4 | – |
 | superpowers | 1 | 159 | 160 | 1887.9 cr | 78% | 2 | 6 | 7 | 3 | – |
 | spec-kit | 1 | 51 | 56 | 1024.0 cr | 67% | 3 | 9 | 12 | 2 | – |
+| rosetta | 1 | 63 | 86 | 1900.8 cr | 56% | 10 | 25 | 11 | 4 | – |
 | rosetta-skills | 1 | 65 | 73 | 1644.4 cr | 78% | 1 | 10 | 11 | 4 | – |
 | rosetta-light | 1 | 251 | 260 | 2215.1 cr | 89% | 3 | 15 | 12 | 4 | – |
 
