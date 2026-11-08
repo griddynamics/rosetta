@@ -5,7 +5,7 @@ schema: saleor-bench-run/v1
 run_id: S-CP-04
 task: small-storage-conditions
 method: spec-kit
-method_version: specify 1.0.13          # e.g. 3.1.13, v6.4.2, 447ca70
+method_version: v1.0.13          # e.g. 3.1.13, v6.4.2, 447ca70
 flow:                      specify-plan-tasks-implement   # workflow actually used, e.g. coding-flow, coding-light-flow, specify-plan-tasks-implement, plan-mode (Baseline)
 entry_command:             /speckit-specify   # exact text in front of the prompt, e.g. /grill-with-docs ; "none (plan mode)" for Baseline ; "/superpowers:brainstorming" for Superpowers
 runner: copilot
@@ -14,7 +14,7 @@ setup_mark: official
 model: gpt-5.6-terra
 effort: medium
 start_tag: speckit-v1
-operator: rcimendur
+operator: Rustem Cimendur
 status:                    done   # done | not-qualifying | infra-fail
 # Time: ISO 8601 local time, minute precision, e.g. 2026-10-20T14:05
 t0: 2026-10-26T20:24   # effective start = t1 minus gap-free time to T1 (32 min 57 s); real T0 is 20:11:26 (timeline row 1)
@@ -27,42 +27,45 @@ t1_input_tokens: 23.3m   # runner /usage at 21:00; includes 22.9m cached
 t1_output_tokens: 101.0k   # includes 29.5k reasoning
 t1_cache_read_tokens: 22.9m
 t1_cache_write_tokens: 480.8k
-t1_cost_usd: n/a   # Copilot reports AI credits only (t1_ai_credits)
+t1_cost_usd:               # Copilot: leave empty (AI credits only, t1_ai_credits)
 t1_ai_credits: 698.7   # /usage at 21:00 (operator): 48m 33s; tokens in 23.3m (22.9m cached, 480.8k written), out 101.0k (29.5k reasoning); context 69%
-#             # Copilot only: AI credits from /usage or tokens.md
-t2_input_tokens: 28.1m (runner /usage at 21:52)
-t2_output_tokens: 110.8k (33.4k reasoning)
+t2_input_tokens: 28.1m   # runner /usage at 21:52 (no agent work after T2, 21:45:27)
+t2_output_tokens: 110.8k   # includes 33.4k reasoning
 t2_cache_read_tokens: 27.4m
 t2_cache_write_tokens: 759.3k
-t2_cost_usd: n/a   # Copilot reports AI credits only (t2_ai_credits)
-t2_ai_credits: 870.42   # runner /usage at 21:52; session log says 885.224 after the post-implementation prompt             # Copilot only: AI credits from /usage or tokens.md
-context_end_pct: 17   # 47k of 272k at 21:52; was 69% at T1, so the session was probably compacted
+t2_cost_usd:               # Copilot: leave empty (AI credits only, t2_ai_credits)
+t2_ai_credits: 870.42   # runner /usage at 21:52; the session log says 885.224 after the post-implementation prompt
+context_end_pct: 17   # 47k of 272k at 21:52; was 69% at T1: the session was compacted at 21:36 (log, during follow-up 3)
 subagents:                 3   # number of subagents launched (0 if none): three background agents (backend, dashboard, storefront) during implement
 # Counts, taken from the timeline (section 2)
 method_steps: 9   # 3 command replies (/speckit-plan, /speckit-tasks, /speckit-implement) + 6 spec-review corrections with approval
 questions_total: 0
 questions_hidden: 0
 questions_extra: 0
-followups: 4   # 21:02 API error, 21:30 save only, 21:35 cleared value on storefront, 21:43 failing dashboard test
+followups: 5   # 21:02 API error, 21:30 save only, 21:35 cleared value on storefront, 21:43 failing dashboard test; +1 for the dashboard type check (`check-types` fails, a follow-up the operator missed: known benchmark deficiency, section 8)
 retries: 0
 # Hidden questions (section 3). asked + covered + missed = hidden_total
 hidden_total: 7
 hidden_asked: 0
-hidden_covered: 7   # 3 covered by the spec itself; 6 disclosed in spec review and confirmed at T1 (rows marked *)
+hidden_covered: 7   # #3 covered by the spec itself; 6 disclosed in spec review and confirmed at T1 (rows marked *)
 hidden_missed: 0
 hidden_matches_answer: 7     # how many of the 7 the ORIGINAL result (first pass, before follow-ups) follows the answer key (yes = 1, partly = 0.5)
 # Outcome (sections 4–5)
 done_checks_total: 8
 done_checks_passed: 8   # operator's verdict at T2 after the follow-ups; see section 4
-red_flags: 1   # unified rule 2026-11-05: "said done while broken" unticked (found in the operator's check after T1, fixed by follow-ups); see section 5
+red_flags: 0   # was 3: "said done while broken" and "Other" unticked by the team lead on 2026-11-05 (unified rule), "Leftovers" by the operator on 2026-11-08 (the stray file was deleted before T1); section 5
 tests_pass:                yes   # yes | no (operator ran them at T2): backend 241 passed; dashboard 761 passed; storefront 104 passed
 operator_score: 4   # was 3; aligned on 2026-11-05 by the team lead to the rule in section 8 ("Why not 5")
 operator_merge_ready: yes   # was yes; aligned on 2026-11-05 (section 8)
-# Filled later by the evaluator from the judge reports
+# Filled later by the assistant: verified_in_code from step 0.3, judge_* from the diff judge's JSON
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_absolute:            # /40
-judge_side_by_side:        # /40
-judge_merge_ready:         # yes | no
+judge_total:               # diff score: total + bonus, from the totals script
+judge_bonus:               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
+judge_blockers:            # number of blocker findings
+judge_majors:              # number of major findings
+judge_minors:              # number of minor findings
+judge_strengths:           # number of strengths
+judge_merge_ready_advice:  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
 ---
 
 # Run report: S-CP-04 · small task · spec-kit · copilot
@@ -80,7 +83,7 @@ HOW TO USE
 - [x] `bench.sh reset <TAG>` → `start` → `health`: all three OK (operator confirmed, 20:05)
 - [x] New agent session (no earlier chat or memory for this workspace): restarted without cleanup at 20:10 (operator confirmed)
 - [x] Isolation check passed: only the method under test (output below)
-- [ ] All 3 repos on the method's tag and clean (`git status --porcelain` empty), after `start`
+- [x] All 3 repos on the method's tag and clean (`git status --porcelain` empty), after `start` (ticked on 2026-11-08 from the isolation output below: `speckit-v1` in all three repos, no `status` lines; the box was left unticked at the time)
 - [x] Model and effort checked in the runner (not "auto"): `/model` GPT-5.6 Terra, effort medium; `/subagents`, `/sandbox`, `/env` as expected (operator confirmed, 20:08)
 - [x] Full-access mode on (`--allow-all` in the start command) (Claude Code `--dangerously-skip-permissions` / Copilot CLI `--allow-all`). Baseline: plan mode on (Claude Code: full access picked at plan approval; Copilot CLI: `--plan` with `--allow-all`; methods/baseline.md)
 - [x] Method is active (its command is listed / it shows its workflow)
@@ -204,7 +207,7 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 4 | 20:16 | note | Agent stopped after updating the spec; operator checked the spec in full | — | |
 | 5 | 20:17 | method-step | Spec approved, plan command | `/speckit-plan Use the existing stack and patterns of the three repositories: saleor (Python, Django, GraphQL), saleor-dashboard (React, TypeScript), react-storefront (Next.js, TypeScript). No new dependencies.` | |
 | 6 | 20:18 | note | Agent stopped after plan; operator read all five planning files in full | — | |
-| 7 | 20:20 | method-step | Plan correction and approval (plan review) | `Please improve: (1) It is part of the product in the API, so it appears in product webhook payloads, and it is included in product CSV export. No filter or search by this field is needed. (2) The shared `TranslationInput`. No breaking change to `productTranslate`. (3) Reject it: they must return an INVALID error if `storageConditions` is set. Yes, I approve with those corrections.` | hidden 6; extra 11, 23 |
+| 7 | 20:19 | method-step | Plan correction and approval (plan review; log 20:19:57) | `Please improve: (1) It is part of the product in the API, so it appears in product webhook payloads, and it is included in product CSV export. No filter or search by this field is needed. (2) The shared `TranslationInput`. No breaking change to `productTranslate`. (3) Reject it: they must return an INVALID error if `storageConditions` is set. Yes, I approve with those corrections.` | hidden 6; extra 11, 23 |
 | 8 | 20:20 | note | Agent stopped after plan correction (log 20:20:36) | — | |
 | 9 | 20:22 | method-step | Authorization correction and approval (spec review) | `Please improve: (1) Staff with the `MANAGE_PRODUCTS` permission, same as other product fields. Anyone can read it through the public product API. Yes, I approve with those corrections.` | hidden 7 |
 | 10 | 20:24 | method-step | Tasks command | `/speckit-tasks` | |
@@ -214,7 +217,7 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 14 | 20:28 | method-step | Tasks correction (T014 still listed the stories file) | `Please improve: (1) T014 still lists `ProductDetailsForm.stories.tsx`. No stories edits. Yes, I approve with those corrections.` | extra 17 |
 | 15 | 20:29 | method-step | Implement command | `/speckit-implement` | |
 | 16 | 20:57 | T1 | Agent's first "done" (log 20:57:47; operator saw 20:58) | — | |
-| 17 | 21:00 | T1 | `/usage` and `/context` read at T1 (Appendix A) | — | |
+| 17 | 21:00 | note | `/usage` and `/context` read at T1 (Appendix A) | — | |
 | 18 | 21:00 | hidden-check | Hidden-question check sent (protocol wording, step 7) | `Don't change any code, just answer: was each of these handled, and where?` plus the seven numbered questions, as in spec-kit.md step 7 | hidden 1 to 7 |
 | 19 | 21:00 | note | Agent answered all seven hidden items; all match the answer key | — | |
 | 20 | 21:02 | follow-up 1 | Done-when API check failed: column does not exist (operator's check, step 8) | `The product query on the running local API returns an error: column product_product.storage_conditions does not exist. Make the storage conditions feature work on the running local stack, then tell me when you are done.` | |
@@ -223,24 +226,41 @@ Types: `prompt` · `method-step` · `question` (agent asked → your answer) · 
 | 23 | 21:30 | follow-up 2 | Save follow-up for check 1 | `Saving the product does not keep the storage conditions I entered. The value is only kept when I also change another field, such as the product rating. If I change only the storage conditions and save, the value is gone after reload.` | |
 | 24 | 21:31 | note | Agent done: `storageConditions` added to `PRODUCT_DETAILS_SAVE_FIELDS` (one line) with a regression test; operator re-tested check 1 after it, and it passed | — | |
 | 25 | 21:35 | follow-up 3 | Cleared value still shown on the storefront (Banana Juice; API returned null) | `After clearing the storage conditions of Banana Juice in the dashboard and saving, the storefront product page still displays the old storage conditions. The API returns no storage conditions for Banana Juice. A cleared value must disappear from the storefront product page.` | |
-| 26 | 21:38 | note | Agent done (fix); operator re-checked the storefront at about 21:40: fixed | — | |
+| 26 | 21:37 | note | Agent done (fix; log 21:37:40; the session was compacted at 21:36 during this fix); operator re-checked the storefront at about 21:40: fixed | — | |
 | 27 | 21:43 | follow-up 4 | Failing dashboard test (`createMinimalProduct.test.ts`, operator's `jest` run) | `The dashboard test suite has one failing test: src/products/views/ProductList/createMinimalProduct.test.ts, "creates a variant product with name and type only". The create call now sends storageConditions: null, and the test expects no storageConditions field. Make the dashboard test suite pass.` | |
 | 28 | 21:45 | note | Agent done after follow-up 4 (log 21:45:27); operator re-ran `jest src/products src/translations`: 97 suites, 761 tests passed | — | |
 | 29 | 21:45 | T2 | Last follow-up done (T2 = 21:45) | — | |
-| 30 | 21:52 | T2 | `/usage` and `/context` read at T2 (Appendix A) | — | |
+| 30 | 21:52 | note | `/usage` and `/context` read at T2 (Appendix A), in the session resumed at 21:50 (section 8) | — | |
 | 31 | 21:52 | post-prompt | Post-implementation prompt sent (protocol step 9) | `Do not commit anything. For every repository you changed, run `git add -N .` and then `git diff speckit-v1` …` (full text in spec-kit.md step 9) | |
 | 32 | 21:53 | note | Agent done (log 21:53); `/exit`; diffs and agent-report.md saved to run-output | — | |
 | 33 | 21:54 | note | Save step (protocol step 10): run-output copied, `session-usage.py` run with `--t1 2026-10-26T20:57`, workspace-root saved (`specs/`) | — | |
 
-**Usage by model** (from `tokens.md`, see below; both runners):
+**Usage by model** (the model rows of `/usage` at T2, as the runner shows them; the token fields of the data block are their sums; both runners):
 
 | Model | Role (main / subagent) | Input | Output | Cache read | Cache write | Cost, USD |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| `gpt-5.6-terra` | main (125 calls) + 3 subagents (180 calls) | 915 | 112 684 | 27 523 941 | 797 365 | n/a (AI credits: 870.42) |
+| GPT-5.6 Terra | main + 3 subagents | 28.1m | 110.8k | 27.4m | 759.3k | n/a (870.42 AIC) |
+
+From the session log (`tokens.md`; its input excludes cached tokens): 305 calls (main 125, 3 subagents 180), input 915, output 112,684, cache read 27,523,941, cache write 797,365.
+
+### Size of the change (the real numbers)
+
+Measured from the saved `<repo>.diff` files in this folder (`git apply --numstat`, run outside the repo folder; BENCHMARKS.md, step 10). New files are included through `git add -N .`.
+
+| Repo | Files | Lines added | Lines removed | Code and tests only: files | added | removed |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `saleor` | 20 | 4294 | 3977 | 19 | 297 | 5 |
+| `saleor-dashboard` | 34 | 337 | 21 | 28 | 286 | 13 |
+| `react-storefront` | 17 | 102 | 5 | 9 | 94 | 5 |
+| **Total** | 71 | 4733 | 4003 | 56 | 677 | 23 |
+
+"Code and tests only" leaves out the generated and non-code files (`*.generated.*`, schema files, locale and messages JSON, spec and plan documents, tool-written `CLAUDE.md`). Left out: 15 files, +4056 −3980 (`saleor/graphql/schema.graphql` +3997 −3972, nearly the whole file rewritten in the diff; dashboard `schema-main.graphql` and 5 `*.generated.*` files, +51 −8; storefront 8 `messages/*.json`, +8 −0).
+
+**What the "Changes" line of `/usage` is.** It is not the size of the change. It counts only the lines written with the main agent's own edit tools, so it misses shell edits, generators and codegen, and everything the subagents wrote; it also counts lines that are not in the diffs (the `specs/` documents outside the repos, lines rewritten later). It shows +1375 −312 here (T2), about 203% of the code-and-tests lines added (1375 / 677).
 
 Raw `/usage` output at T1 and T2: paste it into Appendix A at the end of this file.
 
-**Token breakdown + raw session logs (both runners):** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Use its "By model" table for the table above.
+**Token breakdown + raw session logs (both runners):** made in step 10 of the run (`saleor/methods/<method>.md`) with `scripts/session-usage.py`: `tokens.md` reports tokens per model, per agent (main + each subagent), per operator message, and tool / skill / subagent calls. Its totals come from the session log and can differ from `/usage` (the log can miss subagent calls), so the table above and the data block use `/usage`.
 
 
 ## 3. Hidden questions
@@ -298,7 +318,7 @@ Tick every one you see; one line of evidence each.
 - [ ] Tests skipped, deleted, weakened or marked `xfail` to pass
 - [ ] Tests written but never run by the agent
 - [ ] Unrelated files changed or refactored
-- [x] Leftovers: debug prints, commented-out code, TODOs, temp files
+- [ ] Leftovers: debug prints, commented-out code, TODOs, temp files
 - [ ] New dependency without need
 - [ ] Agent said "done" while something was clearly broken
 - [ ] Agent committed or pushed
@@ -307,6 +327,8 @@ Tick every one you see; one line of evidence each.
 Evidence:
 
 > Unticked on 2026-11-05 (team lead): one rule for all runs. A problem found in the operator's own check after T1 and fixed by a follow-up counts only as a follow-up, not as "said done while broken" (section 5 of the template). Red flags: 1 (was 3).
+
+> Unticked on 2026-11-08 (operator): "Leftovers". The stray `schema.graphql-e` from the agent's earlier `sed` command was deleted by the agent at 20:57:19, before T1 (session log), so nothing was left in the result. Red flags: 0 (was 1). The lines below are the evidence for the flags as they were ticked before.
 
 - Leftovers: `schema.graphql-e`, a stray file from the agent's earlier `sed` command. The agent removed it itself.
 - "Done" while broken: first "done" at 20:57 (log); follow-ups at 21:02, 21:30, 21:35 and 21:43 fixed the API error, the storage-only save, the cleared storefront value and the dashboard test.
@@ -318,7 +340,7 @@ Evidence:
 | --- | --- | --- |
 | Wrote tests | Yes: focused backend, dashboard and storefront tests, including `createMinimalProduct.test.ts` | Yes: the test files exist and run (operator, 21:23 to 21:26) |
 | Ran tests | Yes: backend 169 (targeted, earlier), dashboard 54 (targeted), `createMinimalProduct` 5. Full dashboard script: 929 suites passing, `lockSchema.test.ts` failing (claimed, not verified) | Confirmed by the operator's runs: backend 241 passed; dashboard `src/products` and `src/translations` 761 passed; storefront 104 passed. The full dashboard script was not run by the operator, so the `lockSchema` claim is not confirmed |
-| Ran linters / type checks | Yes: dashboard TypeScript check, storefront typecheck and lint, backend Ruff and diff-whitespace checks | Not checked by the operator |
+| Ran linters / type checks | Yes: dashboard TypeScript check, storefront typecheck and lint, backend Ruff and diff-whitespace checks | Not checked by the operator. The assistant's later dashboard `check-types` run fails on one `tsc-strict` error in a file this run changed (section 8) |
 | Started the app / called the API | Yes: applied migration 0211 to the dev DB; restarted the storefront dev server with its own env settings; API queries. Storefront served Banana Juice with HTTP 200 | Yes: the operator's API queries (21:15, 21:52) and storefront checks (21:17, 21:18, 21:40) all ran against the agent's stack |
 | Checked the UI / screenshot | No screenshot taken. Manual walkthrough (T040) not run | Not confirmed: the operator checked the dashboard and storefront by hand at 21:14 to 21:40, not a screenshot |
 | Cleaned up leftovers | Yes: removed a stray `schema.graphql-e` from its earlier sed command | Yes: the operator's check 7 at 21:29 found only the feature's new files as untracked |
@@ -327,32 +349,37 @@ Evidence:
 
 - [x] `<repo>.diff` for every changed repo (repos: `saleor`, `saleor-dashboard`, `react-storefront`)
 - [x] `agent-report.md`: the agent's own report (post-implementation prompt)
-- [ ] `tokens.md` (both runners): token breakdown from `session-usage.py`. Raw session logs stay local in `session/` (git-ignored)
+- [x] `tokens.md` (both runners): token breakdown from `session-usage.py`. Raw session logs stay local in `session/` (git-ignored)
 - [x] Appendix A below: raw `/usage` output at T1 and T2
-- [ ] Appendix B below: agent messages copied from the terminal, if any
-- [ ] `plan.md` (Baseline): the approved plan, if the runner saved it to a file
+- [x] Appendix B below: agent messages copied from the terminal, if any (the first "done" message)
+- n/a `plan.md` (Baseline only): not applicable to Spec Kit
 - [x] Workspace-root files the method wrote (e.g. `CONTEXT.md`, `docs/`), if any: `workspace-root/` (contains `specs/`)
 
 ## 8. Notes
 
 - **Why not 5** (score 4; team lead, 2026-11-05; only clear errors in the final code that lowered the score): 4 follow-ups · build OK
   - No errors left in the final code; below 5 only because of the 4 follow-ups
+  - Update 2026-11-08 (review, after this block was written): `followups` is now 5. The dashboard type check fails on one `tsc-strict` error in a line this run added (`use-translation-product-form-app-response.ts:94`, `'lastFrame' is possibly 'null'`); per the known-deficiency rule it is +1 follow-up, not a blocker (section 8). Score and "build OK" are the team lead's to revisit.
 
 - Deviations from the protocol, and why:
   - **Copilot CLI 1.0.103**, not 1.0.101 (protocol part 4.1). The operator chose to keep the installed version; it is in the data block.
-  - **Spec-review corrections** (6, sent before implementation at 20:15, 20:20, 20:22, 20:26, 20:27, 20:28): these were not follow-ups. The agent did not ask about the hidden questions; the operator disclosed the answers in review, so hidden questions 1, 2, 4, 5, 6 and 7 are "covered" with a note on each row.
+  - **Context tier**: the default tier (272k tokens in `/context`; the log's `contextTier` is null), not `long_context`. The long context tier was added to the protocol after this run (BENCHMARKS.md 3.5 lists `S-CP-04` among the runs on the default tier).
+  - **No `/speckit-converge` after implement**: the method file (part 5, step 6) replies `/speckit-converge` when implement finishes. The agent's message after `/speckit-implement` (20:57, 39 of 40 tasks checked, the manual walkthrough T040 open) was taken as T1, and converge was not sent. Not counted anywhere; noted because the other Spec Kit runs ran converge before T1.
+  - **Session closed and resumed twice** (session log; not noted at the time): `session.shutdown` 21:21:23 and `session.resume` 21:30:10, during the operator's own check, before follow-up 2; `session.shutdown` 21:46:04 and `session.resume` 21:50:17, after T2, before the T2 `/usage` reading and the post-implementation prompt. Same session id both times; the agent did no work while closed. The final `/exit` is at 21:53:27.
+  - **Spec-review corrections** (6, sent before implementation at 20:15, 20:19, 20:22, 20:26, 20:27, 20:28): these were not follow-ups. The agent did not ask about the hidden questions; the operator disclosed the answers in review, so hidden questions 1, 2, 4, 5, 6 and 7 are "covered" with a note on each row.
   - **Session start**: the first start (20:08) was a check session with no task; the restart at 20:10 is the run session (`1d02ff5f…`), the one `tokens.md` reads.
-  - **Context**: /context fell from 69% at T1 to 17% at T2, so the session was probably compacted between those readings. Not in the protocol's numbers.
+  - **Context**: /context fell from 69% at T1 to 17% at T2 because the session was compacted at 21:36:09–21:36:33 (log `session.compaction_start` / `compaction_complete`, during follow-up 3). Not in the protocol's numbers.
   - **Agent's claim not verified**: the agent's report says the full dashboard package script fails on `src/graphql/lockSchema.test.ts`, because "the configured API schema lacked `storageConditions`". The operator's run covered `src/products` and `src/translations` only (passed). The live API exposes the field. Not checked further.
 - Agent restarted the storefront dev server with its own environment settings (agent-report, "Started and verified local applications"). This is an action taken by the agent during the run, not a protocol step.
 - Times: the log is the authority. T0 20:11:26 (operator wrote 20:10); T1 20:57:47 (operator saw 20:58); T2 21:45:27 (operator saw 21:45).
-- Gap-free time: to T1, 20:57:47 − 20:11:26 − 13 min 23 s of waits = **32 min 57 s**. To T2, 21:45:27 − 20:11:26 − 55 min 18 s of waits (14 stops, incl. 41 min 52 s after T1) = **38 min 41 s**. Effective t0 = t1 − gap-free time to T1 = 20:24.
+- Gap-free time: to T1, 20:57:47 − 20:11:26 − 13 min 23 s of waits = **32 min 57 s**. To T2, 21:45:27 − 20:11:26 − 55 min 18 s of waits (14 stops, incl. 41 min 55 s after T1) = **38 min 42 s** (corrected on 2026-11-08 from the log at millisecond precision; it said 41 min 52 s and 38 min 41 s, which do not add up with 13 min 23 s and 55 min 18 s). Effective t0 = t1 − gap-free time to T1 = 20:24.
 - Follow-up phase (T1 → T2): AI credits 870.42 − 698.7 = 171.72 (runner `/usage`).
-- Follow-ups: 4, all sent by the operator: 21:02 (API error), 21:30 (storage-only save lost), 21:35 (cleared value still shown on the storefront), 21:43 (failing dashboard test). Spec Kit's own messages to its subagents (20:30 "Implement the storage-conditions … only in …" and 20:48 "Follow-up required: …") are not follow-ups.
+- Dashboard type check (BENCHMARKS.md, known deficiency; run before 2026-10-28), run by the assistant on 2026-11-08: the saved `saleor-dashboard.diff` applied to a clean copy of `baseline-v1` (= `speckit-v1`) in a scratch folder, not in `$BENCH_DIR`, and the `check-types:*` commands run directly (`tsc --noEmit`, `tsc-strict`, and the e2e, e2e-legacy and scripts projects): **fails**. `tsc-strict`: `src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.ts(94,37): error TS18047: 'lastFrame' is possibly 'null'.` (a line this run added: `typeof lastFrame.fields`); `tsc --noEmit` and the other projects pass, and the same copy without the diff passes. Per the protocol: +1 in `followups` (a follow-up the operator missed, not sent), not a blocker. For the diff judge's "Already checked" line: "dashboard check-types: fails; known benchmark deficiency, counted as +1 follow-up; ignore these type errors".
+- Follow-ups: 4 sent by the operator: 21:02 (API error), 21:30 (storage-only save lost), 21:35 (cleared value still shown on the storefront), 21:43 (failing dashboard test); plus 1 for the failing dashboard type check (above, not sent) = 5 in the data block. Spec Kit's own messages to its subagents (20:30 "Implement the storage-conditions … only in …" and 20:48 "Follow-up required: …") are not follow-ups.
 - The 21:35 follow-up counts. The team lead's view is that the storefront's one-hour page cache caused it. That is the root cause, but the spec requires a cleared value to disappear after save (edge case), and the operator's check against that requirement failed. The agent's own report says it fixed the cleared-value cache and added a revalidation route, so the fix was on the agent's side too. The follow-up is counted for that reason.
 - Rosetta team contacted (Rosetta and Rosetta Light runs only): n/a (Spec Kit run, not Rosetta)
-- Strong point of the method in this run (drafted by the assistant from the run record, to be confirmed by the operator): the feature was covered end to end across the three repos (model, migration, GraphQL, translation fallback, CSV, webhooks, dashboard, storefront), with the spec, plan and tasks reviewed against the answer key before implementation, and all three test suites pass at T2.
-- Weak point of the method in this run (drafted by the assistant from the run record, to be confirmed by the operator): the agent reported "done" while the save of a storage-only edit, the clearing of the storefront value and a dashboard test were all broken; the agent's report claims a lockSchema failure that was not verified; the manual walkthrough (T040) was not run; the spec and plan needed six operator corrections before implementation.
+- Strong point of the method in this run (drafted by the assistant from the run record, confirmed by the operator on 2026-11-08): the feature was covered end to end across the three repos (model, migration, GraphQL, translation fallback, CSV, webhooks, dashboard, storefront), with the spec, plan and tasks reviewed against the answer key before implementation, and all three test suites pass at T2.
+- Weak point of the method in this run (drafted by the assistant from the run record, confirmed by the operator on 2026-11-08): the agent reported "done" while the save of a storage-only edit, the clearing of the storefront value and a dashboard test were all broken; the agent's report claims a lockSchema failure that was not verified; the manual walkthrough (T040) was not run; the spec and plan needed six operator corrections before implementation.
 
 ## Appendix A. Raw `/usage` output
 

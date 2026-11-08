@@ -27,13 +27,13 @@ t1_input_tokens: 54.4m   # runner /usage after T1 (total over Claude Sonnet 5.5,
 t1_output_tokens: 271.6k   # includes 83.0k reasoning
 t1_cache_read_tokens: 52.5m
 t1_cache_write_tokens: 1.8m
-t1_cost_usd: n/a   # Copilot reports AI credits only (t1_ai_credits)
+t1_cost_usd:               # Copilot: leave empty (AI credits only, t1_ai_credits)
 t1_ai_credits: 1303.43   # /usage after T1: 2h 1m 57s session time; changes +3445 -12; plan 94% used (4,740 / 5,000 AIC)
 t2_input_tokens: 64.6m   # runner /usage read on 2026-11-05, no agent work since 16:04:53 on 2026-11-04 (total over Claude Sonnet 5.5, GPT-5.6 Terra, GPT-6 Luna); includes 62.1m cached
 t2_output_tokens: 304.3k   # includes 90.7k reasoning
 t2_cache_read_tokens: 62.1m
 t2_cache_write_tokens: 2.5m
-t2_cost_usd: n/a   # Copilot reports AI credits only (t2_ai_credits)
+t2_cost_usd:               # Copilot: leave empty (AI credits only, t2_ai_credits)
 t2_ai_credits: 1644.38   # /usage at T2: 23h 19m 29s session time (wall clock, session kept open overnight); changes +3555 -13; plan 97% used (4,870 / 5,000 AIC); same as the log's last usage_checkpoint (16:04:53, totalNanoAiu 1644384266500)
 context_end_pct: 24   # /context at T2: GPT-5.6 Terra 219k / 922k tokens
 subagents: 4   # tokens.md: rosetta:engineer 3 (claude-sonnet-5.5: core, dashboard, storefront), rosetta:reviewer 1 (gpt-6-luna); not the session model GPT-5.6 Terra (timeline rows 10, 12, 19)
@@ -104,7 +104,7 @@ for r in saleor saleor-dashboard react-storefront; do git -C "$HOME/saleor-bench
 
 - Result: `PASS` (method file part 4.8 block, saved as `isolation.txt`; every line as expected there)
 - Cause, if FAIL: n/a
-- In-session `/skills` (Claude Code): `<only the method's skills / list>`
+- In-session `/skills` (Claude Code): n/a (Copilot CLI run; `skill list` is in the isolation output below)
 - In-session `/sandbox` (both runners): sandboxing off (operator confirmed); `/env`: `0 servers connected` (operator confirmed)
 
 <details><summary>Isolation check output</summary>
@@ -614,13 +614,14 @@ Evidence: none ticked. The migrations were not applied to the dev database at th
   - Sub-agent models (`tokens.md`): the main agent ran on `gpt-5.6-terra` as set; the 3 `rosetta:engineer` subagents ran on `claude-sonnet-5.5` and the `rosetta:reviewer` on `gpt-6-luna` (failed, row 12). Claude Sonnet 5.5 used 1137.46 of the 1644.38 AIC (69%).
   - Known issue (baseline-v1, `react-storefront` `pnpm docs:check` and `pnpm core:lock:check` fail): the agent touched both areas. The storefront diff changes `data-layer.lock.md` and `paper-version.json`, and its follow-up 1 message says "Storefront typecheck, lint, lock/docs checks, and 825 Vitest tests passed" (row 29). Not checked by the operator.
   - Dashboard type check (BENCHMARKS.md, known deficiency), run by the assistant after the run ended (2026-11-05, in `~/saleor-benchmark/saleor-dashboard`, the run's working tree): `pnpm run check-types` **passes** (exit 0; `tsc-strict`: "Found 4213 strict files … All files passed"; e2e, e2e-legacy, scripts: Done). Per the protocol this gives no extra follow-up and a strong point: "the strict type check (`tsc-strict` in `check-types`) is unclear, buried and not documented, and the run still got it right." (operator to record it with the scores).
-- Deviations from the protocol, and why: (1) **Stopped at the AI credit limit**: the hidden #6 follow-up and the post-implementation prompt were not sent; hidden #6 counts as missed; the diffs were made with the prompt's own git commands, and there is no `agent-report.md`. (2) **Done-when checks by the team lead, not in the run's stack**: from the saved diffs applied to a clean `rosetta-skills-v1` stack (section 4), as for `L-CC-03`. (3) **Test environment**: on that stack `pytest --create-db` failed for every test, including unchanged Saleor tests (`CREATE INDEX … USING gin` on `page_page`: the new test database had no `btree_gin`). The assistant added `btree_gin`, `pg_trgm`, `hstore` and `pgcrypto` to the PostgreSQL `template1`; no repository change. Then 193 passed. (4) **The team lead's dashboard check changed the test data**: while trying the checkbox (section 4 #2) Apple Juice was left unrestricted and the shop minimum age at 19. The assistant restored both (Apple Juice restricted via the ORM, minimum age 18 via `shopSettingsUpdate`), re-ran the API checks, and the operator repeated the storefront checks.
+- Deviations from the protocol, and why: (1) **Stopped at the AI credit limit**: the hidden #6 follow-up and the post-implementation prompt were not sent; hidden #6 counts as missed; the diffs were made with the prompt's own git commands, and there is no `agent-report.md`. (2) **Done-when checks by the team lead, not in the run's stack**: from the saved diffs applied to a clean `rosetta-skills-v1` stack (section 4), as for `L-CC-03`. (3) **Test environment**: on that stack `pytest --create-db` failed for every test, including unchanged Saleor tests (`CREATE INDEX … USING gin` on `page_page`: the new test database had no `btree_gin`). The assistant added `btree_gin`, `pg_trgm`, `hstore` and `pgcrypto` to the PostgreSQL `template1`; no repository change. Then 193 passed. (4) **The team lead's dashboard check changed the test data**: while trying the checkbox (section 4 #2) Apple Juice was left unrestricted and the shop minimum age at 19. The assistant restored both (Apple Juice restricted via the ORM, minimum age 18 via `shopSettingsUpdate`), re-ran the API checks, and the operator repeated the storefront checks. (5) **Answer wording**: some answers were sent as the menu option instead of the prepared full text (rows 6, 7, 11, 15, 16; rows 6 and 7 without the facts of the matching table rows), and three stops that only asked to continue were answered with the agent's own "Type exactly" sentence instead of `Approved, continue.` (rows 13, 14, 17).
 - Rosetta team contacted: no.
 - Strong point of the method in this run (team lead): the backend rule and the birthday privacy are exact: guests, customers without a birthday and underage customers are blocked in `checkoutCreate` and `checkoutLinesAdd`, the day of the 18th birthday counts, support staff get `birthday: null`; the migrations apply cleanly and the tests and the strict dashboard type check pass.
 - Weak point of the method in this run (team lead): the product checkbox alone does not enable Save in the dashboard; hidden #5 and #6 were not found without a follow-up; the dev database was left unmigrated; costly: 1,644 AIC, 69% of it on the Sonnet 5.5 engineer subagents.
 - Operator score and merge-ready (team lead, judging the final code from the saved diffs, 2026-11-05): 4, merge-ready yes. The Save bug and hidden #6 are small follow-up fixes.
 - One-time method setup (method file part 4, done before this run, not part of the run), verified on 2026-11-04: 4.1 Copilot CLI 1.0.101 installed with npm under Node 24 (`~/.nvm/versions/node/v24.21.0/bin/copilot`); the Homebrew cask `copilot-cli` (1.0.103 cask, `copilot --version` printed 1.0.105) was uninstalled first, by the operator's decision, because `/opt/homebrew/bin` comes before nvm's bin in PATH. 4.3 common settings in place (`copilot config --list`). 4.4 `rosetta@rosetta` v3.1.17 enabled from the clone at `6215332c`, `rosetta-light@rosetta` disabled. 4.5 `rosetta-skills-v1` in all three repos (from the zip). 4.6 login `rcimendur` and trusted folder `~/saleor-benchmark` present in `$COPILOT_HOME/config.json`. 4.7 skipped: the run starts from the zips in `test-library/`.
 - An earlier, stopped attempt of this run ID (2 Nov, untracked, never committed) was in this folder; it was deleted by the method's step 2 (`rm -rf "$RUN"`), by the operator's decision.
+- **Gap-free time to T1** (BENCHMARKS.md section 5; session log, local time UTC+2; added 2026-11-08, the data block already used these figures). Before T1 the agent was blocked on 16 `ask_user` stops, each from the form shown to the answer: 12:34:01 → 12:39:20 (5 min 19 s, row 2); 12:39:50 → 12:43:25 (3 min 35 s, row 3); 12:43:31 → 12:45:17 (1 min 46 s, row 4); 12:46:09 → 12:46:52 (44 s, row 5); 12:47:46 → 12:50:13 (2 min 27 s, row 6); 12:50:49 → 12:51:24 (35 s, row 7); 12:51:35 → 12:56:07 (4 min 32 s, row 8); 12:56:36 → 12:57:46 (1 min 11 s, row 9); 13:31:27 → 13:32:50 (1 min 23 s, row 11); 13:38:40 → 13:40:30 (1 min 51 s, row 13); 13:40:43 → 13:41:19 (35 s, row 14); 13:41:46 → 13:44:57 (3 min 10 s, row 15); 13:45:37 → 13:46:32 (55 s, row 16); 13:46:36 → 13:49:37 (3 min 1 s, row 17); 14:01:52 → 14:10:22 (8 min 29 s, row 20); 14:13:14 → 14:20:15 (7 min 1 s, row 21). Total 46 min 33 s. T1 − T0 = 14:24:13 − 12:33:03 = 1 h 51 min 10 s, so the gap-free time to T1 is 64 min 37 s and the effective start is 13:19. Waits for the agent's own subagents are agent time and are not removed. After T1: the next bullet.
 - **Gap-free time after T1 (results page, 5 Nov; same method as L-CC-03 section 8; the data block keeps the literal `t2`).** T1 14:24:13 → T2 16:04:53 (end of follow-up 1): 1h40m40s. Operator waits after T1: 14:24:13–14:35:04 (10m51s) · 14:35:19–15:52:44 (1h17m25s, until the hidden-question check) · 15:53:03–15:54:19 (1m16s, form) · 15:54:29–15:55:11 (42s, spec approval) · 15:55:19–15:55:34 (15s, plan approval) · 15:56:00–15:57:56 (1m56s, design approval). Total 1h32m25s. Agent time after T1 8m15s. Gap-free total = 64m37s + 8m15s = 72m52s ≈ 73 min.
 
 ## Appendix A. Raw `/usage` output
@@ -666,7 +667,7 @@ Context Usage
 · · · · · · ◎ ◎ ◎ ◎   ◎ Buffer                 46.1k   (5%)
 
 ## Extra work (only if there was any; paste `/usage` taken after it)
-<paste>
+No reading: the one extra-work request (timeline row 30, 2026-11-05 12:02) failed at once with the monthly quota error. No agent work and no usage added (the log's last usage_checkpoint is still 16:04:53 on 2026-11-04).
 ```
 
 </details>
