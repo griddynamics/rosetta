@@ -1,0 +1,49 @@
+name: CI GitHub Scripts
+
+# Pre-merge gate for the automation's own guardrails: the tests under .github/scripts
+# cover the repo-triage sender-trust policy (Claude allow/deny replay of known bypass
+# commands, Codex extra deny files), codex-setup's build_policy.py, which every Codex
+# pipeline runs, and the board/publish helpers. Without this they ran only by hand, so a
+# broad rule like `Bash(gh * list*)` or a broken policy build would surface only on a
+# live event. Needs no secrets, so fork PRs are safe.
+on:
+  pull_request:
+    paths:
+      - '.github/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+      with:
+        persist-credentials: false
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Install test dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pyyaml
+
+    - name: Run .github/scripts tests
+      run: |
+        pytest .github/scripts -v

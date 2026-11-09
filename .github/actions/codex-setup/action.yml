@@ -54,6 +54,13 @@ inputs:
   github-token:
     description: "Token used to download the release asset. Needs contents:read on this repository."
     required: true
+  extra-rules:
+    description: >-
+      Whitespace-separated file names under this action's `files/` directory, each holding
+      only `[[rules.prefix_rules]]` deny rules, appended after the shared requirements.toml.
+      Lets one pipeline tighten the policy without affecting the others. Empty means none.
+    required: false
+    default: ""
 outputs:
   codex-home:
     description: "Trusted Codex home to pass to openai/codex-action's `codex-home` input."
@@ -143,18 +150,31 @@ runs:
       env:
         TEMPLATE: ${{ github.action_path }}/files/requirements.toml
         BUILDER: ${{ github.action_path }}/build_policy.py
+        FILES_DIR: ${{ github.action_path }}/files
+        EXTRA_RULES: ${{ inputs.extra-rules }}
       run: |
         set -euo pipefail
         policy="${RUNNER_TEMP}/rosetta-requirements.toml"
         hooks="$GITHUB_WORKSPACE/.codex/hooks.json"
+        args=(--template "$TEMPLATE" --out "$policy")
 
         # build_policy.py fails if the plugin's hooks produce nothing, which under
         # `allow_managed_hooks_only` would silently leave the run with no hooks at all.
         if [ -f "$hooks" ]; then
-          python3 "$BUILDER" --template "$TEMPLATE" --out "$policy" --hooks-json "$hooks"
-        else
-          python3 "$BUILDER" --template "$TEMPLATE" --out "$policy"
+          args+=(--hooks-json "$hooks")
         fi
+
+        # Plain file names only, resolved inside this action's files/: the policy source
+        # must stay this trusted action's own code, never a path into the checkout.
+        for name in $EXTRA_RULES; do
+          [[ "$name" =~ ^[A-Za-z0-9._-]+\.toml$ ]] \
+            || { echo "::error::extra-rules entry '$name' is not a plain .toml file name"; exit 1; }
+          [ -f "$FILES_DIR/$name" ] \
+            || { echo "::error::extra-rules file '$name' not found in codex-setup/files"; exit 1; }
+          args+=(--extra-rules "$FILES_DIR/$name")
+        done
+
+        python3 "$BUILDER" "${args[@]}"
 
         # /etc/codex/requirements.toml needs root, so this step MUST run before
         # openai/codex-action's `drop-sudo`.
