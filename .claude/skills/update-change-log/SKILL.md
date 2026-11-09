@@ -243,3 +243,5 @@ If you learned something new which is reusable, there are process efficiency imp
 - **Check final text against own analysis** Analysis said "full process costs, restart is expensive"; Slack said "stuck". Every claim must match the consequence already established, no more dramatic word.
 - **Capability across all tools, not changed files** Wrote "Claude Code and OpenCode" because only their files changed; Codex too. State what the AI can do wherever it applies, plus which files changed.
 - **Take all information in when correcting** Fixed one point and dropped another (cost, Codex). A correction adds to what is known; keep every established fact in the text.
+- **Ask full name and Slack handle** `gh pr view` gave only "Serghei"; user later named Serghei Hmeli, Slack `@shmeli`. Credit "Full Name, gh-id"; unknown → first name plus id. Thank GD contributors in Slack by handle.
+- **Readers are Grid Dynamics; customizers are clients** Wrote "Your organization's instructions"; every reader works at Grid Dynamics. Customization serves client organizations: say "client organizations", never "your organization".
