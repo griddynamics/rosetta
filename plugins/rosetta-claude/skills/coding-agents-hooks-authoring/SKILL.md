@@ -10,7 +10,7 @@ baseSchema: docs/schemas/skill.md
 ### Hook entry rule
 
 Only files that export `defineHook(…)` AND call `runAsCli(hook, module)` belong directly in `src/hooks/src/hooks/`.
-Every `.ts` at the top level of that directory becomes a standalone CJS bundle distributed to all 6 IDE targets (claude-code, codex, copilot, cursor, windsurf, antigravity).
+Every `.ts` at the top level of that directory becomes a standalone CJS bundle for each IDE in the `build-bundles.mjs` `PLUGINS` array (claude, codex, copilot, cursor, antigravity). Windsurf has an adapter but no bundle.
 Helper/data files without `runAsCli` belong in a named subdirectory: `src/hooks/src/hooks/<feature>/`.
 
 ### Helper placement
