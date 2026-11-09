@@ -37,3 +37,4 @@ If you learned something new which is reusable, there are process efficiency imp
 ## Lessons learned (self-improvement, keep updating, first line is template, keep template, follow "<instructions>", high confidence only):
 
 - **<key action item, less then 7 words>** <concise/terse: what happened, why, root cause, reasoning, less then 25 words>.
+- **Diff top-level keys after each run** Script rebuilt doc from known keys only, dropped hand-added `critical_notes`. Fixed: prior unknown keys now carried forward.
