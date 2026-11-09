@@ -2,7 +2,13 @@
 
 This prompt is an instruction **for you, the AI agent in Windsurf (Cascade)**. You perform operations using your native tools (write_code / edit_code, run_command). The hook `.windsurf/hooks/loose-files.js` fires automatically on `post_write_code` — if it produces output, Windsurf injects it into your context. Your task is to perform a series of operations and **verify whether hook text appears in your context** after each one.
 
-> **Important — plugin not yet installed:** `plugins/rosetta-windsurf/` does not exist (windsurf is not an output target). The compiled bundle lives at `src/hooks/dist/bundles/windsurf/loose-files.js` (not built today — windsurf is absent from `PLUGINS` in `scripts/build-bundles.mjs`). Before running this prompt, copy or symlink it to `.windsurf/hooks/loose-files.js` in your test project and configure the outer-gate matcher in `.windsurf/hooks.json` (see Prerequisites). This prompt describes the intended E2E contract for when the plugin is created.
+> **NOT RUNNABLE — historical reference only. Do not execute.**
+> - No Windsurf hook bundle exists. Windsurf is not a generator target: no `PLUGINS` entry in `src/hooks/scripts/build-bundles.mjs`, no `template-windsurf`, no `plugins/rosetta-windsurf/`. Rosetta never shipped Windsurf hooks.
+> - The expectations below are wrong for the current adapter. `post_write_code` carries `edits[]`, so the adapter maps it to `MultiEdit` (tool kind `multi-edit`); `loose-files` fires only on `write`, so it never fires on Windsurf (`src/hooks/src/runtime/ide-rows/windsurf.ts`).
+> - Windsurf (Devin Desktop) has no non-blocking hook→model text channel: stdout is never parsed and post-hooks pass nothing to the model (`docs/hooks/windsurf.md`). An advise-only hook such as `loose-files` cannot reach the agent even when it fires.
+> - The `hooks.json` example below (`"version": 1`, `matcher`) is not the Cascade format. The verified format is flat Cascade at `.devin/hooks.json` (legacy `.windsurf/hooks.json`) with no `matcher` — see `docs/hooks/windsurf.md`.
+>
+> Windsurf adapter behavior is covered by `src/hooks/tests/adapter.windsurf.test.ts` and `src/hooks/tests/e2e/windsurf.e2e.test.ts`.
 
 > **Companion prompts:** [`prompt-claude-code.md`](./prompt-claude-code.md), [`prompt-codex.md`](./prompt-codex.md), [`prompt-copilot.md`](./prompt-copilot.md), [`prompt-cursor.md`](./prompt-cursor.md). Files are named per-IDE (`test-windsurf.js`, `helper-windsurf.js`, `/tmp/loose-files-windsurf`) — all prompts can run in parallel across different IDE sessions without conflicts.
 

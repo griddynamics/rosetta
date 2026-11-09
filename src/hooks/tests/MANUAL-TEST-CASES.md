@@ -12,6 +12,12 @@
 > `antigravity` in `src/hooks/scripts/build-bundles.mjs`). So there is nothing to test
 > for THIS hook on Antigravity.
 >
+> **Windsurf (Devin Desktop):** Rosetta ships no Windsurf hooks — windsurf is not a generator target
+> and no Windsurf bundle is built (`PLUGINS` in `src/hooks/scripts/build-bundles.mjs`). The Windsurf
+> column below records the expected adapter behavior only (`loose-files` never fires there). The
+> adapter is covered by `src/hooks/tests/adapter.windsurf.test.ts` and
+> `src/hooks/tests/e2e/windsurf.e2e.test.ts`; for a manual pipe see "Test with Windsurf fixture shape".
+>
 ---
 
 ## How to Capture Real stdin (Debug Mode)
@@ -251,7 +257,7 @@ Windsurf's `post_write_code` payload carries `edits[]`, so the adapter normalize
 
 > *Windsurf never nudges for this hook. `post_write_code` carries `edits[]`, so the adapter
 > normalizes it to tool kind `multi-edit`, and `loose-files` declares `toolKinds: ['write']`.
-> Verified: piping `windsurf-post-tool-use-write.json` through the bundle produces no output.
+> Verified: piping `windsurf-post-tool-use-write.json` through an ad hoc Windsurf bundle produces no output.
 >
 > †`Edit` does not nudge on any IDE. `loose-files` matches tool kind `write` only, and Claude Code
 > maps `Edit` to kind `edit` (`src/hooks/src/runtime/ide-rows/claude-code.ts`). Verified: piping
@@ -430,18 +436,19 @@ output format:
 ```
 
 ### Test with Windsurf fixture shape
+No Windsurf bundle is built: windsurf is not a generator target and has no entry in `PLUGINS`
+(`src/hooks/scripts/build-bundles.mjs`). To run this pipe, add a temporary local entry
+`{ plugin: 'windsurf', adapter: 'adapter-windsurf' }` to `PLUGINS`, run
+`npm --prefix src/hooks run build`, and do not commit the entry.
 ```bash
-# NOTE: windsurf is no longer an output target, so no windsurf bundle is built
-# (it is absent from PLUGINS in scripts/build-bundles.mjs). To run this case, build
-# one ad hoc from src/entrypoints/adapter-windsurf.ts.
 cat src/hooks/tests/fixtures/windsurf-post-tool-use-write.json \
   | node src/hooks/dist/bundles/windsurf/loose-files.js
 ```
 Expected: no output, exit 0. Windsurf's `post_write_code` carries an `edits[]` array, so the adapter
 normalizes it to `MultiEdit` (tool kind `multi-edit`), while `loose-files` only fires on tool kind
 `write` — see `TOOL_KINDS` in `src/hooks/src/runtime/ide-rows/windsurf.ts` and `on.toolKinds` in
-`src/hooks/src/hooks/loose-files.ts`. The Windsurf expectations elsewhere in this document predate
-that mapping and are stale.
+`src/hooks/src/hooks/loose-files.ts`. Automated coverage: `src/hooks/tests/adapter.windsurf.test.ts`
+and `src/hooks/tests/e2e/windsurf.e2e.test.ts`.
 
 ---
 

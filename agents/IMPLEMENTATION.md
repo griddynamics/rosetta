@@ -214,7 +214,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 
 > F12 superseded. The original single-gate HITL model is replaced by the two-tier retry pattern below.
 
-- `PreToolUse` hook covers `Bash`, `Write`, `Edit`, `MultiEdit`, `mcp-call` across all five IDE bundles (Claude Code, Cursor, Copilot, Codex, Windsurf).
+- `PreToolUse` hook covers `Bash`, `Write`, `Edit`, `MultiEdit`, `mcp-call` across all five IDE bundles (Claude Code, Cursor, Copilot, Codex, Antigravity). Windsurf has an adapter but no bundle — it is not a generator target.
 - **Two-tier policy**: every `DangerPattern` carries `reason` and `policy` fields:
   - `reconsider` — deny on first call; AI may append `# Rosetta-AI-reviewed` and retry after reconsidering blast radius.
   - `hard-deny` — permanently blocked; `# Rosetta-AI-reviewed` has no effect; human review required.
