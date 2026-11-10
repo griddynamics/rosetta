@@ -25,6 +25,18 @@ export const trialStatusSchema = z.enum([
 ]);
 export type TrialStatus = z.infer<typeof trialStatusSchema>;
 
+/**
+ * The trial status persisted as `skipped` means **not run**: the matrix cell was never
+ * attempted because no runnable spec could be built for it (e.g. an agent id with
+ * neither a built-in default nor a `codingagents` entry). No workspace, no agent, no
+ * evaluation. It is NOT "evaluation skipped" — a trial that ran but was not evaluated
+ * (`--no-evaluate`, no evaluators) is persisted as `passed` with no verdict (§7).
+ *
+ * The on-disk spelling stays `skipped` (trial.json / suite.json / reports read by
+ * `curiocity report` on older runs); code refers to it through this name.
+ */
+export const NOT_RUN_STATUS = 'skipped' satisfies TrialStatus;
+
 /** One named metric emitted by an evaluator (§11 `external`): value normalized 0-100.
  *  `confidenceLevel`/`perplexityLevel` are optional per-metric fields (§5.4), each 0-100. */
 export const evalMetricSchema = z.object({

@@ -328,10 +328,24 @@ Per Curion, in order:
 3. `provision` + 4. `launch` — the **standard launch pipeline** (§5.2): core builds ctrlDir + `CanonicalHookSpec` + merged `ProvisionSpec`; adapter `prepare()` runs `renderHooks → renderProvisioning → buildLaunch`; core applies the merged `LaunchPlan` (write files, run commands, spawn PTY) → readiness. Identical sequence for every agent.
 5. `interact` — §6 turn loop to completion.
 6. `collect` — final trajectory (normalized events), workspace diff, QnA log, usage, timings; screen snapshots kept as fallback evidence.
-7. `evaluate` — evaluator pipeline + combiner (skipped when evaluation off).
+7. `evaluate` — evaluator pipeline + combiner (not run when evaluation is off).
 8. `teardown` — always runs (even after any failure above); then workspace deleted unless `--keep-workspace` or the trial failed (failed-trial workspaces kept, path recorded in trial.json).
 
-**Statuses:** `passed | failed | setup-error | launch-error | eval-error | timeout | agent-hung | agent-crash | skipped`. Only `passed/failed` carry verdicts; error statuses are reported separately and **never enter score statistics** (D14). `eval-error` = the trial completed interact+collect but ≥1 evaluator **threw** (infra error, e.g. judge key `insufficient_quota`) — never validly judged, verdict absent, per-evaluator records kept (the errored one flagged), excluded from score statistics exactly like `setup-error`, and it drives exit `3` (§13). Their effect on exit codes: §13. When evaluation is skipped (D9 inline default or `--no-evaluate`), a trial that completes interact+collect cleanly gets status `passed` with **no verdict** (`verdict` absent); score-based gates then evaluate vacuously and only statuses drive the exit code.
+**Statuses:** `passed | failed | setup-error | launch-error | eval-error | timeout | agent-hung | agent-crash | skipped`. Only `passed/failed` carry verdicts; error statuses are reported separately and **never enter score statistics** (D14). `eval-error` = the trial completed interact+collect but ≥1 evaluator **threw** (infra error, e.g. judge key `insufficient_quota`) — never validly judged, verdict absent, per-evaluator records kept (the errored one flagged), excluded from score statistics exactly like `setup-error`, and it drives exit `3` (§13). Their effect on exit codes: §13. When evaluation is not run (D9 inline default or `--no-evaluate`), a trial that completes interact+collect cleanly gets status `passed` with **no verdict** (`verdict` absent); score-based gates then evaluate vacuously and only statuses drive the exit code.
+
+**Two "not run" cases, two names (#269).** The word *skipped* used to name both; they are different things:
+
+| Name | Where | Meaning | Persisted as |
+|---|---|---|---|
+| **not-run trial** (`NOT_RUN_STATUS`) | `results/schema.ts`, set by `orchestrator/run.ts` | the matrix cell was never attempted: no runnable spec could be built (e.g. an agent id with neither a built-in default nor a `codingagents` entry). No workspace, agent or evaluation. | trial status `skipped` (on-disk spelling kept for compatibility with stored runs and `curiocity report`) |
+| **evaluation not run** (`EvaluationOutcome.status: 'not-evaluated'`) | `curion/evaluate.ts` (internal) | the trial ran, but the evaluator pipeline was off or had no evaluators | trial status `passed`, no `verdict` |
+
+**Status sets.** Two sets classify the non-`passed`/`failed` statuses, on purpose differently:
+
+- `INFRA_ERROR_STATUSES` (`curion/status.ts`) = `setup-error | launch-error | eval-error | timeout | agent-hung | agent-crash` — the trial was attempted and infra broke. Drives the gate's exit `3` (§13).
+- `UNCOMPLETED_STATUSES` (`stats/types.ts`) = `INFRA_ERROR_STATUSES` + the not-run `skipped` — every trial that produced no scorable outcome. Drives the report's `errors` count (`pass-rate`, §12).
+
+A not-run trial counts as a report error (a planned trial yielded no result) but not as a gate error (nothing in the infra failed; it is a configuration outcome). It is non-fatal at the gate while other trials ran; an all-not-run suite exits `2` ("no runnable trials").
 
 ---
 
@@ -480,7 +494,7 @@ Combiner (§5.4 `gated-mean` default) produces the per-trial verdict `{pass, sco
 | Stat | Definition |
 |---|---|
 | `score-stats` | min / max / mean / median / stddev of scores per `(case×agent)` group (repeats > 1) |
-| `pass-rate` | passed / (passed + failed); error-status trials excluded (D14) |
+| `pass-rate` | passed / (passed + failed); uncompleted trials excluded (D14) and counted as `errors` = infra-error statuses + not-run `skipped` (`UNCOMPLETED_STATUSES`, §7) |
 | `stability` | classification per group: **stable-pass** (pass-rate ≥ threshold, tight spread), **flaky** (mixed or wide spread), **stable-fail**. A tight high band beats a wide one with the same mean. |
 | `cost-rollup` | tokens (+$ if priced) itemized: agent usage vs harness `fast`/`workhorse`/`judge`, by model — makes visible *what drives cost* (cheap agent needing many interventions vs expensive one-shot agent) |
 | `time-rollup` | full time decomposition (see below): total wall + per-phase + pure-vs-reaction split |
@@ -531,10 +545,10 @@ Key `run` options (all override config; every one usable in CI):
 
 | Code | Meaning |
 |---|---|
-| `0` | all groups pass all gates; no error-status trials |
+| `0` | all groups pass all gates; no infra-error trials (not-run `skipped` trials alongside runnable ones are allowed) |
 | `1` | gate failure (score / pass-rate / flakiness) |
-| `2` | config error or total infrastructure failure (invalid config, no runnable trials, preflight failed) |
-| `3` | partial infrastructure failure: some trials ended in an error status (`setup-error`/`launch-error`/`eval-error`/`timeout`/`agent-hung`/`agent-crash`) but every gate on completed trials passes — distinguishable in CI from both "all good" and "benchmark failed" |
+| `2` | config error or total infrastructure failure (invalid config, no runnable trials — including a suite whose every trial is not-run `skipped` — or preflight failed) |
+| `3` | partial infrastructure failure: some trials ended in an infra-error status (`INFRA_ERROR_STATUSES`: `setup-error`/`launch-error`/`eval-error`/`timeout`/`agent-hung`/`agent-crash`; not `skipped`) but every gate on completed trials passes — distinguishable in CI from both "all good" and "benchmark failed" |
 
 (Gate failure takes precedence over partial-infra: if both occur, exit `1`; suite.json carries the full detail.)
 

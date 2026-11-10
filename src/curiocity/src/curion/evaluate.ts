@@ -16,7 +16,10 @@ import type { EvalResultRecord, Verdict } from '../results/schema';
  */
 
 export interface EvaluationOutcome {
-  status: 'skipped' | 'evaluated';
+  /** `not-evaluated`: the pipeline did not run (evaluation off or no evaluators); the
+   *  trial is then persisted as `passed` with no verdict (§7). Distinct from the trial
+   *  status `skipped`, which means the whole trial was never run (`NOT_RUN_STATUS`). */
+  status: 'not-evaluated' | 'evaluated';
   verdict?: Verdict;
   evaluators: EvalResultRecord[];
   /** ≥1 evaluator THREW (infra error, not a clean fail). The lifecycle turns this into
@@ -50,7 +53,7 @@ export interface EvaluatePipelineArgs {
 
 export async function runEvaluatorPipeline(args: EvaluatePipelineArgs): Promise<EvaluationOutcome> {
   if (!args.enabled || args.evaluators.length === 0) {
-    return { status: 'skipped', evaluators: [] };
+    return { status: 'not-evaluated', evaluators: [] };
   }
 
   const ctx: EvalContext = {
