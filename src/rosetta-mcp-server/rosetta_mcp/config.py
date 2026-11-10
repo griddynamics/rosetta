@@ -15,7 +15,6 @@ from rosetta_mcp.constants import (
     DEFAULT_HTTP_PORT,
     DEFAULT_OAUTH_CALLBACK_PATH,
     DEFAULT_POSTHOG_HOST,
-    DEFAULT_READ_POLICY,
     DEFAULT_SERVER_PUBLIC_KEY_PEM,
     DEFAULT_SERVER_URL,
     DEFAULT_USER_EMAIL,
@@ -49,7 +48,6 @@ from rosetta_mcp.constants import (
     OAUTH_MODE_OIDC,
     ENV_POSTHOG_API_KEY,
     ENV_POSTHOG_HOST,
-    ENV_READ_POLICY,
     ENV_REDIS_URL,
     ENV_ROSETTA_API_KEY,
     ENV_ROSETTA_SERVER_URL,
@@ -59,10 +57,8 @@ from rosetta_mcp.constants import (
     INSTRUCTION_DATASET_TEMPLATE,
     TRANSPORT_HTTP,
     TRANSPORT_STDIO,
-    VALID_POLICIES,
     # Observability + timeout knobs
     DEFAULT_RAGFLOW_HTTP_TIMEOUT,
-    DEFAULT_TOOL_TIMEOUT,
     DEFAULT_REDIS_SOCKET_TIMEOUT,
     DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT,
     DEFAULT_REDIS_HEALTH_CHECK_INTERVAL,
@@ -71,7 +67,6 @@ from rosetta_mcp.constants import (
     DEFAULT_HEALTHZ_CACHE_TTL,
     DEFAULT_OAUTH_HTTP_TIMEOUT,
     ENV_RAGFLOW_HTTP_TIMEOUT,
-    ENV_TOOL_TIMEOUT,
     ENV_REDIS_SOCKET_TIMEOUT,
     ENV_REDIS_SOCKET_CONNECT_TIMEOUT,
     ENV_REDIS_HEALTH_CHECK_INTERVAL,
@@ -280,6 +275,7 @@ class RosettaConfig:
     posthog_api_key: str
     posthog_host: str
     debug: bool
+    # Parsed from INSTRUCTION_ROOT_FILTER but not enforced yet (issue #172).
     root_filter: list[str]
     transport: str
     http_host: str
@@ -302,12 +298,10 @@ class RosettaConfig:
     oauth_mode: str
     oauth_oidc_config_url: str
     oauth_required_scopes: list[str] | None
-    # Authorization policies
-    read_policy: str
     user_email: str
-    # Observability + timeout knobs (A1)
-    ragflow_http_timeout: int = DEFAULT_RAGFLOW_HTTP_TIMEOUT
-    tool_timeout: int = DEFAULT_TOOL_TIMEOUT
+    # Observability + timeout knobs (A1). ROSETTA_TOOL_TIMEOUT and
+    # ROSETTA_RAGFLOW_HTTP_TIMEOUT are read from env by tracing._get_tool_timeout()
+    # and tracing._get_ragflow_http_timeout(), not stored here.
     redis_socket_timeout: int = DEFAULT_REDIS_SOCKET_TIMEOUT
     redis_socket_connect_timeout: int = DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT
     redis_health_check_interval: int = DEFAULT_REDIS_HEALTH_CHECK_INTERVAL
@@ -328,10 +322,6 @@ class RosettaConfig:
 
         raw_origins = os.getenv(ENV_ALLOWED_ORIGINS, "")
         allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
-
-        read_policy = os.getenv(ENV_READ_POLICY, DEFAULT_READ_POLICY).lower().strip() or DEFAULT_READ_POLICY
-        if read_policy not in VALID_POLICIES:
-            read_policy = DEFAULT_READ_POLICY
 
         config = cls(
             server_url=os.getenv(ENV_ROSETTA_SERVER_URL, DEFAULT_SERVER_URL).rstrip("/"),
@@ -366,13 +356,8 @@ class RosettaConfig:
             ] or None,
             oauth_revocation_endpoint=os.getenv(ENV_OAUTH_REVOCATION_ENDPOINT, "").strip(),
             oauth_jwt_signing_key=os.getenv(ENV_OAUTH_JWT_SIGNING_KEY, "").strip() or None,
-            read_policy=read_policy,
             user_email=os.getenv(ENV_USER_EMAIL, DEFAULT_USER_EMAIL).strip() or DEFAULT_USER_EMAIL,
             # Observability + timeout knobs (A1)
-            ragflow_http_timeout=_parse_int(
-                os.getenv(ENV_RAGFLOW_HTTP_TIMEOUT, ""), DEFAULT_RAGFLOW_HTTP_TIMEOUT
-            ),
-            tool_timeout=_parse_int(os.getenv(ENV_TOOL_TIMEOUT, ""), DEFAULT_TOOL_TIMEOUT),
             redis_socket_timeout=_parse_int(
                 os.getenv(ENV_REDIS_SOCKET_TIMEOUT, ""), DEFAULT_REDIS_SOCKET_TIMEOUT
             ),

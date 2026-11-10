@@ -15,7 +15,7 @@
   - Example: `/instructions/r3/core/skills/my-skill/SKILL.md` → `skills/my-skill/SKILL.md`
   - Example: `/instructions/r3/core/skills/qa-knowledge/SKILL.md` → `skills/qa-knowledge/SKILL.md`
 - **Bundling behavior:** documents sharing a ResourcePath get bundled together. Filenames are unique across the tree, so this normally returns one document
-  - Optional filtering: INSTRUCTION_ROOT_FILTER env var is meant to control which folders are served (e.g., `CORE`). It is parsed but not applied by the server today.
+  - Optional filtering: INSTRUCTION_ROOT_FILTER env var is meant to control which folders are served (e.g., `CORE`). It is parsed but not enforced yet ([#172](https://github.com/griddynamics/rosetta/issues/172)).
   - Default file sort_order: 1000000 always
   - If there are MORE than 5 files matching, bundler outputs just XML list and instruction to load required files one-by-one
 - **Relationships:**

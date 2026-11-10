@@ -9,7 +9,8 @@ from rosetta_mcp.config import (
     _derive_rosetta_url_from_r2r,
     _load_response,
 )
-from rosetta_mcp.constants import DEFAULT_RAGFLOW_HTTP_TIMEOUT, DEFAULT_READ_POLICY
+from rosetta_mcp.constants import DEFAULT_RAGFLOW_HTTP_TIMEOUT, DEFAULT_TOOL_TIMEOUT
+from rosetta_mcp.tracing import _get_ragflow_http_timeout, _get_tool_timeout
 
 
 def test_from_env_defaults(monkeypatch):
@@ -29,12 +30,36 @@ def test_root_filter_parsing(monkeypatch):
     assert cfg.root_filter == ["orga", "orgb"]
 
 
-def test_removed_team_read_policy_falls_back_to_default(monkeypatch):
-    monkeypatch.setenv("ROSETTA_READ_POLICY", " Team ")
+@pytest.mark.parametrize("value", ["all", "none", " Team ", "garbage"])
+def test_removed_read_policy_env_is_ignored(monkeypatch, value):
+    """ROSETTA_READ_POLICY was removed (#325); a leftover value must not break startup."""
+    monkeypatch.setenv("ROSETTA_READ_POLICY", value)
 
     cfg = RosettaConfig.from_env()
 
-    assert cfg.read_policy == DEFAULT_READ_POLICY
+    assert not hasattr(cfg, "read_policy")
+
+
+def test_tool_timeout_env_is_read_by_tracing_not_config(monkeypatch):
+    """ROSETTA_TOOL_TIMEOUT keeps working via tracing; RosettaConfig has no orphan field (#325)."""
+    monkeypatch.setenv("ROSETTA_TOOL_TIMEOUT", "42")
+
+    cfg = RosettaConfig.from_env()
+
+    assert not hasattr(cfg, "tool_timeout")
+    assert _get_tool_timeout() == 42
+    monkeypatch.setenv("ROSETTA_TOOL_TIMEOUT", "bogus")
+    assert _get_tool_timeout() == DEFAULT_TOOL_TIMEOUT
+
+
+def test_ragflow_http_timeout_env_is_read_by_tracing_not_config(monkeypatch):
+    """Same class as tool_timeout: env-backed helper is the single source of truth (#325)."""
+    monkeypatch.setenv("ROSETTA_RAGFLOW_HTTP_TIMEOUT", "17")
+
+    cfg = RosettaConfig.from_env()
+
+    assert not hasattr(cfg, "ragflow_http_timeout")
+    assert _get_ragflow_http_timeout() == 17
 
 
 def test_oauth_callback_path_override(monkeypatch):

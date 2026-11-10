@@ -36,7 +36,7 @@ The MCP server is the guiding layer between IDEs and the knowledge base. It expo
 
 **Authentication:** HTTP uses OAuth 2.1 via [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) (supports any provider: Keycloak, GitHub, Google, Azure). Cached token introspection. STDIO uses `ROSETTA_API_KEY`.
 
-**Key environment variables:** `ROSETTA_SERVER_URL`, `ROSETTA_API_KEY`, `INSTRUCTION_ROOT_FILTER`, `REDIS_URL`
+**Key environment variables:** `ROSETTA_SERVER_URL`, `ROSETTA_API_KEY`, `REDIS_URL`. `INSTRUCTION_ROOT_FILTER` is parsed but not enforced yet ([#172](https://github.com/griddynamics/rosetta/issues/172)).
 
 For MCP setup across all IDEs, see [Get Started](https://griddynamics.github.io/rosetta/#quick-start).
 
@@ -216,7 +216,7 @@ Documents sorted by `sort_order` (default: 1000000), then by name.
 
 Two things to know before you set it.
 
-**It is not applied today.** The server parses the variable into `Config.root_filter` (`src/rosetta-mcp-server/rosetta_mcp/config.py:283,325,343`) and nothing reads it afterwards. Setting it changes nothing about what MCP returns.
+**It is not enforced yet.** The server parses the variable into `RosettaConfig.root_filter` (`src/rosetta-mcp-server/rosetta_mcp/config.py`) and nothing reads it afterwards. Setting it changes nothing about what MCP returns. Wiring it into the Bundler or removing it is tracked in [#172](https://github.com/griddynamics/rosetta/issues/172).
 
 **Roots are the top-level folders under the release.** `instructions/r3/` currently holds one: `core`. A filter value has to name every root you want.
 
