@@ -142,6 +142,38 @@ describe("cmdMigrate — happy path (canonical form)", () => {
   });
 });
 
+describe("cmdMigrate — omitted or blank type/source/priority/verification take the documented defaults", () => {
+  const cases: Array<[string, string]> = [
+    ["type", "FR"],
+    ["source", "User"],
+    ["priority", "Must"],
+    ["verification", "Test"],
+  ];
+  for (const [attr, expected] of cases) {
+    for (const blank of [false, true]) {
+      it(`${blank ? "blank" : "omitted"} ${attr} migrates as ${expected}`, async () => {
+        const attrs: Record<string, string> = { type: "FR", source: "User", priority: "Must", verification: "Test" };
+        if (blank) attrs[attr] = ""; else delete attrs[attr];
+        const attrText = Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(" ");
+        const unit = `<req id="FR-CHK-0001" ${attrText}><title>T</title><statement>S</statement></req>`;
+        const dest = specsFile();
+        const result = await cmdMigrate([sourceFile("u.md", unit)], dest, undefined, SYSTEM);
+        expect(result.ok).toBe(true);
+        const spec = loadSpecs(dest)!.specs[0] as unknown as Record<string, unknown>;
+        expect(spec[attr]).toBe(expected);
+      });
+    }
+  }
+
+  it("keeps explicitly set values", async () => {
+    const unit = `<req id="NFR-CHK-0001" type="NFR" source="Regulation" priority="Should" verification="Inspection"><title>T</title><statement>S</statement></req>`;
+    const dest = specsFile();
+    await cmdMigrate([sourceFile("u.md", unit)], dest, undefined, SYSTEM);
+    const spec = loadSpecs(dest)!.specs[0];
+    expect([spec.type, spec.source, spec.priority, spec.verification]).toEqual(["NFR", "Regulation", "Should", "Inspection"]);
+  });
+});
+
 describe("cmdMigrate — source_not_found", () => {
   it("returns source_not_found (top-level) when the only source does not exist", async () => {
     const dest = specsFile();

@@ -364,7 +364,6 @@ export function mapToSpec(raw: RawReq): MappedReq {
 
   const spec: Partial<Spec> = {
     id,
-    type: (fields["type"] ?? "").trim() as SpecType,
     level: ((fields["level"] ?? "").trim() || "System") as LevelEnum,
     subsystem: (fields["subsystem"] ?? "").trim(),
     component: (fields["component"] ?? "").trim(),
@@ -372,12 +371,9 @@ export function mapToSpec(raw: RawReq): MappedReq {
     statement: elementText["statement"] ?? "",
     rationale: elementText["rationale"] ?? "",
     evidence: splitList(elementText[MARKUP_TO_FIELD[EVIDENCE_ELEMENT] ?? EVIDENCE_ELEMENT] ?? "", EVIDENCE_SEPARATOR),
-    source: (fields["source"] ?? "").trim() as SourceEnum,
-    priority: (fields["priority"] ?? "").trim() as MoscowEnum,
     status: ((fields["status"] ?? "").trim() || "Draft") as StatusEnum,
     approved_by: (fields["approved_by"] ?? "").trim(),
     changed: normalizeChanged((fields["changed"] ?? "").trim(), id, warnings),
-    verification: (fields["verification"] ?? "").trim() as VerifEnum,
     acceptance,
     depends_on: splitList(fields["depends_on"] ?? "", ID_LIST_SEPARATOR),
     related: splitList(fields["related"] ?? "", ID_LIST_SEPARATOR),
@@ -385,6 +381,16 @@ export function mapToSpec(raw: RawReq): MappedReq {
     implementation_notes: elementText["implementation_notes"] ?? "",
     notes: elementText["notes"] ?? "",
   };
+
+  // Omitted or blank enum attributes stay absent so migrate's toFullSpec fills FR/User/Must/Test.
+  const type = (fields["type"] ?? "").trim();
+  if (type) spec.type = type as SpecType;
+  const source = (fields["source"] ?? "").trim();
+  if (source) spec.source = source as SourceEnum;
+  const priority = (fields["priority"] ?? "").trim();
+  if (priority) spec.priority = priority as MoscowEnum;
+  const verification = (fields["verification"] ?? "").trim();
+  if (verification) spec.verification = verification as VerifEnum;
 
   const ticketId = (fields["ticket_id"] ?? "").trim();
   if (ticketId) spec.ticket_id = ticketId;

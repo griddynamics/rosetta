@@ -333,8 +333,19 @@ describe("mapToSpec — defaults and omissions", () => {
     expect(mapOne(`<req id="FR-CHK-0004" type="FR"></req>`).spec.implementation).toBe("NotStarted");
   });
 
-  it("defaults type to '' when the attribute is absent entirely", () => {
-    expect(mapOne(`<req id="FR-CHK-0006"></req>`).spec.type).toBe("");
+  it("leaves type, source, priority and verification undefined when absent or blank", () => {
+    for (const markup of [`<req id="FR-CHK-0006"></req>`, `<req id="FR-CHK-0006" type=" " source="" priority="" verification=" "></req>`]) {
+      const { spec } = mapOne(markup);
+      expect(spec.type).toBeUndefined();
+      expect(spec.source).toBeUndefined();
+      expect(spec.priority).toBeUndefined();
+      expect(spec.verification).toBeUndefined();
+    }
+  });
+
+  it("keeps explicitly set type, source, priority and verification", () => {
+    const { spec } = mapOne(`<req id="NFR-CHK-0006" type="NFR" source="Regulation" priority="Should" verification="Inspection"></req>`);
+    expect([spec.type, spec.source, spec.priority, spec.verification]).toEqual(["NFR", "Regulation", "Should", "Inspection"]);
   });
 
   it("defaults evidence to an empty array when the element is absent", () => {
