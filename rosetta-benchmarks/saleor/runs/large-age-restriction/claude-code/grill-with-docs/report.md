@@ -59,9 +59,13 @@ operator_score: 4  # not 5: dashboard UI only on the staging-schema build (secti
 operator_merge_ready: yes  # changed from no by the operator on 2026-10-28
 # Filled later by the evaluator from the judge reports
 verified_in_code: 8/8
-judge_absolute:            # /40
-judge_side_by_side:        # /40
-judge_merge_ready:         # yes | no
+judge_total: 71.2
+judge_bonus: 5.55
+judge_blockers: 0
+judge_majors: 3
+judge_minors: 10
+judge_strengths: 1
+judge_merge_ready_advice: no
 ---
 
 # Run report: <RUN_ID> · large task · <METHOD> · <RUNNER>

@@ -59,9 +59,13 @@ operator_score: 5
 operator_merge_ready: yes
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 8/9)
-judge_absolute:            # /40
-judge_side_by_side:        # /40
-judge_merge_ready:         # yes | no
+judge_total: 75.0
+judge_bonus: 7.7
+judge_blockers: 0
+judge_majors: 0
+judge_minors: 11
+judge_strengths: 2
+judge_merge_ready_advice: yes
 ---
 
 # Run report: L-CC-08 · large task · rosetta-skills · claude-code

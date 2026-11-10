@@ -59,9 +59,13 @@ operator_score: 4          # operator (oleksii), 2026-11-04, judging the final c
 operator_merge_ready: yes   # operator (oleksii), 2026-11-04
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 8/9)
-judge_absolute:            # /40
-judge_side_by_side:        # /40
-judge_merge_ready:         # yes | no
+judge_total: 67.9
+judge_bonus: 2.4
+judge_blockers: 0
+judge_majors: 2
+judge_minors: 14
+judge_strengths: 0
+judge_merge_ready_advice: no
 ---
 
 # Run report: L-CC-03 · large task · superpowers · claude-code
