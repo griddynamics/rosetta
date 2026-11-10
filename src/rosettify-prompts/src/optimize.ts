@@ -2,6 +2,7 @@ import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { computeCostUsd } from './pricing.js';
 import { hashText, renderDataBlock } from './delimiters.js';
+import { withRetry } from './retry.js';
 import type { ThinkingEffort } from './types.js';
 import {
   COMMON_CONTEXT,
@@ -708,7 +709,7 @@ async function complete(
     system,
     messages: reqMessages,
   };
-  const response = await client.messages.create(request);
+  const response = await withRetry(() => client.messages.create(request));
   const durationMs = Date.now() - startedAt;
   assertNotTruncated(response, label);
   const text = extractText(response);
