@@ -59,13 +59,13 @@ operator_score: 3   # was 3; aligned on 2026-11-05 by the team lead to the rule 
 operator_merge_ready: no   # was yes; aligned on 2026-11-05 (section 8)
 # Filled later by the assistant: verified_in_code from step 0.3, judge_* from the diff judge's JSON
 verified_in_code: 7/9      # items verified in code / items checked (e.g. 8/9) — items 1,2,3,5,8,9 verified directly in run-output/saleor.diff; item 4 verified live (check 5) + the uncommitted storefront redirect code (check 12); items 6,7 are advisory-only (no code expected), not counted
-judge_total:               # diff score: total + bonus, from the totals script
-judge_bonus:               # bonus points for fixed bugs and related improvements
-judge_blockers:            # number of blocker findings
-judge_majors:              # number of major findings
-judge_minors:              # number of minor findings
-judge_strengths:           # number of strengths
-judge_merge_ready_advice:  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
+judge_total: 72.7
+judge_bonus: 7.65
+judge_blockers: 0
+judge_majors: 3
+judge_minors: 14
+judge_strengths: 1
+judge_merge_ready_advice: no
 ---
 
 # Run report: L-CP-03 · large task · Superpowers · Copilot

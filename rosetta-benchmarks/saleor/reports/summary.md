@@ -13,13 +13,13 @@
 | `L-CC-06` | `large-age-restriction/claude-code/rosetta-flow` | run | done | 225 | 273 | $44.70 | $54.97 | 19% | 4 / 4 / 1 | 89% | 2 | 6 | 12/12 | yes | 4 | yes | 76.6 | 0 / 0 / 8 | 2 | 8.95 |
 | `L-CC-08` | `large-age-restriction/claude-code/rosetta-skills` | run | done | 164 | 173 | $23.72 | $24.73 | 4% | 3 / 6 / 0 | 100% | 2 | 6 | 12/12 | yes | 5 | yes | 75.0 | 0 / 0 / 11 | 2 | 7.7 |
 | `L-CC-07` | `large-age-restriction/claude-code/rosetta-light` | run | done | 275 | 309 | $53.30 | $57.65 | 8% | 4 / 4 / 1 | 89% | 2 | 2 | 12/12 | yes | 4 | yes | 78.4 | 0 / 1 / 8 | 5 | 10.6 |
-| `L-CP-01` | `large-age-restriction/copilot/baseline` | run | done | 7 | 37 | 194.7 cr | 1746.5 cr | 89% | 2 / 3 / 4 | 56% | 10 | 2 | 12/12 | yes | 3 | no | – | – / – / – | – | – |
-| `L-CP-02` | `large-age-restriction/copilot/grill-with-docs` | run | done | 27 | 43 | 600.8 cr | 848.9 cr | 29% | 7 / 2 / 0 | 100% | 5 | 1 | 12/12 | yes | 4 | yes | – | – / – / – | – | – |
-| `L-CP-03` | `large-age-restriction/copilot/superpowers` | run | done | 159 | 160 | 1776.8 cr | 1887.9 cr | 6% | 2 / 5 / 2 | 78% | 2 | 6 | 7/12 | yes | 3 | no | – | – / – / – | – | – |
-| `L-CP-04` | `large-age-restriction/copilot/spec-kit` | run | done | 51 | 57 | 964.1 cr | 1024.0 cr | 6% | 0 / 6 / 3 | 67% | 4 | 12 | 12/12 | yes | 2 | no | – | – / – / – | – | – |
-| `L-CP-06` | `large-age-restriction/copilot/rosetta-flow` | run | done | 63 | 86 | 1276.3 cr | 1900.8 cr | 33% | 2 / 3 / 4 | 56% | 10 | 25 | 11/12 | yes | 4 | yes | – | – / – / – | – | – |
-| `L-CP-08` | `large-age-restriction/copilot/rosetta-skills` | run | done | 65 | 73 | 1303.4 cr | 1644.4 cr | 21% | 4 / 3 / 2 | 78% | 1 | 10 | 11/12 | yes | 4 | yes | – | – / – / – | – | – |
-| `L-CP-07` | `large-age-restriction/copilot/rosetta-light` | run | done | 251 | 260 | 1962.2 cr | 2215.1 cr | 11% | 5 / 3 / 1 | 89% | 3 | 15 | 12/12 | yes | 4 | yes | – | – / – / – | – | – |
+| `L-CP-01` | `large-age-restriction/copilot/baseline` | run | done | 7 | 37 | 194.7 cr | 1746.5 cr | 89% | 2 / 3 / 4 | 56% | 10 | 2 | 12/12 | yes | 3 | no | 64.0 | 0 / 3 / 17 | 0 | 0 |
+| `L-CP-02` | `large-age-restriction/copilot/grill-with-docs` | run | done | 27 | 43 | 600.8 cr | 848.9 cr | 29% | 7 / 2 / 0 | 100% | 5 | 1 | 12/12 | yes | 4 | yes | 65.5 | 1 / 5 / 18 | 0 | 5.0 |
+| `L-CP-03` | `large-age-restriction/copilot/superpowers` | run | done | 159 | 160 | 1776.8 cr | 1887.9 cr | 6% | 2 / 5 / 2 | 78% | 2 | 6 | 7/12 | yes | 3 | no | 72.7 | 0 / 3 / 14 | 1 | 7.65 |
+| `L-CP-04` | `large-age-restriction/copilot/spec-kit` | run | done | 51 | 57 | 964.1 cr | 1024.0 cr | 6% | 0 / 6 / 3 | 67% | 4 | 12 | 12/12 | yes | 2 | no | 67.6 | 1 / 1 / 18 | 0 | 4.75 |
+| `L-CP-06` | `large-age-restriction/copilot/rosetta-flow` | run | done | 63 | 86 | 1276.3 cr | 1900.8 cr | 33% | 2 / 3 / 4 | 56% | 10 | 25 | 11/12 | yes | 4 | yes | 69.3 | 1 / 5 / 14 | 2 | 6.0 |
+| `L-CP-08` | `large-age-restriction/copilot/rosetta-skills` | run | done | 65 | 73 | 1303.4 cr | 1644.4 cr | 21% | 4 / 3 / 2 | 78% | 1 | 10 | 11/12 | yes | 4 | yes | 78.5 | 0 / 1 / 8 | 3 | 10.95 |
+| `L-CP-07` | `large-age-restriction/copilot/rosetta-light` | run | done | 251 | 260 | 1962.2 cr | 2215.1 cr | 11% | 5 / 3 / 1 | 89% | 3 | 15 | 12/12 | yes | 4 | yes | 76.8 | 0 / 0 / 12 | 2 | 9.55 |
 | `S-CC-01` | `small-storage-conditions/claude-code/baseline` | run | done | 27 | 50 | $1.24 | $3.31 | 63% | 0 / 4 / 3 | 57% | 3 | 1 | 7/8 | yes | 3 | no | 66.2 | 0 / 2 / 8 | 1 | 0 |
 | `S-CC-02` | `small-storage-conditions/claude-code/grill-with-docs` | run | done | 38 | 38 | $4.82 | $4.89 | 1% | 5 / 2 / 0 | 100% | 1 | 1 | 8/8 | yes | 3 | no | 71.6 | 0 / 1 / 6 | 1 | 4.15 |
 | `S-CC-03` | `small-storage-conditions/claude-code/superpowers` | run | done | 36 | 41 | $6.76 | $8.08 | 16% | 1 / 5 / 1 | 86% | 1 | 5 | 7/8 | yes | 3 | no | 73.5 | 0 / 1 / 7 | 2 | 5.45 |
@@ -79,13 +79,13 @@
 
 | Method | n | Time first (min) | Time total (min) | Usage total | First-pass coverage | Follow-ups | Method steps | Done checks passed | Operator score | Diff score |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| baseline | 1 | 7 | 37 | 1746.5 cr | 56% | 10 | 2 | 12 | 3 | – |
-| grill-with-docs | 1 | 27 | 43 | 848.9 cr | 100% | 5 | 1 | 12 | 4 | – |
-| superpowers | 1 | 159 | 160 | 1887.9 cr | 78% | 2 | 6 | 7 | 3 | – |
-| spec-kit | 1 | 51 | 57 | 1024.0 cr | 67% | 4 | 12 | 12 | 2 | – |
-| rosetta | 1 | 63 | 86 | 1900.8 cr | 56% | 10 | 25 | 11 | 4 | – |
-| rosetta-skills | 1 | 65 | 73 | 1644.4 cr | 78% | 1 | 10 | 11 | 4 | – |
-| rosetta-light | 1 | 251 | 260 | 2215.1 cr | 89% | 3 | 15 | 12 | 4 | – |
+| baseline | 1 | 7 | 37 | 1746.5 cr | 56% | 10 | 2 | 12 | 3 | 64 |
+| grill-with-docs | 1 | 27 | 43 | 848.9 cr | 100% | 5 | 1 | 12 | 4 | 66 |
+| superpowers | 1 | 159 | 160 | 1887.9 cr | 78% | 2 | 6 | 7 | 3 | 73 |
+| spec-kit | 1 | 51 | 57 | 1024.0 cr | 67% | 4 | 12 | 12 | 2 | 68 |
+| rosetta | 1 | 63 | 86 | 1900.8 cr | 56% | 10 | 25 | 11 | 4 | 69 |
+| rosetta-skills | 1 | 65 | 73 | 1644.4 cr | 78% | 1 | 10 | 11 | 4 | 78 |
+| rosetta-light | 1 | 251 | 260 | 2215.1 cr | 89% | 3 | 15 | 12 | 4 | 77 |
 
 ## Missing values (fill them in the report)
 

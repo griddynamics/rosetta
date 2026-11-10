@@ -59,9 +59,13 @@ operator_score: 4   # 1–5, anchors in templates/README.md   # changed from 3 o
 operator_merge_ready: yes   # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 8/9)
-judge_absolute:            # /40
-judge_side_by_side:        # /40
-judge_merge_ready:         # yes | no
+judge_total: 65.5
+judge_bonus: 5.0
+judge_blockers: 1
+judge_majors: 5
+judge_minors: 18
+judge_strengths: 0
+judge_merge_ready_advice: no
 ---
 
 # Run report: <RUN_ID> · large task · <METHOD> · <RUNNER>
