@@ -1,0 +1,188 @@
+# Test Cases - SALEOR-STORAGE
+
+---
+
+## Priority 0 Test Cases (Critical)
+
+### TC-001: Storage conditions from the dashboard appear on the product page and not in the cart
+
+**Related Requirement**: US-1, US-2, US-6, FR-1, FR-2, FR-6
+**Type**: E2E
+**Priority**: P0
+
+**Preconditions**:
+
+- Admin is signed in on the dashboard.
+- Product A is published on `default-channel`, in stock, and its Storage conditions field is empty. Do not start from a product that already has a value.
+- Product B is a different product, also published on `default-channel`, with Storage conditions empty.
+- The cart is empty.
+- Storefront URLs: `/en/default-channel/products/{slug}` and `/en/default-channel/cart`.
+
+**Steps**:
+
+1. On the storefront, open Product A. Scroll to the end of Shipping & Returns, where Storage conditions would sit.
+2. In the dashboard, open the same product. Look at the Save button before editing.
+3. In General Information, type `Store in a cool dry place` into Storage conditions.
+4. Click Save.
+5. Refresh the dashboard product page.
+6. On the storefront, open Product A again. Scroll the Storage conditions block into view.
+7. Add Product A to the bag.
+8. Open the cart.
+9. On the storefront, open Product B. Scroll to the end of Shipping & Returns and check that this product has no Storage conditions block.
+10. In the dashboard, open Product A, clear Storage conditions, and save.
+11. Return to Product A on the storefront. Scroll to the end of Shipping & Returns and check that the Storage conditions block is gone.
+
+**Expected Results**:
+
+- After step 1: The scrolled view has no "Storage conditions" block and no `pdp-storage-conditions` section.
+- After step 2: The Storage conditions field is present and empty. The Save button is inactive.
+- After step 3: The field shows `Store in a cool dry place`. The Save button is active.
+- After step 4: Save completes without an error.
+- After step 5: Storage conditions still shows `Store in a cool dry place`.
+- After step 6: The scrolled view shows a Storage conditions block with `Store in a cool dry place`.
+- After step 7: The product is in the bag.
+- After step 8: The cart section for Product A does not show "Storage conditions" and does not show `Store in a cool dry place`.
+- After step 9: The scrolled view of Product B has no "Storage conditions" block and no `pdp-storage-conditions` section.
+- After step 10: The Storage conditions field is empty. Save completes without an error. The screenshot shows the empty field.
+- After step 11: The scrolled view of Product A has no "Storage conditions" block and no `pdp-storage-conditions` section. The screenshot shows that spot.
+
+**Test Data**:
+
+
+| Item             | Value                                                                                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Text entered     | Store in a cool dry place                                                                                                                                                                              |
+| Dashboard field  | Storage conditions, under the description, `data-test-id="product-storage-conditions"`                                                                                                                 |
+| Storefront block | `data-testid="pdp-storage-conditions"`, under Shipping & Returns. Scroll it into view before the screenshot. On a product that has no value, scroll to that same spot and confirm the block is absent. |
+| Save control     | Save bar Confirm button. Inactive when the form has no changes. Editing Storage conditions makes it active, because that field is part of the save composition.                                        |
+
+
+**Traceability**:
+
+- **User Story**: US-1, US-2, US-6
+- **Acceptance Criterion**: US-1 AC1, AC2, AC3; US-2 AC1, AC2, AC4; US-6 AC2
+- **Functional Requirement**: FR-1, FR-2, FR-6
+
+**Notes**:
+Each step is a UI check and has its own screenshot, including checks that a block is absent. Step 10 clears Storage conditions on Product A. Step 11 returns to that product on the storefront, after the storefront restart in the run instructions, and the block is gone. One pass leaves Product A empty again, so the case can be repeated. Product B is never edited.
+
+### TC-002: The product API stores the storage text and returns it
+
+**Related Requirement**: US-3, FR-3
+**Type**: API
+**Priority**: P0
+
+**Preconditions**:
+
+- Use Product A and Product B from TC-001. TC-001 leaves Product A with no storage text. Product B never received one.
+- Both are published on channel `default-channel`.
+- The API is the existing GraphQL endpoint `http://localhost:8000/graphql/`.
+- Writes use the existing `productUpdate` mutation, as the local admin.
+- Reads use the existing `product` query for that channel. The query is the public product API.
+- The storage-conditions field belongs to this task. This case does not name it. On the current schema, find the product field that holds the storage-conditions text, and use that same field on `productUpdate` and on `product`. The query and the mutation already exist. Only the field is new.
+
+**Steps**:
+
+1. Read Product A and Product B with the existing `product` query.
+2. With the existing `productUpdate` mutation, set Product A's storage-conditions text to `Store in a cool dry place`.
+3. Read Product A and Product B again with the existing `product` query.
+4. Read Product A once more with the existing `product` query.
+5. With the existing `productUpdate` mutation, clear Product A's storage-conditions text. Then read Product A and Product B with the existing `product` query.
+
+**Expected Results**:
+
+- After step 1: Neither product has storage-conditions text.
+- After step 2: The update succeeds.
+- After step 3: Product A returns `Store in a cool dry place`. Product B still has no storage-conditions text.
+- After step 4: Product A still returns `Store in a cool dry place`. The text is the stored product value, not only the reply from step 2.
+- After step 5: The update succeeds. Product A has no storage-conditions text. Product B still has no storage-conditions text.
+
+**Test Data**:
+
+
+| Item     | Value                                               |
+| -------- | --------------------------------------------------- |
+| Text     | Store in a cool dry place                           |
+| Endpoint | `http://localhost:8000/graphql/`                    |
+| Read     | existing `product` query, channel `default-channel` |
+| Write    | existing `productUpdate` mutation                   |
+| Field    | discover it; do not take a name from this case      |
+
+
+**Traceability**:
+
+- **User Story**: US-3
+- **Acceptance Criterion**: AC1, AC2, AC3
+- **Functional Requirement**: FR-3
+
+**Notes**:
+Empty means there is no storage-conditions text. Do not require a particular empty token such as `null` or `""`. Do not require a length limit, trimming, or an error code. If step 2 or step 3 has already written the text and a later step fails, step 5 still clears Product A.
+
+---
+
+## Coverage Matrix
+
+
+| Requirement | Test Case IDs | Count | Status  |
+| ----------- | ------------- | ----- | ------- |
+| US-1        | TC-001        | 1     | Covered |
+| US-2        | TC-001        | 1     | Covered |
+| US-3        | TC-002        | 1     | Covered |
+| US-6        | TC-001        | 1     | Covered |
+| FR-1        | TC-001        | 1     | Covered |
+| FR-2        | TC-001        | 1     | Covered |
+| FR-3        | TC-002        | 1     | Covered |
+| FR-6        | TC-001        | 1     | Covered |
+
+
+Not in this revision: translations, CSV export, webhooks, the character limit, and creating a product through the API. Those are outside the small-task check this file runs.
+
+---
+
+## Test Data Management
+
+### Test users
+
+
+| Account     | Role      | Notes                                                                                 |
+| ----------- | --------- | ------------------------------------------------------------------------------------- |
+| Local admin | superuser | The only account. Dashboard login and API token. Password is not stored in this file. |
+
+
+### Environment
+
+- Dashboard `http://localhost:9000`
+- Storefront `http://localhost:3000`
+- GraphQL `http://localhost:8000/graphql/`
+- Channel `default-channel`
+- Product A and Product B come from the seeded catalog. Both must start with empty storage conditions and Product A must be purchasable.
+- TC-002 uses Product A and Product B from TC-001. It does not create a product.
+
+### Restore
+
+TC-001 and TC-002 both end with Product A holding no storage text. If a run stops after the text was saved, clear Product A before the next run.
+
+---
+
+## Test Execution Roadmap
+
+### First
+
+TC-001. This is the storefront and dashboard journey.
+
+### Then
+
+TC-002. Same products. The runner finds the storage-conditions field on the existing product query and `productUpdate`.
+
+---
+
+## Out of scope
+
+- Markup and rich-text checks
+- Webhooks, CSV export, and filter or search
+- Character limit, trimming, and which empty value the API uses
+- Creating a product through the API
+- A hardcoded name for the storage-conditions field
+- Translations and the create-product dialog
+- TestRail export
+
