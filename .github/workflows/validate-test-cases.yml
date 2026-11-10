@@ -1,6 +1,10 @@
 # Validate Test Cases
 #
-# Triggers only when instructions/ folder is updated.
+# Trigger: manual (workflow_dispatch) for now. The automatic pull_request trigger
+# on instructions/ changes is disabled on purpose for CI budget; see the `on:` block.
+# The pull_request-only steps (base-SHA diff, PR comment) are kept intentionally
+# for when that trigger is restored.
+#
 # For each test-library/* case whose trigger.txt matches changed files:
 # - Copies root to root-new and root-old
 # - Injects instructions (new vs old) into each
@@ -106,6 +110,7 @@ jobs:
             echo "count=$COUNT" >> $GITHUB_OUTPUT
           fi
 
+      # Kept for the pull_request trigger (disabled, see `on:`); manual runs use HEAD^.
       - name: Set base SHA
         id: base
         if: steps.changed.outputs.count > 0
@@ -143,6 +148,7 @@ jobs:
           chmod +x .github/scripts/run-test-cases.sh
           .github/scripts/run-test-cases.sh
 
+      # pull_request-only; kept for when the trigger is restored (see `on:`).
       - name: Generate PR comment
         if: always() && github.event_name == 'pull_request' && steps.changed.outputs.count > 0
         env:
