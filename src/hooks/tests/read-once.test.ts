@@ -291,13 +291,28 @@ describe('read-once', () => {
     process.env.READ_ONCE_MODE = 'deny';
 
     await runHookWithRaw(readOnceHook, makeClaudeRead(filePath));
+    const result = await runHookWithRaw(readOnceHook, {
+      hook_event_name: 'PreToolUse',
+      session_id: 'claude-session-001',
+      tool_name: 'Bash',
+      tool_input: { command: `cat "${filePath}" # READ-OVERRIDE` },
+      cwd: tempDir,
+    });
+
+    expect(result).toBeNull();
+  });
+
+  test('READ-OVERRIDE in a non-whitelisted field does not override', async () => {
+    process.env.READ_ONCE_MODE = 'deny';
+
+    await runHookWithRaw(readOnceHook, makeClaudeRead(filePath));
     const result = await runHookWithRaw(readOnceHook, makeClaudeRead(
       filePath,
       'claude-session-001',
-      { comment: 'READ-OVERRIDE' },
+      { comment: 'READ-OVERRIDE', content: 'READ-OVERRIDE' },
     ));
 
-    expect(result).toBeNull();
+    expect(result?.hookSpecificOutput).toMatchObject({ permissionDecision: 'deny' });
   });
 
   test('complex bash commands pass through without read-once blocking', async () => {

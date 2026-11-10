@@ -197,13 +197,17 @@ const classifyReadPath = (ctx: HookContext): string | null => {
 
 const estimateTokens = (size: number): number => Math.max(1, Math.ceil(size / 4));
 
-const hasOverrideToken = (value: unknown): boolean => {
-  if (typeof value === 'string') return value.includes(READ_OVERRIDE_TOKEN);
-  if (Array.isArray(value)) return value.some((item) => hasOverrideToken(item));
-  if (value && typeof value === 'object') {
-    return Object.values(value as Record<string, unknown>).some((item) => hasOverrideToken(item));
-  }
-  return false;
+// The documented override is a shell retry carrying `# READ-OVERRIDE`, so only shell command fields count.
+// Paths, content and comment-like fields must not suppress dedup.
+const OVERRIDE_FIELDS = ['command', 'cmd', 'shell_command'] as const;
+
+const hasOverrideToken = (input: unknown): boolean => {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return false;
+  const record = input as Record<string, unknown>;
+  return OVERRIDE_FIELDS.some((field) => {
+    const value = record[field];
+    return typeof value === 'string' && value.includes(READ_OVERRIDE_TOKEN);
+  });
 };
 
 const hasReadOverride = (ctx: HookContext): boolean => {
