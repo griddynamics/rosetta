@@ -58,3 +58,25 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Probe with port defaulted to the first container port name (port<N>) from .Values.ports
+when the probe handler has no explicit port.
+Usage: include "rosetta-mcp.probe" (dict "probe" $p "ports" $.Values.ports)
+*/}}
+{{- define "rosetta-mcp.probe" -}}
+{{- $probe := deepCopy .probe -}}
+{{- if .ports -}}
+{{- $name := printf "port%v" (first .ports) -}}
+{{- range $h := list "httpGet" "tcpSocket" -}}
+{{- if hasKey $probe $h -}}
+{{- $handler := get $probe $h | default dict -}}
+{{- if not (hasKey $handler "port") -}}
+{{- $_ := set $handler "port" $name -}}
+{{- end -}}
+{{- $_ := set $probe $h $handler -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $probe -}}
+{{- end }}

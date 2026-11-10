@@ -83,3 +83,48 @@ tests:
           path: spec.template.spec.containers[0].readinessProbe
       - isNotNull:
           path: spec.template.spec.containers[0].startupProbe
+
+  - it: probes target port8000 by default
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket.port
+          value: port8000
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: port8000
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.port
+          value: port8000
+
+  - it: probes follow the first entry of ports when overridden
+    set:
+      ports:
+        - 9000
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].name
+          value: port9000
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket.port
+          value: port9000
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: port9000
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.port
+          value: port9000
+
+  - it: explicit probe port wins over derived port
+    set:
+      ports:
+        - 9000
+      readinessProbe:
+        httpGet:
+          port: custom
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: custom
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket.port
+          value: port9000

@@ -50,15 +50,15 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
-            {{- toYaml . | nindent 12 }}
+            {{- include "rosetta-mcp.probe" (dict "probe" . "ports" $.Values.ports) | nindent 12 }}
           {{- end }}
           {{- with .Values.readinessProbe }}
           readinessProbe:
-            {{- toYaml . | nindent 12 }}
+            {{- include "rosetta-mcp.probe" (dict "probe" . "ports" $.Values.ports) | nindent 12 }}
           {{- end }}
           {{- with .Values.startupProbe }}
           startupProbe:
-            {{- toYaml . | nindent 12 }}
+            {{- include "rosetta-mcp.probe" (dict "probe" . "ports" $.Values.ports) | nindent 12 }}
           {{- end }}
           {{- if .Values.env.enabled }}
           env:
