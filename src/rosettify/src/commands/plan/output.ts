@@ -25,11 +25,11 @@ export function buildPlanWriteResult(plan: Plan, previousVersion: string | null)
     phases: plan.phases.map((ph) => ({
       id: ph.id,
       name: ph.name,
-      status: ph.status,
+      status: ph.status ?? "open",
       steps: (ph.steps ?? []).map((s): PlanStepSummary => ({
         id: s.id,
         name: s.name,
-        status: s.status,
+        status: s.status ?? "open",
       })),
     })),
   };

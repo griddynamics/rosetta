@@ -93,6 +93,17 @@ describe("cmdQuery — step target", () => {
     const step = result.result as Step;
     expect(step.depends_on).toContain("s1");
   });
+
+  // FR-PLAN-0014 — query returns the stored JSON; it does not add defaults the file lacks
+  it("returns a step stored without status or depends_on as it is stored", async () => {
+    const file = planFile();
+    const plan = fullPlan() as unknown as { phases: { steps: Record<string, unknown>[] }[] };
+    plan.phases[0]!.steps[0] = { id: "s1", name: "Step 1", prompt: "Do step 1" };
+    fs.writeFileSync(file, JSON.stringify(plan));
+    const result = await cmdQuery(file, "s1");
+    expect(result.ok).toBe(true);
+    expect(result.result).toEqual({ id: "s1", name: "Step 1", prompt: "Do step 1" });
+  });
 });
 
 describe("cmdQuery — target_not_found", () => {
