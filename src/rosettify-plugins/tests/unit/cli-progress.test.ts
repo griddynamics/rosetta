@@ -20,9 +20,9 @@ function runCli(args: string[]): { status: number | null; stdout: string; stderr
     // inheriting a caller's (e.g. src/run-tests.sh exports ROSETTIFY_PLUGINS_LOG_LEVEL=warn).
     env: { ...process.env, ROSETTIFY_PLUGINS_LOG_LEVEL: 'info' },
     encoding: 'utf-8',
-    // --dry-run measured ~2.7MB of payload on stdout (FR-CLI-0042); the 1MB spawnSync default
+    // --dry-run measured ~97MB of payload on stdout (FR-CLI-0042); a smaller maxBuffer
     // truncates the pipe and kills the child with SIGTERM before it can exit cleanly.
-    maxBuffer: 16 * 1024 * 1024,
+    maxBuffer: 256 * 1024 * 1024,
   });
   return { status: result.status, stdout: result.stdout, stderr: result.stderr };
 }
