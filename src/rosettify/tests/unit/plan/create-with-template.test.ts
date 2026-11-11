@@ -33,6 +33,17 @@ function planFile(name = "plan.json"): string {
 // ---------------------------------------------------------------------------
 
 describe("cmdCreateWithTemplate — FR-PLAN-0030 happy path", () => {
+  it("second create-with-template fails with plan_already_exists and writes nothing", async () => {
+    const file = planFile();
+    expect((await cmdCreateWithTemplate(file, "for-orchestrator", "First", "desc", "[]")).ok).toBe(true);
+    const before = fs.readFileSync(file);
+    const result = await cmdCreateWithTemplate(file, "for-orchestrator", "Second", "desc", "[]");
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file)).toEqual(before);
+    expect(fs.readdirSync(path.dirname(file))).toEqual([path.basename(file)]);
+  });
+
   // FR-PLAN-0030 — creates plan via template; returns compressed-tree
   it("creates plan from for-orchestrator template and returns compressed-tree", async () => {
     const file = planFile();
