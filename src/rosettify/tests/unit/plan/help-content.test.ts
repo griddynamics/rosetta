@@ -413,6 +413,20 @@ describe("planHelpContent — upsert conditional requirements", () => {
   });
 });
 
+describe("planHelpContent — create refuses an existing file (FR-PLAN-0010)", () => {
+  it.each(["create", "create-with-template"])("%s description names plan_already_exists", (name) => {
+    const entry = planHelpContent.subcommands.find((s) => s.name === name)!;
+    expect(entry.description).toContain("plan_already_exists");
+  });
+
+  it("create description says how to continue or start again", () => {
+    const create = planHelpContent.subcommands.find((s) => s.name === "create")!;
+    expect(create.description).toMatch(/changes nothing/);
+    expect(create.description).toMatch(/next, show_status, or upsert/);
+    expect(create.description).toMatch(/delete the file first/);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Subcommand entries with dual-form examples
 // ---------------------------------------------------------------------------

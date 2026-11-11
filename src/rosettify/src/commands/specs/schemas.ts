@@ -292,7 +292,7 @@ const specTotalsSchema = {
 // SpecNextId — nested shape for SpecInfoResult.next_ids (output.ts)
 const specNextIdSchema = {
   type: "object" as const,
-  description: "The next free id for a prefix+area combination that already has at least one spec",
+  description: "The next free id for a prefix+area combination that already has at least one spec or purged id",
   properties: {
     prefix: { type: "string" as const },
     area: { type: "string" as const },
@@ -344,6 +344,10 @@ const specMigrateResultSchema = {
 
 const specsFileProp = { type: "string" as const, description: "Path to the specs document JSON file" };
 const idsProp = { type: "array" as const, items: { type: "string" as const }, description: "One or more spec ids" };
+const systemProp = {
+  type: "string" as const,
+  description: "Name of the system this document holds requirements for; required when the call creates the document",
+};
 const dataProp = {
   oneOf: [
     { type: "string" as const, description: "JSON string: a single spec/patch/implemented-item object, or an array (batch)" },
@@ -354,7 +358,7 @@ const dataProp = {
 
 export const addInputSchema = {
   type: "object" as const,
-  properties: { specs_file: specsFileProp, data: dataProp },
+  properties: { specs_file: specsFileProp, data: dataProp, system: systemProp },
 };
 export const addOutputSchema = { $ref: "SpecWriteResult" as const };
 
@@ -463,6 +467,7 @@ export const migrateInputSchema = {
   properties: {
     specs_file: specsFileProp,
     sources: { type: "array" as const, items: { type: "string" as const }, description: "Legacy markdown source paths" },
+    system: systemProp,
   },
 };
 export const migrateOutputSchema = { $ref: "SpecMigrateResult" as const };

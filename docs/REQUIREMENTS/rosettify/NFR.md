@@ -56,7 +56,7 @@
 
 <req id="NFR-REL-0002" type="NFR" level="System">
   <title>File operations are safe to retry</title>
-  <statement>Plan file operations (create, upsert) SHALL be idempotent or safely repeatable. Creating an already-existing plan SHALL overwrite. Upsert SHALL merge without corruption.</statement>
+  <statement>Plan file operations (create, upsert) SHALL be idempotent or safely repeatable. Creating an already-existing plan SHALL fail with `plan_already_exists` and leave the file unchanged (FR-PLAN-0010), so a repeated create can never discard plan progress. Upsert SHALL merge without corruption.</statement>
   <rationale>AI agents may retry on perceived failures.</rationale>
   <source>Sources</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -64,7 +64,7 @@
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: create called twice with same path. Then: second call succeeds, file reflects latest data. Given: upsert called twice with same patch. Then: result is identical both times.</criteria>
+    <criteria>Given: create called twice with same path. Then: the second call returns {error: "plan_already_exists"}, and the file still holds the first plan, byte-identical, with no backup created. Given: upsert called twice with same patch. Then: result is identical both times.</criteria>
   </acceptance>
 </req>
 
