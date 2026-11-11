@@ -125,8 +125,8 @@ describe('fileRead', () => {
     }
   });
 
-  it('binary + >1 source: emits hard error on frame.errors (FR-ARCH-0034)', () => {
-    // binary + >1 source → hard GenError pushed onto frame, no throw
+  it('binary + >1 source: caches each source in _readBytes, no error here (FR-ARCH-0042)', () => {
+    // fileApplyOverrides may still leave one source; fileBundle errors when more than one remains
     const f1 = path.join(os.tmpdir(), `fileread-bin1-${Date.now()}.png`);
     const f2 = path.join(os.tmpdir(), `fileread-bin2-${Date.now()}.png`);
     fs.writeFileSync(f1, Buffer.from([0x89, 0x50, 0x4e, 0x47])); // PNG
@@ -135,12 +135,10 @@ describe('fileRead', () => {
       const frame = makeFrame([f1, f2], 'images/test.png');
       const result = fileRead(frame, makeCtx());
       expect(result.isBinary).toBe(true);
-      expect(result.errors).toBeDefined();
-      expect(result.errors!.length).toBe(1);
-      expect(result.errors![0].kind).toBe('hard');
-      expect(result.errors![0].message).toBe(
-        'Binary file images/test.png has 2 sources; only one source is allowed for binary files (FR-ARCH-0034/FR-ARCH-0042).',
-      );
+      expect(result.errors).toBeUndefined();
+      expect(result.source[0]._readBytes).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+      expect(result.source[1]._readBytes).toEqual(Buffer.from([0xff, 0xfe, 0x00, 0x01]));
+      expect(result.target_contents).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47])); // lead source
     } finally {
       fs.unlinkSync(f1);
       fs.unlinkSync(f2);
