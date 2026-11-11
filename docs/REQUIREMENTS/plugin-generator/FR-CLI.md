@@ -336,14 +336,15 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   GenerateOptions.dryRun, which generate() threads through buildSpecsForSet into buildPipeline as
   WriteMode 'dry-run' (src/rosettify-plugins/src/types.ts). In that mode pluginCopy and pluginWrite
   (src/rosettify-plugins/src/plugin-processors/) write nothing to disk and emit each target path
-  and its full contents to the output sink `out`, default process.stdout (FR-ARCH-0045). main() sets
-  process.exitCode and returns, so a piped stdout drains before the process ends; an EPIPE from a
-  reader that closes the pipe early is ignored. Tests: tests/unit/plugin-processors/plugin-write.test.ts,
-  tests/unit/plugin-processors/plugin-copy.test.ts, tests/unit/generate.test.ts,
+  and its full contents to the output sink `out`, default process.stdout (FR-ARCH-0045).
+  pluginSyncBundles copies nothing and reports each hook bundle a real run would copy to the same
+  sink, in the form pluginWrite uses for a binary file. main() sets process.exitCode and returns, so
+  a piped stdout drains before the process ends; an EPIPE from a reader that closes the pipe early
+  is ignored. Tests: tests/unit/plugin-processors/plugin-write.test.ts,
+  tests/unit/plugin-processors/plugin-copy.test.ts,
+  tests/unit/plugin-processors/plugin-sync-bundles.test.ts, tests/unit/generate.test.ts,
   tests/unit/cli-progress.test.ts, and tests/unit/cli-dry-run-pipe.test.ts (piped stdout carries one
-  would-write header per file a real run writes). Known gap, recorded as a follow-up: with
-  `--deterministic-hooks true` the hook bundle files a real run syncs are not listed, because
-  pluginSyncBundles returns early in dry-run mode.</implementationNotes>
+  would-write header per file a real run writes).</implementationNotes>
 </req>
 
 <req id="FR-CLI-0051" type="FR" level="System" ticketId="" classification="technical">

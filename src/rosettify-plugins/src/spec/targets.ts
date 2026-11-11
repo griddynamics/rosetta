@@ -782,7 +782,7 @@ function buildPipeline(
     // payload is injected by pluginRenderTemplates via bootstrap_hooks, plumbed above.
     pluginRenderTemplates,
     pluginMirrorFiles,
-    pluginSyncBundles(hooksSource, outputDir, release.deterministicHooks, mode),
+    pluginSyncBundles(hooksSource, outputDir, release.deterministicHooks, mode, out),
     pluginWrite(outputDir, mode, out),
   ];
 }
