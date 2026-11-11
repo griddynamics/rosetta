@@ -21,7 +21,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 
 describe('Release r2 E2E — real instructions/r2 (FR-CLI-0010, FR-CLI-0041)', () => {
-  it('generate({ release: "r2" }) reports no error and exits 0', async () => {
+  it('generate({ release: "r2" }) reports no error, exits 0 and roots the Codex SKILL glob', async () => {
     const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'release-r2-e2e-'));
     try {
       const { result, stderr } = await captureStderr(() => generate({
@@ -40,6 +40,11 @@ describe('Release r2 E2E — real instructions/r2 (FR-CLI-0010, FR-CLI-0041)', (
       // Error lines first: on a failure this shows which target and document reported it.
       expect(stderr).toBe('');
       expect(result).toBe(0);
+      // The Codex mode rule lists the SKILL glob relative to the repo root, like its neighbours.
+      const codexRule = fs.readFileSync(
+        path.join(outputDir, 'core-codex', '.agents', 'rules', 'plugin-files-mode.md'), 'utf-8');
+      expect(codexRule).toContain('SKILL in `.agents/skills/*/SKILL.md`');
+      expect(codexRule).not.toContain('SKILL in `skills/*/SKILL.md`');
     } finally {
       fs.rmSync(outputDir, { recursive: true, force: true });
     }

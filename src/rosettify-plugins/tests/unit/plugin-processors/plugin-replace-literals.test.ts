@@ -288,7 +288,7 @@ describe('pluginReplaceLiterals — drift guard', () => {
 });
 
 // FR-ARCH-0058 — the Codex guards exactly as spec/targets.ts composes them, run over a hand-made
-// host document. A guard must fire on a drifted glob, not on prose that only shares its prefix.
+// host document. A guard must fire on a drifted glob, not on a wording that one of its pairs rewrites.
 describe('codex drift guards as composed (FR-ARCH-0058)', () => {
   const RELEASE: ReleaseDescriptor = { name: 'r1', deterministicHooks: false, displayName: 'R1' };
 
@@ -307,9 +307,9 @@ describe('codex drift guards as composed (FR-ARCH-0058)', () => {
       .reduce((p, processor) => processor(p), makePluginFrame([host]));
   }
 
-  it('stay silent on the alias prose "USE SKILL `x`" when the host words the SKILL glob differently', () => {
-    // The wording of instructions/r2/core/rules/plugin-files-mode.md: the alias line contains
-    // 'SKILL `', and the glob is listed as "SKILL in `...`", so the SKILL pair has nothing to match.
+  it('rewrite the r2 wording "SKILL in `...`" to the root-relative glob and report no drift', () => {
+    // The wording of instructions/r2/core/rules/plugin-files-mode.md: the alias line contains the
+    // guard 'SKILL `', and the glob is listed as "SKILL in `...`", which the second SKILL pair keys on.
     const out = runCodexLiteralProcessors(
       'USE SKILL `load-context`, if available\n\n' +
         '- RULE in `rules/*.md`\n' +
@@ -318,6 +318,9 @@ describe('codex drift guards as composed (FR-ARCH-0058)', () => {
         '- WORKFLOW/COMMAND `workflows/*.md`\n',
     );
     expect(out.errors).toEqual([]);
+    const content = out.frames[0].target_contents as string;
+    expect(content).toContain('- SKILL in `.agents/skills/*/SKILL.md`');
+    expect(content).toContain('USE SKILL `load-context`, if available');
   });
 
   it('still report a SKILL glob that no longer matches the key', () => {
