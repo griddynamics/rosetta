@@ -7,7 +7,8 @@ import fs from 'fs';
 import path from 'path';
 import { generate } from '../../src/index.js';
 import {
-  buildCustRepo, buildCustSources, copyDirSync, CUSTOMIZATIONS_DIR, listFilesRecursive, write,
+  buildCustRepo, buildCustSources, captureStderr, copyDirSync, CUSTOMIZATIONS_DIR, listFilesRecursive,
+  write,
 } from '../helpers/cust-repo.js';
 
 const PUBLISH = ['rosetta', 'rosetta-light'];
@@ -139,5 +140,63 @@ describe('customizations E2E (FR-CUST-0001)', () => {
       expect(t).toContain('LIGHT-ARCHITECT');
       expect(t).not.toContain('STANDARD-ARCHITECT');
     }
+  });
+});
+
+// A `.js` file is binary to the generator (copied verbatim, never appended). Overwrite and -only
+// filtering still apply to it; only more than one REMAINING source is an error (FR-ARCH-0042).
+describe('customizations E2E: binary file overwrite (FR-ARCH-0024, FR-ARCH-0042)', () => {
+  const TOOL = 'skills/demo/scripts/tool.js';
+  // CRLF on purpose: a binary file is copied byte for byte, with no LF normalization.
+  const MAIN = '// MAIN tool\r\n';
+  const ACME = '// ACME tool\r\n';
+  const CLAUDE = ['rosetta-claude', 'rosetta-claude-light'];
+  const CODEX = ['rosetta-codex', 'rosetta-codex-light'];
+  let binRepo: string;
+
+  const run = async (name: string, file: string) => {
+    const root = path.join(binRepo, 'roots', name);
+    write(path.join(root, 'r3', 'core', path.dirname(TOOL), file), ACME);
+    const out = path.join(binRepo, `out-${name}`);
+    const { result: code, stderr } = await captureStderr(() => generate({
+      sources: buildCustSources(binRepo, out), release: 'r3', dryRun: false, verbose: false,
+      customizations: [root], publish: PUBLISH,
+    }));
+    return { code, out, stderr };
+  };
+  const shipped = (outDir: string, dest: string): string => {
+    const hits = find(outDir, dest, TOOL);
+    expect(hits, `${dest}: expected exactly one *${TOOL}`).toHaveLength(1);
+    return fs.readFileSync(hits[0]).toString('latin1');
+  };
+
+  beforeAll(() => {
+    binRepo = buildCustRepo();
+    write(path.join(binRepo, 'instructions', 'r3', 'core', TOOL), MAIN);
+  });
+
+  afterAll(() => {
+    if (binRepo) fs.rmSync(binRepo, { recursive: true, force: true });
+  });
+
+  it('FR-ARCH-0024: `tool~overwrite~.js` replaces the main file in every plugin, exit 0', async () => {
+    const { code, out, stderr } = await run('overwrite', 'tool~overwrite~.js');
+    expect(stderr).not.toContain('[hard]');
+    expect(code).toBe(0);
+    for (const d of [...CLAUDE, ...CODEX]) expect(shipped(out, d), d).toBe(ACME);
+  });
+
+  it('FR-ARCH-0024: `tool~ide-claude-only~overwrite~.js` replaces it in claude plugins only', async () => {
+    const { code, out, stderr } = await run('scoped', 'tool~ide-claude-only~overwrite~.js');
+    expect(stderr).not.toContain('[hard]');
+    expect(code).toBe(0);
+    for (const d of CLAUDE) expect(shipped(out, d), d).toBe(ACME);
+    for (const d of CODEX) expect(shipped(out, d), d).toBe(MAIN);
+  });
+
+  it('FR-ARCH-0042: a second `tool.js` with no overwrite is a hard error naming the file, exit 1', async () => {
+    const { code, stderr } = await run('append', 'tool.js');
+    expect(code).toBe(1);
+    expect(stderr).toContain(`Binary file ${TOOL} has 2 sources`);
   });
 });
