@@ -247,6 +247,13 @@ npx -y rosettify-plugins@latest \
 
 `--publish` names the plugins to write. Without it, the generator also writes the internal `core` plugin. Errors in a customization root are reported before anything is written.
 
+`--output` is the directory the plugin folders are written to. The generator also removes from it plugin folders of an earlier run that the catalog (`src/rosettify-plugins/plugins.json`) no longer declares. It removes a folder only when both hold:
+
+- the folder is named `<set>-<ide>[<suffix>]`, for example `core-claude` or `rosetta-cursor-standalone-light`;
+- the folder holds the plugin manifest the generator writes for that IDE, for example `.claude-plugin/plugin.json` in a `<set>-claude` folder. The [generator README](src/rosettify-plugins/README.md#plugin-sets) lists the manifest of each IDE.
+
+Every other folder and every loose file in `<dir>` is left alone. A folder of your own that meets both conditions is removed too, so give `--output` a directory that holds only generated plugins.
+
 The result is the same `rosetta` and `rosetta-light` plugins, one folder per IDE, with your files merged in. Option details are in the [generator README](src/rosettify-plugins/README.md#customizations).
 
 ### Install

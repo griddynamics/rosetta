@@ -68,13 +68,14 @@ export const MANIFEST_FIELDS = ['name', 'description'] as const;
 
 // The name grammar of an output folder, `<set>-<ide><variantSuffix>`: lowercase alphanumeric
 // segments joined by single hyphens. One home for the set-name and destinationSuffix validators
-// below and for isDestinationName(), so the three cannot drift.
+// below and for destinationTargets(), so the three cannot drift.
 const NAME_SEGMENTS = '[a-z0-9]+(?:-[a-z0-9]+)*';
 const SET_NAME_PATTERN = new RegExp(`^${NAME_SEGMENTS}$`);
 const DESTINATION_SUFFIX_PATTERN = new RegExp(`^(?:-${NAME_SEGMENTS})?$`);
-const DESTINATION_NAME_PATTERN = new RegExp(
-  `^${NAME_SEGMENTS}-(?:${TARGET_NAME_LIST.join('|')})(?:-${NAME_SEGMENTS})?$`,
-);
+const DESTINATION_PATTERNS = TARGET_NAME_LIST.map((target) => ({
+  target,
+  pattern: new RegExp(`^${NAME_SEGMENTS}-${target}(?:-${NAME_SEGMENTS})?$`),
+}));
 
 /**
  * Thrown for any catalog violation. Every message names the offending file so a user reading only
@@ -367,13 +368,17 @@ export function allDeclaredDestinations(catalog: PluginCatalog): Set<string> {
 }
 
 /**
- * Whether `name` has the shape of an output folder: a set name, a known IDE target, then an
- * optional variant suffix. It spans every target the generator knows, not only this catalog's
- * `targets`, so a folder of a set, variant or target the catalog has since dropped still matches.
- * The orphan sweep considers no other directory.
+ * The IDE targets `name` can be an output folder of: every known target for which it reads as a
+ * set name, that target, then an optional variant suffix. Empty when it has no such reading. Two
+ * for a name like `core-cursor-standalone`: `cursor-standalone` with no suffix, or `cursor` with
+ * the suffix `-standalone`. It spans every target the generator knows, not only this catalog's
+ * `targets`, so a folder of a set, variant or target the catalog has since dropped still resolves.
+ * The orphan sweep uses the result to pick the manifest a folder must hold.
  */
-export function isDestinationName(name: string): boolean {
-  return DESTINATION_NAME_PATTERN.test(name);
+export function destinationTargets(name: string): TargetName[] {
+  return DESTINATION_PATTERNS
+    .filter(({ pattern }) => pattern.test(name))
+    .map(({ target }) => target);
 }
 
 /** Bundle modules a set ships: its declared hooks plus each one's support modules, de-duplicated. */

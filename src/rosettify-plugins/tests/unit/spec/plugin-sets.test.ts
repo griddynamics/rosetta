@@ -8,7 +8,7 @@ import {
   loadPluginCatalog,
   selectSets,
   allDeclaredDestinations,
-  isDestinationName,
+  destinationTargets,
   allDeclaredPluginNames,
   declaredFoldersForRelease,
   pluginName,
@@ -249,8 +249,8 @@ describe('allDeclaredDestinations — the orphan sweep keep-list', () => {
   });
 });
 
-describe('isDestinationName — the only names the orphan sweep may remove', () => {
-  it('matches every destination a valid catalog can declare', () => {
+describe('destinationTargets — the IDE targets a folder name can belong to', () => {
+  it('names the target of every destination a valid catalog can declare', () => {
     // Set names and suffixes at the edges of the grammar the loader accepts, over all 7 targets.
     const variant = (destinationSuffix: string) => (
       { profile: null, destinationSuffix, manifestNameSuffix: '', manifestDescriptionSuffix: '' }
@@ -263,30 +263,41 @@ describe('isDestinationName — the only names the orphan sweep may remove', () 
       // A set named like a target, with a suffix named like part of one.
       c.sets.push({ ...c.sets[1], name: 'claude', variants: [variant(''), variant('-standalone')] });
     });
-    for (const catalog of [VALID, edge]) {
-      withCatalog(catalog, (p) => {
-        for (const d of allDeclaredDestinations(loadPluginCatalog(p))) {
-          expect(isDestinationName(d), d).toBe(true);
+    const check = (configPath: string) => {
+      const catalog = loadPluginCatalog(configPath);
+      for (const set of catalog.sets) {
+        for (const { destinationSuffix } of set.variants) {
+          for (const target of catalog.targets) {
+            const d = `${set.name}-${target}${destinationSuffix}`;
+            expect(destinationTargets(d), d).toContain(target);
+          }
         }
-      });
-    }
-    for (const d of allDeclaredDestinations(loadPluginCatalog(REPO_CONFIG))) {
-      expect(isDestinationName(d), d).toBe(true);
-    }
+      }
+    };
+    for (const catalog of [VALID, edge]) withCatalog(catalog, check);
+    check(REPO_CONFIG);
   });
 
-  it('matches a stale folder of a set, variant or target the catalog no longer declares', () => {
-    for (const d of [
-      'core-claude', 'core-claude-light', 'core-cursor-standalone', 'core-copilot-standalone-light',
-      'qe-claude', 'workflows-codex', 'modernization-antigravity',
-      // Known limit: a user's own folder of this shape cannot be told from a stale plugin folder.
-      'my-claude',
-    ]) {
-      expect(isDestinationName(d), d).toBe(true);
-    }
+  it('resolves a stale folder of a set, variant or target the catalog no longer declares', () => {
+    const cases: Array<[name: string, targets: string[]]> = [
+      ['core-claude', ['claude']],
+      ['core-claude-light', ['claude']],
+      ['qe-claude', ['claude']],
+      ['workflows-codex', ['codex']],
+      ['modernization-antigravity', ['antigravity']],
+      // Two readings each: the second target with no suffix, or the first with a suffix.
+      ['core-cursor-standalone', ['cursor', 'cursor-standalone']],
+      ['core-copilot-standalone-light', ['copilot', 'copilot-standalone']],
+      ['a-claude-cursor', ['claude', 'cursor']],
+      // Ordinary folder names resolve too, which is why the sweep also asks for the manifest.
+      ['awesome-claude-code', ['claude']],
+      ['openai-codex', ['codex']],
+      ['dotfiles-claude', ['claude']],
+    ];
+    for (const [d, targets] of cases) expect(destinationTargets(d), d).toEqual(targets);
   });
 
-  it('matches nothing the generator could not have produced', () => {
+  it('resolves nothing for a name the generator could not have produced', () => {
     for (const d of [
       '.git', '.github', 'docs', 'src', 'node_modules', 'My Folder', 'plugins',
       'claude', 'cursor-standalone', 'rosetta', 'rosetta-light', 'stale-undeclared',
@@ -295,7 +306,7 @@ describe('isDestinationName — the only names the orphan sweep may remove', () 
       '-claude', 'rosetta--claude', 'rosetta-claude-', 'rosetta-claude--light',
       'rosetta-claude light', 'rosetta-claude\n', '',
     ]) {
-      expect(isDestinationName(d), JSON.stringify(d)).toBe(false);
+      expect(destinationTargets(d), JSON.stringify(d)).toEqual([]);
     }
   });
 });

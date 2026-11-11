@@ -17,7 +17,7 @@ import {
   loadPluginCatalog,
   selectSets,
   allDeclaredDestinations,
-  isDestinationName,
+  destinationTargets,
   resolveHookModules,
   parseDomainTokens,
   pluginName,
@@ -25,7 +25,7 @@ import {
   declaredFoldersForRelease,
 } from './spec/plugin-sets.js';
 import type { PluginCatalog, PluginSetDecl, SetVariant } from './spec/plugin-sets.js';
-import { buildSpecsForSet } from './spec/targets.js';
+import { buildSpecsForSet, TARGET_MANIFEST_PATHS } from './spec/targets.js';
 import { getLogger } from './logging.js';
 import type {
   GenerateOptions, GenError, PluginSpec, PluginProcessingFrame, ReleaseDescriptor, Vfs,
@@ -389,9 +389,13 @@ export async function generate(options: GenerateOptions): Promise<number> {
  * variants and targets — deliberately NOT the current run's selection. Sweeping against the
  * selection would make `--domain qe` delete the other 42 folders.
  *
- * Only directories named like an output folder (isDestinationName) are considered. `--output` may
- * point at a directory the generator does not own, so anything it could not have produced —
- * `.git`, `docs`, `src` — is left alone, and so are loose files in the output root.
+ * Only a directory the generator wrote is removed. `--output` may point at a directory the
+ * generator does not own, and a name alone proves nothing: `awesome-claude-code` and `openai-codex`
+ * are shaped like output folders too. So the name only says which IDE targets the folder could
+ * belong to (destinationTargets), and the folder must hold the manifest the generator writes for
+ * one of them (TARGET_MANIFEST_PATHS). Everything else — `.git`, `docs`, `src`, a folder with a
+ * plugin-like name and no such manifest, loose files in the output root — is left alone. A plugin
+ * of the user's own with both the name and the manifest cannot be told apart and is removed.
  */
 export function sweepOrphanDestinations(
   catalog: PluginCatalog,
@@ -406,8 +410,10 @@ export function sweepOrphanDestinations(
 
   for (const entry of fs.readdirSync(outputDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    if (!isDestinationName(entry.name)) continue;
     if (declared.has(entry.name)) continue;
+    const generated = destinationTargets(entry.name).some((target) =>
+      fs.existsSync(path.join(outputDir, entry.name, TARGET_MANIFEST_PATHS[target])));
+    if (!generated) continue;
 
     removed.push(entry.name);
     logger.info({ path: entry.name }, dryRun ? 'dry-run: would remove orphan plugin' : 'Removing orphan plugin');

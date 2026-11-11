@@ -67,9 +67,17 @@ A **set** is a named bundle of instruction folders shipped as one installable pl
 The catalog is fully validated before anything is written: an unknown field, a duplicate set name,
 two variants writing the same folder, a `requires` naming an undeclared set, a set naming a missing
 instruction folder or a missing template — each aborts the run non-zero, naming the file. Output
-folders the catalog no longer declares are swept from the output directory. Only a folder named
-like a plugin folder (`<set>-<ide>[<variantSuffix>]`, for any IDE target the generator knows) is
-swept; every other folder and every loose file there is left alone.
+folders the catalog no longer declares are swept from the output directory. A folder is swept only
+when both hold:
+
+- its name is `<set>-<ide>[<variantSuffix>]`, for any IDE target the generator knows;
+- it holds the manifest the generator writes for that IDE target: `.claude-plugin/plugin.json`
+  (`claude`), `.cursor-plugin/plugin.json` (`cursor`), `.github/plugin/plugin.json` (`copilot`),
+  `.codex-plugin/plugin.json` (`codex`), or `plugin.json` at the folder root (`cursor-standalone`,
+  `copilot-standalone`, `antigravity`).
+
+Every other folder and every loose file there is left alone. A folder of your own that meets both
+conditions is swept too, so give `--output` a directory that holds only generated plugins.
 
 ### Selecting what to build
 
