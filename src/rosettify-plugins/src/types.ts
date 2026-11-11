@@ -17,6 +17,9 @@ export interface SourceFile {
    *  body only for sources 1+). Consumed by fileBundle to avoid re-reading from disk.
    *  FR-ARCH-0033/NFR-0007 (F-E fix). */
   _readContent?: string;
+  /** Populated by fileRead for a binary file: the source's bytes. Consumed by fileApplyOverrides
+   *  to set target_contents from the new lead source without re-reading from disk (FR-ARCH-0033). */
+  _readBytes?: Buffer;
 }
 
 export interface VirtualFile {

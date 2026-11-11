@@ -15,7 +15,8 @@ import type { FileProcessingFrame, TargetContext } from '../types.js';
  *    An overwrite with no surviving predecessor is a hard error on the frame (defensive; the
  *    generate pre-flight reports it first, FR-ARCH-0024.AC4/AC6); sources stay untouched then.
  *    When the first source changes due to overwrite, update target_contents from the new
- *    first source's _readContent so fileBundle's single-source fast path uses correct content.
+ *    first source's _readContent (_readBytes for a binary frame) so fileBundle's single-source
+ *    fast path uses correct content.
  * FR-ARCH-0041, FR-PROF-0030
  */
 export function fileApplyOverrides(
@@ -54,14 +55,16 @@ export function fileApplyOverrides(
     if (filtered.length === 0) {
       // All sources dropped
       draft.target_contents = null;
-    } else if (firstSourceChanged && !frame.isBinary) {
+    } else if (firstSourceChanged) {
       // FR-ARCH-0024: overwrite changed the lead source; update target_contents from new lead.
       // fileBundle uses source.length <= 1 fast-path and keeps target_contents as-is, so we
-      // must set it here from the new lead's _readContent (set by fileRead before this processor).
-      // If _readContent is not set (unit tests without fileRead), skip (content unchanged).
+      // must set it here from the new lead's _readContent, or _readBytes for a binary frame
+      // (set by fileRead before this processor).
+      // If it is not set (unit tests without fileRead), skip (content unchanged).
       const newLeadSf = filtered[0];
-      if (newLeadSf._readContent !== undefined) {
-        draft.target_contents = newLeadSf._readContent;
+      const newLead = frame.isBinary ? newLeadSf._readBytes : newLeadSf._readContent;
+      if (newLead !== undefined) {
+        draft.target_contents = newLead;
       }
     }
   });
