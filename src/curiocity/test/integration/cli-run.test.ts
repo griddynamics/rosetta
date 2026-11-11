@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { runRun } from '../../src/cli/commands/run';
 import { loadRun } from '../../src/results/loader';
 import { ExitCode } from '../../src/cli/exit-codes';
+import { ConfigError } from '../../src/shared/errors';
 import { mockProfile, REPO } from './helpers';
 
 function readdirRuns(out: string): string[] {
@@ -39,6 +40,15 @@ function writeCase(sourceDir: string, name: string): void {
   writeFileSync(join(dir, 'qna.md'), '# QnA\n- If unsure, abort.');
   writeFileSync(join(dir, 'evaluation.md'), '# Rubric\nout.txt exists.');
   copyFileSync(HELLO_ZIP, join(dir, 'src.zip'));
+}
+
+/** `writeCase` plus one gate evaluator: `file-exists` on the file the clean scene writes. */
+function writeGatedCase(sourceDir: string, name: string): void {
+  writeCase(sourceDir, name);
+  writeFileSync(
+    join(sourceDir, name, 'config.json'),
+    JSON.stringify({ agents: ['mock'], evaluators: [{ use: 'file-exists', must: ['out.txt'], gate: true }] }),
+  );
 }
 
 describe('cli run (end-to-end, mock agent)', () => {
@@ -120,5 +130,48 @@ describe('cli run (end-to-end, mock agent)', () => {
     const loaded = loadRun(runDir);
     expect(loaded.trials).toHaveLength(1);
     expect(loaded.trials[0]!.status).toBe('skipped');
+  });
+
+  it.each([
+    ['--only-evaluator', { onlyEvaluator: ['file_exists'] }],
+    ['--skip-evaluator', { skipEvaluator: ['file_exists'] }],
+  ])('run %s <unknown id> → ConfigError (exit 2), nothing runs', async (flag, filter) => {
+    const work = mkdtempSync(join(tmpdir(), 'curio-cli-badfilter-'));
+    const config = writeConfig(work);
+    const source = join(work, 'cases');
+    mkdirSync(source);
+    writeGatedCase(source, 'hello');
+    const out = join(work, 'results');
+
+    // A mistyped id (`file_exists` for `file-exists`) matches no evaluator. With
+    // `--only-evaluator` it would drop every evaluator from every case, and the trial
+    // would pass with no verdict. CI must not pass on a run that evaluated nothing.
+    const run = runRun({ source, config, out, ...filter });
+    await expect(run).rejects.toBeInstanceOf(ConfigError);
+    await expect(run).rejects.toThrow(
+      `${flag}: Unknown evaluator id "file_exists". Known evaluator ids: file-exists, `,
+    );
+    expect(existsSync(out)).toBe(false);
+  });
+
+  it('run --only-evaluator / --skip-evaluator accept a registered id', async () => {
+    const work = mkdtempSync(join(tmpdir(), 'curio-cli-filter-'));
+    const config = writeConfig(work);
+    const source = join(work, 'cases');
+    mkdirSync(source);
+    writeGatedCase(source, 'hello');
+
+    // `llm-judge` is registered but not used by this case: accepted, filters nothing.
+    const filters = { only: { onlyEvaluator: ['file-exists'] }, skip: { skipEvaluator: ['llm-judge'] } };
+    for (const [name, filter] of Object.entries(filters)) {
+      const out = join(work, `results-${name}`);
+      const code = await runRun({ source, config, out, ...filter });
+      expect(code).toBe(ExitCode.OK);
+
+      const trial = loadRun(readdirRuns(out)[0]!).trials[0]!;
+      expect(trial.status).toBe('passed');
+      expect(trial.evaluators.map((e) => e.id)).toEqual(['file-exists']);
+      expect(trial.verdict?.pass).toBe(true);
+    }
   });
 });

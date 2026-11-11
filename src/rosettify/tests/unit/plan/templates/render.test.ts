@@ -53,6 +53,61 @@ describe("renderTemplate — FR-PLAN-0034 happy path", () => {
     expect(rendered.name).toBe("Value with [other-token] inside");
   });
 
+  // FR-PLAN-0034 — a value that contains another DECLARED token is literal too. The two values
+  // name each other's token and the params arrive in both key orders, so the result cannot
+  // depend on which placeholder is substituted first.
+  it.each([
+    ["declared", ["plan-name", "plan-description"]],
+    ["reverse", ["plan-description", "plan-name"]],
+  ] as const)("does not re-interpret a value containing another declared token (params in %s order)", (_order, keys) => {
+    const template = {
+      placeholders: ["plan-name", "plan-description"] as const,
+      content: { name: "[plan-name]", description: "[plan-description]" },
+    };
+    const values = {
+      "plan-name": "Document the [plan-description] token",
+      "plan-description": "Explain the [plan-name] token",
+    };
+
+    const result = renderTemplate(template, Object.fromEntries(keys.map((key) => [key, values[key]])));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.rendered).toEqual({
+      name: "Document the [plan-description] token",
+      description: "Explain the [plan-name] token",
+    });
+  });
+
+  // FR-PLAN-0034 — one string leaf holding two tokens: the text inserted for the first token is
+  // not scanned again for the second
+  it("does not re-interpret an inserted value inside a string that holds two tokens", () => {
+    const template = {
+      placeholders: ["phase-id", "phase-name"] as const,
+      content: { label: "[phase-id]: [phase-name]" },
+    };
+
+    const result = renderTemplate(template, { "phase-id": "[phase-name]", "phase-name": "Implementation" });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.rendered).toEqual({ label: "[phase-name]: Implementation" });
+  });
+
+  // FR-PLAN-0034 — literal also means no replacement-pattern expansion ($&, $1, $$) in a value
+  it("keeps $ sequences in a value as written", () => {
+    const template = {
+      placeholders: ["plan-name"] as const,
+      content: { name: "[plan-name]" },
+    };
+
+    const result = renderTemplate(template, { "plan-name": "Costs $1, $& and $$ [plan-name]" });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.rendered).toEqual({ name: "Costs $1, $& and $$ [plan-name]" });
+  });
+
   // FR-PLAN-0034 — nested substitution in arrays and nested objects
   it("substitutes placeholders deep in nested arrays and objects", () => {
     const template = {
