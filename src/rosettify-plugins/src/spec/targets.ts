@@ -100,27 +100,31 @@ const WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR: readonly [string, string] = [
  * KEYS ARE THE ORIGINAL SOURCE STRINGS for all four — verified against generated output rather
  * than assumed. Three are plugin-root no-ops (`rules/`, `skills/` and the out-of-namespace
  * `agents/` all reach this point unrewritten), and the workflow entry keys on the original because
- * the workflows->skills restructuring emits no folder pair at all (FR-ARCH-0049). Each pair gets
+ * the workflows->skills restructuring emits no folder pair at all (FR-ARCH-0049). Each passage gets
  * its OWN pluginReplaceLiterals call so it carries its own drift guard: batched into one call, a
- * single drifted key would be masked by the other three still matching.
+ * single drifted key would be masked by the other three still matching. A passage lists one pair
+ * per wording of it that a release ships.
  */
 const CODEX_ROOT_RELATIVE_GLOBS: ReadonlyArray<{
-  pair: readonly [string, string];
+  pairs: ReadonlyArray<readonly [string, string]>;
   driftGuard: string;
 }> = [
-  { pair: ['RULE `rules/*.md`', 'RULE `.agents/rules/*.md`'], driftGuard: 'RULE `' },
+  { pairs: [['RULE `rules/*.md`', 'RULE `.agents/rules/*.md`']], driftGuard: 'RULE `' },
   {
-    pair: ['SKILL `skills/*/SKILL.md`', 'SKILL `.agents/skills/*/SKILL.md`'],
+    pairs: [
+      ['SKILL `skills/*/SKILL.md`', 'SKILL `.agents/skills/*/SKILL.md`'],
+      // r2 words the passage "SKILL in `...`" (instructions/r2/core/rules/plugin-files-mode.md).
+      ['SKILL in `skills/*/SKILL.md`', 'SKILL in `.agents/skills/*/SKILL.md`'],
+    ],
     driftGuard: 'SKILL `',
   },
   {
-    pair: ['AGENT/SUBAGENT `agents/*.md`', 'AGENT/SUBAGENT `.codex/agents/*.toml`'],
+    pairs: [['AGENT/SUBAGENT `agents/*.md`', 'AGENT/SUBAGENT `.codex/agents/*.toml`']],
     driftGuard: 'AGENT/SUBAGENT `',
   },
   {
-    pair: [
-      'WORKFLOW/COMMAND `workflows/*.md`',
-      'WORKFLOW/COMMAND `.agents/skills/*-flow/SKILL.md`',
+    pairs: [
+      ['WORKFLOW/COMMAND `workflows/*.md`', 'WORKFLOW/COMMAND `.agents/skills/*-flow/SKILL.md`'],
     ],
     driftGuard: 'WORKFLOW/COMMAND',
   },
@@ -478,8 +482,8 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
     ],
     pluginProcessors: c.buildPipeline(pluginAssembleCodexBootstrap, [
       // INT-IDE-0002: rewrite all four enumerated globs to their root-relative form.
-      ...CODEX_ROOT_RELATIVE_GLOBS.map(({ pair, driftGuard }) =>
-        pluginReplaceLiterals([pair], { requiredIn: 'plugin-files-mode', driftGuard })),
+      ...CODEX_ROOT_RELATIVE_GLOBS.map(({ pairs, driftGuard }) =>
+        pluginReplaceLiterals(pairs, { requiredIn: 'plugin-files-mode', driftGuard })),
       pluginNormalizeSubagentRequiredModel(codexSubagentModelTokenMapper),
     ]),
   }),
@@ -802,7 +806,7 @@ function buildPipeline(
     // payload is injected by pluginRenderTemplates via bootstrap_hooks, plumbed above.
     pluginRenderTemplates,
     pluginMirrorFiles,
-    pluginSyncBundles(hooksSource, outputDir, release.deterministicHooks, mode),
+    pluginSyncBundles(hooksSource, outputDir, release.deterministicHooks, mode, out),
     pluginWrite(outputDir, mode, out),
   ];
 }

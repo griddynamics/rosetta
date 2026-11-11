@@ -70,7 +70,7 @@ Cross-cutting concerns used by all commands. No command reimplements these.
 
 <req id="FR-SHRD-0006" type="FR" level="System">
   <title>Common optimistic concurrency via updated_at</title>
-  <statement>The common layer SHALL provide a read-modify-write function that checks updated_at before writing. If updated_at changed since read, retry (re-read, re-apply, re-write). After max retries (default 3), return {error: "concurrent_write_conflict"}. Commands that write JSON files other than the plan file SHALL use this function. Plan-file writes are governed exclusively by FR-PLAN-0024 (rename-as-guard with backup chain) and SHALL NOT use this function.</statement>
+  <statement>The common layer SHALL provide a read-modify-write function that checks updated_at before writing. If updated_at changed since read, retry (re-read, re-apply, re-write). After max retries (default 3), return {error: "concurrent_write_conflict"}. Commands that write JSON files other than plan files and specs documents SHALL use this function. Plan-file writes (FR-PLAN-0024) and specs-document writes (FR-SPECS-0070) are governed exclusively by the FR-PLAN-0024 cycle and SHALL NOT use this function.</statement>
   <rationale>Parallel subagents write to the same files without coordination. Plan writes have stronger semantics (atomic guard + backup chain per FR-PLAN-0024) and a different retry budget and error code; this function remains the general utility for any other JSON file rosettify may write in the future.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -78,7 +78,7 @@ Cross-cutting concerns used by all commands. No command reimplements these.
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: two concurrent writes to the same non-plan JSON file via this function. When: both complete. Then: file is valid, no data loss. Given: 4 consecutive mismatches. Then: {error: "concurrent_write_conflict"}. Given: plan-file writes. When: inspected. Then: they go through FR-PLAN-0024 (rename-as-guard), not this function.</criteria>
+    <criteria>Given: two concurrent writes to the same non-plan JSON file via this function. When: both complete. Then: file is valid, no data loss. Given: 4 consecutive mismatches. Then: {error: "concurrent_write_conflict"}. Given: plan-file or specs-document writes. When: inspected. Then: they go through the FR-PLAN-0024 cycle, not this function.</criteria>
   </acceptance>
 </req>
 

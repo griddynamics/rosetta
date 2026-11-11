@@ -201,8 +201,16 @@ async function main(): Promise<void> {
     publish: opts.publish === undefined ? undefined : dedupe(opts.publish as string[]),
   };
 
+  // A reader that closes the pipe early (e.g. `--dry-run | head`) takes no more output. That is
+  // not a failure of the run, so the resulting EPIPE must not crash it.
+  process.stdout.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code !== 'EPIPE') throw err;
+  });
+
   const exitCode = await generate(options);
-  process.exit(exitCode);
+  // FR-CLI-0050: stdout writes to a pipe are asynchronous, so process.exit() here would drop the
+  // --dry-run payload still queued. Set the code and let the process end once stdout has drained.
+  process.exitCode = exitCode;
 }
 
 main().catch((err) => {
