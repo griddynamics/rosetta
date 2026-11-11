@@ -10,7 +10,6 @@ import * as path from "path";
 import { cmdCreate } from "../../../src/commands/plan/create.js";
 import { loadPlan } from "../../../src/commands/plan/core.js";
 import { cmdUpdateStatus } from "../../../src/commands/plan/update-status.js";
-import { PLAN_BACKUP_RETENTION } from "../../../src/shared/constants.js";
 import type { PlanWriteResult } from "../../../src/commands/plan/output.js";
 
 let tmpDir: string;
@@ -301,48 +300,48 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     expect(fs.readdirSync(tmpDir)).toEqual(["dir-not-file"]);
   });
 
-  it("idempotent: second create overwrites with new name (NFR-REL-0002)", async () => {
+  it("second create fails with plan_already_exists and writes nothing (NFR-REL-0002)", async () => {
     const file = planFile();
 
     const first = await cmdCreate(file, { name: "Original Plan" });
     expect(first.ok).toBe(true);
-    expect((first.result as PlanWriteResult).plan.name).toBe("Original Plan");
+    const before = fs.readFileSync(file);
 
     const second = await cmdCreate(file, { name: "Replaced Plan" });
-    expect(second.ok).toBe(true);
-    expect((second.result as PlanWriteResult).plan.name).toBe("Replaced Plan");
-
-    const plan = loadPlan(file)!;
-    expect(plan.name).toBe("Replaced Plan");
-    expect(plan.previous_version).toBe(file + ".bak000");
-    expect((second.result as PlanWriteResult).plan.previous_version).toBe(plan.previous_version);
-    expect(loadPlan(plan.previous_version!)!.name).toBe("Original Plan");
+    expect(second.ok).toBe(false);
+    expect(second.error).toBe("plan_already_exists");
+    expect(second.result).toBeNull();
+    expect(fs.readFileSync(file)).toEqual(before);
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
   });
 
-  it("re-create backs up the latest status and links it in the result and file", async () => {
+  it("create on a plan with progress keeps the completed state and makes no backup", async () => {
     const file = planFile();
     await cmdCreate(file, { name: "Original", phases: [
       { id: "p1", name: "P1", steps: [{ id: "s1", name: "S1", prompt: "do" }] },
     ] });
     expect((await cmdUpdateStatus(file, "s1", "complete")).ok).toBe(true);
-    const latest = fs.readFileSync(file, "utf8");
+    const latest = fs.readFileSync(file);
+    const entries = fs.readdirSync(tmpDir).sort();
     const result = await cmdCreate(file, { name: "Replacement" });
-    expect(result.ok).toBe(true);
-    expect(result.result!.plan.previous_version).toBe(file + ".bak001");
-    expect(loadPlan(file)!.previous_version).toBe(file + ".bak001");
-    expect(fs.readFileSync(file + ".bak001", "utf8")).toBe(latest);
-    expect(loadPlan(file + ".bak001")!.phases[0]!.steps[0]!.status).toBe("complete");
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file)).toEqual(latest);
+    expect(fs.readdirSync(tmpDir).sort()).toEqual(entries);
+    expect(loadPlan(file)!.phases[0]!.steps[0]!.status).toBe("complete");
   });
 
-  it("replaces corrupted content while preserving its exact bytes", async () => {
+  it.each([
+    ["corrupted", Buffer.from([0xff, 0x00, 0x7b, 0x0a])],
+    ["empty", Buffer.alloc(0)],
+  ])("a %s existing file fails the same way and keeps its exact bytes", async (_kind, content) => {
     const file = planFile();
-    const corrupted = Buffer.from([0xff, 0x00, 0x7b, 0x0a]);
-    fs.writeFileSync(file, corrupted);
+    fs.writeFileSync(file, content);
     const result = await cmdCreate(file, { name: "Recovered" });
-    expect(result.ok).toBe(true);
-    expect(result.result!.plan.previous_version).toBe(file + ".bak000");
-    expect(loadPlan(file)!.previous_version).toBe(file + ".bak000");
-    expect(fs.readFileSync(file + ".bak000")).toEqual(corrupted);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file)).toEqual(content);
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
   });
 
   it("a rejected re-create leaves the original file unchanged with no backup", async () => {
@@ -356,20 +355,7 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
   });
 
-  it("six re-creates retain only the newest backups", async () => {
-    const file = planFile();
-    await cmdCreate(file, { name: "v0" });
-    for (let i = 1; i <= 6; i++) {
-      expect((await cmdCreate(file, { name: `v${i}` })).ok).toBe(true);
-    }
-    const backups = fs.readdirSync(tmpDir).filter((name) => name.includes(".bak"));
-    expect(backups).toHaveLength(PLAN_BACKUP_RETENTION);
-    expect(backups).toEqual(Array.from({ length: PLAN_BACKUP_RETENTION }, (_, i) => `plan.json.bak00${i + 1}`));
-    expect(loadPlan(file)!.previous_version).toBe(file + ".bak005");
-    expect(loadPlan(file + ".bak001")!.name).toBe("v1");
-  });
-
-  it("waits for the lock and backs up a file created while waiting", async () => {
+  it("waits for the lock and refuses a file created while waiting", async () => {
     const file = planFile();
     fs.mkdirSync(file + ".lock");
     const pending = cmdCreate(file, { name: "Second" });
@@ -378,10 +364,9 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     fs.writeFileSync(file, first);
     fs.rmdirSync(file + ".lock");
     const result = await pending;
-    expect(result.ok).toBe(true);
-    expect(result.result!.plan.previous_version).toBe(file + ".bak000");
-    expect(fs.readFileSync(file + ".bak000", "utf8")).toBe(first);
-    expect(loadPlan(file)!.previous_version).toBe(file + ".bak000");
-    expect(fs.existsSync(file + ".lock")).toBe(false);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file, "utf8")).toBe(first);
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
   });
 });

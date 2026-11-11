@@ -171,17 +171,22 @@ export async function atomicWriteWithBackup<Doc extends { previous_version?: str
   }, saveDoc, options);
 }
 
-/** Replaces a document without parsing its old content, preserving even corrupted bytes. */
-export async function atomicReplaceWithBackup<Doc extends { previous_version?: string | null; updated_at: string }>(
+/**
+ * Writes a new document. An existing file is never read or replaced: the call fails with
+ * `existsError` and writes nothing. The existence check runs under the same lock as the write.
+ */
+export async function atomicCreate<Doc extends { previous_version?: string | null; updated_at: string }>(
   filePath: string,
   doc: Doc,
   saveDoc: (filePath: string, doc: Doc) => void,
+  existsError: string,
   options?: WriteOptions,
 ): Promise<RunEnvelope<{ result: Doc; backupPath: string | null }>> {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   return writeWithBackup(filePath, (exists) => {
-    if (exists && !fs.statSync(filePath).isFile()) throw new Error(`Not a regular file: ${filePath}`);
-    return { ok: true, result: doc, updated: doc };
+    if (!exists) return { ok: true, result: doc, updated: doc };
+    if (!fs.statSync(filePath).isFile()) throw new Error(`Not a regular file: ${filePath}`);
+    return { ok: false, error: existsError };
   }, saveDoc, options);
 }
 
@@ -246,7 +251,7 @@ async function writeWithBackup<Doc extends { previous_version?: string | null; u
     }
 
     try {
-      // Steps 1–2: Decide whether to create, mutate, or replace while holding the lock.
+      // Steps 1–2: Decide whether to create, mutate, or refuse while holding the lock.
       const exists = fs.existsSync(filePath);
       const fnResult = await prepare(exists);
       if (!fnResult.ok) {

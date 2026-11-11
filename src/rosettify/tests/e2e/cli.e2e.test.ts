@@ -220,30 +220,32 @@ describe("CLI — plan create", () => {
   });
 });
 
-describe("CLI — plan replacement backups", () => {
-  it.each(["create", "create-with-template"])("%s preserves and links the latest plan", (subcommand) => {
+describe("CLI — plan create refuses an existing file (FR-PLAN-0010)", () => {
+  it.each(["create", "create-with-template"])("%s fails with plan_already_exists and leaves the latest plan untouched", (subcommand) => {
     const file = planFile();
     expect(run(["plan", "create", file, JSON.stringify({ name: "Original", phases: [
       { id: "p1", name: "P1", steps: [{ id: "s1", name: "S1", prompt: "do" }] },
     ] })]).status).toBe(0);
     expect(run(["plan", "update_status", file, "s1", "complete"]).status).toBe(0);
     const before = fs.readFileSync(file);
+    const entries = fs.readdirSync(tmpDir).sort();
     const result = run(subcommand === "create"
       ? ["plan", subcommand, file, '{"name":"Replacement"}']
       : ["plan", subcommand, file, "for-orchestrator", "Replacement", "desc", "[]"]);
-    expect(result.status).toBe(0);
-    expect((result.json as { plan: { previous_version: string } }).plan.previous_version).toBe(file + ".bak001");
-    expect(JSON.parse(fs.readFileSync(file, "utf8")).previous_version).toBe(file + ".bak001");
-    expect(fs.readFileSync(file + ".bak001")).toEqual(before);
+    expect(result.status).toBe(1);
+    expect((result.json as { error: string }).error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file)).toEqual(before);
+    expect(fs.readdirSync(tmpDir).sort()).toEqual(entries);
   });
 
-  it("create replaces corrupted bytes and upsert first create still links null", () => {
+  it("create fails the same way on a corrupted file, and upsert first create still links null", () => {
     const file = planFile();
     fs.writeFileSync(file, "corrupted");
     const result = run(["plan", "create", file, '{"name":"Recovered"}']);
-    expect(result.status).toBe(0);
-    expect((result.json as { plan: { previous_version: string } }).plan.previous_version).toBe(file + ".bak000");
-    expect(fs.readFileSync(file + ".bak000", "utf8")).toBe("corrupted");
+    expect(result.status).toBe(1);
+    expect((result.json as { error: string }).error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file, "utf8")).toBe("corrupted");
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
     const first = run(["plan", "upsert", planFile("new.json"), "entire_plan", '{"name":"First"}']);
     expect(first.status).toBe(0);
     expect((first.json as { plan: { previous_version: null } }).plan.previous_version).toBeNull();
@@ -646,27 +648,54 @@ describe("CLI — error cases", () => {
 // and 50 concurrent CLI invocations). The mkdir-lock implementation passes; this
 // test asserts that contract end-to-end through the actual binary.
 describe("CLI — concurrent writers (FR-PLAN-0024 / FR-PLAN-0025)", () => {
-  it("12 concurrent first creates mixing create and upsert retain every unpruned successful write", async () => {
+  it("12 concurrent creates on a missing file: exactly one succeeds and the rest get plan_already_exists", async () => {
+    const N = 12;
+    const file = planFile("only-one.json");
+    const results = await Promise.all(Array.from({ length: N }, (_, i) =>
+      runAsync(["plan", "create", file, JSON.stringify({ name: `writer-${i}` })])));
+    const winners = results.filter((result) => result.status === 0);
+    expect(winners, results.map((result) => result.stdout + result.stderr).join("\n")).toHaveLength(1);
+    for (const result of results) {
+      if (result.status !== 0) expect((result.json as { error: string }).error).toBe("plan_already_exists");
+    }
+    const winner = (winners[0]!.json as { plan: { name: string; previous_version: null } }).plan;
+    expect(winner.previous_version).toBeNull();
+    const final = JSON.parse(fs.readFileSync(file, "utf8"));
+    expect(final.name).toBe(winner.name);
+    expect(final.previous_version).toBeNull();
+    expect(fs.readdirSync(tmpDir)).toEqual(["only-one.json"]);
+  }, 60_000);
+
+  it("12 concurrent first writes mixing create and upsert lose no successful write", async () => {
     const N = 12;
     const file = planFile("first.json");
     const results = await Promise.all(Array.from({ length: N }, (_, i) => {
       const data = JSON.stringify({ name: `writer-${i}` });
       return runAsync(i % 2 ? ["plan", "upsert", file, "entire_plan", data] : ["plan", "create", file, data]);
     }));
-    for (const result of results) expect(result.status, result.stdout + result.stderr).toBe(0);
-    const writes = results.map((result) => (result.json as { plan: { name: string; previous_version: string | null } }).plan);
+    // upsert always lands (first write or merge); create lands only when it is the first writer.
+    results.forEach((result, i) => {
+      if (i % 2) expect(result.status, result.stdout + result.stderr).toBe(0);
+      else if (result.status !== 0) expect((result.json as { error: string }).error).toBe("plan_already_exists");
+    });
+    const createWins = results.filter((result, i) => i % 2 === 0 && result.status === 0);
+    expect(createWins.length).toBeLessThanOrEqual(1);
+    for (const win of createWins) expect((win.json as { plan: { previous_version: null } }).plan.previous_version).toBeNull();
+    const writes = results.filter((result) => result.status === 0)
+      .map((result) => (result.json as { plan: { name: string; previous_version: string | null } }).plan);
+    const W = writes.length;
     const index = (backup: string | null) => backup === null ? -1 : Number(backup.split(".bak").pop());
     expect(writes.map((write) => index(write.previous_version)).sort((a, b) => a - b)).toEqual(
-      Array.from({ length: N }, (_, i) => i - 1),
+      Array.from({ length: W }, (_, i) => i - 1),
     );
     const backups = fs.readdirSync(tmpDir).filter((name) => name.startsWith("first.json.bak")).sort();
-    expect(backups).toEqual(Array.from({ length: 5 }, (_, i) => `first.json.bak${String(N - 6 + i).padStart(3, "0")}`));
-    const final = JSON.parse(fs.readFileSync(file, "utf8"));
+    const kept = Math.min(5, W - 1);
+    expect(backups).toEqual(Array.from({ length: kept }, (_, i) => `first.json.bak${String(W - 1 - kept + i).padStart(3, "0")}`));
     for (const write of writes) {
       const nextIndex = index(write.previous_version) + 1;
-      const snapshot = nextIndex === N - 1 ? file : `${file}.bak${String(nextIndex).padStart(3, "0")}`;
-      if (nextIndex < N - 6) {
-        // Default retention deliberately prunes these older successful replacements.
+      const snapshot = nextIndex === W - 1 ? file : `${file}.bak${String(nextIndex).padStart(3, "0")}`;
+      if (nextIndex < W - 1 - kept) {
+        // Default retention deliberately prunes these older successful writes.
         expect(fs.existsSync(snapshot)).toBe(false);
       } else {
         const saved = JSON.parse(fs.readFileSync(snapshot, "utf8"));
@@ -674,33 +703,28 @@ describe("CLI — concurrent writers (FR-PLAN-0024 / FR-PLAN-0025)", () => {
         expect(saved.previous_version).toBe(write.previous_version);
       }
     }
-    expect(final.previous_version).toBe(file + ".bak010");
     expect(fs.existsSync(file + ".lock")).toBe(false);
   }, 60_000);
 
-  it("create racing 12 status writers preserves successful writes subject to retention", async () => {
+  it("create racing 12 status writers is refused and no status write is lost", async () => {
     const file = planFile("status-race.json");
     const steps = Array.from({ length: 12 }, (_, i) => ({ id: `s${i}`, name: `S${i}`, prompt: "do" }));
     const phases = [{ id: "p1", name: "P1", steps }];
     expect(run(["plan", "create", file, JSON.stringify({ name: "Original", phases })]).status).toBe(0);
-    const writers = steps.slice(0, -1).map((step) => runAsync(["plan", "update_status", file, step.id, "complete"]));
-    const creator = runAsync(["plan", "create", file, JSON.stringify({ name: "Replacement", phases })]);
-    // Guarantee a post-replacement status write while the others race with create.
-    writers.push(creator.then(() => runAsync(["plan", "update_status", file, steps.at(-1)!.id, "complete"])));
-    const [created, ...updated] = await Promise.all([creator, ...writers]);
-    expect(created.status, created.stdout + created.stderr).toBe(0);
+    // Each status write moves the plan file to a backup before it writes the new one. A create
+    // that checked for the file outside the lock could find the path empty and write a fresh plan.
+    const [created, ...updated] = await Promise.all([
+      runAsync(["plan", "create", file, JSON.stringify({ name: "Replacement", phases })]),
+      ...steps.map((step) => runAsync(["plan", "update_status", file, step.id, "complete"])),
+    ]);
+    expect(created.status, created.stdout + created.stderr).toBe(1);
+    expect((created.json as { error: string }).error).toBe("plan_already_exists");
     for (const result of updated) expect(result.status, result.stdout + result.stderr).toBe(0);
-    const backup = (created.json as { plan: { previous_version: string } }).plan.previous_version;
+    const final = JSON.parse(fs.readFileSync(file, "utf8"));
+    expect(final.name).toBe("Original");
+    expect(final.phases[0].steps.every((step: { status: string }) => step.status === "complete")).toBe(true);
     const backups = fs.readdirSync(tmpDir).filter((name) => name.startsWith("status-race.json.bak")).sort();
-    expect(backups).toEqual([8, 9, 10, 11, 12].map((i) => `status-race.json.bak${String(i).padStart(3, "0")}`));
-    const snapshots = [file, ...backups.map((name) => path.join(tmpDir, name))].map((name) => JSON.parse(fs.readFileSync(name, "utf8")));
-    // Status mutations preserve the replacement name, so create must survive in the final file.
-    expect(snapshots[0].name).toBe("Replacement");
-    // Each earlier status write produced one backup, so k is the exact number reset by create.
-    const k = Number(backup.split(".bak").pop());
-    const completed = (doc: { phases: { steps: { status: string }[] }[] }) => doc.phases[0]!.steps.filter((step) => step.status === "complete").length;
-    expect(completed(snapshots[0])).toBe(updated.length - k);
-    if (fs.existsSync(backup)) expect(completed(JSON.parse(fs.readFileSync(backup, "utf8")))).toBe(k);
+    expect(backups).toEqual([7, 8, 9, 10, 11].map((i) => `status-race.json.bak${String(i).padStart(3, "0")}`));
     expect(fs.existsSync(file + ".lock")).toBe(false);
   }, 60_000);
 

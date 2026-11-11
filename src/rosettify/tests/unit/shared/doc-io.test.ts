@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { readDocWithRetry, atomicWriteWithBackup, atomicReplaceWithBackup } from "../../../src/shared/doc-io.js";
+import { readDocWithRetry, atomicWriteWithBackup, atomicCreate } from "../../../src/shared/doc-io.js";
 import type { Plan } from "../../../src/commands/plan/core.js";
 import { savePlan } from "../../../src/commands/plan/core.js";
 
@@ -47,14 +47,14 @@ function makePlan(overrides: Partial<Plan> = {}): Plan {
   };
 }
 
-describe("atomicReplaceWithBackup — create and replace under the shared lock", () => {
+describe("atomicCreate — create-only write under the shared lock", () => {
   it("creates missing parents and writes with null even when old backups exist, without reading", async () => {
     const file = planFile("nested/plan.json");
     const save = (target: string, doc: Plan) => {
       expect(fs.existsSync(target + ".lock")).toBe(true);
       savePlan(target, doc);
     };
-    const first = await atomicReplaceWithBackup(file, makePlan(), save);
+    const first = await atomicCreate(file, makePlan(), save, "doc_exists");
     expect(first.ok).toBe(true);
     expect(first.result!.backupPath).toBeNull();
     fs.renameSync(file, file + ".bak000");
@@ -63,7 +63,7 @@ describe("atomicReplaceWithBackup — create and replace under the shared lock",
     try {
       const started = performance.now();
       const realStarted = Date.now();
-      const pending = atomicReplaceWithBackup(file, makePlan({ name: "New" }), save);
+      const pending = atomicCreate(file, makePlan({ name: "New" }), save, "doc_exists");
       await vi.runAllTimersAsync();
       const second = await pending;
       expect(second.ok).toBe(true);
@@ -78,12 +78,17 @@ describe("atomicReplaceWithBackup — create and replace under the shared lock",
     expect(fs.existsSync(file + ".lock")).toBe(false);
   });
 
-  it("restores corrupted bytes after a failed replacement and releases the lock", async () => {
+  it("refuses an existing file without reading, backing up, or writing, and releases the lock", async () => {
     const file = planFile();
     fs.writeFileSync(file, "invalid json");
-    const result = await atomicReplaceWithBackup(file, makePlan(), () => { throw new Error("write failed"); }, { maxRetries: 2 });
+    const save = vi.fn();
+    const readSpy = vi.spyOn(fs, "readFileSync");
+    const result = await atomicCreate(file, makePlan(), save, "doc_exists");
     expect(result.ok).toBe(false);
-    expect(result.error).toBe("backup_create_failed");
+    expect(result.error).toBe("doc_exists");
+    expect(save).not.toHaveBeenCalled();
+    expect(readSpy).not.toHaveBeenCalled();
+    readSpy.mockRestore();
     expect(fs.readFileSync(file, "utf8")).toBe("invalid json");
     expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
   });
@@ -98,7 +103,7 @@ describe("atomicReplaceWithBackup — create and replace under the shared lock",
       }
       savePlan(target, doc);
     };
-    const result = await atomicReplaceWithBackup(file, makePlan(), save, { maxRetries: 2 });
+    const result = await atomicCreate(file, makePlan(), save, "doc_exists", { maxRetries: 2 });
     expect(result.ok).toBe(true);
     expect(result.result!.backupPath).toBeNull();
     expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
