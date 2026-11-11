@@ -111,7 +111,8 @@ const CODEX_ROOT_RELATIVE_GLOBS: ReadonlyArray<{
   { pair: ['RULE `rules/*.md`', 'RULE `.agents/rules/*.md`'], driftGuard: 'RULE `' },
   {
     pair: ['SKILL `skills/*/SKILL.md`', 'SKILL `.agents/skills/*/SKILL.md`'],
-    driftGuard: 'SKILL `',
+    // Not the bare 'SKILL `': that also matches alias prose such as "USE SKILL `load-context`".
+    driftGuard: 'SKILL `skills/',
   },
   {
     pair: ['AGENT/SUBAGENT `agents/*.md`', 'AGENT/SUBAGENT `.codex/agents/*.toml`'],
