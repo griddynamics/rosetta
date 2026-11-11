@@ -134,6 +134,19 @@ describe("buildPlanWriteResult — PlanWriteResult shape correctness", () => {
     expect(tree.phases[0]!.steps).toEqual([]);
   });
 
+  // FR-PLAN-0040 — every phase and step summary carries a status, also when the plan stores none
+  it("reports open for a phase and a step stored without status", () => {
+    const plan = makePlan({
+      phases: [
+        { id: "p1", name: "Phase 1", steps: [{ id: "s1", name: "Step 1", prompt: "do it" }] },
+      ] as unknown as Plan["phases"],
+    });
+    const tree = buildPlanWriteResult(plan, null);
+    expect(tree.phases).toEqual([
+      { id: "p1", name: "Phase 1", status: "open", steps: [{ id: "s1", name: "Step 1", status: "open" }] },
+    ]);
+  });
+
   // previous_version is null on first create (FR-PLAN-0010); a backup path on subsequent writes
   it("plan summary previous_version is null when passed null (first create)", () => {
     const plan = makePlan({ name: "First" });

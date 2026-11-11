@@ -270,7 +270,7 @@ export function findStep(
   id: string,
 ): { phase: Phase; step: Step } | undefined {
   for (const phase of plan.phases) {
-    const step = phase.steps.find((s) => s.id === id);
+    const step = (phase.steps ?? []).find((s) => s.id === id);
     if (step) return { phase, step };
   }
   return undefined;
