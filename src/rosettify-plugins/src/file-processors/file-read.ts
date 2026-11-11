@@ -16,7 +16,7 @@ const BINARY_EXTENSIONS = new Set([
 /**
  * fileRead: read content from all SourceFiles and populate target_contents and frontmatter.
  * For text files: read all sources, parse frontmatter from the first, set on frame.
- * For binary: read as Buffer, error if >1 source (FR-ARCH-0034).
+ * For binary: read each source as Buffer and cache it on SourceFile._readBytes.
  * FR-ARCH-0040
  */
 export function fileRead(frame: FileProcessingFrame, ctx: TargetContext): FileProcessingFrame {
@@ -27,24 +27,15 @@ export function fileRead(frame: FileProcessingFrame, ctx: TargetContext): FilePr
   const isBinary = BINARY_EXTENSIONS.has(ext);
 
   if (isBinary) {
-    if (sources.length > 1) {
-      // FR-ARCH-0034: binary + >1 SourceFile → hard error; return frame with error (do not throw)
-      return updateFileFrame(frame, (draft) => {
-        draft.isBinary = true;
-        draft.target_contents = fs.readFileSync(sources[sources.length - 1].origin);
-        draft.errors = [
-          ...(draft.errors ?? []),
-          {
-            target: frame.target,
-            message: `Binary file ${frame.target} has ${sources.length} sources; only one source is allowed for binary files (FR-ARCH-0034/FR-ARCH-0042).`,
-            kind: 'hard' as const,
-          },
-        ];
-      });
-    }
+    // Binary file: read each source's bytes and cache them on SourceFile._readBytes, so
+    // fileApplyOverrides can set target_contents from the new lead source (FR-ARCH-0024).
+    // More than one source is not an error here: fileApplyOverrides may still leave one;
+    // fileBundle raises the error when more than one remains (FR-ARCH-0042).
+    const bytes = sources.map((src) => fs.readFileSync(src.origin));
     return updateFileFrame(frame, (draft) => {
       draft.isBinary = true;
-      draft.target_contents = fs.readFileSync(sources[0].origin);
+      draft.source = draft.source.map((sf, i) => ({ ...sf, _readBytes: bytes[i] }));
+      draft.target_contents = bytes[0];
     });
   }
 
