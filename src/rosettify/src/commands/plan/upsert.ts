@@ -2,7 +2,6 @@
 // Uses FR-PLAN-0024 write cycle (atomicWriteWithBackup) for all writes.
 // FR-PLAN-0025 — plan writes go through FR-PLAN-0024, NOT the FR-SHRD-0006 optimistic-concurrency function.
 
-import * as fs from "fs";
 import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
@@ -81,11 +80,7 @@ export async function cmdUpsert(
     // FR-PLAN-0015 — strip status fields silently before any file I/O
     const cleanData = stripStatusFields(data);
 
-    // Special case: entire_plan on missing file — create new plan (first-create path).
-    // FR-PLAN-0024 — no rename needed for first create.
-    // Use fs.existsSync (NOT loadPlan) so a corrupted file falls through to the write cycle,
-    // which translates parse failure to FR-PLAN-0021 plan_file_corrupted via readDocWithRetry.
-    if (resolvedTargetId === "entire_plan" && !fs.existsSync(planFile)) {
+    function createPlan() {
       const now = new Date().toISOString();
       let plan: Plan = {
         name: "Unnamed Plan",
@@ -97,21 +92,18 @@ export async function cmdUpsert(
         phases: [],
       };
       const idCheck = validateImmutableId(cleanData["id"] as string | undefined, resolvedTargetId);
-      if (idCheck) return err(idCheck);
+      if (idCheck) return { ok: false as const, error: idCheck };
       plan = applyEntirePlanPatch(plan, cleanData);
-      if ("error" in plan) return err((plan as unknown as { error: string }).error);
-      const uniqueErr = validateUniqueIds(plan); if (uniqueErr) return err(uniqueErr);
-      const depsErr = validateDependencies(plan); if (depsErr) return err(depsErr);
-      const sizeErr = validateSizeLimits(plan); if (sizeErr) return err(sizeErr);
+      if ("error" in plan) return { ok: false as const, error: (plan as unknown as { error: string }).error };
+      const uniqueErr = validateUniqueIds(plan); if (uniqueErr) return { ok: false as const, error: uniqueErr };
+      const depsErr = validateDependencies(plan); if (depsErr) return { ok: false as const, error: depsErr };
+      const sizeErr = validateSizeLimits(plan); if (sizeErr) return { ok: false as const, error: sizeErr };
       propagateStatuses(plan);
-      // FR-PLAN-0026 — savePlan writes 2-space pretty-formatted JSON
-      savePlan(planFile, plan);
       logger.info({ planFile, targetId: resolvedTargetId }, "upsert created new plan");
-      // FR-PLAN-0040 — return PlanWriteResult; previous_version=null on first create (FR-PLAN-0010)
-      return ok(buildPlanWriteResult(plan, null));
+      return { ok: true as const, result: buildPlanWriteResult(plan, null), updated: plan };
     }
 
-    // FR-PLAN-0024 — use rename-as-guard write cycle for existing plans
+    // FR-PLAN-0024 — create or merge under the same lock and backup cycle
     const writeResult = await atomicWriteWithBackup<Plan, PlanWriteResult>(
       planFile,
       (plan) => {
@@ -176,6 +168,7 @@ export async function cmdUpsert(
         return { ok: true, result: buildPlanWriteResult(mutated, null), updated: mutated };
       },
       savePlan,
+      { create: resolvedTargetId === "entire_plan" ? createPlan : undefined },
     );
 
     if (!writeResult.ok) {

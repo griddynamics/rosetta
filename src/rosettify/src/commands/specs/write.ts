@@ -3,9 +3,8 @@
 // routes through applyBatchWrite so IO, actor/time stamping, and post-batch integrity are
 // implemented exactly once — lifecycle ops never re-implement any of it themselves.
 
-import * as fs from "fs";
 import type { RunEnvelope } from "../../registry/types.js";
-import { ok, err } from "../../shared/envelope.js";
+import { ok } from "../../shared/envelope.js";
 import { atomicWriteWithBackup } from "../../shared/doc-io.js";
 import { resolveActor } from "../../shared/actor.js";
 import { nowUtcZ } from "../../shared/time.js";
@@ -43,11 +42,10 @@ type MutateOutcome<T> =
  * 3. Run `build` over the in-memory doc; on success, stamp every affected id's
  *    changed/changed_by, then run the post-batch integrity chain (FR-SPECS-0005/0007) in the
  *    order required by SPECS §5: size limits → unique ids → references → depends-acyclic.
- * 4. If `opts.allowCreate` and the file does not yet exist, bypass the atomic write cycle
- *    entirely (mirrors plan's upsert first-create bypass) — build over a fresh document and
- *    save it directly; previous_version stays null. Creating without opts.system is rejected
- *    with missing_system (FR-SPECS-0002) before the fresh document is even constructed.
- * 5. Otherwise route through the shared atomicWriteWithBackup (lock + backup + rename), with
+ * 4. Under the lock, if `opts.allowCreate` and the file does not yet exist, build over a fresh
+ *    document; previous_version stays null. Creating without opts.system is rejected with
+ *    missing_system (FR-SPECS-0002) before the fresh document is even constructed.
+ * 5. Route every write through the shared atomicWriteWithBackup (lock + backup + rename), with
  *    specs' own not-found/corrupted error codes, and surface its backupPath as previous_version.
  */
 export async function applyBatchWrite<T>(
@@ -92,17 +90,12 @@ export async function applyBatchWrite<T>(
     return { ok: true, result: built.result, updated: doc };
   }
 
-  // FR-SPECS-0002 — first-ever create bypasses the rename-as-guard cycle (nothing to rename yet).
-  if (opts?.allowCreate && !fs.existsSync(file)) {
-    if (!opts?.system) return err(ERR_MISSING_SYSTEM, true); // absent-argument usage error, like missing_data
-    const outcome = mutateFn(newDocument(opts.system));
-    if (!outcome.ok) return err(outcome.error);
-    saveSpecs(file, outcome.updated); // previous_version stays null on first create
-    return ok({ result: outcome.result, previous_version: null });
-  }
-
   const writeResult = await atomicWriteWithBackup<SpecsDocument, T>(file, mutateFn, saveSpecs, {
     errors: { corrupted: ERR_SPECS_FILE_CORRUPTED, notFound: ERR_SPECS_NOT_FOUND },
+    create: opts?.allowCreate ? () => {
+      if (!opts.system) return { ok: false, error: ERR_MISSING_SYSTEM, include_help: true };
+      return mutateFn(newDocument(opts.system));
+    } : undefined,
   });
 
   if (!writeResult.ok) {
