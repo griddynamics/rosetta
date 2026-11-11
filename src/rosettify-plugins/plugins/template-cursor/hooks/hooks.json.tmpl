@@ -2,11 +2,6 @@
   "version": 1,
   "hooks": {
 {{#if deterministic_hooks}}
-    "beforeReadFile": [
-      {
-        "command": "node hooks/read-once.js"
-      }
-    ],
     "beforeTabFileRead": [
       {
         "command": "node hooks/read-once.js"
@@ -23,7 +18,7 @@
         "command": "node hooks/dangerous-actions.js"
       },
       {
-        "matcher": "Bash|Shell",
+        "matcher": "Read|Bash|Shell",
         "command": "node hooks/read-once.js"
       }
     ],

@@ -71,7 +71,7 @@ const CASES: FormCase[] = [
     name: 'cursor plugin form',
     file: 'template-cursor/hooks/hooks.json.tmpl',
     container: 'hooks',
-    events: ['beforeReadFile', 'beforeTabFileRead', 'preCompact', 'preToolUse', 'postToolUse'],
+    events: ['beforeTabFileRead', 'preCompact', 'preToolUse', 'postToolUse'],
     readOnce: 'node hooks/read-once.js',
     reset: { event: 'preCompact', command: 'node hooks/read-once-reset.js' },
   },
@@ -79,7 +79,7 @@ const CASES: FormCase[] = [
     name: 'cursor standalone form',
     file: 'template-cursor/hooks.json.tmpl',
     container: 'hooks',
-    events: ['beforeReadFile', 'beforeTabFileRead', 'preCompact', 'preToolUse', 'postToolUse'],
+    events: ['beforeTabFileRead', 'preCompact', 'preToolUse', 'postToolUse'],
     readOnce: 'node .cursor/hooks/read-once.js',
     reset: { event: 'preCompact', command: 'node .cursor/hooks/read-once-reset.js' },
   },
@@ -186,18 +186,20 @@ describe('read-once hook registration — templates', () => {
         });
       }
 
-      if (c.events.includes('beforeReadFile')) {
-        test('preToolUse read-once matcher leaves Read to beforeReadFile', () => {
-          // docs/hooks/cursor.md:56 — Cursor fires preToolUse AND beforeReadFile for ONE Read call, so
-          // read-once bound on both layers reports the first read of a file as a repeat.
-          // cursor.md:81 — "Pick ONE layer per guard to avoid double-fire."
+      if (c.name.startsWith('cursor')) {
+        test('read-once guards a Read call on preToolUse only, not on beforeReadFile as well', () => {
+          // docs/hooks/cursor.md — Cursor fires preToolUse AND beforeReadFile for ONE Read call, so
+          // read-once bound on both layers reports the first read of a file as a repeat ("Pick ONE
+          // layer per guard to avoid double-fire"). preToolUse is the layer to keep: a live run showed
+          // that Cursor delivers the repeat-read advisory to the model from preToolUse and drops it
+          // from beforeReadFile.
           const events = JSON.parse(stripTokens(readTemplate(c.file)))[c.container];
-          expect(strings(events.beforeReadFile)).toContain(c.readOnce);
           const matchers = (events.preToolUse as { matcher: string; command: string }[])
             .filter((entry) => entry.command === c.readOnce)
             .map((entry) => entry.matcher);
           expect(matchers, `preToolUse lacks ${c.readOnce}`).not.toEqual([]);
-          for (const matcher of matchers) expect(matcher).not.toContain('Read');
+          for (const matcher of matchers) expect(matcher.split('|')).toContain('Read');
+          expect(strings(events.beforeReadFile ?? [])).not.toContain(c.readOnce);
         });
       }
     });
