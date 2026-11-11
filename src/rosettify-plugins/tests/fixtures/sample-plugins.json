@@ -1,0 +1,82 @@
+{
+  "$schema-note": "Fixture plugin-set catalog. `core` is built from the r2 fixture's core/ folder; `acme` LAYERS core+acme, exercising multi-folder bundling and the overwrite directive.",
+  "targets": [
+    "claude",
+    "cursor",
+    "copilot",
+    "codex",
+    "cursor-standalone",
+    "copilot-standalone",
+    "antigravity"
+  ],
+  "hookSupportModules": {
+    "read-once": [
+      "read-once-reset",
+      "read-once-shared"
+    ]
+  },
+  "sets": [
+    {
+      "name": "core",
+      "folders": [
+        "core"
+      ],
+      "template": "template",
+      "releases": [
+        "r1",
+        "r2",
+        "r3"
+      ],
+      "requires": [],
+      "bootstrap": true,
+      "hooks": [
+        "dangerous-actions",
+        "read-once",
+        "loose-files",
+        "md-file-advisory",
+        "codemap-refresh",
+        "lint-format-advisory"
+      ],
+      "manifest": {
+        "name": "rosetta-core",
+        "description": "Rosetta Core fixture set."
+      },
+      "variants": [
+        {
+          "profile": null,
+          "destinationSuffix": "",
+          "manifestNameSuffix": "",
+          "manifestDescriptionSuffix": ""
+        }
+      ]
+    },
+    {
+      "name": "acme",
+      "folders": [
+        "core",
+        "acme"
+      ],
+      "template": "template",
+      "releases": [
+        "r1",
+        "r2",
+        "r3"
+      ],
+      "requires": [],
+      "bootstrap": true,
+      "hooks": [],
+      "manifest": {
+        "name": "rosetta-acme",
+        "description": "Core layered with the acme overlay \u2014 exercises multi-folder bundling."
+      },
+      "variants": [
+        {
+          "profile": null,
+          "destinationSuffix": "",
+          "manifestNameSuffix": "",
+          "manifestDescriptionSuffix": ""
+        }
+      ]
+    }
+  ]
+}

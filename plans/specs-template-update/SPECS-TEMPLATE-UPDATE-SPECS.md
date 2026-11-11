@@ -3,7 +3,7 @@
 # Tech Specs — Specs Template Update
 
 Target state for the rosettify `specs` command after the requirement-unit model change.
-Requirements source (authoritative): `docs/requirements/rosettify/SPECS.md`, **21 in-scope units**.
+Requirements source (authoritative): `docs/REQUIREMENTS/rosettify/SPECS.md`, **21 in-scope units**.
 ⚠ **Approval state:** 9 of the 21 currently carry `status="Draft"` with empty `approved_by` after the latest amendment round — see §14 G5. Content is decided; the approval record is not. Resolve before the implementation gate.
 Companion: `SPECS-TEMPLATE-UPDATE-PLAN.md` (HOW/sequence). Design rationale: `architecture-notes.md`.
 Discovery: `discovery-notes.md`. This file owns **WHAT** — contracts, shapes, criteria. No steps, no sequencing.

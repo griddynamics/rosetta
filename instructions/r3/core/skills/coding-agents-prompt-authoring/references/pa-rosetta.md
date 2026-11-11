@@ -78,9 +78,8 @@ Rosetta defines command aliases so that it works with ALL IDEs/CodingAgents. In 
 4. `APPLY PHASE <file>.md` to load + FULLY execute the next phase body of a running workflow. Filename only, never a folder path.
 5. `READ RULE <file>.md` / `APPLY RULE <file>.md` to load / load+execute a rule. Full filename with .md.
 6. `READ TEMPLATE <file>.md` to load a template.
-7. `READ CONFIGURE <tool>.md` to load an IDE/CodingAgent configure spec.
-8. `READ SKILL FILE <subpath>` / `APPLY SKILL FILE <subpath>` for a file of the CURRENT skill (`assets/…`, `references/…`). NEVER carries a skill name — only a skill's own files may use it; any other artifact expresses intent ("run validation using the `X` skill's rubric") and lets the skill route (skill isolation is grammar-enforced). Cross-skill resolution: NEVER name another skill's internal files or paths (file names change) — express intent with the typed alias plus the topic keywords the target skill routes on: `USE SKILL \`solr-extending\` to apply plugin wiring`, never `solr-extending/references/06-plugin-wiring.md`.
-9. `LIST <folder>` to list immediate children (folders and files) in folder. GRID/CORE will be cut during upload: `core/agents/<name>.md` => `agents/<name>.md`. Prefer listing when you know the folder in advance.
+7. `READ SKILL FILE <subpath>` / `APPLY SKILL FILE <subpath>` for a file of the CURRENT skill (`assets/…`, `references/…`). NEVER carries a skill name — only a skill's own files may use it; any other artifact expresses intent ("run validation using the `X` skill's rubric") and lets the skill route (skill isolation is grammar-enforced). Cross-skill resolution: NEVER name another skill's internal files or paths (file names change) — express intent with the typed alias plus the topic keywords the target skill routes on: `USE SKILL \`solr-extending\` to apply plugin wiring`, never `solr-extending/references/06-plugin-wiring.md`.
+8. `LIST <folder>` to list immediate children (folders and files) in folder. GRID/CORE will be cut during upload: `core/agents/<name>.md` => `agents/<name>.md`. Prefer listing when you know the folder in advance.
 
 Project-scoped verbs (`ACQUIRE … ABOUT`, `QUERY … IN`, `STORE … TO`) are NOT part of the contract — never author them (dropped: security/privacy; a separate plugin will own project datasets).
 

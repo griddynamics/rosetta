@@ -131,6 +131,40 @@ describe("cmdUpsert — entire_plan on missing file (create)", () => {
     expect(loadPlan(file)!.description).toBe("Merged");
     expect(fs.readFileSync(file + ".bak000")).toEqual(before);
   });
+
+  it.each([
+    { kind: "a step depending on a phase", stepDeps: ["p1"], phaseDeps: [] },
+    { kind: "a phase depending on a step", stepDeps: [], phaseDeps: ["s1"] },
+  ])("rejects $kind without creating a file or backup", async ({ stepDeps, phaseDeps }) => {
+    const file = planFile();
+    const plan = fullPlan();
+    plan.phases[1]!.depends_on = phaseDeps;
+    plan.phases[1]!.steps[0]!.depends_on = stepDeps;
+    const result = await cmdUpsert(file, "entire_plan", plan);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("unknown_dependency");
+    expect(fs.existsSync(file)).toBe(false);
+    expect(fs.readdirSync(tmpDir)).toEqual([]);
+  });
+});
+
+describe("cmdUpsert — dependency kind validation", () => {
+  it.each([
+    { path: "entire_plan, step on a phase", target: "entire_plan", data: { phases: [{ id: "p2", steps: [{ id: "s3", depends_on: ["p1"] }] }] } },
+    { path: "phase steps, step on a phase", target: "p2", data: { steps: [{ id: "s3", depends_on: ["p1"] }] } },
+    { path: "phase, phase on a step", target: "p2", data: { depends_on: ["s1"] } },
+    { path: "step, step on a phase", target: "s3", data: { depends_on: ["p1"] } },
+    { path: "new phase, phase on a step", target: "p-new", data: { depends_on: ["s1"] }, kind: "phase" },
+    { path: "new step, step on a phase", target: "s-new", data: { depends_on: ["p1"] }, kind: "step", phaseId: "p2" },
+  ])("rejects a wrong-kind dependency via $path without changing the file or creating a backup", async ({ target, data, kind, phaseId }) => {
+    const file = writePlan();
+    const before = fs.readFileSync(file, "utf8");
+    const result = await cmdUpsert(file, target, data, kind, phaseId);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("unknown_dependency");
+    expect(fs.readFileSync(file, "utf8")).toBe(before);
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
+  });
 });
 
 describe("cmdUpsert — entire_plan on existing file (merge)", () => {

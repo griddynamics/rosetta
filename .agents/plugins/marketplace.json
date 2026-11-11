@@ -1,5 +1,6 @@
 {
   "name": "rosetta",
+  "version": "3.1.26",
   "interface": {
     "displayName": "Rosetta"
   },
@@ -8,7 +9,7 @@
       "name": "rosetta",
       "source": {
         "source": "local",
-        "path": "./plugins/core-codex"
+        "path": "./plugins/rosetta-codex"
       },
       "policy": {
         "installation": "AVAILABLE",
@@ -20,7 +21,7 @@
       "name": "rosetta-light",
       "source": {
         "source": "local",
-        "path": "./plugins/core-codex-light"
+        "path": "./plugins/rosetta-codex-light"
       },
       "policy": {
         "installation": "AVAILABLE",

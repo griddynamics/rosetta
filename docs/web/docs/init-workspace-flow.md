@@ -367,7 +367,6 @@ Review the outputs in two passes.
 - [init-workspace-flow-context.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-context.md)
 - [init-workspace-flow-shells.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-shells.md)
 - [init-workspace-flow-discovery.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-discovery.md)
-- [init-workspace-flow-rules.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-rules.md)
 - [init-workspace-flow-patterns.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-patterns.md)
 - [init-workspace-flow-documentation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-documentation.md)
 - [init-workspace-flow-questions.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-questions.md)

@@ -195,6 +195,24 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     expect(result.error).toBe("unknown_dependency");
   });
 
+  it.each([
+    { kind: "a step depending on a phase", p2: { steps: [{ id: "s2", name: "S2", prompt: "x", depends_on: ["p1"] }] } },
+    { kind: "a phase depending on a step", p2: { depends_on: ["s1"], steps: [{ id: "s2", name: "S2", prompt: "x" }] } },
+  ])("rejects $kind without writing a file", async ({ p2 }) => {
+    const file = planFile();
+    const result = await cmdCreate(file, {
+      name: "Wrong Dependency Kind",
+      phases: [
+        { id: "p1", name: "P1", steps: [{ id: "s1", name: "S1", prompt: "x" }] },
+        { id: "p2", name: "P2", ...p2 },
+      ],
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("unknown_dependency");
+    expect(fs.existsSync(file)).toBe(false);
+    expect(fs.readdirSync(tmpDir)).toEqual([]);
+  });
+
   it("rejects plan with cyclic dependencies", async () => {
     const file = planFile();
     const data = {

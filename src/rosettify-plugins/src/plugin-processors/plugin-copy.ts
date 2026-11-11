@@ -9,18 +9,71 @@ import type { Writable } from 'stream';
 import { updatePluginFrame } from '../frames.js';
 import { emitJson, emitStandaloneManifest } from '../serialize/json.js';
 import { getLogger } from '../logging.js';
-import type { FileProcessingFrame, PluginProcessingFrame } from '../types.js';
+import { HOOKS_PSEUDO_FOLDER } from '../spec/hooks.js';
+import type { FileProcessingFrame, GenError, PluginProcessingFrame, PluginSpec, Vfs, WriteMode } from '../types.js';
 
 /**
- * FR-PROF-0021 — global manifest name/description suffixing, decision D (architecture-notes.md §D).
- * `name`/`description` are APPENDED to the preserved manifest's existing values, never replaced.
- * Global across all seven targets (not per-target data) — the SAME suffix pair is passed for every
- * spec's `pluginCopy` invocation. `null` (no active profile) ⇒ manifest handling is a byte-identical
- * raw copy, exactly as before this feature (FR-PROF-0040 regression guard).
+ * True when this spec emits a hooks.json at all. A set with no hook modules and no bootstrap
+ * ships neither a `hooks/` folder nor a `hooks.json` — its `hooks.json.tmpl` frames are skipped
+ * at collection time (see `collectTmplFrames` / the `standaloneTemplates` loop below) rather than
+ * rendered and then dropped.
+ *
+ * Resignatured from the pre-migration three-argument form (FR-GEN-0011 / hooks-architecture.md
+ * §1.7): document SHAPE now lives in the seven literal templates, so this function no longer takes
+ * a layout — it only decides WHETHER a hooks.json.tmpl frame is kept, never what it contains.
  */
-export interface ManifestSuffix {
+export function emitsHooksJson(spec: Pick<PluginSpec, 'hookModules' | 'bootstrap'>): boolean {
+  return spec.hookModules.length > 0 || spec.bootstrap;
+}
+
+/**
+ * DATA-CFG-0007 — the manifest overlay merged into each preserved `plugin.json`.
+ *
+ * The template `plugin.json` files hold only what EVERY set shares (version, author, homepage,
+ * license, keywords, ...). Identity (`name`, `description`) is set-driven and already carries the
+ * variant's suffixes, and the folder-advertising fields are conditional: a set that ships no
+ * workflows must not declare a commands folder, and a set that ships no hooks must not point at a
+ * hooks.json. Sparse sets are the norm now — search ships zero workflows, workflows zero skills,
+ * four sets no hooks — so emitting these unconditionally would advertise folders that do not exist.
+ */
+export interface ManifestOverlay {
   name: string;
   description: string;
+  conditional: Array<{ field: string; value: unknown }>;
+}
+
+/**
+ * Resolve which conditional manifest fields this spec actually ships.
+ * `requires` names an instruction folder (or several, `|`-separated, meaning any-of) matched
+ * against the VFS, or the `@hooks` pseudo-folder meaning "this spec emits a hooks.json".
+ */
+export function buildManifestOverlay(spec: PluginSpec, vfs: Vfs): ManifestOverlay {
+  const shipsFolder = (folder: string): boolean =>
+    folder === HOOKS_PSEUDO_FOLDER
+      ? emitsHooksJson(spec)
+      : vfs.some((vf) => vf.path === folder || vf.path.startsWith(folder + '/'));
+
+  return {
+    name: spec.manifest.name,
+    description: spec.manifest.description,
+    conditional: spec.manifestConditionalFields
+      .filter((f) => f.requires.split('|').some(shipsFolder))
+      .map((f) => ({ field: f.field, value: f.value })),
+  };
+}
+
+function applyOverlay(parsed: Record<string, unknown>, overlay: ManifestOverlay): string {
+  // Identity is stripped from the template before merging, so the SET always wins: a stray
+  // name/description left in a template is ignored rather than silently overriding the set's own.
+  // Spreading the template after the identity keys would have given the template precedence.
+  const { name: _templateName, description: _templateDescription, ...shared } = parsed;
+  const merged: Record<string, unknown> = {
+    name: overlay.name,
+    description: overlay.description,
+    ...shared,
+  };
+  for (const { field, value } of overlay.conditional) merged[field] = value;
+  return emitJson(merged);
 }
 
 /**
@@ -45,16 +98,21 @@ export interface ManifestSuffix {
  */
 export function pluginCopy(
   outputDir: string,
-  dryRun = false,
-  manifestSuffix: ManifestSuffix | null = null,
+  mode: WriteMode = 'write',
   out: Writable = process.stdout,
 ) {
   return function pluginCopyProcessor(
     p: PluginProcessingFrame,
   ): PluginProcessingFrame {
     const { spec } = p;
+    // FR-CLI-0036: suppressed = no disk write, no sink output, no log — but .tmpl frames are
+    // still produced because pluginRenderTemplates needs them (full processing).
+    const dryRun = mode === 'dry-run';
+    const suppressed = mode === 'suppressed';
+    const overlay = buildManifestOverlay(spec, p.vfs);
     const targetDir = path.join(outputDir, spec.destination);
     const sourceDir = spec.preservedSource;
+    const emitsHooks = emitsHooksJson(spec);
 
     const tmplFrames: FileProcessingFrame[] = [];
 
@@ -65,6 +123,10 @@ export function pluginCopy(
       //       copilot-standalone hooks/hooks.json.tmpl → .github/hooks/hooks.json.tmpl
       if (spec.standaloneTemplates && fs.existsSync(sourceDir)) {
         for (const [srcRel, targetPath] of spec.standaloneTemplates) {
+          // A set with no hook modules and no bootstrap ships no hooks.json.tmpl frame at all
+          // (hooks-architecture.md §1.8) — declining to create the frame here is cleaner than
+          // creating and then filtering it in a separate processor.
+          if (path.basename(srcRel) === 'hooks.json.tmpl' && !emitsHooks) continue;
           const srcAbs = path.join(sourceDir, srcRel);
           if (fs.existsSync(srcAbs)) {
             const content = fs.readFileSync(srcAbs, 'utf-8').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -83,8 +145,8 @@ export function pluginCopy(
       // FR-CLI-0050/FR-ARCH-0045: real run copies to disk; dry-run reports each path instead
       // (copyDirRecursive itself branches on dryRun so both modes share one traversal).
       if (fs.existsSync(sourceDir)) {
-        collectTmplFrames(sourceDir, '', tmplFrames);
-        copyDirRecursive(sourceDir, targetDir, '', manifestSuffix, dryRun, out);
+        collectTmplFrames(sourceDir, '', tmplFrames, emitsHooks);
+        if (!suppressed) copyDirRecursive(sourceDir, targetDir, '', overlay, dryRun, out);
       }
     }
 
@@ -92,29 +154,41 @@ export function pluginCopy(
     // Real run writes it to disk; dry-run reports the path instead (FR-CLI-0050, FR-ARCH-0045) —
     // manifest content is otherwise not represented anywhere in the frame pipeline, so it must be
     // reported here or a dry-run preview would silently omit it.
+    const errors: GenError[] = [];
     if (spec.manifestOverride) {
-      const version = readParentVersion(spec);
-      // FR-PROF-0021: standalone manifests carry only {name, version} (emitStandaloneManifest) —
-      // there is no description field to suffix here. Append pluginNameSuffix (via manifestSuffix.name)
-      // to the override name only when a profile is active; null ⇒ untouched, same as today.
-      const manifestName = manifestSuffix
-        ? spec.manifestOverride.name + manifestSuffix.name
-        : spec.manifestOverride.name;
-      const manifestContent = emitStandaloneManifest(manifestName, version);
-      const manifestPath = path.join(targetDir, 'plugin.json');
-      if (dryRun) {
-        reportDryRunWrite(manifestPath, manifestContent, out);
+      const parent = readParentVersion(spec);
+      if ('problem' in parent) {
+        // FR-VAR-0060: an unusable parent manifest is a hard error; no version is guessed.
+        // Attributed to the output folder (spec.destination), like every other run error.
+        errors.push({
+          target: spec.destination,
+          file: parent.file,
+          message: `Standalone plugin.json not generated: ${parent.problem} (FR-VAR-0060)`,
+          kind: 'hard',
+        });
       } else {
-        fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
-        fs.writeFileSync(manifestPath, manifestContent, { encoding: 'utf-8' });
+        // Standalone manifests carry only {name, version} (emitStandaloneManifest) — there is no
+        // description field. The name already carries the set identity and the variant's suffix,
+        // applied once in buildSpecsForSet, so it is used verbatim here.
+        const manifestContent = emitStandaloneManifest(spec.manifestOverride.name, parent.version);
+        const manifestPath = path.join(targetDir, 'plugin.json');
+        if (suppressed) {
+          // FR-CLI-0036: nothing written or reported
+        } else if (dryRun) {
+          reportDryRunWrite(manifestPath, manifestContent, out);
+        } else {
+          fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+          fs.writeFileSync(manifestPath, manifestContent, { encoding: 'utf-8' });
+        }
       }
     }
 
-    if (tmplFrames.length === 0) return p;
+    if (tmplFrames.length === 0 && errors.length === 0) return p;
 
     // Add .tmpl frames so pluginRenderTemplates can render them
     return updatePluginFrame(p, (draft) => {
       draft.frames = [...draft.frames, ...tmplFrames] as typeof draft.frames;
+      draft.errors = [...draft.errors, ...errors];
     });
   };
 }
@@ -127,6 +201,7 @@ function collectTmplFrames(
   srcDir: string,
   relPrefix: string,
   tmplFrames: FileProcessingFrame[],
+  emitsHooks: boolean,
 ): void {
   if (!fs.existsSync(srcDir)) return;
 
@@ -138,7 +213,11 @@ function collectTmplFrames(
     const relPath = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
 
     if (entry.isDirectory()) {
-      collectTmplFrames(srcPath, relPath, tmplFrames);
+      collectTmplFrames(srcPath, relPath, tmplFrames, emitsHooks);
+    } else if (entry.name === 'hooks.json.tmpl' && !emitsHooks) {
+      // Skip: this set ships no hooks.json (hooks-architecture.md §1.8). Raw disk copy is
+      // unaffected — copyDirRecursive already excludes all .tmpl files for every target.
+      continue;
     } else if (entry.name.endsWith('.tmpl')) {
       const content = fs.readFileSync(srcPath, 'utf-8').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
       tmplFrames.push({
@@ -178,7 +257,7 @@ function copyDirRecursive(
   srcDir: string,
   destDir: string,
   relPrefix: string,
-  manifestSuffix: ManifestSuffix | null,
+  overlay: ManifestOverlay,
   dryRun: boolean,
   out: Writable,
 ): void {
@@ -194,18 +273,16 @@ function copyDirRecursive(
     const relPath = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
 
     if (entry.isDirectory()) {
-      if (!dryRun) fs.mkdirSync(destPath, { recursive: true });
-      copyDirRecursive(srcPath, destPath, relPath, manifestSuffix, dryRun, out);
-    } else if (entry.name === 'plugin.json' && manifestSuffix) {
-      // Profile active: append the global suffixes to the preserved manifest's existing
-      // name/description rather than raw-copying the bytes.
+      // Directories are created LAZILY, by whichever file below actually gets written. Creating
+      // them eagerly left an empty `hooks/` folder in every set whose hooks.json.tmpl frame is
+      // dropped (a set with no hook modules and no bootstrap) — the brief's "ships NO hooks/
+      // folder". Non-empty directories are still created: every write branch mkdirs its dirname.
+      copyDirRecursive(srcPath, destPath, relPath, overlay, dryRun, out);
+    } else if (entry.name === 'plugin.json') {
+      // Every plugin.json is now composed rather than raw-copied: the template holds only the
+      // shared fields, and identity + conditional folder fields come from the set.
       const parsed = JSON.parse(fs.readFileSync(srcPath, 'utf-8')) as Record<string, unknown>;
-      const suffixed = {
-        ...parsed,
-        name: `${String(parsed.name ?? '')}${manifestSuffix.name}`,
-        description: `${String(parsed.description ?? '')}${manifestSuffix.description}`,
-      };
-      const content = emitJson(suffixed);
+      const content = applyOverlay(parsed, overlay);
       if (dryRun) {
         reportDryRunWrite(destPath, content, out);
       } else {
@@ -258,29 +335,46 @@ function looksBinary(buf: Buffer): boolean {
 }
 
 /**
- * Read version from preserved plugin.json for standalone manifests.
- * FR-VAR-0060: version copied from parent target (2.0.40).
+ * FR-VAR-0060: a standalone manifest's version is the parent target's preserved manifest version.
+ * The first candidate that exists is the parent's manifest; when it is missing, unreadable, or has
+ * no non-empty string version, the problem is returned instead of a guessed version.
  */
-function readParentVersion(spec: PluginProcessingFrame['spec']): string {
+function readParentVersion(
+  spec: PluginProcessingFrame['spec'],
+): { version: string } | { problem: string; file?: string } {
   const preservedDir = spec.preservedSource;
 
   const candidates = [
-    path.join(preservedDir, '.claude-plugin', 'plugin.json'),
-    path.join(preservedDir, '.cursor-plugin', 'plugin.json'),
-    path.join(preservedDir, '.github', 'plugin', 'plugin.json'),
-    path.join(preservedDir, '.codex-plugin', 'plugin.json'),
+    path.join('.claude-plugin', 'plugin.json'),
+    path.join('.cursor-plugin', 'plugin.json'),
+    path.join('.github', 'plugin', 'plugin.json'),
+    path.join('.codex-plugin', 'plugin.json'),
   ];
 
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      try {
-        const data = JSON.parse(fs.readFileSync(candidate, 'utf-8'));
-        if (data.version) return data.version as string;
-      } catch {
-        // ignore
-      }
-    }
+  const found = candidates.find((candidate) => fs.existsSync(path.join(preservedDir, candidate)));
+  if (found === undefined) {
+    return { problem: `no parent plugin.json in ${preservedDir} (looked for ${candidates.join(', ')})` };
   }
 
-  return '2.0.40'; // fallback (GT-7)
+  const file = path.join(preservedDir, found);
+  let text: string;
+  try {
+    text = fs.readFileSync(file, 'utf-8');
+  } catch {
+    return { problem: 'parent plugin.json could not be read', file };
+  }
+
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    // JSON.parse messages can quote the manifest text, so only the reason is reported.
+    return { problem: 'parent plugin.json is not valid JSON', file };
+  }
+
+  const version = typeof data === 'object' && data !== null && 'version' in data ? data.version : undefined;
+  if (typeof version !== 'string' || version === '') {
+    return { problem: 'parent plugin.json "version" is missing, empty, or not a string', file };
+  }
+  return { version };
 }

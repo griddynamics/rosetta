@@ -19,8 +19,6 @@ The main gates are the guide handoff point and your explicit decision to switch 
 If you only want to learn, the workflow stops after guidance.
 If you want action, you must explicitly tell the coding agent to start the selected workflow.
 
-`/help-flow` is the current command. `/self-help-flow` is a deprecated alias that still runs — see [Self Help Workflow (deprecated)](/rosetta/docs/self-help-flow/).
-
 ## When To Use This Workflow
 
 - You want a grounded answer to `what can Rosetta do here?`

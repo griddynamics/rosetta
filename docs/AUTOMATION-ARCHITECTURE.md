@@ -114,7 +114,7 @@ Both branches authenticate with **the same `BIFROST_API_KEY`**, on different rou
 | GitHub token | `github_token` input | `GH_TOKEN` step env (no input exists) |
 | Actor gate bypass | `allowed_non_write_users: "*"` | `allow-users: "*"` |
 | Model | `--model opus` / `sonnet` | `model: gpt-6.1-sol` / `gpt-6-luna` |
-| Rosetta instructions | `plugin_marketplaces` + `plugins` inputs | `.github/actions/codex-setup` extracts the `core-codex` release asset into the workspace |
+| Rosetta instructions | `plugin_marketplaces` + `plugins` inputs | `.github/actions/codex-setup` extracts the `rosetta-codex` release asset into the workspace |
 | Tool boundary | `--allowedTools` / `--disallowedTools` | permission profile + execpolicy deny-list (see below) |
 | Hook trust | n/a | managed hooks in `/etc/codex/requirements.toml` |
 | Trace | `claude-execution-output.json` | rollout JSONL under `$CODEX_HOME/sessions` |
@@ -144,7 +144,7 @@ Python with named arguments.
 ### The plugin lands in the workspace, and the agent must be told
 
 Codex has no out-of-repo install path for a plugin — the documented install is "extract
-into your repository" — so `codex-setup` unzips `core-codex` at the workspace root. The
+into your repository" — so `codex-setup` unzips `rosetta-codex` at the workspace root. The
 Claude branch does not do this: `claude-code-action` takes `plugin_marketplaces`/`plugins`
 and keeps the instruction set outside the checkout.
 
@@ -320,6 +320,48 @@ delete|clone`, `git push --force|--delete|--mirror`, `git config --global|--syst
 and `sudo`. The implementer keeps `gh pr create/edit/comment` and a non-force
 `git push`.
 
+**Per-pipeline extras.** A pipeline that needs a tighter list passes `codex-setup`
+`extra-rules: <file names>`; `build_policy.py --extra-rules` appends each file from
+`codex-setup/files/` after the shared list. An extra file may hold
+`[[rules.prefix_rules]]` entries only (`forbidden` or `prompt`), so it can tighten the
+shared list but never relax it or touch top-level keys; the assembled policy is parsed
+again before it is installed. Only `repo-triage` uses this today.
+
+### Triage: sender trust
+
+`repo-triage` reviews and comments, nothing else — it is the one pipeline any GitHub
+user can trigger (`allowed_non_write_users` / `allow-users: "*"`), so it never creates
+issues: before this, one `/rosetta` comment could make it open several bot-authored
+issues for problems that did not exist. Its write surface is set per run by the
+**event sender's** repository permission
+(`GET repos/{repo}/collaborators/{sender}/permission`, step `trust`,
+`.github/scripts/triage_trust.py`):
+
+| Sender | Claude `--allowedTools` writes | Codex extra deny files |
+|---|---|---|
+| `admin` / `write` (incl. `maintain`) → trusted | `gh issue\|pr comment *`; `gh issue\|pr edit <N> --add-label\|--remove-label *` | `requirements.triage.toml` |
+| anyone else, lookup failure, bot → untrusted | `gh issue\|pr comment <N> *` only | `requirements.triage.toml` + `requirements.triage-untrusted.toml` |
+
+The Claude branch is a true allowlist, provided no allow rule puts a wildcard *before*
+its verb — `Bash(gh * list*)` also admits `gh issue close 5 --comment "list"`, so read
+rules name the subcommand (`gh issue list*`, `git -C pr status*`). Title/body/base/
+assignee flags on `gh issue|pr edit` and `--edit-last|--delete-last` on comments are
+denied so a label or comment grant cannot carry them. Comment grants require inline
+`--body` (gh rejects it together with `--body-file`), and `--attach`, `--body-file` and
+`/proc/` are denied outright, because a file read into a public comment would publish
+the tokens in the process environment. `.github/scripts/test_triage_policy.py`
+replays known bypass commands against the workflow's real rules. Trust follows the
+sender, not the content: a maintainer's `/rosetta` on an outsider's issue runs trusted
+while the agent reads outsider text — bounded by the label-only write surface. The Codex branch is the deny-list
+analogue and keeps the gaps prefix matching cannot close: endpoint-first
+`gh api … -X POST`, comments on another item, title/body flags after the item number,
+`--body-file`/`--attach` after the item number (a file read into a public comment), and
+commands inside `$(…)` scripts. The main checkout runs with `persist-credentials: false`
+so `.git/config` holds no token for any branch to read. Guardrail detections no longer open a
+`[SECURITY ALERT]` issue either (that was itself an on-demand issue generator); the
+agent emits a `ROSETTA-SECURITY-ALERT` block in its final message, and step
+`Report security alerts` copies it to the job summary with a warning annotation.
+
 ### Where a `.rules` file would go
 
 Not used today (see the `bypass_sandbox` note above), but recorded so nobody re-derives
@@ -434,6 +476,48 @@ If it is ever wanted, land it **advisory-first**: return `additionalContext` and
 *would* have been denied across a few real runs, then switch to `deny` once the actual
 command distribution is known. Do not ship it in blocking mode on a guess.
 
+### Missing piece: agent intents file (C&C JSON) — all pipelines
+
+**Problem.** Every pipeline hands the agent a live `GH_TOKEN`, because the agent's own
+`gh` calls do the writes. The actions keep API keys out of tool calls, but they cannot
+keep out the token that `gh` needs, so any process the agent runs can read it
+(`printenv`, `$GH_TOKEN`, `/proc/self/environ`). Under prompt injection the agent can
+publish it: Claude's allowlist blocks the known paths, but Codex's prefix-only deny-list
+cannot (`--attach`/`--body-file` after the item number, `gh api … -F body=@file`,
+unrestricted egress). Command filtering only shrinks this surface; it cannot close it.
+
+**Target.** The agent never holds a write token. It declares what it wants done; trusted
+code does it.
+
+1. The workflow fetches the read context (item, comments, diff, files) into the workspace
+   before the agent starts. The agent step gets **no** `GH_TOKEN`.
+2. The agent writes one intents file, e.g. `$RUNNER_TEMP/rosetta-intents.json`:
+   ```json
+   { "version": 1,
+     "intents": [
+       { "action": "comment", "target": 123, "body": "..." },
+       { "action": "add_labels", "target": 123, "labels": ["bug"] } ] }
+   ```
+3. A deterministic executor step (no agent, holds the token) validates every intent
+   against a per-pipeline, per-trust policy — allowed actions, `target` == the current
+   item, label set, size and count caps — and runs only what passes, with fixed `gh`
+   argument lists (no shell, no file paths taken from the intent). Rejected intents go
+   to the job summary; nothing is retried.
+
+**Why it closes the gap.** There is no token in the agent's process to steal, and the
+write surface is a schema plus a validator in code, not a pattern list over free-form
+shell. It also works the same on Claude and Codex, which removes the allowlist/deny-list
+asymmetry.
+
+**Scope and open questions.** Every pipeline that writes through `gh` today:
+`repo-triage` (comment, labels), `repo-analysis` and `repo-plan` (issue edit/comment/
+create, board moves), `repo-implement` (branch push, PR create, comments). Push/PR
+creation needs a git-bundle or patch handoff rather than a JSON field. Also open: whether
+read-time `gh` access is still needed after pre-fetch (a read-only token cannot be minted
+inside one job), and how a run reports "intent rejected" back to the agent when there is
+no second turn. Until this exists, the per-trust command policies in "Triage: sender
+trust" are mitigation, not a boundary.
+
 ### What only a live run can confirm
 
 Five properties of the Codex branch cannot be checked from a workstation, and each
@@ -460,7 +544,8 @@ run of the cheapest pipeline (`repo-analysis`) before trusting `codex` as the de
 fails a run triggered by a non-collaborator, exactly as `claude-code-action`'s own gate
 does in prompt mode. `repo-plan` and `repo-implement` never bypassed it on either branch;
 `repo-triage` and `validate-prompts` bypass it on both (`allowed_non_write_users` /
-`allow-users`).
+`allow-users`); `repo-triage` compensates with per-sender write tools (see "Triage:
+sender trust").
 
 ### The two CLI-driven workflows
 

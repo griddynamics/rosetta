@@ -7,7 +7,7 @@ import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { pluginReplaceLiterals } from '../../../src/plugin-processors/plugin-replace-literals.js';
-import { buildAllSpecs } from '../../../src/spec/targets.js';
+import { buildTestSpecs } from '../../helpers/build-specs.js';
 import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec, ReleaseDescriptor } from '../../../src/types.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -195,13 +195,13 @@ describe('pluginReplaceLiterals', () => {
 
 // FR-ARCH-0058, FR-ARCH-0004/0005 — composed only into the pipelines of the specs that need it
 // (Codex, Antigravity), never selected by a runtime identity branch inside a shared processor.
-// Verified directly against the real buildAllSpecs() pipeline composition.
+// Verified directly against the real buildTestSpecs() pipeline composition.
 describe('pluginReplaceLiteralsProcessor composition (FR-ARCH-0058)', () => {
   const RELEASE: ReleaseDescriptor = { name: 'r1', deterministicHooks: false, displayName: 'R1' };
 
-  it('core-codex and core-antigravity pipelines contain pluginReplaceLiteralsProcessor; other specs do not', () => {
+  it('every spec whose emitted filenames differ from the documented glob composes the processor', () => {
     const outputDir = os.tmpdir();
-    const specs = buildAllSpecs({
+    const specs = buildTestSpecs({
       pluginsSource: REAL_PLUGINS_ROOT,
       hooksSource: path.join(outputDir, '__no-hooks-source__'),
       outputDir,
@@ -217,17 +217,72 @@ describe('pluginReplaceLiteralsProcessor composition (FR-ARCH-0058)', () => {
       return (spec!.pluginProcessors ?? []).some((fn) => fn.name === 'pluginReplaceLiteralsProcessor');
     };
 
-    expect(hasProcessor('core-codex')).toBe(true);
-    expect(hasProcessor('core-antigravity')).toBe(true);
+    // Codex and Antigravity RESTRUCTURE workflows into skills, so FR-ARCH-0049 emits no folder
+    // pair at all and the glob-doc string needs an explicit correction.
+    expect(hasProcessor('codex')).toBe(true);
+    expect(hasProcessor('antigravity')).toBe(true);
+    // The rest RENAME files: a folder pair relocates the folder but never touches the `*.md`
+    // suffix inside a glob string. Cursor -> *.mdc rules; Copilot -> *.agent.md agents;
+    // Copilot-standalone additionally -> *.prompt.md workflows.
+    expect(hasProcessor('cursor')).toBe(true);
+    expect(hasProcessor('cursor-standalone')).toBe(true);
+    expect(hasProcessor('copilot')).toBe(true);
+    expect(hasProcessor('copilot-standalone')).toBe(true);
 
-    for (const name of [
-      'core-claude',
-      'core-cursor',
-      'core-copilot',
-      'core-cursor-standalone',
-      'core-copilot-standalone',
-    ]) {
+    // Claude alone renames nothing and restructures nothing, so it needs no correction.
+    for (const name of ['claude']) {
       expect(hasProcessor(name)).toBe(false);
     }
+  });
+});
+
+// FR-ARCH-0058 — the drift guard (requiredIn + driftGuard). A literal pair silently no-ops when
+// its key is absent, so a reworded source would ship a stale instruction with no error. The guard
+// turns that into a hard failure — but ONLY if it can find the host document in the first place.
+describe('pluginReplaceLiterals — drift guard', () => {
+  const PAIR: readonly [string, string] = [
+    'WORKFLOW/COMMAND `prompts/*.md`',
+    'WORKFLOW/COMMAND `prompts/*.prompt.md`',
+  ];
+  const OPTS = { requiredIn: 'plugin-files-mode', driftGuard: 'WORKFLOW/COMMAND' };
+
+  function hostFrame(target: string, content: string): FileProcessingFrame {
+    return { sourcePath: 'rules/plugin-files-mode.md', target, isBinary: false, target_contents: content, source: [] };
+  }
+
+  it('finds a host renamed with a COMPOUND extension (regression: guard was inert for Copilot)', () => {
+    // Copilot-standalone renames this document to `plugin-files-mode.instructions.md`. Matching
+    // the stem by stripping only the LAST extension yields `plugin-files-mode.instructions`, so
+    // the guard never engaged and a stale glob could ship unnoticed on the one target that needs
+    // the correction most.
+    const stale = hostFrame(
+      '.github/instructions/plugin-files-mode.instructions.md',
+      'WORKFLOW/COMMAND `somewhere-else/*.md` is the layout.',
+    );
+    const out = pluginReplaceLiterals([PAIR], OPTS)(makePluginFrame([stale]));
+
+    expect(out.errors).toHaveLength(1);
+    expect(out.errors[0].kind).toBe('hard');
+    expect(out.errors[0].message).toContain('WORKFLOW/COMMAND');
+  });
+
+  it('substitutes and stays silent when the key IS present in the compound-named host', () => {
+    const ok = hostFrame(
+      '.github/instructions/plugin-files-mode.instructions.md',
+      'WORKFLOW/COMMAND `prompts/*.md` is the layout.',
+    );
+    const out = pluginReplaceLiterals([PAIR], OPTS)(makePluginFrame([ok]));
+
+    expect(out.errors).toHaveLength(0);
+    expect(out.frames[0].target_contents).toContain('`prompts/*.prompt.md`');
+    expect(out.frames[0].target_contents).not.toContain('`prompts/*.md`');
+  });
+
+  it('stays silent when the host does not carry the guarded passage at all', () => {
+    // A minimal or unrelated host must not fail the build — only a host that HAS the passage but
+    // no longer matches the key indicates drift.
+    const unrelated = hostFrame('.cursor/rules/plugin-files-mode.mdc', 'No globs documented here.');
+    const out = pluginReplaceLiterals([PAIR], OPTS)(makePluginFrame([unrelated]));
+    expect(out.errors).toHaveLength(0);
   });
 });

@@ -19,7 +19,7 @@ baseSchema: docs/schemas/rule.md
 - Requests MUST be SDLC/project/capability/self-help only. No private chats. OVERRIDE NOT ALLOWED
 - Enforce Microsoft Trustworthy Computing principles SD3+C: secure by Design/Default/Deployment/Maintenance; verify security
 - MUST NOT RE-READ files/websites/etc, unless content is lost
-- MUST be professionally direct, concise, precise, terse, no filler, compressed, polite; no unsupported meta-commentary or profanity; questions start with main, then the rest
+- MUST be professionally direct, precise, concise, even terse, no fillers, straight to the point, faithful, polite; no unsupported meta-commentary or profanity; questions start with main, then the rest
 - Prefer built-in tools over shell; absolute paths only in tool calls/shell, never in generated files
 - Never limit review/verify/validate scope (actions/sources/etc)
 - Accuracy + depth > speed; already automated/fast → thorough discovery + planning
@@ -33,7 +33,8 @@ baseSchema: docs/schemas/rule.md
 - Intrinsics: coded != done, tests passing != actually works, confidence != evidence, trust but verify, existence != implementation != integration, current paths != deployed paths, accepted result != fast result
 - review = static inspection · validation = run it & manual QA by subagent — gates acceptance · done = ultimately works: usable, correct, real value
 - Use + keep current as work lands (concise, next-session consistency): `docs/CONTEXT.md` — business + behavior + target state · `docs/ARCHITECTURE.md` — architecture + technical requirements · `agents/MEMORY.md` — root causes, what worked/failed
-- MUST talk in ASD-STE100 Simplified Technical English
+- MUST use and follow ASD-STE100 everywhere
+- No assumptions -> either find the truth or state unknown
 
 Tasks = execution ledger, survives dropped steps & compaction. MUST run everything (incl. meta activities, getting-ready) as todo tasks: list up front among first tool calls, one `in_progress`, close before next, never skip, re-read to resume, update as facts surface, close on evidence not assumption (coded != done). MUST ALWAYS USE AND KEEP CURRENT TODO TASKS, ASAP. SOLVES YOUR LATER DEVIATIONS. Use tool search tool if task tooling is not available.
 

@@ -46,7 +46,7 @@ Very detailed information on installation and configuration in all available mod
 
 ## Skills
 
-Reusable units of work the AI loads on demand. Workflows pick them for you, and most can also be called by name.
+Reusable units of work the AI loads on demand. If your tasks are small to medium use skills. Workflows pick them for you, and most can also be called by name.
 
 **Let Rosetta decide**
 
@@ -124,6 +124,8 @@ Reusable units of work the AI loads on demand. Workflows pick them for you, and 
 5. [`specflow-use`](instructions/r3/core/skills/specflow-use/README.md): Connects your workspace to Grid Dynamics SpecFlow through its MCP.
 
 ## [Top Workflows](USAGE_GUIDE.md#workflows)
+
+Workflows are more expensive to run, those are supposed to be used on large areas of work: entire feature or multiple related features at once. It is expected to give tasks that those workflows will work on for hours.
 
 1. `coding-flow`: AI creates features, fixes defects, and performs refactoring, everything end-to-end. AI performs discovery, design, specs and a plan, user review, then AI implements and runs separate review and validation passes (including running application). Most useful for medium to large coding tasks, and for controlled component-by-component migration/modernization work.
 2. `requirements-authoring-flow`: AI works with user and raw artifacts to define entire-application requirements. AI discovers context and existing constraints, captures intent, drafts atomic requirement units, validates them, and finalizes traceability artifacts. This is the most efficient use of coding agents. Requirements then Coding.
@@ -230,7 +232,7 @@ AI coding agents can read code, generate code, and run commands. But that is onl
 
 4. **Source of truth and request classification.** AI does not establish or maintain a source of truth. It does the opposite — it mixes everything together, confuses its own outputs with ground truth, leaks abstractions, and blends responsibilities. It does not take time to think about systems, actors, relationships, and actions at a foundational level. On brownfield projects this is catastrophic: the agent cannot tell if the existing code is wrong, if the test is wrong, or if the user's request contradicts the actual system behavior. It just tries to make things fit.
 
-   Rosetta instructions require the agent to handle requirements with traceability. Before any work begins, the agent — following Rosetta's bootstrap — auto-classifies every request into one of thirteen workflow types: coding, security review, testing, research, requirements, initialization, modernization, code analysis, QA automation, and others. Each type loads entirely different instructions, subagents, skills, and approval gates. A "fix this bug" request follows a completely different path than "analyze this architecture" or "write requirements for checkout." Classification eliminates the guessing that agents do when they receive an unstructured prompt and try to figure out on the fly what kind of work this is.
+   Rosetta instructions require the agent to handle requirements with traceability. Before any work begins, the agent — following Rosetta's bootstrap — auto-classifies every request into one of fifteen request types: coding, security review, testing, research, requirements, initialization, modernization, code analysis, QA automation, and others. Each type loads entirely different instructions, subagents, skills, and approval gates. A "fix this bug" request follows a completely different path than "analyze this architecture" or "write requirements for checkout." Classification eliminates the guessing that agents do when they receive an unstructured prompt and try to figure out on the fly what kind of work this is.
 
 5. **Analysis before execution.** The majority of AI coding agents are optimized to start implementation as fast as possible. This is the opposite of quality. This is the opposite of enterprise software development, where the cost of an error is extremely high. A bug caught during development costs minutes. The same bug caught after release costs the combined time of the engineer who debugs it, the lead who triages it, QA who verifies the fix, the manager who tracks it, and every person involved in the review, release, and retest cycle. Even a small bug amplifies the total cost by an order of magnitude once it escapes local development.
 
@@ -246,7 +248,7 @@ AI coding agents can read code, generate code, and run commands. But that is onl
 
 8. **Workflows designed from observed failure modes.** Ask any AI to create a complete coding workflow from scratch. It will produce something superficial — a few obvious steps that cover maybe 20% of what actually matters. It will focus on one or two concerns and completely forget about everything else. This is not a failure of intelligence. It is a failure of experience. The model has never watched itself fail across hundreds of real tasks and identified the patterns.
 
-   Rosetta contains workflows created by humans who used AI extensively, observed every category of failure, identified root causes, and encoded solutions as structured processes. These workflows cover thirteen SDLC activities. Each defines phases, subagents, skills, HITL gates, and artifact expectations. The agent with Rosetta workflows does not become smarter — it stops skipping the steps that matter. It discovers knowledge, conventions, and dependencies it would otherwise miss entirely. It installs the package that another project in the same solution already uses. It distinguishes planning from specs. It performs reviews and checkpoints at the moments where they catch the most errors.
+   Rosetta contains workflows created by humans who used AI extensively, observed every category of failure, identified root causes, and encoded solutions as structured processes. These workflows cover fifteen SDLC activities. Each defines phases, subagents, skills, HITL gates, and artifact expectations. The agent with Rosetta workflows does not become smarter — it stops skipping the steps that matter. It discovers knowledge, conventions, and dependencies it would otherwise miss entirely. It installs the package that another project in the same solution already uses. It distinguishes planning from specs. It performs reviews and checkpoints at the moments where they catch the most errors.
 
 9. **Self-learning and self-organization.** AI coding agents are only now getting basic memory features, but self-learning is not just memory. Self-organization is equally important. AI is fully capable of reorganizing files, restructuring its approach, cleaning up stale information, and adapting based on past mistakes — but it does not do any of this because it was never instructed to. It treats reorganization as deviation from the task. It treats cleanup as out of scope. It treats learning as someone else's job.
 
@@ -260,7 +262,7 @@ AI coding agents can read code, generate code, and run commands. But that is onl
 
 12. **One system, every AI tool, customizable at every level.** Rosetta works across Cursor, Claude Code, VS Code, JetBrains, Windsurf, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Instructions are written once and adapt to each environment. Organizations that switch between AI tools or use multiple tools simultaneously keep their entire instruction investment intact. No vendor lock-in. No per-tool maintenance.
 
-    Three layers merge at runtime: core (universal best practices shipped with Rosetta), organization (your company's conventions and policies), and project (local constraints and context). Teams customize without forking. Improvements to higher layers propagate to every project automatically. Instructions are versioned in place: R3 is the current release and evolves through incremental, reviewed updates without breaking agents on it. Rollback is immediate. AI behavior is authored in markdown, version-controlled in Git, reviewed in pull requests, and approved before deployment — the same engineering rigor applied to the instructions that control your AI agents.
+    Rosetta ships as two plugins: `rosetta` and `rosetta-light` (lightweight profile). Your project's own context (architecture, conventions, constraints) layers on top. Organizations add or adjust Rosetta instructions without forking by building a customized plugin, see [Build customized plugins](PLUGINS.md#build-customized-plugins). Instructions are versioned in place: R3 is the current release and evolves through incremental, reviewed updates without breaking agents on it. Rollback is immediate. AI behavior is authored in markdown, version-controlled in Git, reviewed in pull requests, and approved before deployment, the same engineering rigor applied to the instructions that control your AI agents.
 
 </details>
 
@@ -277,6 +279,7 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and e
 | Use Rosetta day to day                               | [User Guide](user-guide/README.md)         |
 | Set up Rosetta                                       | [QUICKSTART.md](QUICKSTART.md)             |
 | Install as a plugin (recommended)                    | [PLUGINS.md](PLUGINS.md)                   |
+| Customize Rosetta for your organization              | [Build customized plugins](PLUGINS.md#build-customized-plugins) |
 | Connect over MCP (optional, secondary)               | [MCPs.md](MCPs.md)                         |
 | Configure your coding-agent workspace                | [CONFIGURATION.md](CONFIGURATION.md)       |
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md)                 |

@@ -1,4 +1,5 @@
 // FR-CLI-0030/0031 — release+domain resolution & layer bundling
+// FR-CUST-0001, FR-CUST-0003.AC3 — customization roots as additional ordered sources
 // NFR-0010: uses fast-glob (fast-glob = filesystem traversal; uses micromatch internally) for directory traversal
 // FR-CLI-0020: instructionsSource is resolved externally and passed in directly
 
@@ -6,67 +7,94 @@ import path from 'path';
 import fs from 'fs';
 import fg from 'fast-glob';
 import { sortPaths } from './sort.js';
+import { sourceLetter } from './customizations.js';
 
-/**
- * Resolve instruction source directories for a release+domain combination.
- * instructionsSource: absolute path to the instructions root (e.g. /repo/instructions).
- * Returns ordered list of absolute directory paths (left=lower priority, right=higher priority).
- * Left-to-right bundling: same path → concat; FR-ARCH-0042.
- * FR-CLI-0020/0030/0031
- */
-export function resolveSourceDirs(instructionsSource: string, release: string, domain: string): string[] {
-  const domainList = domain.split(',').map((d) => d.trim()).filter(Boolean);
-  if (domainList.length === 0) {
-    throw new Error('Domain input must include at least one non-empty domain');
-  }
+/** One folder of one source: letter A = main source, B.. = customization roots (FR-ARCH-0026). */
+export interface LayerDir {
+  letter: string;
+  dir: string;
+}
 
-  const dirs: string[] = [];
-
-  for (const dom of domainList) {
-    const dir = path.join(instructionsSource, release, dom);
-    if (!fs.existsSync(dir)) {
-      throw new Error(`Instruction source not found: ${dir} (release=${release}, domain=${dom})`);
-    }
-    dirs.push(dir);
-  }
-
-  return dirs;
+/** One file found under a layer, in load order. */
+export interface LoadedFile {
+  letter: string;
+  /** Path relative to its layer dir, forward slashes, raw (directives not yet parsed). */
+  relPath: string;
+  absPath: string;
 }
 
 /**
- * Given a list of source dirs, list all relative file paths (across all dirs).
- * Returns a map: relative path → ordered list of absolute paths (for bundling).
+ * Resolve layer directories: letter A (main) first, then B.. per customization root in the given
+ * order; within a letter, `folders` (the set's declared folder list) order.
+ * Main source: a missing `<root>/<release>/<folder>` throws (FR-SET-0010, unchanged).
+ * Customization: a missing `<release>/` or `<folder>/` is skipped (FR-CUST-0003.AC3).
+ * FR-CLI-0020/0030/0031, FR-ARCH-0026
+ */
+export function resolveLayerDirs(
+  instructionsSource: string,
+  customizationRoots: readonly string[],
+  release: string,
+  folders: string,
+): LayerDir[] {
+  const folderList = folders.split(',').map((d) => d.trim()).filter(Boolean);
+  const layers: LayerDir[] = [];
+
+  for (const folder of folderList) {
+    const dir = path.join(instructionsSource, release, folder);
+    if (!fs.existsSync(dir)) {
+      throw new Error(`Instruction source not found: ${dir} (release=${release}, domain=${folder})`);
+    }
+    layers.push({ letter: sourceLetter(0), dir });
+  }
+
+  customizationRoots.forEach((root, i) => {
+    const letter = sourceLetter(i + 1);
+    for (const folder of folderList) {
+      const dir = path.join(root, release, folder);
+      if (isDirectory(dir)) layers.push({ letter, dir });
+    }
+  });
+
+  return layers;
+}
+
+function isDirectory(p: string): boolean {
+  try {
+    return fs.statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * List all files of all layers in load order: layers order, then raw relPath in string order
+ * within a layer (FR-ARCH-0026 stable-sort tie-break). Only files below a layer dir are listed,
+ * so entries directly under a customization `<root>/<release>/` (e.g. an ignored `.DS_Store`,
+ * FR-CUST-0002.AC5) never become VFS files.
  * NFR-0002: sorted (lexicographic, matching Python sorted()).
  * NFR-0010: uses fast-glob instead of hand-rolled recursive readdir.
  */
-export function collectSourceFiles(
-  sourceDirs: string[],
-): Map<string, string[]> {
-  const fileMap = new Map<string, string[]>();
+export function collectSourceFiles(layers: readonly LayerDir[]): LoadedFile[] {
+  const loaded: LoadedFile[] = [];
 
-  for (const dir of sourceDirs) {
+  for (const { letter, dir } of layers) {
     // fast-glob returns paths in arbitrary order; apply stable sort after (NFR-0002, PARITY-5)
-    const absolutePaths = fg.sync('**/*', {
+    const relPaths = fg.sync('**/*', {
       cwd: dir,
       dot: true,        // include dot-files (e.g. .mcp.json, .DS_Store)
       onlyFiles: true,
       followSymbolicLinks: false,
     });
 
-    // Apply stable lexicographic sort matching Python sorted() (NFR-0002, PARITY-5)
-    const sorted = sortPaths(absolutePaths, (p) => p);
-
-    for (const relPath of sorted) {
+    for (const relPath of sortPaths(relPaths, (p) => p)) {
       if (path.basename(relPath) === '.DS_Store') continue; // FR-COPY-0010
-
-      const absPath = path.join(dir, relPath);
-      // Normalize to forward slashes (cross-platform)
-      const normalizedRel = relPath.replace(/\\/g, '/');
-      const existing = fileMap.get(normalizedRel) ?? [];
-      existing.push(absPath);
-      fileMap.set(normalizedRel, existing);
+      loaded.push({
+        letter,
+        relPath: relPath.replace(/\\/g, '/'),
+        absPath: path.join(dir, relPath),
+      });
     }
   }
 
-  return fileMap;
+  return loaded;
 }

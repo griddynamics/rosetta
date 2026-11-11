@@ -86,7 +86,7 @@ Footer only repeats inline-invoked deps → **remove**; else **convert items to 
 
 ✅ **All done (2026-07-11)** — see the Done nudge below. Remaining before merge: nothing in-branch; publish-gated batch stays deferred (own section).
 
-**Closed decisions [decided 2026-07-11] — non-issues, do not re-raise:** requirement IDs are per-PROJECT namespaces (`docs/requirements/<project>/` are separate projects, not folders — same ID in two projects is fine by design) · `rosetta/SKILL.md:30` is the plan-mode (platform read-only) override of `planning`'s persistence table, not a conflict · MCP TEMPLATE tag is filename-only because MCP tags cannot carry a `templates/**` glob — intended · lpc `hitl` prerequisite = engagement guarantee (skills execute at any time), not load-order · CLAUDE/AGENTS/GEMINI.md are read natively by all coding agents, never via lpc roster · pa-knowledge-base's ~100K per-task budget is a GOAL, not a stale limit — do not touch.
+**Closed decisions [decided 2026-07-11] — non-issues, do not re-raise:** requirement IDs are per-PROJECT namespaces (`docs/REQUIREMENTS/<project>/` are separate projects, not folders — same ID in two projects is fine by design) · `rosetta/SKILL.md:30` is the plan-mode (platform read-only) override of `planning`'s persistence table, not a conflict · MCP TEMPLATE tag is filename-only because MCP tags cannot carry a `templates/**` glob — intended · lpc `hitl` prerequisite = engagement guarantee (skills execute at any time), not load-order · CLAUDE/AGENTS/GEMINI.md are read natively by all coding agents, never via lpc roster · pa-knowledge-base's ~100K per-task budget is a GOAL, not a stale limit — do not touch.
 
 ## r3-publish batch — landed on `on-v3-release` (draft PR #130; merge ONLY at v3 release)
 

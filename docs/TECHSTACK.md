@@ -57,21 +57,22 @@ Tech stack of all modules in this Rosetta repository.
 | Layer | Technology |
 |---|---|
 | Format | Markdown with YAML frontmatter |
-| Categories | skills, agents, workflows, rules, configure, templates |
+| Categories | skills, agents, workflows, rules, templates |
 | Distribution | Rosetta CLI publish → RAGFlow; or via plugin trees |
 
 ## plugins — IDE Plugin Definitions
 
 | Layer | Technology |
 |---|---|
-| core-claude | Claude Code; `.claude-plugin/plugin.json` with `"commands": "./workflows/"` |
-| core-cursor | Cursor, plugin-marketplace form; `.cursor-plugin/plugin.json` |
-| core-cursor-standalone | Cursor, project-root form; everything under `.cursor/` |
-| core-copilot | GitHub Copilot; `.github/plugin/plugin.json`, agents as `.agent.md` |
-| core-copilot-standalone | Copilot, project-root form; everything under `.github/` |
-| core-codex | Codex; `.codex-plugin/plugin.json`, agents as `.codex/agents/*.toml` |
-| core-antigravity | Antigravity; `plugin.json` at root, no model vocabulary |
-| Profile variants | every target also builds `core-*-light` from `profiles/lightweight.json` |
+| `<set>-claude` | Claude Code; `.claude-plugin/plugin.json` with `"commands": "./workflows/"` |
+| `<set>-cursor` | Cursor, plugin-marketplace form; `.cursor-plugin/plugin.json` |
+| `<set>-cursor-standalone` | Cursor, project-root form; everything under `.cursor/` |
+| `<set>-copilot` | GitHub Copilot; `.github/plugin/plugin.json`, agents as `.agent.md` |
+| `<set>-copilot-standalone` | Copilot, project-root form; everything under `.github/` |
+| `<set>-codex` | Codex; `.codex-plugin/plugin.json`, agents as `.codex/agents/*.toml` |
+| `<set>-antigravity` | Antigravity; `plugin.json` at root, no model vocabulary |
+| Sets | `rosetta` (all five domain folders, the full plugin), `core`, `workflows`, `qe`, `search`, `modernization` |
+| Profile variants | the `rosetta` set also builds `rosetta-*-light`; the five split sets are lightweight-profile builds under their plain names |
 | Generator | `npx -y rosettify-plugins@latest`, run twice by `scripts/pre_commit.py` (standard, then `--profile lightweight`) |
 
 ## Shared / Repo-Wide

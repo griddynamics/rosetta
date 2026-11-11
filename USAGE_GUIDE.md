@@ -459,6 +459,22 @@ Add project-specific rules alongside Rosetta without touching its files.
 | Antigravity / Google IDX | `.agents/rules/agents.md` | `.agents/rules/*.md` |
 | OpenCode | `AGENTS.md` | `.opencode/agent/*.md` |
 
+### Customize Rosetta
+
+To add your organization's skills, rules, and workflows, or adjust Rosetta's, without forking, keep them in a customization root that mirrors `instructions/` (for example `acme-rosetta/r3/core/skills/acme-deploy/SKILL.md`) and build your own plugin:
+
+```sh
+npx -y rosettify-plugins@latest --source <rosetta checkout> --customizations acme-rosetta \
+  --publish rosetta,rosetta-light --output <dir>
+```
+
+- A new path adds a file.
+- The same path as a Rosetta file appends your body to it.
+- `name~overwrite~.md` replaces the file.
+- A leading OrderToken (`name~001~.md`) orders several files at one path. It sorts as plain text, so pad it with zeros.
+
+Details, scoping tokens, and install steps: [Build customized plugins](PLUGINS.md#build-customized-plugins).
+
 ### Recommended MCP Servers
 
 MCPs give the AI eyes and hands beyond the codebase.
@@ -661,7 +677,7 @@ These rules are always active. They cannot be turned off.
 
 Rosetta is distributed as a single plugin for supported IDEs. The plugin bundles the full Rosetta instruction set locally, including workflows, skills, agents, rules, templates, and bootstrap guardrails.
 
-See [PLUGINS.md](PLUGINS.md) for install commands.
+See [PLUGINS.md](PLUGINS.md) for install commands. A lightweight variant, `rosetta-light`, is also available. To add your own instructions, see [Build customized plugins](PLUGINS.md#build-customized-plugins).
 
 ## Best Practices
 
@@ -677,7 +693,7 @@ See [PLUGINS.md](PLUGINS.md) for install commands.
 - **Do not delete files in `docs/`.** They are Rosetta's project knowledge. Deleting them means starting over.
 - **Switch sessions at 65% context.** Monitor context usage. If it goes above 65%, queue the message or wait for the earliest ability to switch over to a new session:
 
-  `Please save execution state, workflow state, findings, original intent with clarifications, and tasks left to do as concise "agents/TEMP/execution-state.md" so that I can start a fresh new session and continue execution where you left it off.`
+  `Please save execution state, workflow state, findings, decisions, intent with clarifications, honest concerns, failure modes, improvements, and tasks left to do as concise hand-off "agents/TEMP/execution-state.md" so that I can start a fresh new session and continue execution where you left it off. Also record work protocol, useful skills, processes.`
 
   Once file saved, start the new session with the same original slash command:
 

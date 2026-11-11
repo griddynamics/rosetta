@@ -111,14 +111,15 @@ compute_new_version() {
 }
 
 PLUGIN_MARKETPLACE_FILES=(
-    "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/plugin.json"
-    "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json"
-    "$ROOT/src/rosettify-plugins/plugins/core-copilot/.github/plugin/plugin.json"
-    "$ROOT/src/rosettify-plugins/plugins/core-codex/.codex-plugin/plugin.json"
-    "$ROOT/src/rosettify-plugins/plugins/core-antigravity/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/template-claude/.claude-plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/template-cursor/.cursor-plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/template-copilot/.github/plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/template-codex/.codex-plugin/plugin.json"
+    "$ROOT/src/rosettify-plugins/plugins/template-antigravity/plugin.json"
     "$ROOT/.claude-plugin/marketplace.json"
     "$ROOT/.cursor-plugin/marketplace.json"
     "$ROOT/.github/plugin/marketplace.json"
+    "$ROOT/.agents/plugins/marketplace.json"
 )
 
 bump_plugin_marketplace_group() {
@@ -196,8 +197,8 @@ printf "  %-55s %s\n" "[chart]       src/helm-charts/rosetta-mcp-server/Chart.ya
 echo ""
 echo "Bump type:"
 echo "  [0] pre   [1] patch   [2] minor   [3] major   [4] custom"
-read -r -p "Choose (default: 0 = pre): " bump_choice
-bump_choice="${bump_choice:-0}"
+read -r -p "Choose (default: 1 = patch): " bump_choice
+bump_choice="${bump_choice:-1}"
 
 CUSTOM_VERSION=""
 case "$bump_choice" in

@@ -4,7 +4,7 @@
 direction: down
 
 repo: Instructions repository (this repo) {
-  instr: "instructions/r3/core\n(+ optional <org>/ overlays)"
+  instr: "instructions/r3/core\n(+ optional --customizations roots)"
   hooks_src: "src/hooks\n(TypeScript hook sources)"
 }
 
@@ -14,7 +14,7 @@ build: Build and publish (CI / maintainer) {
 }
 
 dist: Distribution {
-  plugins: "plugins/core-*\n(IDE-native packages)"
+  plugins: "plugins/rosetta-*\n(IDE-native packages)"
   ragflow: "RAGFlow\n(document engine)" {
     shape: cylinder
   }

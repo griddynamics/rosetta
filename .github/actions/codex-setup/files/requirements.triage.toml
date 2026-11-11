@@ -1,0 +1,38 @@
+# Rosetta CI — extra deny rules for `repo-triage`, appended after the shared
+# requirements.toml by build_policy.py `--extra-rules`. Shared rules still apply; this
+# file can only tighten them. ONLY [[rules.prefix_rules]] entries are allowed here.
+#
+# Triage reviews and comments; trusted senders may also add/remove labels. Nothing else
+# (see .github/prompts/repo-triage.md, "Intended use"). Every rule below blocks a write
+# that another pipeline needs, which is why they are not in the shared file.
+#
+# Known gaps — prefix matching cannot express them (docs/AUTOMATION-ARCHITECTURE.md,
+# "Command policy"): `gh api <endpoint> -X POST` (flag after the endpoint),
+# `gh issue|pr comment <other item>`, `gh issue|pr edit <N> --title|--body`,
+# `gh issue|pr comment <N> --body-file|--attach <file>`, and any command hidden in a
+# `$(...)` script. The Claude branch's allowlist covers all of them.
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "issue" }, { any_of = ["create", "close", "reopen", "develop"] }]
+decision = "forbidden"
+justification = "Triage only reviews and comments; it never creates, closes, or reopens issues."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "pr" }, { any_of = ["create", "reopen", "lock", "unlock"] }]
+decision = "forbidden"
+justification = "Triage only reviews and comments; it never opens, reopens, or locks pull requests."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { any_of = ["gist", "project"] }]
+decision = "forbidden"
+justification = "Gists and board cards are outside triage scope."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "label" }, { any_of = ["create", "edit"] }]
+decision = "forbidden"
+justification = "Triage applies existing labels only; the label set is owned by maintainers."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "api" }, { any_of = ["-X", "--method", "-f", "-F", "--field", "--raw-field", "--input", "graphql"] }]
+decision = "forbidden"
+justification = "Triage reads the REST API with GET only; GraphQL and write flags are mutation paths."
