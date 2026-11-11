@@ -120,17 +120,9 @@ export async function cmdUpsert(
             const phase = plan.phases[phaseIdx]!;
             const idCheck = validateImmutableId(cleanData["id"] as string | undefined, resolvedTargetId);
             if (idCheck) return { ok: false, error: idCheck };
-            if (cleanData["steps"] !== undefined && Array.isArray(cleanData["steps"])) {
-              const patchSteps = cleanData["steps"] as Record<string, unknown>[];
-              const mergedSteps = mergeById((phase.steps ?? []) as unknown as Record<string, unknown>[], patchSteps);
-              if ("error" in mergedSteps) return { ok: false, error: mergedSteps.error };
-              const { steps: _s, ...rest } = cleanData;
-              const merged = mergePatch(phase as unknown as Record<string, unknown>, rest) as unknown as Phase;
-              merged.steps = mergedSteps as unknown as Step[];
-              mutated.phases[phaseIdx] = merged;
-            } else {
-              mutated.phases[phaseIdx] = mergePatch(phase as unknown as Record<string, unknown>, cleanData) as unknown as Phase;
-            }
+            const patched = applyPhasePatch(phase, cleanData);
+            if ("error" in patched) return { ok: false, error: patched.error };
+            mutated.phases[phaseIdx] = patched.phase;
           } else {
             const foundStep = findStep(plan, resolvedTargetId);
             if (foundStep) {
@@ -185,14 +177,39 @@ export async function cmdUpsert(
   }
 }
 
+// FR-PLAN-0015 (3) — merge-patches an existing phase; a steps array in the patch is merged by ID
+function applyPhasePatch(phase: Phase, cleanData: Record<string, unknown>): { phase: Phase } | { error: string } {
+  if (cleanData["steps"] !== undefined && Array.isArray(cleanData["steps"])) {
+    const patchSteps = cleanData["steps"] as Record<string, unknown>[];
+    const mergedSteps = mergeById((phase.steps ?? []) as unknown as Record<string, unknown>[], patchSteps);
+    if ("error" in mergedSteps) return mergedSteps;
+    const { steps: _s, ...rest } = cleanData;
+    const merged = mergePatch(phase as unknown as Record<string, unknown>, rest) as unknown as Phase;
+    merged.steps = mergedSteps as unknown as Step[];
+    return { phase: merged };
+  }
+  return { phase: mergePatch(phase as unknown as Record<string, unknown>, cleanData) as unknown as Phase };
+}
+
 function applyEntirePlanPatch(plan: Plan, cleanData: Record<string, unknown>): Plan {
   if (cleanData["phases"] !== undefined && Array.isArray(cleanData["phases"])) {
     const patchPhases = cleanData["phases"] as Record<string, unknown>[];
-    const mergedPhases = mergeById(plan.phases as unknown as Record<string, unknown>[], patchPhases);
-    if ("error" in mergedPhases) return mergedPhases as unknown as Plan;
+    // FR-PLAN-0015 (2) — phases merge by ID: an existing phase is patched as in (3), a new one is appended
+    const mergedPhases = [...plan.phases];
+    for (const patch of patchPhases) {
+      if (!patch["id"]) return { error: "missing_id" } as unknown as Plan;
+      const idx = mergedPhases.findIndex((p) => p.id === patch["id"]);
+      if (idx >= 0) {
+        const patched = applyPhasePatch(mergedPhases[idx]!, patch);
+        if ("error" in patched) return patched as unknown as Plan;
+        mergedPhases[idx] = patched.phase;
+      } else {
+        mergedPhases.push(Object.assign({}, patch) as unknown as Phase);
+      }
+    }
     const { phases: _p, ...rest } = cleanData;
     const merged = mergePatch(plan as unknown as Record<string, unknown>, rest) as unknown as Plan;
-    merged.phases = mergedPhases as unknown as Phase[];
+    merged.phases = mergedPhases;
     return merged;
   }
   return mergePatch(plan as unknown as Record<string, unknown>, cleanData) as unknown as Plan;
