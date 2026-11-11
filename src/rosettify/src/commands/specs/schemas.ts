@@ -292,7 +292,7 @@ const specTotalsSchema = {
 // SpecNextId — nested shape for SpecInfoResult.next_ids (output.ts)
 const specNextIdSchema = {
   type: "object" as const,
-  description: "The next free id for a prefix+area combination that already has at least one spec",
+  description: "The next free id for a prefix+area combination that already has at least one spec or purged id",
   properties: {
     prefix: { type: "string" as const },
     area: { type: "string" as const },
