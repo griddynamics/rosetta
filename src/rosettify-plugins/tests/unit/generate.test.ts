@@ -393,6 +393,34 @@ describe('sweepOrphanDestinations', () => {
     });
   });
 
+  // --output may point at a directory the generator does not own. Only a folder named like an
+  // output folder, `<set>-<ide><variantSuffix>`, is the sweep's to remove.
+  it('removes only folders named like a plugin folder — .git, docs, src and the like survive', () => {
+    withOutputDir((outputDir, loaded) => {
+      seed(outputDir);
+      const unrelated = ['.git', 'docs', 'src', 'node_modules', 'My Folder'];
+      for (const d of [...unrelated, 'qe-claude', 'core-cursor-standalone']) {
+        fs.mkdirSync(path.join(outputDir, d), { recursive: true });
+        fs.writeFileSync(path.join(outputDir, d, 'marker.txt'), 'x');
+      }
+      // Stale plugin folders: a dropped set, a dropped variant, and a target this catalog (which
+      // declares `claude` alone) does not list.
+      const stale = ['core-claude', 'core-claude-light', 'core-cursor-standalone', 'qe-claude'];
+
+      expect(sweepOrphanDestinations(loaded, outputDir, true).sort()).toEqual(stale);
+      expect(sweepOrphanDestinations(loaded, outputDir, false).sort()).toEqual(stale);
+
+      // Declared destinations, unrelated folders and the loose file all stay.
+      expect(fs.readdirSync(outputDir).sort()).toEqual([
+        '.git', 'My Folder', 'README.md', 'docs', 'node_modules',
+        'rosetta-claude', 'rosetta-claude-light', 'src',
+      ]);
+      for (const d of unrelated) {
+        expect(fs.readFileSync(path.join(outputDir, d, 'marker.txt'), 'utf-8')).toBe('x');
+      }
+    });
+  });
+
   it('removes nothing in dry-run, while still reporting what it would remove', () => {
     withOutputDir((outputDir, loaded) => {
       seed(outputDir);
@@ -527,6 +555,35 @@ describe('generate() — plugin sets end to end', () => {
 
     expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(false);
     expect(fs.existsSync(path.join(outputDir, 'rosetta-claude'))).toBe(true);
+  });
+
+  it('an output directory holding unrelated folders loses only its stale plugin folder', async () => {
+    const outputDir = path.join(repo, 'out-sweep-unrelated');
+    write(path.join(outputDir, '.git', 'HEAD'), 'ref: refs/heads/main');
+    write(path.join(outputDir, 'docs', 'notes.md'), 'notes');
+    write(path.join(outputDir, 'src', 'app', 'main.ts'), 'code');
+    write(path.join(outputDir, 'My Folder', 'file.txt'), 'mine');
+    write(path.join(outputDir, 'README.md'), 'readme');
+    write(path.join(outputDir, 'core-claude', 'stale.txt'), 'x');
+    const unrelated = () =>
+      ['.git', 'docs', 'src', 'My Folder'].map((d) => snapshotTree(path.join(outputDir, d)));
+    const before = unrelated();
+
+    const code = await generate({
+      sources: sourcesFor(outputDir), release: 'r3', dryRun: false, verbose: false,
+    });
+
+    expect(code).toBe(0);
+    expect(fs.readdirSync(outputDir).sort()).toEqual([
+      '.git', 'My Folder', 'README.md', 'docs',
+      'qe-claude', 'qe-codex',
+      'rosetta-claude', 'rosetta-claude-light',
+      'rosetta-codex', 'rosetta-codex-light',
+      'search-claude', 'search-codex',
+      'src',
+    ]);
+    expect(unrelated()).toEqual(before);
+    expect(fs.readFileSync(path.join(outputDir, 'README.md'), 'utf-8')).toBe('readme');
   });
 
   it('an invalid catalog aborts BEFORE anything is written, naming the file', async () => {
@@ -1018,6 +1075,19 @@ describe('generate() — customization roots pre-flight (FR-CUST-0002/0003, FR-A
     expect(result).toBe(1);
     expect(fs.readFileSync(path.join(out, 'stale-undeclared', 'keep.txt'), 'utf-8')).toBe('survive');
     expect(fs.readdirSync(out)).toEqual(['stale-undeclared']);
+  });
+
+  // L1's folder is not named like a plugin folder, so the sweep would leave it alone at any point
+  // in the run. A stale plugin folder is what an early sweep would remove.
+  it('L1: a pre-flight failure leaves a pre-seeded stale plugin folder alone (sweep runs only after pre-flight)', async () => {
+    const out = path.join(repo, 'o-sweep-plugin');
+    write(path.join(out, 'qe-claude', 'keep.txt'), 'survive');
+    const file = path.join(repo, 'cust-sweep-plugin', 'r3', 'core', 'workflows', 'codin-flow~overwrite~.md');
+    write(file, '---\nname: codin-flow\ndescription: x\ntags: ["workflow"]\n---\nbody');
+    const { result } = await run('o-sweep-plugin', [path.join(repo, 'cust-sweep-plugin')]);
+    expect(result).toBe(1);
+    expect(fs.readdirSync(out)).toEqual(['qe-claude']);
+    expect(fs.readFileSync(path.join(out, 'qe-claude', 'keep.txt'), 'utf-8')).toBe('survive');
   });
 
   it('FR-ARCH-0024.AC4/AC6: one orphan fault is not repeated per IDE/variant/set (one line per file and set-variant)', async () => {

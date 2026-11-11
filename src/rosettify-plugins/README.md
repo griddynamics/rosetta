@@ -67,7 +67,9 @@ A **set** is a named bundle of instruction folders shipped as one installable pl
 The catalog is fully validated before anything is written: an unknown field, a duplicate set name,
 two variants writing the same folder, a `requires` naming an undeclared set, a set naming a missing
 instruction folder or a missing template — each aborts the run non-zero, naming the file. Output
-folders the catalog no longer declares are swept from the output directory.
+folders the catalog no longer declares are swept from the output directory. Only a folder named
+like a plugin folder (`<set>-<ide>[<variantSuffix>]`, for any IDE target the generator knows) is
+swept; every other folder and every loose file there is left alone.
 
 ### Selecting what to build
 

@@ -8,6 +8,7 @@ import {
   loadPluginCatalog,
   selectSets,
   allDeclaredDestinations,
+  isDestinationName,
   allDeclaredPluginNames,
   declaredFoldersForRelease,
   pluginName,
@@ -245,6 +246,57 @@ describe('allDeclaredDestinations — the orphan sweep keep-list', () => {
       expect(declared.has('core-claude')).toBe(true);
       expect(declared.has('qe-copilot-standalone')).toBe(true);
     });
+  });
+});
+
+describe('isDestinationName — the only names the orphan sweep may remove', () => {
+  it('matches every destination a valid catalog can declare', () => {
+    // Set names and suffixes at the edges of the grammar the loader accepts, over all 7 targets.
+    const variant = (destinationSuffix: string) => (
+      { profile: null, destinationSuffix, manifestNameSuffix: '', manifestDescriptionSuffix: '' }
+    );
+    const edge = mutate((c) => {
+      c.sets[0].name = 'a';
+      c.sets[0].variants = [variant(''), variant('-light'), variant('-x-2')];
+      c.sets[1].name = 'my-set-2';
+      c.sets[1].requires = [];
+      // A set named like a target, with a suffix named like part of one.
+      c.sets.push({ ...c.sets[1], name: 'claude', variants: [variant(''), variant('-standalone')] });
+    });
+    for (const catalog of [VALID, edge]) {
+      withCatalog(catalog, (p) => {
+        for (const d of allDeclaredDestinations(loadPluginCatalog(p))) {
+          expect(isDestinationName(d), d).toBe(true);
+        }
+      });
+    }
+    for (const d of allDeclaredDestinations(loadPluginCatalog(REPO_CONFIG))) {
+      expect(isDestinationName(d), d).toBe(true);
+    }
+  });
+
+  it('matches a stale folder of a set, variant or target the catalog no longer declares', () => {
+    for (const d of [
+      'core-claude', 'core-claude-light', 'core-cursor-standalone', 'core-copilot-standalone-light',
+      'qe-claude', 'workflows-codex', 'modernization-antigravity',
+      // Known limit: a user's own folder of this shape cannot be told from a stale plugin folder.
+      'my-claude',
+    ]) {
+      expect(isDestinationName(d), d).toBe(true);
+    }
+  });
+
+  it('matches nothing the generator could not have produced', () => {
+    for (const d of [
+      '.git', '.github', 'docs', 'src', 'node_modules', 'My Folder', 'plugins',
+      'claude', 'cursor-standalone', 'rosetta', 'rosetta-light', 'stale-undeclared',
+      'rosetta-windsurf', 'rosetta-claudes', 'rosetta-claude2', 'rosetta_claude',
+      'Rosetta-claude', 'rosetta-Claude', 'rosetta-claude-Light', 'rosetta-claude.bak',
+      '-claude', 'rosetta--claude', 'rosetta-claude-', 'rosetta-claude--light',
+      'rosetta-claude light', 'rosetta-claude\n', '',
+    ]) {
+      expect(isDestinationName(d), JSON.stringify(d)).toBe(false);
+    }
   });
 });
 

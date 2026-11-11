@@ -17,6 +17,7 @@ import {
   loadPluginCatalog,
   selectSets,
   allDeclaredDestinations,
+  isDestinationName,
   resolveHookModules,
   parseDomainTokens,
   pluginName,
@@ -388,7 +389,9 @@ export async function generate(options: GenerateOptions): Promise<number> {
  * variants and targets — deliberately NOT the current run's selection. Sweeping against the
  * selection would make `--domain qe` delete the other 42 folders.
  *
- * Only directories are considered; loose files in the output root are left alone.
+ * Only directories named like an output folder (isDestinationName) are considered. `--output` may
+ * point at a directory the generator does not own, so anything it could not have produced —
+ * `.git`, `docs`, `src` — is left alone, and so are loose files in the output root.
  */
 export function sweepOrphanDestinations(
   catalog: PluginCatalog,
@@ -403,6 +406,7 @@ export function sweepOrphanDestinations(
 
   for (const entry of fs.readdirSync(outputDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
+    if (!isDestinationName(entry.name)) continue;
     if (declared.has(entry.name)) continue;
 
     removed.push(entry.name);
