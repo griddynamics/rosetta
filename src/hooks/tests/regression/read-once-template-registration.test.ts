@@ -185,6 +185,21 @@ describe('read-once hook registration — templates', () => {
           expect(raw).not.toContain(PLUGIN_FORM_MARKER);
         });
       }
+
+      if (c.events.includes('beforeReadFile')) {
+        test('preToolUse read-once matcher leaves Read to beforeReadFile', () => {
+          // docs/hooks/cursor.md:56 — Cursor fires preToolUse AND beforeReadFile for ONE Read call, so
+          // read-once bound on both layers reports the first read of a file as a repeat.
+          // cursor.md:81 — "Pick ONE layer per guard to avoid double-fire."
+          const events = JSON.parse(stripTokens(readTemplate(c.file)))[c.container];
+          expect(strings(events.beforeReadFile)).toContain(c.readOnce);
+          const matchers = (events.preToolUse as { matcher: string; command: string }[])
+            .filter((entry) => entry.command === c.readOnce)
+            .map((entry) => entry.matcher);
+          expect(matchers, `preToolUse lacks ${c.readOnce}`).not.toEqual([]);
+          for (const matcher of matchers) expect(matcher).not.toContain('Read');
+        });
+      }
     });
   }
 });
