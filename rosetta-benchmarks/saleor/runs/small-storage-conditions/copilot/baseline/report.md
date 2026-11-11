@@ -59,9 +59,13 @@ operator_score: 4   # was 3; aligned on 2026-11-05 by the team lead to the rule 
 operator_merge_ready: yes   # was no; aligned on 2026-11-05 (section 8)
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_absolute:            # /40
-judge_side_by_side:        # /40
-judge_merge_ready:         # yes | no
+judge_total: 66.0
+judge_bonus: 0
+judge_blockers: 0
+judge_majors: 2
+judge_minors: 11
+judge_strengths: 0
+judge_merge_ready_advice: no
 ---
 
 # Run report: S-CP-01 · small task · baseline · copilot

@@ -59,9 +59,13 @@ operator_score: 4          # 1–5, anchors in templates/README.md
 operator_merge_ready: yes  # yes | no
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_absolute:            # /40
-judge_side_by_side:        # /40
-judge_merge_ready:         # yes | no
+judge_total: 67.0
+judge_bonus: 2.0
+judge_blockers: 0
+judge_majors: 1
+judge_minors: 16
+judge_strengths: 0
+judge_merge_ready_advice: no
 ---
 
 # Run report: S-CP-03 · small task · Superpowers · Copilot CLI

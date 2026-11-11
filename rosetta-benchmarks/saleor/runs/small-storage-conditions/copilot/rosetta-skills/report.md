@@ -59,13 +59,13 @@ operator_score: 4               # operator: works end to end; not 5 because of 2
 operator_merge_ready: yes       # operator
 # Filled later by the assistant: verified_in_code from step 0.3, judge_* from the diff judge's JSON
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_total:               # diff score: total + bonus, from the totals script
-judge_bonus:               # bonus points for fixed bugs, related improvements, safeguards and DELTA items
-judge_blockers:            # number of blocker findings
-judge_majors:              # number of major findings
-judge_minors:              # number of minor findings
-judge_strengths:           # number of strengths
-judge_merge_ready_advice:  # none | no | yes — the judge's advice; operator_merge_ready stays the operator's decision
+judge_total: 67.2
+judge_bonus: 3.15
+judge_blockers: 0
+judge_majors: 3
+judge_minors: 12
+judge_strengths: 0
+judge_merge_ready_advice: no
 ---
 
 # Run report: S-CP-08 · small task · Rosetta Skills · Copilot CLI

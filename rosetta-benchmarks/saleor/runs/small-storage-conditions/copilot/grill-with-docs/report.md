@@ -59,9 +59,13 @@ operator_score: 3   # was 3.5; aligned on 2026-11-05 by the team lead to the rul
 operator_merge_ready: no   # was no; aligned on 2026-11-05 (section 8)
 # Filled later by the evaluator from the judge reports
 verified_in_code:          # items verified in code / items checked (e.g. 6/7)
-judge_absolute:            # /40
-judge_side_by_side:        # /40
-judge_merge_ready:         # yes | no
+judge_total: 66.7
+judge_bonus: 3.9
+judge_blockers: 2
+judge_majors: 1
+judge_minors: 10
+judge_strengths: 0
+judge_merge_ready_advice: no
 ---
 
 # Run report: <RUN_ID> · small task · <METHOD> · <RUNNER>
