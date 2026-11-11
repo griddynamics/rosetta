@@ -2,7 +2,7 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup",
+        "matcher": "startup|clear|compact",
         "hooks": [{{{bootstrap_hooks}}}]
       }
     ]{{#if deterministic_hooks}},{{/if}}
