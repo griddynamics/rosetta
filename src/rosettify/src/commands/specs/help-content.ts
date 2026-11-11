@@ -367,7 +367,7 @@ export const specsHelpContent = {
       required: "specs_file is required",
       description:
         "Returns registered areas with their spec counts, totals by type/status/implementation, the next free id " +
-        "per prefix+area combination that already has at least one spec, and the document's timestamps in local time. " +
+        "per prefix+area combination that already has at least one spec or purged id, and the document's timestamps in local time. " +
         "No full spec bodies. Returns SpecInfoResult.",
       examples: {
         tip: "rosettify specs info [specs_file]",
