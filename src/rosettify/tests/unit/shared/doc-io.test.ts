@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { readDocWithRetry, atomicWriteWithBackup } from "../../../src/shared/doc-io.js";
+import { readDocWithRetry, atomicWriteWithBackup, atomicCreate } from "../../../src/shared/doc-io.js";
 import type { Plan } from "../../../src/commands/plan/core.js";
 import { savePlan } from "../../../src/commands/plan/core.js";
 
@@ -46,6 +46,120 @@ function makePlan(overrides: Partial<Plan> = {}): Plan {
     ...overrides,
   };
 }
+
+describe("atomicCreate — create-only write under the shared lock", () => {
+  it("creates missing parents and writes with null even when old backups exist, without reading", async () => {
+    const file = planFile("nested/plan.json");
+    const save = (target: string, doc: Plan) => {
+      expect(fs.existsSync(target + ".lock")).toBe(true);
+      savePlan(target, doc);
+    };
+    const first = await atomicCreate(file, makePlan(), save, "doc_exists");
+    expect(first.ok).toBe(true);
+    expect(first.result!.backupPath).toBeNull();
+    fs.renameSync(file, file + ".bak000");
+    const readSpy = vi.spyOn(fs, "readFileSync");
+    vi.useFakeTimers({ toFake: ["setTimeout", "performance"] });
+    try {
+      const started = performance.now();
+      const realStarted = Date.now();
+      const pending = atomicCreate(file, makePlan({ name: "New" }), save, "doc_exists");
+      await vi.runAllTimersAsync();
+      const second = await pending;
+      expect(second.ok).toBe(true);
+      expect(second.result!.backupPath).toBeNull();
+      expect(readSpy).not.toHaveBeenCalled();
+      expect(performance.now() - started).toBeLessThan(500);
+      expect(Date.now() - realStarted).toBeLessThan(500);
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(fs.existsSync(file + ".bak000")).toBe(true);
+    expect(fs.existsSync(file + ".lock")).toBe(false);
+  });
+
+  it("refuses an existing file without reading, backing up, or writing, and releases the lock", async () => {
+    const file = planFile();
+    fs.writeFileSync(file, "invalid json");
+    const save = vi.fn();
+    const readSpy = vi.spyOn(fs, "readFileSync");
+    const result = await atomicCreate(file, makePlan(), save, "doc_exists");
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("doc_exists");
+    expect(save).not.toHaveBeenCalled();
+    expect(readSpy).not.toHaveBeenCalled();
+    readSpy.mockRestore();
+    expect(fs.readFileSync(file, "utf8")).toBe("invalid json");
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
+  });
+
+  it("removes a partial first write before retrying it", async () => {
+    const file = planFile();
+    let calls = 0;
+    const save = (target: string, doc: Plan) => {
+      if (calls++ === 0) {
+        fs.writeFileSync(target, '{"name":"trunc');
+        throw new Error("write failed");
+      }
+      savePlan(target, doc);
+    };
+    const result = await atomicCreate(file, makePlan(), save, "doc_exists", { maxRetries: 2 });
+    expect(result.ok).toBe(true);
+    expect(result.result!.backupPath).toBeNull();
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
+  });
+});
+
+describe("atomicWriteWithBackup — backup decision after the FR-SHRD-0009 read retry", () => {
+  it("backs up a plan file that reappears while the read is retrying", async () => {
+    const file = planFile();
+    savePlan(file, makePlan());
+    const restored = fs.readFileSync(file);
+    fs.renameSync(file, file + ".bak000");
+    vi.useFakeTimers({ toFake: ["setTimeout"] });
+    try {
+      setTimeout(() => fs.writeFileSync(file, restored), 150);
+      const pending = atomicWriteWithBackup<Plan, null>(file, (doc) => ({ ok: true, result: null, updated: doc }), savePlan);
+      await vi.runAllTimersAsync();
+      const result = await pending;
+      expect(result.ok).toBe(true);
+      expect(result.result!.backupPath).toBe(file + ".bak001");
+      expect(fs.readFileSync(file + ".bak001")).toEqual(restored);
+      expect(JSON.parse(fs.readFileSync(file, "utf8")).previous_version).toBe(file + ".bak001");
+      expect(fs.existsSync(file + ".lock")).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("atomicWriteWithBackup — optional creation under the shared lock", () => {
+  it("creates missing parents and runs the create callback under the lock", async () => {
+    const file = planFile("nested/plan.json");
+    const mutate = vi.fn();
+    const result = await atomicWriteWithBackup<Plan, string>(file, mutate, savePlan, {
+      create: () => {
+        expect(fs.existsSync(file + ".lock")).toBe(true);
+        return { ok: true, result: "created", updated: makePlan() };
+      },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.result).toEqual({ result: "created", backupPath: null });
+    expect(mutate).not.toHaveBeenCalled();
+    expect(JSON.parse(fs.readFileSync(file, "utf8")).previous_version).toBeNull();
+  });
+
+  it("returns a rejected create without a file or backup and preserves include_help", async () => {
+    const file = planFile();
+    const result = await atomicWriteWithBackup<Plan, string>(file, vi.fn(), savePlan, {
+      create: () => ({ ok: false, error: "missing_system", include_help: true }),
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("missing_system");
+    expect(result.include_help).toBe(true);
+    expect(fs.readdirSync(tmpDir)).toEqual([]);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // readDocWithRetry — FR-SHRD-0009
