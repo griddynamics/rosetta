@@ -59,7 +59,7 @@ function num(v: unknown): number {
 // --- Claude session-JSONL dialect (grounded in real transcripts) ------------
 // Each line is one JSON object. Lines of interest:
 //   { type:'user',      message:{ role, content: string | ContentItem[] }, timestamp, … }
-//   { type:'assistant', message:{ role, content: ContentItem[], usage }, timestamp, … }
+//   { type:'assistant', message:{ id, role, content: ContentItem[], usage }, timestamp, … }
 // ContentItem: { type:'text', text } | { type:'thinking', … } |
 //              { type:'tool_use', id, name, input } | { type:'tool_result', tool_use_id, content }
 // Assistant `message.usage` carries `input_tokens`/`output_tokens` (+ cache fields).
@@ -81,6 +81,7 @@ interface ClaudeUsage {
   cache_creation_input_tokens?: number;
 }
 interface ClaudeMessage {
+  id?: string;
   role?: string;
   content?: string | ClaudeContentItem[];
   usage?: ClaudeUsage;
@@ -227,6 +228,7 @@ export class ClaudeCodeAdapter implements AgentAdapter {
 
   parseEvents(raw: string): TrajectoryEvent[] {
     const events: TrajectoryEvent[] = [];
+    const usageByMessageId = new Map<string, TrajectoryEvent>();
     for (const line of raw.split('\n')) {
       const trimmed = line.trim();
       if (trimmed === '') continue;
@@ -267,7 +269,7 @@ export class ClaudeCodeAdapter implements AgentAdapter {
           // is folded INTO `output_tokens` (no separate reasoning class). So the
           // classes are already disjoint — map straight across; `raw` keeps the
           // native object.
-          events.push({
+          const usageEvent: TrajectoryEvent = {
             ts,
             kind: 'usage',
             payload: makeUsage({
@@ -277,7 +279,17 @@ export class ClaudeCodeAdapter implements AgentAdapter {
               cacheWrite: num(u.cache_creation_input_tokens),
               raw: u,
             }),
-          });
+          };
+          // Claude Code writes one line per content block of an API response. Those
+          // lines share `message.id` and each repeats the response's `usage`, so keep
+          // ONE usage event per id (the last copy) — else a response is counted once
+          // per block. A line without an id still counts on its own.
+          if (typeof msg.id === 'string') {
+            const earlier = usageByMessageId.get(msg.id);
+            if (earlier !== undefined) events.splice(events.lastIndexOf(earlier), 1);
+            usageByMessageId.set(msg.id, usageEvent);
+          }
+          events.push(usageEvent);
         }
       } else if (obj.type === 'user') {
         const content = msg.content;
