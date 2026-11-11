@@ -339,6 +339,8 @@ jobs:
       - name: Write step summary
         if: always()
         shell: bash
+        env:
+          ARTIFACT_CHECK: ${{ steps.verify.outputs.artifact_check }}
         run: |
           {
             echo "## Curiocity E2E — ${{ inputs.suite }}"
@@ -363,6 +365,13 @@ jobs:
               2) echo "### ⚠️ Gate outcome: config/infra failure — invalid config or no runnable trials (exit 2)" ;;
               3) echo "### ⚠️ Gate outcome: partial infra failure — some trials errored, remaining gates passed (exit 3)" ;;
               *) echo "### ⚠️ Gate outcome: unknown exit code ($CURIOCITY_EXIT)" ;;
+            esac
+            echo ""
+
+            case "$ARTIFACT_CHECK" in
+              pass) echo "### ✅ Artifact check: pass" ;;
+              fail) echo "### ❌ Artifact check: fail — expected result artifacts are missing (job will fail)" ;;
+              *) echo "### ❌ Artifact check: not determined (verify step did not report; job will fail)" ;;
             esac
             echo ""
 
@@ -404,4 +413,18 @@ jobs:
 
       - name: Reflect Curiocity gate outcome
         if: always()
-        run: exit "${CURIOCITY_EXIT:-1}"
+        shell: bash
+        env:
+          ARTIFACT_CHECK: ${{ steps.verify.outputs.artifact_check }}
+        run: |
+          # Curiocity's own exit code wins when non-zero (more specific).
+          EXIT="${CURIOCITY_EXIT:-1}"
+          if [ "$EXIT" -ne 0 ]; then
+            exit "$EXIT"
+          fi
+          # Curiocity passed: still fail unless artifacts were positively verified.
+          # Unset/empty (verify skipped, cancelled, or crashed) is treated as failure.
+          if [ "$ARTIFACT_CHECK" != "pass" ]; then
+            echo "::error::Artifact check did not pass (result: ${ARTIFACT_CHECK:-unset})"
+            exit 1
+          fi

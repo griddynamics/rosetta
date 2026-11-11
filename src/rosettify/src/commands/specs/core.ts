@@ -504,8 +504,8 @@ export function validateSizeLimits(doc: SpecsDocument): string | null {
 }
 
 // ---------------------------------------------------------------------------
-// Plain document I/O (FR-SPECS-0002, 0071) — used for the first-create bypass and by
-// applyBatchWrite's saveDoc callback. Regular reads go through shared/doc-io.ts readDocWithRetry.
+// Plain document I/O (FR-SPECS-0002, 0071) — saveSpecs is applyBatchWrite's saveDoc
+// callback. Regular reads go through shared/doc-io.ts readDocWithRetry.
 // ---------------------------------------------------------------------------
 
 export function loadSpecs(file: string): SpecsDocument | null {
