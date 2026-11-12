@@ -287,6 +287,59 @@ describe('read-once', () => {
     expect(result).toBeNull();
   });
 
+  test('a trailing # READ-OVERRIDE comment takes the override path and refreshes the entry', async () => {
+    process.env.READ_ONCE_MODE = 'deny';
+    const first = {
+      hook_event_name: 'PreToolUse',
+      session_id: 'claude-session-001',
+      tool_name: 'Bash',
+      tool_input: { command: `cat "${filePath}"` },
+      cwd: tempDir,
+    };
+
+    expect(await runHookWithRaw(readOnceHook, first)).toBeNull();
+    const recorded = readReadOnceState();
+    const [sessionKey] = Object.keys(recorded.sessions);
+    const firstSeenAt = recorded.sessions[sessionKey][filePath].seenAt;
+    expect(recorded.stats.totalReads).toBe(1);
+
+    vi.useFakeTimers();
+    vi.setSystemTime(firstSeenAt + 1000);
+    const overrideResult = await runHookWithRaw(readOnceHook, {
+      ...first,
+      tool_input: { command: `cat "${filePath}" # READ-OVERRIDE` },
+    });
+
+    // Override branch: allowed, counted as a read, no dedup hit, session entry refreshed.
+    expect(overrideResult).toBeNull();
+    const afterOverride = readReadOnceState();
+    expect(afterOverride.stats.totalReads).toBe(2);
+    expect(afterOverride.stats.sameSessionHits).toBe(0);
+    expect(afterOverride.sessions[sessionKey][filePath].seenAt).toBe(firstSeenAt + 1000);
+
+    // A plain re-read afterwards is still denied.
+    const plainResult = await runHookWithRaw(readOnceHook, first);
+    expect(plainResult?.hookSpecificOutput).toMatchObject({ permissionDecision: 'deny' });
+  });
+
+  test('READ-OVERRIDE inside a file name is not an override', async () => {
+    process.env.READ_ONCE_MODE = 'deny';
+    fs.writeFileSync(path.join(tempDir, 'READ-OVERRIDE.md'), '# notes\n');
+    const raw = {
+      hook_event_name: 'PreToolUse',
+      session_id: 'claude-session-001',
+      tool_name: 'Bash',
+      tool_input: { command: 'cat READ-OVERRIDE.md' },
+      cwd: tempDir,
+    };
+
+    expect(await runHookWithRaw(readOnceHook, raw)).toBeNull();
+    const result = await runHookWithRaw(readOnceHook, raw);
+
+    expect(result?.hookSpecificOutput).toMatchObject({ permissionDecision: 'deny' });
+    expect(readReadOnceState().stats.sameSessionHits).toBe(1);
+  });
+
   test('same-session read override bypasses deny mode too', async () => {
     process.env.READ_ONCE_MODE = 'deny';
 
