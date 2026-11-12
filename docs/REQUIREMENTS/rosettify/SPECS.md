@@ -687,7 +687,7 @@ The xml rendering SHALL reproduce the canonical unit markup so that a document h
     <criteria id="FR-SPECS-0025.AC8" ears="unwanted" if="an import would carry the document past the maximum number of specs" system="specs migrate" shall="reject the call with size_limit_exceeded"/>
     <criteria id="FR-SPECS-0025.AC9" ears="event" when="a unit carries a tracker key and implementation notes under their markup names" system="specs migrate" shall="store them under the corresponding spec fields"/>
     <criteria id="FR-SPECS-0025.AC10" ears="event" when="one source holds both canonical and non-canonical units" system="specs migrate" shall="import the canonical ones, count only those as migrated, and list each skipped unit with its reason"/>
-    <criteria id="FR-SPECS-0025.AC11" ears="event" when="a unit omits type, source, priority or verification, or gives a blank value" system="specs migrate" shall="store FR, User, Must or Test respectively, and keep every explicitly supplied value unchanged"/>
+    <criteria id="FR-SPECS-0025.AC11" ears="event" when="a unit omits type, source, priority or verification, or gives a blank value" system="specs migrate" shall="store the id prefix (FR when the id is missing or unparseable), User, Must or Test respectively, and keep every explicitly supplied value unchanged"/>
   </acceptance>
   <implementationNotes>src/rosettify/src/commands/specs/migrate.ts, req-parser.ts, markup-grammar.ts</implementationNotes>
 </req>

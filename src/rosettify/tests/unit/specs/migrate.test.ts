@@ -11,6 +11,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { cmdMigrate } from "../../../src/commands/specs/migrate.js";
+import { cmdUpdate } from "../../../src/commands/specs/update.js";
 import { loadSpecs, saveSpecs, RESERVED_NFR_AREAS } from "../../../src/commands/specs/core.js";
 import { SPECS_MAX_SPECS } from "../../../src/shared/constants.js";
 import { makeDoc, makeSpec } from "../../fixtures/specs.js";
@@ -163,6 +164,20 @@ describe("cmdMigrate — omitted or blank type/source/priority/verification take
         expect(spec[attr]).toBe(expected);
       });
     }
+  }
+
+  for (const blank of [false, true]) {
+    it(`${blank ? "blank" : "omitted"} type on an NFR- id migrates as NFR and a later update does not fail`, async () => {
+      const typeAttr = blank ? ' type=""' : "";
+      const unit = `<req id="NFR-PERF-0001"${typeAttr} source="User" priority="Must" verification="Test"><title>T</title><statement>S</statement></req>`;
+      const dest = specsFile();
+      const result = await cmdMigrate([sourceFile("u.md", unit)], dest, undefined, SYSTEM);
+      expect(result.ok).toBe(true);
+      expect(loadSpecs(dest)!.specs[0]!.type).toBe("NFR");
+      const upd = await cmdUpdate(dest, [{ id: "NFR-PERF-0001", title: "New" }], "tester");
+      expect(JSON.stringify(upd)).not.toContain("id_type_mismatch");
+      expect(upd.ok).toBe(true);
+    });
   }
 
   it("keeps explicitly set values", async () => {
