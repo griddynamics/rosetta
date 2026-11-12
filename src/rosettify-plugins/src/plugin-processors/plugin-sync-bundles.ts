@@ -2,11 +2,12 @@
 // FR-CLI-0020: hooksSource is resolved externally (<source>/src/hooks or --hooksSource override).
 // DATA-CFG-0002: bundle source and hook folder read from PluginSpec data.
 // No per-target-name branching (F-F-adjacent fix).
-// FR-CLI-0050: dry-run → skip all disk writes.
+// FR-CLI-0050: dry-run → skip all disk writes; report each bundle a real run would copy.
 // FR-CLI-0036: suppressed → run the checks and report errors, but copy and remove nothing.
 
 import fs from 'fs';
 import path from 'path';
+import type { Writable } from 'stream';
 import { updatePluginFrame } from '../frames.js';
 import { getLogger } from '../logging.js';
 import type { GenError, PluginProcessingFrame, WriteMode } from '../types.js';
@@ -16,7 +17,8 @@ import type { GenError, PluginProcessingFrame, WriteMode } from '../types.js';
  * r2 → remove stale .js files (from any previous r3 run).
  * hooksSource: absolute path to hooks root (FR-CLI-0020, e.g. <source>/src/hooks).
  * Reads bundleSource and hookFolder from PluginSpec data (DATA-CFG-0002).
- * dry-run → no-op (FR-CLI-0050, FR-ARCH-0045). suppressed → checks only (FR-CLI-0036).
+ * dry-run → no disk writes; each bundle a real run would copy is reported to `out`, in the form
+ * pluginWrite uses for a binary file (FR-CLI-0050, FR-ARCH-0045). suppressed → checks only (FR-CLI-0036).
  * FR-HOOK-0020–0022
  */
 export function pluginSyncBundles(
@@ -24,11 +26,11 @@ export function pluginSyncBundles(
   outputDir: string,
   deterministicHooks: boolean,
   mode: WriteMode = 'write',
+  out: Writable = process.stdout,
 ) {
   return function pluginSyncBundlesProcessor(
     p: PluginProcessingFrame,
   ): PluginProcessingFrame {
-    if (mode === 'dry-run') return p; // FR-CLI-0050: zero disk writes in dry-run
     const suppressed = mode === 'suppressed'; // FR-CLI-0036: checks yes, mutations no
 
     const { spec } = p;
@@ -48,6 +50,20 @@ export function pluginSyncBundles(
     const bundleSourceDir = path.join(
       hooksSource, 'dist', 'bundles', spec.bundleSource ?? spec.name,
     );
+
+    if (mode === 'dry-run') {
+      // FR-CLI-0050: zero disk writes in dry-run. Each bundle a real run would copy is reported
+      // the way pluginWrite reports a binary file, so the preview lists every file a real run writes.
+      if (deterministicHooks) {
+        for (const filename of declared) {
+          if (!fs.existsSync(path.join(bundleSourceDir, filename))) continue;
+          const outputPath = path.join(hookFolder, filename);
+          getLogger().info({ path: outputPath }, 'dry-run: would write');
+          out.write(`=== DRY-RUN: ${outputPath} (binary) ===\n`);
+        }
+      }
+      return p;
+    }
 
     // r2 (deterministicHooks false) ships no bundles at all, so nothing is kept.
     const keep = new Set<string>(deterministicHooks ? declared : []);

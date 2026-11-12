@@ -286,3 +286,47 @@ describe('pluginReplaceLiterals — drift guard', () => {
     expect(out.errors).toHaveLength(0);
   });
 });
+
+// FR-ARCH-0058 — the Codex guards exactly as spec/targets.ts composes them, run over a hand-made
+// host document. A guard must fire on a drifted glob, not on a wording that one of its pairs rewrites.
+describe('codex drift guards as composed (FR-ARCH-0058)', () => {
+  const RELEASE: ReleaseDescriptor = { name: 'r1', deterministicHooks: false, displayName: 'R1' };
+
+  function runCodexLiteralProcessors(content: string): PluginProcessingFrame {
+    const outputDir = os.tmpdir();
+    const codex = buildTestSpecs({
+      pluginsSource: REAL_PLUGINS_ROOT,
+      hooksSource: path.join(outputDir, '__no-hooks-source__'),
+      outputDir,
+      release: RELEASE,
+      dryRun: true,
+    }).find((s) => s.name === 'codex')!;
+    const host = makeFrame('rules/plugin-files-mode.md', '.agents/rules/plugin-files-mode.md', content);
+    return codex.pluginProcessors
+      .filter((fn) => fn.name === 'pluginReplaceLiteralsProcessor')
+      .reduce((p, processor) => processor(p), makePluginFrame([host]));
+  }
+
+  it('rewrite the r2 wording "SKILL in `...`" to the root-relative glob and report no drift', () => {
+    // The wording of instructions/r2/core/rules/plugin-files-mode.md: the alias line contains the
+    // guard 'SKILL `', and the glob is listed as "SKILL in `...`", which the second SKILL pair keys on.
+    const out = runCodexLiteralProcessors(
+      'USE SKILL `load-context`, if available\n\n' +
+        '- RULE in `rules/*.md`\n' +
+        '- SKILL in `skills/*/SKILL.md`\n' +
+        '- AGENT/SUBAGENT `agents/*.md`\n' +
+        '- WORKFLOW/COMMAND `workflows/*.md`\n',
+    );
+    expect(out.errors).toEqual([]);
+    const content = out.frames[0].target_contents as string;
+    expect(content).toContain('- SKILL in `.agents/skills/*/SKILL.md`');
+    expect(content).toContain('USE SKILL `load-context`, if available');
+  });
+
+  it('still report a SKILL glob that no longer matches the key', () => {
+    const out = runCodexLiteralProcessors('SKILL `skills/**/SKILL.md` is the layout.');
+    expect(out.errors).toHaveLength(1);
+    expect(out.errors[0].kind).toBe('hard');
+    expect(out.errors[0].message).toContain('SKILL `skills/*/SKILL.md`');
+  });
+});
