@@ -13,7 +13,7 @@ For detailed change history, use git history and PRs instead of expanding this f
   - public documentation in `docs/` and `docs/web/`
   - deployment examples under `deployment/`
 - The MCP server supports both `stdio` and HTTP transports.
-- HTTP mode supports OAuth-based authentication, session storage, and policy-based authorization.
+- HTTP mode supports OAuth-based authentication, session storage, and restricts reads to `aia-*` datasets.
 - The CLI supports publish, verify, list, parse, cleanup, and related packaging flows.
 - The repository contains both user-facing OSS docs and contributor-oriented implementation notes.
 
@@ -77,7 +77,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 
 ### Authorization and Security
 
-- MCP serves the configured `aia-*` instruction dataset; read-policy support is limited to `all` and `none`.
+- MCP serves the configured `aia-*` instruction dataset; only `aia-*` datasets are readable and there is no read-policy setting.
 - OAuth configuration supports both generic OAuth token introspection and OIDC discovery-based validation.
 - Token/session handling includes encryption hooks, TTL controls, and negative-cache behavior for introspection.
 - Public documentation and examples were scrubbed to remove internal infrastructure details while retaining public OSS references.
