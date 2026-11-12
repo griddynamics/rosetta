@@ -166,6 +166,10 @@ Outputs:
 Use `--dry-run` to validate the command shape and print the exact stage plan
 without creating an API client or writing files.
 
+### Retries
+
+The Anthropic SDK client retries a failed request up to 2 times, with backoff. It retries timeouts, connection errors, 408, 409, 429 and 5xx, and follows the `retry-after` header. An error that arrives after a streamed response has started is not retried, and that step fails.
+
 ## Writing a config
 
 A config is one JSON file with global defaults plus a list of suites. A suite
