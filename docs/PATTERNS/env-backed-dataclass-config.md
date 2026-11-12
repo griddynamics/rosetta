@@ -10,6 +10,7 @@ Scattered `os.getenv()` calls throughout service code make configuration hard to
 
 - Adding a new environment variable to the MCP server: add to `constants.py`, add field to `RosettaConfig`, parse in `from_env()`.
 - Testing with different configurations: pass a custom `RosettaConfig` instance.
+- Every field needs a production reader. `tests/test_config_field_readers.py` fails on a parsed-but-unread field; a field that is intentionally not wired yet goes on its allowlist with a tracking issue.
 
 ## Structure
 
@@ -46,7 +47,7 @@ class RosettaConfig:
 _CONFIG = RosettaConfig.from_env()   # server.py top-level
 set_runtime_config(_CONFIG)          # analytics
 _OAUTH_PROVIDER = build_oauth_provider(_CONFIG, ...)
-_AUTHORIZER = Authorizer(_CONFIG.read_policy)
+_AUTHORIZER = Authorizer()
 ```
 
 ## Normalization Functions

@@ -72,7 +72,7 @@ MCP changes are validated with `pytest`, `src/validate-types.sh`, and the end-to
 - **Streamable HTTP with OAuth** (default). Stateful: the server holds session state and can issue callbacks to the IDE. Zero local dependencies. Cursor, Claude Code, and Codex connect directly. When scaling to multiple replicas, sticky sessions are required (see [DEPLOYMENT_GUIDE.md](mcp/DEPLOYMENT_GUIDE.md)).
 - **STDIO** for environments with limited internet access. Runs `uvx rosetta-mcp` locally with API key auth.
 
-**Key environment variables:** `ROSETTA_SERVER_URL`, `ROSETTA_API_KEY`, `INSTRUCTION_ROOT_FILTER`, `REDIS_URL`
+**Key environment variables:** `ROSETTA_SERVER_URL`, `ROSETTA_API_KEY`, `REDIS_URL`. `INSTRUCTION_ROOT_FILTER` is parsed but not enforced yet ([#172](https://github.com/griddynamics/rosetta/issues/172)).
 
 ## Environments
 
@@ -256,7 +256,7 @@ Documents sorted by `sort_order` (default: 1000000), then by name.
 
 Two things to know before you set it.
 
-**It is not applied today.** The server parses the variable into `Config.root_filter` (`src/rosetta-mcp-server/rosetta_mcp/config.py:283,325,343`) and nothing reads it afterwards. Setting it changes nothing about what MCP returns.
+**It is not enforced yet.** The server parses the variable into `RosettaConfig.root_filter` (`src/rosetta-mcp-server/rosetta_mcp/config.py`) and nothing reads it afterwards. Setting it changes nothing about what MCP returns. Wiring it into the Bundler or removing it is tracked in [#172](https://github.com/griddynamics/rosetta/issues/172).
 
 **Roots are top-level folders.** `instructions/r3/` holds one: `core`. Once the filter is wired up, `INSTRUCTION_ROOT_FILTER=CORE` would serve all of it. A filter value has to name every folder you want.
 
