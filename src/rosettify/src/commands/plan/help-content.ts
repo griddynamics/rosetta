@@ -87,7 +87,10 @@ export const planHelpContent = {
       description:
         "Creates a new plan at plan_file. Defaults: name='Unnamed Plan', status='open', " +
         "depends_on=[], timestamps set. Validates unique IDs, dependencies, and size limits. " +
-        "Returns PlanWriteResult: plan + phases summary.",
+        "Returns PlanWriteResult: plan + phases summary. " +
+        "Never replaces an existing file: if plan_file already exists the call fails with " +
+        "plan_already_exists and changes nothing. To continue that plan use next, show_status, " +
+        "or upsert; to start again, delete the file first.",
       examples: {
         tip: "rosettify plan create [plan_file] '[plan-json-string-with-name-and-phases]'",
         real: "rosettify plan create plans/feature-x/plan.json '{\"name\":\"Feature X\",\"phases\":[]}'",
@@ -190,7 +193,8 @@ export const planHelpContent = {
       description:
         "Renders the named create-kind template with the provided placeholder values, " +
         "appends the phase-steps JSON array to the seeded ph-prep phase, then creates the plan. " +
-        "All validations and write semantics are identical to create. Returns PlanWriteResult.",
+        "All validations and write semantics are identical to create, including the " +
+        "plan_already_exists failure when plan_file already exists. Returns PlanWriteResult.",
       examples: {
         tip: "rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator [plan-name] [user-request-description-one-sentence] [phase-steps-json-string]",
         real: "rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator \"Feature X\" \"User wants to add Y to Z\" '[{\"id\":\"ph-prep-s-impl\",\"name\":\"Implement\",\"prompt\":\"Implement Y\"}]'",
