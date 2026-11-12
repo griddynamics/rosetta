@@ -191,6 +191,77 @@ describe('ClaudeCodeAdapter (§10.1) — dialect parser', () => {
   });
 });
 
+describe('ClaudeCodeAdapter — usage is counted once per API response (§10.1, §12)', () => {
+  // Real transcripts carry ONE content block per assistant line: an API response with
+  // N blocks is N lines that share `message.id`, each repeating the response's `usage`.
+  const usage = (output: number) => ({
+    input_tokens: 2,
+    output_tokens: output,
+    cache_read_input_tokens: 47612,
+    cache_creation_input_tokens: 3510,
+  });
+  const assistantLine = (id: string | undefined, item: object, output: number) => ({
+    type: 'assistant',
+    timestamp: '1',
+    message: { ...(id !== undefined ? { id } : {}), role: 'assistant', content: [item], usage: usage(output) },
+  });
+  const thinking = { type: 'thinking', thinking: 'internal', signature: 'x' };
+  const text = { type: 'text', text: 'Listing the files.' };
+  const toolUse = (id: string) => ({ type: 'tool_use', id, name: 'Bash', input: { command: 'ls' } });
+  const toolResult = (id: string) => ({
+    type: 'user',
+    timestamp: '2',
+    message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: id, content: 'file.txt' }] },
+  });
+  const parse = (lines: object[]) => adapter.parseEvents(lines.map((l) => JSON.stringify(l)).join('\n'));
+
+  it('a thinking line + a tool_use line sharing one message.id → ONE usage event, single-counted totals', () => {
+    const events = parse([assistantLine('msg_A', thinking, 119), assistantLine('msg_A', toolUse('toolu_1'), 119)]);
+    expect(events.map((e) => e.kind)).toEqual(['tool_call', 'usage']);
+    expect(adapter.extractUsage(events)).toMatchObject({
+      input: 2,
+      output: 119,
+      cacheRead: 47612,
+      cacheWrite: 3510,
+      total: 2 + 119 + 47612 + 3510,
+    });
+  });
+
+  it('counts a response once when a tool_result line sits between its lines (parallel tool calls)', () => {
+    const events = parse([
+      assistantLine('msg_A', toolUse('toolu_1'), 119),
+      toolResult('toolu_1'),
+      assistantLine('msg_A', toolUse('toolu_2'), 119),
+      toolResult('toolu_2'),
+    ]);
+    expect(events.map((e) => e.kind)).toEqual(['tool_call', 'tool_result', 'tool_call', 'usage', 'tool_result']);
+    expect(adapter.extractUsage(events).output).toBe(119);
+  });
+
+  it('keeps the LAST copy when the copies of one response differ', () => {
+    const events = parse([assistantLine('msg_A', text, 1), assistantLine('msg_A', toolUse('toolu_1'), 40)]);
+    expect(events.filter((e) => e.kind === 'usage')).toHaveLength(1);
+    expect(adapter.extractUsage(events).output).toBe(40);
+  });
+
+  it('two responses (different message.id) still sum', () => {
+    const events = parse([
+      assistantLine('msg_A', thinking, 119),
+      assistantLine('msg_A', toolUse('toolu_1'), 119),
+      toolResult('toolu_1'),
+      assistantLine('msg_B', text, 40),
+    ]);
+    expect(events.filter((e) => e.kind === 'usage')).toHaveLength(2);
+    expect(adapter.extractUsage(events)).toMatchObject({ input: 4, output: 159, cacheRead: 95224, cacheWrite: 7020 });
+  });
+
+  it('lines with no message.id are not merged: each one still counts', () => {
+    const events = parse([assistantLine(undefined, thinking, 119), assistantLine(undefined, toolUse('toolu_1'), 119)]);
+    expect(events.map((e) => e.kind)).toEqual(['usage', 'tool_call', 'usage']);
+    expect(adapter.extractUsage(events)).toMatchObject({ input: 4, output: 238 });
+  });
+});
+
 describe('ClaudeCodeAdapter — structured questions (AskUserQuestion)', () => {
   const askLine = {
     type: 'assistant',

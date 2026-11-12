@@ -196,16 +196,19 @@ class ParseCommand(BaseCommand):
         """Parse documents and wait for completion."""
         
         # Use client's batch parsing method (handles grouping and triggering)
-        _ = self.client.parse_documents_batch(docs_to_parse, silent=True)
+        result = self.client.parse_documents_batch(docs_to_parse, silent=True)
+        # Documents of a rejected request count as failed and are not polled:
+        # any status they report is not the result of this request.
+        accepted = [doc for doc in docs_to_parse if str(doc["dataset_id"]) in result["success"]]
         
         # Wait with progress bar using DocumentService
         doc_service = DocumentService(self.client)
         success, failed = doc_service.wait_for_parsing(
-            docs_to_parse,
+            accepted,
             timeout=self.config.parse_timeout
         )
         
-        return success, failed
+        return success, failed + len(docs_to_parse) - len(accepted)
     
     def _print_parse_summary(self, success: int, failed: int, status_counts: dict[str, int], args: CommandArgs) -> None:
         """Print parsing summary."""

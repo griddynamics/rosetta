@@ -85,4 +85,11 @@ If you learned something new which is reusable, there are process efficiency imp
 - **Reviewer prompts: static only, return commands.** Three reviewer spawns were denied outright because prompts asked to run contributor tests. Auto mode blocks running PR code; ask for exact pinned commands instead.
 - **Verify release fixes against shipped assets.** Static review could not prove #388; downloading release zips and `diff -r` against `git archive <sha> plugins` did. Check the real artifact, not the script.
 - **Compare against the baseline the user named.** Asked "new pipeline vs previous pipeline, same release"; compared against the repo and the prior release instead. Overwritten assets still leave per-file `adding:` lines in run logs.
+- **Explain the system before the defect.** Asked about #419 with helper sizes, test counts and `file:line`. User could not see what broke. Lead with: what the parts do, what was expected, what happens, what fixes it.
+- **One PR's decision is not a pattern.** Carried "docs only" from #418 (behavior correct) to #419 (behavior broken). Judge each PR on its own evidence.
+- **Offer docs-only when behavior is fine.** #418 (SDK already retried) and #421 (workflow due for replacement): user chose a doc note over code. Include that option whenever the code already works or will be retired.
+- **Review the whole system, not the diff.** #419 looked right until the env var, image default, server bind and real deployment values were traced. Map every place the value lives: code, config, image, runtime defaults (SDKs), local vs deployed, real values repos.
+- **Re-check PR state before presenting.** #398 author pushed mid-session; earlier file list and "waiting on author" were stale. Re-fetch commits/comments right before each verdict and before the final summary.
+- **Same-version bumps merge silently, publish fails.** Parallel PRs all bumping X→X+1 merge without conflict; every publish after the first fails "version exists". Batch merges, then one bump PR; confirm publish runs.
+- **zsh eats `$VAR:x` in git refs.** `git show $H:src/...` failed (`:s` modifier). Write `"${H}:path"` in commands and subagent prompts.
 - **Talking around, not directly.** If you cannot be specific and clear and short, it means YOU are NOT grounded. DO NOT ASK YET - DIG FIRST!

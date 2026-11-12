@@ -240,12 +240,50 @@ describe('pluginSyncBundles', () => {
         bundleSource: 'claude',
       };
       const p = makePluginFrame(spec);
-      // dryRun=true → no-op
-      const result = pluginSyncBundles(hooksSource, outputDir, true, 'dry-run')(p);
+      const out = new LogSink();
+      const result = pluginSyncBundles(hooksSource, outputDir, true, 'dry-run', out)(p);
       expect(result).toBe(p); // frame returned unchanged
       // No output dir created
       const targetHookDir = path.join(outputDir, 'core-claude', 'hooks');
       expect(fs.existsSync(targetHookDir)).toBe(false);
+    } finally {
+      cleanup();
+    }
+  });
+
+  // FR-CLI-0050: the preview lists every file a real run writes, hook bundles included.
+  it('dry-run: reports each bundle a real run would copy, in the binary form pluginWrite uses', () => {
+    // One declared bundle is absent from the source: a real run copies none for it, so neither is it listed.
+    const present = BUNDLE_NAMES.filter((name) => name !== 'read-once.js');
+    const { hooksSource, outputDir, cleanup } = makeTempRepo('claude', present);
+    try {
+      const spec: Partial<PluginSpec> = {
+        name: 'claude', set: 'core', hookModules: BUNDLE_MODULES,
+        destination: 'core-claude', hookFolder: 'hooks', bundleSource: 'claude',
+      };
+      const out = new LogSink();
+      pluginSyncBundles(hooksSource, outputDir, true, 'dry-run', out)(makePluginFrame(spec));
+      const hookDir = path.join(outputDir, 'core-claude', 'hooks');
+      const reported = String(out.read() ?? '').split('\n').filter((line) => line !== '');
+      expect(reported.sort()).toEqual(
+        present.map((name) => `=== DRY-RUN: ${path.join(hookDir, name)} (binary) ===`).sort(),
+      );
+      expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(false);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('dry-run: reports nothing when the release ships no bundles', () => {
+    const { hooksSource, outputDir, cleanup } = makeTempRepo('claude', BUNDLE_NAMES);
+    try {
+      const spec: Partial<PluginSpec> = {
+        name: 'claude', set: 'core', hookModules: BUNDLE_MODULES,
+        destination: 'core-claude', hookFolder: 'hooks', bundleSource: 'claude',
+      };
+      const out = new LogSink();
+      pluginSyncBundles(hooksSource, outputDir, false, 'dry-run', out)(makePluginFrame(spec));
+      expect(out.read()).toBeNull();
     } finally {
       cleanup();
     }

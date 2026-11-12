@@ -3,12 +3,13 @@
  * Updated for Phase 9: expects compressed-tree result shape, previous_version field,
  * and pretty-formatted file on disk.
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { cmdCreate } from "../../../src/commands/plan/create.js";
 import { loadPlan } from "../../../src/commands/plan/core.js";
+import { cmdUpdateStatus } from "../../../src/commands/plan/update-status.js";
 import type { PlanWriteResult } from "../../../src/commands/plan/output.js";
 
 let tmpDir: string;
@@ -26,6 +27,25 @@ function planFile(name = "plan.json"): string {
 }
 
 describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
+  it("returns backup_create_failed on lock exhaustion and leaves the file unchanged", async () => {
+    const file = planFile();
+    expect((await cmdCreate(file, { name: "Original" })).ok).toBe(true);
+    const before = fs.readFileSync(file);
+    fs.mkdirSync(file + ".lock");
+    vi.useFakeTimers({ toFake: ["setTimeout"] });
+    try {
+      const pending = cmdCreate(file, { name: "Replacement" });
+      await vi.runAllTimersAsync();
+      const result = await pending;
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe("backup_create_failed");
+      expect(fs.readFileSync(file)).toEqual(before);
+      expect(fs.readdirSync(tmpDir).sort()).toEqual(["plan.json", "plan.json.lock"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   // FR-PLAN-0040 — create returns compressed-tree shape
   it("returns compressed-tree result on first create", async () => {
     const file = planFile();
@@ -271,23 +291,82 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
   it("internal_error: returns internal_error for non-Error thrown", async () => {
     const dirPath = path.join(tmpDir, "dir-not-file");
     fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(path.join(dirPath, "keep.txt"), "untouched");
     const result = await cmdCreate(dirPath, { name: "Fail" });
     expect(result.ok).toBe(false);
     expect(result.error).toContain("internal_error");
+    expect(fs.statSync(dirPath).isDirectory()).toBe(true);
+    expect(fs.readFileSync(path.join(dirPath, "keep.txt"), "utf8")).toBe("untouched");
+    expect(fs.readdirSync(tmpDir)).toEqual(["dir-not-file"]);
   });
 
-  it("idempotent: second create overwrites with new name (NFR-REL-0002)", async () => {
+  it("second create fails with plan_already_exists and writes nothing (NFR-REL-0002)", async () => {
     const file = planFile();
 
     const first = await cmdCreate(file, { name: "Original Plan" });
     expect(first.ok).toBe(true);
-    expect((first.result as PlanWriteResult).plan.name).toBe("Original Plan");
+    const before = fs.readFileSync(file);
 
     const second = await cmdCreate(file, { name: "Replaced Plan" });
-    expect(second.ok).toBe(true);
-    expect((second.result as PlanWriteResult).plan.name).toBe("Replaced Plan");
+    expect(second.ok).toBe(false);
+    expect(second.error).toBe("plan_already_exists");
+    expect(second.result).toBeNull();
+    expect(fs.readFileSync(file)).toEqual(before);
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
+  });
 
-    const plan = loadPlan(file)!;
-    expect(plan.name).toBe("Replaced Plan");
+  it("create on a plan with progress keeps the completed state and makes no backup", async () => {
+    const file = planFile();
+    await cmdCreate(file, { name: "Original", phases: [
+      { id: "p1", name: "P1", steps: [{ id: "s1", name: "S1", prompt: "do" }] },
+    ] });
+    expect((await cmdUpdateStatus(file, "s1", "complete")).ok).toBe(true);
+    const latest = fs.readFileSync(file);
+    const entries = fs.readdirSync(tmpDir).sort();
+    const result = await cmdCreate(file, { name: "Replacement" });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file)).toEqual(latest);
+    expect(fs.readdirSync(tmpDir).sort()).toEqual(entries);
+    expect(loadPlan(file)!.phases[0]!.steps[0]!.status).toBe("complete");
+  });
+
+  it.each([
+    ["corrupted", Buffer.from([0xff, 0x00, 0x7b, 0x0a])],
+    ["empty", Buffer.alloc(0)],
+  ])("a %s existing file fails the same way and keeps its exact bytes", async (_kind, content) => {
+    const file = planFile();
+    fs.writeFileSync(file, content);
+    const result = await cmdCreate(file, { name: "Recovered" });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file)).toEqual(content);
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
+  });
+
+  it("a rejected re-create leaves the original file unchanged with no backup", async () => {
+    const file = planFile();
+    await cmdCreate(file, { name: "Keep" });
+    const before = fs.readFileSync(file);
+    const result = await cmdCreate(file, { name: "" });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("size_limit_exceeded");
+    expect(fs.readFileSync(file)).toEqual(before);
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
+  });
+
+  it("waits for the lock and refuses a file created while waiting", async () => {
+    const file = planFile();
+    fs.mkdirSync(file + ".lock");
+    const pending = cmdCreate(file, { name: "Second" });
+    expect(fs.existsSync(file)).toBe(false);
+    const first = '{"name":"First"}';
+    fs.writeFileSync(file, first);
+    fs.rmdirSync(file + ".lock");
+    const result = await pending;
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file, "utf8")).toBe(first);
+    expect(fs.readdirSync(tmpDir)).toEqual(["plan.json"]);
   });
 });
