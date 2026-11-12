@@ -31,6 +31,7 @@ import { SPEC_FIELD_GUIDE } from "./field-guide.js";
 // FR-SPECS-0061 — the caller-facing behaviors, each standalone directive guidance
 export const specsNotes: string[] = [
   "the JSON-bearing argument (data) is passed as an inline JSON string, not a file path — a single object or an array (batch)",
+  "the add or migrate call that creates the document must name its system with --system; a later call may omit it, and a name different from the stored one is refused",
   "ids are caller-provided, never server-minted; run info first to get the suggested next id per area before add",
   "a non-functional id should use one of the nine recommended quality-characteristic codes — PERF, SEC, REL, USE, MAIN, PORT, COMP, FUNC, SAFE — which are pre-registered in every document and need no registration; any other registered area is still accepted and is only reported as a recommendation not followed",
   "the statement carries the rule: what shall hold, the cases it covers, and the cases it excludes — write it as the governing rule, not as a one-trigger sentence, and do not repeat the criteria in it",
@@ -149,16 +150,21 @@ export const specsHelpContent = {
     {
       name: "add",
       brief: "Append one or more new spec units",
-      usage: "rosettify specs add <specs_file> '<data>'",
-      args: { data: "inline JSON string: a single spec object, or an array of spec objects (batch)" },
-      required: "specs_file and data are required",
+      usage: "rosettify specs add <specs_file> '<data>' [--system <name>]",
+      args: {
+        data: "inline JSON string: a single spec object, or an array of spec objects (batch)",
+        "--system":
+          "name of the system this document holds requirements for; required the first time a call would create the " +
+          "document, optional (and reconciled against the stored name) against one that already exists",
+      },
+      required: "specs_file and data are required; --system is required when the call creates the document",
       description:
         "Creates the document if it does not exist yet. Each item must include id, type, title, statement, source, " +
         "priority, verification, and a non-empty acceptance array; status/approved_by/implementation are ignored and set " +
         "to Draft/''/NotStarted. The whole batch is rejected together if any item is invalid. Returns SpecWriteResult.",
       examples: {
-        tip: "rosettify specs add [specs_file] '[spec-json-object-or-array]'",
-        real: "rosettify specs add specs/checkout/specs.json '{\"id\":\"FR-CHK-0001\",\"type\":\"FR\",\"level\":\"System\",\"title\":\"Cart total\",\"statement\":\"The cart total shall equal the sum of its line totals after every change to the cart contents, including a removal; it does not cover taxes or shipping.\",\"source\":\"User\",\"priority\":\"Must\",\"verification\":\"Test\",\"acceptance\":[{\"id\":\"FR-CHK-0001.AC1\",\"ears\":\"event\",\"when\":\"an item is added to the cart\",\"system\":\"the checkout system\",\"shall\":\"recompute the total to include the new item\"},{\"ears\":\"unwanted\",\"if\":\"a line total is unavailable\",\"system\":\"the checkout system\",\"shall\":\"leave the previous total in place and report the failure\"}]}'",
+        tip: "rosettify specs add [specs_file] '[spec-json-object-or-array]' --system [system-name]",
+        real: "rosettify specs add specs/checkout/specs.json '{\"id\":\"FR-CHK-0001\",\"type\":\"FR\",\"level\":\"System\",\"title\":\"Cart total\",\"statement\":\"The cart total shall equal the sum of its line totals after every change to the cart contents, including a removal; it does not cover taxes or shipping.\",\"source\":\"User\",\"priority\":\"Must\",\"verification\":\"Test\",\"acceptance\":[{\"id\":\"FR-CHK-0001.AC1\",\"ears\":\"event\",\"when\":\"an item is added to the cart\",\"system\":\"the checkout system\",\"shall\":\"recompute the total to include the new item\"},{\"ears\":\"unwanted\",\"if\":\"a line total is unavailable\",\"system\":\"the checkout system\",\"shall\":\"leave the previous total in place and report the failure\"}]}' --system checkout",
       },
     },
     {
@@ -367,7 +373,7 @@ export const specsHelpContent = {
       required: "specs_file is required",
       description:
         "Returns registered areas with their spec counts, totals by type/status/implementation, the next free id " +
-        "per prefix+area combination that already has at least one spec, and the document's timestamps in local time. " +
+        "per prefix+area combination that already has at least one spec or purged id, and the document's timestamps in local time. " +
         "No full spec bodies. Returns SpecInfoResult.",
       examples: {
         tip: "rosettify specs info [specs_file]",
@@ -377,9 +383,14 @@ export const specsHelpContent = {
     {
       name: "migrate",
       brief: "Import requirement units written in the markup form render emits",
-      usage: "rosettify specs migrate <specs_file> <sources...>",
-      args: { sources: "one or more source file paths holding requirement units in the markup form render emits" },
-      required: "specs_file and at least one source are required",
+      usage: "rosettify specs migrate <specs_file> <sources...> [--system <name>]",
+      args: {
+        sources: "one or more source file paths holding requirement units in the markup form render emits",
+        "--system":
+          "name of the system this document holds requirements for; required the first time a call would create the " +
+          "document, optional (and reconciled against the stored name) against one that already exists",
+      },
+      required: "specs_file and at least one source are required; --system is required when the call creates the document",
       description:
         "Creates the document if it does not exist yet. Reads every requirement unit written in the shape render " +
         "emits out of each source and appends it. A source that does not exist or holds no such unit is excluded " +
@@ -387,8 +398,8 @@ export const specsHelpContent = {
         "without dropping the rest of it, and a per-unit issue that did not stop the import is reported in " +
         "warnings. Returns SpecMigrateResult.",
       examples: {
-        tip: "rosettify specs migrate [specs_file] [source-1.md] [source-2.md ...]",
-        real: "rosettify specs migrate specs/checkout/specs.json specs/checkout/incoming-requirements.md",
+        tip: "rosettify specs migrate [specs_file] [source-1.md] [source-2.md ...] --system [system-name]",
+        real: "rosettify specs migrate specs/checkout/specs.json specs/checkout/incoming-requirements.md --system checkout",
       },
     },
   ],

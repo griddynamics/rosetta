@@ -120,6 +120,51 @@ describe("runSpecs — batch normalization and size limit", () => {
   });
 });
 
+// FR-SPECS-0030 — the limit covers an id batch too, on every subcommand whose batch is its ids.
+describe("runSpecs — id batch size limit", () => {
+  const batchIds = (count: number) => Array.from({ length: count }, (_, i) => `FR-CHK-${String(i + 1).padStart(4, "0")}`);
+
+  it.each(["get", "delete", "purge", "approve", "deprecate", "restore", "reopen"])(
+    `rejects %s with more than SPECS_MAX_BATCH_SIZE (${SPECS_MAX_BATCH_SIZE}) ids before processing`,
+    async (subcommand) => {
+      const file = specsFile();
+      saveSpecs(file, makeDoc({ specs: [makeSpec({ id: "FR-CHK-0001" })] }));
+      const before = fs.readFileSync(file, "utf8");
+      const ids = batchIds(SPECS_MAX_BATCH_SIZE + 1);
+      const result = await specsToolDef.run({ subcommand, specs_file: file, ids, force: true });
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe(
+        `size_limit_exceeded: 1 item(s) rejected | [(batch)] batch of ${ids.length} exceeds the maximum of ${SPECS_MAX_BATCH_SIZE} items`,
+      );
+      expect(fs.readFileSync(file, "utf8")).toBe(before); // document untouched
+      expect(fs.readdirSync(tmpDir)).toEqual(["specs.json"]); // no backup written
+    },
+  );
+
+  it("rejects an over-size id batch before reading the document", async () => {
+    const result = await specsToolDef.run({ subcommand: "get", specs_file: specsFile("nope.json"), ids: batchIds(SPECS_MAX_BATCH_SIZE + 1) });
+    expect(result.error).toContain("size_limit_exceeded"); // not specs_not_found
+  });
+
+  // Each row: the subcommand and the status its targets must hold for the call to succeed.
+  it.each([
+    ["get", "Draft"],
+    ["delete", "Draft"],
+    ["purge", "Draft"],
+    ["approve", "Draft"],
+    ["deprecate", "Draft"],
+    ["restore", "Removed"],
+    ["reopen", "Approved"],
+  ] as const)(`accepts %s with exactly SPECS_MAX_BATCH_SIZE (${SPECS_MAX_BATCH_SIZE}) ids`, async (subcommand, status) => {
+    const file = specsFile();
+    const ids = batchIds(SPECS_MAX_BATCH_SIZE);
+    saveSpecs(file, makeDoc({ specs: ids.map((id) => makeSpec({ id, status })) }));
+    const result = await specsToolDef.run({ subcommand, specs_file: file, ids, force: true });
+    expect(result.error).toBeNull();
+    expect(result.ok).toBe(true);
+  });
+});
+
 describe("runSpecs — missing ids / missing data guards", () => {
   it("returns missing ids for get without ids", async () => {
     const file = specsFile();

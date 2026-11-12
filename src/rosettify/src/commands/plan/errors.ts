@@ -6,6 +6,9 @@
 /** FR-PLAN-0021 — plan file exists but cannot be parsed as valid JSON. */
 export const ERR_PLAN_FILE_CORRUPTED = "plan_file_corrupted";
 
+/** FR-PLAN-0021 / FR-PLAN-0010 — create targets a path where a file already exists. */
+export const ERR_PLAN_ALREADY_EXISTS = "plan_already_exists";
+
 /**
  * FR-PLAN-0021 / FR-PLAN-0024 — rename-as-guard write cycle exhausted retries.
  * Re-exported from shared/errors.ts (generic, not plan-specific) so existing plan import
