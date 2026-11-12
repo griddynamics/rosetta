@@ -91,7 +91,7 @@ src/curiocity/
 **Tooling:** TypeScript (strict), ESM, Node ≥ 20. `tsx` for dev (`npm run dev`), `tsup` to build `dist/`, `vitest` for tests. Scripts: `dev`, `build`, `test`, `test:integration`, `lint`, `smoke` (mock-agent end-to-end, no tokens).
 
 **Dependency rules (enforced by convention + review):**
-- `agents/ evaluators/ stats/ reporters/` import only from `shared/` + their registry types. Core never imports a concrete adapter except through a registry.
+- `agents/ evaluators/ stats/ reporters/` import only from `shared/`, `results/` types and constants, + their registry types. Core never imports a concrete adapter except through a registry.
 - `orchestrator/` talks to `curion/` **only** via IPC message types in `shared/ipc.ts`.
 - `cli/` is the only module that reads argv; `config/` is the only module that reads config files.
 
@@ -333,7 +333,7 @@ Per Curion, in order:
 
 **Statuses:** `passed | failed | setup-error | launch-error | eval-error | timeout | agent-hung | agent-crash | skipped`. Only `passed/failed` carry verdicts; error statuses are reported separately and **never enter score statistics** (D14). `eval-error` = the trial completed interact+collect but ≥1 evaluator **threw** (infra error, e.g. judge key `insufficient_quota`) — never validly judged, verdict absent, per-evaluator records kept (the errored one flagged), excluded from score statistics exactly like `setup-error`, and it drives exit `3` (§13). Their effect on exit codes: §13. When evaluation is not run (D9 inline default or `--no-evaluate`), a trial that completes interact+collect cleanly gets status `passed` with **no verdict** (`verdict` absent); score-based gates then evaluate vacuously and only statuses drive the exit code.
 
-**Two "not run" cases, two names (#269).** The word *skipped* used to name both; they are different things:
+Two different "not run" cases carry two names:
 
 | Name | Where | Meaning | Persisted as |
 |---|---|---|---|
@@ -342,8 +342,8 @@ Per Curion, in order:
 
 **Status sets.** Two sets classify the non-`passed`/`failed` statuses, on purpose differently:
 
-- `INFRA_ERROR_STATUSES` (`curion/status.ts`) = `setup-error | launch-error | eval-error | timeout | agent-hung | agent-crash` — the trial was attempted and infra broke. Drives the gate's exit `3` (§13).
-- `UNCOMPLETED_STATUSES` (`stats/types.ts`) = `INFRA_ERROR_STATUSES` + the not-run `skipped` — every trial that produced no scorable outcome. Drives the report's `errors` count (`pass-rate`, §12).
+- `INFRA_ERROR_STATUSES` (`results/schema.ts`) = `setup-error | launch-error | eval-error | timeout | agent-hung | agent-crash` — the trial was attempted and infra broke. Drives the gate's exit `3` (§13).
+- `UNCOMPLETED_STATUSES` (`stats/types.ts`) = `INFRA_ERROR_STATUSES` + the not-run `skipped` — every status other than `passed`/`failed`. Drives the report's `errors` count (`pass-rate`, §12).
 
 A not-run trial counts as a report error (a planned trial yielded no result) but not as a gate error (nothing in the infra failed; it is a configuration outcome). It is non-fatal at the gate while other trials ran; an all-not-run suite exits `2` ("no runnable trials").
 

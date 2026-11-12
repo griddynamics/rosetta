@@ -1,7 +1,6 @@
 import type { GateConfig } from '../config/schema';
 import { ExitCode } from '../cli/exit-codes';
-import { INFRA_ERROR_STATUSES } from '../curion/status';
-import { NOT_RUN_STATUS, type TrialResult } from '../results/schema';
+import { INFRA_ERROR_STATUSES, NOT_RUN_STATUS, type TrialResult } from '../results/schema';
 
 /**
  * Suite gatekeeper (§13) — a PURE function of stored `TrialResult`s (D8), so

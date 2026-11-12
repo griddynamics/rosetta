@@ -1,16 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { INFRA_ERROR_STATUSES } from '../../src/curion/status';
 import { runEvaluatorPipeline } from '../../src/curion/evaluate';
-import { NOT_RUN_STATUS, trialStatusSchema } from '../../src/results/schema';
+import { INFRA_ERROR_STATUSES, NOT_RUN_STATUS, trialStatusSchema } from '../../src/results/schema';
 import { UNCOMPLETED_STATUSES } from '../../src/stats/types';
 import { FakeModelRouter } from '../../src/shared/model-router';
 
 /**
- * #269: the two meanings once both spelled "skipped" carry distinct names, and the two
- * status sets (gate vs report) are pinned to their intended, deliberately different
- * contents. Behavior-preserving: the persisted status value is still `skipped`.
+ * The two "not run" meanings carry distinct names, and the two status sets (gate vs
+ * report) are pinned to their intended, deliberately different contents. The persisted
+ * not-run status value is `skipped`.
  */
-describe('status sets (#269)', () => {
+describe('status sets', () => {
   it('the not-run trial status keeps its persisted spelling `skipped`', () => {
     expect(NOT_RUN_STATUS).toBe('skipped');
     expect(trialStatusSchema.parse(NOT_RUN_STATUS)).toBe('skipped');

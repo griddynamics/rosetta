@@ -1,6 +1,5 @@
 import type { GateConfig, PricingMap } from '../config/schema';
-import { INFRA_ERROR_STATUSES } from '../curion/status';
-import { NOT_RUN_STATUS, type StatBlock, type TrialResult, type TrialStatus } from '../results/schema';
+import { INFRA_ERROR_STATUSES, NOT_RUN_STATUS, type StatBlock, type TrialResult, type TrialStatus } from '../results/schema';
 
 /**
  * Stat contract (§5.5, §12). A pure reducer over one `(case×agent)` group. The
@@ -19,9 +18,8 @@ export interface Stat {
 }
 
 /**
- * Uncompleted statuses: every trial that did not end `passed`/`failed`, i.e. produced
- * no outcome for score statistics (D14). This is the report's `errors` count
- * (`pass-rate`): the infra-error statuses (`INFRA_ERROR_STATUSES`, curion/status.ts)
+ * Uncompleted statuses: every status other than `passed`/`failed` (D14). This is the report's `errors` count
+ * (`pass-rate`): the infra-error statuses (`INFRA_ERROR_STATUSES`, results/schema.ts)
  * PLUS the not-run status (`skipped`, `NOT_RUN_STATUS`). A not-run cell counts here
  * because the report shows how many planned trials yielded no result, whatever the
  * cause; it does not count toward the gate's exit 3 because nothing in the infra

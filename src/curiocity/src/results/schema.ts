@@ -37,6 +37,26 @@ export type TrialStatus = z.infer<typeof trialStatusSchema>;
  */
 export const NOT_RUN_STATUS = 'skipped' satisfies TrialStatus;
 
+/**
+ * Infra-error statuses: the trial was ATTEMPTED and the harness/infra broke before a
+ * valid verdict (setup, launch, evaluator crash, timeout, hang, crash). Any of these
+ * drives the gatekeeper's partial-infra exit code 3 (§13).
+ *
+ * The not-run status (`skipped`, see `NOT_RUN_STATUS`) is deliberately absent: a cell
+ * that was never attempted is a configuration outcome, not an infrastructure failure.
+ * It stays non-fatal at the gate when other trials ran; an all-not-run suite exits 2
+ * ("no runnable trials"). Compare `UNCOMPLETED_STATUSES` (stats/types.ts), the
+ * report's `errors` count, which DOES include not-run trials.
+ */
+export const INFRA_ERROR_STATUSES: ReadonlySet<TrialStatus> = new Set<TrialStatus>([
+  'setup-error',
+  'launch-error',
+  'eval-error',
+  'timeout',
+  'agent-hung',
+  'agent-crash',
+]);
+
 /** One named metric emitted by an evaluator (§11 `external`): value normalized 0-100.
  *  `confidenceLevel`/`perplexityLevel` are optional per-metric fields (§5.4), each 0-100. */
 export const evalMetricSchema = z.object({
