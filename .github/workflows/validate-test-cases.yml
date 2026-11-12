@@ -1,10 +1,7 @@
 # Validate Test Cases
 #
-# Trigger: manual (workflow_dispatch) for now. The automatic pull_request trigger
-# on instructions/ changes is disabled on purpose for CI budget; see the `on:` block.
-# The pull_request-only steps (base-SHA diff, PR comment) are kept intentionally
-# for when that trigger is restored.
-#
+# Trigger: manual (workflow_dispatch) only. The pull_request trigger is disabled; see the on: block.
+# This workflow is expected to be replaced by the Curiocity workflow (e2e-testing.yml) and stays as is until then.
 # For each test-library/* case whose trigger.txt matches changed files:
 # - Copies root to root-new and root-old
 # - Injects instructions (new vs old) into each
@@ -26,7 +23,7 @@ name: Validate Test Cases
 
 on:
   # The pull_request trigger below is disabled on purpose and temporarily:
-  # each run makes 3 Claude CLI calls per matched test-library case, which costs
+  # each run makes 3 agent CLI calls per matched test-library case, which costs
   # more per PR than the current CI budget allows. It is not broken. Run it by
   # hand via workflow_dispatch until the budget is restored.
 #  pull_request:
@@ -110,7 +107,6 @@ jobs:
             echo "count=$COUNT" >> $GITHUB_OUTPUT
           fi
 
-      # Kept for the pull_request trigger (disabled, see `on:`); manual runs use HEAD^.
       - name: Set base SHA
         id: base
         if: steps.changed.outputs.count > 0
@@ -148,7 +144,6 @@ jobs:
           chmod +x .github/scripts/run-test-cases.sh
           .github/scripts/run-test-cases.sh
 
-      # pull_request-only; kept for when the trigger is restored (see `on:`).
       - name: Generate PR comment
         if: always() && github.event_name == 'pull_request' && steps.changed.outputs.count > 0
         env:
