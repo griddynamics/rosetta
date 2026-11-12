@@ -39,7 +39,7 @@ describe('status sets', () => {
   });
 });
 
-describe('evaluation not run is not the not-run trial status (#269)', () => {
+describe('evaluation not run is not the not-run trial status', () => {
   it('a disabled pipeline reports `not-evaluated`, not `skipped`', async () => {
     const out = await runEvaluatorPipeline({
       enabled: false,
