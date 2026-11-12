@@ -62,6 +62,9 @@ spec:
           {{- end }}
           {{- if .Values.env.enabled }}
           env:
+            {{- with include "rosetta-mcp.httpPortEnv" . }}
+            {{- . | nindent 12 }}
+            {{- end }}
             {{- if .Values.env.vars }}
             {{- toYaml .Values.env.vars | nindent 12 }}
             {{- end }}

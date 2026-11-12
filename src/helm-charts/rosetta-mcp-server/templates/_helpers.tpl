@@ -80,3 +80,21 @@ Usage: include "rosetta-mcp.probe" (dict "probe" $p "ports" $.Values.ports)
 {{- end -}}
 {{- toYaml $probe -}}
 {{- end }}
+
+{{/*
+ROSETTA_HTTP_PORT env entry derived from the first entry of .Values.ports, so the server listens on the
+port the probes, Service and Ingress use. Renders nothing when .Values.ports is empty or when env.vars or
+env.secrets already define ROSETTA_HTTP_PORT (the explicit value is kept and appears once).
+*/}}
+{{- define "rosetta-mcp.httpPortEnv" -}}
+{{- $explicit := false -}}
+{{- range concat (.Values.env.vars | default list) (.Values.env.secrets | default list) -}}
+{{- if eq (toString .name) "ROSETTA_HTTP_PORT" -}}
+{{- $explicit = true -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.ports (not $explicit) -}}
+- name: ROSETTA_HTTP_PORT
+  value: {{ first .Values.ports | toString | quote }}
+{{- end -}}
+{{- end }}

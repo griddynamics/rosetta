@@ -133,8 +133,7 @@ env:
       value: "http"
     - name: ROSETTA_HTTP_HOST
       value: "0.0.0.0"
-    - name: ROSETTA_HTTP_PORT
-      value: "8000"
+    # ROSETTA_HTTP_PORT is set by the template from the first entry of `ports`; list it here only to override.
     - name: ROSETTA_MODE
       value: "SOFT"  # HARD or SOFT
     - name: FASTMCP_ENABLE_RICH_LOGGING
