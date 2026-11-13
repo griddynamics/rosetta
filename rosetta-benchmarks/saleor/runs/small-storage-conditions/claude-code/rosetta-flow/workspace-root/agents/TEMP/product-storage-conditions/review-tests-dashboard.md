@@ -1,0 +1,18 @@
+# Review: Dashboard tests (T2) vs DA-01..06
+TLDR: No blockers. All new/changed suites pass (spot-run: ProductDetailsForm, ExportDialog, translations, ProductUpdatePage, handlers, data.test, lockSchema). 3 fixed completion tests correct (5->6; 6->7 x2), no assertion weakened, storageConditions:null added to fixtures. Two majors/minors below; DA-05 gap acceptable.
+
+MAJOR
+1. ProductDetailsForm.test.tsx "keeps counting past the limit" (~l.98-104) only asserts the counter text. DA-02 also requires the error state when >250; the component sets error={len>250}. Not asserted. Fix: assert the textarea's aria-invalid / error styling (or that helperText state changes) for a 251-char value.
+MINOR
+2. Server-error test (ProductDetailsForm.test.tsx ~l.78-92) asserts the mapped "Invalid value" text, which proves the error is wired to the field and replaces helper text. OK, but the error code is INVALID so the server message ("too long") is never shown; acceptable given getProductErrorMessage design. No change required.
+3. Main-schema tests (ProductDetailsForm.test, ExportInfo.test, TranslationsProductsPage.test) do not mock schemaVersion, so they depend on the default env (FF_USE_STAGING_SCHEMA unset). Idempotent today, but fragile if CI sets the flag. Fix (cheap): add the same jest.mock with isMainSchema: () => true, matching the staging files.
+4. Export test selects the checkbox via document.querySelector on input[name] (ExportInfo.test ~l.64) rather than a role/label query; works, slightly brittle. Optional: getByLabelText("Export Storage Conditions") if the label is associated.
+5. translations utils.test (storageConditions "" stays "") and completion cases (null, "", whitespace) good. TranslationsProductsPage tests only prove the sections prop and that onSubmit is forwarded; the layout mock means real save wiring is not exercised, but the save input mapping is covered separately by getParsedTranslationInputData tests. Sufficient.
+
+MOCK JUDGEMENT
+- RichTextEditor -> null: fine, description editing is out of scope. Accordion passthrough: needed so collapsed content renders; checkbox still the real component, so behavior is proven. TranslationsDetailLayout props capture: proves field config and submit forwarding, not rendering; acceptable and follows the neighbouring section-builder pattern. Module-level mockCapturedLayoutProps is reassigned each render, no cross-test leakage.
+
+COVERAGE vs AC
+DA-01: Save enable (form.test, via isSaveDisabled + saveComposition.hasDetails), only-changed-field payload, clear->null (utils.test), empty->'' form data, revert-to-clean: covered. DA-02: counter, hide-when-empty, server error covered; error state gap (#1). DA-03: field config, source+translation, save input, completion: covered. DA-04: option shown and STORAGE_CONDITIONS emitted: covered. DA-05: staging tests for form, export, translation page, completion all present.
+
+DA-05 GAP (staging API path): lockSchema.test.ts + the 4 staging gating tests are sufficient. The API-path stripping is done by the @lockSchema directive transform, which lockSchema.test.ts exercises generically, and storageConditions is annotated in fragments/mutations. A cheap extra test is optional only: a staging-schema assertion in handlers/utils.test (or a gated variant) that getProductUpdateVariables omits storageConditions; note that currently the function sends it whenever data.storageConditions !== undefined, and staging gating relies on the form never producing the field. If the plan wants belt-and-braces, add that one test (and, if it fails, report as a code finding rather than a test issue).

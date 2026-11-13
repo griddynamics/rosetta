@@ -1,0 +1,1501 @@
+diff --git a/.changeset/product-storage-conditions.md b/.changeset/product-storage-conditions.md
+new file mode 100644
+index 0000000..f5492ad
+--- /dev/null
++++ b/.changeset/product-storage-conditions.md
+@@ -0,0 +1,5 @@
++---
++"saleor-dashboard": patch
++---
++
++Added a "Storage conditions" field (plain text, up to 250 characters) to the product details form, so staff can set storage instructions (e.g. "Keep refrigerated at 2–8 °C") on a product. The field can also be translated on the product translations page and exported as a column in the product CSV export.
+diff --git a/locale/defaultMessages.json b/locale/defaultMessages.json
+index 93af9bf..8b517f4 100644
+--- a/locale/defaultMessages.json
++++ b/locale/defaultMessages.json
+@@ -765,6 +765,10 @@
+     "context": "variant pricing channel status description when channel is inactive",
+     "string": "This channel is inactive. Customers cannot purchase from it until it is reactivated."
+   },
++  "0mSBCi": {
++    "context": "helper beside the product storage conditions field",
++    "string": "Plain text, up to 250 characters. Shown to customers in the product description, e.g. Keep refrigerated at 2–8 °C."
++  },
+   "0mhR+F": {
+     "context": "Header row quantity label",
+     "string": "Quantity"
+@@ -11590,6 +11594,10 @@
+   "eu98dw": {
+     "string": "Invalid password"
+   },
++  "ex0Sc1": {
++    "context": "product field",
++    "string": "Storage Conditions"
++  },
+   "ey0lZj": {
+     "context": "dialog header",
+     "string": "Delete Customer"
+@@ -12477,6 +12485,10 @@
+     "context": "onboarding title",
+     "string": "Let’s Get Started ({count}/{total})"
+   },
++  "iJVHSn": {
++    "context": "product storage conditions",
++    "string": "Storage conditions"
++  },
+   "iK8hZU": {
+     "context": "activate app",
+     "string": "Are you sure you want to activate this extension? Activating will start gathering events."
+@@ -16140,6 +16152,10 @@
+     "context": "button",
+     "string": "Delete"
+   },
++  "uhaSOf": {
++    "context": "product storage conditions translation field label",
++    "string": "Storage conditions"
++  },
+   "uiZoY3": {
+     "context": "Status when product is scheduled for future publication",
+     "string": "Scheduled for {date}"
+diff --git a/schema-main.graphql b/schema-main.graphql
+index 0565113..e92aa63 100644
+--- a/schema-main.graphql
++++ b/schema-main.graphql
+@@ -4198,6 +4198,9 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes {
+   """
+   description: JSONString
+ 
++  """Storage conditions of the product. Plain text, up to 250 characters."""
++  storageConditions: String
++
+   """Type of the product."""
+   productType: ProductType!
+ 
+@@ -10654,6 +10657,9 @@ type ProductTranslation implements Node {
+   """
+   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+ 
++  """Translated storage conditions of the product."""
++  storageConditions: String
++
+   """Represents the product fields to translate."""
+   translatableContent: ProductTranslatableContent
+ }
+@@ -10698,6 +10704,9 @@ type ProductTranslatableContent implements Node {
+   """
+   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+ 
++  """Storage conditions of the product to translate."""
++  storageConditions: String
++
+   """Returns translated product fields for the given language code."""
+   translation(
+     """A language code to return the translation for product."""
+@@ -19130,7 +19139,7 @@ type Mutation {
+     id: ID!
+ 
+     """Fields required to update product translations."""
+-    input: TranslationInput!
++    input: ProductTranslationInput!
+ 
+     """Translation language code."""
+     languageCode: LanguageCodeEnum!
+@@ -25306,6 +25315,23 @@ type CategoryTranslate {
+   category: Category
+ }
+ 
++input ProductTranslationInput {
++  slug: String
++  seoTitle: String
++  seoDescription: String
++  name: String
++
++  """
++  Translated description.
++  
++  Rich text format. For reference see https://editorjs.io/
++  """
++  description: JSONString
++
++  """Translated storage conditions of the product."""
++  storageConditions: String
++}
++
+ input TranslationInput {
+   slug: String
+   seoTitle: String
+@@ -25663,6 +25689,9 @@ input ProductCreateInput {
+   """Product slug."""
+   slug: String
+ 
++  """Storage conditions of the product. Plain text, up to 250 characters."""
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -25894,6 +25923,9 @@ input ProductBulkCreateInput {
+   """Product slug."""
+   slug: String
+ 
++  """Storage conditions of the product. Plain text, up to 250 characters."""
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -26207,6 +26239,9 @@ input ProductInput {
+   """Product slug."""
+   slug: String
+ 
++  """Storage conditions of the product. Plain text, up to 250 characters."""
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -26307,7 +26342,7 @@ input ProductBulkTranslateInput {
+   languageCode: LanguageCodeEnum!
+ 
+   """Translation fields."""
+-  translationFields: TranslationInput!
++  translationFields: ProductTranslationInput!
+ }
+ 
+ """
+@@ -32067,6 +32102,7 @@ input ExportInfoInput {
+ enum ProductFieldEnum {
+   NAME
+   DESCRIPTION
++  STORAGE_CONDITIONS
+   PRODUCT_TYPE
+   CATEGORY
+   PRODUCT_WEIGHT
+diff --git a/schema-staging.graphql b/schema-staging.graphql
+index 4a82da5..1fc3487 100644
+--- a/schema-staging.graphql
++++ b/schema-staging.graphql
+@@ -4087,6 +4087,9 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
+   """
+   description: JSONString
+ 
++  """Storage conditions of the product. Plain text, up to 250 characters."""
++  storageConditions: String
++
+   """Type of the product."""
+   productType: ProductType!
+ 
+@@ -10387,6 +10390,9 @@ type ProductTranslation implements Node @doc(category: "Products") {
+   """
+   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+ 
++  """Translated storage conditions of the product."""
++  storageConditions: String
++
+   """Represents the product fields to translate."""
+   translatableContent: ProductTranslatableContent
+ }
+@@ -10427,6 +10433,9 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
+   """
+   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+ 
++  """Storage conditions of the product to translate."""
++  storageConditions: String
++
+   """Returns translated product fields for the given language code."""
+   translation(
+     """A language code to return the translation for product."""
+@@ -18789,7 +18798,7 @@ type Mutation {
+     id: ID!
+ 
+     """Fields required to update product translations."""
+-    input: TranslationInput!
++    input: ProductTranslationInput!
+ 
+     """Translation language code."""
+     languageCode: LanguageCodeEnum!
+@@ -24653,6 +24662,23 @@ type CategoryTranslate @doc(category: "Products") {
+   category: Category
+ }
+ 
++input ProductTranslationInput {
++  slug: String
++  seoTitle: String
++  seoDescription: String
++  name: String
++
++  """
++  Translated description.
++  
++  Rich text format. For reference see https://editorjs.io/
++  """
++  description: JSONString
++
++  """Translated storage conditions of the product."""
++  storageConditions: String
++}
++
+ input TranslationInput {
+   slug: String
+   seoTitle: String
+@@ -24994,6 +25020,9 @@ input ProductCreateInput @doc(category: "Products") {
+   """Product slug."""
+   slug: String
+ 
++  """Storage conditions of the product. Plain text, up to 250 characters."""
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -25211,6 +25240,9 @@ input ProductBulkCreateInput @doc(category: "Products") {
+   """Product slug."""
+   slug: String
+ 
++  """Storage conditions of the product. Plain text, up to 250 characters."""
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -25473,6 +25505,9 @@ input ProductInput @doc(category: "Products") {
+   """Product slug."""
+   slug: String
+ 
++  """Storage conditions of the product. Plain text, up to 250 characters."""
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -25565,7 +25600,7 @@ input ProductBulkTranslateInput @doc(category: "Products") {
+   languageCode: LanguageCodeEnum!
+ 
+   """Translation fields."""
+-  translationFields: TranslationInput!
++  translationFields: ProductTranslationInput!
+ }
+ 
+ """
+@@ -31114,6 +31149,7 @@ input ExportInfoInput @doc(category: "Products") {
+ enum ProductFieldEnum @doc(category: "Products") {
+   NAME
+   DESCRIPTION
++  STORAGE_CONDITIONS
+   PRODUCT_TYPE
+   CATEGORY
+   PRODUCT_WEIGHT
+diff --git a/src/fragments/products.ts b/src/fragments/products.ts
+index c17c983..78b05c7 100644
+--- a/src/fragments/products.ts
++++ b/src/fragments/products.ts
+@@ -220,6 +220,7 @@ export const productFragmentDetails = gql`
+     description
+     seoTitle
+     seoDescription
++    storageConditions
+     rating
+     defaultVariant {
+       id
+diff --git a/src/fragments/translations.ts b/src/fragments/translations.ts
+index f7b23c7..24ff908 100644
+--- a/src/fragments/translations.ts
++++ b/src/fragments/translations.ts
+@@ -83,6 +83,7 @@ export const productTranslationFragment = gql`
+       slug
+       seoDescription
+       seoTitle
++      storageConditions
+     }
+     translation(languageCode: $language) {
+       id
+@@ -91,6 +92,7 @@ export const productTranslationFragment = gql`
+       seoDescription
+       name
+       description
++      storageConditions
+       language {
+         code
+         language
+diff --git a/src/graphql/fabbrica.generated.ts b/src/graphql/fabbrica.generated.ts
+index 9d7f6c6..4673547 100644
+--- a/src/graphql/fabbrica.generated.ts
++++ b/src/graphql/fabbrica.generated.ts
+@@ -824,6 +824,7 @@ import type {
+   ProductTranslatableContent,
+   ProductTranslate,
+   ProductTranslation,
++  ProductTranslationInput,
+   ProductType,
+   ProductTypeBulkDelete,
+   ProductTypeCountableConnection,
+@@ -25388,6 +25389,8 @@ export type OptionalProduct = {
+   seoTitle?: Product['seoTitle'] | undefined;
+   /** Slug of the product. */
+   slug?: Product['slug'] | undefined;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions?: Product['storageConditions'] | undefined;
+   /**
+  * Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  *
+@@ -25639,6 +25642,8 @@ export type OptionalProductBulkCreateInput = {
+   seo?: Maybe<OptionalSeoInput> | undefined;
+   /** Product slug. */
+   slug?: ProductBulkCreateInput['slug'] | undefined;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions?: ProductBulkCreateInput['storageConditions'] | undefined;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: ProductBulkCreateInput['taxClass'] | undefined;
+   /**
+@@ -25766,7 +25771,7 @@ export type OptionalProductBulkTranslateInput = {
+   /** Translation language code. */
+   languageCode?: ProductBulkTranslateInput['languageCode'] | undefined;
+   /** Translation fields. */
+-  translationFields?: OptionalTranslationInput | undefined;
++  translationFields?: OptionalProductTranslationInput | undefined;
+ };
+ 
+ /**
+@@ -26099,6 +26104,8 @@ export type OptionalProductCreateInput = {
+   seo?: Maybe<OptionalSeoInput> | undefined;
+   /** Product slug. */
+   slug?: ProductCreateInput['slug'] | undefined;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions?: ProductCreateInput['storageConditions'] | undefined;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: ProductCreateInput['taxClass'] | undefined;
+   /**
+@@ -26381,6 +26388,8 @@ export type OptionalProductInput = {
+   seo?: Maybe<OptionalSeoInput> | undefined;
+   /** Product slug. */
+   slug?: ProductInput['slug'] | undefined;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions?: ProductInput['storageConditions'] | undefined;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: ProductInput['taxClass'] | undefined;
+   /**
+@@ -27004,6 +27013,8 @@ export type OptionalProductTranslatableContent = {
+  * Added in Saleor 3.21.
+  */
+   slug?: ProductTranslatableContent['slug'] | undefined;
++  /** Storage conditions of the product to translate. */
++  storageConditions?: ProductTranslatableContent['storageConditions'] | undefined;
+   /** Returns translated product fields for the given language code. */
+   translation?: Maybe<OptionalProductTranslation> | undefined;
+ };
+@@ -27073,6 +27084,8 @@ export type OptionalProductTranslation = {
+  * Added in Saleor 3.21.
+  */
+   slug?: ProductTranslation['slug'] | undefined;
++  /** Translated storage conditions of the product. */
++  storageConditions?: ProductTranslation['storageConditions'] | undefined;
+   /** Represents the product fields to translate. */
+   translatableContent?: Maybe<OptionalProductTranslatableContent> | undefined;
+ };
+@@ -27088,6 +27101,33 @@ export const defineProductTranslationFactory: DefineTypeFactoryInterface<
+   {}
+ > = defineTypeFactory;
+ 
++export type OptionalProductTranslationInput = {
++  __typename?: 'ProductTranslationInput';
++  /**
++ * Translated description.
++ *
++ * Rich text format. For reference see https://editorjs.io/
++ */
++  description?: ProductTranslationInput['description'] | undefined;
++  name?: ProductTranslationInput['name'] | undefined;
++  seoDescription?: ProductTranslationInput['seoDescription'] | undefined;
++  seoTitle?: ProductTranslationInput['seoTitle'] | undefined;
++  slug?: ProductTranslationInput['slug'] | undefined;
++  /** Translated storage conditions of the product. */
++  storageConditions?: ProductTranslationInput['storageConditions'] | undefined;
++};
++
++/**
++ * Define factory for {@link ProductTranslationInput} model.
++ *
++ * @param options
++ * @returns factory {@link ProductTranslationInputFactoryInterface}
++ */
++export const defineProductTranslationInputFactory: DefineTypeFactoryInterface<
++  OptionalProductTranslationInput,
++  {}
++> = defineTypeFactory;
++
+ /** Represents a type of product. It defines what attributes are available to products of this type. */
+ export type OptionalProductType = {
+   __typename?: 'ProductType';
+diff --git a/src/graphql/fabbricaTypes.generated.ts b/src/graphql/fabbricaTypes.generated.ts
+index ed61f5c..34a96c9 100644
+--- a/src/graphql/fabbricaTypes.generated.ts
++++ b/src/graphql/fabbricaTypes.generated.ts
+@@ -16850,7 +16850,7 @@ export type MutationProductReorderAttributeValuesArgs = {
+ 
+ export type MutationProductTranslateArgs = {
+   id: Scalars['ID']['input'];
+-  input: TranslationInput;
++  input: ProductTranslationInput;
+   languageCode: LanguageCodeEnum;
+ };
+ 
+@@ -22386,6 +22386,8 @@ export type Product = Node & ObjectWithAttributes & ObjectWithMetadata & {
+   seoTitle: Maybe<Scalars['String']['output']>;
+   /** Slug of the product. */
+   slug: Scalars['String']['output'];
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions: Maybe<Scalars['String']['output']>;
+   /**
+    * Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+    *
+@@ -22684,6 +22686,8 @@ export type ProductBulkCreateInput = {
+   seo: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug: InputMaybe<Scalars['String']['input']>;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -22756,7 +22760,7 @@ export type ProductBulkTranslateInput = {
+   /** Translation language code. */
+   languageCode: LanguageCodeEnum;
+   /** Translation fields. */
+-  translationFields: TranslationInput;
++  translationFields: ProductTranslationInput;
+ };
+ 
+ export type ProductBulkTranslateResult = {
+@@ -22974,6 +22978,8 @@ export type ProductCreateInput = {
+   seo: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug: InputMaybe<Scalars['String']['input']>;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -23114,6 +23120,7 @@ export type ProductFieldEnum =
+   | 'PRODUCT_MEDIA'
+   | 'PRODUCT_TYPE'
+   | 'PRODUCT_WEIGHT'
++  | 'STORAGE_CONDITIONS'
+   | 'VARIANT_ID'
+   | 'VARIANT_MEDIA'
+   | 'VARIANT_SKU'
+@@ -23227,6 +23234,8 @@ export type ProductInput = {
+   seo: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug: InputMaybe<Scalars['String']['input']>;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -23736,6 +23745,8 @@ export type ProductTranslatableContent = Node & {
+    * Added in Saleor 3.21.
+    */
+   slug: Maybe<Scalars['String']['output']>;
++  /** Storage conditions of the product to translate. */
++  storageConditions: Maybe<Scalars['String']['output']>;
+   /** Returns translated product fields for the given language code. */
+   translation: Maybe<ProductTranslation>;
+ };
+@@ -23797,10 +23808,27 @@ export type ProductTranslation = Node & {
+    * Added in Saleor 3.21.
+    */
+   slug: Maybe<Scalars['String']['output']>;
++  /** Translated storage conditions of the product. */
++  storageConditions: Maybe<Scalars['String']['output']>;
+   /** Represents the product fields to translate. */
+   translatableContent: Maybe<ProductTranslatableContent>;
+ };
+ 
++export type ProductTranslationInput = {
++  /**
++   * Translated description.
++   *
++   * Rich text format. For reference see https://editorjs.io/
++   */
++  description: InputMaybe<Scalars['JSONString']['input']>;
++  name: InputMaybe<Scalars['String']['input']>;
++  seoDescription: InputMaybe<Scalars['String']['input']>;
++  seoTitle: InputMaybe<Scalars['String']['input']>;
++  slug: InputMaybe<Scalars['String']['input']>;
++  /** Translated storage conditions of the product. */
++  storageConditions: InputMaybe<Scalars['String']['input']>;
++};
++
+ /** Represents a type of product. It defines what attributes are available to products of this type. */
+ export type ProductType = Node & ObjectWithMetadata & {
+   __typename: 'ProductType';
+diff --git a/src/graphql/hooks.generated.ts b/src/graphql/hooks.generated.ts
+index 3bb8791..af125e5 100644
+--- a/src/graphql/hooks.generated.ts
++++ b/src/graphql/hooks.generated.ts
+@@ -3464,6 +3464,7 @@ export const ProductFragmentDoc = gql`
+   description
+   seoTitle
+   seoDescription
++  storageConditions
+   rating
+   defaultVariant {
+     id
+@@ -4005,6 +4006,7 @@ export const ProductTranslationFragmentDoc = gql`
+     slug
+     seoDescription
+     seoTitle
++    storageConditions
+   }
+   translation(languageCode: $language) {
+     id
+@@ -4013,6 +4015,7 @@ export const ProductTranslationFragmentDoc = gql`
+     seoDescription
+     name
+     description
++    storageConditions
+     language {
+       code
+       language
+@@ -22928,7 +22931,7 @@ export type TaxStrategyChoicesQueryHookResult = ReturnType<typeof useTaxStrategy
+ export type TaxStrategyChoicesLazyQueryHookResult = ReturnType<typeof useTaxStrategyChoicesLazyQuery>;
+ export type TaxStrategyChoicesQueryResult = Apollo.QueryResult<Types.TaxStrategyChoicesQuery, Types.TaxStrategyChoicesQueryVariables>;
+ export const UpdateProductTranslationsDocument = gql`
+-    mutation UpdateProductTranslations($id: ID!, $input: TranslationInput!, $language: LanguageCodeEnum!) {
++    mutation UpdateProductTranslations($id: ID!, $input: ProductTranslationInput!, $language: LanguageCodeEnum!) {
+   productTranslate(id: $id, input: $input, languageCode: $language) {
+     errors {
+       ...ProductTranslateErrorFragment
+@@ -22940,6 +22943,7 @@ export const UpdateProductTranslationsDocument = gql`
+       seoDescription
+       seoTitle
+       slug
++      storageConditions
+       translation(languageCode: $language) {
+         id
+         description
+@@ -22951,6 +22955,7 @@ export const UpdateProductTranslationsDocument = gql`
+         seoDescription
+         seoTitle
+         slug
++        storageConditions
+       }
+     }
+   }
+diff --git a/src/graphql/typePolicies.generated.ts b/src/graphql/typePolicies.generated.ts
+index 560c483..44c0676 100644
+--- a/src/graphql/typePolicies.generated.ts
++++ b/src/graphql/typePolicies.generated.ts
+@@ -4594,7 +4594,7 @@ export type PreorderThresholdFieldPolicy = {
+ 	quantity?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	soldUnits?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variant' | 'variants' | 'weight' | ProductKeySpecifier)[];
++export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'storageConditions' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variant' | 'variants' | 'weight' | ProductKeySpecifier)[];
+ export type ProductFieldPolicy = {
+ 	assignedAttribute?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttributes?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4633,6 +4633,7 @@ export type ProductFieldPolicy = {
+ 	seoDescription?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	seoTitle?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	slug?: FieldPolicy<any> | FieldReadFunction<any>,
++	storageConditions?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	taxClass?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	taxType?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	thumbnail?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4928,7 +4929,7 @@ export type ProductReorderAttributeValuesFieldPolicy = {
+ 	product?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	productErrors?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductTranslatableContentKeySpecifier = ('attributeValues' | 'description' | 'descriptionJson' | 'id' | 'name' | 'product' | 'productId' | 'seoDescription' | 'seoTitle' | 'slug' | 'translation' | ProductTranslatableContentKeySpecifier)[];
++export type ProductTranslatableContentKeySpecifier = ('attributeValues' | 'description' | 'descriptionJson' | 'id' | 'name' | 'product' | 'productId' | 'seoDescription' | 'seoTitle' | 'slug' | 'storageConditions' | 'translation' | ProductTranslatableContentKeySpecifier)[];
+ export type ProductTranslatableContentFieldPolicy = {
+ 	attributeValues?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	description?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4940,6 +4941,7 @@ export type ProductTranslatableContentFieldPolicy = {
+ 	seoDescription?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	seoTitle?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	slug?: FieldPolicy<any> | FieldReadFunction<any>,
++	storageConditions?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translation?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+ export type ProductTranslateKeySpecifier = ('errors' | 'product' | 'translationErrors' | ProductTranslateKeySpecifier)[];
+@@ -4948,7 +4950,7 @@ export type ProductTranslateFieldPolicy = {
+ 	product?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translationErrors?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductTranslationKeySpecifier = ('description' | 'descriptionJson' | 'id' | 'language' | 'name' | 'seoDescription' | 'seoTitle' | 'slug' | 'translatableContent' | ProductTranslationKeySpecifier)[];
++export type ProductTranslationKeySpecifier = ('description' | 'descriptionJson' | 'id' | 'language' | 'name' | 'seoDescription' | 'seoTitle' | 'slug' | 'storageConditions' | 'translatableContent' | ProductTranslationKeySpecifier)[];
+ export type ProductTranslationFieldPolicy = {
+ 	description?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	descriptionJson?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4958,6 +4960,7 @@ export type ProductTranslationFieldPolicy = {
+ 	seoDescription?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	seoTitle?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	slug?: FieldPolicy<any> | FieldReadFunction<any>,
++	storageConditions?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translatableContent?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+ export type ProductTypeKeySpecifier = ('assignedVariantAttributes' | 'availableAttributes' | 'hasVariants' | 'id' | 'isDigital' | 'isShippingRequired' | 'kind' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productAttributes' | 'products' | 'slug' | 'taxClass' | 'taxType' | 'variantAttributes' | 'weight' | ProductTypeKeySpecifier)[];
+diff --git a/src/graphql/typePoliciesStaging.generated.ts b/src/graphql/typePoliciesStaging.generated.ts
+index 6c66497..2d5a781 100644
+--- a/src/graphql/typePoliciesStaging.generated.ts
++++ b/src/graphql/typePoliciesStaging.generated.ts
+@@ -4526,7 +4526,7 @@ export type PluginUpdateFieldPolicy = {
+ 	plugin?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	pluginsErrors?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variants' | 'weight' | ProductKeySpecifier)[];
++export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'storageConditions' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variants' | 'weight' | ProductKeySpecifier)[];
+ export type ProductFieldPolicy = {
+ 	assignedAttribute?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttributes?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4565,6 +4565,7 @@ export type ProductFieldPolicy = {
+ 	seoDescription?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	seoTitle?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	slug?: FieldPolicy<any> | FieldReadFunction<any>,
++	storageConditions?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	taxClass?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	taxType?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	thumbnail?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4859,7 +4860,7 @@ export type ProductReorderAttributeValuesFieldPolicy = {
+ 	product?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	productErrors?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductTranslatableContentKeySpecifier = ('attributeValues' | 'description' | 'descriptionJson' | 'id' | 'name' | 'product' | 'productId' | 'seoDescription' | 'seoTitle' | 'slug' | 'translation' | ProductTranslatableContentKeySpecifier)[];
++export type ProductTranslatableContentKeySpecifier = ('attributeValues' | 'description' | 'descriptionJson' | 'id' | 'name' | 'product' | 'productId' | 'seoDescription' | 'seoTitle' | 'slug' | 'storageConditions' | 'translation' | ProductTranslatableContentKeySpecifier)[];
+ export type ProductTranslatableContentFieldPolicy = {
+ 	attributeValues?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	description?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4871,6 +4872,7 @@ export type ProductTranslatableContentFieldPolicy = {
+ 	seoDescription?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	seoTitle?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	slug?: FieldPolicy<any> | FieldReadFunction<any>,
++	storageConditions?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translation?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+ export type ProductTranslateKeySpecifier = ('errors' | 'product' | 'translationErrors' | ProductTranslateKeySpecifier)[];
+@@ -4879,7 +4881,7 @@ export type ProductTranslateFieldPolicy = {
+ 	product?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translationErrors?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductTranslationKeySpecifier = ('description' | 'descriptionJson' | 'id' | 'language' | 'name' | 'seoDescription' | 'seoTitle' | 'slug' | 'translatableContent' | ProductTranslationKeySpecifier)[];
++export type ProductTranslationKeySpecifier = ('description' | 'descriptionJson' | 'id' | 'language' | 'name' | 'seoDescription' | 'seoTitle' | 'slug' | 'storageConditions' | 'translatableContent' | ProductTranslationKeySpecifier)[];
+ export type ProductTranslationFieldPolicy = {
+ 	description?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	descriptionJson?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4889,6 +4891,7 @@ export type ProductTranslationFieldPolicy = {
+ 	seoDescription?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	seoTitle?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	slug?: FieldPolicy<any> | FieldReadFunction<any>,
++	storageConditions?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translatableContent?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+ export type ProductTypeKeySpecifier = ('assignedVariantAttributes' | 'availableAttributes' | 'hasVariants' | 'id' | 'isShippingRequired' | 'kind' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productAttributes' | 'products' | 'slug' | 'taxClass' | 'taxType' | 'variantAttributes' | 'weight' | ProductTypeKeySpecifier)[];
+diff --git a/src/graphql/types.generated.ts b/src/graphql/types.generated.ts
+index 8738069..8dcc195 100644
+--- a/src/graphql/types.generated.ts
++++ b/src/graphql/types.generated.ts
+@@ -7079,6 +7079,8 @@ export type ProductBulkCreateInput = {
+   seo?: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug?: InputMaybe<Scalars['String']['input']>;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -7101,7 +7103,7 @@ export type ProductBulkTranslateInput = {
+   /** Translation language code. */
+   languageCode: LanguageCodeEnum;
+   /** Translation fields. */
+-  translationFields: TranslationInput;
++  translationFields: ProductTranslationInput;
+ };
+ 
+ export type ProductChannelListingAddInput = {
+@@ -7204,6 +7206,8 @@ export type ProductCreateInput = {
+   seo?: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug?: InputMaybe<Scalars['String']['input']>;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -7251,6 +7255,7 @@ export enum ProductFieldEnum {
+   PRODUCT_MEDIA = 'PRODUCT_MEDIA',
+   PRODUCT_TYPE = 'PRODUCT_TYPE',
+   PRODUCT_WEIGHT = 'PRODUCT_WEIGHT',
++  STORAGE_CONDITIONS = 'STORAGE_CONDITIONS',
+   VARIANT_ID = 'VARIANT_ID',
+   VARIANT_MEDIA = 'VARIANT_MEDIA',
+   VARIANT_SKU = 'VARIANT_SKU',
+@@ -7345,6 +7350,8 @@ export type ProductInput = {
+   seo?: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug?: InputMaybe<Scalars['String']['input']>;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -7490,6 +7497,21 @@ export enum ProductTranslateErrorCode {
+   REQUIRED = 'REQUIRED'
+ }
+ 
++export type ProductTranslationInput = {
++  /**
++   * Translated description.
++   *
++   * Rich text format. For reference see https://editorjs.io/
++   */
++  description?: InputMaybe<Scalars['JSONString']['input']>;
++  name?: InputMaybe<Scalars['String']['input']>;
++  seoDescription?: InputMaybe<Scalars['String']['input']>;
++  seoTitle?: InputMaybe<Scalars['String']['input']>;
++  slug?: InputMaybe<Scalars['String']['input']>;
++  /** Translated storage conditions of the product. */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
++};
++
+ export enum ProductTypeConfigurable {
+   CONFIGURABLE = 'CONFIGURABLE',
+   SIMPLE = 'SIMPLE'
+@@ -12971,7 +12993,7 @@ export type ProductVariantSiblingFragment = { __typename: 'ProductVariant', id:
+ 
+ export type ProductVariantGeneratorExistingFragment = { __typename: 'ProductVariant', id: string, sku: string | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', id: string }, values: Array<{ __typename: 'AttributeValue', id: string, slug: string | null }> }> };
+ 
+-export type ProductFragment = { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, isAvailable: boolean | null, id: string, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, category: { __typename: 'Category', id: string, name: string } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> };
++export type ProductFragment = { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, storageConditions: string | null, rating: number | null, isAvailable: boolean | null, id: string, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, category: { __typename: 'Category', id: string, name: string } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> };
+ 
+ export type VariantAttributeFragment = { __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null };
+ 
+@@ -13037,7 +13059,7 @@ export type CategoryTranslationFragment = { __typename: 'CategoryTranslatableCon
+ 
+ export type CollectionTranslationFragment = { __typename: 'CollectionTranslatableContent', collection: { __typename: 'Collection', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null } | null, translation: { __typename: 'CollectionTranslation', id: string, description: string | null, name: string | null, slug: string | null, seoDescription: string | null, seoTitle: string | null, language: { __typename: 'LanguageDisplay', language: string } } | null };
+ 
+-export type ProductTranslationFragment = { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> };
++export type ProductTranslationFragment = { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null, storageConditions: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, storageConditions: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> };
+ 
+ export type ProductVariantTranslationFragment = { __typename: 'ProductVariantTranslatableContent', name: string, productVariant: { __typename: 'ProductVariant', id: string } | null, translation: { __typename: 'ProductVariantTranslation', id: string, name: string, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> };
+ 
+@@ -14223,7 +14245,7 @@ export type ProductDetailsQueryVariables = Exact<{
+ }>;
+ 
+ 
+-export type ProductDetailsQuery = { __typename: 'Query', product: { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, isAvailable: boolean | null, id: string, category: { __typename: 'Category', id: string, name: string, level: number, parent: { __typename: 'Category', id: string, name: string } | null, ancestors: { __typename: 'CategoryCountableConnection', edges: Array<{ __typename: 'CategoryCountableEdge', node: { __typename: 'Category', id: string, name: string } }> } | null } | null, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> } | null };
++export type ProductDetailsQuery = { __typename: 'Query', product: { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, storageConditions: string | null, rating: number | null, isAvailable: boolean | null, id: string, category: { __typename: 'Category', id: string, name: string, level: number, parent: { __typename: 'Category', id: string, name: string } | null, ancestors: { __typename: 'CategoryCountableConnection', edges: Array<{ __typename: 'CategoryCountableEdge', node: { __typename: 'Category', id: string, name: string } }> } | null } | null, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> } | null };
+ 
+ export type ProductTypeQueryVariables = Exact<{
+   id: Scalars['ID']['input'];
+@@ -15013,12 +15035,12 @@ export type TaxStrategyChoicesQuery = { __typename: 'Query', shop: { __typename:
+ 
+ export type UpdateProductTranslationsMutationVariables = Exact<{
+   id: Scalars['ID']['input'];
+-  input: TranslationInput;
++  input: ProductTranslationInput;
+   language: LanguageCodeEnum;
+ }>;
+ 
+ 
+-export type UpdateProductTranslationsMutation = { __typename: 'Mutation', productTranslate: { __typename: 'ProductTranslate', errors: Array<{ __typename: 'TranslationError', code: TranslationErrorCode, field: string | null, message: string | null }>, product: { __typename: 'Product', id: string, name: string, description: string | null, seoDescription: string | null, seoTitle: string | null, slug: string, translation: { __typename: 'ProductTranslation', id: string, description: string | null, name: string | null, seoDescription: string | null, seoTitle: string | null, slug: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null } | null } | null };
++export type UpdateProductTranslationsMutation = { __typename: 'Mutation', productTranslate: { __typename: 'ProductTranslate', errors: Array<{ __typename: 'TranslationError', code: TranslationErrorCode, field: string | null, message: string | null }>, product: { __typename: 'Product', id: string, name: string, description: string | null, seoDescription: string | null, seoTitle: string | null, slug: string, storageConditions: string | null, translation: { __typename: 'ProductTranslation', id: string, description: string | null, name: string | null, seoDescription: string | null, seoTitle: string | null, slug: string | null, storageConditions: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null } | null } | null };
+ 
+ export type UpdateProductVariantTranslationsMutationVariables = Exact<{
+   id: Scalars['ID']['input'];
+@@ -15141,7 +15163,7 @@ export type ProductTranslationsQueryVariables = Exact<{
+ }>;
+ 
+ 
+-export type ProductTranslationsQuery = { __typename: 'Query', translations: { __typename: 'TranslatableItemConnection', edges: Array<{ __typename: 'TranslatableItemEdge', node: { __typename: 'AttributeTranslatableContent' } | { __typename: 'AttributeValueTranslatableContent' } | { __typename: 'CategoryTranslatableContent' } | { __typename: 'CollectionTranslatableContent' } | { __typename: 'MenuItemTranslatableContent' } | { __typename: 'PageTranslatableContent' } | { __typename: 'ProductMediaTranslatableContent' } | { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> } | { __typename: 'ProductVariantTranslatableContent' } | { __typename: 'PromotionRuleTranslatableContent' } | { __typename: 'PromotionTranslatableContent' } | { __typename: 'SaleTranslatableContent' } | { __typename: 'ShippingMethodTranslatableContent' } | { __typename: 'VoucherTranslatableContent' } }>, pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null } } | null };
++export type ProductTranslationsQuery = { __typename: 'Query', translations: { __typename: 'TranslatableItemConnection', edges: Array<{ __typename: 'TranslatableItemEdge', node: { __typename: 'AttributeTranslatableContent' } | { __typename: 'AttributeValueTranslatableContent' } | { __typename: 'CategoryTranslatableContent' } | { __typename: 'CollectionTranslatableContent' } | { __typename: 'MenuItemTranslatableContent' } | { __typename: 'PageTranslatableContent' } | { __typename: 'ProductMediaTranslatableContent' } | { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null, storageConditions: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, storageConditions: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> } | { __typename: 'ProductVariantTranslatableContent' } | { __typename: 'PromotionRuleTranslatableContent' } | { __typename: 'PromotionTranslatableContent' } | { __typename: 'SaleTranslatableContent' } | { __typename: 'ShippingMethodTranslatableContent' } | { __typename: 'VoucherTranslatableContent' } }>, pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null } } | null };
+ 
+ export type PageTranslationsQueryVariables = Exact<{
+   language: LanguageCodeEnum;
+@@ -15215,7 +15237,7 @@ export type ProductTranslationDetailsQueryVariables = Exact<{
+ }>;
+ 
+ 
+-export type ProductTranslationDetailsQuery = { __typename: 'Query', translation: { __typename: 'AttributeTranslatableContent' } | { __typename: 'AttributeValueTranslatableContent' } | { __typename: 'CategoryTranslatableContent' } | { __typename: 'CollectionTranslatableContent' } | { __typename: 'MenuItemTranslatableContent' } | { __typename: 'PageTranslatableContent' } | { __typename: 'ProductMediaTranslatableContent' } | { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> } | { __typename: 'ProductVariantTranslatableContent' } | { __typename: 'PromotionRuleTranslatableContent' } | { __typename: 'PromotionTranslatableContent' } | { __typename: 'SaleTranslatableContent' } | { __typename: 'ShippingMethodTranslatableContent' } | { __typename: 'VoucherTranslatableContent' } | null };
++export type ProductTranslationDetailsQuery = { __typename: 'Query', translation: { __typename: 'AttributeTranslatableContent' } | { __typename: 'AttributeValueTranslatableContent' } | { __typename: 'CategoryTranslatableContent' } | { __typename: 'CollectionTranslatableContent' } | { __typename: 'MenuItemTranslatableContent' } | { __typename: 'PageTranslatableContent' } | { __typename: 'ProductMediaTranslatableContent' } | { __typename: 'ProductTranslatableContent', product: { __typename: 'Product', id: string, name: string, description: string | null, slug: string, seoDescription: string | null, seoTitle: string | null, storageConditions: string | null } | null, translation: { __typename: 'ProductTranslation', id: string, slug: string | null, seoTitle: string | null, seoDescription: string | null, name: string | null, description: string | null, storageConditions: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null, attributeValues: Array<{ __typename: 'AttributeValueTranslatableContent', id: string, name: string, plainText: string | null, richText: string | null, attributeValue: { __typename: 'AttributeValue', id: string, inputType: AttributeInputTypeEnum | null } | null, attribute: { __typename: 'AttributeTranslatableContent', id: string, name: string } | null, translation: { __typename: 'AttributeValueTranslation', id: string, name: string, plainText: string | null, richText: string | null, language: { __typename: 'LanguageDisplay', code: LanguageCodeEnum, language: string } } | null }> } | { __typename: 'ProductVariantTranslatableContent' } | { __typename: 'PromotionRuleTranslatableContent' } | { __typename: 'PromotionTranslatableContent' } | { __typename: 'SaleTranslatableContent' } | { __typename: 'ShippingMethodTranslatableContent' } | { __typename: 'VoucherTranslatableContent' } | null };
+ 
+ export type ProductVariantTranslationDetailsQueryVariables = Exact<{
+   id: Scalars['ID']['input'];
+diff --git a/src/graphql/typesStaging.generated.ts b/src/graphql/typesStaging.generated.ts
+index a04df26..96f7adf 100644
+--- a/src/graphql/typesStaging.generated.ts
++++ b/src/graphql/typesStaging.generated.ts
+@@ -6739,6 +6739,8 @@ export type ProductBulkCreateInput = {
+   seo?: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug?: InputMaybe<Scalars['String']['input']>;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -6760,7 +6762,7 @@ export type ProductBulkTranslateInput = {
+   /** Translation language code. */
+   languageCode: LanguageCodeEnum;
+   /** Translation fields. */
+-  translationFields: TranslationInput;
++  translationFields: ProductTranslationInput;
+ };
+ 
+ export type ProductChannelListingAddInput = {
+@@ -6859,6 +6861,8 @@ export type ProductCreateInput = {
+   seo?: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug?: InputMaybe<Scalars['String']['input']>;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -6903,6 +6907,7 @@ export enum ProductFieldEnum {
+   PRODUCT_MEDIA = 'PRODUCT_MEDIA',
+   PRODUCT_TYPE = 'PRODUCT_TYPE',
+   PRODUCT_WEIGHT = 'PRODUCT_WEIGHT',
++  STORAGE_CONDITIONS = 'STORAGE_CONDITIONS',
+   VARIANT_ID = 'VARIANT_ID',
+   VARIANT_MEDIA = 'VARIANT_MEDIA',
+   VARIANT_SKU = 'VARIANT_SKU',
+@@ -6988,6 +6993,8 @@ export type ProductInput = {
+   seo?: InputMaybe<SeoInput>;
+   /** Product slug. */
+   slug?: InputMaybe<Scalars['String']['input']>;
++  /** Storage conditions of the product. Plain text, up to 250 characters. */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
+   /** ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type. */
+   taxClass?: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -7131,6 +7138,21 @@ export enum ProductTranslateErrorCode {
+   REQUIRED = 'REQUIRED'
+ }
+ 
++export type ProductTranslationInput = {
++  /**
++   * Translated description.
++   *
++   * Rich text format. For reference see https://editorjs.io/
++   */
++  description?: InputMaybe<Scalars['JSONString']['input']>;
++  name?: InputMaybe<Scalars['String']['input']>;
++  seoDescription?: InputMaybe<Scalars['String']['input']>;
++  seoTitle?: InputMaybe<Scalars['String']['input']>;
++  slug?: InputMaybe<Scalars['String']['input']>;
++  /** Translated storage conditions of the product. */
++  storageConditions?: InputMaybe<Scalars['String']['input']>;
++};
++
+ export enum ProductTypeConfigurable {
+   CONFIGURABLE = 'CONFIGURABLE',
+   SIMPLE = 'SIMPLE'
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
+index 417fff3..e8be6e5 100644
+--- a/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
+@@ -29,7 +29,12 @@ const ProductDetailsFormPlayground = ({
+   rating,
+   withShippingWeight = false,
+ }: PlaygroundProps): React.ReactNode => {
+-  const [data, setData] = useState({ name: "Olive oil", description: { blocks: [] }, rating });
++  const [data, setData] = useState({
++    name: "Olive oil",
++    description: { blocks: [] },
++    rating,
++    storageConditions: "Keep refrigerated at 2–8 °C",
++  });
+   const [weight, setWeight] = useState("0.5");
+   const richText = useRichText({ initial: description, triggerChange: () => undefined });
+ 
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx
+new file mode 100644
+index 0000000..fd787a9
+--- /dev/null
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.test.tsx
+@@ -0,0 +1,86 @@
++import { ProductErrorCode } from "@dashboard/graphql";
++import Wrapper from "@test/wrapper";
++import { render, screen } from "@testing-library/react";
++
++import { ProductDetailsForm, STORAGE_CONDITIONS_MAX_LENGTH } from "./ProductDetailsForm";
++
++jest.mock("@dashboard/utils/richText/context", () => ({
++  useRichTextContext: () => ({
++    editorRef: { current: null },
++    defaultValue: undefined,
++    isReadyForMount: false,
++    handleChange: jest.fn(),
++  }),
++}));
++
++jest.mock("@dashboard/components/RichTextEditor/RichTextEditor", () => ({
++  __esModule: true,
++  default: () => null,
++}));
++jest.mock("@dashboard/components/RichTextEditor/RichTextEditorClamp", () => ({
++  RichTextEditorClamp: () => null,
++}));
++jest.mock("@dashboard/components/RichTextEditor/RichTextEditorLoading", () => ({
++  RichTextEditorLoading: () => null,
++}));
++
++const renderForm = (
++  props: Partial<React.ComponentProps<typeof ProductDetailsForm>> = {},
++): ReturnType<typeof render> =>
++  render(
++    <Wrapper>
++      <ProductDetailsForm
++        data={{
++          description: { blocks: [] },
++          name: "Milk",
++          rating: null,
++          storageConditions: "Keep refrigerated at 2–8 °C",
++        }}
++        errors={[]}
++        onChange={jest.fn()}
++        {...props}
++      />
++    </Wrapper>,
++  );
++
++describe("ProductDetailsForm storage conditions", () => {
++  it("renders the current value limited to 250 characters", () => {
++    // Arrange / Act
++    renderForm();
++
++    // Assert
++    const input = screen.getByTestId("product-storage-conditions");
++
++    expect(STORAGE_CONDITIONS_MAX_LENGTH).toBe(250);
++    expect(input).toHaveValue("Keep refrigerated at 2–8 °C");
++    expect(input).toHaveAttribute("maxlength", "250");
++  });
++
++  it("renders an empty field when the value is empty", () => {
++    // Arrange / Act
++    renderForm({
++      data: { description: { blocks: [] }, name: "Milk", rating: null, storageConditions: "" },
++    });
++
++    // Assert
++    expect(screen.getByTestId("product-storage-conditions")).toHaveValue("");
++  });
++
++  it("marks the field invalid when the API reports an error for it", () => {
++    // Arrange / Act
++    renderForm({
++      errors: [
++        {
++          __typename: "ProductError",
++          code: ProductErrorCode.INVALID,
++          field: "storageConditions",
++          message: "too long",
++        },
++      ],
++    });
++
++    // Assert
++    expect(screen.getByTestId("product-storage-conditions")).toBeInTheDocument();
++    expect(screen.getByText(/invalid value/i)).toBeInTheDocument();
++  });
++});
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
+index f54cb77..3f14032 100644
+--- a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
+@@ -13,11 +13,14 @@ import { type OutputData } from "@editorjs/editorjs";
+ import { Box, Input } from "@saleor/macaw-ui-next";
+ import { useIntl } from "react-intl";
+ 
++export const STORAGE_CONDITIONS_MAX_LENGTH = 250;
++
+ interface ProductDetailsFormProps {
+   data: {
+     description: OutputData;
+     name: string;
+     rating: number | null;
++    storageConditions: string;
+   };
+   /** Simple products carry weight here. Variants keep it on the variant. */
+   shippingWeight?: {
+@@ -38,7 +41,10 @@ export const ProductDetailsForm = ({
+   onDescriptionChange,
+ }: ProductDetailsFormProps) => {
+   const intl = useIntl();
+-  const formErrors = getFormErrors(["name", "description", "rating", "weight"], errors);
++  const formErrors = getFormErrors(
++    ["name", "description", "rating", "weight", "storageConditions"],
++    errors,
++  );
+   const { editorRef, defaultValue, isReadyForMount, handleChange } = useRichTextContext();
+   const handleWeightChange = createNonNegativeValueChangeHandler(onChange);
+ 
+@@ -90,6 +96,32 @@ export const ProductDetailsForm = ({
+         />
+       )}
+       <FormSpacer />
++      <Input
++        label={intl.formatMessage({
++          id: "iJVHSn",
++          defaultMessage: "Storage conditions",
++          description: "product storage conditions",
++        })}
++        size="small"
++        width="100%"
++        value={data.storageConditions || ""}
++        onChange={onChange}
++        error={!!formErrors.storageConditions}
++        name="storageConditions"
++        maxLength={STORAGE_CONDITIONS_MAX_LENGTH}
++        disabled={disabled}
++        data-test-id="product-storage-conditions"
++        helperText={
++          getProductErrorMessage(formErrors.storageConditions, intl) ||
++          intl.formatMessage({
++            id: "0mSBCi",
++            defaultMessage:
++              "Plain text, up to 250 characters. Shown to customers in the product description, e.g. Keep refrigerated at 2–8 °C.",
++            description: "helper beside the product storage conditions field",
++          })
++        }
++      />
++      <FormSpacer />
+       <Box display="grid" __gridTemplateColumns="1fr 1fr" gap={4} alignItems="start">
+         <Input
+           label={intl.formatMessage({
+diff --git a/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx b/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx
+index 0496f67..6cfcc1e 100644
+--- a/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx
++++ b/src/products/components/ProductExportDialog/ProductExportDialogInfo.tsx
+@@ -592,6 +592,7 @@ const ProductExportDialogInfo = ({
+         fields={[
+           ProductFieldEnum.DESCRIPTION,
+           ProductFieldEnum.NAME,
++          ProductFieldEnum.STORAGE_CONDITIONS,
+           ProductFieldEnum.PRODUCT_MEDIA,
+           ProductFieldEnum.VARIANT_MEDIA,
+         ]}
+diff --git a/src/products/components/ProductExportDialog/messages.test.tsx b/src/products/components/ProductExportDialog/messages.test.tsx
+new file mode 100644
+index 0000000..62f5767
+--- /dev/null
++++ b/src/products/components/ProductExportDialog/messages.test.tsx
+@@ -0,0 +1,28 @@
++import { ProductFieldEnum } from "@dashboard/graphql";
++import Wrapper from "@test/wrapper";
++import { renderHook } from "@testing-library/react";
++
++import useProductExportFieldMessages from "./messages";
++
++describe("useProductExportFieldMessages", () => {
++  it("provides a label for every exportable product field", () => {
++    // Arrange
++    const { result } = renderHook(() => useProductExportFieldMessages(), { wrapper: Wrapper });
++
++    // Act / Assert
++    Object.values(ProductFieldEnum).forEach(field => {
++      expect(result.current(field)).toEqual(expect.any(String));
++    });
++  });
++
++  it("labels the storage conditions field", () => {
++    // Arrange
++    const { result } = renderHook(() => useProductExportFieldMessages(), { wrapper: Wrapper });
++
++    // Act
++    const label = result.current(ProductFieldEnum.STORAGE_CONDITIONS);
++
++    // Assert
++    expect(label).toBe("Storage Conditions");
++  });
++});
+diff --git a/src/products/components/ProductExportDialog/messages.ts b/src/products/components/ProductExportDialog/messages.ts
+index de35aa4..d2f0a51 100644
+--- a/src/products/components/ProductExportDialog/messages.ts
++++ b/src/products/components/ProductExportDialog/messages.ts
+@@ -62,6 +62,11 @@ function useProductExportFieldMessages() {
+       defaultMessage: "Description",
+       description: "product field",
+     }),
++    [ProductFieldEnum.STORAGE_CONDITIONS]: intl.formatMessage({
++      id: "tpZrlQ",
++      defaultMessage: "Storage Conditions",
++      description: "product field",
++    }),
+     [ProductFieldEnum.NAME]: intl.formatMessage({
+       id: "W8i2Ez",
+       defaultMessage: "Name",
+diff --git a/src/products/components/ProductUpdatePage/saveComposition.ts b/src/products/components/ProductUpdatePage/saveComposition.ts
+index 9e2c6bd..4ef8ae9 100644
+--- a/src/products/components/ProductUpdatePage/saveComposition.ts
++++ b/src/products/components/ProductUpdatePage/saveComposition.ts
+@@ -7,6 +7,7 @@ export const PRODUCT_DETAILS_SAVE_FIELDS: ReadonlyArray<keyof ProductUpdateFormD
+   "seoTitle",
+   "seoDescription",
+   "rating",
++  "storageConditions",
+   "weight",
+   "taxClassId",
+   "category",
+diff --git a/src/products/components/ProductUpdatePage/types.ts b/src/products/components/ProductUpdatePage/types.ts
+index e236f93..9f65511 100644
+--- a/src/products/components/ProductUpdatePage/types.ts
++++ b/src/products/components/ProductUpdatePage/types.ts
+@@ -46,6 +46,7 @@ export interface ProductUpdateFormData {
+   slug: string;
+   seoDescription: string;
+   seoTitle: string;
++  storageConditions: string;
+   sku: string;
+   trackInventory: boolean;
+   weight: string;
+diff --git a/src/products/fixtures.ts b/src/products/fixtures.ts
+index 15487df..5ff1124 100644
+--- a/src/products/fixtures.ts
++++ b/src/products/fixtures.ts
+@@ -573,6 +573,7 @@ export const product: (
+     },
+   },
+   rating: 100,
++  storageConditions: "Keep refrigerated at 2–8 °C",
+   seoDescription: "Seo description",
+   seoTitle: "Seo title",
+   sku: "59661-34207",
+diff --git a/src/products/utils/data.test.ts b/src/products/utils/data.test.ts
+index fb12c7c..6025a67 100644
+--- a/src/products/utils/data.test.ts
++++ b/src/products/utils/data.test.ts
+@@ -1,4 +1,6 @@
+-import { getSelectedMedia } from "./data";
++import { type ProductFragment } from "@dashboard/graphql";
++
++import { getProductUpdatePageFormData, getSelectedMedia } from "./data";
+ 
+ type GetSelectedMediaParams = Parameters<typeof getSelectedMedia>;
+ 
+@@ -72,3 +74,24 @@ describe("Product media utils", () => {
+     expect(result).toEqual([]);
+   });
+ });
++
++describe("getProductUpdatePageFormData", () => {
++  it("should map storage conditions from the product", () => {
++    // Arrange
++    const product = { storageConditions: "Keep refrigerated at 2–8 °C" } as ProductFragment;
++
++    // Act
++    const result = getProductUpdatePageFormData(product, []);
++
++    // Assert
++    expect(result.storageConditions).toBe("Keep refrigerated at 2–8 °C");
++  });
++
++  it("should default storage conditions to empty string without a product", () => {
++    // Arrange / Act
++    const result = getProductUpdatePageFormData(undefined as unknown as ProductFragment, []);
++
++    // Assert
++    expect(result.storageConditions).toBe("");
++  });
++});
+diff --git a/src/products/utils/data.ts b/src/products/utils/data.ts
+index fd355af..f24c169 100644
+--- a/src/products/utils/data.ts
++++ b/src/products/utils/data.ts
+@@ -209,6 +209,7 @@ export function getProductUpdatePageFormData(
+     rating: maybe(() => product.rating, null),
+     seoDescription: maybe(() => product.seoDescription, ""),
+     seoTitle: maybe(() => product.seoTitle, ""),
++    storageConditions: maybe(() => product.storageConditions, ""),
+     sku: maybe(
+       () => (product.productType.hasVariants ? undefined : (variant?.sku ?? undefined)),
+       "",
+diff --git a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
+index fd11549..d21fb51 100644
+--- a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
++++ b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
+@@ -96,6 +96,7 @@ const submitData: ProductUpdateSubmitData = {
+   isAvailable: true,
+   name: product.name,
+   rating: 0,
++  storageConditions: "",
+   seoDescription: "",
+   seoTitle: "",
+   sku: "",
+diff --git a/src/products/views/ProductUpdate/handlers/utils.test.ts b/src/products/views/ProductUpdate/handlers/utils.test.ts
+index f5bcd9c..f3ae4e5 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.test.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.test.ts
+@@ -514,6 +514,42 @@ describe("getProductUpdateVariables", () => {
+     expect(result.input.rating).toBeUndefined();
+   });
+ 
++  it("should include storage conditions when provided", () => {
++    // Arrange
++    const data = {
++      ...baseData,
++      storageConditions: "Keep refrigerated at 2–8 °C",
++    } as ProductUpdateSubmitData;
++
++    // Act
++    const result = getProductUpdateVariables(baseProduct, data, []);
++
++    // Assert
++    expect(result.input.storageConditions).toBe("Keep refrigerated at 2–8 °C");
++  });
++
++  it("should include empty storage conditions when the field is cleared", () => {
++    // Arrange
++    const data = { ...baseData, storageConditions: "" } as ProductUpdateSubmitData;
++
++    // Act
++    const result = getProductUpdateVariables(baseProduct, data, []);
++
++    // Assert
++    expect(result.input.storageConditions).toBe("");
++  });
++
++  it("should not include storage conditions when the field was not changed", () => {
++    // Arrange
++    const data = { ...baseData } as ProductUpdateSubmitData;
++
++    // Act
++    const result = getProductUpdateVariables(baseProduct, data, []);
++
++    // Assert
++    expect(result.input.storageConditions).toBeUndefined();
++  });
++
+   it("should include cleared seo fields so the API removes them", () => {
+     // Arrange - user emptied both SEO inputs
+     const data = {
+diff --git a/src/products/views/ProductUpdate/handlers/utils.ts b/src/products/views/ProductUpdate/handlers/utils.ts
+index 74f714e..7646fb2 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.ts
+@@ -77,6 +77,10 @@ export function getProductUpdateVariables(
+     variables.input["slug"] = data.slug;
+   }
+ 
++  if (data.storageConditions !== undefined) {
++    variables.input["storageConditions"] = data.storageConditions;
++  }
++
+   if (data.taxClassId !== undefined) {
+     // Empty string clears the product override so Saleor falls back to the product type.
+     variables.input["taxClass"] = data.taxClassId || null;
+diff --git a/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
+index 53fbacb..3d3a209 100644
+--- a/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
++++ b/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx
+@@ -136,6 +136,8 @@ export const TranslationsProductsPage = ({
+           name: data?.product?.name,
+           translationDescription: data?.translation?.description ?? null,
+           translationName: data?.translation?.name ?? null,
++          storageConditions: data?.product?.storageConditions,
++          translationStorageConditions: data?.translation?.storageConditions ?? null,
+         },
+         {
+           descriptionLabel: intl.formatMessage({
+@@ -146,6 +148,11 @@ export const TranslationsProductsPage = ({
+             id: "ZIc5lM",
+             defaultMessage: "Product Name",
+           }),
++          storageConditionsLabel: intl.formatMessage({
++            id: "uhaSOf",
++            defaultMessage: "Storage conditions",
++            description: "product storage conditions translation field label",
++          }),
+         },
+       ),
+       createSeoTranslationSection(intl, {
+diff --git a/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts b/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts
+index cd1527c..ea4b82c 100644
+--- a/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts
++++ b/src/translations/components/TranslationsProductsPage/use-translation-product-form-app-response.test.ts
+@@ -25,6 +25,7 @@ describe("useTranslationProductFormAppResponse", () => {
+     slug: "original-product-name",
+     seoDescription: "Original SEO Description",
+     seoTitle: "Original SEO Title",
++    storageConditions: "Original storage conditions",
+   };
+ 
+   const mockOnEdit = jest.fn();
+diff --git a/src/translations/mutations.ts b/src/translations/mutations.ts
+index f075f27..fb2695c 100644
+--- a/src/translations/mutations.ts
++++ b/src/translations/mutations.ts
+@@ -3,7 +3,7 @@ import { gql } from "@apollo/client";
+ export const updateProductTranslations = gql`
+   mutation UpdateProductTranslations(
+     $id: ID!
+-    $input: TranslationInput!
++    $input: ProductTranslationInput!
+     $language: LanguageCodeEnum!
+   ) {
+     productTranslate(id: $id, input: $input, languageCode: $language) {
+@@ -17,6 +17,7 @@ export const updateProductTranslations = gql`
+         seoDescription
+         seoTitle
+         slug
++        storageConditions
+         translation(languageCode: $language) {
+           id
+           description
+@@ -28,6 +29,7 @@ export const updateProductTranslations = gql`
+           seoDescription
+           seoTitle
+           slug
++          storageConditions
+         }
+       }
+     }
+diff --git a/src/translations/translationSectionBuilders.test.ts b/src/translations/translationSectionBuilders.test.ts
+new file mode 100644
+index 0000000..e312f9f
+--- /dev/null
++++ b/src/translations/translationSectionBuilders.test.ts
+@@ -0,0 +1,60 @@
++import { createIntl } from "react-intl";
++
++import { createGeneralNameDescriptionSection } from "./translationSectionBuilders";
++import { TranslationInputFieldName } from "./types";
++
++const intl = createIntl({ locale: "en" });
++
++describe("createGeneralNameDescriptionSection", () => {
++  it("does not add a storage conditions field by default", () => {
++    // Arrange / Act
++    const section = createGeneralNameDescriptionSection(intl, { name: "Milk" });
++
++    // Assert
++    expect(section.fields.map(field => field.name)).toEqual([
++      TranslationInputFieldName.name,
++      TranslationInputFieldName.description,
++    ]);
++  });
++
++  it("adds a storage conditions field with original and translated values", () => {
++    // Arrange / Act
++    const section = createGeneralNameDescriptionSection(
++      intl,
++      {
++        name: "Milk",
++        storageConditions: "Keep refrigerated at 2–8 °C",
++        translationStorageConditions: "Przechowywać w lodówce",
++      },
++      { storageConditionsLabel: "Storage conditions" },
++    );
++
++    // Assert
++    const field = section.fields.find(
++      field => field.name === TranslationInputFieldName.storageConditions,
++    );
++
++    expect(field).toMatchObject({
++      displayName: "Storage conditions",
++      value: "Keep refrigerated at 2–8 °C",
++      translation: "Przechowywać w lodówce",
++      type: "short",
++    });
++  });
++
++  it("falls back to empty original and null translation", () => {
++    // Arrange / Act
++    const section = createGeneralNameDescriptionSection(
++      intl,
++      { name: "Milk" },
++      { storageConditionsLabel: "Storage conditions" },
++    );
++
++    // Assert
++    const field = section.fields.find(
++      field => field.name === TranslationInputFieldName.storageConditions,
++    );
++
++    expect(field).toMatchObject({ value: "", translation: null });
++  });
++});
+diff --git a/src/translations/translationSectionBuilders.ts b/src/translations/translationSectionBuilders.ts
+index b724d8f..a9ed4e3 100644
+--- a/src/translations/translationSectionBuilders.ts
++++ b/src/translations/translationSectionBuilders.ts
+@@ -26,6 +26,8 @@ interface GeneralTranslationData {
+   name?: string | null;
+   translationDescription?: string | null;
+   translationName?: string | null;
++  storageConditions?: string | null;
++  translationStorageConditions?: string | null;
+ }
+ 
+ export function createGeneralNameDescriptionSection(
+@@ -34,6 +36,8 @@ export function createGeneralNameDescriptionSection(
+   options?: {
+     descriptionLabel?: string;
+     nameLabel?: string;
++    /** Adds a storage conditions field when provided. */
++    storageConditionsLabel?: string;
+   },
+ ): TranslationSectionConfig {
+   return {
+@@ -58,6 +62,17 @@ export function createGeneralNameDescriptionSection(
+         type: TranslationFieldType.RICH,
+         value: data.description ?? "",
+       },
++      ...(options?.storageConditionsLabel
++        ? [
++            {
++              displayName: options.storageConditionsLabel,
++              name: TranslationInputFieldName.storageConditions,
++              translation: data.translationStorageConditions ?? null,
++              type: TranslationFieldType.SHORT,
++              value: data.storageConditions ?? "",
++            },
++          ]
++        : []),
+     ],
+   };
+ }
+diff --git a/src/translations/types.ts b/src/translations/types.ts
+index e0880a3..fb997f9 100644
+--- a/src/translations/types.ts
++++ b/src/translations/types.ts
+@@ -13,6 +13,7 @@ export enum TranslationInputFieldName {
+   seoDescription = "seoDescription",
+   seoTitle = "seoTitle",
+   slug = "slug",
++  storageConditions = "storageConditions",
+   richText = "richText",
+ }
+ 
+diff --git a/src/translations/views/EntityLists/utils.test.ts b/src/translations/views/EntityLists/utils.test.ts
+index 179065a..6773ab7 100644
+--- a/src/translations/views/EntityLists/utils.test.ts
++++ b/src/translations/views/EntityLists/utils.test.ts
+@@ -232,6 +232,7 @@ describe("getProductTranslationCompletion", () => {
+         seoDescription: null,
+         seoTitle: null,
+         slug: null,
++        storageConditions: null,
+         language: { __typename: "LanguageDisplay", code: LanguageCodeEnum.PL, language: "Polish" },
+       },
+       attributeValues: [],
+@@ -252,6 +253,7 @@ describe("getProductTranslationCompletion", () => {
+         seoDescription: null,
+         seoTitle: null,
+         slug: null,
++        storageConditions: null,
+         language: { __typename: "LanguageDisplay", code: LanguageCodeEnum.PL, language: "Polish" },
+       },
+       attributeValues: [
+@@ -298,6 +300,7 @@ describe("getProductTranslationCompletion", () => {
+         seoDescription: null,
+         seoTitle: null,
+         slug: null,
++        storageConditions: null,
+         language: { __typename: "LanguageDisplay", code: LanguageCodeEnum.PL, language: "Polish" },
+       },
+       attributeValues: [

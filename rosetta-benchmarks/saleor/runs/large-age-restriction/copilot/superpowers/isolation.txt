@@ -1,0 +1,87 @@
+COPILOT_HOME=/Users/agavrilita/saleor-benchmark/envs/superpowers/copilot
+GitHub Copilot CLI 1.0.101.
+Run 'copilot update' to check for updates.
+v24.22.0
+autoUpdate=false
+memory=false
+ide.autoConnect=false
+model=gpt-5.6-terra
+effortLevel=medium
+continueOnAutoMode=false
+sandbox.enabled=false
+ignoredSkillsLocations=/Users/agavrilita/.agents/skills
+ignoredSkillsLocations=/Users/agavrilita/.claude/skills
+ignoredSkillsLocations=/Users/agavrilita/.github/skills
+subagents.agents.explore.model=inherit
+subagents.agents.explore.effortLevel=inherit
+subagents.agents.explore.contextTier=inherit
+subagents.agents.task.model=inherit
+subagents.agents.task.effortLevel=inherit
+subagents.agents.task.contextTier=inherit
+subagents.agents.general-purpose.model=inherit
+subagents.agents.general-purpose.effortLevel=inherit
+subagents.agents.general-purpose.contextTier=inherit
+subagents.agents.code-review.model=inherit
+subagents.agents.code-review.effortLevel=inherit
+subagents.agents.code-review.contextTier=inherit
+subagents.agents.research.model=inherit
+subagents.agents.research.effortLevel=inherit
+subagents.agents.research.contextTier=inherit
+subagents.agents.security-review.model=inherit
+subagents.agents.security-review.effortLevel=inherit
+subagents.agents.security-review.contextTier=inherit
+subagents.disabledSubagents=rubber-duck
+extraKnownMarketplaces.superpowers-dev.source.source=directory
+extraKnownMarketplaces.superpowers-dev.source.path=/Users/agavrilita/saleor-benchmark/envs/superpowers/src
+enabledPlugins.superpowers@superpowers-dev=true
+subagents: {"agents": {"explore": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "task": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "general-purpose": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "code-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "research": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "security-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}}, "disabledSubagents": ["rubber-duck"]}
+Built-in plugins:
+  • browser-use (v0.0.4) [disabled]
+Live Plugins (loaded from a local marketplace directory, never copied):
+  • superpowers@superpowers-dev (v6.4.2) (enabled)
+      from /Users/agavrilita/saleor-benchmark/envs/superpowers/src
+Plugin skills:
+  brainstorming - You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.
+  diagnosing-superpowers - Use when a superpowers session went wrong and your human partner wants to know why — repeated work, ignored plans, stumbles, poor results, a skill that didn't fire, "it took too long", "why is it so expensive", "what is it doing" — or wants to build a bug report for the superpowers maintainers, for the current session or a past one identified by id or path, on any harness.
+  dispatching-parallel-agents - Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies
+  executing-plans - Use when executing an implementation plan in the current session as the implementer yourself — your human partner chose inline execution, or no subagent tool is available
+  finishing-a-development-branch - Use when implementation is complete, all tests pass, and you need to decide how to integrate the work
+  receiving-code-review - Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation
+  requesting-code-review - Use when completing tasks, implementing major features, or before merging to verify work meets requirements
+  subagent-driven-development - Use when executing implementation plans with independent tasks in the current session
+  systematic-debugging - Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes
+  test-driven-development - Use when implementing any feature or bugfix, before writing implementation code
+  using-git-worktrees - Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native tools or git worktree fallback
+  using-superpowers - Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions
+  verification-before-completion - Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
+  writing-plans - Use when you have a spec or requirements for a multi-step task, before touching code
+  writing-skills - Use when creating new skills, editing existing skills, or verifying skills work before deployment
+
+Builtin skills:
+  customize-cloud-agent - Skill for customizing the Copilot cloud agent (formerly known as Copilot coding agent) environment, including copilot-setup-steps.yml configuration, preinstalling tools and dependencies, runners, and settings. Use when the user mentions copilot-setup-steps, copilot setup steps, or wants to configure the cloud agent environment.
+  github-pr-media - Upload an image or video to GitHub's user attachments API and embed it in a pull request description or comment. Use when asked to add screenshots, diagrams, recordings, or other media to a PR or GitHub comment.
+
+Builtin servers:
+  github-mcp-server (http)
+
+Repository instructions:
+  • team-rules.instructions.md [external]
+      from /Users/agavrilita/PycharmProjects/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md
+(no inline hooks)
+sandbox.enabled=false
+copilot-rules: team-rules.instructions.md = baseline rules
+saleor: CLAUDE.md = baseline rules
+saleor: copilot-instructions.md = baseline rules
+saleor: ai-file: .github/copilot-instructions.md
+saleor: ai-file: CLAUDE.md
+saleor-dashboard: CLAUDE.md = baseline rules
+saleor-dashboard: copilot-instructions.md = baseline rules
+saleor-dashboard: ai-file: .github/copilot-instructions.md
+saleor-dashboard: ai-file: CLAUDE.md
+react-storefront: CLAUDE.md = baseline rules
+react-storefront: copilot-instructions.md = baseline rules
+react-storefront: ai-file: .github/copilot-instructions.md
+react-storefront: ai-file: CLAUDE.md
+saleor: baseline-v1 superpowers-v1 
+saleor-dashboard: baseline-v1 superpowers-v1 
+react-storefront: baseline-v1 superpowers-v1 

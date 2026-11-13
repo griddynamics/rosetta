@@ -1,0 +1,14 @@
+# Review: T3 storefront tests (advisory)
+
+TLDR: No blockers, no majors. The 3 files pass (42 tests, vitest 4.1.9) and cover SF-01..05. The render tests assert real behavior. The gaps are minor.
+
+Verified: component swapped to `dangerouslySetInnerHTML` fails the escape tests; removed item or wrong order fails the order, open-by-default and hidden tests; the `aria-expanded` control proves the open-state check is not vacuous. Files are pure and have no shared state. Pattern is consistent with `data-layer.contract.test.ts` (`import.meta.dirname`, `readFileSync`).
+
+## Findings
+1. minor - `storefront-view.test.ts` has no case for base null/blank with a non-blank translation (translation-only). `pickTranslatedField(translation, ..., null)` is a realistic path for a product with no base text. Fix: add `expect(mapProductExtensions(shell(null, "Trocken"))).toEqual({storageConditions:"Trocken"})`.
+2. minor - `getStorageConditions` (`storefront-view.ts:22`) accepts whitespace-only strings (`length > 0`), and `product-attributes.tsx:~96` checks `storageConditions &&`. Whitespace-only is hidden only because the mapper trims. Tests cover whitespace at the mapper level only (`storefront-view.test.ts` blank cases), so SF-03 depends on that composition. Fix: add a `getStorageConditions({storageConditions:"  "})` case that documents the intended result (or trim in the reader), plus one `render({storageConditions:"   "})` case, to pin the contract.
+3. minor - Route wiring is untested (product page -> `getStorageConditions(extensions)` -> `ProductAttributes`). Dropping the prop in the route would pass all tests. PLAN marks the mapper-level assertion as optional. Fix: if the route is a thin pure call, add an `extensions` assertion in `mappers/product.test.ts`; otherwise leave it to the E2E checklist (V1 SF-01).
+4. minor - Contract test title "is spread only by ProductDetails" (`product-details-extension.contract.test.ts`) only asserts that ProductDetails spreads it. It does not check that no other `.graphql` file spreads it, so the title over-claims. Fix: rename the test, or scan `src/graphql/**/*.graphql` for `...ProductDetailsExtension` and expect exactly one.
+5. minor - `product-attributes.test.ts` ordering uses `html.indexOf(label)`, which matches the first occurrence. The word "Description" or "Storage Conditions" could appear earlier (e.g. an aria or id attribute), so it is mildly fragile. Fix: anchor on the trigger button regex used in the open-state test.
+6. minor (info) - The 8-locale test only checks that the key is non-empty. It does not catch English text copied into non-en files. This meets SF-05 as written. The test list is hardcoded, which is acceptable, since it asserts the exact 8-file set.
+7. info - The SF-04 "no new `dangerouslySetInnerHTML` in the diff" check is not a unit test. It stays a V2 manual diff check, per PLAN.

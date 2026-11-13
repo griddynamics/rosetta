@@ -1,0 +1,109 @@
+COPILOT_HOME=/Users/olepoletaiev/saleor-benchmark/envs/grill-with-docs/copilot
+GitHub Copilot CLI 1.0.101.
+Run 'copilot update' to check for updates.
+v24.21.0
+autoUpdate=false
+memory=false
+ide.autoConnect=false
+model=gpt-5.6-terra
+effortLevel=medium
+continueOnAutoMode=false
+sandbox.enabled=false
+ignoredSkillsLocations=/Users/olepoletaiev/.agents/skills
+ignoredSkillsLocations=/Users/olepoletaiev/.claude/skills
+ignoredSkillsLocations=/Users/olepoletaiev/.github/skills
+subagents.agents.explore.model=inherit
+subagents.agents.explore.effortLevel=inherit
+subagents.agents.explore.contextTier=inherit
+subagents.agents.task.model=inherit
+subagents.agents.task.effortLevel=inherit
+subagents.agents.task.contextTier=inherit
+subagents.agents.general-purpose.model=inherit
+subagents.agents.general-purpose.effortLevel=inherit
+subagents.agents.general-purpose.contextTier=inherit
+subagents.agents.code-review.model=inherit
+subagents.agents.code-review.effortLevel=inherit
+subagents.agents.code-review.contextTier=inherit
+subagents.agents.research.model=inherit
+subagents.agents.research.effortLevel=inherit
+subagents.agents.research.contextTier=inherit
+subagents.agents.security-review.model=inherit
+subagents.agents.security-review.effortLevel=inherit
+subagents.agents.security-review.contextTier=inherit
+subagents.disabledSubagents=rubber-duck
+subagents: {"agents": {"explore": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "task": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "general-purpose": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "code-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "research": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "security-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}}, "disabledSubagents": ["rubber-duck"]}
+No plugins installed.
+
+Use 'copilot plugin install <source>' to install a plugin.
+Built-in plugins:
+  • browser-use (v0.0.4) [disabled]
+Project skills:
+  ask-matt - Ask which skill or flow fits your situation. A router over the skills in this repo.
+  chief-of-staff - Pursue a long-running goal in a single session by co-ordinating subagents.
+  claude-handoff - Hand the current conversation off to a fresh background agent that picks up the work immediately.
+  code-review - Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to "review since X".
+  codebase-design - Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.
+  diagnosing-bugs - Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
+  domain-modeling - Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a GLOSSARY.md, or recording or editing an ADR.
+  git-guardrails-claude-code - Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code.
+  grill-me - A relentless interview to sharpen a plan or design.
+  grill-with-docs - A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.
+  grilling - Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.
+  handoff - Compact the current conversation into a handoff document for another agent to pick up.
+  implement-spec - Implement the result of /to-spec and /to-tickets in code.
+  implement - Implement a piece of work based on a spec or set of tickets.
+  improve-codebase-architecture - Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
+  loop-me - Grill me about specs for the workflows I want to build, within this workspace.
+  migrate-to-shoehorn - Migrate test files from `as` type assertions to @total-typescript/shoehorn. Use when user mentions shoehorn, wants to replace `as` in tests, or needs partial test data.
+  pr - Use when writing a PR body.
+  prototype - Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.
+  research - Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.
+  retro - Conduct a retrospective on a coding session.
+  scaffold-exercises - Create exercise directory structures with sections, problems, solutions, and explainers that pass linting. Use when user wants to scaffold exercises, create exercise stubs, or set up a new course section.
+  setup-matt-pocock-skills - Configure this repo for the engineering skills: set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills.
+  setup-pre-commit - Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. Use when user wants to add pre-commit hooks, set up Husky, configure lint-staged, or add commit-time formatting/typechecking/testing.
+  setup-ts-deep-modules - Wire dependency-cruiser into a TypeScript repo so each package is a deep module, with implementation hidden in subfolders and reachable only through its entry-point files. User-invoked.
+  tdd - Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests.
+  teach - Teach the user a new skill or concept, within this workspace.
+  to-questionnaire - Turn a decision you can't fully answer into a questionnaire for someone else to fill in.
+  to-spec - Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed.
+  to-tickets - Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker).
+  triage - Move issues and external PRs through a state machine of triage roles, categorise, verify, grill if needed, and write agent-ready briefs.
+  wait-what - Stop. That last message did not land: re-pitch it.
+  wayfinder - Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.
+  wizard - Generate an interactive bash wizard that walks a human through steps only they can perform. Use when provisioning infrastructure, setting up credentials or CI secrets, walking an unfamiliar third-party dashboard, or running a one-off migration or cutover. Don't invoke this for steps the agent can perform itself.
+  writing-beats - Writing, exploit; assemble raw material into a journey of beats, grounding each term before a beat leans on it.
+  writing-for-agents - Writing documents for agents. Use when creating or editing skills, or modifying AGENTS.md or CLAUDE.md.
+  writing-fragments - Writing, explore: mine raw fragments, no structure yet.
+  writing-shape - Writing, exploit: shape raw material into an article, paragraph by paragraph.
+
+Builtin skills:
+  customize-cloud-agent - Skill for customizing the Copilot cloud agent (formerly known as Copilot coding agent) environment, including copilot-setup-steps.yml configuration, preinstalling tools and dependencies, runners, and settings. Use when the user mentions copilot-setup-steps, copilot setup steps, or wants to configure the cloud agent environment.
+  github-pr-media - Upload an image or video to GitHub's user attachments API and embed it in a pull request description or comment. Use when asked to add screenshots, diagrams, recordings, or other media to a PR or GitHub comment.
+
+Builtin servers:
+  github-mcp-server (http)
+
+Repository instructions:
+  • AGENTS.md
+      from AGENTS.md
+  • team-rules.instructions.md [external]
+      from /Users/olepoletaiev/Downloads/Projects/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md
+(no inline hooks)
+sandbox.enabled=false
+copilot-rules: team-rules.instructions.md = baseline rules
+saleor: CLAUDE.md = baseline rules
+saleor: copilot-instructions.md = baseline rules
+saleor: ai-file: .github/copilot-instructions.md
+saleor: ai-file: CLAUDE.md
+saleor-dashboard: CLAUDE.md = baseline rules
+saleor-dashboard: copilot-instructions.md = baseline rules
+saleor-dashboard: ai-file: .github/copilot-instructions.md
+saleor-dashboard: ai-file: CLAUDE.md
+react-storefront: CLAUDE.md = baseline rules
+react-storefront: copilot-instructions.md = baseline rules
+react-storefront: ai-file: .github/copilot-instructions.md
+react-storefront: ai-file: CLAUDE.md
+saleor: baseline-v1 grill-v1 
+saleor-dashboard: baseline-v1 grill-v1 
+react-storefront: baseline-v1 grill-v1 

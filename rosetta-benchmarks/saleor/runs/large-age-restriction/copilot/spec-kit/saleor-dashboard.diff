@@ -1,0 +1,486 @@
+diff --git a/src/customers/components/CustomerDetailsPage/CustomerDetailsPage.test.tsx b/src/customers/components/CustomerDetailsPage/CustomerDetailsPage.test.tsx
+index be857a9..8c71289 100644
+--- a/src/customers/components/CustomerDetailsPage/CustomerDetailsPage.test.tsx
++++ b/src/customers/components/CustomerDetailsPage/CustomerDetailsPage.test.tsx
+@@ -7,6 +7,7 @@ import { render, screen } from "@testing-library/react";
+ import { MemoryRouter } from "react-router-dom";
+ 
+ import { customer } from "../../fixtures";
++import { customerDetails } from "../../queries";
+ import CustomerDetailsPage from "./CustomerDetailsPage";
+ 
+ jest.mock("@dashboard/auth/hooks/useUserPermissions");
+@@ -124,6 +125,15 @@ describe("CustomerDetailsPage", () => {
+     mockGetExtensionsItemsForCustomerDetails.mockReturnValue([]);
+   });
+ 
++  it("requests only age eligibility for MANAGE_USERS staff", () => {
++    // The dashboard must never request Birthday, including for staff who can
++    // view a customer's eligibility.
++    const query = customerDetails.loc?.source.body ?? "";
++
++    expect(query).toContain("ageEligibility @include(if: $PERMISSION_MANAGE_USERS)");
++    expect(query).not.toMatch(/\bbirthday\b/i);
++  });
++
+   describe("with MANAGE_USERS (full edit access)", () => {
+     beforeEach(() => {
+       mockUseUserPermissions.mockReturnValue([permission(PermissionEnum.MANAGE_USERS)]);
+diff --git a/src/customers/components/CustomerOverview/CustomerOverview.tsx b/src/customers/components/CustomerOverview/CustomerOverview.tsx
+index 62291cf..edd4228 100644
+--- a/src/customers/components/CustomerOverview/CustomerOverview.tsx
++++ b/src/customers/components/CustomerOverview/CustomerOverview.tsx
+@@ -37,6 +37,7 @@ export const CustomerOverview = ({ customer }: CustomerOverviewProps): React.Rea
+   const { locale } = useLocale();
+   const { effectiveKpiChannelId, kpiChannels, setKpiChannelId } = useCustomerDetails();
+   const loading = !customer;
++  const ageEligibility = customer?.ageEligibility;
+ 
+   const kpiOrders = customer?.kpiOrders;
+   const channelOrders = useMemo(() => {
+@@ -149,6 +150,35 @@ export const CustomerOverview = ({ customer }: CustomerOverviewProps): React.Rea
+         )}
+       </RequirePermissions>
+ 
++      <RequirePermissions requiredPermissions={[PermissionEnum.MANAGE_USERS]}>
++        {ageEligibility !== undefined && ageEligibility !== null ? (
++          <Box data-test-id="customer-age-eligibility">
++            <Text size={2} color="default2">
++              <FormattedMessage
++                id="axfA+7"
++                defaultMessage="Age eligibility"
++                description="customer age-restriction eligibility label"
++              />
++            </Text>
++            <Text fontWeight="medium">
++              {ageEligibility ? (
++                <FormattedMessage
++                  id="s4ngtt"
++                  defaultMessage="Eligible"
++                  description="customer meets the minimum age"
++                />
++              ) : (
++                <FormattedMessage
++                  id="ixKM5V"
++                  defaultMessage="Not eligible"
++                  description="customer does not meet the minimum age"
++                />
++              )}
++            </Text>
++          </Box>
++        ) : null}
++      </RequirePermissions>
++
+       <div className={styles.grid}>
+         <RequirePermissions requiredPermissions={[PermissionEnum.MANAGE_ORDERS]}>
+           <Box position="relative">
+diff --git a/src/customers/queries.ts b/src/customers/queries.ts
+index 1812e04..4cd6ea5 100644
+--- a/src/customers/queries.ts
++++ b/src/customers/queries.ts
+@@ -48,11 +48,13 @@ export const customerDetails = gql`
+     $id: ID!
+     $PERMISSION_MANAGE_ORDERS: Boolean!
+     $PERMISSION_MANAGE_STAFF: Boolean!
++    $PERMISSION_MANAGE_USERS: Boolean!
+     $kpiChannelId: ID!
+     $includeKpiOrderCount: Boolean!
+   ) {
+     user(id: $id) {
+       ...CustomerDetails
++      ageEligibility @include(if: $PERMISSION_MANAGE_USERS)
+       metadata {
+         ...MetadataItem
+       }
+diff --git a/src/fragments/products.ts b/src/fragments/products.ts
+index c17c983..25ae586 100644
+--- a/src/fragments/products.ts
++++ b/src/fragments/products.ts
+@@ -221,6 +221,7 @@ export const productFragmentDetails = gql`
+     seoTitle
+     seoDescription
+     rating
++    isAgeRestricted
+     defaultVariant {
+       id
+       sku
+diff --git a/src/fragments/shop.ts b/src/fragments/shop.ts
+index 8b2db5a..477771a 100644
+--- a/src/fragments/shop.ts
++++ b/src/fragments/shop.ts
+@@ -61,5 +61,7 @@ export const shopFragment = gql`
+     preserveAllAddressFields
+     passwordLoginMode
+     allowStorefrontTraffic
++    minimumAge
++    shopTimezone
+   }
+ `;
+diff --git a/src/graphql/hooks.generated.ts b/src/graphql/hooks.generated.ts
+index 3bb8791..8976bb6 100644
+--- a/src/graphql/hooks.generated.ts
++++ b/src/graphql/hooks.generated.ts
+@@ -3465,6 +3465,7 @@ export const ProductFragmentDoc = gql`
+   seoTitle
+   seoDescription
+   rating
++  isAgeRestricted
+   defaultVariant {
+     id
+     sku
+@@ -3828,6 +3829,8 @@ export const ShopFragmentDoc = gql`
+   preserveAllAddressFields
+   passwordLoginMode
+   allowStorefrontTraffic
++  minimumAge
++  shopTimezone
+ }
+     ${AddressFragmentDoc}`;
+ export const StaffMemberDetailsFragmentDoc = gql`
+@@ -9644,9 +9647,10 @@ export type ListCustomersQueryHookResult = ReturnType<typeof useListCustomersQue
+ export type ListCustomersLazyQueryHookResult = ReturnType<typeof useListCustomersLazyQuery>;
+ export type ListCustomersQueryResult = Apollo.QueryResult<Types.ListCustomersQuery, Types.ListCustomersQueryVariables>;
+ export const CustomerDetailsDocument = gql`
+-    query CustomerDetails($id: ID!, $PERMISSION_MANAGE_ORDERS: Boolean!, $PERMISSION_MANAGE_STAFF: Boolean!, $kpiChannelId: ID!, $includeKpiOrderCount: Boolean!) {
++    query CustomerDetails($id: ID!, $PERMISSION_MANAGE_ORDERS: Boolean!, $PERMISSION_MANAGE_STAFF: Boolean!, $PERMISSION_MANAGE_USERS: Boolean!, $kpiChannelId: ID!, $includeKpiOrderCount: Boolean!) {
+   user(id: $id) {
+     ...CustomerDetails
++    ageEligibility @include(if: $PERMISSION_MANAGE_USERS)
+     metadata {
+       ...MetadataItem
+     }
+diff --git a/src/graphql/types.generated.ts b/src/graphql/types.generated.ts
+index 8738069..2711a3f 100644
+--- a/src/graphql/types.generated.ts
++++ b/src/graphql/types.generated.ts
+@@ -7303,6 +7303,8 @@ export type ProductFilterInput = {
+ export type ProductInput = {
+   /** List of attributes. */
+   attributes?: InputMaybe<Array<AttributeValueInput>>;
++  /** Whether customers must meet the shop minimum age to purchase this product. */
++  isAgeRestricted?: InputMaybe<Scalars['Boolean']['input']>;
+   /** ID of the product's category. */
+   category?: InputMaybe<Scalars['ID']['input']>;
+   /**
+@@ -8548,6 +8550,10 @@ export type ShopSettingsInput = {
+    * Added in Saleor 3.23.
+    */
+   allowStorefrontTraffic?: InputMaybe<Scalars['Boolean']['input']>;
++  /** Minimum age required to purchase age-restricted products. */
++  minimumAge?: InputMaybe<Scalars['Int']['input']>;
++  /** IANA time zone used to determine age eligibility. */
++  shopTimezone?: InputMaybe<Scalars['String']['input']>;
+   /**
+    * Charge taxes on shipping.
+    *
+@@ -11904,12 +11910,13 @@ export type CustomerDetailsQueryVariables = Exact<{
+   id: Scalars['ID']['input'];
+   PERMISSION_MANAGE_ORDERS: Scalars['Boolean']['input'];
+   PERMISSION_MANAGE_STAFF: Scalars['Boolean']['input'];
++  PERMISSION_MANAGE_USERS: Scalars['Boolean']['input'];
+   kpiChannelId: Scalars['ID']['input'];
+   includeKpiOrderCount: Scalars['Boolean']['input'];
+ }>;
+ 
+ 
+-export type CustomerDetailsQuery = { __typename: 'Query', user: { __typename: 'User', dateJoined: any, lastLogin: any | null, note: string | null, isActive: boolean, isConfirmed: boolean, isStaff: boolean, externalReference: string | null, id: string, email: string, firstName: string, lastName: string, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata?: Array<{ __typename: 'MetadataItem', key: string, value: string }>, orders?: { __typename: 'OrderCountableConnection', totalCount: number | null, edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, created: any, number: string, status: OrderStatus, total: { __typename: 'TaxedMoney', gross: { __typename: 'Money', currency: string, amount: number } }, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiOrderChannels?: { __typename: 'OrderCountableConnection', edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, status: OrderStatus, created: any, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiOrders?: { __typename: 'OrderCountableConnection', edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, status: OrderStatus, created: any, subtotal: { __typename: 'TaxedMoney', net: { __typename: 'Money', amount: number, currency: string } }, shippingPrice: { __typename: 'TaxedMoney', gross: { __typename: 'Money', amount: number, currency: string } }, totalRefunded: { __typename: 'Money', amount: number, currency: string }, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiNonCancelledOrderCount?: { __typename: 'OrderCountableConnection', totalCount: number | null } | null, defaultShippingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, defaultBillingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, customerType: { __typename: 'CustomerType', id: string, name: string, slug: string, isDefault: boolean, attributes: Array<{ __typename: 'Attribute', entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null } | null, assignedAttributes: Array<{ __typename: 'AssignedBooleanAttribute', booleanValue: boolean | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateAttribute', dateValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateTimeAttribute', dateTimeValue: any | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedFileAttribute', fileValue: { __typename: 'File', url: string, contentType: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCategoryReferenceAttribute', categoryValues: Array<{ __typename: 'Category', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiChoiceAttribute', choiceValues: Array<{ __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCollectionReferenceAttribute', collectionValues: Array<{ __typename: 'Collection', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiPageReferenceAttribute', pageValues: Array<{ __typename: 'Page', id: string, title: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductReferenceAttribute', productValues: Array<{ __typename: 'Product', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductVariantReferenceAttribute', variantValues: Array<{ __typename: 'ProductVariant', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedNumericAttribute', numericValue: number | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedPlainTextAttribute', plainTextValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCategoryReferenceAttribute', categoryValue: { __typename: 'Category', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleChoiceAttribute', choiceValue: { __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCollectionReferenceAttribute', collectionValue: { __typename: 'Collection', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSinglePageReferenceAttribute', pageValue: { __typename: 'Page', id: string, title: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductReferenceAttribute', productValue: { __typename: 'Product', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductVariantReferenceAttribute', variantValue: { __typename: 'ProductVariant', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSwatchAttribute', swatchValue: { __typename: 'AssignedSwatchAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedTextAttribute', richTextValue: unknown | null, attribute: { __typename: 'Attribute', id: string, slug: string } }> } | null };
++export type CustomerDetailsQuery = { __typename: 'Query', user: { __typename: 'User', ageEligibility?: boolean | null, dateJoined: any, lastLogin: any | null, note: string | null, isActive: boolean, isConfirmed: boolean, isStaff: boolean, externalReference: string | null, id: string, email: string, firstName: string, lastName: string, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata?: Array<{ __typename: 'MetadataItem', key: string, value: string }>, orders?: { __typename: 'OrderCountableConnection', totalCount: number | null, edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, created: any, number: string, status: OrderStatus, total: { __typename: 'TaxedMoney', gross: { __typename: 'Money', currency: string, amount: number } }, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiOrderChannels?: { __typename: 'OrderCountableConnection', edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, status: OrderStatus, created: any, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiOrders?: { __typename: 'OrderCountableConnection', edges: Array<{ __typename: 'OrderCountableEdge', node: { __typename: 'Order', id: string, status: OrderStatus, created: any, subtotal: { __typename: 'TaxedMoney', net: { __typename: 'Money', amount: number, currency: string } }, shippingPrice: { __typename: 'TaxedMoney', gross: { __typename: 'Money', amount: number, currency: string } }, totalRefunded: { __typename: 'Money', amount: number, currency: string }, channel: { __typename: 'Channel', id: string, name: string, slug: string, isActive: boolean, currencyCode: string } } }> } | null, kpiNonCancelledOrderCount?: { __typename: 'OrderCountableConnection', totalCount: number | null } | null, defaultShippingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, defaultBillingAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, customerType: { __typename: 'CustomerType', id: string, name: string, slug: string, isDefault: boolean, attributes: Array<{ __typename: 'Attribute', entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null } | null, assignedAttributes: Array<{ __typename: 'AssignedBooleanAttribute', booleanValue: boolean | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateAttribute', dateValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedDateTimeAttribute', dateTimeValue: any | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedFileAttribute', fileValue: { __typename: 'File', url: string, contentType: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCategoryReferenceAttribute', categoryValues: Array<{ __typename: 'Category', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiChoiceAttribute', choiceValues: Array<{ __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiCollectionReferenceAttribute', collectionValues: Array<{ __typename: 'Collection', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiPageReferenceAttribute', pageValues: Array<{ __typename: 'Page', id: string, title: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductReferenceAttribute', productValues: Array<{ __typename: 'Product', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedMultiProductVariantReferenceAttribute', variantValues: Array<{ __typename: 'ProductVariant', id: string, name: string }>, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedNumericAttribute', numericValue: number | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedPlainTextAttribute', plainTextValue: string | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCategoryReferenceAttribute', categoryValue: { __typename: 'Category', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleChoiceAttribute', choiceValue: { __typename: 'AssignedChoiceAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleCollectionReferenceAttribute', collectionValue: { __typename: 'Collection', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSinglePageReferenceAttribute', pageValue: { __typename: 'Page', id: string, title: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductReferenceAttribute', productValue: { __typename: 'Product', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSingleProductVariantReferenceAttribute', variantValue: { __typename: 'ProductVariant', id: string, name: string } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedSwatchAttribute', swatchValue: { __typename: 'AssignedSwatchAttributeValue', name: string | null, slug: string | null } | null, attribute: { __typename: 'Attribute', id: string, slug: string } } | { __typename: 'AssignedTextAttribute', richTextValue: unknown | null, attribute: { __typename: 'Attribute', id: string, slug: string } }> } | null };
+ 
+ export type CustomerAddressesQueryVariables = Exact<{
+   id: Scalars['ID']['input'];
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
+index f54cb77..8057896 100644
+--- a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
+@@ -10,12 +10,13 @@ import { getFormErrors, getProductErrorMessage } from "@dashboard/utils/errors";
+ import createNonNegativeValueChangeHandler from "@dashboard/utils/handlers/nonNegativeValueChangeHandler";
+ import { useRichTextContext } from "@dashboard/utils/richText/context";
+ import { type OutputData } from "@editorjs/editorjs";
+-import { Box, Input } from "@saleor/macaw-ui-next";
++import { Box, Checkbox, Input } from "@saleor/macaw-ui-next";
+ import { useIntl } from "react-intl";
+ 
+ interface ProductDetailsFormProps {
+   data: {
+     description: OutputData;
++    isAgeRestricted?: boolean;
+     name: string;
+     rating: number | null;
+   };
+@@ -90,6 +91,22 @@ export const ProductDetailsForm = ({
+         />
+       )}
+       <FormSpacer />
++      <Checkbox
++        checked={data.isAgeRestricted ?? false}
++        disabled={disabled}
++        name="isAgeRestricted"
++        onCheckedChange={value =>
++          onChange({ target: { name: "isAgeRestricted", value: Boolean(value) } })
++        }
++        data-test-id="is-age-restricted"
++      >
++        {intl.formatMessage({
++          id: "usCQU6",
++          defaultMessage: "Age-restricted product",
++          description: "checkbox label for products requiring a minimum customer age",
++        })}
++      </Checkbox>
++      <FormSpacer />
+       <Box display="grid" __gridTemplateColumns="1fr 1fr" gap={4} alignItems="start">
+         <Input
+           label={intl.formatMessage({
+diff --git a/src/products/components/ProductUpdatePage/saveComposition.ts b/src/products/components/ProductUpdatePage/saveComposition.ts
+index 9e2c6bd..9e8238e 100644
+--- a/src/products/components/ProductUpdatePage/saveComposition.ts
++++ b/src/products/components/ProductUpdatePage/saveComposition.ts
+@@ -11,6 +11,7 @@ export const PRODUCT_DETAILS_SAVE_FIELDS: ReadonlyArray<keyof ProductUpdateFormD
+   "taxClassId",
+   "category",
+   "collections",
++  "isAgeRestricted",
+ ];
+ 
+ export interface ProductSaveComposition {
+diff --git a/src/products/components/ProductUpdatePage/types.ts b/src/products/components/ProductUpdatePage/types.ts
+index e236f93..a5c4780 100644
+--- a/src/products/components/ProductUpdatePage/types.ts
++++ b/src/products/components/ProductUpdatePage/types.ts
+@@ -40,6 +40,7 @@ export interface ProductUpdateFormData {
+   category: string | null;
+   taxClassId: string;
+   collections: Option[];
++  isAgeRestricted?: boolean;
+   isAvailable: boolean;
+   name: string;
+   rating: number;
+diff --git a/src/products/utils/data.ts b/src/products/utils/data.ts
+index fd355af..318c22f 100644
+--- a/src/products/utils/data.ts
++++ b/src/products/utils/data.ts
+@@ -192,6 +192,7 @@ export function getProductUpdatePageFormData(
+   variants: ProductDetailsVariantFragment[],
+ ): ProductUpdateFormData {
+   const variant = product?.defaultVariant ?? variants?.[0];
++  const ageRestrictedProduct = product as ProductFragment & { isAgeRestricted?: boolean | null };
+ 
+   return {
+     category: maybe(() => product.category.id, ""),
+@@ -204,6 +205,7 @@ export function getProductUpdatePageFormData(
+         })),
+       [],
+     ),
++    isAgeRestricted: ageRestrictedProduct?.isAgeRestricted ?? false,
+     isAvailable: !!product?.isAvailable,
+     name: maybe(() => product.name, ""),
+     rating: maybe(() => product.rating, null),
+diff --git a/src/products/views/ProductUpdate/handlers/utils.test.ts b/src/products/views/ProductUpdate/handlers/utils.test.ts
+index f5bcd9c..6b2ccf1 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.test.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.test.ts
+@@ -11,6 +11,24 @@ import {
+ } from "./utils";
+ 
+ describe("Product update utils", () => {
++  it("sends an explicit age restriction change, including disabling it", () => {
++    // Arrange
++    const product = { id: "product-id", isAgeRestricted: true } as ProductFragment & {
++      isAgeRestricted: boolean;
++    };
++    const data = {
++      attributes: [],
++      attributesWithNewFileValue: [],
++      isAgeRestricted: false,
++    } as ProductUpdateSubmitData;
++
++    // Act
++    const result = getProductUpdateVariables(product, data, []);
++
++    // Assert
++    expect(result.input.isAgeRestricted).toBe(false);
++  });
++
+   it("should infer product channels after update with data", () => {
+     const product = {
+       channelListings: [
+diff --git a/src/products/views/ProductUpdate/handlers/utils.ts b/src/products/views/ProductUpdate/handlers/utils.ts
+index 74f714e..6f49199 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.ts
+@@ -61,6 +61,15 @@ export function getProductUpdateVariables(
+     variables.input["description"] = getParsedDataForJsonStringField(data.description);
+   }
+ 
++  const ageRestrictedProduct = product as ProductFragment & { isAgeRestricted?: boolean | null };
++
++  if (
++    data.isAgeRestricted !== undefined &&
++    data.isAgeRestricted !== ageRestrictedProduct.isAgeRestricted
++  ) {
++    variables.input["isAgeRestricted"] = data.isAgeRestricted;
++  }
++
+   if (data.name) {
+     variables.input["name"] = data.name;
+   }
+diff --git a/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.test.tsx b/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.test.tsx
+index d5cd51d..6dc0b39 100644
+--- a/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.test.tsx
++++ b/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.test.tsx
+@@ -55,6 +55,7 @@ describe("SiteSettingsPage — API access section", () => {
+ 
+     expect(sectionIds).toEqual([
+       "store-details",
++      "age-restrictions",
+       "company-information",
+       "customer-accounts",
+       "api-access",
+@@ -62,6 +63,24 @@ describe("SiteSettingsPage — API access section", () => {
+     ]);
+   });
+ 
++  it("hydrates the age restriction policy fields", () => {
++    // Arrange & Act
++    render(
++      <SiteSettingsPage
++        disabled={false}
++        errors={[]}
++        shop={{ ...shop!, minimumAge: 21, shopTimezone: "Europe/Warsaw" } as typeof shop}
++        saveButtonBarState="default"
++        onSubmit={jest.fn()}
++      />,
++      { wrapper: Wrapper },
++    );
++
++    // Assert
++    expect(screen.getByTestId("minimum-age-input")).toHaveValue(21);
++    expect(screen.getByTestId("shop-timezone-input")).toHaveValue("Europe/Warsaw");
++  });
++
+   it("reflects allowStorefrontTraffic and hides the warning when traffic is allowed", () => {
+     // Arrange & Act
+     renderPage(true);
+diff --git a/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.tsx b/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.tsx
+index b06fc5c..8bb2ccc 100644
+--- a/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.tsx
++++ b/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.tsx
+@@ -27,7 +27,7 @@ import useStateFromProps from "@dashboard/hooks/useStateFromProps";
+ import { sectionNames } from "@dashboard/intl";
+ import createSingleAutocompleteSelectHandler from "@dashboard/utils/handlers/singleAutocompleteSelectChangeHandler";
+ import { mapCountriesToChoices } from "@dashboard/utils/maps";
+-import { Box, Text } from "@saleor/macaw-ui-next";
++import { Box, Input, Text } from "@saleor/macaw-ui-next";
+ import { FormattedMessage, useIntl } from "react-intl";
+ 
+ import { messages as passwordLoginMessages } from "../SitePasswordLoginCard/messages";
+@@ -67,6 +67,8 @@ export interface SiteSettingsPageFormData extends SiteSettingsPageAddressFormDat
+   preserveAllAddressFields: boolean;
+   passwordLoginMode: PasswordLoginModeEnum;
+   allowStorefrontTraffic: boolean;
++  minimumAge: number;
++  shopTimezone: string;
+ }
+ 
+ interface SiteSettingsPageProps {
+@@ -102,6 +104,12 @@ export const SiteSettingsPage = ({
+ }: SiteSettingsPageProps): React.ReactNode => {
+   const intl = useIntl();
+   const navigate = useNavigator();
++  const ageRestrictedShop = shop as
++    | (typeof shop & {
++        minimumAge?: number | null;
++        shopTimezone?: string | null;
++      })
++    | null;
+   const [displayCountry, setDisplayCountry] = useStateFromProps(
+     shop?.companyAddress?.country.country || "",
+   );
+@@ -127,6 +135,8 @@ export const SiteSettingsPage = ({
+     preserveAllAddressFields: shop?.preserveAllAddressFields ?? false,
+     passwordLoginMode: shop?.passwordLoginMode ?? PasswordLoginModeEnum.ENABLED,
+     allowStorefrontTraffic: shop?.allowStorefrontTraffic ?? true,
++    minimumAge: ageRestrictedShop?.minimumAge ?? 18,
++    shopTimezone: ageRestrictedShop?.shopTimezone ?? "UTC",
+   };
+ 
+   return (
+@@ -185,6 +195,35 @@ export const SiteSettingsPage = ({
+                   </SettingsFieldStack>
+                 </SettingsSection>
+ 
++                <SettingsSection
++                  id="age-restrictions"
++                  data-test-id="age-restrictions-settings"
++                  ownership="shop"
++                  title={intl.formatMessage(messages.sectionAgeRestrictionsTitle)}
++                  description={intl.formatMessage(messages.sectionAgeRestrictionsDescription)}
++                >
++                  <SettingsFieldStack>
++                    <Input
++                      data-test-id="minimum-age-input"
++                      name="minimumAge"
++                      label={intl.formatMessage(messages.minimumAgeLabel)}
++                      type="number"
++                      min={0}
++                      value={data.minimumAge}
++                      disabled={disabled}
++                      onChange={change}
++                    />
++                    <Input
++                      data-test-id="shop-timezone-input"
++                      name="shopTimezone"
++                      label={intl.formatMessage(messages.timezoneLabel)}
++                      value={data.shopTimezone}
++                      disabled={disabled}
++                      onChange={change}
++                    />
++                  </SettingsFieldStack>
++                </SettingsSection>
++
+                 <SettingsSection
+                   id={settingsHashes.storeCompany}
+                   data-test-id="company-address-settings"
+diff --git a/src/siteSettings/components/SiteSettingsPage/messages.ts b/src/siteSettings/components/SiteSettingsPage/messages.ts
+index 472425c..9634289 100644
+--- a/src/siteSettings/components/SiteSettingsPage/messages.ts
++++ b/src/siteSettings/components/SiteSettingsPage/messages.ts
+@@ -33,6 +33,26 @@ export const messages = defineMessages({
+     defaultMessage: "Control how customers register and sign in to your storefront.",
+     description: "section description for customer accounts",
+   },
++  sectionAgeRestrictionsTitle: {
++    id: "6x7r1Z",
++    defaultMessage: "Age restrictions",
++    description: "section title for product age restriction policy",
++  },
++  sectionAgeRestrictionsDescription: {
++    id: "l9Q9PX",
++    defaultMessage: "Set the minimum customer age and the time zone used to determine eligibility.",
++    description: "section description for product age restriction policy",
++  },
++  minimumAgeLabel: {
++    id: "0nWAp8",
++    defaultMessage: "Minimum age",
++    description: "minimum customer age for age-restricted products",
++  },
++  timezoneLabel: {
++    id: "HW9uGx",
++    defaultMessage: "Shop time zone",
++    description: "IANA time zone used for age eligibility",
++  },
+   sectionEmailConfirmationTitle: {
+     id: "qNeXG1",
+     defaultMessage: "User registration",
+diff --git a/src/siteSettings/views/index.tsx b/src/siteSettings/views/index.tsx
+index 802451a..8ad67b4 100644
+--- a/src/siteSettings/views/index.tsx
++++ b/src/siteSettings/views/index.tsx
+@@ -79,6 +79,8 @@ const SiteSettings = () => {
+       preserveAllAddressFields: data.preserveAllAddressFields,
+       passwordLoginMode: data.passwordLoginMode,
+       allowStorefrontTraffic: data.allowStorefrontTraffic,
++      minimumAge: Number(data.minimumAge),
++      shopTimezone: data.shopTimezone,
+     };
+ 
+     return extractMutationErrors(
