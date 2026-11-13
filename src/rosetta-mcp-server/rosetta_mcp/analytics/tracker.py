@@ -99,7 +99,7 @@ def get_posthog_client(config: RosettaConfig | None) -> PosthogClient | None:
         api_key = DEFAULT_POSTHOG_API_KEY
 
     if (api_key or "").upper() in DISABLE_VALUES or api_key == POSTHOG_PLACEHOLDER:
-        logger.debug("PostHog disabled (api_key=%r)", api_key)
+        logger.debug("PostHog disabled: API key is empty, a disable value, or the placeholder")
         return None
 
     try:

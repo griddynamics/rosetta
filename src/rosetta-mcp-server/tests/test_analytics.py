@@ -1,3 +1,4 @@
+import logging
 import unittest.mock as mock
 from types import SimpleNamespace
 
@@ -472,6 +473,24 @@ async def test_track_tool_call_web_vitals_includes_performance_rating(monkeypatc
     assert "$web_vitals_LCP_value" in web_vitals["properties"]
     assert web_vitals["properties"]["$web_vitals_LCP_event"] == "mcp-operation"
     assert web_vitals["properties"]["performance_rating"] in {"good", "needs-improvement", "poor"}
+
+
+# ---------------------------------------------------------------------------
+# get_posthog_client — disabled branch must not log the API key
+# ---------------------------------------------------------------------------
+
+def test_get_posthog_client_disabled_logs_constant_message_without_api_key(monkeypatch, caplog):
+    monkeypatch.setattr(tracker_module, "_posthog_client", None)
+    monkeypatch.setattr(tracker_module, "_runtime_config", None)
+    monkeypatch.setenv("POSTHOG_API_KEY", "DISABLED")
+    caplog.set_level(logging.DEBUG, logger="rosetta_mcp.analytics.tracker")
+
+    assert tracker_module.get_posthog_client(None) is None
+
+    records = [r for r in caplog.records if r.getMessage().startswith("PostHog disabled")]
+    assert len(records) == 1
+    assert not records[0].args
+    assert "DISABLED" not in records[0].getMessage()
 
 
 # ---------------------------------------------------------------------------
