@@ -11,6 +11,8 @@ import type { HookContext, HookResult } from '../runtime/types';
 export const READ_ONCE_NAMESPACE = 'hook:read-once';
 const DEFAULT_TTL_MS = 20 * 60 * 1000;
 const READ_OVERRIDE_TOKEN = 'READ-OVERRIDE';
+// The override is only a trailing shell comment (`cat F # READ-OVERRIDE`), never a substring of a path.
+const READ_OVERRIDE_COMMENT_RE = /(^|\s)#\s*READ-OVERRIDE\b\s*$/;
 const READ_ONCE_ENV_NAMES = [
   'READ_ONCE_MODE',
   'READ_ONCE_TTL',
@@ -83,6 +85,14 @@ const SIMPLE_SHELL_READ_RE = /^(cat|sed|awk|head|tail)$/i;
 
 const unquote = (value: string): string =>
   value.replace(/^['"]|['"]$/g, '');
+
+const getShellCommand = (ctx: HookContext): string => {
+  const command = ctx.toolInput.command;
+  return typeof command === 'string' ? command : '';
+};
+
+const stripReadOverrideComment = (command: string): string =>
+  command.replace(READ_OVERRIDE_COMMENT_RE, '');
 
 const tokenizeCommand = (command: string): string[] | null => {
   if (!command.trim()) {
@@ -191,23 +201,19 @@ const classifyReadPath = (ctx: HookContext): string | null => {
     return null;
   }
 
-  const command = (ctx.toolInput.command as string) ?? '';
-  return extractSimpleShellReadPath(command);
+  // Strip the override comment first so `cat F # READ-OVERRIDE` still resolves to F.
+  return extractSimpleShellReadPath(stripReadOverrideComment(getShellCommand(ctx)));
 };
 
 const estimateTokens = (size: number): number => Math.max(1, Math.ceil(size / 4));
 
-const hasOverrideToken = (value: unknown): boolean => {
-  if (typeof value === 'string') return value.includes(READ_OVERRIDE_TOKEN);
-  if (Array.isArray(value)) return value.some((item) => hasOverrideToken(item));
-  if (value && typeof value === 'object') {
-    return Object.values(value as Record<string, unknown>).some((item) => hasOverrideToken(item));
-  }
-  return false;
-};
+// The documented override is a shell retry ending in `# READ-OVERRIDE`. Only `command` counts, the same
+// field classifyReadPath reads; paths, content and comment-like fields must not suppress dedup.
+const hasOverrideComment = (ctx: HookContext): boolean =>
+  READ_OVERRIDE_COMMENT_RE.test(getShellCommand(ctx));
 
 const hasReadOverride = (ctx: HookContext): boolean => {
-  const overridden = hasOverrideToken(ctx.toolInput);
+  const overridden = hasOverrideComment(ctx);
   debugLogHookBranch('read-once', 'override-check', {
     toolName: ctx.toolName,
     toolKind: ctx.toolKind,
