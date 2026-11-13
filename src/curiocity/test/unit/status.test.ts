@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { deriveCompletedStatus, shouldKeepWorkspace } from '../../src/curion/status';
 
 describe('deriveCompletedStatus (§7)', () => {
-  it('done + no verdict → passed (evaluation skipped, vacuous)', () => {
+  it('done + no verdict → passed (evaluation not run, vacuous)', () => {
     expect(deriveCompletedStatus('done')).toBe('passed');
   });
 

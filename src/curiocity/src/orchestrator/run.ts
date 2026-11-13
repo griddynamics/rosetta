@@ -7,6 +7,7 @@ import type { TrialSpec } from '../shared/ipc';
 import type { MatrixCell } from '../shared/matrix';
 import type { QnaEntry } from '../shared/trajectory';
 import {
+  NOT_RUN_STATUS,
   SCHEMA_VERSION,
   suiteResultSchema,
   trialResultSchema,
@@ -64,13 +65,14 @@ export interface RunSuiteResult {
   exitCode: number;
 }
 
-function skippedResult(cell: MatrixCell): TrialResult {
+/** The persisted result for a cell that was never run (status `skipped`, `NOT_RUN_STATUS`). */
+function notRunResult(cell: MatrixCell): TrialResult {
   return trialResultSchema.parse({
     schemaVersion: SCHEMA_VERSION,
     agent: cell.agent,
     case: cell.case,
     repeat: cell.repeat,
-    status: 'skipped',
+    status: NOT_RUN_STATUS,
     evaluators: [],
     turnCount: 0,
     qna: [],
@@ -96,7 +98,7 @@ export async function runSuite(args: RunSuiteArgs): Promise<RunSuiteResult> {
 
   // Skipped cells: record a `skipped` trial.json (§14) and include in aggregation.
   for (const s of skipped) {
-    const result = skippedResult(s.cell);
+    const result = notRunResult(s.cell);
     writeTrial(runDir, result);
     trials.push(result);
     args.onLog?.(`skipped ${s.cell.case}×${s.cell.agent}#${s.cell.repeat}: ${s.reason}`);

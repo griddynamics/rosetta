@@ -18,7 +18,7 @@ export function deriveCompletedStatus(outcome: InteractionOutcome, verdict?: Ver
     case 'timeout':
       return 'timeout';
     case 'done':
-      if (verdict === undefined) return 'passed'; // evaluation skipped → passed, no verdict (§7)
+      if (verdict === undefined) return 'passed'; // evaluation not run → passed, no verdict (§7)
       return verdict.pass ? 'passed' : 'failed';
     default: {
       const _exhaustive: never = outcome;
@@ -41,13 +41,3 @@ const RETAINED_STATUSES = new Set<TrialStatus>([
 export function shouldKeepWorkspace(status: TrialStatus, keepFlag: boolean): boolean {
   return keepFlag || RETAINED_STATUSES.has(status);
 }
-
-/** Error statuses that trigger the partial-infra exit code 3 (§13). */
-export const ERROR_STATUSES = new Set<TrialStatus>([
-  'setup-error',
-  'launch-error',
-  'eval-error',
-  'timeout',
-  'agent-hung',
-  'agent-crash',
-]);

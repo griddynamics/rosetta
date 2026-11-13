@@ -40,7 +40,7 @@ describe('§6 interaction engine — trigger table, row by row', () => {
     // engine terminates deterministically WITHOUT any LLM call and injects nothing.
     const { result } = await run({ scene: 'clean.json' });
     expect(result.status).toBe('passed');
-    expect(result.verdict).toBeUndefined(); // evaluation skipped (§7)
+    expect(result.verdict).toBeUndefined(); // not evaluated (§7)
     expect(result.qna).toEqual([]);
     expect(result.turnCount).toBe(1);
     // transcriptSource is a RECORDED, checkable field (Part 3.2): the mock writes a

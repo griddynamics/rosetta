@@ -1,7 +1,6 @@
 import type { GateConfig } from '../config/schema';
 import { ExitCode } from '../cli/exit-codes';
-import { ERROR_STATUSES } from '../curion/status';
-import type { TrialResult } from '../results/schema';
+import { INFRA_ERROR_STATUSES, NOT_RUN_STATUS, type TrialResult } from '../results/schema';
 
 /**
  * Suite gatekeeper (§13) — a PURE function of stored `TrialResult`s (D8), so
@@ -11,18 +10,20 @@ import type { TrialResult } from '../results/schema';
  * the suite.
  *
  * Vacuous-gate rule (§7): when a group has NO verdict-carrying trials (evaluation
- * skipped — the M2 default), the score-based gates (`minScore`, `maxStddev`)
+ * not run — the M2 default), the score-based gates (`minScore`, `maxStddev`)
  * evaluate vacuously (pass) and only statuses drive the outcome. `minPassRate`
  * still applies to passed/failed statuses (a `passed`-no-verdict trial counts as a
  * pass), so an all-passed suite passes the pass-rate gate too.
  *
- * Exit codes: gate failure → 1; else any error-status trial → 3; else 0. Gate
- * failure takes precedence over partial-infra (§13).
+ * Exit codes: gate failure → 1; else any infra-error trial (`INFRA_ERROR_STATUSES`)
+ * → 3; else 0. Gate failure takes precedence over partial-infra (§13). Not-run
+ * (`skipped`) trials are not infra errors, so they never cause 3 — even though the
+ * report's `errors` count (`UNCOMPLETED_STATUSES`) includes them.
  *
  * All-skipped rule (#326): when the suite has trials but NONE of them is runnable
- * (every status is `skipped`), the run executed nothing — that is "no runnable
+ * (every status is the not-run `skipped`), the run executed nothing — that is "no runnable
  * trials" per §13, so the gate returns CONFIG_ERROR (2), the same code the CLI
- * emits for an empty matrix. A skipped trial stays non-fatal when at least one
+ * emits for an empty matrix. A not-run trial stays non-fatal when at least one
  * other trial is runnable; error statuses keep their precedence (→ 3).
  */
 
@@ -44,7 +45,7 @@ function stddev(xs: number[]): number {
 
 export function gatekeeper(trials: TrialResult[], gate: GateConfig): GateOutcome {
   // All-skipped (#326): the run executed nothing — "no runnable trials" per §13.
-  if (trials.length > 0 && trials.every((t) => t.status === 'skipped')) {
+  if (trials.length > 0 && trials.every((t) => t.status === NOT_RUN_STATUS)) {
     return { passed: false, exitCode: ExitCode.CONFIG_ERROR, failures: [] };
   }
 
@@ -63,7 +64,7 @@ export function gatekeeper(trials: TrialResult[], gate: GateConfig): GateOutcome
     const scored = completed
       .filter((t) => t.verdict !== undefined)
       .map((t) => t.verdict!.score);
-    if (group.some((t) => ERROR_STATUSES.has(t.status))) anyError = true;
+    if (group.some((t) => INFRA_ERROR_STATUSES.has(t.status))) anyError = true;
 
     // Score gates — vacuous when no verdicts (§7).
     if (scored.length > 0) {
