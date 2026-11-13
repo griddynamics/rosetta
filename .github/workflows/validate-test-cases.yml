@@ -1,6 +1,7 @@
 # Validate Test Cases
 #
-# Triggers only when instructions/ folder is updated.
+# Trigger: manual (workflow_dispatch) only. The pull_request trigger is disabled; see the on: block.
+# This workflow is expected to be replaced by the Curiocity workflow (e2e-testing.yml) and stays as is until then.
 # For each test-library/* case whose trigger.txt matches changed files:
 # - Copies root to root-new and root-old
 # - Injects instructions (new vs old) into each
@@ -22,7 +23,7 @@ name: Validate Test Cases
 
 on:
   # The pull_request trigger below is disabled on purpose and temporarily:
-  # each run makes 3 Claude CLI calls per matched test-library case, which costs
+  # each run makes 3 agent CLI calls per matched test-library case, which costs
   # more per PR than the current CI budget allows. It is not broken. Run it by
   # hand via workflow_dispatch until the budget is restored.
 #  pull_request:
