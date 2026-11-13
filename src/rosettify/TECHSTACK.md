@@ -4,7 +4,7 @@
 - **Module system**: ESM (NodeNext), all relative imports use `.js` extension
 - **Runtime**: Node.js >=22
 - **CLI**: commander 14
-- **MCP**: @modelcontextprotocol/sdk 1.29, low-level Server + StdioServerTransport
+- **MCP**: @modelcontextprotocol/sdk 1.32, low-level Server + StdioServerTransport
 - **Logging**: pino 10, file-only (never stdout/stderr), sync mode; defaults to `~/.rosetta/rosettify.log` at WARN, with `--verbose` enabling TRACE
 - **Testing**: vitest 4
 - **Build**: tsc (tsconfig.build.json excludes tests)

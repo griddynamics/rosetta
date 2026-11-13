@@ -29,12 +29,12 @@ function lvl(v: unknown): string {
   return Number.isInteger(v) ? String(v) : v.toFixed(1);
 }
 
-/** Make a value safe for a single Markdown table cell: escape pipes, collapse newlines,
+/** Make a value safe for a single Markdown table cell: escape backslashes and pipes, collapse newlines,
  *  and truncate long prose (e.g. a judge rationale or an error message). Exported for
  *  direct unit-testing of the escaping contract. */
 export function cell(v: unknown, max = 100): string {
   if (v === undefined || v === null || v === '') return '—';
-  const s = String(v).replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ').trim();
+  const s = String(v).replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ').trim();
   return s.length > max ? `${s.slice(0, max - 1)}…` : s;
 }
 
