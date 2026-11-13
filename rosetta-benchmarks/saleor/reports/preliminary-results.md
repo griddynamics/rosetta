@@ -1,6 +1,8 @@
 # Saleor benchmark: preliminary results (2026-11-02)
 
 > **Snapshot of 2 Nov.** On 5 Nov the team lead aligned scores and red flags to one rule for all runs (the score judges the final code; follow-ups are counted separately). Changed since this snapshot: `S-CP-01` 3 → 4 (merge-ready yes), `S-CP-04` 3 → 4, `S-CC-02` 4 → 3, `S-CP-02` 3.5 → 3, `L-CP-03` merge-ready yes → no; red flags recounted in 8 runs. Current values: [summary.md](summary.md), [runs.csv](runs.csv) and section 8 ("Why not 5") of each run report.
+>
+> **Added 13 Nov: diff judge results for all 4 cells** (both tasks × both runners), in ["Diff judge: all cells"](#diff-judge-all-cells-added-13-nov). The rest of this file is still the 2 Nov snapshot.
 
 **Status: preliminary, 25 of 32 runs done (78 %): 22 with a result, 19 of them usable now (59 %), and 3 AWS AI-DLC runs that ended without a result.** 15 runs on **Claude Code** (Sonnet 5.5, effort medium: small task, product "storage conditions" field across backend, dashboard and storefront; large task, age-restricted products) and 10 on **Copilot CLI** (GPT-5.6 Terra, effort medium). The full version will be published later.
 
@@ -30,7 +32,7 @@ How far each run can be trusted (the reasons are in "Caveats" below):
 | **No result**: the method did not reach a first "done" | AWS AI-DLC `S-CC-05` (stopped during its Construction phase), `L-CC-05` (stopped after more than 6 h and about $160 of usage) and `S-CP-05` (not qualifying: AI-DLC's review gate loops at intent-capture after 2 clean resets) | **3 (9 %)** |
 | **Not yet run** | Claude Code: Rosetta coding flow `L-CC-06` (in progress); Copilot CLI: AWS AI-DLC `L-CP-05`, Rosetta coding flow `S-CP-06` and `L-CP-06`, Rosetta Light `L-CP-07`, Rosetta Skills `S-CP-08` (in progress) and `L-CP-08` | **7 (22 %)** |
 
-For every run so far: one run per method (no repetitions), and operator scores come from different operators. The diff judge (code-quality scores, [SCORE-DIFFS.md](../../SCORE-DIFFS.md)) has scored the 7 small Claude Code runs only.
+For every run so far: one run per method (no repetitions), and operator scores come from different operators. The diff judge (code-quality scores, [SCORE-DIFFS.md](../../SCORE-DIFFS.md)) has scored all 4 cells: 28 runs, 7 methods × 2 tasks × 2 runners (AWS AI-DLC has no diff). Exception: the small Claude Code Rosetta coding flow score is for the first `S-CC-06`; its rerun of 3 Nov is not judged yet.
 
 Each run has its own folder with the agent's diffs, its own report and a token breakdown: [`saleor/runs/`](../runs/). Generated table of all runs: [`summary.md`](./summary.md) (`python3 saleor/scripts/collect-results.py`). Method, rules and scoring: [`BENCHMARKS.md`](../../BENCHMARKS.md).
 
@@ -38,14 +40,14 @@ Each run has its own folder with the agent's diffs, its own report and a token b
 
 Since 28 Oct each run report has these fields and rules on top of the operator's measures:
 
-- **Diff judge** ([SCORE-DIFFS.md](../../SCORE-DIFFS.md)), per run: `judge_total` (score + bonus), `judge_bonus`, `judge_blockers` / `judge_majors` / `judge_minors` / `judge_strengths`, `judge_merge_ready_advice`. Rules added since v1: the judge first asks why the run did something (INTENT) before calling it a problem; bonuses for fixed earlier bugs, related improvements, proactive safeguards and DELTA items (what the run did right that Baseline did not); a finding's level follows the harm that remains, and a fix that is small (no design decision, one repo, no new type or API field, no behavior other repos rely on) is at most minor (decision-log D80–D82, proposals by Andra Ciobanu). The judge has scored the 7 small Claude Code runs; the large task and the Copilot runs are next.
+- **Diff judge** ([SCORE-DIFFS.md](../../SCORE-DIFFS.md)), per run: `judge_total` (score + bonus), `judge_bonus`, `judge_blockers` / `judge_majors` / `judge_minors` / `judge_strengths`, `judge_merge_ready_advice`. Rules added since v1: the judge first asks why the run did something (INTENT) before calling it a problem; bonuses for fixed earlier bugs, related improvements, proactive safeguards and DELTA items (what the run did right that Baseline did not); a finding's level follows the harm that remains, and a fix that is small (no design decision, one repo, no new type or API field, no behavior other repos rely on) is at most minor (decision-log D80–D82, proposals by Andra Ciobanu). The judge has scored all 4 cells (results: "Diff judge: all cells" below).
 - **Dashboard type check** (`pnpm run check-types`): part of "Tests pass locally" since 28 Oct (known deficiency, see the top of this file).
 - **Time without waits:** the time the agent was blocked waiting for the operator is removed, and, as decided on 2 Nov, also runner stalls and runner outages (e.g. the Copilot outage of 28–29 Oct), before and after the first "done", for every run. So far only the Rosetta runs `L-CC-07` and `L-CC-08` were recomputed this way.
 - **Method steps vs questions:** a Rosetta stop that only asks to retry or continue ("May I retry with the corrected path?") is answered `Approved, continue.` and counted as a method step, not as a question (BENCHMARKS.md section 5, "Method steps", and the reply tables in the Rosetta method files).
 - **Rosetta version:** the `v3.1.17` tag was moved on 23 Oct (`6215332c` → `817b3adf`); the earlier Rosetta runs used `6215332c`, `S-CP-07` used `817b3adf` (noted in its report). Since 2 Nov the Rosetta method files pin the commit (`git checkout 6215332c` after cloning).
 - **Operator merge-ready:** "can be merged after a normal review, without rework". A breaking public API change (e.g. `productTranslate` taking a new `ProductTranslationInput!` instead of `TranslationInput!`) is rework, so not merge-ready, in every run (applied on 2 Nov to `S-CC-02`, `S-CP-02`, `S-CC-04`, as in `S-CC-01`). A full operator checklist (Andra Ciobanu's proposal: Done-when items, red flags and the judge's major types) is being agreed; after that every operator re-checks their finished runs with it.
 
-**Merge-ready, small task, Claude Code: operator vs judge** (the only cell the judge has scored so far; they agree on all 7 runs):
+**Merge-ready, small task, Claude Code: operator vs judge** (they agree on all 7 runs; the other cells are in "Diff judge: all cells" below):
 
 | Run | Operator | Judge | Why (judge's reason; operator's where recorded) |
 | --- | --- | --- | --- |
@@ -57,7 +59,65 @@ Since 28 Oct each run report has these fields and rules on top of the operator's
 | Rosetta Light `S-CC-07` | yes | yes | Only minors: CSV export dialog option, server-side trimming, translation payload, changeset, a duplicate max-length error. |
 | Rosetta Skills `S-CC-08` | yes | yes | Only minors: CSV export dialog option, trimming on the update path, translation payload, empty string instead of null. |
 
-The three Rosetta variants are the only small Claude Code runs with no major finding; the others either broke the translation API (Baseline, Grill-with-docs, Spec Kit) or left stale translations (Superpowers). One run per method, so this is an observation, not a rule. For the large task and the Copilot runs only the operator's verdict exists (see "All runs"), and most reports do not record its reason yet; the checklist re-check will add them.
+The three Rosetta variants are the only small Claude Code runs with no major finding; the others either broke the translation API (Baseline, Grill-with-docs, Spec Kit) or left stale translations (Superpowers). One run per method, so this is an observation, not a rule. On the other 3 cells the operator and the judge agree less often (see below).
+
+### Diff judge: all cells (added 13 Nov)
+
+Source: `reports/judge-<task>-<runner>-v2.json` (rating → self-challenge → validator, SCORE-DIFFS.md); the same values are in each run report's data block, [`summary.md`](summary.md) and [`runs.csv`](runs.csv). Rows are in the judge's score order. Score = total + bonus. Operator merge-ready = current value (after the 5 Nov alignment). Compare runs only within one cell.
+
+**Small task · Claude Code** (judged 29 Oct, re-leveled 30 Oct; agreement on merge-ready 7 / 7)
+
+| Method | Run | Score | Bonus | Blockers / majors / minors · strengths | Judge advice | Operator merge-ready |
+| --- | --- | ---: | ---: | --- | --- | --- |
+| Rosetta coding flow | `S-CC-06` (first run, see caveats) | **74.5** | 5.05 | 0 / 0 / 3 · 1 | yes | yes |
+| Rosetta Skills | `S-CC-08` | 73.6 | 4.7 | 0 / 0 / 5 · 2 | yes | yes |
+| Superpowers | `S-CC-03` | 73.5 | 5.45 | 0 / 1 / 7 · 2 | no | no |
+| Rosetta Light | `S-CC-07` | 73.4 | 5.2 | 0 / 0 / 8 · 3 | yes | yes |
+| Grill-with-docs | `S-CC-02` | 71.6 | 4.15 | 0 / 1 / 6 · 1 | no | no |
+| Spec Kit | `S-CC-04` | 70.7 | 2.65 | 0 / 1 / 6 · 2 | no | no |
+| Baseline | `S-CC-01` | 66.2 | 0 | 0 / 2 / 8 · 1 | no | no |
+
+**Large task · Claude Code** (agreement 4 / 7)
+
+| Method | Run | Score | Bonus | Blockers / majors / minors · strengths | Judge advice | Operator merge-ready | Judge's main reason |
+| --- | --- | ---: | ---: | --- | --- | --- | --- |
+| Rosetta Light | `L-CC-07` | **78.4** | 10.6 | 0 / 1 / 8 · 5 | no | yes | 1 major: a signed-in eligible customer whose cart started as a guest cannot add restricted products until checkout; 3 pre-existing bugs fixed |
+| Rosetta coding flow | `L-CC-06` | 76.6 | 8.95 | 0 / 0 / 8 · 2 | yes | yes | minors only; enforcement, privacy, audit and time zone built and tested |
+| Rosetta Skills | `L-CC-08` | 75.0 | 7.7 | 0 / 0 / 11 · 2 | yes | yes | minors only (payment start not gated, audit cascade, no dashboard audit view, …) |
+| Grill-with-docs | `L-CC-02` | 71.2 | 5.55 | 0 / 3 / 10 · 1 | no | yes | dashboard feature hidden on the default build (staging-schema gate), uncached storefront listings, "today" fixed to UTC |
+| Superpowers | `L-CC-03` | 67.9 | 2.4 | 0 / 2 / 14 · 0 | no | yes | `isAgeEligible` with a caller-chosen age reveals customers' ages without audit; draft orders not age-checked |
+| Spec Kit | `L-CC-04` | 67.8 | 3.4 | 1 / 3 / 11 · 0 | no | no | blocker: saving a customer page in the dashboard erases the birthday; any MANAGE_USERS staff can change birthdays; drafts not age-checked |
+| Baseline | `L-CC-01` | 64.6 | 0 | 0 / 3 / 14 · 0 | no | no | `ageEligible(minimumAge)` lets staff and apps derive a customer's age; "today" fixed to UTC |
+
+**Small task · Copilot CLI** (agreement 2 / 7)
+
+| Method | Run | Score | Bonus | Blockers / majors / minors · strengths | Judge advice | Operator merge-ready | Judge's main reason |
+| --- | --- | ---: | ---: | --- | --- | --- | --- |
+| Rosetta coding flow | `S-CP-06` | **74.8** | 6.05 | 0 / 0 / 6 · 2 | yes | yes | minors only; contract, validation, translation paths and storefront extension point correct and tested |
+| Spec Kit | `S-CP-04` | 69.0 | 4.65 | 0 / 3 / 11 · 0 | no | yes | `productTranslate` permission change breaks translator-only staff; `productBulkTranslate` silently drops the field |
+| Rosetta Skills | `S-CP-08` | 67.2 | 3.15 | 0 / 3 / 12 · 0 | no | yes | NOT NULL column crashes null translation inputs; category/collection translate crash; no tests for five required behaviors |
+| Superpowers | `S-CP-03` | 67.0 | 2.0 | 0 / 1 / 16 · 0 | no | yes | `productBulkTranslate` silently drops the field while reporting success |
+| Grill-with-docs | `S-CP-02` | 66.7 | 3.9 | 2 / 1 / 10 · 0 | no | no | blockers: staff cannot type spaces in the input; `productTranslate` input change breaks dashboard saving and API clients |
+| Rosetta Light | `S-CP-07` | 66.4 | 1.75 | 0 / 3 / 10 · 1 | no | yes | category/collection translate crash; null on a NOT NULL column without a default (also breaks rolling deploys); bulk translate drops the field |
+| Baseline | `S-CP-01` | 66.0 | 0 | 0 / 2 / 11 · 0 | no | yes | bulk translate drops the field; category/collection translate raise unhandled errors |
+
+**Large task · Copilot CLI** (agreement 4 / 7)
+
+| Method | Run | Score | Bonus | Blockers / majors / minors · strengths | Judge advice | Operator merge-ready | Judge's main reason |
+| --- | --- | ---: | ---: | --- | --- | --- | --- |
+| Rosetta Skills | `L-CP-08` | **78.5** | 10.95 | 0 / 1 / 8 · 3 | no | yes | the dashboard cannot save the age flag on its own; backend, storefront and privacy solid |
+| Rosetta Light | `L-CP-07` | 76.8 | 9.55 | 0 / 0 / 12 · 2 | yes | yes | minors only; enforcement, privacy, audit and labels complete and tested |
+| Superpowers | `L-CP-03` | 72.7 | 7.65 | 0 / 3 / 14 · 1 | no | no | age check only in `checkoutComplete` (auto-completion, checkout apps and the legacy Stripe webhook bypass it); rejection only after payment |
+| Rosetta coding flow | `L-CP-06` | 69.3 | 6.0 | 1 / 5 / 14 · 2 | no | yes | store minimum age unreadable and reset to 18 by any Site Settings save; unlinked drafts blocked; mobile sticky "Add to bag" no longer submits |
+| Spec Kit | `L-CP-04` | 67.6 | 4.75 | 1 / 1 / 18 · 0 | no | no | `checkoutComplete` and `checkoutCreate` run no age check, so the restriction is bypassable |
+| Grill-with-docs | `L-CP-02` | 65.5 | 5.0 | 1 / 5 / 18 · 0 | no | yes | the dashboard wipes birthdays on every customer save; any MANAGE_USERS staff can write birthdays; mobile sticky "Add to bag" broken |
+| Baseline | `L-CP-01` | 64.0 | 0 | 0 / 3 / 17 · 0 | no | no | completion check and birthday privacy untested; mobile sticky "Add to bag" broken; impersonating staff checked on their own age |
+
+**Reading it:**
+- Baseline has the lowest score in all 4 cells (64.0–66.2). A Rosetta variant has the top score in all 4 cells, but which one differs: coding flow on the small task (both runners), Rosetta Light on large Claude Code, Rosetta Skills on large Copilot.
+- The judge advises merge-ready for 7 of 28 runs, all Rosetta variants: small Claude Code coding flow, Light and Skills; large Claude Code coding flow and Skills; small Copilot coding flow; large Copilot Light.
+- Operator and judge agree on merge-ready in 17 of 28 runs. Every disagreement is operator "yes", judge "no" (11 runs, 8 of them on Copilot). Typical reasons are defects that a manual check of the "Done when" items does not show: `productBulkTranslate` silently dropping the field (4 small Copilot runs), category/collection translate crashes, birthdays wiped by an ordinary dashboard save, the mobile sticky "Add to bag" button no longer submitting.
+- Spread: the small Copilot cell is tight below the top (66.0–69.0 for 6 of 7 runs); the large cells spread 14 points.
 
 ## All runs
 
@@ -165,7 +225,7 @@ Every run done so far: **25 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIM
 - **Copilot `S-CP-03` is not comparable with Claude Code in cost.** Copilot CLI reports AI credits, not USD; methods are compared within one runner only. It ran before the Copilot setup was merged: the team rules file was not loaded at session start (`copilot instruction list`: none; the agent read the repos' rule files itself), and `--yolo` was used instead of `--allow-all`. Superpowers chose `gpt-5.3-codex` for 26 of its 30 subagents itself (an explicit model in its task calls), as it chooses an Opus or Fable reviewer in Claude Code: part of the method, not a setup error.
 
 - **One run per method (n = 1).** No repetitions yet; differences can be noise. Our rule is at least 3 runs per cell before a conclusion.
-- **Judge scores only for the small Claude Code runs.** The large task and Copilot runs are not judged yet. On the small task the judge's scores range from 66.2 to 74.5, it advises "merge-ready" for Rosetta, Rosetta Light and Rosetta Skills (no majors), and it sees the method folder names, so it is not blind. Its merge advice is advice; `operator_merge_ready` stays the operator's decision.
+- **Diff judge.** All 4 cells are judged (one judge session per cell, n = 1). The judge sees the method folder names, so it is not blind. Its merge advice is advice; `operator_merge_ready` stays the operator's decision. The small Claude Code JSON (29 Oct) predates the `S-CC-06` rerun of 3 Nov: the 74.5 belongs to the first run, and the rerun's report has no judge values yet. The large Claude Code cell was judged in rounds (two groups of runs), although the size rule said one pass (decision-log D86; the size formula is open with the architect).
 - **Superpowers run notes** (`S-CC-03`, section 8): ran before the method guide (plain prompt instead of `/superpowers:brainstorming`, some replies not the fixed ones), old setup like `S-CC-02`; the operator's per-check results, tests and merge-ready were not recorded; the session log was lost, so `tokens.md` is built from `/cost`; the operator used an AI assistant to suggest replies (BENCHMARKS.md §3.5 says no human-side AI).
 - **Rosetta run notes** (`S-CC-06`, section 8): two operator messages reached the agent before T1 (`is it done?` with a paste of the benchmark assistant's notes), which breaks the "don't interrupt" rule; the operator's answer time (~4 + 5 min) is inside the run time; 9 of the 12 questions were not in the answer tables and were answered by the operator (now added to BENCHMARKS.md §4, rows 11–18).
 - **Spec Kit run notes** (`S-CC-04`, section 8): with setup, one restarted first attempt and saving the results, the operator spent about 4 h on this run (the table counts only T0 → end); after the follow-ups the operator finished with Spec Kit's own `implement`/`converge` loop (3 extra rounds); the session was interrupted during follow-up 2 and resumed after a re-login, so the total cost is an estimate (`/cost` restarted; Appendix A of the report); "Done when" checks: the operator confirmed the result works overall, per-check detail from the agent's live checks.
@@ -181,4 +241,4 @@ Every run done so far: **25 of the 32** planned in [`EXPERIMENTS.md`](../EXPERIM
 1. Claude Code: Rosetta coding flow large (`L-CC-06`), from the initialized workspace. AWS AI-DLC: run reports for `S-CC-05` and `L-CC-05`.
 2. Reruns: Rosetta coding flow small (`S-CC-06`) with `/init-workspace-flow`; Grill-with-docs large (`L-CC-02`) on the original hidden key; Superpowers large (`L-CC-03`) or its missing final checks and score.
 3. Copilot CLI, 6 runs left: AWS AI-DLC on the large task (`L-CP-05`, last); Rosetta coding flow `S-CP-06`, `L-CP-06`; Rosetta Light large `L-CP-07`; Rosetta Skills `S-CP-08` (Oleksii, in progress) and `L-CP-08`. `S-CP-03` needs its status in EXPERIMENTS.md; `S-CP-07` its question count aligned with the method.
-4. Judge scores for the large task and the Copilot runs (the 7 small Claude Code runs are scored); repetitions.
+4. Judge the `S-CC-06` rerun (small Claude Code, Rosetta coding flow); repetitions.
