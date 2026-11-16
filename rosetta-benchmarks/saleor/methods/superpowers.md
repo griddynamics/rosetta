@@ -212,11 +212,11 @@ Don't change any code, just answer: was each of these handled, and where?
 7. Who can edit it, and who can read it?
 ```
 
-Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+Mark each one `covered` or not in report section 3. Send each hidden question that was not covered as its own follow-up first, one problem per message. When those are done, run `saleor/checks/execute/small-task-execute.md`. That file sends the case follow-up itself. Do not send it again. After the agent finishes, the file runs again. A PASS ends it. A FAIL runs it at most 3 times. It writes the score only on that last run. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
 
 **Follow-ups in Superpowers:** a follow-up ("do what you missed: …") makes it run its workflow again (design → plan → implementation). Your message counts as a **follow-up**; your replies inside that rework (`Approved, continue.`, `Approved. Subagent-driven.`, …) are **method steps**, from the table in step 6. Its time and tokens count as rework (after T1).
 
-**Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
+**Step 8. Check the result yourself** (stack still running): the Done when checks `small-task-execute.md` covers are already filled when both cases passed. Run the template's local test commands for "Tests pass locally" and the cleanup look for "No manual cleanup needed". Add 1 to `done_checks_passed` for each of those two that passes. If it is empty, start from 0. Then the red flags and the agent's claims. Then do step 9. Do not stop after the check.
 
 **Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && claude --resume <session id> --permission-mode bypassPermissions --model claude-sonnet-5-5)` and send it there (note it in section 8):
 
@@ -595,11 +595,11 @@ Don't change any code, just answer: was each of these handled, and where?
 7. Who can edit it, and who can read it?
 ```
 
-Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+Mark each one `covered` or not in report section 3. Send each hidden question that was not covered as its own follow-up first, one problem per message. When those are done, run `saleor/checks/execute/small-task-execute.md`. That file sends the case follow-up itself. Do not send it again. After the agent finishes, the file runs again. A PASS ends it. A FAIL runs it at most 3 times. It writes the score only on that last run. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
 
 **Follow-ups in Superpowers:** a follow-up ("do what you missed: …") makes it run its workflow again (design → plan → implementation). Your message counts as a **follow-up**; your replies inside that rework (`Approved, continue.`, `Approved. Subagent-driven.`, …) are **method steps**, from the table in step 6. Its time and tokens count as rework (after T1).
 
-**Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
+**Step 8. Check the result yourself** (stack still running): the Done when checks `small-task-execute.md` covers are already filled when both cases passed. Run the template's local test commands for "Tests pass locally" and the cleanup look for "No manual cleanup needed". Add 1 to `done_checks_passed` for each of those two that passes. If it is empty, start from 0. Then the red flags and the agent's claims. Then do step 9. Do not stop after the check.
 
 **Step 9. Post-implementation prompt.** Paste this into the agent; when it's done, `/exit`. If the session was already closed: `(cd "$BENCH_DIR" && copilot -C "$BENCH_DIR" --resume <session id> --no-auto-update --model gpt-5.6-terra --reasoning-effort medium --context long_context --allow-all --disable-builtin-mcps)` and send it there (note it in section 8):
 
