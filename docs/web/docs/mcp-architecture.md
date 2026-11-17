@@ -76,6 +76,8 @@ All prefixes are internal only, it must not be exposed or received. This prevent
 
 The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instructions repository into RAGFlow. It handles change detection, metadata extraction, frontmatter parsing, and auto-tagging.
 
+**Requirements-first:** spec-before-code from `docs/REQUIREMENTS/rosetta-cli/` (authoritative; code follows).
+
 **Core commands:**
 
 | Command | What it does |

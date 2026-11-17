@@ -118,6 +118,59 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 09.11 – Sun 15.11
+
+In Claude Code, the Rosetta always-on rules and plugin mode load again after `/clear` and after compaction. Before, a long session ran its second half without them. On large tasks, a repeated `plan create` no longer erases a plan in progress. `rosetta-light` gets the small-task rules that `rosetta` got last week. The AI no longer writes compressed text that loses meaning: answers are precise, designs are concise, and plans and specs are compressed without loss. Questions with high risk come first.
+
+For maintainers, checks no longer pass when the work did not. Token reports count each response once, a mistyped evaluator id stops the run, e2e jobs fail on missing artifacts, and `parse` reports rejected documents as failed. The triage bot is limited to reviews, replies, and labels, and its policy denies issue creation. 84 Dependabot and 6 CodeQL alerts are fixed.
+
+**Highlights**
+
+- `[R3]` Claude Code: the Rosetta bootstrap loads again after `/clear` and after compaction, from v3.1.27. Before, the session continued without the always-on rules, plugin mode, and the plugin path (Serghei Hmeli, xyrolle, #450, issue #449)
+- `[R3]` Claude Code: installs made under the old name `core@rosetta` update again from v3.1.24. In v3.1.23 Claude Code reported "Plugin not found in marketplace" for them
+- `[R3]` `rosetta-light`: `coding-flow` now uses the small and medium task rules that `rosetta` got last week, from v3.1.25. Small tasks skip `orchestration` and use a subagent only for the code review
+- `[R3]` Copilot: the Speckit policy no longer loads in every session, from v3.1.24. In v3.1.23 its `applyTo: "**"` made Copilot load it every time; it now loads only when requested
+- `[R3]` The AI writes precise text instead of lossy compressed text. With newer models, "compressed" dropped important information. The always-on bootstrap asks for precise, faithful answers, `design` output is concise, and `planning` and `tech-specs` are losslessly compressed. ASD-STE100 now applies everywhere, not only when the AI talks (v3.1.26 to v3.1.29)
+- `[R3]` `hitl` and `questioning`: the AI asks high-risk questions first, together with high-impact and key ones. Before, a risky question with small visible impact could wait behind the others (v3.1.28)
+- `[R3]` `requirements-authoring`: the requirement id template shows the type prefix (`FR`, `NFR`, `INT`, `DATA`). Before, it showed `FR-` for every type, so a non-functional requirement could get an `FR` id (next release)
+- `[Tooling]` rosettify `plan create` refuses a path that already holds a file (`plan_already_exists`) and changes nothing. Before, it overwrote the plan without a backup. The `orchestration` skill drives large tasks through this command. First writes to plans and specs now take the lock, so parallel subagents cannot drop each other's content (Serghei Hmeli, xyrolle, #398, issue #389)
+- `[Tooling]` rosettify specs: `info` no longer suggests a purged id, id batches over 500 are rejected, the help shows `--system`, and plan templates no longer substitute text inside an inserted value (Serghei Hmeli, xyrolle, #438, #442, #440, #444)
+- `[CI]` Triage is limited to reviews and comments. Senders without write access get one reply on the current item, maintainers' runs can also add or remove labels, and the policy denies issue creation. Security detections go to the job summary instead of new issues
+- `[Tooling, CI]` Checks fail when the work failed: curiocity counts Claude Code tokens once per response and rejects unknown evaluator ids, e2e jobs fail on missing artifacts (Arteom Balanuta, ArteomBalanuta, #422, issue #303), and rosetta-cli `parse` reports rejected documents as failed (Serghei Hmeli, xyrolle, #434, #436, #428)
+- `[Tooling]` Plugin generator: customizations can overwrite or filter binary files such as `.js` and `.png`, `--dry-run` delivers its full output to a pipe, and `--release r2` builds again (Serghei Hmeli, xyrolle, #430, #446, #448)
+- `[Server, Tooling]` 84 Dependabot and 6 CodeQL alerts fixed. The MCP server no longer writes the PostHog key to its debug log (Igor Solomatov, #463)
+- Routine: plugins 3.1.23 → 3.1.29 (v3.1.24 to v3.1.29), rosettify 3.2.10, rosettify-plugins 3.5.5, curiocity 0.2.14, rosettify-prompts 0.1.17, rosetta-cli 3.0.10, rosetta-mcp-server 3.0.6, Helm chart 0.4.5; `AGENTS.md` names each context file, when to read it, and its sections; docs and the `coding-agents-hooks-authoring` skill state that no Windsurf hook bundle ships; stats script keeps hand-added notes; stats refreshed; web site synced with the architecture docs; CODEOWNERS updated; `daily-oss`, `update-change-log`, `collect-github-stats`, `sync-web-site` lessons (maintainer-internal); last week's entry landed and its `rosetta-light` claim corrected
+
+#### Rosetta stays loaded in long Claude Code sessions
+
+- **What you get.** `[R3]` Long Claude Code sessions keep Rosetta to the end. Before, `/clear` or an automatic compaction removed the bootstrap, and the AI continued without the always-on rules and plugin mode. Long tasks compact most. From v3.1.27 the bootstrap loads again after both. Separately, installs made under the old name `core@rosetta` find the plugin and update again from v3.1.24.
+- **What changed.** The Claude Code `SessionStart` hook matched `startup` only. It now matches `startup|clear|compact`. `resume` stays out, because a resumed session already replays the bootstrap from its transcript (Serghei Hmeli, xyrolle, #450, issue #449). The v3.1.23 rename from `core` to `rosetta` had dropped the `renames` map in the Claude Code marketplace file. It is restored, and Claude Code maps `core` to `rosetta` again (Igor Solomatov, isolomatov-gd).
+
+#### Precise text instead of lossy compression
+
+- **What you get.** `[R3]` Rosetta told the AI to write compressed text. With newer models that compression was lossy: answers, designs, plans, and specs lost important information. Now answers must be precise and faithful. Designs, which people review, are concise. Plans and specs, which the AI reads, stay compact but must keep all information.
+- **What changed.** `bootstrap-alwayson`: "compressed" is replaced by "even terse, no fillers, straight to the point, faithful", and "MUST talk in ASD-STE100" became "MUST use and follow ASD-STE100 everywhere" (v3.1.26). `design`: "Compressed" became "Concise" (v3.1.28). `planning` and `tech-specs`: "compressed" became "losslessly compressed" (v3.1.29). `reasoning`: the DEBRIEF threshold reads "confidence < 0.8 of 0..1", so the scale is explicit (v3.1.29). (Igor Solomatov, isolomatov-gd)
+
+#### Plans and specs keep their content
+
+- **What you get.** `[Tooling]` A plan the AI is working on can no longer be erased by a second `create`. Before, `plan create` on an existing file replaced it with no backup, and the progress in it was lost. Now the call fails with `plan_already_exists` and tells the AI to continue with `next`, `show_status`, or `upsert`. Parallel subagents that create a plan or a specs document at the same time no longer drop each other's content. The fix ships in rosettify on npm, which `orchestration` runs with `npx` on large tasks, not in the plugin.
+- **What changed.** rosettify 3.2.10. `create` and `create-with-template` check for the file under the plan lock and write nothing when it exists (#398, issue #389). First writes through `upsert` and specs `add`/`migrate` run under the same lock. `specs info` counts purged ids, so its suggested next id is free (#438, issue #437). The 500-item batch limit also covers id lists (#442, issue #441). The help for `specs add` and `migrate` shows `--system` (#440, issue #439). Plan templates substitute placeholders in one pass (#444, issue #443). (Serghei Hmeli, xyrolle)
+
+#### Triage bot: review and comment only
+
+- **What you get.** `[CI]` Anyone on GitHub can trigger the triage bot. Before, one `/rosetta` comment could make it open several bot-authored issues, and its own security check opened `[SECURITY ALERT]` issues on demand. Now its prompt and tool policy limit it to reviews and comments. Senders without write access get one reply on the current item. Maintainers' runs can also add or remove existing labels. Issue creation is denied for every sender.
+- **What changed.** The workflow reads the sender's repository permission and grants write tools per level (`triage_trust.py`). Claude gets a read-only allowlist plus those tools. Codex gets extra deny-only rule files through a new `codex-setup` `extra-rules` input. Detections go to the job summary as `ROSETTA-SECURITY-ALERT` blocks. A new CI job tests these rules on every `.github/` change. The Codex deny-list has known gaps, listed in `docs/AUTOMATION-ARCHITECTURE.md`, together with a target design where the agent holds no GitHub token. (Igor Solomatov, isolomatov-gd)
+
+#### Checks that pass only when the work passed
+
+- **What you get.** `[Tooling, CI]` Before, curiocity reported about 1.8 to 2 times the real Claude Code token use. A mistyped evaluator id removed every evaluator, and each trial passed with no verdict. An e2e job could pass with result artifacts missing. rosetta-cli `parse --force` reported success for a rejected request. A piped `--dry-run` lost most of its output and exited 0. Each now reports the real result.
+- **What changed.** curiocity 0.2.14 keeps one usage event per Claude Code message id (#434, issue #433) and rejects unknown `--only-evaluator` and `--skip-evaluator` ids with exit 2 (#436, issue #435). The e2e workflow fails unless the artifact check reports `pass` (Arteom Balanuta, ArteomBalanuta, #422, issue #303). rosetta-cli 3.0.10 polls only accepted documents and counts the rest as failed (#428, issue #427). rosettify-plugins 3.5.5 lets stdout drain before exit (#446, issue #445), builds `--release r2` again (#448, issue #447), and applies `~overwrite~` and `-only` filters to binary files in customizations (#430, issue #429). (Serghei Hmeli, xyrolle, except #422)
+
+#### Security alerts fixed
+
+- **What you get.** `[Server, Tooling]` 84 Dependabot and 6 CodeQL alerts are closed. The MCP server no longer writes the PostHog key to its debug log. The docs site no longer has two regular expressions open to ReDoS.
+- **What changed.** Lockfiles of rosettify, rosettify-plugins, rosettify-prompts, curiocity, and hooks are refreshed. Exact `overrides` pins are dropped: npm applies them only in the root project, so they never protected `npx` users and only held this repo below the fixed versions. Floors are raised for direct dependencies with alerts. Markdown table cells escape backslashes before pipes. `repo-implement.yml` gets read-only default permissions. Still open: curiocity `zod` and `extract-zip`. (Igor Solomatov, #463)
+
 ### Week Mon 02.11 – Sun 08.11
 
 Everyday coding now costs less, and client organizations can make Rosetta their own without a fork. On small and medium tasks the AI does the work itself and starts subagents only for reviews or for work that splits into separate contexts, such as frontend and backend. The full subagent team is kept for large work. A client organization keeps its own skills, rules, and workflows in its own repository and builds its own `rosetta` plugin from it. The plugins also lost retired and duplicate files, so each instruction ships once, under one name.
@@ -126,7 +179,7 @@ For maintainers, a broken release now stops before it ships. Each release zip is
 
 **Highlights**
 
-- `[R3]` Small and medium coding tasks cost less. A medium task (up to about 2000 lines in up to 3 areas) stays with the AI. Subagents run only when contexts are separate, when there is a clear reason, or for a fresh-eye review. Before, a medium task meant building a subagent team. In `coding-flow`, in both `rosetta` and `rosetta-light`, a small task skips `orchestration` and uses a subagent only for the code review
+- `[R3]` Small and medium coding tasks cost less. A medium task (up to about 2000 lines in up to 3 areas) stays with the AI. Subagents run only when contexts are separate, when there is a clear reason, or for a fresh-eye review. Before, a medium task meant building a subagent team. In `coding-flow` in `rosetta` (and in `rosetta-light` from v3.1.25), a small task skips `orchestration` and uses a subagent only for the code review
 - `[R3]` README: use skills for small to medium tasks. Workflows cost more and fit large work, such as a whole feature that runs for hours
 - `[R3]` The always-on bootstrap adds "No assumptions: find the truth or state unknown". It applies to every session and every subagent
 - `[R3, Tooling]` Client organizations can build customized plugins. Their files live in their own repository and mirror `instructions/`. A new path adds a file, the same path appends to Rosetta's file, and `name~overwrite~.md` replaces it. Needs `rosettify-plugins` 3.5.0, already on npm (Igor Solomatov, issue #315)
@@ -143,7 +196,7 @@ For maintainers, a broken release now stops before it ships. Each release zip is
 #### Small and medium tasks cost less
 
 - **What you get.** `[R3]` Before, a medium task made the AI a team manager. It built a subagent team and delegated the work. Each subagent loads its own context, and the AI pays again to brief and check each one. When the work fits one context, that cost bought no quality. Now the AI does small and medium work itself. It keeps subagents for independent reviews and for work that splits into separate contexts. Large work still gets the full team.
-- **What changed.** `orchestration` sizing: a MEDIUM task (under about 2000 lines, up to 3 areas) keeps the todo ledger and uses subagents only for separate contexts, a clear reason, or fresh-eye review. Building and managing a team moved to LARGE. `coding-flow` (full and lightweight) loads `orchestration` for all sizes except small. A small task starts subagents only for phases marked `must-be-subagent`, which for small is the code review. Each phase loads its skills only when the previous phase is complete, so early loads do not stay in context for every later call. The README now says when to pick a skill and when a workflow. (Igor Solomatov, isolomatov-gd)
+- **What changed.** `orchestration` sizing: a MEDIUM task (under about 2000 lines, up to 3 areas) keeps the todo ledger and uses subagents only for separate contexts, a clear reason, or fresh-eye review. Building and managing a team moved to LARGE. `coding-flow` loads `orchestration` for all sizes except small (the lightweight copy from v3.1.25). A small task starts subagents only for phases marked `must-be-subagent`, which for small is the code review. Each phase loads its skills only when the previous phase is complete, so early loads do not stay in context for every later call. The README now says when to pick a skill and when a workflow. (Igor Solomatov, isolomatov-gd)
 
 #### Client organizations' instructions, without a fork
 
