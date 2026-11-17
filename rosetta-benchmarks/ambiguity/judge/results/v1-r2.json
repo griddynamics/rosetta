@@ -1,0 +1,22 @@
+{"version": "v1", "run": 2, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 1, "constraints": 1, "inputs": 1, "context": 1, "contradiction": 1},
+ "interpretations": [
+  "Add a new optional free-text field (e.g. storage_conditions) to the Product model. Expose it through the API, make it editable in the dashboard product form, and show it on the storefront PDP inside or next to the product description block.",
+  "Model storage conditions as structured data, such as a category enum (ambient/refrigerated/frozen) plus a min/max temperature and a unit. The dashboard gets dedicated inputs with validation, and the storefront builds a readable sentence like 'Keep refrigerated at 2–8 °C' from those values.",
+  "Use the platform's existing extensibility (a product attribute, a product-type attribute or metadata) instead of adding a new model field. Most of the work is configuration plus storefront rendering of that attribute.",
+  "Merge the storage text into the product's description content itself. This could happen when saving (appended to the rich-text description) or when rendering (joined to the description), so customers see it as part of the description, not as a separate section.",
+  "Attach storage conditions to variants or product types, possibly with a per-product override, rather than to individual products. This reads 'as appropriate' as 'only for certain kinds of products'."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "Should storage conditions be one free-text value or structured data (category, temperature range, °C/°F unit)?",
+  "Should the value be stored apart from the description and only shown inside or next to the description block, or should it actually become part of the description content? Where exactly should it appear on the product page?",
+  "Should this be a new model field, or should it use the existing product attribute or metadata system?",
+  "What does 'as appropriate' mean? Is the field optional for every product, required for certain product types or categories, or set per variant or product type?",
+  "Does the value need translations or localization, including unit conversion between °C and °F?",
+  "What validation rules apply, such as maximum length, allowed characters and allowed temperature ranges?",
+  "Should it be available in the public storefront API, product import/export, search or feeds? Which staff permissions control editing it?",
+  "Which apps and repos are in scope for 'end to end' (backend, dashboard, storefront)? What tests are expected at each layer (unit, API, e2e)?",
+  "Do existing products need a migration or backfill, or does the field start empty?"
+ ],
+ "reason": "The purpose and the users (staff set it in the dashboard, customers see it on the storefront) are clear, but 'something' leaves the data model completely open: free text, structured values or an existing attribute. There is a possible tension between setting a separate value on the product and showing it 'in the product description', which could mean showing it next to the description or writing it into the description itself. The definition of done is generic and gives no validation, localization or scope limits."}

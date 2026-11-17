@@ -1,0 +1,23 @@
+{"version": "v1", "run": 3, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 1, "constraints": 1, "inputs": 2, "context": 1, "contradiction": 1},
+ "interpretations": [
+  "Main reading: add a new optional free-text 'storage conditions' field to the Product model, expose it through the API, add an input to the dashboard's product edit form, and show it on the storefront product page in or next to the description block.",
+  "Structured reading: store storage conditions as typed data (for example a preset category such as refrigerated, frozen or ambient, plus min/max temperature and a unit), use dedicated dashboard controls, and format it into a sentence like 'Keep refrigerated at 2–8 °C' on the storefront.",
+  "Configuration reading: reuse the existing product attribute or metadata system (for example a 'Storage conditions' attribute assigned to the relevant product types). This needs little or no schema change, and the main work is making the storefront render that attribute.",
+  "Description-merge reading: put the storage text into the product description itself, either as a separate field that the storefront joins onto the description when rendering, or as a block inserted into the description's rich-text content. It is not shown as its own UI element.",
+  "Granularity reading: attach the value to product variants or to product types instead of individual products, which changes the data model, the dashboard screens and how values are inherited."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "Should storage conditions be free text, or structured data (a preset category, a temperature range, a unit), and must the °C/°F format be validated or converted?",
+  "Should this be a new dedicated field, or should it use the existing product attribute or metadata system?",
+  "Where should the value live: on the product, the variant or the product type? Is it optional, and what does 'as appropriate' mean, for example only certain product types or categories?",
+  "On the storefront, should the text be merged into the description body or shown as a separate labeled section near the description? What exact placement and wording are expected, and what should show when the value is empty?",
+  "Does the field need translations or localization, like other customer-facing product text?",
+  "What validation applies (maximum length, plain text or rich text, allowed characters)?",
+  "Is the storefront part of this code base or a separate repo, and which apps (API, dashboard, storefront) are in scope for 'end to end'?",
+  "Which staff permission should control editing this field?",
+  "Should the field also appear in API filters, search, CSV import/export, or bulk edit?",
+  "What tests are expected (backend unit/API tests, dashboard component tests, storefront or end-to-end tests), and which suites must pass locally?"
+ ],
+ "reason": "The purpose and the two user-facing surfaces (dashboard for staff, storefront for customers) are clear, but 'something' leaves the data type, format, validation and data-model level undefined; a single example is the only guide. There is a mild tension between asking for a separate value that staff set and asking for it to appear 'in the product description', but no instruction directly conflicts. The definition of done is stated but general, with no limits on scope, tests or localization."}

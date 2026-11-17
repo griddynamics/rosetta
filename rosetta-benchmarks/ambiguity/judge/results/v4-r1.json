@@ -1,0 +1,26 @@
+{"version": "v4", "run": 1, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 1, "constraints": 2, "inputs": 2, "context": 1, "contradiction": 0},
+ "interpretations": [
+  "Add an optional free-text 'storage conditions' field to the product model, editable in the existing admin product form and shown as plain text on the product detail page.",
+  "Add a structured attribute with a fixed set of values (e.g. ambient, refrigerated, frozen, keep dry, protect from light), managed by staff and shown to customers as labels or icons on product pages and listings, with possible filtering.",
+  "Add structured, validated storage data such as min/max temperature, humidity and units, rendered as formatted text for customers.",
+  "Make storage conditions a reusable lookup that staff manage and assign to products, possibly as a category-level default with product-level override, and only for relevant product types such as food or pharma.",
+  "Treat storage conditions as operational data, not just display: drive cold-chain shipping rules, checkout or cart warnings, order confirmation emails, packing slips or warehouse handling, as well as customer display.",
+  "Store storage conditions per variant/SKU instead of per product.",
+  "Use the store's existing generic product attribute/specification system (configuration and data only) instead of adding a dedicated field in code."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "What form should storage conditions take: free text, a predefined list of options, or structured values such as a temperature range with units?",
+  "What is it for: customer information only, or should it also affect shipping methods, fulfillment, warehouse handling or checkout rules?",
+  "Which products does 'as appropriate' cover: all products, certain categories or types only, and is the field required or optional for them?",
+  "Where exactly should customers see it: product detail page, listings or search results, cart, checkout, order emails, invoices, packing labels?",
+  "Which staff roles can set it, and where: the admin product form only, or also bulk import/export and the API?",
+  "Is it set per product, per variant/SKU, or as a category default with overrides?",
+  "Is there already a product attribute or specification mechanism that should be reused instead of a new field?",
+  "Does it need translation for multiple locales and unit conversion (°C/°F)?",
+  "Should customers be able to filter or search by storage condition?",
+  "What happens to existing products: a default value, a backfill or migration, or left empty?",
+  "What are the acceptance criteria, including expected display format (text, icons, badges) and required tests?"
+ ],
+ "reason": "The ticket names the subject (storage conditions on products, set by staff, seen by customers), but says nothing about the data shape, scope or purpose: 'something', 'as appropriate' and 'where relevant' leave all of these open. 'Do whatever is needed' replaces any definition of done, so constraints and inputs are missing, and where customers see it is only partly specified. No instructions conflict."}

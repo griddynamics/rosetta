@@ -1,0 +1,3 @@
+# Raw session logs are never committed, in any form, as in the Saleor benchmark (PLAN.md 5)
+session/
+__pycache__/

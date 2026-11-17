@@ -1,0 +1,21 @@
+{"version": "v3", "run": 3, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 1, "constraints": 2, "inputs": 2, "context": 1, "contradiction": 0},
+ "interpretations": [
+  "Add a new optional free-text 'storage conditions' field to the product model, editable in the dashboard product form, and show it as its own section on the storefront product detail page.",
+  "Use the existing product attribute system instead of changing the schema: create a 'Storage conditions' attribute (for example a dropdown of preset values) and assign it to the relevant product types. The storefront then shows it like other attributes.",
+  "Model storage conditions as structured data, such as an enum (ambient, refrigerated, frozen) or a temperature range with optional humidity, with validation in the dashboard and formatted output on the storefront.",
+  "Read 'in the product description' literally: add or merge the storage text into the existing product description content or its rendering, rather than showing it in a separate block.",
+  "Read 'as appropriate' as limiting the scope: the field is only available or required for certain product types or categories (for example food or perishables), not for every product."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "What form should storage conditions take: free text, a fixed list of options, or structured values like a temperature range or humidity?",
+  "What does 'as appropriate' mean: optional on every product, or only for certain product types or categories? Is it ever required?",
+  "Should this be a new dedicated product field, or should it use the existing attribute or metadata mechanism?",
+  "Where exactly should customers see it: merged into the description text, or as a separate section or tab on the product page? Should it also appear in listings, the cart or emails?",
+  "Is it set per product or per variant?",
+  "Does the value need translations or localization for multi-language storefronts?",
+  "Should it be exposed in the public API, product import/export and search or filtering?",
+  "What is the definition of done: required tests, migration or default values for existing products, and which staff roles may edit it?"
+ ],
+ "reason": "The ticket names the surfaces (dashboard for staff, storefront for customers), but 'something for storage conditions' leaves the data shape completely undefined, and 'as appropriate' leaves the product scope undefined. 'Do whatever is needed' gives no constraints or acceptance criteria, so the implementation could be anything from a free-text field to a structured attribute system. No instructions directly conflict, though 'in the product description' is ambiguous about where the value appears."}

@@ -1,0 +1,5 @@
+Products need something for storage conditions as appropriate.
+Staff should be able to set it, and customers should see it where relevant. It must be translatable.
+Keep it internal: customers must never see it. Only English is needed, no translations.
+
+Do whatever is needed.

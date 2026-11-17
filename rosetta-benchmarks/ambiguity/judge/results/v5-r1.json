@@ -1,0 +1,23 @@
+{"version": "v5", "run": 1, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 2, "constraints": 2, "inputs": 2, "context": 1, "contradiction": 2},
+ "interpretations": [
+  "Customer-facing, translatable storage-conditions attribute: staff edit it in the product admin, it is stored with per-locale values, and it is shown on the storefront (e.g. product detail page) in the customer's language.",
+  "Internal-only, English-only storage-conditions field: staff can see and edit it in the admin, it is never exposed in storefront pages, public APIs, feeds or emails, and it has no i18n support.",
+  "Per-product visibility flag: staff set the storage conditions and choose for each product whether customers can see them, so both 'customers see it where relevant' and 'customers must never see it' can apply.",
+  "Structured, not free text: a fixed set of options (e.g. ambient / refrigerated / frozen, or temperature and humidity ranges) instead of a free-text field. This changes the data model, validation and how translation works (translated option labels vs translated free text).",
+  "Scoped by category: 'as appropriate' read as the field applying only to certain product types or categories (e.g. food, pharma), where it may be required, instead of being an optional field on every product."
+ ],
+ "contradictions": [
+  {"a": "customers should see it where relevant", "b": "Keep it internal: customers must never see it."},
+  {"a": "It must be translatable.", "b": "Only English is needed, no translations."}
+ ],
+ "open_questions": [
+  "Should customers ever see storage conditions? If yes, where exactly (product page, cart, checkout, order confirmation emails, APIs or feeds)? If no, must it also be removed from public APIs and exports?",
+  "Does the field need multi-language support, or is it English-only?",
+  "What form should the data take: free text, a fixed list of options, or structured values such as temperature and humidity ranges with units?",
+  "Which products need it: all products or only certain categories or types? Is it optional or required for those?",
+  "Should storage conditions affect anything operational, such as warehouse handling, shipping method choice or fulfillment rules, or is the value only for display or reference?",
+  "Which staff roles can view and edit it? Is bulk import/export or a backfill of existing products needed?",
+  "What is the definition of done (tests, migration, admin UI, documentation)?"
+ ],
+ "reason": "The ticket contradicts itself directly on both customer visibility and translation, so neither the purpose nor the scope can be settled without asking. 'Something', 'as appropriate' and 'where relevant' leave the data format, which products it applies to and where it is displayed undefined, and 'Do whatever is needed' gives no definition of done. Only the entity (products) and the editors (staff) are reasonably clear."}

@@ -1,0 +1,21 @@
+{"version": "v2", "run": 1, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 1, "constraints": 2, "inputs": 1, "context": 1, "contradiction": 1},
+ "interpretations": [
+  "Add a new optional free-text 'storage conditions' field to the product model. Staff edit it in the dashboard product form, it is exposed through the API, and the storefront product page shows it inside or next to the description section.",
+  "Use the existing product attribute or product-type system instead of a schema change: create a 'Storage conditions' attribute, assign it to the relevant product types, and have the storefront render that attribute in the description area.",
+  "Build a structured field: preset options such as Ambient, Refrigerated and Frozen, or a min/max temperature with a unit. The storefront turns it into text like 'Keep refrigerated at 2–8 °C'.",
+  "Treat 'in the product description' literally: merge or append the storage text into the existing description content, or have staff write it into the description themselves, so no separate field is shown.",
+  "Set it at the product-type or category level as a default that products inherit (and can maybe override), rather than on each product or variant."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "Should storage conditions be a separate field or attribute shown in or near the description section, or literally become part of the description text? Where exactly should it appear on the product page?",
+  "Should it be free text, preset options, or a structured temperature range with units? Is the example the format to follow?",
+  "What does 'as appropriate' mean: optional on every product, or required for certain product types or categories (e.g. perishables), with validation?",
+  "Should it be set per product, per variant, or as a product-type or category default that products inherit?",
+  "Does it need translations for a multi-language storefront?",
+  "Should it also appear outside the product page: API consumers, import/export, cart or checkout, order emails, product feeds, search?",
+  "Is it plain text or rich text, and is there a maximum length?",
+  "What counts as done: migrations, a backfill for existing products, tests, permissions, and whether bulk editing is needed?"
+ ],
+ "reason": "The overall goal is clear: staff set storage info in the dashboard and customers see it on the storefront. But 'something', 'as appropriate' and 'Do whatever is needed' leave the data model, format, scope and definition of done unspecified. The instructions don't directly conflict, but there is a possible tension between a separate value staff set on the product and showing it 'in the product description', which is already its own editable field."}

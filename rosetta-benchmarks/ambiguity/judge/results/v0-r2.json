@@ -1,0 +1,20 @@
+{"version": "v0", "run": 2, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 0, "constraints": 1, "inputs": 1, "context": 1, "contradiction": 0},
+ "interpretations": [
+  "Main reading: add a dedicated, optional plain-text field to the Product model with a schema migration. Expose it through the API, add an input to the dashboard's product edit form, and show it on the storefront product page as its own labeled block inside or next to the description section.",
+  "Use the platform's existing extension mechanism (product attributes, metadata or custom fields) to add a 'Storage conditions' value. This avoids a new model column or API field and needs mostly configuration plus storefront rendering.",
+  "Put the storage conditions into the description content itself, either by appending them at render time or by writing them into the description's rich text on save. They would then appear as part of the description, not as a separate element.",
+  "Make it a structured field (for example a condition type plus a minimum and maximum temperature and a unit) that the storefront formats as text like 'Keep refrigerated at 2–8 °C', instead of free text."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "Should storage conditions appear as a separate labeled section in or near the product description area, or be merged into the description text or rich-text content itself?",
+  "Is it free text, or structured data such as a temperature range with units? What are the maximum length and allowed formatting (plain text or rich text)?",
+  "Should this be a new dedicated product field in the database and API, or should it use an existing attribute, metadata or custom-field mechanism?",
+  "Is it optional or required, does it apply to all products or only some product types, and what happens to existing products (left empty, or given a default)? Should the storefront hide the section when the field is empty?",
+  "Does it belong on the product or on individual variants?",
+  "Does the text need to be translatable or localized for multi-language storefronts?",
+  "Which staff roles or permissions may edit it, and should it also appear in product import/export, search or the public API?",
+  "Are the dashboard and storefront in this repository, and which tests are expected (backend unit or API, dashboard component, storefront end-to-end)?"
+ ],
+ "reason": "The ticket clearly says what to build (a storage conditions field staff can edit and customers can see), and it names who uses it and the two surfaces involved. It leaves several decisions open that change the implementation: a separate field or one merged into the description, free text or structured data, a new column or an existing attribute or metadata mechanism, and product or variant level. The definition of done is generic and does not cover validation, localization or test scope, but none of the instructions directly conflict."}

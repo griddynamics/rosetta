@@ -1,0 +1,23 @@
+{"version": "v4", "run": 3, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 2, "constraints": 2, "inputs": 2, "context": 1, "contradiction": 0},
+ "interpretations": [
+  "Add an optional free-text 'storage instructions' field to products. Staff edit it in the admin product form, and it appears as plain text on the product detail page.",
+  "Add a structured attribute with a fixed set of values (for example ambient, cool/dry, refrigerated, frozen, keep away from light). Staff pick a value in admin, and customers see it as a badge or icon on product pages and listings, possibly with a search filter.",
+  "Model storage conditions as numeric ranges (minimum and maximum temperature, humidity) with units and validation, and show them formatted on the storefront.",
+  "Treat storage conditions as operational data that affects fulfilment: cold-chain shipping methods, packaging, shipping restrictions or splitting the cart, and display in cart, checkout, order emails and packing slips, not only on the product page.",
+  "Set storage conditions at category or product-type level and let products inherit them, with an optional override per product or variant, instead of a plain per-product field."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "What form should storage conditions take: free text, a fixed list of categories (if so, which values), or structured temperature and humidity ranges with units?",
+  "Is this information for display only, or must it also drive business logic such as shipping methods, cold-chain handling, checkout restrictions or warehouse processes?",
+  "Which products does it apply to: all products or only certain categories (food, pharma, cosmetics)? Is it required or optional, and is there a default?",
+  "Where exactly should customers see it: product detail page, listing or search cards, filters, cart, checkout, order confirmation emails, invoices or packing slips?",
+  "Is it set per product, per variant, or per category with inheritance?",
+  "Which staff roles can edit it, and through which channels: the admin UI only, or also bulk import/CSV and the API?",
+  "Are there regulatory or compliance rules for the wording, placement or required presence of storage information?",
+  "Does the value need to be localized (translations, °C/°F units)?",
+  "How should existing products be handled: left empty, backfilled, or migrated from existing description text?",
+  "What are the acceptance criteria and definition of done (tests, design mockups, sign-off)?"
+ ],
+ "reason": "The ticket names a general area (storage-condition data that staff set and customers see) but leaves the data shape, which products it covers, where it is displayed, and whether it affects fulfilment all unspecified. Phrases like 'something', 'as appropriate', 'where relevant' and 'do whatever is needed' hand every material decision to the implementer and give no definition of done. No instructions directly conflict, but the readings range from a simple text field to cold-chain shipping logic."}

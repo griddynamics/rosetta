@@ -1,0 +1,21 @@
+{"version": "v3", "run": 2, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 1, "constraints": 2, "inputs": 2, "context": 1, "contradiction": 1},
+ "interpretations": [
+  "Add a dedicated, optional free-text 'storage conditions' field to the product model and API. Staff edit it on the dashboard product form, and the storefront shows it in or next to the product description section.",
+  "Use the existing product attribute system: create a 'Storage conditions' attribute, probably a dropdown with preset values such as 'Refrigerate', 'Keep frozen' or 'Store at room temperature', and assign it only to the product types where it applies ('as appropriate'). The storefront then shows that attribute in the description area, and no schema change is needed.",
+  "Model storage conditions as structured data, such as a minimum and maximum temperature, humidity and light sensitivity, with validation in the dashboard and formatted, possibly localized, display on the storefront.",
+  "Treat it as content inside the product description itself: either a convention or template for the existing rich-text description, or code that automatically adds the storage text into the description content. Little or no new data model is needed.",
+  "Add it only for certain product types or categories, such as food or pharma, so the field appears in the dashboard and on the storefront only for those types, rather than for every product."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "What exactly is 'something'? A free-text field, a choice from a fixed list, or structured values such as a temperature range? If it is a list, what are the allowed values?",
+  "Which products does it apply to: all products, or only some product types or categories? Who decides what 'as appropriate' means, and is the field optional or required for those products?",
+  "Should it be built with the existing attribute or metadata system, or as a new dedicated field on the product (or variant) model?",
+  "On the storefront, should it be merged into the description text, shown as its own labeled section inside the description area, or shown somewhere else on the product page? What label and formatting should it use?",
+  "Does it need translations or localization, the same way product names and descriptions are translated?",
+  "Should it be in the public API, product import/export, search or filtering, and structured data or SEO markup?",
+  "What happens to existing products? Is there a default value, a backfill, or a data migration?",
+  "Which staff permissions can edit it? What validation applies, such as maximum length or required fields? What counts as done, for example tests, docs or design sign-off?"
+ ],
+ "reason": "The ticket names the users (staff and customers) and the general places (dashboard and storefront), but 'something' and 'as appropriate' leave the data model, the value format and the product scope undefined. 'Do whatever is needed' gives no constraints or definition of done. There is also a mild tension: staff set a separate value, yet customers see it 'in the product description', which could mean merging it into the description text or showing it as a separate section."}

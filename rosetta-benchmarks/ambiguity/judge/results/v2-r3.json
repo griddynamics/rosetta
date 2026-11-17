@@ -1,0 +1,25 @@
+{"version": "v2", "run": 3, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 1, "constraints": 2, "inputs": 1, "context": 1, "contradiction": 1},
+ "interpretations": [
+  "Add a new optional free-text 'storage conditions' field to the product model, expose it through the API, add an input on the dashboard product edit form, and show it on the storefront product page inside or next to the description section.",
+  "Use the platform's existing product attribute system, for example a 'Storage conditions' text or dropdown attribute on the relevant product types. This needs no schema change: staff fill it in like any other attribute, and the storefront displays that attribute in the description area.",
+  "Model storage conditions as structured data, such as a storage type (ambient, refrigerated, frozen) plus a minimum and maximum temperature and a unit. Staff pick values in the dashboard and the storefront builds a sentence like 'Keep refrigerated at 2–8 °C'.",
+  "Store the value in the product's existing metadata key-value store, using the dashboard's generic metadata editor, and have the storefront read that key and render it.",
+  "Treat it as description content: staff add the text to the existing rich-text description, through a template or snippet, or the storefront merges a stored value into the description body. No separate display element is added."
+ ],
+ "contradictions": [
+  {"a": "Products need something for storage conditions", "b": "customers should see it in the product description on the storefront"}
+ ],
+ "open_questions": [
+  "Should storage conditions be free text, a fixed list of options (ambient, refrigerated, frozen), or structured values such as a temperature range with units?",
+  "Should we add a new dedicated product field, or use an existing mechanism such as product attributes or metadata?",
+  "What does 'in the product description' mean: inserted into the description text itself, or shown as its own labelled section on the product page near the description?",
+  "Is the field optional? Which products does 'as appropriate' cover: any product, only certain product types or categories, and is it ever required?",
+  "Is it set per product or per variant? Variants can differ, for example by pack size or form.",
+  "Does the text need translations or per-channel values, given the storefront's locales and channels?",
+  "Should it also appear anywhere else, such as the cart, checkout, order confirmation emails, invoices or packing slips, product listings, search or filters?",
+  "Are there validation rules, such as a maximum length, allowed characters or formatting, or rich text versus plain text?",
+  "Does it need to work with bulk import/export and the public API, and do existing products need a backfill?",
+  "Which staff roles or permissions may edit it, and what tests or acceptance criteria define done?"
+ ],
+ "reason": "The ticket clearly says what it wants: staff can edit a storage note in the dashboard and customers can see it on the storefront. But 'something', 'as appropriate' and 'Do whatever is needed' leave the data model, format, scope and definition of done to the engineer. Saying it should appear 'in the product description' can be read two ways: as a separate field, or as a change to the existing description. Those two readings lead to very different implementations."}

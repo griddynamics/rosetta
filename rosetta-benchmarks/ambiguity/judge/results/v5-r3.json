@@ -1,0 +1,26 @@
+{"version": "v5", "run": 3, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 2, "constraints": 2, "inputs": 2, "context": 2, "contradiction": 2},
+ "interpretations": [
+  "Customer-facing, translatable product attribute: staff edit a localized storage-conditions field in the admin, and it is shown on the product page or other storefront places (and possibly in APIs and feeds) in every supported locale.",
+  "Internal-only, English-only staff attribute: a plain non-localized field that staff can see and edit in the back office, explicitly excluded from the storefront, customer APIs, emails and feeds.",
+  "Customer-visible but English-only: shown on the storefront as a single non-translated string, ignoring the 'translatable' requirement.",
+  "Internal but translatable: hidden from customers, but stored as localized values for multilingual staff or warehouse use.",
+  "Structured data instead of free text: a fixed set of values (e.g. ambient/refrigerated/frozen, or temperature and humidity ranges) that could drive fulfillment, shipping or warehouse logic, rather than a text note.",
+  "Applies only to some products ('as appropriate'): optional or category/product-type-specific, rather than a field on every product."
+ ],
+ "contradictions": [
+  {"a": "customers should see it where relevant", "b": "Keep it internal: customers must never see it."},
+  {"a": "It must be translatable.", "b": "Only English is needed, no translations."}
+ ],
+ "open_questions": [
+  "Should customers ever see storage conditions, or is this strictly internal for staff? If customers see it, where exactly (product page, cart, order confirmation, emails, APIs, feeds)?",
+  "Must the field support translations (localized values), or is a single English value enough?",
+  "What form should the data take: free text, a fixed list of conditions (ambient/chilled/frozen), numeric temperature or humidity ranges, or a mix?",
+  "Which products does it apply to: all products, specific categories or product types, or optional per product? Is it required for any of them?",
+  "Should it drive any behavior (warehouse slotting, shipping method or packaging, fulfillment rules), or is it informational only?",
+  "Which staff roles can set or see it, and where in the admin should it go?",
+  "Should it be on the product or on each variant/SKU?",
+  "Do existing products need backfilling or a default value? Should it be supported in bulk import/export?",
+  "What is the definition of done: required tests, validation rules, and which channels/APIs must expose or hide it?"
+ ],
+ "reason": "The ticket contradicts itself directly on both visibility (customers see it vs. customers must never see it) and localization (must be translatable vs. English only, no translations), so the main goal can't be settled. It also leaves the data format, scope, location in the system and definition of done unstated, and hands off with 'something', 'as appropriate' and 'do whatever is needed'."}

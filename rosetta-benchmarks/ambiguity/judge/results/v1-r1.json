@@ -1,0 +1,20 @@
+{"version": "v1", "run": 1, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 1, "constraints": 1, "inputs": 1, "context": 1, "contradiction": 1},
+ "interpretations": [
+  "Main reading: add a dedicated, optional free-text 'storage conditions' field to the Product model and API, make it editable in the dashboard product form, and show it as its own block inside or next to the description section on the storefront product page.",
+  "Structured reading: model storage as typed data, such as a storage type (ambient, refrigerated, frozen) plus a min/max temperature with a unit. Validate it in the dashboard and format it into a sentence like 'Keep refrigerated at 2–8 °C' on the storefront.",
+  "Attribute reading: add no new schema field. Instead, set up a 'Storage conditions' product attribute (or metadata key) through the platform's existing attributes/product-type system, and change the storefront to show that attribute in the description area.",
+  "Literal description reading: write the storage text into the product's existing rich-text description, either when staff save it or by merging it in at render time. Customers then see it as part of the description content itself, not as a separate field."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "Should this be a new dedicated field on Product, or should it reuse the existing product attributes/metadata system?",
+  "Is the value free text, or structured data (storage type, temperature range, unit)? If structured, what are the allowed values and the validation rules? If free text, what is the maximum length?",
+  "Does 'in the product description' mean the text is inserted into the description content itself, or shown as a separate labelled block in the description area or tab? Should it also appear in API description output, SEO, or structured data?",
+  "Is the field optional for every product, or required for certain product types or categories (for example, chilled food)? Is it set per product or per variant?",
+  "Does the value need translation support for a multi-language storefront?",
+  "Are the dashboard and storefront in this repository? What does 'end to end' cover: backend, API, dashboard UI, storefront UI, migrations?",
+  "Which tests are expected (backend unit/API, dashboard component, storefront rendering, browser e2e), and what is the local command that must pass?",
+  "Should the field be included in product import/export, product listings, or search/filtering? Which staff permissions are allowed to edit it?"
+ ],
+ "reason": "The purpose and audience are clear (staff set storage info, customers see it), but 'something' leaves open whether this is a new field, structured data, or a reuse of existing attributes. 'In the product description' is in mild tension with a separately settable value, since it could mean embedding the text in the description itself. The definition of done is present but vague: it says 'fully implemented end to end' and 'tests' without naming the scope, validation rules or test levels."}

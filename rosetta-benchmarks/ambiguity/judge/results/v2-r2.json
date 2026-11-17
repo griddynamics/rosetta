@@ -1,0 +1,22 @@
+{"version": "v2", "run": 2, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 1, "constraints": 2, "inputs": 1, "context": 1, "contradiction": 1},
+ "interpretations": [
+  "Add a new optional free-text 'storage conditions' field to the Product model (DB migration, API, dashboard product form input), and render it on the storefront product page within or directly below the description section.",
+  "Use the platform's existing product attribute/metadata system (e.g. a 'Storage conditions' attribute assigned to relevant product types) so staff fill it in the dashboard and the storefront shows it with the description, with no new schema field.",
+  "Model storage conditions as structured data (e.g. a storage type enum such as ambient/refrigerated/frozen plus min/max temperature and unit), validated in the dashboard and formatted into text like 'Keep refrigerated at 2–8 °C' on the storefront.",
+  "Merge the storage text into the product's existing description content (on save or at render time), so it literally becomes part of the description body rather than a separately displayed block.",
+  "Put the field at variant level or product-type level, not product level, so that different variants or whole categories carry their own storage conditions."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "Should storage conditions be free text, or structured data (storage type plus temperature range and unit) with a fixed format?",
+  "Should this be a new dedicated product field, or should it use the existing attributes/metadata mechanism?",
+  "Does it belong at product level, variant level, or product-type level?",
+  "What does 'as appropriate' mean: optional for every product, or required for certain categories (e.g. food or pharma), and who decides?",
+  "On the storefront, does 'in the product description' mean inside the description text itself, or in a separate labelled block next to or below it? Is there a design?",
+  "Does the value need to be translatable or localized for multi-language channels?",
+  "What validation applies (max length, plain vs rich text, allowed characters such as °C)?",
+  "Should it also be exposed elsewhere: public API, product feeds, cart/checkout, order emails, bulk import/export? Do existing products need a backfill?",
+  "What is the definition of done: required tests, migration strategy, dashboard permissions?"
+ ],
+ "reason": "The purpose and the two touchpoints (dashboard for staff, storefront for customers) are clear, but 'something' leaves the data shape, level and storage mechanism open, and 'Do whatever is needed' gives no scope or definition of done. 'In the product description' sits in mild tension with a separately set field: it could mean merging into the description text or showing a separate block, and those lead to different implementations."}

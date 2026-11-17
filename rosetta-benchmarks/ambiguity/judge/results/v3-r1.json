@@ -1,0 +1,24 @@
+{"version": "v3", "run": 1, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 1, "constraints": 2, "inputs": 2, "context": 1, "contradiction": 0},
+ "interpretations": [
+  "Add a dedicated optional free-text 'storage conditions' field to every product, editable in the dashboard product form, exposed through the API, and shown as its own section next to or below the product description on the storefront product page.",
+  "Add a structured field with fixed choices (for example room temperature, refrigerated, frozen, keep dry) or temperature and humidity ranges, edited with a dropdown or range inputs and shown on the storefront as formatted labels or icons.",
+  "Use the platform's existing product attribute or product-type system: create a 'Storage conditions' attribute, assign it only to the product types it applies to (for example food or cosmetics), and update the storefront to render it. This needs no schema change and covers only the 'appropriate' product types.",
+  "Merge the storage conditions into the existing description content, either by appending a block to the rich-text description when staff save, or by combining the two when the page renders, so it appears literally 'in the product description'.",
+  "Build nothing new in the system: staff type storage information into the existing description field, possibly with a template or guidance, because that already makes it visible in the product description.",
+  "Store storage conditions per variant instead of per product, because different sizes or packaging may need different conditions, and show the selected variant's value on the storefront."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "Which products need storage conditions: all products, or only certain product types or categories? And who decides what 'as appropriate' means? Is the field required or optional for those products?",
+  "What format should the value have: free text, a fixed list of options, or structured values such as temperature and humidity ranges with units?",
+  "Should it be inserted into the existing description content, or shown as a separate labelled section, tab or block near the description? Is there a design or mockup?",
+  "Should this use the existing attribute or metadata mechanism, or a new dedicated field on the product model and in the API?",
+  "Is it set once per product or per variant?",
+  "Does the value need translations or localization for multi-language or multi-channel storefronts?",
+  "Do existing products need values filled in through a migration, bulk import or defaults, or does it start empty?",
+  "Should storage conditions appear anywhere else, such as the cart, order confirmation, packing slips, product feeds, search, or storefront filters?",
+  "Which staff roles or permissions may edit the field?",
+  "What is the definition of done: the tests needed, whether the API must expose the field publicly, and which storefront or channels must show it?"
+ ],
+ "reason": "The ticket names the general feature (a storage-conditions value that staff edit in the dashboard and customers see on the storefront), but 'something' and 'as appropriate' leave open the data model, the value format, and which products it applies to. 'Do whatever is needed' gives no constraints or definition of done, and 'in the product description' could mean merging the value into the existing description text or showing it as a separate section. No instructions directly conflict."}

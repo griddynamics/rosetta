@@ -1,0 +1,24 @@
+# Fixed list of vague terms for "vague density" (METRICS.md, section 1).
+# One term per line, matched case-insensitively on word boundaries.
+# Longer terms are matched first and their text is not counted again (so "as appropriate" counts once, not twice).
+# Never change this list after the prompts are scored; a change means rescoring every prompt.
+as appropriate
+appropriate
+as needed
+whatever is needed
+where relevant
+relevant
+something
+somehow
+somewhere
+latest
+the file
+properly
+suitable
+reasonable
+etc
+and so on
+nice
+handle
+handled
+necessary

@@ -1,0 +1,22 @@
+{"version": "v0", "run": 1, "model": "claude-opus-5-5", "date": "2026-11-17",
+ "ratings": {"goals": 0, "constraints": 1, "inputs": 1, "context": 1, "contradiction": 0},
+ "interpretations": [
+  "Main reading: add a dedicated, optional, plain-text product field (model, migration, API), add an input for it on the dashboard product edit form, and show it on the storefront product page as its own labelled block inside or next to the description section.",
+  "Merge reading: keep the value as a field but insert it into the description content itself (for example, append it to the description HTML or rich text on the server or at render time), so it shows up wherever the description is used, such as SEO meta, feeds and search.",
+  "Reuse reading: don't change the schema, and use the platform's existing product attribute, custom field or metadata system (for example, an attribute assigned through the product type), so the work is mostly configuration plus storefront rendering.",
+  "Structured reading: treat storage conditions as structured data (a temperature range with min, max and unit, or a preset list like refrigerated, frozen or ambient) rather than free text, which needs different storage, validation, editing UI and formatting.",
+  "Localized reading: make the field translatable like other customer-facing product text, which adds translation storage, translation UI in the dashboard and locale-aware display on the storefront."
+ ],
+ "contradictions": [],
+ "open_questions": [
+  "On the storefront, should storage conditions be a separate labelled section near the description, or should the text be merged into the product description content itself (and so also appear in SEO meta, feeds and search)?",
+  "Should this be a new dedicated product field, or should it use the existing attribute, custom field or metadata system?",
+  "Is the value free text or structured (temperature range and units, preset options)? Is there a maximum length, and is rich text or formatting allowed?",
+  "Is the field optional? What should the storefront show when it is empty, and do existing products need a default value or backfill?",
+  "Does the field need translations or localization like other customer-facing product text?",
+  "Is the storefront in this repository? Which surfaces should show the field: the product detail page only, or also listings, cart, checkout, order emails, the public API and product feeds?",
+  "Is it set per product or per variant, and should bulk import and export (CSV, bulk edit) support it?",
+  "Which staff roles or permissions can edit it, and should changes be audit-logged?",
+  "Which tests are expected (model or unit, API, dashboard UI, storefront component, end-to-end)? Does 'everything passes locally' mean the full test suite, linters and type checks, or only the new tests?"
+ ],
+ "reason": "What to build and why are clear: a storage-conditions field that staff edit in the dashboard and customers see on the storefront. It's unclear whether 'in the product description' means a separate block or merged description text, whether the value is free text or structured, translatable or reusing existing attribute mechanisms, and which surfaces and tests count. The definition of done is generic, but no two instructions directly conflict."}

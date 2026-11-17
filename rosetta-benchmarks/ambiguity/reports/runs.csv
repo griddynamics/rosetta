@@ -1,0 +1,5 @@
+run_id,method,prompt_version,repeat,reused,status,correctness7,correctness,judge_constraint_fidelity,judge_assumption_transparency,judge_calibration,trust7,trust,js_run,ask_rate,hidden_ask_share,hedges,hedge_density,confident_wrong,first_pass_coverage,unanticipated_share,contradiction_score,k_labels,k_judge,k_scores,folder,followups,total_min,t2_cost_usd,hidden_values,t1_checks
+S-CC-01-v0-r1,baseline,v0,1,True,done,0.571,0.571,,,,,,,0.0,0.0,0,0.0,1,0.571,,,,,,small-storage-conditions/claude-code/baseline/v0-r1,3,50,3.31,"0,0,1,1,1,0,1",
+S-CC-02-v0-r1,grill-with-docs,v0,1,True,done,1.0,1.0,,,,,,,14.0,0.714,0,0.0,0,1.0,,,,,,small-storage-conditions/claude-code/grill-with-docs/v0-r1,1,38,4.89,"1,1,1,1,1,1,1",
+S-CC-08-v0-r1,rosetta-skills,v0,1,True,done,0.857,0.857,,,,,,,10.0,0.429,,,0,0.857,,,,,,small-storage-conditions/claude-code/rosetta-skills/v0-r1,2,56,5.64,"1,1,1,1,1,0,1",
+S-CC-03-v0-r1,superpowers,v0,1,True,done,0.857,0.857,,,,,,,1.0,0.143,,,0,0.857,,,,,,small-storage-conditions/claude-code/superpowers/v0-r1,1,41,8.08,"1,1,1,1,1,0,1",
