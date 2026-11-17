@@ -36,8 +36,10 @@ For code changes: describe user-visible or contract-level impact, or write "None
 
 <!-- Paste evidence, not claims: command output, run logs, screenshots, scenario comparison. -->
 
-- [ ] Build, lint, and type checks pass (`src/validate-types.sh`)
+- [ ] Build and lint pass for each touched `src/` component (see its package scripts)
+- [ ] Type checks pass (`src/validate-types.sh`: mypy and TypeScript typecheck only)
 - [ ] Tests pass (`src/run-tests.sh`); new or changed behavior is covered
+- [ ] Skipped suites listed: <!-- none, or which. Both scripts skip suites with missing dependencies (venv, `node_modules`) and still exit 0. -->
 - [ ] Verified end to end where applicable (`verify_mcp.py`, plugin local install, `scripts/verify/`)
 - [ ] Prompt changes: static AI review and scenario comparison pipelines checked, no unresolved flags
 
