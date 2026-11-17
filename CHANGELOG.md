@@ -120,7 +120,7 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 ### Week Mon 09.11 – Sun 15.11
 
-In Claude Code, the Rosetta always-on rules and plugin mode load again after `/clear` and after compaction. Before, a long session ran its second half without them. On large tasks, a repeated `plan create` no longer erases a plan in progress. `rosetta-light` gets the small-task rules that `rosetta` got last week. The AI no longer writes compressed text that loses meaning: answers are precise, designs are concise, and plans and specs are compressed without loss. Questions with high risk come first.
+In Claude Code, the Rosetta always-on rules and plugin mode load again after `/clear` and after compaction. Before, a long session ran its second half without them. On large tasks, a repeated `plan create` no longer erases a plan in progress. `rosetta-light` gets the small-task rules that `rosetta` got last week. The AI writes precise answers and concise designs, and keeps plans and specs compact and complete. High-risk questions come first.
 
 For maintainers, checks no longer pass when the work did not. Token reports count each response once, a mistyped evaluator id stops the run, e2e jobs fail on missing artifacts, and `parse` reports rejected documents as failed. The triage bot is limited to reviews, replies, and labels, and its policy denies issue creation. 84 Dependabot and 6 CodeQL alerts are fixed.
 
@@ -130,7 +130,7 @@ For maintainers, checks no longer pass when the work did not. Token reports coun
 - `[R3]` Claude Code: installs made under the old name `core@rosetta` update again from v3.1.24. In v3.1.23 Claude Code reported "Plugin not found in marketplace" for them
 - `[R3]` `rosetta-light`: `coding-flow` now uses the small and medium task rules that `rosetta` got last week, from v3.1.25. Small tasks skip `orchestration` and use a subagent only for the code review
 - `[R3]` Copilot: the Speckit policy no longer loads in every session, from v3.1.24. In v3.1.23 its `applyTo: "**"` made Copilot load it every time; it now loads only when requested
-- `[R3]` The AI writes precise text instead of lossy compressed text. With newer models, "compressed" dropped important information. The always-on bootstrap asks for precise, faithful answers, `design` output is concise, and `planning` and `tech-specs` are losslessly compressed. ASD-STE100 now applies everywhere, not only when the AI talks (v3.1.26 to v3.1.29)
+- `[R3]` The AI writes with more precision, tuned for newer models. The always-on bootstrap asks for precise, faithful answers, `design` output is concise, and `planning` and `tech-specs` are losslessly compressed, so every important detail stays in. ASD-STE100 now applies to everything the AI writes (v3.1.26 to v3.1.29)
 - `[R3]` `hitl` and `questioning`: the AI asks high-risk questions first, together with high-impact and key ones. Before, a risky question with small visible impact could wait behind the others (v3.1.28)
 - `[R3]` `requirements-authoring`: the requirement id template shows the type prefix (`FR`, `NFR`, `INT`, `DATA`). Before, it showed `FR-` for every type, so a non-functional requirement could get an `FR` id (next release)
 - `[Tooling]` rosettify `plan create` refuses a path that already holds a file (`plan_already_exists`) and changes nothing. Before, it overwrote the plan without a backup. The `orchestration` skill drives large tasks through this command. First writes to plans and specs now take the lock, so parallel subagents cannot drop each other's content (Serghei Hmeli, xyrolle, #398, issue #389)
@@ -146,9 +146,9 @@ For maintainers, checks no longer pass when the work did not. Token reports coun
 - **What you get.** `[R3]` Long Claude Code sessions keep Rosetta to the end. Before, `/clear` or an automatic compaction removed the bootstrap, and the AI continued without the always-on rules and plugin mode. Long tasks compact most. From v3.1.27 the bootstrap loads again after both. Separately, installs made under the old name `core@rosetta` find the plugin and update again from v3.1.24.
 - **What changed.** The Claude Code `SessionStart` hook matched `startup` only. It now matches `startup|clear|compact`. `resume` stays out, because a resumed session already replays the bootstrap from its transcript (Serghei Hmeli, xyrolle, #450, issue #449). The v3.1.23 rename from `core` to `rosetta` had dropped the `renames` map in the Claude Code marketplace file. It is restored, and Claude Code maps `core` to `rosetta` again (Igor Solomatov, isolomatov-gd).
 
-#### Precise text instead of lossy compression
+#### Precise answers, complete plans and specs
 
-- **What you get.** `[R3]` Rosetta told the AI to write compressed text. With newer models that compression was lossy: answers, designs, plans, and specs lost important information. Now answers must be precise and faithful. Designs, which people review, are concise. Plans and specs, which the AI reads, stay compact but must keep all information.
+- **What you get.** `[R3]` The AI now writes for precision, with wording tuned for newer models. Answers are precise and faithful to the source. Designs, which people review, are concise. Plans and specs, which the AI reads, stay compact and keep every important detail.
 - **What changed.** `bootstrap-alwayson`: "compressed" is replaced by "even terse, no fillers, straight to the point, faithful", and "MUST talk in ASD-STE100" became "MUST use and follow ASD-STE100 everywhere" (v3.1.26). `design`: "Compressed" became "Concise" (v3.1.28). `planning` and `tech-specs`: "compressed" became "losslessly compressed" (v3.1.29). `reasoning`: the DEBRIEF threshold reads "confidence < 0.8 of 0..1", so the scale is explicit (v3.1.29). (Igor Solomatov, isolomatov-gd)
 
 #### Plans and specs keep their content
