@@ -113,7 +113,7 @@ export async function cmdNext(
         id: targetPhase.id,
         name: targetPhase.name,
         description: targetPhase.description,
-        status: targetPhase.status,
+        status: targetPhase.status ?? "open",
         depends_on: targetPhase.depends_on ?? [],
       };
       if (targetPhase.subagent) parent.subagent = targetPhase.subagent;
@@ -145,7 +145,7 @@ function buildNextStep(
     id: step.id,
     name: step.name,
     prompt: step.prompt,
-    status: step.status,
+    status: step.status ?? "open",
     depends_on: step.depends_on ?? [],
     phase_id: phase.id,
     phase_name: phase.name,

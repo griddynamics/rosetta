@@ -569,6 +569,26 @@ describe("cmdNext — nullish status branches", () => {
     expect(result.result!.next.length).toBeGreaterThan(0);
   });
 
+  // FR-PLAN-0011 — each returned step carries its status, also when the file stores none
+  it("returns a step stored without status as open", async () => {
+    const plan = singleStepPlan();
+    delete (plan.phases[0]!.steps[0]! as Record<string, unknown>)["status"];
+    const file = writePlan(plan);
+    const result = await cmdNext(file);
+    expect(result.ok).toBe(true);
+    expect(result.result!.next.map((s) => s.status)).toEqual(["open"]);
+  });
+
+  // FR-PLAN-0011 — parent carries the phase status, also when the file stores none
+  it("returns parent.status open for a phase stored without status", async () => {
+    const plan = singleStepPlan();
+    delete (plan.phases[0]! as Record<string, unknown>)["status"];
+    const file = writePlan(plan);
+    const result = await cmdNext(file, "p1");
+    expect(result.ok).toBe(true);
+    expect(result.result!.parent!.status).toBe("open");
+  });
+
   it("handles phase with undefined steps (nullish branch)", async () => {
     const plan = singleStepPlan();
     (plan.phases[0]! as Record<string, unknown>)["steps"] = undefined;

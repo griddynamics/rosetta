@@ -67,6 +67,19 @@ function stripStatusFields(
   return result;
 }
 
+// FR-PLAN-0001 — phases and steps the patch adds get the same defaults as in create.
+// Items already in the file (storedIds) are left as they are.
+function fillDefaults(plan: Plan, storedIds: Set<string>): void {
+  if (!Array.isArray(plan.phases)) return;
+  plan.phases = plan.phases.map((merged) => {
+    const phase = storedIds.has(merged.id) ? merged : ({ status: "open", depends_on: [], steps: [], ...(merged as Partial<Phase>) } as Phase);
+    if (Array.isArray(phase.steps)) {
+      phase.steps = phase.steps.map((s) => (storedIds.has(s.id) ? s : ({ status: "open", depends_on: [], ...(s as Partial<Step>) } as Step)));
+    }
+    return phase;
+  });
+}
+
 export async function cmdUpsert(
   planFile: string,
   targetId: string | undefined,
@@ -95,6 +108,7 @@ export async function cmdUpsert(
       if (idCheck) return { ok: false as const, error: idCheck };
       plan = applyEntirePlanPatch(plan, cleanData);
       if ("error" in plan) return { ok: false as const, error: (plan as unknown as { error: string }).error };
+      fillDefaults(plan, new Set());
       const uniqueErr = validateUniqueIds(plan); if (uniqueErr) return { ok: false as const, error: uniqueErr };
       const depsErr = validateDependencies(plan); if (depsErr) return { ok: false as const, error: depsErr };
       const sizeErr = validateSizeLimits(plan); if (sizeErr) return { ok: false as const, error: sizeErr };
@@ -108,6 +122,7 @@ export async function cmdUpsert(
       planFile,
       (plan) => {
         let mutated = plan;
+        const storedIds = new Set((plan.phases ?? []).flatMap((p) => [p.id, ...(p.steps ?? []).map((s) => s.id)]));
 
         if (resolvedTargetId === "entire_plan") {
           const idCheck = validateImmutableId(cleanData["id"] as string | undefined, resolvedTargetId);
@@ -158,6 +173,7 @@ export async function cmdUpsert(
           }
         }
 
+        fillDefaults(mutated, storedIds);
         const uniqueErr = validateUniqueIds(mutated); if (uniqueErr) return { ok: false, error: uniqueErr };
         const depsErr = validateDependencies(mutated); if (depsErr) return { ok: false, error: depsErr };
         const sizeErr = validateSizeLimits(mutated); if (sizeErr) return { ok: false, error: sizeErr };
