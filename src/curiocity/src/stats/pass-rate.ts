@@ -1,9 +1,10 @@
 import type { StatBlock, TrialResult } from '../results/schema';
-import { completedTrials, ERROR_STATUS_SET, type Stat } from './types';
+import { completedTrials, UNCOMPLETED_STATUSES, type Stat } from './types';
 
 /**
- * `pass-rate` (§12): passed / (passed + failed). Error-status trials are excluded
- * from the denominator (D14) but counted separately as `errors`.
+ * `pass-rate` (§12): passed / (passed + failed). Uncompleted trials (infra-error
+ * statuses AND not-run `skipped` cells) are excluded from the denominator (D14) but
+ * counted separately as `errors` — see `UNCOMPLETED_STATUSES`.
  */
 export const passRate: Stat = {
   id: 'pass-rate',
@@ -11,7 +12,7 @@ export const passRate: Stat = {
     const completed = completedTrials(group);
     const passed = completed.filter((t) => t.status === 'passed').length;
     const failed = completed.length - passed;
-    const errors = group.filter((t) => ERROR_STATUS_SET.has(t.status)).length;
+    const errors = group.filter((t) => UNCOMPLETED_STATUSES.has(t.status)).length;
     const first = group[0];
     return {
       id: 'pass-rate',
