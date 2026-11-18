@@ -2,7 +2,6 @@
 name: researcher
 description: "Run deep research with grounded references, systematic exploration, self-validation, etc. Full subagent."
 mode: subagent
-model: claude-haiku-5-5
 effort: medium
 color: yellow
 readonly: false

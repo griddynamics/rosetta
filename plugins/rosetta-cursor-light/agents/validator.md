@@ -2,7 +2,6 @@
 name: validator
 description: "Validate that implementation matches intent via execution and evidence. Full subagent."
 mode: subagent
-model: gemini-3.8-flash
 effort: high
 color: red
 readonly: false
