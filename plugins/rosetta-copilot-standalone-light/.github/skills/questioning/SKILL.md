@@ -39,7 +39,7 @@ Output: targeted questions with impact + safe defaults.
 - Loop cycles until NO gaps or ambiguities left without nitpicking.
 - Questions Guidance:
     - QUALITY, PRECISION, COMPLETENESS is the top priority during questioning, without nitpicking
-    - High impact or key questions first
+    - High impact, high risk, high severity, low confidence, or key questions first
     - Provide REAL examples when asking
     - Tell back in your own words
     - Also pay attention to WORD selection and HOW answers were provided

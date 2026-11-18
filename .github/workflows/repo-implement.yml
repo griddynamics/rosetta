@@ -45,6 +45,9 @@ on:
           - claude
         default: codex
 
+permissions:
+  contents: read
+
 jobs:
   # ── Orchestrator ─────────────────────────────────────────────────────────────
   load-stories:

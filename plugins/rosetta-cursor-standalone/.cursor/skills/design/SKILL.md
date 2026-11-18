@@ -71,7 +71,7 @@ Several apply → load each that carries real risk here; conflicts resolve towar
 
 <output>
 
-Compressed, terse; diagrams and terms over prose.
+Concise, terse; diagrams and terms over prose.
 Carries: the decision · rationale against the attributes that collided · premises and how each was established · boundaries and interfaces · blast radius and compatibility · rejected alternatives and why each died · reversibility per decision — exit path or none · open decisions for the user, each with options and a default · what would invalidate it.
 Depth follows the stakes, not a template.
 

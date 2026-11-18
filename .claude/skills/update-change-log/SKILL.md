@@ -245,3 +245,4 @@ If you learned something new which is reusable, there are process efficiency imp
 - **Take all information in when correcting** Fixed one point and dropped another (cost, Codex). A correction adds to what is known; keep every established fact in the text.
 - **Ask full name and Slack handle** `gh pr view` gave only "Serghei"; user later named Serghei Hmeli, Slack `@shmeli`. Credit "Full Name, gh-id"; unknown → first name plus id. Thank GD contributors in Slack by handle.
 - **Readers are Grid Dynamics; customizers are clients** Wrote "Your organization's instructions"; every reader works at Grid Dynamics. Customization serves client organizations: say "client organizations", never "your organization".
+- **Frame improvements positively, never negatively** Wrote "No more lossy compression", "loses meaning"; user: we are improving. Lead with what the AI now does better; no contrast words (no more, lossy, loses, dropped).
