@@ -59,15 +59,7 @@ AI help is welcome. These norms apply:
 
 ## Pull Request Checklist
 
-Before requesting review:
-
-- [ ] Scope is narrow and explicit
-- [ ] No duplicate rules or ambiguous wording introduced
-- [ ] Safety, privacy, and approval checkpoints preserved
-- [ ] Prompt changes include a brief, examples, and validation evidence
-- [ ] Architecture changes update [`docs/ARCHITECTURE.md`](https://github.com/griddynamics/rosetta/blob/main/docs/ARCHITECTURE.md) in the same changeset
-- [ ] Local validation passes (build, lint, relevant checks)
-- [ ] PR description explains *why*, not just *what*
+The checklist lives in the [pull request template](https://github.com/griddynamics/rosetta/blob/main/.github/PULL_REQUEST_TEMPLATE.md) that pre-fills every new PR. Go through it before requesting review.
 
 ## Community
 

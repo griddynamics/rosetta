@@ -1,7 +1,5 @@
 <!--
-Thanks for contributing to Rosetta. One concern per PR. Small PRs merge faster.
-Delete sections that do not apply. Never paste secrets, credentials, or PII.
-See CONTRIBUTING.md and REVIEW.md for the full standards.
+Delete sections that do not apply. Go through the Checklist at the end before requesting review.
 -->
 
 ## Summary
@@ -25,7 +23,7 @@ Closes #
 <!--
 Required for prompt, rule, skill, workflow, and bootstrap changes: they alter agent behavior
 in every project using Rosetta. Provide before/after examples or scenario results.
-For code changes: describe user-visible or contract-level impact, or write "None".
+For other changes: describe user-visible or contract-level impact, or write "None".
 -->
 
 | Before | After |
@@ -36,58 +34,34 @@ For code changes: describe user-visible or contract-level impact, or write "None
 
 <!-- Paste evidence, not claims: command output, run logs, screenshots, scenario comparison. -->
 
-- [ ] Build and lint pass for each touched `src/` component (see its package scripts)
-- [ ] Type checks pass (`src/validate-types.sh`: mypy and TypeScript typecheck only)
-- [ ] Tests pass (`src/run-tests.sh`); new or changed behavior is covered
-- [ ] Skipped suites listed: <!-- none, or which. Both scripts skip suites with missing dependencies (venv, `node_modules`) and still exit 0. -->
-- [ ] Verified end to end where applicable (`verify_mcp.py`, plugin local install, `scripts/verify/`)
+- [ ] `scripts/pre_commit.py` passes (hooks build, plugin sync, `scripts/verify/` checks, type checks, tests; regenerates `plugins/`). Result, and any skipped suites (missing dependencies are skipped and still exit 0):
+- [ ] MCP server changes: `src/rosetta-mcp-server/validation/verify_mcp.py` passes (needs `.env` and `VERSION`, see `DEVELOPER_GUIDE.md`). Result:
 - [ ] Prompt changes: static AI review and scenario comparison pipelines checked, no unresolved flags
 
 ## Environments tested
 
-<!-- Tick what you actually ran. Prompt and bootstrap changes must hold across agents and models (see REVIEW.md). -->
+<!--
+Only for prompt, plugin, hook, and bootstrap changes (they must hold across agents and models, see REVIEW.md).
+Delete this section for everything else.
+-->
 
-**Coding agent**
-
-- [ ] Claude Code
-- [ ] Codex
-- [ ] GitHub Copilot
-- [ ] Cursor
-- [ ] Antigravity
-- [ ] Other:
-- [ ] Not applicable (no agent-facing change)
-
-**Delivery mode**
-
-- [ ] Plugin (local install, see `docs/TESTING-PLUGINS.md`)
-- [ ] Rosetta MCP (local or hosted)
-- [ ] Local files
-- [ ] Not applicable
-
-**Models, OS, runtime**
-
-| Item | Version / value |
-|---|---|
-| Model(s) |  |
-| OS |  |
-| Runtime (Python, Node, Docker, etc.) |  |
-| Rosetta version or commit |  |
-
-## Checklist
-
-- [ ] Scope is narrow; no unrelated or AI-generated drive-by changes
-- [ ] Versions bumped for changes in `src/` (`scripts/bump_versions.sh`)
-- [ ] Architecture or behavior changes update `docs/ARCHITECTURE.md`, `docs/CONTEXT.md`, or other affected docs in this PR
-- [ ] Safety, privacy, and approval (HITL) checkpoints preserved; no duplicate or conflicting rules
-- [ ] No secrets, credentials, PII, or hardcoded paths and environment values
-- [ ] Backward compatible for plugin consumers, MCP clients, and CLI users, or the break is documented
-- [ ] Commits are signed off (`git commit -s`, [DCO](https://developercertificate.org/))
-- [ ] If AI-assisted: I reviewed every line and can explain it
+- **Coding agent:** <!-- Claude Code / Codex / GitHub Copilot / Cursor / Antigravity / other -->
+- **Delivery mode:** <!-- Plugin (see `docs/TESTING-PLUGINS.md`) / Rosetta MCP / Local files -->
+- **Models, OS, Rosetta version or commit:**
 
 ## Risk and rollback
 
 <!-- Blast radius (auth, data handling, deployment, guardrails, bootstrap policy) and how to revert. "Low, revert the commit" is fine when true. -->
 
-## Notes for reviewers
+## Checklist
 
-<!-- Optional: where to start, trade-offs considered, follow-ups tracked as issues. -->
+Before requesting review:
+
+- [ ] Scope is narrow and explicit: one concern per PR
+- [ ] No secrets, credentials, or PII in the description, diff, or logs
+- [ ] No duplicate rules or ambiguous wording introduced
+- [ ] Safety, privacy, and approval checkpoints preserved
+- [ ] Prompt changes include a brief, examples, and validation evidence
+- [ ] Architecture changes update [`docs/ARCHITECTURE.md`](https://github.com/griddynamics/rosetta/blob/main/docs/ARCHITECTURE.md) in the same changeset
+- [ ] Local validation passes (see Validation above)
+- [ ] PR description explains *why*, not just *what*
