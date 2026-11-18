@@ -59,7 +59,7 @@ AI help is welcome. These norms apply:
 
 ## Pull Request Checklist
 
-The checklist lives in the [pull request template](https://github.com/griddynamics/rosetta/blob/main/.github/PULL_REQUEST_TEMPLATE.md) that pre-fills every new PR. Go through it before requesting review.
+The checklist lives in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md) that pre-fills every new PR. Go through it before requesting review.
 
 ## Community
 
