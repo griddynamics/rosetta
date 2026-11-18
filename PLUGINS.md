@@ -254,7 +254,7 @@ The result is the same `rosetta` and `rosetta-light` plugins, one folder per IDE
 A profile replaces the models the plugins name, for example when your organization cannot use a model.
 
 1. Copy `src/rosettify-plugins/plugins.json`. Give a variant without a profile your profile name, for example `acme`. Keep the profile names other variants already have: a name also selects content.
-2. In a profile folder, write one file per profile name (`acme.json`, and one per kept name), each with your `modelOverrides` block. A block replaces the whole model map of the IDE it names, so map every model token explicitly. Claude takes family keys (`"opus": "claude-sonnet-5-5"`); Cursor, Copilot and Codex take exact tokens (`"claude-opus-5-5-high": "claude-sonnet-5-5"`).
+2. In a profile folder, write one file per profile name (`acme.json`, and one per kept name), each with your `modelOverrides` block. A block replaces the whole model map of the IDE it names, so map every model token explicitly. Claude takes family keys (`"opus": "claude-sonnet-5-5"`). Cursor takes exact tokens with Cursor ids (`"claude-opus-5-5-high": "claude-sonnet-5-5"`), Copilot the same keys with display names (`"claude-opus-5-5-high": "Claude Sonnet 5.5"`), and Codex exact `gpt-` tokens.
 3. Add `--config <catalog copy> --profileSource <profile folder>` to the build command. The profile folder replaces the default one, so it must hold every profile your catalog names.
 
 The profile format is in the [generator README](src/rosettify-plugins/README.md).
