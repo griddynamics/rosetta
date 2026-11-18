@@ -160,7 +160,7 @@
     Array.prototype.forEach.call(codes, function(code) {
       var pre = code.parentElement;
       if (!pre || pre.closest('.docs-mermaid')) return;
-      var source = code.textContent.replace(/^(?:\s*\n)+/, '').replace(/(?:\n\s*)+$/, '');
+      var source = code.textContent.replace(/^(?:\s*\n)+/, '').trimEnd();
       var wrapper = document.createElement('div');
       wrapper.className = 'docs-mermaid';
       wrapper.dataset.mermaidSource = source;

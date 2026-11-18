@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'src/rosettify-plugins/**'
+      # Plugin templates are not in the npm package ("files" in package.json).
+      - '!src/rosettify-plugins/plugins/**'
   workflow_dispatch:
 
 

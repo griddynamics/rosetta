@@ -220,7 +220,7 @@ Every single-value field is an attribute; only prose and structured children are
 Attributes are ordered by volatility — status, approved_by, changed always change together and share one line, so an approval is a one-line diff.
 
 ```xml
-<req id="FR-[AREA]-####" type="FR|NFR|INT|DATA" level="System|Subsystem|Component"
+<req id="[FR|NFR|INT|DATA]-[AREA]-####" type="FR|NFR|INT|DATA" level="System|Subsystem|Component"
      subsystem="[name; required when level is Subsystem or Component; otherwise fill when known]"
      component="[name; required when level is Component; otherwise fill when known]"
      ticketId="[tracker key]" classification="business|technical"

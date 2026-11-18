@@ -85,6 +85,10 @@ describe('cell() — Markdown table-cell escaping helper', () => {
     expect(cell('a | b || c')).toBe('a \\| b \\|\\| c');
   });
 
+  it('escapes backslashes before pipes so an escaped pipe cannot reopen a column', () => {
+    expect(cell('a\\|b')).toBe('a\\\\\\|b');
+  });
+
   it('collapses newlines (with surrounding whitespace) to single spaces', () => {
     expect(cell('line one\n  line two\r\n line three')).toBe('line one line two line three');
   });

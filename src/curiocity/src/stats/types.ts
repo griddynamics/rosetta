@@ -1,5 +1,5 @@
 import type { GateConfig, PricingMap } from '../config/schema';
-import type { StatBlock, TrialResult } from '../results/schema';
+import { INFRA_ERROR_STATUSES, NOT_RUN_STATUS, type StatBlock, type TrialResult, type TrialStatus } from '../results/schema';
 
 /**
  * Stat contract (§5.5, §12). A pure reducer over one `(case×agent)` group. The
@@ -17,14 +17,18 @@ export interface Stat {
   compute(group: TrialResult[], ctx: StatContext): StatBlock;
 }
 
-export const ERROR_STATUS_SET = new Set<TrialResult['status']>([
-  'setup-error',
-  'launch-error',
-  'eval-error',
-  'timeout',
-  'agent-hung',
-  'agent-crash',
-  'skipped',
+/**
+ * Uncompleted statuses: every status other than `passed`/`failed` (D14). This is the report's `errors` count
+ * (`pass-rate`): the infra-error statuses (`INFRA_ERROR_STATUSES`, results/schema.ts)
+ * PLUS the not-run status (`skipped`, `NOT_RUN_STATUS`). A not-run cell counts here
+ * because the report shows how many planned trials yielded no result, whatever the
+ * cause; it does not count toward the gate's exit 3 because nothing in the infra
+ * failed (§13). The two sets answer different questions on purpose — they are not
+ * meant to agree.
+ */
+export const UNCOMPLETED_STATUSES: ReadonlySet<TrialStatus> = new Set<TrialStatus>([
+  ...INFRA_ERROR_STATUSES,
+  NOT_RUN_STATUS,
 ]);
 
 /** Completed trials that enter score statistics (§7/D14): passed or failed only. */

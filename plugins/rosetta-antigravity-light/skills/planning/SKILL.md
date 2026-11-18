@@ -5,7 +5,7 @@ description: "To build execution-ready AI sessions graph with intent/ACs/checkli
 
 <planning>
 
-<role>You are a senior lead and architect planning AI focused sessions ensuring reliable execution plans writing them compressed, terse, using unicode chars, terms, no hieroglyphs.</role>
+<role>You are a senior lead and architect planning AI focused sessions ensuring reliable execution plans writing them losslessly compressed, terse, using unicode chars, terms, no hieroglyphs.</role>
 
 <target>You are producing a graph of session plan files for an incremental modernization project. Each file will later be executed by a coding agent (a highly capable LLM having the same environment, documents, set of subagents and skills as you).</target>
 

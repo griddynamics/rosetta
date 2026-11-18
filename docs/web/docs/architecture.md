@@ -129,10 +129,12 @@ Local CLI/MCP utility for AI coding agents and users. Purpose: deterministic loc
 
 Published on npm as `rosettify`. Invoked via `npx -y rosettify@latest <command> [subcommand] [args]` or as a local MCP server (`rosettify --mcp`) over stdio.
 
+**Requirements-first:** spec-before-code from `docs/REQUIREMENTS/rosettify/` (authoritative; code follows).
+
 **Key points:**
 - **Dual frontend.** One CLI and one MCP server backed by the same run delegates. Identical behavior in both modes.
 - **Plan management** (current feature). `npx -y rosettify@latest plan <subcommand> <plan_file>` — create, track, and advance execution plans as local JSON files. Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`.
-- **Atomic write cycle with backup chain.** Every plan mutation uses a rename-as-guard cycle: rename the plan file to `<file>.bakNNN` as the atomic lock, then write the new content. The plan's `previous_version` field tracks the prior backup path. Up to 5 backups retained; bounded to 50 retries.
+- **Locked write cycle with backup chain.** Every plan write holds a `<file>.lock` directory (atomic `mkdir`) as a cross-process mutex. Inside the lock, a mutation renames the plan file to `<file>.bakNNN` (the rename only makes the backup), then writes the new content. The plan's `previous_version` field tracks the prior backup path. `create` never replaces an existing file: it fails with `plan_already_exists`. Up to 5 backups retained; bounded to 50 retries.
 - **Template registry.** Two compiled-in template kinds (`create`, `upsert`) with strict bidirectional placeholder matching. Seed templates ship with the package.
 - **Sequential phase enforcement.** `next` returns work from the earliest incomplete phase only; later phases are blocked until all earlier phases are done.
 - **Static tool registry.** Each command is a `ToolDef` with name, description, input/output schema, CLI and MCP flags, and a typed run delegate.
@@ -294,7 +296,7 @@ The seven IDE targets and how each is delivered:
 Bootstrap and the advisory hooks ship in every plugin.
 
 
-All plugins are generated from the release-selected source tree (`instructions/<release>/`, folders selected per plugin by `src/rosettify-plugins/plugins.json`) by the plugin generator (`npx -y rosettify-plugins@latest`). The generator's `--release` defaults to `r3`, matching the rosetta-mcp `DEFAULT_VERSION`. Each release descriptor also carries a hook posture: r2 ships SessionStart bootstrap only, while r3 enables the deterministic advisory hooks by default — overridable via `--deterministic-hooks`. **Shipped plugins are built with `false`** (FR-CLI-0012): advisory hooks run before and after every tool call, adding per-call overhead, so they are opt-in and enabled progressively. The generator builds main plugins then derives the standalone variants from them. The generator copies core instructions and adapts them for the target coding agent:
+All plugins are generated from the release-selected source tree (`instructions/<release>/`, folders selected per plugin by `src/rosettify-plugins/plugins.json`) by the plugin generator (`npx -y rosettify-plugins@latest`). **Requirements-first:** spec-before-code from `docs/REQUIREMENTS/plugin-generator/` (authoritative FRs/NFRs; code follows). The generator's `--release` defaults to `r3`, matching the rosetta-mcp `DEFAULT_VERSION`. Each release descriptor also carries a hook posture: r2 ships SessionStart bootstrap only, while r3 enables the deterministic advisory hooks by default — overridable via `--deterministic-hooks`. **Shipped plugins are built with `false`** (FR-CLI-0012): advisory hooks run before and after every tool call, adding per-call overhead, so they are opt-in and enabled progressively. The generator builds main plugins then derives the standalone variants from them. The generator copies core instructions and adapts them for the target coding agent:
 
 - **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor normalizes to short IDs (e.g. `claude-sonnet-5-5`, `gpt-6-luna`); Copilot to display names (e.g. `Claude Sonnet 5.5`, `GPT-6 Luna`); Claude Code to full model IDs (`claude-sonnet-5-5`, `claude-opus-5-5`, `claude-haiku-5-5`).
 - **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)

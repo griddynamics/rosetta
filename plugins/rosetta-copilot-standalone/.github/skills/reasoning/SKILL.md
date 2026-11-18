@@ -78,7 +78,7 @@ Must apply fully canonical 8-point reasoning flow:
 
 7. DEBRIEF
 - Reflect: challenge the first answer for blind spots and conflicting signals.
-- If honest confidence < 0.8: name the weakest link, output a terse decision, and loop 1–7 again.
+- If honest confidence < 0.8 of 0..1: name the weakest link, output a terse decision, and loop 1–7 again.
 - If confidence ≥ 0.8: proceed to DECIDE.
 
 8. DECIDE

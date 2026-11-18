@@ -93,3 +93,7 @@ If you learned something new which is reusable, there are process efficiency imp
 - **Same-version bumps merge silently, publish fails.** Parallel PRs all bumping X→X+1 merge without conflict; every publish after the first fails "version exists". Batch merges, then one bump PR; confirm publish runs.
 - **zsh eats `$VAR:x` in git refs.** `git show $H:src/...` failed (`:s` modifier). Write `"${H}:path"` in commands and subagent prompts.
 - **Talking around, not directly.** If you cannot be specific and clear and short, it means YOU are NOT grounded. DO NOT ASK YET - DIG FIRST!
+- **Check CODEOWNERS before promising a merge.** My approval left #417/#421 `REVIEW_REQUIRED`; `.github/`, `docs/`, `src/rosetta-mcp-server`, helm have other owners. Ask the user per session whether to use their override; if yes, `--admin --match-head-commit <sha>` works. Otherwise hand them the pinned commands.
+- **Batch bump: tell authors not to bump.** User chose maintainer bump PRs after merge. Change-request drafts said "bump to X"; rewrite them to "keep main's version" before posting.
+- **Post-merge publish run is the stale-base gate.** PRs predated a dependency patch on `main`. The publish run after merge ran types, build, tests on `main`, failing only at "version exists". Read the failing step.
+- **Edit version lines with sed, not JSON rewrite.** `JSON.stringify` turned a `\u2014` escape into a literal em dash in `package.json`. Bump diffs must be version lines only.
