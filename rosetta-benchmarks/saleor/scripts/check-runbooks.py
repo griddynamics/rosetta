@@ -29,11 +29,12 @@ SANDBOX = Path(os.environ.get("RB_SANDBOX", Path(tempfile.gettempdir()) / "rb-ch
 REPOS = ["saleor", "saleor-dashboard", "react-storefront"]
 # key: (method number, start tag, T0 command, text after the Starter Prompt: one text, or one per task)
 SKILLS_LINE = {"small": "\n\nMUST USE SKILLS hitl, tech-specs.", "large": "\n\nMUST USE SKILLS hitl, tech-specs."}
+NO_HITL = "\n\nNo HITL, fully autonomous."   # the Rosetta methods run with no human (BENCHMARKS.md section 5)
 METHODS = {"baseline": ("01", "baseline-v1", "", ""), "grill-with-docs": ("02", "grill-v1", "/grill-with-docs", ""),
            "superpowers": ("03", "superpowers-v1", "/superpowers:brainstorming", ""), "spec-kit": ("04", "speckit-v1", "/speckit-specify", ""),
-           "aws-ai-dlc": ("05", "aidlc-v1", "/aidlc feature", ""), "rosetta": ("06", "rosetta-v1", "/coding-flow", ""),
-           "rosetta-light": ("07", "rosetta-light-v1", "", {t: v + "\n\nUSE ROSETTA SUBAGENTS." for t, v in SKILLS_LINE.items()}),
-           "rosetta-skills": ("08", "rosetta-skills-v1", "", SKILLS_LINE)}
+           "aws-ai-dlc": ("05", "aidlc-v1", "/aidlc feature", ""), "rosetta": ("06", "rosetta-v1", "/coding-flow", NO_HITL),
+           "rosetta-light": ("07", "rosetta-light-v1", "", {t: v + "\n\nUSE ROSETTA SUBAGENTS." + NO_HITL for t, v in SKILLS_LINE.items()}),
+           "rosetta-skills": ("08", "rosetta-skills-v1", "", {t: v + NO_HITL for t, v in SKILLS_LINE.items()})}
 FILES = {"rosetta": "rosetta-flow.md"}   # method key -> file name, where they differ
 COMMITS = {"superpowers", "spec-kit", "aws-ai-dlc"}
 

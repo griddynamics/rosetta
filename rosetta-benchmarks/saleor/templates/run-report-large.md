@@ -155,7 +155,7 @@ Raw `/usage` output at T1 and T2: paste it into Appendix A at the end of this fi
 
 ## 3. Hidden questions
 
-Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = we had to send a follow-up.
+Mark: `asked` = agent asked before or during implementation · `covered` = not asked, but handled correctly (checked at T1) · `missed` = not covered at T1. The mark stays the first-pass mark. One follow-up then contains every missed question and the required decision for each, and asks the agent to fix all of them in that turn.
 Matches = the ORIGINAL result (first pass, before any follow-up) follows the answer in BENCHMARKS.md, section 4: `yes` / `partly` / `no`.
 
 | # | Hidden question | Mark | Matches | Evidence (file:line, or agent's answer at T1) |

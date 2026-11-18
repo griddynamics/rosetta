@@ -19,6 +19,10 @@ This file writes the check result into the report. It writes the score, merge-re
 - Storefront locale: en
 - Account: the local dashboard admin under **Login** in Run the setup script in BENCHMARKS.md. Use only that account, in the browser and for the API. Do not write the password or any token into a file or the report.
 
+## Skill
+
+Before Phase 1, MUST USE SKILL `testing`. It applies to TC-001 and TC-002. This file still decides the cases: Playwright MCP only, the real local stack, both cases. The skill's unit-test rules (one-second timeout, mocked calls, killing servers) do not apply here.
+
 ## Phases
 
 1. Confirm the Playwright MCP server is connected. If it is not, write `BLOCKED` and run no case. → Phase 1
@@ -71,7 +75,7 @@ Run the cases in [small-task-test-cases.md](../test-cases/small-task-test-cases.
   - `ui/TC-001/step-<nn>.png`
   - `api/TC-002/step-<nn>-<operation>.json`
 - TC-001 steps 1 through 11 are all UI checks. After each one, save a screenshot of the state that step checked as `ui/TC-001/step-<nn>.png`. If the tool saves elsewhere, move the file into that folder. A check that something is absent still gets a screenshot of that spot. Step 10 is the clear, and its screenshot shows the empty field. Step 11 is the return to Product A, and its screenshot shows the block is gone. The server restarts are not numbered test steps and do not get a screenshot.
-- With each screenshot, save the checked fragment as `ui/TC-001/step-<nn>-dom.html`. Present: the block or the field. Absent: Shipping & Returns and the next sibling. Cart: Product A's section. Dashboard: the Storage conditions field and the Save button.
+- With each screenshot, save the checked fragment as `ui/TC-001/step-<nn>-dom.html`. Present: the block or the field. Absent: Shipping & Returns and the next sibling. Cart: Product A's section. Dashboard: the Storage conditions field and the Save button's real HTML. Do not rewrite the button's attributes.
 - On storefront product steps 1, 6, 9, and 11, scroll the footer into view before the screenshot, including when the scenario says to scroll to Shipping & Returns or to the storage block. The footer is the `footer.bg-foreground.text-background` element at the bottom of the storefront page. The screenshot is of that view. The footer is on screen, and so is the storage block or the empty spot directly above it. A full-page image does not count.
 - TC-002: save the response of every GraphQL call in `api/TC-002/` as `step-<nn>-<operation>.json`. nn is the step number. A login call before step 1 uses step 00.
 - In saved login responses, replace every token value with "REDACTED".
@@ -82,17 +86,17 @@ TC-001: pick Product A and Product B from the seeded catalog that match the prec
 
 Do this before writing `result.md`. Do not write `result.md` from the provisional lines. Open each file and check only that line. Do not open the site. A missing file fails that check. If a check fails, change that case to FAIL and cite the file. A case is PASS only if these checks pass.
 
-- `ui/TC-001/step-01-dom.html` --> No Storage conditions block and no `pdp-storage-conditions`.
-- `ui/TC-001/step-02-dom.html` --> Storage conditions field is present and empty. Save is inactive.
-- `ui/TC-001/step-03-dom.html` --> Field is `Store in a cool dry place`. Save is active.
+- `ui/TC-001/step-01-dom.html` --> No "Storage conditions" label and no `Store in a cool dry place`.
+- `ui/TC-001/step-02-dom.html` --> Storage conditions field is present and empty. The Save button has the `disabled` attribute. The page has no "Unsaved changes" text.
+- `ui/TC-001/step-03-dom.html` --> Field is `Store in a cool dry place`. The Save button has no `disabled` attribute. The page contains "Unsaved changes".
 - `ui/TC-001/step-04-dom.html` --> Field is still `Store in a cool dry place`. No error.
 - `ui/TC-001/step-05-dom.html` --> Field is still `Store in a cool dry place`.
-- `ui/TC-001/step-06-dom.html` --> `pdp-storage-conditions` shows `Store in a cool dry place`.
+- `ui/TC-001/step-06-dom.html` --> The DOM contains the label `Storage conditions` and the text `Store in a cool dry place`. No particular test id is required.
 - `ui/TC-001/step-07-dom.html` --> Product A is in the bag.
 - `ui/TC-001/step-08-dom.html` --> Product A's cart section has no Storage conditions and no `Store in a cool dry place`.
-- `ui/TC-001/step-09-dom.html` --> No Storage conditions block and no `pdp-storage-conditions`.
+- `ui/TC-001/step-09-dom.html` --> No "Storage conditions" label and no `Store in a cool dry place`.
 - `ui/TC-001/step-10-dom.html` --> Storage conditions field is empty. No error.
-- `ui/TC-001/step-11-dom.html` --> No Storage conditions block and no `pdp-storage-conditions`.
+- `ui/TC-001/step-11-dom.html` --> No "Storage conditions" label and no `Store in a cool dry place`.
 - `api/TC-002/step-01-product.json` --> Product A and Product B have no storage text.
 - `api/TC-002/step-02-productUpdate.json` --> The update succeeds.
 - `api/TC-002/step-03-product.json` --> Product A is `Store in a cool dry place`. Product B has no storage text.
@@ -138,7 +142,9 @@ Put the strong and weak sentences on the Notes lines `Strong point of the method
 
 This file is the only sender of the case follow-up. The method file does not send it again. Leave this file only when the check is BLOCKED, both cases PASS, or a case still fails after the third follow-up.
 
+**Driver mode.** When [bench-run.py](../../scripts/bench-run.py) runs this file, the driver is the sender. Do not exit, resume or message the agent session. Write the follow-up text, exactly as described below, to `<dir>/followup.md` and stop. Do not add its timeline row and do not change `followups`: the driver sends the text, writes the row and counts it. The driver gives the number of case follow-ups already sent; the third one is the last.
+
 - `BLOCKED`: tell the operator. Do not invent a follow-up. Do not write the Done when checks. Do not write the score, merge-ready, the strong point, or the weak point.
-- Any case `FAIL`, and fewer than 3 case follow-ups have been sent: the result is already written. Do not write the score yet. Save the id of the session that received the task prompt in `$RUN/agent-session-id` if it is not there yet. Exit that session if it is still open, then resume it with the `--resume` command in the method file and that id. Send one follow-up there. Do not start a new session. One message covers this failed run, including every failed case. For each failed case it states what was seen, what was expected, and the evidence path from this run. Do not add a cause from the agent's source code. Add a timeline row of type `follow-up` with the exact text, and add 1 to `followups`. After the agent finishes, run this file again.
+- Any case `FAIL`, and fewer than 3 case follow-ups have been sent: the result is already written. Do not write the score yet. Save the id of the session that received the task prompt in `$RUN/agent-session-id` if it is not there yet. Exit that session if it is still open, then resume it with the `--resume` command in the method file and that id. Send one follow-up there. Do not start a new session. One message covers this failed run, including every failed case. For each failed case it states what was seen, what was expected, the evidence path from this run, and the cause of the failure. The cause is the reason that step failed, taken from this run's evidence: the saved page, the DOM, or the API response. Do not replace that cause with a guess from the agent's source code. Add a timeline row of type `follow-up` with the exact text, and add 1 to `followups`. After the agent finishes, run this file again.
 - A case still fails after the third follow-up: do not send another. Write the score from this run. Keep the failure and continue: write T2 if it is not written yet, fill "Tests pass locally" and "No manual cleanup needed", then the red flags and the agent's claims, then the post-implementation prompt.
 - Both cases `PASS`: write the score from this run. Next, in the method file: write T2 if it is not written yet, fill "Tests pass locally" and "No manual cleanup needed", then the red flags and the agent's claims, then the post-implementation prompt. Do not send that prompt from this file.

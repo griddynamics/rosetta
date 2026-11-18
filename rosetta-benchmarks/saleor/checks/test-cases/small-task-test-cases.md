@@ -47,17 +47,17 @@ TC-002. Same products. The runner finds the storage-conditions field on the exis
 
 **Expected Results**:
 
-- After step 1: The scrolled view has no "Storage conditions" block and no `pdp-storage-conditions` section.
-- After step 2: The Storage conditions field is present and empty. The Save button is inactive.
-- After step 3: The field shows `Store in a cool dry place`. The Save button is active.
+- After step 1: The scrolled view has no "Storage conditions" block and the DOM does not contain `Store in a cool dry place`.
+- After step 2: The Storage conditions field is present and empty. The Save button has the `disabled` attribute. The page has no "Unsaved changes" text.
+- After step 3: The field shows `Store in a cool dry place`. The Save button has no `disabled` attribute. The page contains "Unsaved changes".
 - After step 4: Save completes without an error.
 - After step 5: Storage conditions still shows `Store in a cool dry place`.
 - After step 6: The scrolled view shows a Storage conditions block with `Store in a cool dry place`.
 - After step 7: The product is in the bag.
 - After step 8: The cart section for Product A does not show "Storage conditions" and does not show `Store in a cool dry place`.
-- After step 9: The scrolled view of Product B has no "Storage conditions" block and no `pdp-storage-conditions` section.
+- After step 9: The scrolled view of Product B has no "Storage conditions" block and the DOM does not contain `Store in a cool dry place`.
 - After step 10: The Storage conditions field is empty. Save completes without an error. The screenshot shows the empty field.
-- After step 11: The scrolled view of Product A has no "Storage conditions" block and no `pdp-storage-conditions` section. The screenshot shows that spot.
+- After step 11: The scrolled view of Product A has no "Storage conditions" block and the DOM does not contain `Store in a cool dry place`. The screenshot shows that spot.
 
 **Test Data**:
 
@@ -65,9 +65,9 @@ TC-002. Same products. The runner finds the storage-conditions field on the exis
 | Item             | Value                                                                                                                                                                                                  |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Text entered     | Store in a cool dry place                                                                                                                                                                              |
-| Dashboard field  | Storage conditions, under the description, `data-test-id="product-storage-conditions"`                                                                                                                 |
-| Storefront block | `data-testid="pdp-storage-conditions"`, under Shipping & Returns. Scroll it into view before the screenshot. On a product that has no value, scroll to that same spot and confirm the block is absent. |
-| Save control     | Save bar Confirm button. Inactive when the form has no changes. Editing Storage conditions makes it active, because that field is part of the save composition.                                        |
+| Dashboard field  | The field labeled Storage conditions, under the description. Find it in the saved DOM by that label. Do not require a test id.                                                                         |
+| Storefront block | Under Shipping & Returns. Find it in the saved DOM by the label `Storage conditions` and the stored text. Do not require a test id. Scroll that spot into view before the screenshot. On a product that has no value, scroll to that same spot and confirm the label and the text are absent. |
+| Save control     | Save bar Confirm button. Inactive means the `disabled` attribute is present; its value does not matter. Active means that attribute is absent and the page shows "Unsaved changes". Save the button's real HTML. Do not rewrite its attributes. Editing Storage conditions makes it active, because that field is part of the save composition. |
 
 
 **Traceability**:

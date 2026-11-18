@@ -20,7 +20,7 @@ Runs: `S-CC-04` (small, Claude Code) · `L-CC-04` (large, Claude Code) · `S-CP-
 /speckit-specify Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
 Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
 
-Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally. Do not run any UI test or UI end-to-end test. No Playwright, no browser, and no page screenshots. That check is a separate phase after you are done.
 ```
 
 **T0 message, large task** (copy as is):
@@ -30,7 +30,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
 To make this work, the customer profile should have a birthday field.
 
-Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally. Do not run any UI test or UI end-to-end test. No Playwright, no browser, and no page screenshots. That check is a separate phase after you are done.
 ```
 
 Every other reply is written out in each run below (parts 2, 3, 5, 6).
@@ -199,7 +199,7 @@ In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `specki
 /speckit-specify Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
 Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
 
-Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally. Do not run any UI test or UI end-to-end test. No Playwright, no browser, and no page screenshots. That check is a separate phase after you are done.
 ```
 
 **Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
@@ -217,7 +217,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). The hidden-question check then sends the message below on its own, after deleting the lines the agent already asked about. The operator does not paste it:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
@@ -230,7 +230,7 @@ Don't change any code, just answer: was each of these handled, and where?
 7. Who can edit it, and who can read it?
 ```
 
-Mark each one `covered` or not in report section 3. Send each hidden question that was not covered as its own follow-up first, one problem per message. When those are done, run `saleor/checks/execute/small-task-execute.md`. That file sends the case follow-up itself. Do not send it again. After the agent finishes, the file runs again. A PASS ends it. A FAIL runs it at most 3 times. It writes the score only on that last run. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+The same check writes each mark in report section 3, column Mark: `asked`, `covered`, or `missed` (`missed` means not covered). It reads the agent's answer and the code against the hidden-question table. If any row is `missed`, the check sends one follow-up that contains every missed question and the required decision for each, and asks the agent to fix all of them in that turn. If 3 are missed, all 3 are in that message. Do not send them one by one. Wait until the agent has finished the fixes for every question in the message. If none are missed, it sends nothing. Then run `saleor/checks/execute/small-task-execute.md`. That file sends the case follow-up itself. Do not send it again. After the agent finishes, the file runs again. A PASS ends it. A FAIL runs it at most 3 times. It writes the score only on that last run. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
 
 **Step 8. Check the result yourself** (stack still running): the Done when checks `small-task-execute.md` covers are already filled when both cases passed. Run the template's local test commands for "Tests pass locally" and the cleanup look for "No manual cleanup needed". Add 1 to `done_checks_passed` for each of those two that passes. If it is empty, start from 0. Then the red flags and the agent's claims. Then do step 9. Do not stop after the check.
 
@@ -335,7 +335,7 @@ In the session: `/model` shows Sonnet 5.5, effort medium. `/` menu shows `specki
 Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
 To make this work, the customer profile should have a birthday field.
 
-Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally. Do not run any UI test or UI end-to-end test. No Playwright, no browser, and no page screenshots. That check is a separate phase after you are done.
 ```
 
 **Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
@@ -353,7 +353,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). The hidden-question check then sends the message below on its own, after deleting the lines the agent already asked about. The operator does not paste it:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
@@ -368,7 +368,7 @@ Don't change any code, just answer: was each of these handled, and where?
 9. Who can see the birthday (APIs, webhooks, exports, staff roles), and are changes and staff reads logged?
 ```
 
-Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+The same check writes each mark in report section 3, column Mark: `asked`, `covered`, or `missed` (`missed` means not covered). It reads the agent's answer and the code against the hidden-question table. If any row is `missed`, the check sends one follow-up that contains every missed question and the required decision for each, and asks the agent to fix all of them in that turn. If 3 are missed, all 3 are in that message. Do not send them one by one. Wait until the agent has finished the fixes for every question in the message. If none are missed, it sends nothing. For anything broken in the own check, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
 
 **Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
 
@@ -583,7 +583,7 @@ In the session: `/model` shows GPT-5.6 Terra, effort medium, long context; `/con
 /speckit-specify Products need a "storage conditions" field (e.g. "Keep refrigerated at 2–8 °C").
 Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
 
-Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally. Do not run any UI test or UI end-to-end test. No Playwright, no browser, and no page screenshots. That check is a separate phase after you are done.
 ```
 
 **Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
@@ -601,7 +601,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). The hidden-question check then sends the message below on its own, after deleting the lines the agent already asked about. The operator does not paste it:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
@@ -614,7 +614,7 @@ Don't change any code, just answer: was each of these handled, and where?
 7. Who can edit it, and who can read it?
 ```
 
-Mark each one `covered` or not in report section 3. Send each hidden question that was not covered as its own follow-up first, one problem per message. When those are done, run `saleor/checks/execute/small-task-execute.md`. That file sends the case follow-up itself. Do not send it again. After the agent finishes, the file runs again. A PASS ends it. A FAIL runs it at most 3 times. It writes the score only on that last run. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+The same check writes each mark in report section 3, column Mark: `asked`, `covered`, or `missed` (`missed` means not covered). It reads the agent's answer and the code against the hidden-question table. If any row is `missed`, the check sends one follow-up that contains every missed question and the required decision for each, and asks the agent to fix all of them in that turn. If 3 are missed, all 3 are in that message. Do not send them one by one. Wait until the agent has finished the fixes for every question in the message. If none are missed, it sends nothing. Then run `saleor/checks/execute/small-task-execute.md`. That file sends the case follow-up itself. Do not send it again. After the agent finishes, the file runs again. A PASS ends it. A FAIL runs it at most 3 times. It writes the score only on that last run. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
 
 **Step 8. Check the result yourself** (stack still running): the Done when checks `small-task-execute.md` covers are already filled when both cases passed. Run the template's local test commands for "Tests pass locally" and the cleanup look for "No manual cleanup needed". Add 1 to `done_checks_passed` for each of those two that passes. If it is empty, start from 0. Then the red flags and the agent's claims. Then do step 9. Do not stop after the check.
 
@@ -703,7 +703,7 @@ In the session: `/model` shows GPT-5.6 Terra, effort medium, long context; `/con
 Staff need to be able to mark a product with a minimum age. Customers who are too young shouldn't be able to buy those products.
 To make this work, the customer profile should have a birthday field.
 
-Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally. Do not run any UI test or UI end-to-end test. No Playwright, no browser, and no page screenshots. That check is a separate phase after you are done.
 ```
 
 **Step 6. At each stop reply exactly this** (each reply is a method step; answers to questions are not):
@@ -721,7 +721,7 @@ Definition of done: the feature is fully implemented end to end, tests are in pl
 
 Answers to questions: from BENCHMARKS.md, section 4: this task's hidden-question table first, then "extra answers"; answer the question that was asked, directly and in full (BENCHMARKS.md, section 4, "Answer the question that was asked, in full"), one message per round; never "use your recommendation". Not in either table: decide as product owner and add a row to "extra answers". Something else it asks: pick its default or recommended option and note it in the report.
 
-**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). Then send this, after deleting the lines it already asked about:
+**Step 7. First "done" (T1).** Write the time (T1) in the report, run `/usage` (AI credits) and paste its output into **Appendix A at the end of `report.md`** (block `## T1`). The hidden-question check then sends the message below on its own, after deleting the lines the agent already asked about. The operator does not paste it:
 
 ```text
 Don't change any code, just answer: was each of these handled, and where?
@@ -736,7 +736,7 @@ Don't change any code, just answer: was each of these handled, and where?
 9. Who can see the birthday (APIs, webhooks, exports, staff roles), and are changes and staff reads logged?
 ```
 
-Mark each one `covered` or not in report section 3. For each one not covered, and anything broken, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
+The same check writes each mark in report section 3, column Mark: `asked`, `covered`, or `missed` (`missed` means not covered). It reads the agent's answer and the code against the hidden-question table. If any row is `missed`, the check sends one follow-up that contains every missed question and the required decision for each, and asks the agent to fix all of them in that turn. If 3 are missed, all 3 are in that message. Do not send them one by one. Wait until the agent has finished the fixes for every question in the message. If none are missed, it sends nothing. For anything broken in the own check, send a follow-up in your own words, one problem per message. When the last one is done: time (T2) in the report, `/usage` and `/context` into Appendix A at the end of `report.md` (block `## T2`; `/context` gives `context_end_pct`).
 
 **Step 8. Check the result yourself** (stack still running): report section 4, "Done when": the UI steps, API calls and tests listed there. Then sections 5–6 (red flags, agent's claims).
 
