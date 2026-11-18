@@ -6,7 +6,6 @@ on:
       - main
     paths: &chart_paths
       - 'src/helm-charts/rosetta-mcp-server/**'
-      - '.github/workflows/publish-mcp-helm-chart.yml'
   pull_request:
     paths: *chart_paths
 
@@ -57,6 +56,22 @@ jobs:
           helm lint "$CHART_PATH"
           helm template helm-test "$CHART_PATH" >/dev/null
           helm unittest "$CHART_PATH"
+
+      # The publish job below runs on push to main for these same paths. Fail the PR
+      # when the chart version it would publish already exists, so the bump ships here.
+      - name: Read chart version
+        id: chart_version
+        if: github.event_name == 'pull_request'
+        run: echo "version=$(grep -E '^version:' src/helm-charts/rosetta-mcp-server/Chart.yaml | awk '{print $2}' | tr -d '"')" >> "$GITHUB_OUTPUT"
+
+      - name: Fail if chart version is already published
+        if: github.event_name == 'pull_request'
+        uses: ./.github/actions/version-unpublished
+        with:
+          registry: dockerhub
+          package: griddynamics/rosetta-mcp-helm-chart
+          version: ${{ steps.chart_version.outputs.version }}
+          version-file: src/helm-charts/rosetta-mcp-server/Chart.yaml
 
   publish:
     needs: validate

@@ -8,7 +8,6 @@ on:
     paths:
       - 'src/rosetta-mcp-server/rosetta_mcp/**'
       - 'src/rosetta-mcp-server/pyproject.toml'
-      - '.github/workflows/rosetta-mcp-dockerhub.yaml'
       - 'src/rosetta-mcp-server/Dockerfile'
       - 'requirements.txt'
 
@@ -94,6 +93,15 @@ jobs:
           else
             echo "is_stable=false" >> $GITHUB_OUTPUT
           fi
+
+      # A pushed tag replaces the published image, so never push a version that exists.
+      - name: Fail if image version is already published
+        uses: ./.github/actions/version-unpublished
+        with:
+          registry: dockerhub
+          package: ${{ secrets.DOCKERHUB_LOGIN }}/rosetta-mcp
+          version: ${{ needs.prepare-version.outputs.version }}
+          version-file: src/rosetta-mcp-server/pyproject.toml
 
       - name: Log in to DockerHub
         uses: docker/login-action@v4
