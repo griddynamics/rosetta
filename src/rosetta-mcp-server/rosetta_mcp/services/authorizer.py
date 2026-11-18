@@ -7,8 +7,7 @@ class Authorizer:
     """Decides whether a dataset may be read.
 
     Every tool reads the instruction dataset (``aia-{version}``), which is
-    always readable. Any other dataset is denied: no tool addresses one, and
-    the former ``ROSETTA_READ_POLICY`` setting that governed them was removed.
+    always readable. Any other dataset is denied.
     """
 
     def can_read(self, dataset_name: str, user_email: str) -> bool:
