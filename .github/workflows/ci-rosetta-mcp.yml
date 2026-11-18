@@ -16,6 +16,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  version-guard:
+    # A release pipeline publishes on push to main for these same paths. Fail the
+    # PR when the version it would publish already exists, so the bump ships here.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Read version
+      id: version
+      run: echo "version=$(grep '^version = ' src/rosetta-mcp-server/pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')" >> "$GITHUB_OUTPUT"
+
+    - name: Fail if rosetta-mcp version is already published
+      uses: ./.github/actions/version-unpublished
+      with:
+        registry: pypi
+        package: rosetta-mcp
+        version: ${{ steps.version.outputs.version }}
+        version-file: src/rosetta-mcp-server/pyproject.toml
+
+    - name: Fail if griddynamics/rosetta-mcp version is already published
+      uses: ./.github/actions/version-unpublished
+      with:
+        registry: dockerhub
+        package: griddynamics/rosetta-mcp
+        version: ${{ steps.version.outputs.version }}
+        version-file: src/rosetta-mcp-server/pyproject.toml
+
   build-test:
     runs-on: ubuntu-latest
 

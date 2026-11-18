@@ -15,6 +15,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  version-guard:
+    # A release pipeline publishes on push to main for these same paths. Fail the
+    # PR when the version it would publish already exists, so the bump ships here.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Read version
+      id: version
+      run: echo "version=$(jq -r '.version // empty' src/rosettify-prompts/package.json)" >> "$GITHUB_OUTPUT"
+
+    - name: Fail if rosettify-prompts version is already published
+      uses: ./.github/actions/version-unpublished
+      with:
+        registry: npm
+        package: rosettify-prompts
+        version: ${{ steps.version.outputs.version }}
+        version-file: src/rosettify-prompts/package.json
+
   build-test:
     runs-on: ubuntu-latest
 

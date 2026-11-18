@@ -15,6 +15,52 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  version-guard:
+    # A release pipeline publishes on push to main for these same paths. Fail the
+    # PR when the version it would publish already exists, so the bump ships here.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Check whether the PR changes published files
+      id: scope
+      # publish-rosettify-plugins.yml ignores src/rosettify-plugins/plugins/**.
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        PR: ${{ github.event.pull_request.number }}
+      run: |
+        set -euo pipefail
+        FILES="$(gh api "repos/${REPO}/pulls/${PR}/files" --paginate --jq '.[].filename')"
+        COUNT="$(printf '%s\n' "${FILES}" | grep -E '^src/rosettify-plugins/' | grep -cvE '^src/rosettify-plugins/plugins/' || true)"
+        if [ "${COUNT:-0}" -gt 0 ]; then
+          echo "publishes=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "publishes=false" >> "$GITHUB_OUTPUT"
+          echo "Only src/rosettify-plugins/plugins/** changed: no release, no bump needed."
+        fi
+
+    - name: Read version
+      id: version
+      if: steps.scope.outputs.publishes == 'true'
+      run: echo "version=$(jq -r '.version // empty' src/rosettify-plugins/package.json)" >> "$GITHUB_OUTPUT"
+
+    - name: Fail if rosettify-plugins version is already published
+      if: steps.scope.outputs.publishes == 'true'
+      uses: ./.github/actions/version-unpublished
+      with:
+        registry: npm
+        package: rosettify-plugins
+        version: ${{ steps.version.outputs.version }}
+        version-file: src/rosettify-plugins/package.json
+
   build-test:
     runs-on: ubuntu-latest
 
