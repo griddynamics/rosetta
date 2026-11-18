@@ -2,11 +2,12 @@
   "name": "rosetta",
   "owner": {
     "name": "Grid Dynamics",
+    "url": "https://www.griddynamics.com",
     "email": "rosetta-support@griddynamics.com"
   },
   "metadata": {
     "description": "Rosetta - Software Engineering Accelerator providing AI agents with unified access to instructions, workflows, skills, and business context",
-    "version": "3.1.29"
+    "version": "3.1.30"
   },
   "plugins": [
     {

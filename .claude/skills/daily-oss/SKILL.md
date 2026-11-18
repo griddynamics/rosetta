@@ -32,6 +32,7 @@ MUST USE SKILL `orchestration`, `hitl`, `load-project-context`.
 - Describe mechanisms exactly; no plausible-sounding approximations.
 - No self-critical phrasing about our own product.
 - Cut clauses that state the obvious.
+- Prefer to state ACs, requirements, and evidence instead of prescribing (but not prohibited).
 
 # Warning
 
@@ -40,6 +41,15 @@ MUST USE SKILL `orchestration`, `hitl`, `load-project-context`.
 - Other people are external parties - outside of the project.
 - If you need clarifications yourself - ask advisor, then user.
 - DO NOT TRY TO RUN AND MERGE EVERYTHING AT ANY COST. IF SOMETHING IS NOT DONE - IT IS NOT DONE. IT MUST BE FIXED. NOT APPROVAL.
+
+# Grounding
+
+1. Always ground your understanding in actual requirements, architecture, code, changes, and context before acting.
+2. Always think carefully about high impact/risk/severity/blast radius/low confidence/architecture/decisions/reasons/requirements items and give them attention first.
+3. Assess how this affects the overall system, dependencies, and potential side effects.
+4. Assess how this affects other users already using current system, features, or components.
+5. Clearly separate architectural, design, and implementation concerns when analyzing changes. We cannot combine them. 
+6. Consider if provided shape, means, and artifacts are actually correct for this type of the work. For example PR changing architecture should be first recorded as proposal and feature request, not directly implemented. Or issue changing decision for specific case for specific user should be only provided as proposal and must be addressed first in general at product level to work for ALL USERS, not overfitting one specific case. And similar.
 
 # Key Points
 
@@ -57,6 +67,8 @@ MUST USE SKILL `orchestration`, `hitl`, `load-project-context`.
 12. Ask questions for user to be able to reliably answer. Do not lead in -> straight to the point. Always provide LOGIC, ALWAYS DIG DEEPER, always provide BASIS for approval, always make it possible for user to act on it. Consider user never saw any of what you are presenting. Examples: "Verified clean. Approve and merge it?" => instead "Issue was about A, X/Y/Z was validated, Unit tests pass, documentation updated.... Approve?", "Issues #000 and #001: approve?" => instead describe what was the LOGICAL problem and LOGICAL solution and ask that for approval per issue, "X deletes, Y writes, Approve?" => Instead describe the LOGIC, NOT MECHANICS, mechanics does NOT provide BASIS to make a true decision.
 13. PREVENT YOUR CONSISTENT FAILURE: STOP RUNNING AHEAD. THERE IS NO URGENCY. TAKE THE TASK SERIOUSLY AND CAREFULLY. QUALITY IS THE PRIORITY. NO jumping to conclusions! Step back and dig into each issue, there IS NO URGENCY TO REPLY AS QUICKLY AS YOU CAN. DO NOT WASTE USER TIME WITH SHALLOW RESTATING. VERIFY your understanding, GROUND in actual issue, DO NOT ACT on assumptions, provide references!
 14. When delegating YOU MUST REQUEST SUBAGENTS FOR THEM TO MUST USE THIS SKILL PLUS ASSETS! On user questions/corrections - prefer to followup / resume original subagents in current session instead of spawning new;
+
+-----
 
 If you learned something new which is reusable, there are process efficiency improvements, you can prevent failures in the future, update `## Lessons learned` below for self-improvement.
 
@@ -76,7 +88,7 @@ If you learned something new which is reusable, there are process efficiency imp
 - **Questions carry the logic, never the mechanics.** Asked "verified clean, approve?" and "X deletes, Y writes, which way?" — neither gives the user a basis to answer. State the problem, the solution, and what was proven, then ask.
 - **Trace every fallback branch for silent loss.** Proposed approving a publish fix whose invalid-UTF-8 fallback silently dropped frontmatter tags; user's "how do existing files behave?" exposed it. Ask per branch: what metadata survives?
 - **Worktree reviews need PYTHONPATH set.** Shared `venv` editable-installs the main checkout; pytest from a worktree silently tests `main` code. Set `PYTHONPATH=<worktree>/src/<pkg>` in subagent prompts.
-- **Ask-tool questions must stand alone.** Wrote context as text and called AskUserQuestion in the same turn; user saw only "what about the two gaps?". Put problem, gaps, and options inside the question itself.
+- **Ask-tool questions must stand alone.** Wrote context as text and called AskUserQuestion in the same turn; user saw only "what about the two gaps?". Put problem, gaps, options, and any draft text (in the option preview) inside the question itself.
 - **Start every PR summary with its task.** Presented #365 defects and options before saying what the PR set out to do or who asked. User could not judge. Order: task/origin → needed? → what it does → gaps → decision.
 - **A push to a PR needs another approver.** Pushed a fix to the owner's PR; `main` then demanded approval from someone other than the last pusher, plus every review thread resolved. Before pushing, batch all fixes into one push and plan who approves.
 - **Verify the issue's premise, not only the fix.** Relayed "subagents cannot spawn subagents" from #354 as fact; it was false. Root cause: checked the fix against the issue, never the issue against reality.
@@ -94,6 +106,6 @@ If you learned something new which is reusable, there are process efficiency imp
 - **zsh eats `$VAR:x` in git refs.** `git show $H:src/...` failed (`:s` modifier). Write `"${H}:path"` in commands and subagent prompts.
 - **Talking around, not directly.** If you cannot be specific and clear and short, it means YOU are NOT grounded. DO NOT ASK YET - DIG FIRST!
 - **Check CODEOWNERS before promising a merge.** My approval left #417/#421 `REVIEW_REQUIRED`; `.github/`, `docs/`, `src/rosetta-mcp-server`, helm have other owners. Ask the user per session whether to use their override; if yes, `--admin --match-head-commit <sha>` works. Otherwise hand them the pinned commands.
-- **Batch bump: tell authors not to bump.** User chose maintainer bump PRs after merge. Change-request drafts said "bump to X"; rewrite them to "keep main's version" before posting.
+- **Every PR bumps its own version.** Merge-then-bump applies only to same-version collisions. A missing bump means request changes.
 - **Post-merge publish run is the stale-base gate.** PRs predated a dependency patch on `main`. The publish run after merge ran types, build, tests on `main`, failing only at "version exists". Read the failing step.
 - **Edit version lines with sed, not JSON rewrite.** `JSON.stringify` turned a `\u2014` escape into a literal em dash in `package.json`. Bump diffs must be version lines only.
