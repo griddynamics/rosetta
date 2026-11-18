@@ -368,7 +368,7 @@ Base keys in [`src/helm-charts/rosetta-mcp-server/values.yaml`](https://github.c
 
 | Key | Default | Description |
 |---|---|---|
-| `ports` | `[8000]` | Container/service port |
+| `ports` | `[8000]` | Container/service ports; the probes and the server port (`ROSETTA_HTTP_PORT`) follow the first entry unless set explicitly |
 | `image.repository` | `griddynamics/rosetta-mcp` | Container image; Deployment uses `image.tag` or falls back to Chart `appVersion` when tag is unset |
 | `replicaCount` | `1` | Static replicas when HPA disabled |
 | `autoscaling.enabled` | `false` | HPA toggle |

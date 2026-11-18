@@ -29,8 +29,6 @@ env:
       value: "http"
     - name: ROSETTA_HTTP_HOST
       value: "0.0.0.0"
-    - name: ROSETTA_HTTP_PORT
-      value: "8000"
     - name: ROSETTA_MODE
       value: "SOFT"
     - name: FASTMCP_ENABLE_RICH_LOGGING

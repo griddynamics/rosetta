@@ -58,3 +58,43 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Probe with port defaulted to the first container port name (port<N>) from .Values.ports
+when the probe handler has no explicit port.
+Usage: include "rosetta-mcp.probe" (dict "probe" $p "ports" $.Values.ports)
+*/}}
+{{- define "rosetta-mcp.probe" -}}
+{{- $probe := deepCopy .probe -}}
+{{- if .ports -}}
+{{- $name := printf "port%v" (first .ports) -}}
+{{- range $h := list "httpGet" "tcpSocket" -}}
+{{- if hasKey $probe $h -}}
+{{- $handler := get $probe $h | default dict -}}
+{{- if not (hasKey $handler "port") -}}
+{{- $_ := set $handler "port" $name -}}
+{{- end -}}
+{{- $_ := set $probe $h $handler -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $probe -}}
+{{- end }}
+
+{{/*
+ROSETTA_HTTP_PORT env entry derived from the first entry of .Values.ports, so the server listens on the
+port the probes, Service and Ingress use. Renders nothing when .Values.ports is empty or when env.vars or
+env.secrets already define ROSETTA_HTTP_PORT (the explicit value is kept and appears once).
+*/}}
+{{- define "rosetta-mcp.httpPortEnv" -}}
+{{- $explicit := false -}}
+{{- range concat (.Values.env.vars | default list) (.Values.env.secrets | default list) -}}
+{{- if eq (toString .name) "ROSETTA_HTTP_PORT" -}}
+{{- $explicit = true -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.ports (not $explicit) -}}
+- name: ROSETTA_HTTP_PORT
+  value: {{ first .Values.ports | toString | quote }}
+{{- end -}}
+{{- end }}
