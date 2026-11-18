@@ -66,6 +66,17 @@ export const VARIANT_FIELDS = [
 ] as const;
 export const MANIFEST_FIELDS = ['name', 'description'] as const;
 
+// The name grammar of an output folder, `<set>-<ide><variantSuffix>`: lowercase alphanumeric
+// segments joined by single hyphens. One home for the set-name and destinationSuffix validators
+// below and for destinationTargets(), so the three cannot drift.
+const NAME_SEGMENTS = '[a-z0-9]+(?:-[a-z0-9]+)*';
+const SET_NAME_PATTERN = new RegExp(`^${NAME_SEGMENTS}$`);
+const DESTINATION_SUFFIX_PATTERN = new RegExp(`^(?:-${NAME_SEGMENTS})?$`);
+const DESTINATION_PATTERNS = TARGET_NAME_LIST.map((target) => ({
+  target,
+  pattern: new RegExp(`^${NAME_SEGMENTS}-${target}(?:-${NAME_SEGMENTS})?$`),
+}));
+
 /**
  * Thrown for any catalog violation. Every message names the offending file so a user reading only
  * stderr knows which file to edit — the brief's "fail BEFORE any output is written, naming the
@@ -199,7 +210,7 @@ function readSet(value: unknown, file: string, index: number): PluginSetDecl {
   rejectUnknownFields(obj, SET_FIELDS, file, `"${where}"`);
 
   const name = requireString(obj.name, file, `${where}.name`);
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)) {
+  if (!SET_NAME_PATTERN.test(name)) {
     fail(
       `${file}: plugin set name "${name}" is not a valid identifier. A set name is lowercase ` +
         `alphanumeric segments joined by single hyphens — it becomes an output folder prefix and ` +
@@ -266,7 +277,7 @@ function readVariants(value: unknown, file: string, setName: string): SetVariant
     // which this pattern admits — so a validated suffix renders byte-identical to a literal; an
     // unvalidated one was a latent input-validation gap (empty string or a single hyphenated
     // lowercase-alphanumeric suffix like "-light", never validated before this).
-    if (!/^(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$/.test(destinationSuffix)) {
+    if (!DESTINATION_SUFFIX_PATTERN.test(destinationSuffix)) {
       fail(
         `${file}: ${at}.destinationSuffix "${destinationSuffix}" is not valid. It must be empty, ` +
           `or a hyphen followed by lowercase alphanumeric segments joined by single hyphens ` +
@@ -354,6 +365,20 @@ export function allDeclaredDestinations(catalog: PluginCatalog): Set<string> {
     }
   }
   return out;
+}
+
+/**
+ * The IDE targets `name` can be an output folder of: every known target for which it reads as a
+ * set name, that target, then an optional variant suffix. Empty when it has no such reading. Two
+ * for a name like `core-cursor-standalone`: `cursor-standalone` with no suffix, or `cursor` with
+ * the suffix `-standalone`. It spans every target the generator knows, not only this catalog's
+ * `targets`, so a folder of a set, variant or target the catalog has since dropped still resolves.
+ * The orphan sweep uses the result to pick the manifest a folder must hold.
+ */
+export function destinationTargets(name: string): TargetName[] {
+  return DESTINATION_PATTERNS
+    .filter(({ pattern }) => pattern.test(name))
+    .map(({ target }) => target);
 }
 
 /** Bundle modules a set ships: its declared hooks plus each one's support modules, de-duplicated. */

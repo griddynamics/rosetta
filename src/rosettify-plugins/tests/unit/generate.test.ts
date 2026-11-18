@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { generate, sweepOrphanDestinations } from '../../src/generate.js';
 import { loadPluginCatalog } from '../../src/spec/plugin-sets.js';
 import type { PluginCatalog } from '../../src/spec/plugin-sets.js';
+import { TARGET_MANIFEST_PATHS } from '../../src/spec/targets.js';
 import type { ResolvedSources } from '../../src/types.js';
 import { PassThrough } from 'stream';
 import {
@@ -31,6 +32,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = path.join(__dirname, '..', 'fixtures');
 const SAMPLE_INSTRUCTIONS_DIR = path.join(FIXTURES_DIR, 'sample-instructions');
 const SAMPLE_PLUGINS_DIR = path.join(FIXTURES_DIR, 'sample-plugins');
+const REAL_TEMPLATES_DIR = path.join(__dirname, '..', '..', 'plugins');
+
+// Where each target's output folder holds its manifest (STRUCTURES.md). Restated here on purpose,
+// not read from TARGET_MANIFEST_PATHS: these tests are what tie that table to the real output.
+const MANIFEST_OF: Array<[target: string, manifest: string]> = [
+  ['claude', '.claude-plugin/plugin.json'],
+  ['cursor', '.cursor-plugin/plugin.json'],
+  ['copilot', '.github/plugin/plugin.json'],
+  ['codex', '.codex-plugin/plugin.json'],
+  ['cursor-standalone', 'plugin.json'],
+  ['copilot-standalone', 'plugin.json'],
+  ['antigravity', 'plugin.json'],
+];
 
 function copyDirSync(src: string, dest: string): void {
   if (!fs.existsSync(src)) return;
@@ -365,10 +379,16 @@ describe('sweepOrphanDestinations', () => {
     }
   }
 
+  // One folder in the output root: a content file, plus each manifest named.
+  function folder(outputDir: string, name: string, ...manifests: string[]): void {
+    write(path.join(outputDir, name, 'marker.txt'), 'x');
+    for (const manifest of manifests) write(path.join(outputDir, name, manifest), '{}');
+  }
+
+  // Four folders as the generator leaves them, each holding the Claude manifest.
   function seed(outputDir: string): void {
     for (const d of ['rosetta-claude', 'rosetta-claude-light', 'core-claude', 'core-claude-light']) {
-      fs.mkdirSync(path.join(outputDir, d), { recursive: true });
-      fs.writeFileSync(path.join(outputDir, d, 'marker.txt'), 'x');
+      folder(outputDir, d, '.claude-plugin/plugin.json');
     }
     fs.writeFileSync(path.join(outputDir, 'README.md'), 'a loose file, not a plugin');
   }
@@ -393,6 +413,91 @@ describe('sweepOrphanDestinations', () => {
     });
   });
 
+  // --output may point at a directory the generator does not own. Only a folder the generator
+  // wrote is the sweep's to remove.
+  it('removes only stale plugin folders — .git, docs, src and the like survive', () => {
+    withOutputDir((outputDir, loaded) => {
+      seed(outputDir);
+      const unrelated = ['.git', 'docs', 'src', 'node_modules', 'My Folder'];
+      for (const d of unrelated) folder(outputDir, d);
+      // Stale plugin folders: a dropped set, a dropped variant, and two targets this catalog
+      // (which declares `claude` alone) does not list.
+      folder(outputDir, 'qe-claude', '.claude-plugin/plugin.json');
+      folder(outputDir, 'core-cursor-standalone', 'plugin.json');
+      folder(outputDir, 'core-copilot-standalone', 'plugin.json');
+      const stale = [
+        'core-claude', 'core-claude-light', 'core-copilot-standalone', 'core-cursor-standalone',
+        'qe-claude',
+      ];
+
+      expect(sweepOrphanDestinations(loaded, outputDir, true).sort()).toEqual(stale);
+      expect(sweepOrphanDestinations(loaded, outputDir, false).sort()).toEqual(stale);
+
+      // Declared destinations, unrelated folders and the loose file all stay.
+      expect(fs.readdirSync(outputDir).sort()).toEqual([
+        '.git', 'My Folder', 'README.md', 'docs', 'node_modules',
+        'rosetta-claude', 'rosetta-claude-light', 'src',
+      ]);
+      for (const d of unrelated) {
+        expect(fs.readFileSync(path.join(outputDir, d, 'marker.txt'), 'utf-8')).toBe('x');
+      }
+    });
+  });
+
+  // A name shaped like `<set>-<ide><variantSuffix>` is common outside the generator, so the name
+  // alone never removes a folder.
+  it('keeps a folder with a plugin-like name and no generated manifest', () => {
+    withOutputDir((outputDir, loaded) => {
+      seed(outputDir);
+      const lookalikes = ['awesome-claude-code', 'openai-codex', 'dotfiles-claude', 'qe-claude'];
+      for (const d of lookalikes) folder(outputDir, d);
+      // Other JSON in such a folder is not the manifest, wherever it sits.
+      write(path.join(outputDir, 'openai-codex', 'package.json'), '{}');
+      write(path.join(outputDir, 'dotfiles-claude', '.claude', 'settings.json'), '{}');
+      const snapshot = () => lookalikes.map((d) => snapshotTree(path.join(outputDir, d)));
+      const before = snapshot();
+
+      const stale = ['core-claude', 'core-claude-light'];
+      expect(sweepOrphanDestinations(loaded, outputDir, true).sort()).toEqual(stale);
+      expect(sweepOrphanDestinations(loaded, outputDir, false).sort()).toEqual(stale);
+
+      expect(fs.readdirSync(outputDir).sort()).toEqual([
+        'README.md', 'awesome-claude-code', 'dotfiles-claude', 'openai-codex', 'qe-claude',
+        'rosetta-claude', 'rosetta-claude-light',
+      ]);
+      expect(snapshot()).toEqual(before);
+    });
+  });
+
+  // The name says which target a folder could belong to; that target's manifest inside it says
+  // the generator wrote it. Folders of sets the catalog does not declare, for each target.
+  it.each(MANIFEST_OF)('%s: a stale folder is removed only when it holds %s', (target, manifest) => {
+    withOutputDir((outputDir, loaded) => {
+      // A manifest the generator writes for other targets, never for this one.
+      const foreign = manifest === 'plugin.json' ? '.claude-plugin/plugin.json' : 'plugin.json';
+      folder(outputDir, `qe-${target}`, manifest);
+      folder(outputDir, `qe-${target}-light`, manifest);
+      folder(outputDir, `search-${target}`);
+      folder(outputDir, `my-${target}`, foreign);
+
+      const stale = [`qe-${target}`, `qe-${target}-light`];
+      expect(sweepOrphanDestinations(loaded, outputDir, true).sort()).toEqual(stale);
+      expect(sweepOrphanDestinations(loaded, outputDir, false).sort()).toEqual(stale);
+      expect(fs.readdirSync(outputDir).sort()).toEqual([`my-${target}`, `search-${target}`]);
+    });
+  });
+
+  // TARGET_MANIFEST_PATHS restates what the preserved templates decide. Hold it to the real ones.
+  it('TARGET_MANIFEST_PATHS names the one plugin.json of each real template', () => {
+    for (const family of ['claude', 'cursor', 'copilot', 'codex', 'antigravity'] as const) {
+      const dir = path.join(REAL_TEMPLATES_DIR, `template-${family}`);
+      const manifests = listFilesRecursive(dir)
+        .filter((f) => path.basename(f) === 'plugin.json')
+        .map((f) => path.relative(dir, f).split(path.sep).join('/'));
+      expect(manifests, family).toEqual([TARGET_MANIFEST_PATHS[family]]);
+    }
+  });
+
   it('removes nothing in dry-run, while still reporting what it would remove', () => {
     withOutputDir((outputDir, loaded) => {
       seed(outputDir);
@@ -408,6 +513,36 @@ describe('sweepOrphanDestinations', () => {
       fs.rmSync(outputDir, { recursive: true, force: true });
       expect(sweepOrphanDestinations(loaded, outputDir, false)).toEqual([]);
     });
+  });
+
+  // The sweep knows a folder by the manifest inside it, so every folder the generator really
+  // writes must hold one where the sweep looks — the standalone forms included.
+  it('removes every folder a run wrote, for all seven targets, once its set is renamed', async () => {
+    const repo = buildFakeRepo();
+    try {
+      const outputDir = path.join(repo, 'out');
+      const sources = buildSources(repo, outputDir);
+      const run = (configPath: string) => generate({
+        sources: { ...sources, configPath },
+        release: 'r2', domain: 'core', dryRun: false, verbose: false,
+      });
+
+      expect(await run(sources.configPath)).toBe(0);
+      for (const [target, manifest] of MANIFEST_OF) {
+        expect(fs.existsSync(path.join(outputDir, `core-${target}`, manifest)), target).toBe(true);
+      }
+
+      // The same catalog with its `core` set renamed: no `core-*` folder is declared any more.
+      const renamed = JSON.parse(fs.readFileSync(sources.configPath, 'utf-8'));
+      renamed.sets = [{ ...renamed.sets[0], name: 'base' }];
+      const renamedConfig = path.join(repo, 'renamed-plugins.json');
+      fs.writeFileSync(renamedConfig, JSON.stringify(renamed));
+
+      expect(await run(renamedConfig)).toBe(0);
+      expect(fs.readdirSync(outputDir).sort()).toEqual(MANIFEST_OF.map(([t]) => `base-${t}`).sort());
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
   });
 });
 
@@ -522,11 +657,78 @@ describe('generate() — plugin sets end to end', () => {
     const outputDir = path.join(repo, 'out-sweep');
     fs.mkdirSync(path.join(outputDir, 'core-claude'), { recursive: true });
     fs.writeFileSync(path.join(outputDir, 'core-claude', 'stale.txt'), 'x');
+    write(path.join(outputDir, 'core-claude', '.claude-plugin', 'plugin.json'), '{}');
 
     await generate({ sources: sourcesFor(outputDir), release: 'r3', dryRun: false, verbose: false });
 
     expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(false);
     expect(fs.existsSync(path.join(outputDir, 'rosetta-claude'))).toBe(true);
+  });
+
+  it('an output directory holding unrelated folders loses only its stale plugin folder', async () => {
+    const outputDir = path.join(repo, 'out-sweep-unrelated');
+    write(path.join(outputDir, '.git', 'HEAD'), 'ref: refs/heads/main');
+    write(path.join(outputDir, 'docs', 'notes.md'), 'notes');
+    write(path.join(outputDir, 'src', 'app', 'main.ts'), 'code');
+    write(path.join(outputDir, 'My Folder', 'file.txt'), 'mine');
+    write(path.join(outputDir, 'README.md'), 'readme');
+    write(path.join(outputDir, 'core-claude', 'stale.txt'), 'x');
+    write(path.join(outputDir, 'core-claude', '.claude-plugin', 'plugin.json'), '{}');
+    // Named like a plugin folder, but not written by the generator: no manifest inside.
+    write(path.join(outputDir, 'awesome-claude-code', 'README.md'), 'a list');
+    write(path.join(outputDir, 'openai-codex', 'package.json'), '{}');
+    write(path.join(outputDir, 'dotfiles-claude', '.claude', 'settings.json'), '{}');
+    const unrelated = () =>
+      ['.git', 'docs', 'src', 'My Folder', 'awesome-claude-code', 'openai-codex', 'dotfiles-claude']
+        .map((d) => snapshotTree(path.join(outputDir, d)));
+    const before = unrelated();
+
+    const code = await generate({
+      sources: sourcesFor(outputDir), release: 'r3', dryRun: false, verbose: false,
+    });
+
+    expect(code).toBe(0);
+    expect(fs.readdirSync(outputDir).sort()).toEqual([
+      '.git', 'My Folder', 'README.md', 'awesome-claude-code', 'docs', 'dotfiles-claude',
+      'openai-codex',
+      'qe-claude', 'qe-codex',
+      'rosetta-claude', 'rosetta-claude-light',
+      'rosetta-codex', 'rosetta-codex-light',
+      'search-claude', 'search-codex',
+      'src',
+    ]);
+    expect(unrelated()).toEqual(before);
+    expect(fs.readFileSync(path.join(outputDir, 'README.md'), 'utf-8')).toBe('readme');
+  });
+
+  // No hand-written manifest here: the first run writes the folders, the second must know them.
+  it('sweeps the folders it wrote for a variant, a set and a target the catalog then drops', async () => {
+    const outputDir = path.join(repo, 'out-sweep-dropped');
+    await generate({ sources: sourcesFor(outputDir), release: 'r3', dryRun: false, verbose: false });
+    expect(fs.readdirSync(outputDir)).toHaveLength(8);
+
+    const catalog = JSON.parse(
+      fs.readFileSync(path.join(repo, 'src', 'rosettify-plugins', 'plugins.json'), 'utf-8'),
+    );
+    // The same catalog without the `codex` target, the `search` set and the `-light` variant.
+    catalog.targets = ['claude'];
+    catalog.sets = catalog.sets.filter((s: { name: string }) => s.name !== 'search');
+    catalog.sets[0].variants = [catalog.sets[0].variants[0]];
+    const reduced = path.join(repo, 'reduced-plugins.json');
+    fs.writeFileSync(reduced, JSON.stringify(catalog));
+
+    const dry = await generate({
+      sources: sourcesFor(outputDir, reduced), release: 'r3', dryRun: true, verbose: false,
+      out: new PassThrough(),
+    });
+    expect(dry).toBe(0);
+    expect(fs.readdirSync(outputDir)).toHaveLength(8);
+
+    const code = await generate({
+      sources: sourcesFor(outputDir, reduced), release: 'r3', dryRun: false, verbose: false,
+    });
+    expect(code).toBe(0);
+    expect(fs.readdirSync(outputDir).sort()).toEqual(['qe-claude', 'rosetta-claude']);
   });
 
   it('an invalid catalog aborts BEFORE anything is written, naming the file', async () => {
@@ -1018,6 +1220,20 @@ describe('generate() — customization roots pre-flight (FR-CUST-0002/0003, FR-A
     expect(result).toBe(1);
     expect(fs.readFileSync(path.join(out, 'stale-undeclared', 'keep.txt'), 'utf-8')).toBe('survive');
     expect(fs.readdirSync(out)).toEqual(['stale-undeclared']);
+  });
+
+  // L1's folder is not one the generator wrote, so the sweep would leave it alone at any point in
+  // the run. A stale plugin folder, manifest included, is what an early sweep would remove.
+  it('L1: a pre-flight failure leaves a pre-seeded stale plugin folder alone (sweep runs only after pre-flight)', async () => {
+    const out = path.join(repo, 'o-sweep-plugin');
+    write(path.join(out, 'qe-claude', 'keep.txt'), 'survive');
+    write(path.join(out, 'qe-claude', '.claude-plugin', 'plugin.json'), '{}');
+    const file = path.join(repo, 'cust-sweep-plugin', 'r3', 'core', 'workflows', 'codin-flow~overwrite~.md');
+    write(file, '---\nname: codin-flow\ndescription: x\ntags: ["workflow"]\n---\nbody');
+    const { result } = await run('o-sweep-plugin', [path.join(repo, 'cust-sweep-plugin')]);
+    expect(result).toBe(1);
+    expect(fs.readdirSync(out)).toEqual(['qe-claude']);
+    expect(fs.readFileSync(path.join(out, 'qe-claude', 'keep.txt'), 'utf-8')).toBe('survive');
   });
 
   it('FR-ARCH-0024.AC4/AC6: one orphan fault is not repeated per IDE/variant/set (one line per file and set-variant)', async () => {

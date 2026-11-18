@@ -687,6 +687,26 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
 };
 
 /**
+ * Where each target's output folder holds its plugin manifest, relative to that folder. A main
+ * target's manifest is the `plugin.json` of its preserved template tree, which pluginCopy writes at
+ * the same relative path (DATA-CFG-0005); a standalone's is the one pluginCopy writes from
+ * `manifestOverride` (FR-VAR-0060).
+ *
+ * The orphan sweep reads this to tell a folder the generator wrote from one it did not. The paths
+ * are decided by the templates and by pluginCopy, not here, so tests/unit/generate.test.ts holds
+ * this table to the real templates and to generated output.
+ */
+export const TARGET_MANIFEST_PATHS: Readonly<Record<TargetName, string>> = {
+  claude: '.claude-plugin/plugin.json',
+  cursor: '.cursor-plugin/plugin.json',
+  copilot: '.github/plugin/plugin.json',
+  codex: '.codex-plugin/plugin.json',
+  'cursor-standalone': 'plugin.json',
+  'copilot-standalone': 'plugin.json',
+  antigravity: 'plugin.json',
+};
+
+/**
  * The fields every target spec shares. `name` is the bare IDE identity; `destination` carries the
  * set and variant. D6: `indexes` is empty and `includeIndexEntries` false on every set — the three
  * remaining index code paths (pluginGenerateIndexes, bootstrap/payload) are retained but dormant,
