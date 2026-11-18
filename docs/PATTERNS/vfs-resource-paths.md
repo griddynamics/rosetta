@@ -38,7 +38,7 @@ The MCP `read_instruction_resource` tool resolves this via `InstructionDocCache`
 
 ## Bundling at Same VFS Path
 
-Documents sharing the same VFS path are bundled together in one response. Because the domain segment is stripped, filenames must be unique across the whole tree and a deployment normally has one document per path. The `INSTRUCTION_ROOT_FILTER` env var is meant to select which top-level folders are served; the server parses it and does not apply it today.
+Documents sharing the same VFS path are bundled together in one response. Because the domain segment is stripped, filenames must be unique across the whole tree and a deployment normally has one document per path. The `INSTRUCTION_ROOT_FILTER` env var is meant to select which top-level folders are served; the server parses it but does not enforce it yet ([#172](https://github.com/griddynamics/rosetta/issues/172)).
 
 ## Occurrences
 

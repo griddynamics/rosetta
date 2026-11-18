@@ -224,7 +224,7 @@ A new folder is a new sibling folder here plus a `folders` entry of a set in `sr
 
 Usage: [PLUGINS.md — Build customized plugins](../PLUGINS.md#build-customized-plugins). Requirements: [FR-CUST](REQUIREMENTS/plugin-generator/FR-CUST.md).
 
-Filenames stay unique across the tree, so no two files share a VFS resource path and the MCP Bundler (see [MCP-ARCHITECTURE.md — Bundler](MCP-ARCHITECTURE.md#bundler)) normally has one document to return. `INSTRUCTION_ROOT_FILTER` is intended to select which folders MCP serves; see [MCP-ARCHITECTURE.md](MCP-ARCHITECTURE.md#instruction-root-filter) before setting it.
+Filenames stay unique across the tree, so no two files share a VFS resource path and the MCP Bundler (see [MCP-ARCHITECTURE.md — Bundler](MCP-ARCHITECTURE.md#bundler)) normally has one document to return. `INSTRUCTION_ROOT_FILTER` is intended to select which folders MCP serves; it is parsed but not enforced yet ([#172](https://github.com/griddynamics/rosetta/issues/172)), see [MCP-ARCHITECTURE.md](MCP-ARCHITECTURE.md#instruction-root-filter).
 
 **Component relationships.** Workflows invoke subagents. Subagents use skills. Templates live inside skills. Guardrails are primarily on-demand skills engaged through always-on actor lists and skill descriptions. See [Overview — Key Concepts](../OVERVIEW.md#key-concepts) for definitions.
 

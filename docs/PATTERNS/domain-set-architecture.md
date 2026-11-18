@@ -15,7 +15,7 @@ The catalog (`plugins.json`) can bundle any number of folders into any number of
 - Adding organization material: keep it in a customization root and build with `--customizations <root>`.
 - Maintaining the release folders under `instructions/` (`r3` current, `r2` backports only).
 - Scoping a build: `--domain <set>` builds only the named sets. `--publish <name>` writes only the named plugins.
-- Restricting what an MCP deployment serves with `INSTRUCTION_ROOT_FILTER` (parsed into `Config.root_filter` and not yet applied, see Occurrences).
+- Restricting what an MCP deployment serves with `INSTRUCTION_ROOT_FILTER` (parsed into `RosettaConfig.root_filter` and not enforced yet, [#172](https://github.com/griddynamics/rosetta/issues/172); see Occurrences).
 
 ## Folder Structure
 
@@ -53,5 +53,5 @@ CLI always publishes the entire `/instructions` folder (`--force` for full repub
 - `src/rosettify-plugins/plugins.json` — the catalog mapping folders to plugin sets
 - `src/rosettify-plugins/src/cli.ts` — `--domain`, `--customizations`, `--publish`
 - `src/rosettify-plugins/src/vfs/customizations.ts` — customization root validation
-- `src/rosetta-mcp-server/rosetta_mcp/config.py` — `INSTRUCTION_ROOT_FILTER` env var, parsed and not yet read anywhere
+- `src/rosetta-mcp-server/rosetta_mcp/config.py` — `INSTRUCTION_ROOT_FILTER` env var, parsed and not yet read anywhere ([#172](https://github.com/griddynamics/rosetta/issues/172))
 - `docs/ARCHITECTURE.md` — "Instruction Structure" section
