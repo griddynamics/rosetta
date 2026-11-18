@@ -195,7 +195,9 @@ export function loadProfile(profileSource: string, name: string): ProfileDescrip
  * without a cast — targets.ts (S13) types PluginSpec.name as `string`, not a literal union.
  *
  * - No profile, or the profile has no block for this target and (for a standalone) no block for
- *   its parent either: returns the built-in vocabulary unchanged (`exhaustive` omitted/false).
+ *   its parent either: returns the built-in vocabulary unchanged, keeping its own `exhaustive`
+ *   flag (false for every built-in except CURSOR_INHERIT_VOCABULARY, whose empty map must stay
+ *   exhaustive so Cursor model pins are dropped rather than passed through raw).
  * - A block applies (declared directly, or inherited from the parent for a standalone with none
  *   of its own — V4): returns that block as the entire effective map with `exhaustive: true`, so
  *   downstream normalize*() calls treat any token absent from it as unmapped rather than falling
@@ -212,7 +214,7 @@ export function resolveEffectiveVocabulary(
   profile: ProfileDescriptor | null,
 ): ModelVocabulary {
   if (!profile) {
-    return { map: builtin.map, exhaustive: false };
+    return { map: builtin.map, exhaustive: builtin.exhaustive ?? false };
   }
 
   const overrides = profile.modelOverrides as Record<string, Record<string, string> | undefined>;
@@ -226,7 +228,7 @@ export function resolveEffectiveVocabulary(
   }
 
   if (!block) {
-    return { map: builtin.map, exhaustive: false };
+    return { map: builtin.map, exhaustive: builtin.exhaustive ?? false };
   }
 
   return { map: block, exhaustive: true };

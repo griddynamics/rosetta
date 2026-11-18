@@ -330,7 +330,9 @@ describe('Profile E2E — model resolution on a fixture tree', () => {
     const out = readFixtureOutputs(baseDir, '');
     const exp = resolveExpected(BASE_SRC.model);
     expect(out.claude).toBe(exp.claude);
-    expect(out.cursor).toBe(exp.cursor);
+    // Cursor ships CURSOR_INHERIT_VOCABULARY: every model pin is dropped so the subagent inherits
+    // the parent model and never routes to a model the user disabled in Cursor Settings.
+    expect(out.cursor).toBeUndefined();
     expect(out.copilot).toBe(exp.copilot);
     expect(out.codex.model).toBe(exp.codex.model);
     expect(out.codex.model_reasoning_effort).toBe(exp.codex.effort);
@@ -339,11 +341,13 @@ describe('Profile E2E — model resolution on a fixture tree', () => {
     expect(out.claudeRaw).toMatch(new RegExp(`^effort: ${BASE_SRC.effort}$`, 'm'));
   });
 
-  it('lightweight run: the agent resolves to the profile-scoped model on all four vocabularies (FR-PROF-0020)', () => {
+  it('lightweight run: the agent resolves to the profile-scoped model on Claude, Copilot and Codex; Cursor inherits (FR-PROF-0020)', () => {
     const out = readFixtureOutputs(lightDir, '-light');
     const exp = resolveExpected(LIGHT_SRC.model);
     expect(out.claude).toBe(exp.claude);
-    expect(out.cursor).toBe(exp.cursor);
+    // Cursor ships CURSOR_INHERIT_VOCABULARY: every model pin is dropped so the subagent inherits
+    // the parent model and never routes to a model the user disabled in Cursor Settings.
+    expect(out.cursor).toBeUndefined();
     expect(out.copilot).toBe(exp.copilot);
     expect(out.codex.model).toBe(exp.codex.model);
     expect(out.codex.model_reasoning_effort).toBe(exp.codex.effort);

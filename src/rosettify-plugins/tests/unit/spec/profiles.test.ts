@@ -13,6 +13,8 @@ import {
 } from '../../../src/spec/profiles.js';
 import type { ProfileDescriptor } from '../../../src/spec/profiles.js';
 import type { ModelVocabulary } from '../../../src/types.js';
+import { MODEL_DROP } from '../../../src/types.js';
+import { CURSOR_INHERIT_VOCABULARY, normalizeCursor } from '../../../src/spec/model-maps.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Real committed reference profile (src/rosettify-plugins/profiles/lightweight.json), used to prove
@@ -288,6 +290,31 @@ describe('resolveEffectiveVocabulary — no profile / no block', () => {
     const result = resolveEffectiveVocabulary('claude', builtin, profile);
     expect(result.map).toBe(builtin.map);
     expect(result.exhaustive).toBeFalsy();
+  });
+});
+
+describe('resolveEffectiveVocabulary — Cursor ships the inherit vocabulary', () => {
+  it('with no profile, keeps CURSOR_INHERIT_VOCABULARY exhaustive so pins drop instead of passing through raw', () => {
+    const result = resolveEffectiveVocabulary('cursor', CURSOR_INHERIT_VOCABULARY, null);
+    expect(result.map).toEqual({});
+    expect(result.exhaustive).toBe(true);
+    expect(normalizeCursor('claude-opus-5-5-high, gpt-6.1-sol-high', result.map, result.exhaustive))
+      .toBe(MODEL_DROP);
+  });
+
+  it('with a profile that has no cursor block, cursor-standalone still inherits (exhaustive)', () => {
+    const profile: ProfileDescriptor = { modelOverrides: {} };
+    const result = resolveEffectiveVocabulary('cursor-standalone', CURSOR_INHERIT_VOCABULARY, profile);
+    expect(result.exhaustive).toBe(true);
+    expect(result.map).toEqual({});
+  });
+
+  it('a profile cursor block still re-enables an explicit pin', () => {
+    const block = { 'claude-opus-5-5-high': 'claude-sonnet-5-5' };
+    const profile: ProfileDescriptor = { modelOverrides: { cursor: block } };
+    const result = resolveEffectiveVocabulary('cursor', CURSOR_INHERIT_VOCABULARY, profile);
+    expect(normalizeCursor('claude-opus-5-5-high', result.map, result.exhaustive))
+      .toBe('claude-sonnet-5-5');
   });
 });
 

@@ -11,7 +11,7 @@ import type { PluginSetDecl, SetVariant } from './plugin-sets.js';
 import { HOOKS_PSEUDO_FOLDER } from './hooks.js';
 import {
   CLAUDE_VOCABULARY,
-  CURSOR_VOCABULARY,
+  CURSOR_INHERIT_VOCABULARY,
   COPILOT_VOCABULARY,
   CODEX_VOCABULARY,
   ANTIGRAVITY_VOCABULARY,
@@ -357,7 +357,7 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
 
   // workflows→commands, rules/*.md→*.mdc
   cursor: (c) => ({
-    ...base(c, TARGET_NAMES.CURSOR, CURSOR_VOCABULARY),
+    ...base(c, TARGET_NAMES.CURSOR, CURSOR_INHERIT_VOCABULARY),
     baseSubfolder: '',
     pluginRootPath: '',
     hookFolder: 'hooks',
@@ -490,7 +490,7 @@ const TARGET_BUILDERS: Readonly<Record<TargetName, TargetBuilder>> = {
 
   // All files under .cursor/; plugin-files-mode.mdc gets the plugin-root injection
   'cursor-standalone': (c) => ({
-    ...base(c, TARGET_NAMES.CURSOR_STANDALONE, CURSOR_VOCABULARY),
+    ...base(c, TARGET_NAMES.CURSOR_STANDALONE, CURSOR_INHERIT_VOCABULARY),
     baseSubfolder: '.cursor',
     pluginRootPath: '.cursor',
     hookFolder: '.cursor/hooks',

@@ -398,7 +398,7 @@ const CODEX_GPT_MAP: Record<string, string> = {
 // ─── Vocabulary objects ────────────────────────────────────────────────────────
 // FR-ARCH-0059: `modelVocabulary.map` is now the real, live effective map consulted by the
 // corresponding normalize*() function for every target — not a placeholder. `exhaustive` omitted
-// (=false) on every built-in: profiled runs set `{map: <profile block>, exhaustive: true}` via
+// (=false) on every built-in except CURSOR_INHERIT_VOCABULARY: profiled runs set `{map: <profile block>, exhaustive: true}` via
 // resolveEffectiveVocabulary() (spec/profiles.ts, S2), never mutate these constants.
 
 export const CLAUDE_VOCABULARY: ModelVocabulary = {
@@ -422,6 +422,18 @@ export const CURSOR_VOCABULARY: ModelVocabulary = {
     ...CURSOR_GROK_MAP,
     ...CURSOR_COMPOSER_MAP,
   },
+};
+
+// What the Cursor targets actually ship with: an empty map, exhaustive. Every `model:` candidate is
+// unmapped, so normalizeCursor() returns MODEL_DROP and the line is removed (Cursor then runs the
+// subagent on the parent's model, i.e. `inherit`), and every subagent_required_model list collapses
+// to `inherit`. Cursor does not check a pinned subagent `model:` against the models the user has
+// disabled in Cursor Settings, so any pin (e.g. architect → claude-opus-5-5) could route work to a
+// model the user turned off. CURSOR_VOCABULARY above stays as the reference id map; a profile
+// `modelOverrides.cursor` block still replaces this vocabulary to re-enable explicit pins.
+export const CURSOR_INHERIT_VOCABULARY: ModelVocabulary = {
+  map: {},
+  exhaustive: true,
 };
 
 export const COPILOT_VOCABULARY: ModelVocabulary = {

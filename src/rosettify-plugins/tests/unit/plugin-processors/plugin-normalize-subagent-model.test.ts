@@ -15,6 +15,7 @@ import type { SubagentModelTokenMapper } from '../../../src/plugin-processors/pl
 import {
   CLAUDE_VOCABULARY,
   CURSOR_VOCABULARY,
+  CURSOR_INHERIT_VOCABULARY,
   COPILOT_VOCABULARY,
   CODEX_VOCABULARY,
 } from '../../../src/spec/model-maps.js';
@@ -178,6 +179,21 @@ describe('pluginNormalizeSubagentRequiredModel — Cursor mapper, real fixtures'
     expect(
       normalize(`subagent_required_model="${FIXTURE_D}"`, CURSOR_VOCABULARY, cursorSubagentModelTokenMapper),
     ).toBe('subagent_required_model="gpt-6-luna, gemini-4-argon, claude-sonnet-5-5, grok-4.7"');
+  });
+});
+
+describe('pluginNormalizeSubagentRequiredModel — shipped Cursor inherit vocabulary', () => {
+  it('collapses every list, including an Opus-first architect list, to inherit', () => {
+    expect(
+      normalize(`subagent_required_model="${FIXTURE_A}"`, CURSOR_INHERIT_VOCABULARY, cursorSubagentModelTokenMapper),
+    ).toBe('subagent_required_model="inherit"');
+    expect(
+      normalize(
+        'subagent_required_model="claude-opus-5-5-high, gpt-6.1-sol-high, gemini-4-argon-high"',
+        CURSOR_INHERIT_VOCABULARY,
+        cursorSubagentModelTokenMapper,
+      ),
+    ).toBe('subagent_required_model="inherit"');
   });
 });
 

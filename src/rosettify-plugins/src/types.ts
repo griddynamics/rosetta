@@ -98,7 +98,8 @@ export interface ModelVocabulary {
    * `exhaustive` only selects which OUTCOME terminates that scan. Its ONLY permitted use is
    * selecting the no-survivor outcome: `true` ⇒ an exhausted scan ends in `MODEL_DROP`
    * (profiled exhaustive replacement); `false`/omitted ⇒ the scan ends in today's per-vocabulary
-   * fallback (byte-identical built-in behavior). Omitted (=false) on every built-in vocabulary.
+   * fallback (byte-identical built-in behavior). Omitted (=false) on every built-in vocabulary
+   * except CURSOR_INHERIT_VOCABULARY (empty map, `true`: every Cursor model pin is dropped).
    * No processor may branch on target/IDE identity off this or any other field (FR-ARCH-0059).
    */
   exhaustive?: boolean;
