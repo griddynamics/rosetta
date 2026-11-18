@@ -249,6 +249,16 @@ npx -y rosettify-plugins@latest \
 
 The result is the same `rosetta` and `rosetta-light` plugins, one folder per IDE, with your files merged in. Option details are in the [generator README](src/rosettify-plugins/README.md#customizations).
 
+### Replace models
+
+A profile replaces the models the plugins name, for example when your organization cannot use a model.
+
+1. Copy `src/rosettify-plugins/plugins.json` and set the `profile` of each variant you build to your profile name, for example `acme`.
+2. In a profile folder, write `acme.json` with a `modelOverrides` block. A block replaces the whole model map of the IDE it names, so list every model token and map each one explicitly, for example `"claude-opus-5-5-high": "claude-sonnet-5-5"`.
+3. Add `--config <catalog copy> --profileSource <profile folder>` to the build command. The profile folder replaces the default one, so it must hold every profile your catalog names.
+
+The profile format is in the [generator README](src/rosettify-plugins/README.md).
+
 ### Install
 
 The output holds one plugin folder per IDE (for example `rosetta-claude`, `rosetta-claude-light`), the same layout as the standalone download. Install it the way [Step 1](#step-1-install-plugin) describes for standalone: copy or extract the folder for your IDE into your repository. Then continue with [Step 2: Verify](#step-2-verify).
