@@ -1,0 +1,4 @@
+Products need something for storage conditions as appropriate.
+Staff should be able to set it, and customers should see it where relevant.
+
+Do whatever is needed.

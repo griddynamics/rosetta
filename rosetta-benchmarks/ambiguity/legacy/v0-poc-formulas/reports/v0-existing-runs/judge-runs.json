@@ -1,0 +1,42 @@
+{
+ "rows": [
+  {
+   "method": "Baseline",
+   "judge_run": 1,
+   "constraint_fidelity": 1,
+   "assumption_transparency": 1,
+   "calibration": 2,
+   "session_id": "not recorded"
+  },
+  {
+   "method": "Rosetta Skills",
+   "judge_run": 1,
+   "constraint_fidelity": 0,
+   "assumption_transparency": 1,
+   "calibration": 1,
+   "session_id": "not recorded"
+  },
+  {
+   "method": "Grill-with-docs",
+   "judge_run": 1,
+   "constraint_fidelity": 0,
+   "assumption_transparency": 1,
+   "calibration": 1,
+   "session_id": "not recorded"
+  },
+  {
+   "method": "Superpowers",
+   "judge_run": 1,
+   "constraint_fidelity": 1,
+   "assumption_transparency": 1,
+   "calibration": 1,
+   "session_id": "not recorded"
+  }
+ ],
+ "meta": [
+  {
+   "label": "Generated from",
+   "value": "reports/scores.json (scripts/score_runs.py), reports/as-scores.csv (scripts/as_score.py), by scripts/export_v0_quick.py"
+  }
+ ]
+}

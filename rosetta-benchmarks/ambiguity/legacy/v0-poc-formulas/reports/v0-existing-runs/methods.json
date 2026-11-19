@@ -1,0 +1,150 @@
+{
+ "rows": [
+  {
+   "method": "Baseline",
+   "run_id": "S-CC-01",
+   "older_setup": false,
+   "as_v0": 0.366,
+   "hidden_matches": 4,
+   "correctness": 0.571,
+   "constraint_fidelity": 1.0,
+   "assumption_transparency": 1.0,
+   "calibration": 2.0,
+   "trust": 0.629,
+   "ut": 0.371,
+   "judge_stability": null,
+   "judge_runs": 1,
+   "decision_ownership": 0.556,
+   "silent_share": 0.278,
+   "decision_counts": [
+    {
+     "ticket": 0,
+     "user": 10,
+     "stated": 3,
+     "silent": 5
+    }
+   ],
+   "questions_asked": 0.0,
+   "hidden_asked": 0,
+   "first_pass_coverage": 0.571,
+   "confident_wrong": null,
+   "followups": 3.0,
+   "time_min": 50.0,
+   "cost_usd": 3.31,
+   "saleor_diff_judge": 66.2,
+   "operator_score": 3,
+   "merge_ready": "no"
+  },
+  {
+   "method": "Rosetta Skills",
+   "run_id": "S-CC-08",
+   "older_setup": false,
+   "as_v0": 0.366,
+   "hidden_matches": 6,
+   "correctness": 0.857,
+   "constraint_fidelity": 0.0,
+   "assumption_transparency": 1.0,
+   "calibration": 1.0,
+   "trust": 0.543,
+   "ut": 0.457,
+   "judge_stability": null,
+   "judge_runs": 1,
+   "decision_ownership": 0.667,
+   "silent_share": 0.111,
+   "decision_counts": [
+    {
+     "ticket": 0,
+     "user": 12,
+     "stated": 4,
+     "silent": 2
+    }
+   ],
+   "questions_asked": 10.0,
+   "hidden_asked": 3,
+   "first_pass_coverage": 0.857,
+   "confident_wrong": null,
+   "followups": 2.0,
+   "time_min": 56.0,
+   "cost_usd": 5.64,
+   "saleor_diff_judge": 73.6,
+   "operator_score": 5,
+   "merge_ready": "yes"
+  },
+  {
+   "method": "Grill-with-docs",
+   "run_id": "S-CC-02",
+   "older_setup": true,
+   "as_v0": 0.366,
+   "hidden_matches": 7,
+   "correctness": 1.0,
+   "constraint_fidelity": 0.0,
+   "assumption_transparency": 1.0,
+   "calibration": 1.0,
+   "trust": 0.6,
+   "ut": 0.4,
+   "judge_stability": null,
+   "judge_runs": 1,
+   "decision_ownership": 0.571,
+   "silent_share": 0.143,
+   "decision_counts": [
+    {
+     "ticket": 1,
+     "user": 12,
+     "stated": 6,
+     "silent": 3
+    }
+   ],
+   "questions_asked": 14.0,
+   "hidden_asked": 5,
+   "first_pass_coverage": 1.0,
+   "confident_wrong": null,
+   "followups": 1.0,
+   "time_min": 38.0,
+   "cost_usd": 4.89,
+   "saleor_diff_judge": 71.6,
+   "operator_score": 3,
+   "merge_ready": "no"
+  },
+  {
+   "method": "Superpowers",
+   "run_id": "S-CC-03",
+   "older_setup": true,
+   "as_v0": 0.366,
+   "hidden_matches": 6,
+   "correctness": 0.857,
+   "constraint_fidelity": 1.0,
+   "assumption_transparency": 1.0,
+   "calibration": 1.0,
+   "trust": 0.643,
+   "ut": 0.357,
+   "judge_stability": null,
+   "judge_runs": 1,
+   "decision_ownership": 0.389,
+   "silent_share": 0.5,
+   "decision_counts": [
+    {
+     "ticket": 1,
+     "user": 7,
+     "stated": 2,
+     "silent": 9
+    }
+   ],
+   "questions_asked": 1.0,
+   "hidden_asked": 1,
+   "first_pass_coverage": 0.857,
+   "confident_wrong": null,
+   "followups": 1.0,
+   "time_min": 41.0,
+   "cost_usd": 8.08,
+   "saleor_diff_judge": 73.5,
+   "operator_score": 3,
+   "merge_ready": "no"
+  }
+ ],
+ "meta": [
+  {
+   "label": "Generated from",
+   "value": "reports/scores.json (scripts/score_runs.py), reports/as-scores.csv (scripts/as_score.py), by scripts/export_v0_quick.py"
+  }
+ ]
+}

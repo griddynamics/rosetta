@@ -1,16 +1,25 @@
 # Operator guide
 
-What you do to set up and to run one POC run. A POC run is a normal Saleor small-task run in Claude Code with a different task text and a few extra steps at the first "done". As in the Saleor benchmark, your assistant can run the setup and bookkeeping commands; everything the agent receives, you send yourself.
+What you do to set up and to run one POC run. A POC run is a normal Saleor small-task run in Claude Code with a different task text and two stops: one before the agent writes code, one at its first "done" (the flow and the formulas: [METRICS.md](./METRICS.md)). **Follow your method's own file** in [saleor/methods/](../saleor/methods/), part 2 ("Run S-CC-…: small task"), step by step; this guide lists only what is added or different. Everything else (reset, isolation check, session start, method steps, follow-ups, post-implementation prompt) stays exactly as written there. As in the Saleor benchmark, your assistant can run the setup and bookkeeping commands; everything the agent receives, you send yourself.
+
+| Method | Method file | Run IDs |
+| --- | --- | --- |
+| Baseline | [baseline.md](../saleor/methods/baseline.md) | `S-CC-01-<v>-r<n>` |
+| Grill-with-docs | [grill-with-docs.md](../saleor/methods/grill-with-docs.md) | `S-CC-02-<v>-r<n>` |
+| Superpowers | [superpowers.md](../saleor/methods/superpowers.md) | `S-CC-03-<v>-r<n>` |
+| Rosetta Skills | [rosetta-skills.md](../saleor/methods/rosetta-skills.md) | `S-CC-08-<v>-r<n>` |
+
+`<v>` = `v0`, `v3` or `v5`; `<n>` = repeat.
 
 ## Setup (once)
 
 1. **Claude Code 2.1.305**, the version pinned in the Saleor benchmark, for the runs and the judge. Under Node 24: `npm install -g @anthropic-ai/claude-code@2.1.305`, then `claude --version` must print `2.1.305`. The settings below and in the method environments turn the auto-updater off.
 2. **Saleor setup for your method:** stack, method environment and start tag, as in part 1 of your method file: [baseline.md](../saleor/methods/baseline.md), [rosetta-skills.md](../saleor/methods/rosetta-skills.md), [grill-with-docs.md](../saleor/methods/grill-with-docs.md) or [superpowers.md](../saleor/methods/superpowers.md).
-3. **Judge config** (once per machine, outside the Rosetta repo): Opus 5.5, effort xhigh, as the Saleor judge.
+3. **Judge config** (once per machine, outside the Rosetta repo): Opus 5.5, effort xhigh, as the Saleor judge. Judge sessions run in `~/Desktop/ambiguity-judge/ambiguity/<run ID>/`.
 
    ```bash
-   mkdir -p ~/ambiguity-judge/claude
-   cat > ~/ambiguity-judge/claude/settings.json <<'JSON'
+   mkdir -p ~/Desktop/ambiguity-judge/claude ~/Desktop/ambiguity-judge/ambiguity
+   cat > ~/Desktop/ambiguity-judge/claude/settings.json <<'JSON'
    {
      "model": "claude-opus-5-5",
      "effortLevel": "xhigh",
@@ -29,7 +38,7 @@ What you do to set up and to run one POC run. A POC run is a normal Saleor small
      "env": { "DISABLE_AUTOUPDATER": "1", "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1", "ENABLE_CLAUDEAI_MCP_SERVERS": "false", "CLAUDE_CODE_AUTO_CONNECT_IDE": "false" }
    }
    JSON
-   (cd ~/ambiguity-judge && CLAUDE_CONFIG_DIR=~/ambiguity-judge/claude claude)   # /login, accept folder trust, /exit
+   (cd ~/Desktop/ambiguity-judge/ambiguity && CLAUDE_CONFIG_DIR=~/Desktop/ambiguity-judge/claude claude)   # /login, accept folder trust, /exit
    ```
 
 ## One run
@@ -57,9 +66,17 @@ What you do to set up and to run one POC run. A POC run is a normal Saleor small
 | Superpowers | `/superpowers:brainstorming ` + the text |
 | Rosetta Skills | the text, an empty line, then `MUST USE SKILLS hitl, tech-specs.` |
 
-**4. Answer the agent.** Take every answer from [prompts/answer-sheet.md](./prompts/answer-sheet.md). Answer exactly what was asked; never hint. On v5, never resolve a contradiction the agent did not ask about. Send the method steps as in your method file.
+**4. Answer the agent.** Take every answer from [prompts/answer-sheet.md](./prompts/answer-sheet.md) (it follows our checklist, [prompts/checklist.json](./prompts/checklist.json)), in its order of sources. Answer exactly what was asked; never hint. On v5, never resolve a contradiction the agent did not ask about. Send the method steps as in your method file.
 
-**5. At the first "done" (T1),** after noting the time and `/usage` as in the method file, do these four things in this order:
+**Stop 1: before the agent writes code.** When it has asked its last question and is about to implement (it asks you to approve its plan or spec, or says it will start), send, word for word:
+
+```text
+List the requirements you are about to implement.
+```
+
+Copy its answer into report Appendix B ("Stop 1"). Then reply as your method file says at that point (its approval message), or `Continue` if it asks for nothing. If it starts editing files without stopping, press Esc at its first code edit, send the message, then `Continue`.
+
+**5. At the first "done" (T1),** after noting the time and `/usage` as in the method file, do these five things in this order:
 
 1. **Save the code as it is now.** Read-only; nothing in the repos changes. Set `TAG` to your method's start tag (`baseline-v1`, `rosetta-skills-v1`, `grill-v1` or `superpowers-v1`):
 
@@ -74,33 +91,43 @@ What you do to set up and to run one POC run. A POC run is a normal Saleor small
    done
    ```
 
-2. **Run the 8 "Done when" checks** on the running stack and write pass/fail and the evidence in report section 9. Don't tell the agent and don't fix anything.
-3. **Send the hidden-question check**, exactly as in your method file.
-4. **Copy into report Appendix B, word for word:** the agent's "done" message and its answer to the hidden-question check.
+   `t1/<repo>.diff` holds the changes to tracked files against the start tag (committed or not) and every new file in full; `t1/<repo>.untracked.txt` lists the new files.
+2. **Check the 15 checklist items** on the running stack and write pass/fail and the evidence in report section 9, and `t1_items`. Don't tell the agent and don't fix anything. Until the automated tests exist, these checks are done by hand.
+3. **Stop 2: send**, word for word (the same for every method):
+
+   ```text
+   List anything that is not done or that you did not verify.
+   ```
+
+4. **Send the hidden-question check**, exactly as in your method file.
+5. **Copy into report Appendix B, word for word:** the agent's "done" message, its answer at stop 2 and its answer to the hidden-question check. The scores read them from there; session logs are never committed or used for scoring.
 
 **6. Finish the run as in your method file:** follow-ups, T2, your "Done when" check at T2, the post-implementation prompt, saving the files into `$RUN`.
 
-**7. Fill the report:** the Saleor fields as usual, plus `t1_done_checks_passed`, `t1_done_checks` and `questions_unanticipated`. On v5 also `k1_label` and `k2_label` (one of `asked`, `resolved-explicit`, `silent-latest`, `silent-earliest`, `silent-hybrid`; meanings in [METRICS.md](./METRICS.md) section 3).
+**7. Fill the report:** the Saleor fields as usual, plus `prompt_version`, `repeat` and `t1_items`.
 
 **8. Set the run's status** in EXPERIMENTS.md to `done`.
 
-## After the run: trust judge (3 sessions)
+## After the run: the two judges (3 sessions each)
 
-Only after the report is filled (on v5: after the K1/K2 labels).
+Only after the report is filled.
 
-1. Your assistant prepares `~/ambiguity-judge/<run ID>/` (the judge's input and the `t1/` folder).
-2. Start a **new** session there, paste the prompt from [judge/trust-judge.md](./judge/trust-judge.md), and save the JSON answer to `$RUN/trust-judge-r1.json`. Add `run_id`, `judge_run`, `model`, `date` at the top; change nothing else.
+1. Your assistant writes `judge-input-requirements.md` and `judge-input-claims.md` into `$RUN` and copies them to `~/Desktop/ambiguity-judge/ambiguity/<run ID>/`.
+2. **Ambiguity judge:** start a **new** session there, paste the prompt from [judge/ambiguity-judge.md](./judge/ambiguity-judge.md), and save the JSON answer to `$RUN/judge-requirements-r1.json`. Add `run_id`, `judge_run`, `model`, `claude_code`, `date` at the top; change nothing else.
 
    ```bash
-   (cd ~/ambiguity-judge/<run ID> && CLAUDE_CONFIG_DIR=~/ambiguity-judge/claude claude --model claude-opus-5-5 --dangerously-skip-permissions)
+   (cd ~/Desktop/ambiguity-judge/ambiguity/<run ID> && CLAUDE_CONFIG_DIR=~/Desktop/ambiguity-judge/claude claude --model claude-opus-5-5)
    ```
 
-   Check `/model` first: Opus 5.5, effort xhigh.
-3. Repeat step 2 twice more, in new sessions: `trust-judge-r2.json`, `trust-judge-r3.json`.
+   Check `/model` first: Opus 5.5, effort xhigh. Repeat twice more, in new sessions: `judge-requirements-r2.json`, `-r3.json`.
+3. **Claims judge:** the same, with the prompt from [judge/claims-judge.md](./judge/claims-judge.md): `judge-claims-r1.json` … `-r3.json`.
+4. Your assistant runs the scripts (README.md) and the run's numbers appear in `reports/summary.md`.
 
 ## Rules
 
-- Give the same answer to the same question in every run.
-- Don't look at the other repeat of your run before your report is filled.
-- If the run breaks for an infrastructure reason, reset and rerun it with the same ID; note it in report section 8.
+- The same answer to the same question in every run of every method. A new decision is added to the extra answers of the answer sheet right away.
+- The two stop messages are sent word for word, at the same moment, for every method.
+- Don't look at another run of the same cell before your own run is finished and its report filled.
+- If the run breaks for an infrastructure reason (`infra-fail`), reset and rerun it with the same ID; note it in report section 8.
+- The judges never read `report.md`.
 - Never commit the session log.

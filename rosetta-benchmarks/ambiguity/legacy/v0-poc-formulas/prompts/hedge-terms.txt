@@ -1,0 +1,19 @@
+# Fixed list of hedge terms for "hedge density" (METRICS.md, section 2.4).
+# Matched case-insensitively on word boundaries in the agent's T1 "done" message (report.md Appendix B), longest first.
+# Never change this list after the first scored run.
+i assume
+i'm assuming
+assuming
+i think
+i believe
+probably
+might
+may
+likely
+it seems
+seems
+not sure
+unclear
+should work
+appears to
+if i understand

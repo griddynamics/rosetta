@@ -1,0 +1,4 @@
+Products need something for storage conditions as appropriate (e.g. "Keep refrigerated at 2–8 °C").
+Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
+
+Definition of done: the feature is fully implemented end to end, tests are in place, and everything passes locally.

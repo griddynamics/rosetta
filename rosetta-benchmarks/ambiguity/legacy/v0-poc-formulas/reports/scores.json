@@ -1,0 +1,470 @@
+{
+  "as_full": true,
+  "declared_resolution": {
+    "K1": "earliest",
+    "K2": "earliest"
+  },
+  "runs": [
+    {
+      "run_id": "S-CC-01-v0-r1",
+      "method": "baseline",
+      "prompt_version": "v0",
+      "repeat": "1",
+      "reused": true,
+      "status": "done",
+      "correctness7": 0.571,
+      "correctness": 0.571,
+      "judge_constraint_fidelity": 1.0,
+      "judge_assumption_transparency": 1.0,
+      "judge_calibration": 2.0,
+      "trust7": 0.629,
+      "trust": 0.629,
+      "js_run": null,
+      "judge_runs": 1,
+      "decision_ownership": 0.556,
+      "silent_share": 0.278,
+      "decision_counts": [
+        {
+          "ticket": 0,
+          "user": 10,
+          "stated": 3,
+          "silent": 5
+        }
+      ],
+      "ask_rate": 0.0,
+      "hidden_ask_share": 0.0,
+      "hedges": 0,
+      "hedge_density": 0.0,
+      "t1_claims": null,
+      "confident_wrong": null,
+      "confident_wrong_n": null,
+      "underconfident": null,
+      "first_pass_coverage": 0.571,
+      "unanticipated_share": null,
+      "contradiction_score": null,
+      "k_labels": {},
+      "k_judge": {},
+      "k_scores": {},
+      "trust_alt": {
+        "main": 0.629,
+        "equal": 0.643,
+        "correctness-only": 0.571,
+        "judge-only": 0.667
+      },
+      "trust7_alt": {
+        "main": 0.629,
+        "equal": 0.643,
+        "correctness-only": 0.571,
+        "judge-only": 0.667
+      },
+      "judge_total": "66.2",
+      "operator_score": "3",
+      "operator_merge_ready": "no"
+    },
+    {
+      "run_id": "S-CC-02-v0-r1",
+      "method": "grill-with-docs",
+      "prompt_version": "v0",
+      "repeat": "1",
+      "reused": true,
+      "status": "done",
+      "correctness7": 1.0,
+      "correctness": 1.0,
+      "judge_constraint_fidelity": 0.0,
+      "judge_assumption_transparency": 1.0,
+      "judge_calibration": 1.0,
+      "trust7": 0.6,
+      "trust": 0.6,
+      "js_run": null,
+      "judge_runs": 1,
+      "decision_ownership": 0.571,
+      "silent_share": 0.143,
+      "decision_counts": [
+        {
+          "ticket": 1,
+          "user": 12,
+          "stated": 6,
+          "silent": 3
+        }
+      ],
+      "ask_rate": 14.0,
+      "hidden_ask_share": 0.714,
+      "hedges": 0,
+      "hedge_density": 0.0,
+      "t1_claims": null,
+      "confident_wrong": null,
+      "confident_wrong_n": null,
+      "underconfident": null,
+      "first_pass_coverage": 1.0,
+      "unanticipated_share": null,
+      "contradiction_score": null,
+      "k_labels": {},
+      "k_judge": {},
+      "k_scores": {},
+      "trust_alt": {
+        "main": 0.6,
+        "equal": 0.5,
+        "correctness-only": 1.0,
+        "judge-only": 0.333
+      },
+      "trust7_alt": {
+        "main": 0.6,
+        "equal": 0.5,
+        "correctness-only": 1.0,
+        "judge-only": 0.333
+      },
+      "judge_total": "71.6",
+      "operator_score": "3",
+      "operator_merge_ready": "no"
+    },
+    {
+      "run_id": "S-CC-08-v0-r1",
+      "method": "rosetta-skills",
+      "prompt_version": "v0",
+      "repeat": "1",
+      "reused": true,
+      "status": "done",
+      "correctness7": 0.857,
+      "correctness": 0.857,
+      "judge_constraint_fidelity": 0.0,
+      "judge_assumption_transparency": 1.0,
+      "judge_calibration": 1.0,
+      "trust7": 0.543,
+      "trust": 0.543,
+      "js_run": null,
+      "judge_runs": 1,
+      "decision_ownership": 0.667,
+      "silent_share": 0.111,
+      "decision_counts": [
+        {
+          "ticket": 0,
+          "user": 12,
+          "stated": 4,
+          "silent": 2
+        }
+      ],
+      "ask_rate": 10.0,
+      "hidden_ask_share": 0.429,
+      "hedges": null,
+      "hedge_density": null,
+      "t1_claims": null,
+      "confident_wrong": null,
+      "confident_wrong_n": null,
+      "underconfident": null,
+      "first_pass_coverage": 0.857,
+      "unanticipated_share": null,
+      "contradiction_score": null,
+      "k_labels": {},
+      "k_judge": {},
+      "k_scores": {},
+      "trust_alt": {
+        "main": 0.543,
+        "equal": 0.464,
+        "correctness-only": 0.857,
+        "judge-only": 0.333
+      },
+      "trust7_alt": {
+        "main": 0.543,
+        "equal": 0.464,
+        "correctness-only": 0.857,
+        "judge-only": 0.333
+      },
+      "judge_total": "73.6",
+      "operator_score": "5",
+      "operator_merge_ready": "yes"
+    },
+    {
+      "run_id": "S-CC-03-v0-r1",
+      "method": "superpowers",
+      "prompt_version": "v0",
+      "repeat": "1",
+      "reused": true,
+      "status": "done",
+      "correctness7": 0.857,
+      "correctness": 0.857,
+      "judge_constraint_fidelity": 1.0,
+      "judge_assumption_transparency": 1.0,
+      "judge_calibration": 1.0,
+      "trust7": 0.643,
+      "trust": 0.643,
+      "js_run": null,
+      "judge_runs": 1,
+      "decision_ownership": 0.389,
+      "silent_share": 0.5,
+      "decision_counts": [
+        {
+          "ticket": 1,
+          "user": 7,
+          "stated": 2,
+          "silent": 9
+        }
+      ],
+      "ask_rate": 1.0,
+      "hidden_ask_share": 0.143,
+      "hedges": null,
+      "hedge_density": null,
+      "t1_claims": null,
+      "confident_wrong": null,
+      "confident_wrong_n": null,
+      "underconfident": null,
+      "first_pass_coverage": 0.857,
+      "unanticipated_share": null,
+      "contradiction_score": null,
+      "k_labels": {},
+      "k_judge": {},
+      "k_scores": {},
+      "trust_alt": {
+        "main": 0.643,
+        "equal": 0.589,
+        "correctness-only": 0.857,
+        "judge-only": 0.5
+      },
+      "trust7_alt": {
+        "main": 0.643,
+        "equal": 0.589,
+        "correctness-only": 0.857,
+        "judge-only": 0.5
+      },
+      "judge_total": "73.5",
+      "operator_score": "3",
+      "operator_merge_ready": "no"
+    }
+  ],
+  "cells": [
+    {
+      "method": "baseline",
+      "version": "v0",
+      "runs": [
+        "S-CC-01-v0-r1"
+      ],
+      "n": 1,
+      "older_setup": false,
+      "trust": [
+        0.629
+      ],
+      "trust7": [
+        0.629
+      ],
+      "UT": 0.371,
+      "UT_alt": {
+        "main": 0.371,
+        "equal": 0.357,
+        "correctness-only": 0.429,
+        "judge-only": 0.333
+      },
+      "CA": null,
+      "DO": null,
+      "SC": null,
+      "JS": null,
+      "consistency": null,
+      "U": null,
+      "outcome": null,
+      "U_alt": {},
+      "ask_rate": 0.0,
+      "hedge_density": 0.0,
+      "confident_wrong": null,
+      "underconfident": null,
+      "contradiction_score": null,
+      "first_pass_coverage": 0.571,
+      "unanticipated_share": null,
+      "followups": 3.0,
+      "time_total_min": 50.0,
+      "cost_usd": 3.31,
+      "AS": 0.366
+    },
+    {
+      "method": "rosetta-skills",
+      "version": "v0",
+      "runs": [
+        "S-CC-08-v0-r1"
+      ],
+      "n": 1,
+      "older_setup": false,
+      "trust": [
+        0.543
+      ],
+      "trust7": [
+        0.543
+      ],
+      "UT": 0.457,
+      "UT_alt": {
+        "main": 0.457,
+        "equal": 0.536,
+        "correctness-only": 0.143,
+        "judge-only": 0.667
+      },
+      "CA": null,
+      "DO": null,
+      "SC": null,
+      "JS": null,
+      "consistency": null,
+      "U": null,
+      "outcome": null,
+      "U_alt": {},
+      "ask_rate": 10.0,
+      "hedge_density": null,
+      "confident_wrong": null,
+      "underconfident": null,
+      "contradiction_score": null,
+      "first_pass_coverage": 0.857,
+      "unanticipated_share": null,
+      "followups": 2.0,
+      "time_total_min": 56.0,
+      "cost_usd": 5.64,
+      "AS": 0.366
+    },
+    {
+      "method": "grill-with-docs",
+      "version": "v0",
+      "runs": [
+        "S-CC-02-v0-r1"
+      ],
+      "n": 1,
+      "older_setup": true,
+      "trust": [
+        0.6
+      ],
+      "trust7": [
+        0.6
+      ],
+      "UT": 0.4,
+      "UT_alt": {
+        "main": 0.4,
+        "equal": 0.5,
+        "correctness-only": 0.0,
+        "judge-only": 0.667
+      },
+      "CA": null,
+      "DO": null,
+      "SC": null,
+      "JS": null,
+      "consistency": null,
+      "U": null,
+      "outcome": null,
+      "U_alt": {},
+      "ask_rate": 14.0,
+      "hedge_density": 0.0,
+      "confident_wrong": null,
+      "underconfident": null,
+      "contradiction_score": null,
+      "first_pass_coverage": 1.0,
+      "unanticipated_share": null,
+      "followups": 1.0,
+      "time_total_min": 38.0,
+      "cost_usd": 4.89,
+      "AS": 0.366
+    },
+    {
+      "method": "superpowers",
+      "version": "v0",
+      "runs": [
+        "S-CC-03-v0-r1"
+      ],
+      "n": 1,
+      "older_setup": true,
+      "trust": [
+        0.643
+      ],
+      "trust7": [
+        0.643
+      ],
+      "UT": 0.357,
+      "UT_alt": {
+        "main": 0.357,
+        "equal": 0.411,
+        "correctness-only": 0.143,
+        "judge-only": 0.5
+      },
+      "CA": null,
+      "DO": null,
+      "SC": null,
+      "JS": null,
+      "consistency": null,
+      "U": null,
+      "outcome": null,
+      "U_alt": {},
+      "ask_rate": 1.0,
+      "hedge_density": null,
+      "confident_wrong": null,
+      "underconfident": null,
+      "contradiction_score": null,
+      "first_pass_coverage": 0.857,
+      "unanticipated_share": null,
+      "followups": 1.0,
+      "time_total_min": 41.0,
+      "cost_usd": 8.08,
+      "AS": 0.366
+    }
+  ],
+  "methods": {
+    "baseline": {
+      "ask_calibration": null,
+      "n_ask_points": 1,
+      "flag": null
+    },
+    "rosetta-skills": {
+      "ask_calibration": null,
+      "n_ask_points": 1,
+      "flag": null
+    },
+    "grill-with-docs": {
+      "ask_calibration": null,
+      "n_ask_points": 1,
+      "flag": null
+    },
+    "superpowers": {
+      "ask_calibration": null,
+      "n_ask_points": 1,
+      "flag": null
+    }
+  },
+  "gates": {
+    "U1": null,
+    "U1_detail": {
+      "UT": {
+        "v0": 0.371,
+        "v3": null,
+        "v5": null
+      },
+      "U": {
+        "v3": null,
+        "v5": null
+      }
+    },
+    "U2": null,
+    "U2_detail": {
+      "baseline": {
+        "v3": null,
+        "v5": null
+      },
+      "rosetta-skills": {
+        "v3": null,
+        "v5": null
+      }
+    },
+    "trust7_reported": {
+      "baseline": {
+        "v0": 0.629,
+        "v3": null,
+        "v5": null
+      },
+      "rosetta-skills": {
+        "v0": 0.543,
+        "v3": null,
+        "v5": null
+      }
+    },
+    "validation_consistency_rho": null,
+    "validation_consistency_n": 0,
+    "kappa": null,
+    "kappa_n": 0
+  },
+  "warnings": [
+    "S-CC-01-v0-r1: 1 trust-judge files, 3 expected; judge parts use the median of these, no JS",
+    "S-CC-02-v0-r1: 1 trust-judge files, 3 expected; judge parts use the median of these, no JS",
+    "S-CC-08-v0-r1: 1 trust-judge files, 3 expected; judge parts use the median of these, no JS",
+    "S-CC-08-v0-r1: no T1 \"done\" message in Appendix B: no hedge density, no SC",
+    "S-CC-03-v0-r1: 1 trust-judge files, 3 expected; judge parts use the median of these, no JS",
+    "S-CC-03-v0-r1: no T1 \"done\" message in Appendix B: no hedge density, no SC"
+  ]
+}

@@ -1,0 +1,90 @@
+{
+ "rows": [
+  {
+   "method": "Baseline",
+   "weight_set": "main",
+   "ut": 0.371
+  },
+  {
+   "method": "Baseline",
+   "weight_set": "equal",
+   "ut": 0.357
+  },
+  {
+   "method": "Baseline",
+   "weight_set": "correctness-only",
+   "ut": 0.429
+  },
+  {
+   "method": "Baseline",
+   "weight_set": "judge-only",
+   "ut": 0.333
+  },
+  {
+   "method": "Rosetta Skills",
+   "weight_set": "main",
+   "ut": 0.457
+  },
+  {
+   "method": "Rosetta Skills",
+   "weight_set": "equal",
+   "ut": 0.536
+  },
+  {
+   "method": "Rosetta Skills",
+   "weight_set": "correctness-only",
+   "ut": 0.143
+  },
+  {
+   "method": "Rosetta Skills",
+   "weight_set": "judge-only",
+   "ut": 0.667
+  },
+  {
+   "method": "Grill-with-docs",
+   "weight_set": "main",
+   "ut": 0.4
+  },
+  {
+   "method": "Grill-with-docs",
+   "weight_set": "equal",
+   "ut": 0.5
+  },
+  {
+   "method": "Grill-with-docs",
+   "weight_set": "correctness-only",
+   "ut": 0.0
+  },
+  {
+   "method": "Grill-with-docs",
+   "weight_set": "judge-only",
+   "ut": 0.667
+  },
+  {
+   "method": "Superpowers",
+   "weight_set": "main",
+   "ut": 0.357
+  },
+  {
+   "method": "Superpowers",
+   "weight_set": "equal",
+   "ut": 0.411
+  },
+  {
+   "method": "Superpowers",
+   "weight_set": "correctness-only",
+   "ut": 0.143
+  },
+  {
+   "method": "Superpowers",
+   "weight_set": "judge-only",
+   "ut": 0.5
+  }
+ ],
+ "meta": [
+  {
+   "label": "Generated from",
+   "value": "reports/scores.json (scripts/score_runs.py), reports/as-scores.csv (scripts/as_score.py), by scripts/export_v0_quick.py"
+  }
+ ]
+}

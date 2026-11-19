@@ -1,3 +1,5 @@
-# Raw session logs are never committed, in any form, as in the Saleor benchmark (PLAN.md 5)
+# Raw session logs are never committed, in any form, as in the Saleor benchmark (README.md, "Rules")
 session/
 __pycache__/
+# Reused v0 runs: t1/ holds copies of the Saleor run's final diffs (legacy/v0-poc-formulas/judge/trust-judge.md); the originals are committed in saleor/runs/
+legacy/v0-poc-formulas/runs/*/*/*/v0-r1/t1/

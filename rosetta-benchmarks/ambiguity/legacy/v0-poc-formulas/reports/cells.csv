@@ -1,0 +1,5 @@
+method,version,runs,n,older_setup,trust,trust7,UT,UT_alt,CA,DO,SC,JS,consistency,U,outcome,U_alt,ask_rate,hedge_density,confident_wrong,underconfident,contradiction_score,first_pass_coverage,unanticipated_share,followups,time_total_min,cost_usd,AS
+baseline,v0,S-CC-01-v0-r1,1,False,0.629,0.629,0.371,"{""correctness-only"": 0.429, ""equal"": 0.357, ""judge-only"": 0.333, ""main"": 0.371}",,,,,,,,{},0.0,0.0,,,,0.571,,3.0,50.0,3.31,0.366
+rosetta-skills,v0,S-CC-08-v0-r1,1,False,0.543,0.543,0.457,"{""correctness-only"": 0.143, ""equal"": 0.536, ""judge-only"": 0.667, ""main"": 0.457}",,,,,,,,{},10.0,,,,,0.857,,2.0,56.0,5.64,0.366
+grill-with-docs,v0,S-CC-02-v0-r1,1,True,0.6,0.6,0.4,"{""correctness-only"": 0.0, ""equal"": 0.5, ""judge-only"": 0.667, ""main"": 0.4}",,,,,,,,{},14.0,0.0,,,,1.0,,1.0,38.0,4.89,0.366
+superpowers,v0,S-CC-03-v0-r1,1,True,0.643,0.643,0.357,"{""correctness-only"": 0.143, ""equal"": 0.411, ""judge-only"": 0.5, ""main"": 0.357}",,,,,,,,{},1.0,,,,,0.857,,1.0,41.0,8.08,0.366

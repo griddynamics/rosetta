@@ -1,0 +1,46 @@
+{
+ "rows": [
+  {
+   "version": "v0",
+   "change": "Original prompt",
+   "as": 0.366,
+   "judge_total": 3.0
+  },
+  {
+   "version": "v1",
+   "change": "+ vague goals",
+   "as": 0.517,
+   "judge_total": 5.33
+  },
+  {
+   "version": "v2",
+   "change": "+ no definition of done",
+   "as": 0.602,
+   "judge_total": 6.0
+  },
+  {
+   "version": "v3",
+   "change": "+ no example value",
+   "as": 0.614,
+   "judge_total": 6.33
+  },
+  {
+   "version": "v4",
+   "change": "+ vague context",
+   "as": 0.695,
+   "judge_total": 6.33
+  },
+  {
+   "version": "v5",
+   "change": "+ two contradictions",
+   "as": 0.914,
+   "judge_total": 9.33
+  }
+ ],
+ "meta": [
+  {
+   "label": "Generated from",
+   "value": "reports/scores.json (scripts/score_runs.py), reports/as-scores.csv (scripts/as_score.py), by scripts/export_v0_quick.py"
+  }
+ ]
+}

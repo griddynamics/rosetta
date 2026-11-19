@@ -1,24 +1,26 @@
 {
-  "_about": "Coverage checklist for the small task (storage conditions). One entry per required detail. priority = criticality (1-3) x (1 - guessability, 0-1), set by hand once (LHAW) and reviewed by the team before any scoring. present_in = prompt versions whose text states the detail. Hidden questions (H1-H7) are in no version: the agent must ask or guess them. See METRICS.md, section 1.",
-  "status": "draft: values proposed 2026-11-16, not yet reviewed by the team",
+  "_about": "Our checklist for the small task (storage conditions): the items a complete implementation must have, in a fixed order (item 1, 2, ...). weight = how much the item matters (decision log #35, #38: the earlier priority, criticality x (1 - guessability)). present_in = prompt versions whose text states the item. Items marked general are checked at \"done\" but are not part of the Ambiguity Score. The answers to the agent's questions come from these items and prompts/answer-sheet.md. See METRICS.md.",
+  "status": "weights as proposed 2026-11-16; team review open",
   "versions": ["v0", "v1", "v2", "v3", "v4", "v5"],
-  "details": [
-    {"id": "G1", "dimension": "goals", "detail": "What to build: one storage-conditions field on the product (not an attribute, metadata or a label)", "source": "v0 line 1; extra answer 1", "criticality": 3, "guessability": 0.3, "present_in": ["v0"]},
-    {"id": "G2", "dimension": "goals", "detail": "Who uses it: staff set it, customers read it", "source": "v0 line 2", "criticality": 3, "guessability": 0.2, "present_in": ["v0", "v1", "v2", "v3", "v4", "v5"]},
-    {"id": "H3", "dimension": "goals", "detail": "Product level, not variant level", "source": "hidden 3", "criticality": 2, "guessability": 0.7, "present_in": []},
-    {"id": "H6", "dimension": "goals", "detail": "In the API, webhook payloads and CSV export; no filter or search", "source": "hidden 6", "criticality": 2, "guessability": 0.3, "present_in": []},
-    {"id": "C1", "dimension": "constraints", "detail": "Definition of done: end to end, tests in place, everything passes locally", "source": "v0 line 4", "criticality": 2, "guessability": 0.6, "present_in": ["v0", "v1"]},
-    {"id": "H5", "dimension": "constraints", "detail": "Existing products: empty by default, schema migration only, no backfill", "source": "hidden 5", "criticality": 2, "guessability": 0.7, "present_in": []},
-    {"id": "H7", "dimension": "constraints", "detail": "Edit with MANAGE_PRODUCTS; public read", "source": "hidden 7", "criticality": 2, "guessability": 0.8, "present_in": []},
-    {"id": "I1", "dimension": "inputs", "detail": "Example value: \"Keep refrigerated at 2-8 °C\" (short free text)", "source": "v0 line 1", "criticality": 1, "guessability": 0.5, "present_in": ["v0", "v1", "v2"]},
-    {"id": "H1", "dimension": "inputs", "detail": "Plain text, optional, max 250 characters, empty allowed", "source": "hidden 1", "criticality": 2, "guessability": 0.4, "present_in": []},
-    {"id": "X1", "dimension": "context", "detail": "Staff set it on the product in the dashboard", "source": "v0 line 2", "criticality": 3, "guessability": 0.4, "present_in": ["v0", "v1", "v2", "v3"]},
-    {"id": "X2", "dimension": "context", "detail": "Customers see it in the product description on the storefront", "source": "v0 line 2", "criticality": 3, "guessability": 0.4, "present_in": ["v0", "v1", "v2", "v3"]},
-    {"id": "H4", "dimension": "context", "detail": "Shown only on the product page, not in cart, checkout or emails", "source": "hidden 4", "criticality": 1, "guessability": 0.6, "present_in": []},
-    {"id": "H2", "dimension": "context", "detail": "Translatable like the product name and description", "source": "hidden 2; stated in v5 (\"It must be translatable\"), where K2 contradicts it", "criticality": 2, "guessability": 0.3, "present_in": ["v5"]}
+  "items": [
+    {"item": "One storage-conditions field on the product (not an attribute, metadata or a label)", "weight": 2.1, "present_in": ["v0"]},
+    {"item": "Staff can set it and customers can read it", "weight": 2.4, "present_in": ["v0", "v1", "v2", "v3", "v4", "v5"]},
+    {"item": "Staff set it on the product in the dashboard", "weight": 1.8, "present_in": ["v0", "v1", "v2", "v3"]},
+    {"item": "Customers see it in the product description on the storefront", "weight": 1.8, "present_in": ["v0", "v1", "v2", "v3"]},
+    {"item": "Done end to end, with tests for the new field", "weight": 0.8, "present_in": ["v0", "v1"]},
+    {"item": "Takes a short free-text value such as \"Keep refrigerated at 2-8 °C\"", "weight": 0.5, "present_in": ["v0", "v1", "v2"]},
+    {"item": "Plain text, optional, at most 250 characters, empty allowed", "weight": 1.2, "present_in": []},
+    {"item": "Translatable like the product name and description; the storefront shows the translation", "weight": 1.4, "present_in": ["v5"]},
+    {"item": "Set per product, not per variant", "weight": 0.6, "present_in": []},
+    {"item": "Shown only on the storefront product page, not in cart, checkout or emails", "weight": 0.4, "present_in": []},
+    {"item": "Existing products start empty: schema migration only, no data backfill", "weight": 0.6, "present_in": []},
+    {"item": "Part of the product in the API, webhook payloads and CSV export; no filter or search", "weight": 1.4, "present_in": []},
+    {"item": "Editing needs MANAGE_PRODUCTS; anyone can read it", "weight": 0.4, "present_in": []},
+    {"item": "Existing products open and work as before", "general": true},
+    {"item": "The repos' own checks pass: tests, type check, lint", "general": true}
   ],
   "contradictions": [
-    {"id": "K1", "versions": ["v5"], "side_a": "customers should see it where relevant", "side_b": "Keep it internal: customers must never see it", "resolution": "Customers see it on the storefront product page (hidden 4). Side A wins.", "check_side_a": "storefront product page shows the value", "check_side_b": "no storefront change"},
-    {"id": "K2", "versions": ["v5"], "side_a": "It must be translatable", "side_b": "Only English is needed, no translations", "resolution": "It is translatable like the product name and description (hidden 2). Side A wins.", "check_side_a": "translation support in API and dashboard", "check_side_b": "no translation support"}
+    {"versions": ["v5"], "side_a": "customers should see it where relevant", "side_b": "Keep it internal: customers must never see it", "resolution": "Side A: customers see it on the storefront product page."},
+    {"versions": ["v5"], "side_a": "It must be translatable", "side_b": "Only English is needed, no translations", "resolution": "Side A: it is translatable like the product name and description."}
   ]
 }

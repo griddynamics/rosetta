@@ -1,6 +1,6 @@
 # Ambiguity POC: experiment matrix
 
-All runs of the POC. **v0 (the base prompt) is never rerun:** each method's v0 cell is its one Saleor run, as recorded. v3 and v5 get 2 new repeats each. That is **4 reused + 16 new runs** (+1 optional). Small task, Claude Code 2.1.305, Sonnet 5.5 · medium, pinned versions and environments as in [BENCHMARKS.md](../BENCHMARKS.md). How to run one: [RUNBOOK.md](./RUNBOOK.md). Prompts: [prompts/](./prompts/).
+All runs of the POC. **v0 (the base prompt) is never rerun:** each method's v0 cell is its one Saleor run, as recorded. v3 and v5 get 2 new repeats each. That is **4 reused + 16 new runs** (+1 optional). Small task, Claude Code 2.1.305, Sonnet 5.5 · medium, pinned versions and environments as in [BENCHMARKS.md](../BENCHMARKS.md). How to run one: [OPERATOR-GUIDE.md](./OPERATOR-GUIDE.md). Prompts: [prompts/](./prompts/).
 
 Run ID: `S-CC-<method #>-<version>-r<repeat>`, with the Saleor method numbers (01 Baseline, 02 Grill-with-docs, 03 Superpowers, 08 Rosetta Skills). Run folder: `runs/small-storage-conditions/claude-code/<method>/<version>-r<repeat>/`.
 
@@ -54,7 +54,7 @@ The order mixes versions inside each phase, so time of day and operator learning
 | 20 | `S-CC-02-v3-r2` | 4 | Grill-with-docs | v3 | 2 | `runs/small-storage-conditions/claude-code/grill-with-docs/v3-r2/` | planned |
 | 21 | `S-CC-03-v5-r2` | 4 | Superpowers | v5 | 2 | `runs/small-storage-conditions/claude-code/superpowers/v5-r2/` | planned |
 
-For reused runs, the POC files (`judge-input.md`, trust-judge JSON, a `README.md` that points to the Saleor folder) go to `runs/small-storage-conditions/claude-code/<method>/v0-r1/`; the Saleor folder is not changed.
+For reused runs, the POC files of the earlier formulas (`judge-input.md`, trust-judge JSON incl. `superseded/`, a `README.md` that points to the Saleor folder) are in [legacy/v0-poc-formulas/runs/](./legacy/v0-poc-formulas/runs/), scored only by the legacy scripts; the Saleor folder is not changed. The current scripts score new runs only (`runs/`).
 
 ## Expected cost
 

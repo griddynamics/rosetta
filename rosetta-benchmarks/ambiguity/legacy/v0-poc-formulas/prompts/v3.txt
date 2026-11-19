@@ -1,0 +1,4 @@
+Products need something for storage conditions as appropriate.
+Staff should be able to set it on a product in the dashboard, and customers should see it in the product description on the storefront.
+
+Do whatever is needed.

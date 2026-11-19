@@ -1,0 +1,7 @@
+version,words,vague_terms,coverage_gap,vague_density,contradiction_load,interpretation_spread,judge_runs,judge_total_0_10,as_partial,as
+v0,56,,0.39,0.0,0.0,0.917,3,3,0.136,0.366
+v1,58,as appropriate; something,0.526,0.69,0.0,0.917,3,5.33,0.288,0.517
+v2,43,whatever is needed; as appropriate; something,0.578,1.0,0.0,1.0,3,6,0.352,0.602
+v3,37,whatever is needed; as appropriate; something,0.61,1.0,0.0,1.0,3,6.33,0.364,0.614
+v4,26,whatever is needed; where relevant; as appropriate; something,0.844,1.0,0.0,1.0,3,6.33,0.445,0.695
+v5,44,whatever is needed; where relevant; as appropriate; something,0.753,1.0,1.0,1.0,3,9.33,0.664,0.914
