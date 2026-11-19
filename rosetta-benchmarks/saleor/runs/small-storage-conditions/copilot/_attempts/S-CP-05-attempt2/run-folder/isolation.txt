@@ -1,0 +1,113 @@
+COPILOT_HOME=/Users/rcimendur/saleor-benchmark/envs/aws-ai-dlc/copilot
+GitHub Copilot CLI 1.0.103.
+Run 'copilot update' to check for updates.
+v24.21.0
+autoUpdate=false
+memory=false
+ide.autoConnect=false
+model=gpt-5.6-terra
+effortLevel=medium
+continueOnAutoMode=false
+sandbox.enabled=false
+ignoredSkillsLocations=/Users/rcimendur/.agents/skills
+ignoredSkillsLocations=/Users/rcimendur/.claude/skills
+ignoredSkillsLocations=/Users/rcimendur/.github/skills
+subagents.agents.explore.model=inherit
+subagents.agents.explore.effortLevel=inherit
+subagents.agents.explore.contextTier=inherit
+subagents.agents.task.model=inherit
+subagents.agents.task.effortLevel=inherit
+subagents.agents.task.contextTier=inherit
+subagents.agents.general-purpose.model=inherit
+subagents.agents.general-purpose.effortLevel=inherit
+subagents.agents.general-purpose.contextTier=inherit
+subagents.agents.code-review.model=inherit
+subagents.agents.code-review.effortLevel=inherit
+subagents.agents.code-review.contextTier=inherit
+subagents.agents.research.model=inherit
+subagents.agents.research.effortLevel=inherit
+subagents.agents.research.contextTier=inherit
+subagents.agents.security-review.model=inherit
+subagents.agents.security-review.effortLevel=inherit
+subagents.agents.security-review.contextTier=inherit
+subagents.disabledSubagents=rubber-duck
+subagents: {"agents": {"explore": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "task": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "general-purpose": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "code-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "research": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}, "security-review": {"model": "inherit", "effortLevel": "inherit", "contextTier": "inherit"}}, "disabledSubagents": ["rubber-duck"]}
+No plugins installed.
+
+Use 'copilot plugin install <source>' to install a plugin.
+Built-in plugins:
+  • browser-use (v0.0.4) [disabled]
+Project skills:
+  aidlc-approval-handoff - Run the AI-DLC `approval-handoff` stage (ideation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage approval-handoff --single`: the engine emits one run-stage directive for approval-handoff and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-bugfix - Run the AI-DLC workflow with the bugfix scope baked in — no scope detection. Fix a specific bug. Packaging over `/aidlc --scope bugfix`, which works without this skill.
+  aidlc-build-and-test - Run the AI-DLC `build-and-test` stage (construction phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage build-and-test --single`: the engine emits one run-stage directive for build-and-test and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-ci-pipeline - Run the AI-DLC `ci-pipeline` stage (construction phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage ci-pipeline --single`: the engine emits one run-stage directive for ci-pipeline and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-code-generation - Run the AI-DLC `code-generation` stage (construction phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage code-generation --single`: the engine emits one run-stage directive for code-generation and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-compose - Compose a tailored AI-DLC workflow plan - the adaptive composer reads your task (or a scan report), proposes the EXECUTE/SKIP stage grid that fits, and after your approval authors it as a scope and runs it. A typeable shortcut for `/aidlc compose`; the same one door, forced to the full composer even when a stock scope would match.
+  aidlc-contract-design - Run the AI-DLC `contract-design` stage (inception phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage contract-design --single`: the engine emits one run-stage directive for contract-design and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-delivery-planning - Run the AI-DLC `delivery-planning` stage (inception phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage delivery-planning --single`: the engine emits one run-stage directive for delivery-planning and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-deployment-execution - Run the AI-DLC `deployment-execution` stage (operation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage deployment-execution --single`: the engine emits one run-stage directive for deployment-execution and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-deployment-pipeline - Run the AI-DLC `deployment-pipeline` stage (operation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage deployment-pipeline --single`: the engine emits one run-stage directive for deployment-pipeline and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-domain-design - Run the AI-DLC `domain-design` stage (inception phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage domain-design --single`: the engine emits one run-stage directive for domain-design and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-environment-provisioning - Run the AI-DLC `environment-provisioning` stage (operation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage environment-provisioning --single`: the engine emits one run-stage directive for environment-provisioning and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-express - Run the AI-DLC workflow with the express scope baked in — no scope detection. Lightest run: requirements to deploy, no design pass, no reviewers. Packaging over `/aidlc --scope express`, which works without this skill.
+  aidlc-feasibility - Run the AI-DLC `feasibility` stage (ideation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage feasibility --single`: the engine emits one run-stage directive for feasibility and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-feature - Run the AI-DLC workflow with the feature scope baked in — no scope detection. Full lifecycle for new features, practical depth. Packaging over `/aidlc --scope feature`, which works without this skill.
+  aidlc-feedback-optimization - Run the AI-DLC `feedback-optimization` stage (operation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage feedback-optimization --single`: the engine emits one run-stage directive for feedback-optimization and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-functional-design - Run the AI-DLC `functional-design` stage (construction phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage functional-design --single`: the engine emits one run-stage directive for functional-design and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-incident-response - Run the AI-DLC `incident-response` stage (operation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage incident-response --single`: the engine emits one run-stage directive for incident-response and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-infrastructure-design - Run the AI-DLC `infrastructure-design` stage (construction phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage infrastructure-design --single`: the engine emits one run-stage directive for infrastructure-design and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-init - Start an AI-DLC workflow — run the whole Initialization phase (mint the intent, detect the workspace, build state) in one step, without typing a stage. The engine normally auto-creates the first intent; this is opt-in packaging over that move. Pass `--scope <name>` to seed the initial scope, or a freeform description of what to build.
+  aidlc-intent-capture - Run the AI-DLC `intent-capture` stage (ideation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage intent-capture --single`: the engine emits one run-stage directive for intent-capture and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-knowledge - Index the team's own documents — PDFs, Word files, Markdown, plain text — into a per-space catalog the AI-DLC agents can cite. Wraps `aidlc-knowledge.ts`: onboard, sync, list, show, associate, dissociate, rebind, summarize. Every catalog row is written by the tool under a workspace lock; this skill never edits the catalog by hand and never advances workflow state.
+  aidlc-market-research - Run the AI-DLC `market-research` stage (ideation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage market-research --single`: the engine emits one run-stage directive for market-research and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-mvp - Run the AI-DLC workflow with the mvp scope baked in — no scope detection. Skip operations, ship the core. Packaging over `/aidlc --scope mvp`, which works without this skill.
+  aidlc-nfr-design - Run the AI-DLC `nfr-design` stage (construction phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage nfr-design --single`: the engine emits one run-stage directive for nfr-design and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-nfr-requirements - Run the AI-DLC `nfr-requirements` stage (construction phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage nfr-requirements --single`: the engine emits one run-stage directive for nfr-requirements and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-observability-setup - Run the AI-DLC `observability-setup` stage (operation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage observability-setup --single`: the engine emits one run-stage directive for observability-setup and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-outcomes-pack - Generate a comprehensive handover document at workflow close so the team can own, operate, and continue the system without re-running the workflow. Stage/phase/learning counts come from `aidlc engine runtime summary`; prose comes from the artefacts. Writes OUTCOMES.md but never mutates workflow state or emits audit events.
+  aidlc-performance-validation - Run the AI-DLC `performance-validation` stage (operation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage performance-validation --single`: the engine emits one run-stage directive for performance-validation and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-practices-discovery - Run the AI-DLC `practices-discovery` stage (inception phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage practices-discovery --single`: the engine emits one run-stage directive for practices-discovery and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-refined-mockups - Run the AI-DLC `refined-mockups` stage (inception phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage refined-mockups --single`: the engine emits one run-stage directive for refined-mockups and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-replay - Print a structured session narrative for stakeholders who weren't in the room. Numbers (stage counts, phase rollup, duration) come from `aidlc engine runtime summary`; prose comes from the audit trail and artefacts. Renders to the terminal only — writes no file, never mutates workflow state, never emits audit events.
+  aidlc-requirements-analysis - Run the AI-DLC `requirements-analysis` stage (inception phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage requirements-analysis --single`: the engine emits one run-stage directive for requirements-analysis and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-reverse-engineering - Run the AI-DLC `reverse-engineering` stage (inception phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage reverse-engineering --single`: the engine emits one run-stage directive for reverse-engineering and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-rough-mockups - Run the AI-DLC `rough-mockups` stage (ideation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage rough-mockups --single`: the engine emits one run-stage directive for rough-mockups and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-scope-definition - Run the AI-DLC `scope-definition` stage (ideation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage scope-definition --single`: the engine emits one run-stage directive for scope-definition and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-security-patch - Run the AI-DLC workflow with the security-patch scope baked in — no scope detection. CVE response. Packaging over `/aidlc --scope security-patch`, which works without this skill.
+  aidlc-session-cost - Read-only session cost view. Prints deterministic aggregates for the current workflow — duration, stage outcomes, memory entries, sensor firings, learnings captured — sourced entirely from `aidlc engine runtime summary`. Never mutates workflow state, never emits audit events, never writes files.
+  aidlc-team-formation - Run the AI-DLC `team-formation` stage (ideation phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage team-formation --single`: the engine emits one run-stage directive for team-formation and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-units-generation - Run the AI-DLC `units-generation` stage (inception phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage units-generation --single`: the engine emits one run-stage directive for units-generation and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc-user-stories - Run the AI-DLC `user-stories` stage (inception phase) in isolation, without advancing the main workflow. Packages `/aidlc --stage user-stories --single`: the engine emits one run-stage directive for user-stories and its gate, the conductor runs it, then the single-stage run commits a synthetic-id pair and stops. The main workflow's Current Stage is never touched.
+  aidlc - AI-DLC workflow orchestrator. Start, resume, or manage an AI-driven development lifecycle. Scopes are defined one file per scope under `.aidlc/scopes/`; run `aidlc engine orchestrate help` for the authoritative list and descriptions. Utilities: --status, --doctor, --config [section], --claim, --release, Unit publish/pin/gate/land, --stage, --phase, --scope, --depth, --test-strategy, --guard-policy, --sensors on|off, --learnings on|off, --summary-confirmation on|off, --version, --help, plus the intent and space verbs. Or describe what you want to build and the scope will be auto-detected.
+
+Builtin skills:
+  customize-cloud-agent - Skill for customizing the Copilot cloud agent (formerly known as Copilot coding agent) environment, including copilot-setup-steps.yml configuration, preinstalling tools and dependencies, runners, and settings. Use when the user mentions copilot-setup-steps, copilot setup steps, or wants to configure the cloud agent environment.
+  github-pr-media - Upload an image or video to GitHub's user attachments API and embed it in a pull request description or comment. Use when asked to add screenshots, diagrams, recordings, or other media to a PR or GitHub comment.
+
+Builtin servers:
+  github-mcp-server (http)
+
+Repository instructions:
+  • AGENTS.md
+      from AGENTS.md
+  • team-rules.instructions.md [external]
+      from /Users/rcimendur/Desktop/rosetta_dir/rosetta/rosetta-benchmarks/saleor/copilot-rules/.github/instructions/team-rules.instructions.md
+(no inline hooks)
+sandbox.enabled=false
+copilot-rules: team-rules.instructions.md = baseline rules
+saleor: CLAUDE.md = baseline rules
+saleor: copilot-instructions.md = baseline rules
+saleor: ai-file: .github/copilot-instructions.md
+saleor: ai-file: CLAUDE.md
+saleor-dashboard: CLAUDE.md = baseline rules
+saleor-dashboard: copilot-instructions.md = baseline rules
+saleor-dashboard: ai-file: .github/copilot-instructions.md
+saleor-dashboard: ai-file: CLAUDE.md
+react-storefront: CLAUDE.md = baseline rules
+react-storefront: copilot-instructions.md = baseline rules
+react-storefront: ai-file: .github/copilot-instructions.md
+react-storefront: ai-file: CLAUDE.md
+saleor: aidlc-v1 baseline-v1 
+saleor-dashboard: aidlc-v1 baseline-v1 
+react-storefront: aidlc-v1 baseline-v1 

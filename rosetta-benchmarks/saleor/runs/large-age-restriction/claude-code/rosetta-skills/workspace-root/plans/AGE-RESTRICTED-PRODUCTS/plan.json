@@ -1,0 +1,38 @@
+{
+ "feature": "AGE-RESTRICTED-PRODUCTS",
+ "status": "clients-done-awaiting-G2",
+ "sessions": [
+  {
+   "id": "00",
+   "status": "done"
+  },
+  {
+   "id": "01",
+   "status": "done"
+  },
+  {
+   "id": "02",
+   "status": "done"
+  },
+  {
+   "id": "03",
+   "status": "done"
+  },
+  {
+   "id": "04",
+   "status": "done"
+  },
+  {
+   "id": "05",
+   "status": "done"
+  },
+  {
+   "id": "06",
+   "status": "done"
+  },
+  {
+   "id": "07",
+   "status": "pending"
+  }
+ ]
+}

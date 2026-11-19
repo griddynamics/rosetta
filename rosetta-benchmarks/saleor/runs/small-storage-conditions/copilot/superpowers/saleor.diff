@@ -1,0 +1,1653 @@
+diff --git a/docs/superpowers/plans/2026-10-22-storage-conditions.md b/docs/superpowers/plans/2026-10-22-storage-conditions.md
+new file mode 100644
+index 0000000..eecdfa1
+--- /dev/null
++++ b/docs/superpowers/plans/2026-10-22-storage-conditions.md
+@@ -0,0 +1,389 @@
++# Storage Conditions Implementation Plan
++
++> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
++
++**Goal:** Add an optional, translated, 250-character storage-conditions field that staff manage in Dashboard and shoppers see only on a storefront product detail page.
++
++**Architecture:** Saleor owns canonical and translated persistence plus GraphQL validation. Dashboard consumes the generated schema through its existing product and translation form pipelines. The storefront requests both values in its PDP query, resolves the localized effective value in its product mapper, and displays it in the description accordion only.
++
++**Tech Stack:** Django 5.2, Graphene, pytest, React 18, TypeScript, Apollo GraphQL code generation, Next.js 16, next-intl, Vitest.
++
++**Spec:** `docs/superpowers/specs/2026-10-22-storage-conditions-design.md`
++
++## Global Constraints
++
++- The field is optional plain text with a maximum length of exactly 250 characters.
++- Empty and `null` values are valid; an empty or missing translation falls back to the canonical value.
++- Use Saleor's existing `MANAGE_PRODUCTS` authorization for writes.
++- Render only on the storefront product detail page, in a labeled block after the description, and hide it when no effective value exists.
++- Do not add the field to product listings, cart, checkout, order, or email flows.
++- Reuse existing dependencies, form patterns, GraphQL code generation, error handling, cache invalidation, and localization systems.
++- Add or update automated tests for each changed behavior.
++- Do not create commits; leave all changes in the working tree.
++
++## Review Focus
++
++- **251-character canonical value:** backend mutation test in Task 1 returns a standard validation error and does not persist it.
++- **Explicitly empty translated value:** Task 3 mapper test falls back to the canonical value rather than hiding the block.
++- **Whitespace-only effective value:** Task 3 component test omits the block after mapper normalization.
++- **Dashboard clear action:** Task 2 submission test sends an explicit empty/`null` value instead of dropping the changed field.
++- **Existing PDP without a description:** Task 3 component test renders the storage block without relying on a description accordion item.
++
++---
++
++## File Structure
++
++| Project | Files | Responsibility |
++|---|---|---|
++| `saleor` | `saleor/product/models.py`, migration `saleor/product/migrations/0211_product_storage_conditions.py` | Canonical and translated nullable 250-character fields. |
++| `saleor` | `saleor/graphql/product/mutations/product/product_create.py`, `saleor/graphql/product/types/products.py`, `saleor/graphql/translations/mutations/product_translate.py` | Product input, output, and translation mutation contract. |
++| `saleor` | product mutation/query/translation tests | Regression coverage for storage, schema, translation, validation, and authorization. |
++| `saleor-dashboard` | product fragments, form data/types/components, update variables, translation fragments/mutations/section builder | Staff canonical input and per-locale override through generated GraphQL types. |
++| `react-storefront` | `ProductDetails.graphql`, product contract/mapper, `product-attributes.tsx`, locale messages | PDP data, locale fallback, and conditional labeled presentation. |
++
++### Task 1: Backend Product Fields and GraphQL Contract
++
++**Files:**
++- Create: `saleor/saleor/product/migrations/0211_product_storage_conditions.py`
++- Modify: `saleor/saleor/product/models.py`
++- Modify: `saleor/saleor/graphql/product/mutations/product/product_create.py`
++- Modify: `saleor/saleor/graphql/product/types/products.py`
++- Modify: `saleor/saleor/graphql/translations/mutations/product_translate.py`
++- Test: `saleor/saleor/graphql/product/tests/mutations/test_product_create.py`
++- Test: `saleor/saleor/graphql/product/tests/mutations/test_product_update.py`
++- Test: `saleor/saleor/graphql/product/tests/queries/test_product_query.py`
++- Test: `saleor/saleor/graphql/translations/tests/mutations/test_product_translate.py`
++
++**Interfaces:**
++- Produces `Product.storage_conditions: str | None` and `ProductTranslation.storage_conditions: str | None`, each persisted as `CharField(max_length=250, blank=True, null=True)`.
++- Produces GraphQL `storageConditions: String` on `Product`, `ProductTranslation`, `ProductInput`, and `TranslationInput`.
++- Consumed by Task 2's generated Dashboard `ProductInput`/translation types and Task 3's PDP query.
++
++- [ ] **Step 1: Write failing backend GraphQL tests**
++
++Add mutation/query tests proving:
++
++```python
++assert product.storage_conditions == "Keep refrigerated at 2–8 °C"
++assert result["data"]["product"]["storageConditions"] == "Keep refrigerated at 2–8 °C"
++assert result["data"]["product"]["translation"]["storageConditions"] == "Bei 2–8 °C gekühlt lagern"
++assert error["field"] == "storageConditions"
++```
++
++Cover product create, product update, translation update, a query of both
++canonical and localized fields, `None`/empty input, an unauthorized mutation,
++the 250-character boundary, and a 251-character rejection.
++
++- [ ] **Step 2: Run the focused backend tests to verify they fail**
++
++Run:
++
++```bash
++cd saleor && .venv/bin/pytest \
++  saleor/graphql/product/tests/mutations/test_product_create.py \
++  saleor/graphql/product/tests/mutations/test_product_update.py \
++  saleor/graphql/product/tests/queries/test_product_query.py \
++  saleor/graphql/translations/tests/mutations/test_product_translate.py -q
++```
++
++Expected: failures because the schema does not yet expose `storageConditions`.
++
++- [ ] **Step 3: Add the storage fields and migration**
++
++Add the two nullable `CharField(max_length=250, blank=True, null=True)` model
++fields and create migration `0211_product_storage_conditions.py`. Add
++`storage_conditions = graphene.String(...)` to `ProductInput`, expose the
++model-backed field from the Product and translation output types, and add it to
++the product translation input/mutation following the existing `name` and
++`description` translation pattern. Preserve the existing `MANAGE_PRODUCTS`
++permission and standard mutation error type.
++
++- [ ] **Step 4: Run migration and focused backend tests**
++
++Run:
++
++```bash
++cd saleor && .venv/bin/python manage.py makemigrations --check && .venv/bin/pytest \
++  saleor/graphql/product/tests/mutations/test_product_create.py \
++  saleor/graphql/product/tests/mutations/test_product_update.py \
++  saleor/graphql/product/tests/queries/test_product_query.py \
++  saleor/graphql/translations/tests/mutations/test_product_translate.py -q
++```
++
++Expected: migration check and all targeted tests pass.
++
++- [ ] **Step 5: Regenerate and validate the backend schema**
++
++Run:
++
++```bash
++cd saleor && uv run poe build-schema && .venv/bin/ruff check \
++  saleor/product/models.py \
++  saleor/graphql/product/mutations/product/product_create.py \
++  saleor/graphql/product/types/products.py \
++  saleor/graphql/translations/mutations/product_translate.py
++```
++
++Expected: generated schema includes `storageConditions` on the product inputs
++and outputs; Ruff passes.
++
++- [ ] **Step 6: Review the working tree**
++
++Run `git status --short` in `saleor`; do not commit.
++
++### Task 2: Dashboard Canonical and Translation Editing
++
++**Files:**
++- Modify: `saleor-dashboard/src/fragments/products.ts`
++- Modify: `saleor-dashboard/src/products/components/ProductUpdatePage/types.ts`
++- Modify: `saleor-dashboard/src/products/components/ProductUpdatePage/form.tsx`
++- Modify: `saleor-dashboard/src/products/components/ProductUpdatePage/ProductUpdatePage.tsx`
++- Modify: `saleor-dashboard/src/products/utils/data.ts`
++- Modify: `saleor-dashboard/src/products/views/ProductUpdate/handlers/utils.ts`
++- Modify: `saleor-dashboard/src/products/components/ProductUpdatePage/messages.ts`
++- Modify: `saleor-dashboard/src/fragments/translations.ts`
++- Modify: `saleor-dashboard/src/translations/mutations.ts`
++- Modify: `saleor-dashboard/src/translations/types.ts`
++- Modify: `saleor-dashboard/src/translations/translationSectionBuilders.ts`
++- Modify: `saleor-dashboard/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.tsx`
++- Modify: `saleor-dashboard/src/translations/components/TranslationsProductsPage/create-product-translate-form-payload-event.ts`
++- Modify: generated files under `saleor-dashboard/src/graphql/`
++- Test: `saleor-dashboard/src/products/components/ProductUpdatePage/form.test.ts`
++- Test: `saleor-dashboard/src/products/views/ProductUpdate/handlers/utils.test.ts`
++- Test: `saleor-dashboard/src/translations/components/TranslationsProductsPage/TranslationsProductsPage.test.tsx`
++- Test: `saleor-dashboard/src/translations/components/TranslationsProductsPage/create-product-translate-form-payload-event.test.ts`
++
++**Interfaces:**
++- Consumes Task 1's `ProductInput.storageConditions` and
++  `TranslationInput.storageConditions`.
++- Produces `ProductUpdateFormData.storageConditions?: string` and a
++  `TranslationInputFieldName.storageConditions` short-text field.
++- Produces `ProductUpdateMutation` and `UpdateProductTranslations` documents
++  that include `storageConditions`, used by the Dashboard's generated hooks.
++
++- [ ] **Step 1: Write failing Dashboard form and translation tests**
++
++Add focused tests asserting that:
++
++```ts
++expect(getProductUpdatePageFormData(product, [])).toMatchObject({
++  storageConditions: "Keep refrigerated at 2–8 °C",
++});
++expect(getProductUpdateVariables(product, { storageConditions: "" }, [])).toMatchObject({
++  input: { storageConditions: null },
++});
++expect(section.fields).toContainEqual(
++  expect.objectContaining({ name: "storageConditions", type: TranslationFieldType.SHORT }),
++);
++```
++
++Verify the canonical field initializes and submits, an explicit clear is sent,
++the input has `maxLength={250}`, and the translation page reads and submits
++the localized override.
++
++- [ ] **Step 2: Run the focused Dashboard tests to verify they fail**
++
++Run:
++
++```bash
++cd saleor-dashboard && pnpm test --runInBand \
++  src/products/components/ProductUpdatePage/form.test.ts \
++  src/products/views/ProductUpdate/handlers/utils.test.ts \
++  src/translations/components/TranslationsProductsPage/TranslationsProductsPage.test.tsx \
++  src/translations/components/TranslationsProductsPage/create-product-translate-form-payload-event.test.ts
++```
++
++Expected: failures because Dashboard types, form state, and translation
++sections do not contain the field.
++
++- [ ] **Step 3: Extend Dashboard product editing and translation flows**
++
++Request `storageConditions` in the product and translation fragments and
++mutation responses. Regenerate types from the local backend schema. Add the
++optional 250-character short-text canonical control using the existing product
++details form component and label-message conventions. Thread its changed value
++through form data and `getProductUpdateVariables`, sending `null` for an
++explicit clear.
++
++Add `TranslationInputFieldName.storageConditions`, then add the same
++short-text field to the product translation general section, including the
++translation fragment, mutation response, and app-bridge form payload. Preserve
++the generic translation submission pipeline so the new enum key serializes to
++`TranslationInput.storageConditions`.
++
++- [ ] **Step 4: Regenerate types and run focused Dashboard tests**
++
++Run:
++
++```bash
++cd saleor-dashboard && pnpm run fetch-local-schema && pnpm run generate:main && pnpm test --runInBand \
++  src/products/components/ProductUpdatePage/form.test.ts \
++  src/products/views/ProductUpdate/handlers/utils.test.ts \
++  src/translations/components/TranslationsProductsPage/TranslationsProductsPage.test.tsx \
++  src/translations/components/TranslationsProductsPage/create-product-translate-form-payload-event.test.ts
++```
++
++Expected: generated types compile and all focused tests pass.
++
++- [ ] **Step 5: Run Dashboard static checks**
++
++Run:
++
++```bash
++cd saleor-dashboard && pnpm run check-types:src && pnpm exec eslint \
++  src/fragments/products.ts src/products src/fragments/translations.ts src/translations
++```
++
++Expected: type check and lint pass.
++
++- [ ] **Step 6: Review the working tree**
++
++Run `git status --short` in `saleor-dashboard`; do not commit.
++
++### Task 3: Storefront PDP Query, Locale Fallback, and Display
++
++**Files:**
++- Modify: `react-storefront/src/graphql/ProductDetails.graphql`
++- Modify: generated product operations under `react-storefront/src/gql/`
++- Modify: `react-storefront/src/lib/storefront/contract/product.ts`
++- Modify: `react-storefront/src/lib/storefront/mappers/product.ts`
++- Modify: `react-storefront/src/ui/components/pdp/product-attributes.tsx`
++- Modify: `react-storefront/messages/en.json`
++- Modify: all other locale files in `react-storefront/messages/`
++- Test: `react-storefront/src/lib/storefront/mappers/product.test.ts`
++- Create: `react-storefront/src/ui/components/pdp/product-attributes.test.tsx`
++
++**Interfaces:**
++- Consumes Task 1's PDP GraphQL fields:
++  `product.storageConditions` and
++  `product.translation(languageCode: $languageCode).storageConditions`.
++- Produces `ProductView.storageConditions: string | null`.
++- `ProductAttributes` consumes `storageConditions?: string | null` and renders
++  it only in the description area.
++
++- [ ] **Step 1: Write failing storefront mapper and component tests**
++
++Extend the shell fixture and add assertions:
++
++```ts
++expect(toProductView(product).storageConditions).toBe("Bei 2–8 °C gekühlt lagern");
++expect(toProductView(productWithEmptyTranslation).storageConditions).toBe(
++  "Keep refrigerated at 2–8 °C",
++);
++expect(screen.getByText("Storage conditions")).toBeVisible();
++expect(screen.queryByText("Storage conditions")).not.toBeInTheDocument();
++```
++
++Cover translated override, missing/empty translation fallback, empty and
++whitespace-only effective values, the required label/value block, and a PDP
++with storage conditions but no description.
++
++- [ ] **Step 2: Run the focused storefront tests to verify they fail**
++
++Run:
++
++```bash
++cd react-storefront && pnpm exec vitest run \
++  src/lib/storefront/mappers/product.test.ts \
++  src/ui/components/pdp/product-attributes.test.tsx
++```
++
++Expected: failures because the GraphQL shell, contract, mapper, and component
++do not expose storage conditions.
++
++- [ ] **Step 3: Query and resolve the effective storage condition**
++
++Add `storageConditions` to both the canonical ProductDetails selection and its
++locale translation selection. Regenerate typed documents. Add
++`storageConditions: string | null` to `ProductView` and have
++`toProductView(product)` select a trimmed non-empty translation first, then a
++trimmed non-empty canonical value, otherwise `null`.
++
++- [ ] **Step 4: Render the PDP-only labeled block**
++
++Pass `ProductView.storageConditions` to `ProductAttributes`. In the existing
++description accordion content, render the separate labeled text block after
++the description markup when it is non-empty. Add `pdp.attributes.storageConditions`
++to every locale message file, using the project translation workflow for
++non-English locales. Do not change product cards, cart, checkout, order, or
++email operations.
++
++- [ ] **Step 5: Regenerate and run focused storefront tests**
++
++Run:
++
++```bash
++cd react-storefront && pnpm run generate && pnpm exec vitest run \
++  src/lib/storefront/mappers/product.test.ts \
++  src/ui/components/pdp/product-attributes.test.tsx
++```
++
++Expected: generated query types and all focused tests pass.
++
++- [ ] **Step 6: Run storefront static checks**
++
++Run:
++
++```bash
++cd react-storefront && pnpm run typecheck && pnpm run lint
++```
++
++Expected: type check and lint pass.
++
++- [ ] **Step 7: Review the working tree**
++
++Run `git status --short` in `react-storefront`; do not commit.
++
++### Task 4: End-to-End Contract Validation
++
++**Files:**
++- Modify only if required by a failing validation from Tasks 1–3; otherwise no source changes.
++- Test: the focused backend, Dashboard, and storefront suites from Tasks 1–3.
++
++**Interfaces:**
++- Consumes the generated backend schema, Dashboard generated types, and
++  storefront `ProductDetailsDocument`.
++- Produces evidence that the cross-repository GraphQL contract is consistent
++  and that no prohibited surface queries the new field.
++
++- [ ] **Step 1: Confirm generated contracts expose only approved surfaces**
++
++Inspect the generated Dashboard and storefront operations. Verify the field is
++present in product update, product translation, and `ProductDetails` only; it
++is absent from cart, checkout, order, and product-list documents.
++
++- [ ] **Step 2: Run the combined targeted test suites**
++
++Run:
++
++```bash
++cd saleor && .venv/bin/pytest \
++  saleor/graphql/product/tests/mutations/test_product_create.py \
++  saleor/graphql/product/tests/mutations/test_product_update.py \
++  saleor/graphql/product/tests/queries/test_product_query.py \
++  saleor/graphql/translations/tests/mutations/test_product_translate.py -q
++cd ../saleor-dashboard && pnpm test --runInBand \
++  src/products/components/ProductUpdatePage/form.test.ts \
++  src/products/views/ProductUpdate/handlers/utils.test.ts \
++  src/translations/components/TranslationsProductsPage/TranslationsProductsPage.test.tsx \
++  src/translations/components/TranslationsProductsPage/create-product-translate-form-payload-event.test.ts
++cd ../react-storefront && pnpm exec vitest run \
++  src/lib/storefront/mappers/product.test.ts \
++  src/ui/components/pdp/product-attributes.test.tsx
++```
++
++Expected: all targeted test suites pass.
++
++- [ ] **Step 3: Review all working trees**
++
++Run `git status --short` in `saleor`, `saleor-dashboard`, and
++`react-storefront`. Confirm changes are limited to this feature and remain
++uncommitted.
++
++## Self-Review
++
++- **Spec coverage:** Task 1 covers model, migration, permission, API, and validation; Task 2 covers canonical and localized staff authoring; Task 3 covers localized PDP presentation and prohibited-surface exclusion; Task 4 validates the handoffs. No gaps found.
++- **Step scan:** Each task begins with a failing test, then makes the smallest specified implementation, then runs exact checks. The plan avoids prescriptive method bodies except where fallback semantics require them.
++- **Type consistency:** `storageConditions` is the GraphQL field; `storage_conditions` is the Django field; `storageConditions` is the generated TypeScript field; `ProductView.storageConditions` is the storefront contract. Dashboard translation uses `TranslationInputFieldName.storageConditions`.
++- **Review Focus:** All five risks are assigned to explicit Task 1–3 tests.
++- **Proportion:** Four testable tasks cover the three repositories and their generated interfaces without adding unrelated refactoring or dependencies.
+diff --git a/docs/superpowers/plans/2026-10-23-storage-conditions-outbound-integrations.md b/docs/superpowers/plans/2026-10-23-storage-conditions-outbound-integrations.md
+new file mode 100644
+index 0000000..c4d2d4b
+--- /dev/null
++++ b/docs/superpowers/plans/2026-10-23-storage-conditions-outbound-integrations.md
+@@ -0,0 +1,89 @@
++# Storage Conditions Outbound Integrations Implementation Plan
++
++> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
++
++**Goal:** Include product storage conditions in product webhook payloads and CSV exports, then apply the existing migration to the local development database.
++
++**Architecture:** Reuse the existing first-class `Product.storage_conditions` field. Add it to the product subscription payload selection and to the canonical product CSV export mapping; leave import, filters, search, and non-product webhook payloads unchanged.
++
++**Tech Stack:** Django, Graphene subscription queries, Saleor CSV export, pytest.
++
++**Spec:** `docs/superpowers/specs/2026-10-22-storage-conditions-design.md`
++
++## Global Constraints
++
++- Export the canonical optional plain-text value; empty values produce blank CSV cells.
++- Product webhooks expose the canonical field through product subscription selections.
++- Do not add CSV import, filters, or search behavior.
++- Apply migrations only to the local development database and restart only the local API.
++- Add automated tests; do not add dependencies or commit changes.
++
++## Review Focus
++
++- An empty field must not produce a non-empty CSV value or webhook placeholder.
++- A product webhook subscription must select the field without affecting unrelated event payloads.
++- Export headers and field mappings must stay aligned so rows do not shift.
++- CSV import mappings must remain untouched.
++- No filter or search input must gain the field.
++
++---
++
++### Task 1: Product Webhook Payload
++
++**Files:**
++- Modify: `saleor/saleor/webhook/tests/subscription_webhooks/subscription_queries.py`
++- Modify: the existing product webhook subscription payload definition identified by its product selection.
++- Test: `saleor/saleor/webhook/tests/subscription_webhooks/test_create_deliveries_for_subscription.py`
++- Test: `saleor/saleor/webhook/tests/test_webhook_sample_payloads.py`
++
++**Interfaces:**
++- Consumes `Product.storage_conditions: str | None`.
++- Produces `storageConditions: String` on product webhook subscription payloads.
++
++- [ ] Write a failing subscription payload test selecting `storageConditions` and asserting `"Keep refrigerated at 2–8 °C"` for a populated product and `null` for an empty one.
++- [ ] Run the focused webhook tests and verify the selection fails before implementation.
++- [ ] Add `storageConditions` to the existing product selection used by product webhook subscription payloads; do not alter unrelated event selections.
++- [ ] Run the focused webhook tests and confirm they pass.
++- [ ] Review the working tree; do not commit.
++
++### Task 2: Product CSV Export
++
++**Files:**
++- Modify: `saleor/saleor/csv/utils/__init__.py`
++- Modify: `saleor/saleor/csv/utils/product_headers.py`
++- Modify: `saleor/saleor/csv/utils/products_data.py`
++- Test: `saleor/saleor/csv/tests/export/products_data/test_prepare_headers.py`
++- Test: `saleor/saleor/csv/tests/export/products_data/test_get_products_data.py`
++- Test: `saleor/saleor/csv/tests/export/test_export.py`
++
++**Interfaces:**
++- Consumes `Product.storage_conditions`.
++- Produces a **Storage conditions** export header mapped to `storage_conditions`.
++
++- [ ] Write failing export header and row tests for populated and empty storage conditions.
++- [ ] Run the focused CSV export tests and verify they fail before implementation.
++- [ ] Add the canonical field to `ProductExportFields.HEADERS_TO_FIELDS_MAPPING`, preserving mapping/header order, and ensure `get_products_data` selects it with other direct product fields.
++- [ ] Run focused CSV export tests and confirm populated values export verbatim and empty values export blank.
++- [ ] Confirm import mappings, product filters, and search code remain unchanged; do not commit.
++
++### Task 3: Local Development Migration and Integration Validation
++
++**Files:**
++- Modify: no source files unless validation exposes a defect.
++- Uses existing: `saleor/saleor/product/migrations/0211_product_storage_conditions.py`
++
++**Interfaces:**
++- Consumes Tasks 1–2 and the existing migration.
++- Produces a local database with nullable `storage_conditions` columns and a locally served updated GraphQL schema.
++
++- [ ] Run `cd saleor && .venv/bin/python manage.py migrate` against the configured local development database.
++- [ ] Restart the local Saleor API using the existing local process convention; verify the GraphQL endpoint responds.
++- [ ] Run the combined product mutation, product translation, webhook, and CSV-export targeted test suites.
++- [ ] Confirm no import, filter, or search files changed; review all working trees without committing.
++
++## Self-Review
++
++- **Spec coverage:** Tasks 1 and 2 implement the only new outbound contracts; Task 3 applies and validates the local migration.
++- **Scope:** Import, filtering, and search are explicitly guarded against changes.
++- **Interfaces:** Both integrations consume the existing canonical product field; translations do not enter CSV export.
++- **Review focus:** Every listed failure mode has a focused task test or validation step.
+diff --git a/docs/superpowers/specs/2026-10-22-storage-conditions-design.md b/docs/superpowers/specs/2026-10-22-storage-conditions-design.md
+new file mode 100644
+index 0000000..648fe6a
+--- /dev/null
++++ b/docs/superpowers/specs/2026-10-22-storage-conditions-design.md
+@@ -0,0 +1,135 @@
++# Storage Conditions Product Field Design
++
++## Purpose
++
++Merchants need to record handling instructions such as "Keep refrigerated at
++2–8 °C" for individual products. Staff must manage the value and its
++translations in the Dashboard. Customers must see the effective localized
++value on the storefront product detail page.
++
++The field is optional, plain text, and limited to 250 characters. It is not
++shown in product listings, carts, checkout, or order communications.
++
++It is included in product webhook payloads and product CSV exports. Product
++CSV import, API filters, and search do not support the field.
++
++## Data Model
++
++Add `storage_conditions` to both `Product` and `ProductTranslation`:
++
++- `Product.storage_conditions` is the canonical, nullable text value with a
++  maximum length of 250 characters.
++- `ProductTranslation.storage_conditions` is the nullable, per-language
++  override with the same limit.
++- Empty and `null` values mean no value at that level.
++
++A Django migration adds both columns. Existing products remain valid and
++display no new block until a canonical or translated value is set.
++
++## GraphQL API
++
++Expose the field through Saleor's normal product API:
++
++- Add it to the `Product` type and to `Product.translation(languageCode:)`.
++- Add it to `ProductInput` for product create and update.
++- Add it to the product translation input and translation mutation payload.
++- Enforce the 250-character limit through Django and GraphQL validation.
++- Continue to use the existing `MANAGE_PRODUCTS` permission for writes.
++
++The storefront product query requests the canonical field and the active
++locale's translation. It resolves an effective value by using a non-empty
++translation first and otherwise the canonical value. An empty translation
++therefore clears that locale's override rather than suppressing the canonical
++value.
++
++## Dashboard
++
++Add an optional single-line **Storage conditions** field to the existing
++product details form. It loads and saves the canonical value through the
++standard create/update path.
++
++Add the same optional field to the existing product translation editor. Saving
++stores a locale-specific override; clearing it removes the override so
++storefronts use the canonical value. The Dashboard enforces a 250-character
++input limit and relies on the API as the authoritative validation layer.
++
++The work reuses existing product form state, GraphQL generation, localized
++messages, save notifications, and error handling. It introduces no new
++permissions, routes, or dependencies.
++
++## Storefront
++
++Extend only the product detail query, cached product shell, and product-view
++mapping with the effective storage-condition value. Do not add the field to
++listing, cart, checkout, or order queries.
++
++On the product detail page, render a separate semantic block directly after
++the product description:
++
++- The block uses a code-owned, `next-intl`-translated label: "Storage
++  conditions".
++- The plain-text value is rendered as React text.
++- The block is not rendered when the effective value is empty.
++
++The block belongs in the product description area, rather than the
++specification/attribute section or purchase controls.
++
++## Error Handling and Compatibility
++
++Invalid overlength values follow Saleor's standard mutation validation and
++Dashboard error presentation. Storefronts keep the product page functional if
++the field is absent or empty, as is the case for all existing products.
++
++The product's existing invalidation flow applies after updates. The storefront
++uses the existing product cache profile and product-update invalidation, so a
++changed value becomes visible through the same mechanism as product
++description changes.
++
++## Outbound Integrations
++
++Product webhook subscription payloads expose the canonical
++`storageConditions` field through the product selection. Translation-aware
++subscriptions can select the localized value through the product translation
++selection using the same fallback decisions as other product fields.
++
++Product CSV export adds a **Storage conditions** column containing the
++canonical value. Empty values export as blank cells. CSV import is unchanged:
++it neither accepts nor updates storage conditions.
++
++The field is not added to product filters, search indexes, or search
++documents.
++
++## Local Development Migration
++
++Apply the existing Django migration only to the local development database.
++Restart the local API after migration so the updated GraphQL schema and
++webhook subscription contract are served. No production deployment or data
++backfill is part of this work.
++
++## Testing
++
++Backend coverage verifies:
++
++- Product create and update save canonical values.
++- Product translation writes and reads localized values.
++- Product query and translation query expose the values.
++- The 250-character boundary succeeds and longer input returns validation
++  errors.
++- Empty and `null` values are accepted.
++- Existing product permissions remain enforced.
++
++Dashboard coverage verifies canonical and translation form initialization,
++submission, clearing, input limits, and mutation errors.
++
++Storefront coverage verifies canonical display, locale override, fallback for
++missing or empty translations, and omission of the block when no effective
++value exists. It also verifies that the PDP-only query and mapper changes do
++not add the field to cart, checkout, or order flows.
++
++Webhook coverage verifies product subscription queries can select the
++canonical field. CSV coverage verifies the export header and row value,
++including blank output for empty values. Tests verify that import, filters,
++and search remain unchanged.
++
++Run the smallest relevant backend, Dashboard, and storefront tests, followed
++by each repository's targeted type generation, lint, and type-check commands.
+diff --git a/saleor/csv/tests/export/products_data/test_get_products_data.py b/saleor/csv/tests/export/products_data/test_get_products_data.py
+index 1f56147..04baa31 100644
+--- a/saleor/csv/tests/export/products_data/test_get_products_data.py
++++ b/saleor/csv/tests/export/products_data/test_get_products_data.py
+@@ -29,7 +29,10 @@ def test_get_products_data(product, product_with_image, collection, image, chann
+         ]
+     }
+     product.weight = Weight(kg=5)
+-    product.save(update_fields=["description", "weight"])
++    product.storage_conditions = "Keep refrigerated"
++    product.save(update_fields=["description", "weight", "storage_conditions"])
++    product_with_image.storage_conditions = None
++    product_with_image.save(update_fields=["storage_conditions"])
+ 
+     collection.products.add(product)
+ 
+@@ -79,6 +82,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
+             "id": id,
+             "name": product.name,
+             "description_as_str": json.dumps(product.description),
++            "storage_conditions": product.storage_conditions or "",
+             "category__slug": product.category.slug,
+             "product_type__name": product.product_type.name,
+             "collections__slug": (
+diff --git a/saleor/csv/tests/export/products_data/test_prepare_headers.py b/saleor/csv/tests/export/products_data/test_prepare_headers.py
+index ba1e357..2bfa96b 100644
+--- a/saleor/csv/tests/export/products_data/test_prepare_headers.py
++++ b/saleor/csv/tests/export/products_data/test_prepare_headers.py
+@@ -16,6 +16,7 @@ def test_get_export_fields_and_headers_fields_without_price():
+         "fields": [
+             ProductFieldEnum.COLLECTIONS.value,
+             ProductFieldEnum.DESCRIPTION.value,
++            "storage conditions",
+             ProductFieldEnum.VARIANT_SKU.value,
+         ],
+         "warehoses": [],
+@@ -25,13 +26,20 @@ def test_get_export_fields_and_headers_fields_without_price():
+     export_fields, file_headers = get_product_export_fields_and_headers(export_info)
+ 
+     # then
+-    expected_headers = ["id", "collections", "description", "variant sku"]
++    expected_headers = [
++        "id",
++        "collections",
++        "description",
++        "storage conditions",
++        "variant sku",
++    ]
+ 
+     assert set(export_fields) == {
+         "collections__slug",
+         "id",
+         "variants__sku",
+         "description_as_str",
++        "storage_conditions",
+     }
+     assert file_headers == expected_headers
+ 
+diff --git a/saleor/csv/tests/export/test_export.py b/saleor/csv/tests/export/test_export.py
+index 76d43f1..f28c2a5 100644
+--- a/saleor/csv/tests/export/test_export.py
++++ b/saleor/csv/tests/export/test_export.py
+@@ -1,3 +1,4 @@
++import csv
+ import datetime
+ import json
+ import shutil
+@@ -775,6 +776,66 @@ def test_export_products_in_batches_for_csv(
+     shutil.rmtree(tmpdir)
+ 
+ 
++@patch("saleor.csv.utils.export.BATCH_SIZE", 1)
++def test_export_products_in_batches_for_csv_storage_conditions(
++    product_list,
++    user_export_file,
++    tmpdir,
++    media_root,
++):
++    # given
++    first_product = product_list[0]
++    first_product.storage_conditions = "Keep refrigerated"
++    first_product.save(update_fields=["storage_conditions"])
++
++    second_product = product_list[1]
++    second_product.storage_conditions = None
++    second_product.save(update_fields=["storage_conditions"])
++
++    qs = Product.objects.filter(pk__in=[first_product.pk, second_product.pk]).order_by(
++        "pk"
++    )
++    export_info = {
++        "fields": ["storage conditions", ProductFieldEnum.VARIANT_SKU.value],
++        "warehouses": [],
++        "attributes": [],
++        "channels": [],
++    }
++    export_fields = ["id", "storage_conditions", "variants__sku"]
++    expected_headers = ["id", "storage conditions", "variant sku"]
++
++    table = etl.wrap([expected_headers])
++
++    temp_file = NamedTemporaryFile()
++    etl.tocsv(table, temp_file.name, delimiter=",")
++
++    # when
++    export_products_in_batches(
++        qs,
++        export_info,
++        set(export_fields),
++        export_fields,
++        ",",
++        temp_file,
++        FileTypes.CSV,
++    )
++
++    # then
++    rows = list(csv.reader(temp_file.read().decode().splitlines()))
++    assert rows[0] == expected_headers
++
++    first_product_global_id = graphene.Node.to_global_id("Product", first_product.pk)
++    second_product_global_id = graphene.Node.to_global_id("Product", second_product.pk)
++
++    assert any(
++        row[0] == first_product_global_id and row[1] == "Keep refrigerated"
++        for row in rows[1:]
++    )
++    assert any(row[0] == second_product_global_id and row[1] == "" for row in rows[1:])
++
++    shutil.rmtree(tmpdir)
++
++
+ @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
+ def test_export_products_in_batches_for_xlsx(
+     product_list,
+diff --git a/saleor/csv/utils/__init__.py b/saleor/csv/utils/__init__.py
+index f175d8e..0c87d8d 100644
+--- a/saleor/csv/utils/__init__.py
++++ b/saleor/csv/utils/__init__.py
+@@ -6,6 +6,7 @@ class ProductExportFields:
+             "id": "id",
+             "name": "name",
+             "description": "description_as_str",
++            "storage conditions": "storage_conditions",
+             "category": "category__slug",
+             "product type": "product_type__name",
+             # charge taxes are deprecated, and do not return any value. In case of
+diff --git a/saleor/csv/utils/products_data.py b/saleor/csv/utils/products_data.py
+index 385ff47..2dde0ab 100644
+--- a/saleor/csv/utils/products_data.py
++++ b/saleor/csv/utils/products_data.py
+@@ -87,6 +87,11 @@ def get_products_data(
+ 
+     for product_data in products_data:
+         pk = product_data["id"]
++        if (
++            "storage_conditions" in product_data
++            and product_data["storage_conditions"] is None
++        ):
++            product_data["storage_conditions"] = ""
+         if export_variant_id:
+             variant_pk = product_data.get("variants__id")
+         else:
+diff --git a/saleor/graphql/csv/enums.py b/saleor/graphql/csv/enums.py
+index 4419a8f..d5ef580 100644
+--- a/saleor/graphql/csv/enums.py
++++ b/saleor/graphql/csv/enums.py
+@@ -35,6 +35,7 @@ class ExportScope(BaseEnum):
+ class ProductFieldEnum(BaseEnum):
+     NAME = "name"
+     DESCRIPTION = "description"
++    STORAGE_CONDITIONS = "storage conditions"
+     PRODUCT_TYPE = "product type"
+     CATEGORY = "category"
+     PRODUCT_WEIGHT = "product weight"
+diff --git a/saleor/graphql/csv/tests/mutations/test_export_products.py b/saleor/graphql/csv/tests/mutations/test_export_products.py
+index 2502705..1963133 100644
+--- a/saleor/graphql/csv/tests/mutations/test_export_products.py
++++ b/saleor/graphql/csv/tests/mutations/test_export_products.py
+@@ -268,6 +268,49 @@ def test_export_products_mutation_ids_scope(
+     ).exists()
+ 
+ 
++@patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
++def test_export_products_mutation_ids_scope_with_storage_conditions_field(
++    export_products_mock,
++    staff_api_client,
++    product_list,
++    permission_manage_products,
++    permission_manage_apps,
++):
++    # given
++    query = EXPORT_PRODUCTS_MUTATION
++    product = product_list[0]
++    product_id = graphene.Node.to_global_id("Product", product.pk)
++    variables = {
++        "input": {
++            "scope": ExportScope.IDS.name,
++            "ids": [product_id],
++            "exportInfo": {
++                "fields": [ProductFieldEnum.STORAGE_CONDITIONS.name],
++                "warehouses": [],
++                "attributes": [],
++            },
++            "fileType": FileTypeEnum.CSV.name,
++        }
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        query,
++        variables=variables,
++        permissions=[permission_manage_products, permission_manage_apps],
++    )
++    content = get_graphql_content(response)
++
++    # then
++    data = content["data"]["exportProducts"]
++    assert not data["errors"]
++    assert data["exportFile"]["id"]
++
++    export_products_mock.assert_called_once()
++    call_args = export_products_mock.call_args[0]
++    assert call_args[2] == {"fields": [ProductFieldEnum.STORAGE_CONDITIONS.value]}
++
++
+ @patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
+ def test_export_products_mutation_ids_scope_invalid_object_type(
+     export_products_mock,
+diff --git a/saleor/graphql/product/mutations/product/product_create.py b/saleor/graphql/product/mutations/product/product_create.py
+index 5175a40..498b12c 100644
+--- a/saleor/graphql/product/mutations/product/product_create.py
++++ b/saleor/graphql/product/mutations/product/product_create.py
+@@ -44,6 +44,9 @@ class ProductInput(BaseInputObjectType):
+         name="collections",
+     )
+     description = JSONString(description="Product description." + RICH_CONTENT)
++    storage_conditions = graphene.String(
++        description="Product storage conditions.",
++    )
+     name = graphene.String(description="Product name.")
+     slug = graphene.String(description="Product slug.")
+     tax_class = graphene.ID(
+diff --git a/saleor/graphql/product/tests/mutations/test_product_create.py b/saleor/graphql/product/tests/mutations/test_product_create.py
+index 316b952..a324b79 100644
+--- a/saleor/graphql/product/tests/mutations/test_product_create.py
++++ b/saleor/graphql/product/tests/mutations/test_product_create.py
+@@ -12,6 +12,7 @@ from .....core.taxes import TaxType
+ from .....discount.utils.promotion import get_active_catalogue_promotion_rules
+ from .....graphql.core.enums import AttributeErrorCode
+ from .....graphql.tests.utils import (
++    assert_no_permission,
+     get_graphql_content,
+     get_graphql_content_from_response,
+ )
+@@ -29,6 +30,7 @@ mutation createProduct($input: ProductCreateInput!) {
+         name
+       }
+       description
++      storageConditions
+       chargeTaxes
+       taxClass {
+         id
+@@ -347,6 +349,113 @@ def test_create_second_product_without_slug_and_not_allowed_characters_for_slug_
+     assert data["product"]["slug"] == "--2"
+ 
+ 
++def test_create_product_with_storage_conditions(
++    staff_api_client,
++    product_type,
++    permission_manage_products,
++):
++    # given
++    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
++    storage_conditions = "Keep refrigerated at 2–8 °C"
++    variables = {
++        "input": {
++            "productType": product_type_id,
++            "name": "storage-conditions-product",
++            "storageConditions": storage_conditions,
++        }
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    content = get_graphql_content(response)
++    data = content["data"]["productCreate"]
++    assert data["errors"] == []
++    assert data["product"]["storageConditions"] == storage_conditions
++    product = Product.objects.get(name="storage-conditions-product")
++    assert product.storage_conditions == storage_conditions
++
++
++@pytest.mark.parametrize("storage_conditions", [None, "", "a" * 250])
++def test_create_product_with_nullable_storage_conditions(
++    staff_api_client,
++    product_type,
++    permission_manage_products,
++    storage_conditions,
++):
++    # given
++    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
++    variables = {
++        "input": {
++            "productType": product_type_id,
++            "name": "storage-conditions-nullable",
++            "storageConditions": storage_conditions,
++        }
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    content = get_graphql_content(response)
++    data = content["data"]["productCreate"]
++    assert data["errors"] == []
++    assert data["product"]["storageConditions"] == storage_conditions
++    product = Product.objects.get(name="storage-conditions-nullable")
++    assert product.storage_conditions == storage_conditions
++
++
++def test_create_product_with_too_long_storage_conditions(
++    staff_api_client,
++    product_type,
++    permission_manage_products,
++):
++    # given
++    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
++    variables = {
++        "input": {
++            "productType": product_type_id,
++            "name": "storage-conditions-too-long",
++            "storageConditions": "a" * 251,
++        }
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    content = get_graphql_content(response)
++    data = content["data"]["productCreate"]
++    assert data["product"] is None
++    assert data["errors"][0]["field"] == "storageConditions"
++    assert data["errors"][0]["code"] == ProductErrorCode.INVALID.name
++
++
++def test_create_product_storage_conditions_without_permission(staff_api_client, product_type):
++    # given
++    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
++    variables = {
++        "input": {
++            "productType": product_type_id,
++            "name": "storage-conditions-no-permission",
++            "storageConditions": "Keep refrigerated at 2–8 °C",
++        }
++    }
++
++    # when
++    response = staff_api_client.post_graphql(CREATE_PRODUCT_MUTATION, variables)
++
++    # then
++    assert_no_permission(response)
++
++
+ def test_create_product_use_tax_class_from_product_type(
+     staff_api_client,
+     product_type,
+diff --git a/saleor/graphql/product/tests/mutations/test_product_update.py b/saleor/graphql/product/tests/mutations/test_product_update.py
+index b7c75bd..854a88e 100644
+--- a/saleor/graphql/product/tests/mutations/test_product_update.py
++++ b/saleor/graphql/product/tests/mutations/test_product_update.py
+@@ -40,6 +40,7 @@ mutation updateProduct($productId: ID!, $input: ProductInput!) {
+       }
+       rating
+       description
++      storageConditions
+       chargeTaxes
+       variants {
+         name
+@@ -345,6 +346,85 @@ def test_update_and_search_product_by_description(
+     assert data["product"]["description"] == other_description_json
+ 
+ 
++def test_update_product_storage_conditions(
++    staff_api_client,
++    product,
++    permission_manage_products,
++):
++    # given
++    product_id = graphene.Node.to_global_id("Product", product.pk)
++    storage_conditions = "Keep refrigerated at 2–8 °C"
++    variables = {
++        "productId": product_id,
++        "input": {"storageConditions": storage_conditions},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        MUTATION_UPDATE_PRODUCT, variables, permissions=[permission_manage_products]
++    )
++    content = get_graphql_content(response)
++    data = content["data"]["productUpdate"]
++    product.refresh_from_db()
++
++    # then
++    assert data["errors"] == []
++    assert data["product"]["storageConditions"] == storage_conditions
++    assert product.storage_conditions == storage_conditions
++
++
++@pytest.mark.parametrize("storage_conditions", [None, ""])
++def test_update_product_storage_conditions_nullable_values(
++    staff_api_client, product, permission_manage_products, storage_conditions
++):
++    # given
++    product.storage_conditions = "old-value"
++    product.save(update_fields=["storage_conditions"])
++    product_id = graphene.Node.to_global_id("Product", product.pk)
++    variables = {
++        "productId": product_id,
++        "input": {"storageConditions": storage_conditions},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        MUTATION_UPDATE_PRODUCT, variables, permissions=[permission_manage_products]
++    )
++    content = get_graphql_content(response)
++    data = content["data"]["productUpdate"]
++    product.refresh_from_db()
++
++    # then
++    assert data["errors"] == []
++    assert data["product"]["storageConditions"] == storage_conditions
++    assert product.storage_conditions == storage_conditions
++
++
++def test_update_product_with_too_long_storage_conditions(
++    staff_api_client,
++    product,
++    permission_manage_products,
++):
++    # given
++    product_id = graphene.Node.to_global_id("Product", product.pk)
++    variables = {
++        "productId": product_id,
++        "input": {"storageConditions": "a" * 251},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        MUTATION_UPDATE_PRODUCT, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    content = get_graphql_content(response)
++    data = content["data"]["productUpdate"]
++    assert data["product"] is None
++    assert data["errors"][0]["field"] == "storageConditions"
++    assert data["errors"][0]["code"] == ProductErrorCode.INVALID.name
++
++
+ def test_update_product_only_description(
+     staff_api_client,
+     product,
+diff --git a/saleor/graphql/product/tests/queries/test_product_query.py b/saleor/graphql/product/tests/queries/test_product_query.py
+index 25b6970..a558936 100644
+--- a/saleor/graphql/product/tests/queries/test_product_query.py
++++ b/saleor/graphql/product/tests/queries/test_product_query.py
+@@ -140,6 +140,50 @@ def test_product_query_with_no_description(
+     assert product_data["descriptionJson"] == "{}"
+ 
+ 
++def test_product_query_storage_conditions_and_translation(
++    staff_api_client, permission_manage_products, product, channel_USD
++):
++    # given
++    query = """
++        query ($id: ID!, $channel: String!, $languageCode: LanguageCodeEnum!) {
++            product(id: $id, channel: $channel) {
++                storageConditions
++                translation(languageCode: $languageCode) {
++                    storageConditions
++                }
++            }
++        }
++    """
++    canonical_value = "Keep refrigerated at 2–8 °C"
++    translation_value = "Bei 2–8 °C gekühlt lagern"
++    product.storage_conditions = canonical_value
++    product.save(update_fields=["storage_conditions"])
++    ProductTranslation.objects.create(
++        product=product,
++        language_code=LanguageCodeEnum.DE.value,
++        storage_conditions=translation_value,
++    )
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.pk),
++        "channel": channel_USD.slug,
++        "languageCode": LanguageCodeEnum.DE.name,
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        query,
++        variables=variables,
++        permissions=(permission_manage_products,),
++        check_no_permissions=False,
++    )
++
++    # then
++    content = get_graphql_content(response)
++    product_data = content["data"]["product"]
++    assert product_data["storageConditions"] == canonical_value
++    assert product_data["translation"]["storageConditions"] == translation_value
++
++
+ def test_product_query_by_id_not_available_as_staff_user(
+     staff_api_client, permission_manage_products, product, channel_USD
+ ):
+diff --git a/saleor/graphql/product/types/products.py b/saleor/graphql/product/types/products.py
+index 6e61f82..4569c75 100644
+--- a/saleor/graphql/product/types/products.py
++++ b/saleor/graphql/product/types/products.py
+@@ -944,6 +944,7 @@ class Product(ChannelContextType[models.Product]):
+     seo_description = graphene.String(description="SEO description of the product.")
+     name = graphene.String(required=True, description="SEO description of the product.")
+     description = JSONString(description="Description of the product." + RICH_CONTENT)
++    storage_conditions = graphene.String(description="Storage conditions of the product.")
+     product_type = graphene.Field(
+         lambda: ProductType, required=True, description="Type of the product."
+     )
+diff --git a/saleor/graphql/schema.graphql b/saleor/graphql/schema.graphql
+index 8707ca6..19ca55b 100644
+--- a/saleor/graphql/schema.graphql
++++ b/saleor/graphql/schema.graphql
+@@ -4156,6 +4156,9 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
+   """
+   description: JSONString
+ 
++  """Storage conditions of the product."""
++  storageConditions: String
++
+   """Type of the product."""
+   productType: ProductType!
+ 
+@@ -10567,6 +10570,9 @@ type ProductTranslation implements Node @doc(category: "Products") {
+   """
+   description: JSONString
+ 
++  """Translated storage conditions of the product."""
++  storageConditions: String
++
+   """
+   Translated description of the product.
+   
+@@ -10611,6 +10617,9 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
+   """
+   description: JSONString
+ 
++  """Product's storage conditions to translate."""
++  storageConditions: String
++
+   """
+   Description of the product.
+   
+@@ -25154,6 +25163,9 @@ input TranslationInput {
+   Rich text format. For reference see https://editorjs.io/
+   """
+   description: JSONString
++
++  """Translated storage conditions."""
++  storageConditions: String
+ }
+ 
+ """
+@@ -25477,6 +25489,9 @@ input ProductCreateInput @doc(category: "Products") {
+   """
+   description: JSONString
+ 
++  """Product storage conditions."""
++  storageConditions: String
++
+   """Product name."""
+   name: String
+ 
+@@ -25694,6 +25709,9 @@ input ProductBulkCreateInput @doc(category: "Products") {
+   """
+   description: JSONString
+ 
++  """Product storage conditions."""
++  storageConditions: String
++
+   """Product name."""
+   name: String
+ 
+@@ -25977,6 +25995,9 @@ input ProductInput @doc(category: "Products") {
+   """
+   description: JSONString
+ 
++  """Product storage conditions."""
++  storageConditions: String
++
+   """Product name."""
+   name: String
+ 
+@@ -31785,6 +31806,7 @@ input ExportInfoInput @doc(category: "Products") {
+ enum ProductFieldEnum @doc(category: "Products") {
+   NAME
+   DESCRIPTION
++  STORAGE_CONDITIONS
+   PRODUCT_TYPE
+   CATEGORY
+   PRODUCT_WEIGHT
+diff --git a/saleor/graphql/translations/mutations/category_translate.py b/saleor/graphql/translations/mutations/category_translate.py
+index 4e74296..1cc4a3d 100644
+--- a/saleor/graphql/translations/mutations/category_translate.py
++++ b/saleor/graphql/translations/mutations/category_translate.py
+@@ -29,3 +29,8 @@ class CategoryTranslate(BaseTranslateMutationWithSlug):
+         error_type_class = TranslationError
+         error_type_field = "translation_errors"
+         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
++
++    @classmethod
++    def validate_input(cls, input_data):
++        input_data.pop("storage_conditions", None)
++        super().validate_input(input_data)
+diff --git a/saleor/graphql/translations/mutations/collection_translate.py b/saleor/graphql/translations/mutations/collection_translate.py
+index e3e6c6c..d6249cf 100644
+--- a/saleor/graphql/translations/mutations/collection_translate.py
++++ b/saleor/graphql/translations/mutations/collection_translate.py
+@@ -32,6 +32,11 @@ class CollectionTranslate(BaseTranslateMutationWithSlug):
+         error_type_field = "translation_errors"
+         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
+ 
++    @classmethod
++    def validate_input(cls, input_data):
++        input_data.pop("storage_conditions", None)
++        super().validate_input(input_data)
++
+     @classmethod
+     def perform_mutation(  # type: ignore[override]
+         cls, root, info: ResolveInfo, /, *, id, input, language_code
+diff --git a/saleor/graphql/translations/mutations/product_translate.py b/saleor/graphql/translations/mutations/product_translate.py
+index 3e69651..695bd28 100644
+--- a/saleor/graphql/translations/mutations/product_translate.py
++++ b/saleor/graphql/translations/mutations/product_translate.py
+@@ -22,7 +22,8 @@ class ProductTranslate(BaseTranslateMutationWithSlug):
+             LanguageCodeEnum, required=True, description="Translation language code."
+         )
+         input = TranslationInput(
+-            required=True, description="Fields required to update product translations."
++            required=True,
++            description="Fields required to update product translations.",
+         )
+ 
+     class Meta:
+diff --git a/saleor/graphql/translations/mutations/utils.py b/saleor/graphql/translations/mutations/utils.py
+index e547022..567d035 100644
+--- a/saleor/graphql/translations/mutations/utils.py
++++ b/saleor/graphql/translations/mutations/utils.py
+@@ -198,6 +198,9 @@ class SeoTranslationInput(graphene.InputObjectType):
+ 
+ class TranslationInput(NameTranslationInput, SeoTranslationInput):
+     description = JSONString(description="Translated description." + RICH_CONTENT)
++    storage_conditions = graphene.String(
++        description="Translated storage conditions.",
++    )
+ 
+ 
+ class BaseBulkTranslateMutation(BaseMutation):
+diff --git a/saleor/graphql/translations/tests/mutations/test_category_translate.py b/saleor/graphql/translations/tests/mutations/test_category_translate.py
+index 93485c3..c5e8d9b 100644
+--- a/saleor/graphql/translations/tests/mutations/test_category_translate.py
++++ b/saleor/graphql/translations/tests/mutations/test_category_translate.py
+@@ -110,3 +110,30 @@ def test_category_translate_without_slug(
+     translation = category.translations.first()
+     assert translation.name == name
+     assert translation.slug is None
++
++
++def test_category_translate_ignores_product_storage_conditions_input(
++    staff_api_client,
++    category,
++    permission_manage_translations,
++):
++    # given
++    id = graphene.Node.to_global_id("Category", category.id)
++    variables = {
++        "id": id,
++        "languageCode": LanguageCodeEnum.PL.name,
++        "input": {"storageConditions": "Keep chilled"},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        CATEGORY_TRANSLATE_MUTATION,
++        variables,
++        permissions=[permission_manage_translations],
++    )
++
++    # then
++    content = get_graphql_content(response)
++    data = content["data"]["categoryTranslate"]
++    assert not data["errors"]
++    assert data["category"]["translation"]["name"] is None
+diff --git a/saleor/graphql/translations/tests/mutations/test_collection_translate.py b/saleor/graphql/translations/tests/mutations/test_collection_translate.py
+index 3a2defb..370317d 100644
+--- a/saleor/graphql/translations/tests/mutations/test_collection_translate.py
++++ b/saleor/graphql/translations/tests/mutations/test_collection_translate.py
+@@ -178,3 +178,30 @@ def test_collection_translate_without_slug_change(
+     translation = published_collection.translations.first()
+     assert translation.name == name
+     assert translation.slug == collection_translation_fr.slug
++
++
++def test_collection_translate_ignores_product_storage_conditions_input(
++    staff_api_client,
++    published_collection,
++    permission_manage_translations,
++):
++    # given
++    id = graphene.Node.to_global_id("Collection", published_collection.id)
++    variables = {
++        "id": id,
++        "languageCode": LanguageCodeEnum.PL.name,
++        "input": {"storageConditions": "Keep chilled"},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        COLLECTION_TRANSLATE_MUTATION,
++        variables,
++        permissions=[permission_manage_translations],
++    )
++
++    # then
++    content = get_graphql_content(response)
++    data = content["data"]["collectionTranslate"]
++    assert not data["errors"]
++    assert data["collection"]["translation"]["name"] is None
+diff --git a/saleor/graphql/translations/tests/mutations/test_product_translate.py b/saleor/graphql/translations/tests/mutations/test_product_translate.py
+index 1a5fcce..9e9a7a4 100644
+--- a/saleor/graphql/translations/tests/mutations/test_product_translate.py
++++ b/saleor/graphql/translations/tests/mutations/test_product_translate.py
+@@ -1,4 +1,5 @@
+ import graphene
++import pytest
+ 
+ from .....product.models import ProductTranslation
+ from ....core.enums import LanguageCodeEnum
+@@ -19,6 +20,7 @@ PRODUCT_TRANSLATE_MUTATION = """
+                 translation(languageCode: $languageCode) {
+                     name
+                     slug
++                    storageConditions
+                     language {
+                         code
+                     }
+@@ -75,6 +77,69 @@ def test_product_translate(
+     assert translation.slug == slug
+ 
+ 
++def test_product_translate_storage_conditions(
++    staff_api_client,
++    product,
++    permission_manage_translations,
++):
++    # given
++    id = graphene.Node.to_global_id("Product", product.id)
++    storage_conditions = "Bei 2–8 °C gekühlt lagern"
++    variables = {
++        "id": id,
++        "languageCode": LanguageCodeEnum.DE.name,
++        "input": {"storageConditions": storage_conditions},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_TRANSLATE_MUTATION,
++        variables,
++        permissions=[permission_manage_translations],
++    )
++
++    # then
++    content = get_graphql_content(response)
++    data = content["data"]["productTranslate"]
++    assert not data["errors"]
++    translation_data = data["product"]["translation"]
++    assert translation_data["storageConditions"] == storage_conditions
++    translation = product.translations.get(language_code=LanguageCodeEnum.DE.value)
++    assert translation.storage_conditions == storage_conditions
++
++
++@pytest.mark.parametrize("storage_conditions", [None, "", "a" * 250])
++def test_product_translate_storage_conditions_nullable_values(
++    staff_api_client,
++    product,
++    permission_manage_translations,
++    storage_conditions,
++):
++    # given
++    id = graphene.Node.to_global_id("Product", product.id)
++    variables = {
++        "id": id,
++        "languageCode": LanguageCodeEnum.DE.name,
++        "input": {"storageConditions": storage_conditions},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_TRANSLATE_MUTATION,
++        variables,
++        permissions=[permission_manage_translations],
++    )
++
++    # then
++    content = get_graphql_content(response)
++    data = content["data"]["productTranslate"]
++    assert not data["errors"]
++    translation_data = data["product"]["translation"]
++    assert translation_data["storageConditions"] == storage_conditions
++    translation = product.translations.get(language_code=LanguageCodeEnum.DE.value)
++    assert translation.storage_conditions == storage_conditions
++
++
+ def test_product_translate_without_slug(
+     staff_api_client,
+     product,
+diff --git a/saleor/graphql/translations/types.py b/saleor/graphql/translations/types.py
+index 97f1edd..e051cdf 100644
+--- a/saleor/graphql/translations/types.py
++++ b/saleor/graphql/translations/types.py
+@@ -417,6 +417,9 @@ class ProductTranslation(BaseTranslationType[product_models.ProductTranslation])
+     description = JSONString(
+         description="Translated description of the product." + RICH_CONTENT
+     )
++    storage_conditions = graphene.String(
++        description="Translated storage conditions of the product."
++    )
+     description_json = JSONString(
+         description="Translated description of the product." + RICH_CONTENT,
+         deprecation_reason="Use the `description` field instead.",
+@@ -456,6 +459,9 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
+     description = JSONString(
+         description="Product's description to translate." + RICH_CONTENT
+     )
++    storage_conditions = graphene.String(
++        description="Product's storage conditions to translate."
++    )
+     description_json = JSONString(
+         description="Description of the product." + RICH_CONTENT,
+         deprecation_reason="Use the `description` field instead.",
+diff --git a/saleor/product/migrations/0211_product_storage_conditions.py b/saleor/product/migrations/0211_product_storage_conditions.py
+new file mode 100644
+index 0000000..52595d0
+--- /dev/null
++++ b/saleor/product/migrations/0211_product_storage_conditions.py
+@@ -0,0 +1,22 @@
++# Generated by Django 5.2.17 on 2026-10-22 16:35
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++    dependencies = [
++        ("product", "0210_collection_external_reference_unique_constraint"),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name="product",
++            name="storage_conditions",
++            field=models.CharField(blank=True, max_length=250, null=True),
++        ),
++        migrations.AddField(
++            model_name="producttranslation",
++            name="storage_conditions",
++            field=models.CharField(blank=True, max_length=250, null=True),
++        ),
++    ]
+diff --git a/saleor/product/models.py b/saleor/product/models.py
+index fac5ec1..b62fe98 100644
+--- a/saleor/product/models.py
++++ b/saleor/product/models.py
+@@ -184,6 +184,7 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
+     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
+     description_plaintext = TextField(blank=True)
++    storage_conditions = models.CharField(max_length=250, blank=True, null=True)
+     search_document = models.TextField(blank=True, default="")
+     search_vector = SearchVectorField(blank=True, null=True)
+     search_index_dirty = models.BooleanField(default=False, db_index=True)
+@@ -280,6 +281,7 @@ class ProductTranslation(SeoModelTranslationWithSlug):
+     )
+     name = models.CharField(max_length=250, blank=True, null=True)
+     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
++    storage_conditions = models.CharField(max_length=250, blank=True, null=True)
+ 
+     class Meta:
+         constraints = [
+@@ -306,6 +308,7 @@ class ProductTranslation(SeoModelTranslationWithSlug):
+             {
+                 "name": self.name,
+                 "description": self.description,
++                "storage_conditions": self.storage_conditions,
+             }
+         )
+         return translated_keys
+diff --git a/saleor/webhook/tests/subscription_webhooks/subscription_queries.py b/saleor/webhook/tests/subscription_webhooks/subscription_queries.py
+index 01e353c..7b2ca9a 100644
+--- a/saleor/webhook/tests/subscription_webhooks/subscription_queries.py
++++ b/saleor/webhook/tests/subscription_webhooks/subscription_queries.py
+@@ -1127,6 +1127,7 @@ PRODUCT_UPDATED = """
+         ...on ProductUpdated{
+           product{
+             id
++            storageConditions
+           }
+         }
+       }
+@@ -1139,6 +1140,7 @@ PRODUCT_CREATED = """
+         ...on ProductCreated{
+           product{
+             id
++            storageConditions
+           }
+         }
+       }
+diff --git a/saleor/webhook/tests/subscription_webhooks/test_create_deliveries_for_subscription.py b/saleor/webhook/tests/subscription_webhooks/test_create_deliveries_for_subscription.py
+index fe72b84..6358991 100644
+--- a/saleor/webhook/tests/subscription_webhooks/test_create_deliveries_for_subscription.py
++++ b/saleor/webhook/tests/subscription_webhooks/test_create_deliveries_for_subscription.py
+@@ -1337,7 +1337,9 @@ def test_product_created(product, subscription_product_created_webhook):
+     event_type = WebhookEventAsyncType.PRODUCT_CREATED
+     product_id = graphene.Node.to_global_id("Product", product.id)
+     deliveries = create_deliveries_for_subscriptions(event_type, product, webhooks)
+-    expected_payload = json.dumps({"product": {"id": product_id}})
++    expected_payload = json.dumps(
++        {"product": {"id": product_id, "storageConditions": None}}
++    )
+ 
+     assert deliveries[0].payload.get_payload() == expected_payload
+     assert len(deliveries) == len(webhooks)
+@@ -1349,7 +1351,9 @@ def test_product_updated(product, subscription_product_updated_webhook):
+     event_type = WebhookEventAsyncType.PRODUCT_UPDATED
+     product_id = graphene.Node.to_global_id("Product", product.id)
+     deliveries = create_deliveries_for_subscriptions(event_type, product, webhooks)
+-    expected_payload = json.dumps({"product": {"id": product_id}})
++    expected_payload = json.dumps(
++        {"product": {"id": product_id, "storageConditions": None}}
++    )
+ 
+     assert deliveries[0].payload.get_payload() == expected_payload
+     assert len(deliveries) == len(webhooks)
+@@ -2773,6 +2777,34 @@ def test_product_created_multiple_events_in_subscription(
+     assert deliveries[0].webhook == webhooks[0]
+ 
+ 
++def test_product_webhook_payload_includes_storage_conditions(
++    product, product_list, subscription_product_created_webhook
++):
++    # given
++    webhooks = [subscription_product_created_webhook]
++    event_type = WebhookEventAsyncType.PRODUCT_CREATED
++    product.storage_conditions = "Keep refrigerated at 2–8 °C"
++    product.save(update_fields=["storage_conditions"])
++    empty_storage_conditions_product = product_list[0]
++
++    # when
++    populated_delivery = create_deliveries_for_subscriptions(
++        event_type, product, webhooks
++    )[0]
++    empty_delivery = create_deliveries_for_subscriptions(
++        event_type, empty_storage_conditions_product, webhooks
++    )[0]
++
++    # then
++    assert json.loads(populated_delivery.payload.get_payload())["product"][
++        "storageConditions"
++    ] == "Keep refrigerated at 2–8 °C"
++    assert (
++        json.loads(empty_delivery.payload.get_payload())["product"]["storageConditions"]
++        is None
++    )
++
++
+ def test_warehouse_created(warehouse, subscription_warehouse_created_webhook):
+     # given
+     webhooks = [subscription_warehouse_created_webhook]
+diff --git a/saleor/webhook/transport/asynchronous/tests/test_create_deliveries_for_subscriptions.py b/saleor/webhook/transport/asynchronous/tests/test_create_deliveries_for_subscriptions.py
+index 8bcdf7a..0ba5b52 100644
+--- a/saleor/webhook/transport/asynchronous/tests/test_create_deliveries_for_subscriptions.py
++++ b/saleor/webhook/transport/asynchronous/tests/test_create_deliveries_for_subscriptions.py
+@@ -182,7 +182,8 @@ def test_create_deliveries_for_multiple_subscription_objects(
+         assert delivery.event_type == event_type
+         assert json.loads(delivery.payload.get_payload()) == {
+             "product": {
+-                "id": graphene.Node.to_global_id("Product", product_list[index].pk)
++                "id": graphene.Node.to_global_id("Product", product_list[index].pk),
++                "storageConditions": None,
+             }
+         }
+ 
+@@ -209,6 +210,7 @@ def test_create_deliveries_for_multiple_subscription_objects_when_more_objs_than
+         assert delivery.event_type == event_type
+         assert json.loads(delivery.payload.get_payload()) == {
+             "product": {
+-                "id": graphene.Node.to_global_id("Product", product_list[index].pk)
++                "id": graphene.Node.to_global_id("Product", product_list[index].pk),
++                "storageConditions": None,
+             }
+         }

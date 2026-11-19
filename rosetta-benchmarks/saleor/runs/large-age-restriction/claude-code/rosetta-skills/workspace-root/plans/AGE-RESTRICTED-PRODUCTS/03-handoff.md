@@ -1,0 +1,7 @@
+# 03 handoff — core enforcement (DONE, bypass-reviewed)
+- E1 hooks: checkoutCreate, checkoutLinesAdd(+Update inherits), checkoutCreateFromOrder. E2 first statement in complete_checkout() + create_order_from_checkout() and again in-lock before assign_checkout_user; domain raises Django ValidationError field "lines". E3: orderLinesCreate, orderLineUpdate, draftOrderCreate, draftOrderComplete (before update_user_fields).
+- Completion-path inventory: checkoutComplete, orderCreateFromCheckout, Stripe webhook, automatic completion task all go through complete_checkout/create_order_from_checkout (covered). NOT covered (accepted): orderBulkCreate (app import of placed orders), order/actions.py return/replace copies, draftOrderUpdate user relink.
+- Fixed after review: in-lock re-check reads fresh SiteSettings (Site cache stale); blocked completion no longer leaves checkout locked 3 min (completing_started_at).
+- D15 DEVIATION (decision taken by agent, needs user confirmation): existing draftOrderCreate/Update store a userEmail-matching account as order.user → such a draft IS linked and age-checked (blocked at create if customer ineligible). D15 holds only for stored user=NULL drafts. Option B (stop auto-link) rejected: changes core draft behavior.
+- RISK: Stripe webhook age-blocked completion after charge only logs, no refund (pre-existing behavior for any ValidationError).
+- Query counts +1 (Product query) in 6 benchmark tests; app checkoutCreate with email only + restricted line → LOGIN_REQUIRED (D14).
