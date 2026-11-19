@@ -76,7 +76,7 @@ fork/clone → branch → edit → validate → push → PR
 
 6. **Open a PR.**
    - Go through the checklist in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md)
-   - GitHub pre-fills the template only in the web UI. From the CLI use `gh pr create --template .github/PULL_REQUEST_TEMPLATE.md`. An AI agent must base the description on the template and fill in every section (for example via `--body-file`)
+   - GitHub pre-fills the template only in the web UI. From the CLI use `gh pr create --template .github/PULL_REQUEST_TEMPLATE.md`.
    - Prompting: include a prompt brief, before/after examples, and validation evidence
    - Coding: include tests and validation changes
    - All: update documentation, including web site
