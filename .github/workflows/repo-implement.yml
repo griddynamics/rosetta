@@ -27,9 +27,6 @@ name: Rosetta Story Implementer
 #     gh/git operations in this workflow.
 
 on:
-  # Automatic starts (schedule, issues) are DISABLED: board issues and comments may come
-  # from malicious actors, so an unattended run could act on injected instructions.
-  # Start manually (workflow_dispatch) after reviewing the board.
   #schedule:
   #  - cron: '30 */3 * * *'
   #  - cron: '0 3 * * *'

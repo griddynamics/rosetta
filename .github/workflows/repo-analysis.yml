@@ -21,9 +21,6 @@ name: Rosetta Repo Analysis
 #     so this PAT is used for all gh operations in this workflow.
 
 on:
-  # Automatic starts (schedule, issues) are DISABLED: board issues and comments may come
-  # from malicious actors, so an unattended run could act on injected instructions.
-  # Start manually (workflow_dispatch) after reviewing the board.
   #schedule:
   #  - cron: '0 23 * * *'
   workflow_dispatch:

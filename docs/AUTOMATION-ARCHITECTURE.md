@@ -679,13 +679,6 @@ surface that bypasses the board and diverges from what the board shows.
 
 ## Triggers
 
-**Currently disabled: manual start only.** In `repo-analysis`, `repo-plan` and
-`repo-implement`, the `schedule:` and `issues:` triggers are commented out; only
-`workflow_dispatch` remains. Board issues and comments may come from malicious actors,
-so an unattended run could act on injected instructions. A person reviews the board,
-then starts the run. To re-enable, uncomment the triggers. The text below describes the
-design when they are on.
-
 Both workflows run on `on: issues:` — every activity type, unfiltered — plus a cron
 backstop.
 
