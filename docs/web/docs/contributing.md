@@ -8,7 +8,7 @@ permalink: /docs/contributing/
 
 **Who is this for?** First-time and returning contributors.
 
-**When should I read this?** Before your first PR. For every PR after, use the [pull request template](https://github.com/griddynamics/rosetta/blob/main/.github/PULL_REQUEST_TEMPLATE.md).
+**When should I read this?** Before your first PR.
 
 ---
 

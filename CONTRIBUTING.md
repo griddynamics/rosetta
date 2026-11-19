@@ -1,7 +1,7 @@
 # Contributing to Rosetta
 
 **Who is this for?** First-time and returning contributors.
-**When should I read this?** Before your first PR. For every PR after, use the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
+**When should I read this?** Before your first PR.
 
 ---
 
@@ -54,7 +54,7 @@ AI help is welcome. These norms apply:
 
 The checklist lives in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). Go through it before requesting review.
 
-GitHub pre-fills the template only for PRs opened in the web UI. If you open a PR from the CLI, run `gh pr create --template .github/PULL_REQUEST_TEMPLATE.md`. If an AI agent opens it, tell the agent to base the description on the template and fill in every section, for example by passing the filled text with `--body-file`.
+GitHub pre-fills the template only for PRs opened in the web UI. If you open a PR from the CLI, run `gh pr create --template .github/PULL_REQUEST_TEMPLATE.md`.
 
 ## Community
 
