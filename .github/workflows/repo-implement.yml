@@ -27,14 +27,17 @@ name: Rosetta Story Implementer
 #     gh/git operations in this workflow.
 
 on:
-  schedule:
-    - cron: '30 */3 * * *'
-    - cron: '0 3 * * *'
+  # Automatic starts (schedule, issues) are DISABLED: board issues and comments may come
+  # from malicious actors, so an unattended run could act on injected instructions.
+  # Start manually (workflow_dispatch) after reviewing the board.
+  #schedule:
+  #  - cron: '30 */3 * * *'
+  #  - cron: '0 3 * * *'
   # Every issue activity type, unfiltered. The payload is ignored: the event is only a
   # doorbell and the job loads the whole board, so this also picks up a card the user
   # moved to Scheduled — board Status changes raise only the organization-scoped
   # projects_v2_item, which a repository workflow cannot subscribe to.
-  issues:
+  #issues:
   workflow_dispatch:
     inputs:
       agent:

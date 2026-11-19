@@ -27,13 +27,16 @@ name: Rosetta Story Planner
 #     gh/git operations in this workflow.
 
 on:
-  schedule:
-    - cron: '0 */2 * * *'
-    - cron: '0 1 * * *'
+  # Automatic starts (schedule, issues) are DISABLED: board issues and comments may come
+  # from malicious actors, so an unattended run could act on injected instructions.
+  # Start manually (workflow_dispatch) after reviewing the board.
+  #schedule:
+  #  - cron: '0 */2 * * *'
+  #  - cron: '0 1 * * *'
   # Every issue activity type, unfiltered. The payload is ignored: the event is only a
   # doorbell and the job loads the whole board, so a dropped or irrelevant event costs
   # one fast load that exits with has_work=false, and nothing is ever stranded.
-  issues:
+  #issues:
   workflow_dispatch:
     inputs:
       agent:
