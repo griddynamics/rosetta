@@ -83,7 +83,7 @@ Rosetta is an open-source governance and context layer for AI coding agents. The
   <a href="/rosetta/docs/contributing/" class="docs-index-card">
     <p class="docs-index-card-cat">Development</p>
     <p class="docs-index-card-title">Contributing</p>
-    <p class="docs-index-card-desc">PR workflow, prompt changes, and the pull request checklist.</p>
+    <p class="docs-index-card-desc">PR workflow, prompt changes, and AI-assisted contribution norms.</p>
   </a>
   <a href="/rosetta/docs/review/" class="docs-index-card">
     <p class="docs-index-card-cat">Development</p>

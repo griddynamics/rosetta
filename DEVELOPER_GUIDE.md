@@ -75,7 +75,8 @@ fork/clone → branch → edit → validate → push → PR
    - Test end-to-end through the HTTP MCP
 
 6. **Open a PR.**
-   - Follow the [Pull Request Checklist](CONTRIBUTING.md#pull-request-checklist)
+   - Go through the checklist in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md)
+   - GitHub pre-fills the template only in the web UI. From the CLI use `gh pr create --template .github/PULL_REQUEST_TEMPLATE.md`.
    - Prompting: include a prompt brief, before/after examples, and validation evidence
    - Coding: include tests and validation changes
    - All: update documentation, including web site
@@ -446,7 +447,7 @@ The short version:
 - **PLUGINS** — install as a plugin (recommended)
 - **MCPs** — install via MCP (optional, secondary)
 - **OVERVIEW** — mental model, terminology
-- **CONTRIBUTING** — PR workflow, checklist
+- **CONTRIBUTING** — PR workflow and contribution rules
 - **DEVELOPER_GUIDE** (this doc) — repo navigation, local dev
 - **docs/CONTEXT** — business context, target state (docs/MCP-CONTEXT for the self-hosted MCP business case)
 - **docs/ARCHITECTURE** — system structure, components, data flow (docs/MCP-ARCHITECTURE for MCP server internals)

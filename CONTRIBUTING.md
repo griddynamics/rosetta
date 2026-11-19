@@ -1,7 +1,7 @@
 # Contributing to Rosetta
 
 **Who is this for?** First-time and returning contributors.
-**When should I read this?** Before your first PR, and as a checklist for every PR after.
+**When should I read this?** Before your first PR.
 
 ---
 
@@ -52,15 +52,9 @@ AI help is welcome. These norms apply:
 
 ## Pull Request Checklist
 
-Before requesting review:
+The checklist lives in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). Go through it before requesting review.
 
-- [ ] Scope is narrow and explicit
-- [ ] No duplicate rules or ambiguous wording introduced
-- [ ] Safety, privacy, and approval checkpoints preserved
-- [ ] Prompt changes include a brief, examples, and validation evidence
-- [ ] Architecture changes update [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) in the same changeset
-- [ ] Local validation passes (build, lint, relevant checks)
-- [ ] PR description explains *why*, not just *what*
+GitHub pre-fills the template only for PRs opened in the web UI. If you open a PR from the CLI, run `gh pr create --template .github/PULL_REQUEST_TEMPLATE.md`.
 
 ## Community
 
