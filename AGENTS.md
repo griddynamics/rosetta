@@ -15,3 +15,5 @@ How it works:
 3. User uses `/` or `$` commands to do his work on his repo with any or all our instructions (skills, subagents, workflows, rules).
 
 Bump versions for changes in `src` folder if not bumped already, prefer patch increase (`scripts/bump_versions.sh`).
+
+Opening a PR: base the description on `.github/PULL_REQUEST_TEMPLATE.md` and fill in every section. GitHub pre-fills it only in the web UI, so with `gh pr create` pass the filled text via `--body-file`.

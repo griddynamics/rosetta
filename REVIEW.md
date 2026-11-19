@@ -16,7 +16,7 @@ Every PR, regardless of type:
 - **No secrets or credentials.** No PII, API keys, passwords, tokens in code or config.
 - **Dangerous actions assessed.** Irreversible, destructive, or high-blast-radius changes require explicit justification.
 
-For the full author checklist, see [CONTRIBUTING.md — Pull Request Checklist](CONTRIBUTING.md#pull-request-checklist).
+For the full author checklist, see the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
 
 ---
 
@@ -130,7 +130,7 @@ When a PR is generated or co-authored by AI:
 
 ## Related Docs
 
-- [Contributing](CONTRIBUTING.md) — PR workflow, author checklist
+- [Contributing](CONTRIBUTING.md) — PR workflow and contribution rules
 - [Developer Guide](DEVELOPER_GUIDE.md) — repo navigation, where to change what
 - [Architecture](docs/ARCHITECTURE.md) — system structure, components, data flow
 - [Overview](OVERVIEW.md) — terminology, key concepts

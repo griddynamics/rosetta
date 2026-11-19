@@ -23,7 +23,7 @@ Every PR, regardless of type:
 - **No secrets or credentials.** No PII, API keys, passwords, tokens in code or config.
 - **Dangerous actions assessed.** Irreversible, destructive, or high-blast-radius changes require explicit justification.
 
-For the full author checklist, see [Contributing — Pull Request Checklist](/rosetta/docs/contributing/#pull-request-checklist).
+For the full author checklist, see the [pull request template](https://github.com/griddynamics/rosetta/blob/main/.github/PULL_REQUEST_TEMPLATE.md).
 
 ---
 
@@ -136,7 +136,7 @@ When a PR is generated or co-authored by AI:
 
 ## Related Docs
 
-- [Contributing](/rosetta/docs/contributing/) — PR workflow, author checklist
+- [Contributing](/rosetta/docs/contributing/) — PR workflow and contribution rules
 - [Developer Guide](/rosetta/docs/developer-guide/) — repo navigation, where to change what
 - [Architecture](/rosetta/docs/architecture/) — system structure, components, data flow
 - [Overview](/rosetta/docs/overview/) — terminology, key concepts

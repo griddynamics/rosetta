@@ -6,7 +6,7 @@ permalink: /contribute/
 
 <section class="hero">
   <h1>How To Contribute</h1>
-  <p>First-time or returning contributor. Read this before your first PR, use as a checklist for every PR after.</p>
+  <p>First-time or returning contributor. Read this before your first PR. For every PR after, use the <a href="https://github.com/griddynamics/rosetta/blob/main/.github/PULL_REQUEST_TEMPLATE.md">pull request template</a>.</p>
 </section>
 
 <!-- ===== BEFORE YOU START ===== -->

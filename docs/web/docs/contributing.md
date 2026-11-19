@@ -8,7 +8,7 @@ permalink: /docs/contributing/
 
 **Who is this for?** First-time and returning contributors.
 
-**When should I read this?** Before your first PR, and as a checklist for every PR after.
+**When should I read this?** Before your first PR. For every PR after, use the [pull request template](https://github.com/griddynamics/rosetta/blob/main/.github/PULL_REQUEST_TEMPLATE.md).
 
 ---
 
@@ -59,7 +59,9 @@ AI help is welcome. These norms apply:
 
 ## Pull Request Checklist
 
-The checklist lives in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md) that pre-fills every new PR. Go through it before requesting review.
+The checklist lives in the [pull request template](https://github.com/griddynamics/rosetta/blob/main/.github/PULL_REQUEST_TEMPLATE.md). Go through it before requesting review.
+
+GitHub pre-fills the template only for PRs opened in the web UI. If you open a PR from the CLI, run `gh pr create --template .github/PULL_REQUEST_TEMPLATE.md`. If an AI agent opens it, tell the agent to base the description on the template and fill in every section, for example by passing the filled text with `--body-file`.
 
 ## Community
 

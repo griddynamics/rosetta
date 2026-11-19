@@ -175,8 +175,8 @@ Practice guides for high-stakes work. Distinct from workflow pages (how Rosetta 
 - **Profile:** Contributor.
 - **Audience:** a first-time contributor.
 - **Answers:** "How do I make a correct contribution, fast?"
-- **Owns:** what's welcome, the workflow, prompt-change rules, PR checklist, legal/CLA.
-- **Structure:** what's welcome → contribution workflow → prompt-change rules → PR checklist → legal/CLA.
+- **Owns:** what's welcome, the workflow, prompt-change rules, pointer to the PR template (which holds the PR checklist), legal/CLA.
+- **Structure:** what's welcome → contribution workflow → prompt-change rules → pointer to the PR template → legal/CLA.
 - **Excludes:** local build/run detail (→ DEVELOPER_GUIDE), review criteria (→ REVIEW), product concepts (→ OVERVIEW).
 - **Sources:** CI/PR workflow, CODEOWNERS, the CLA, prompt-change rules in REVIEW.
 
