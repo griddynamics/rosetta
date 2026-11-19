@@ -55,19 +55,23 @@ For the lightweight plugin, install `rosetta-light@rosetta` instead.
 
 #### Marketplace
 
+Open Cursor Settings -> Click Customize -> Click Plugins -> Click "+ Add" -> Select "From Github Repository" -> Enter "https://github.com/griddynamics/rosetta" and select Scope (User - will be installed once in profile and used for all repos, Team - will be installed for the entire team) -> Import -> You endup in "Browse Marketplace" mode of "Customize" page -> Scroll to find "Rosetta" plugin.
+
+**ALTERNATIVE**: Plugins installed in Claude Code are automatically available in Cursor.
+
+> [!WARNING]
+> Cursor automatically detects and uses Claude Code plugins. To avoid duplicate tools, commands, and context, do not install the same plugin separately in both Claude Code and Cursor. If you don't want Cursor to pick up Claude Code plugins at all, go to **Cursor Settings → Rules, Skills, Subagents** and turn off **Include third-party Plugins, Skills, and other configs**.
+
+#### Corporate Marketplace
+
 > [!NOTE]
-> To add the plugin you need to have the appropriate Cursor plans, such as Teams and Enterprise. 
+> To add the plugin you need to have the appropriate Cursor plans, such as Teams and Enterprise.
 
 To Import the Rosetta github repository to your team/company internal marketplace:
 * Use the following repository: https://github.com/griddynamics/rosetta
 
 For detailed setup instructions, see the Cursor documentation:
 * https://cursor.com/docs/plugins#team-marketplaces
-
-**ALTERNATIVE**: Plugins installed in Claude Code are automatically available in Cursor.
-
-> [!WARNING]
-> Cursor automatically detects and uses Claude Code plugins. To avoid duplicate tools, commands, and context, do not install the same plugin separately in both Claude Code and Cursor. If you don't want Cursor to pick up Claude Code plugins at all, go to **Cursor Settings → Rules, Skills, Subagents** and turn off **Include third-party Plugins, Skills, and other configs**.
 
 #### Standalone
 
@@ -251,7 +255,9 @@ The result is the same `rosetta` and `rosetta-light` plugins, one folder per IDE
 
 ### Replace models
 
-A profile replaces the models the plugins name, for example when your organization cannot use a model.
+Rosetta ships two plugins: `rosetta`, and `rosetta-light`, which uses smaller models for most agents (see [Which plugin do I install](#which-plugin-do-i-install)). To lower model cost, install `rosetta-light`. No build is needed.
+
+When your organization cannot use a model, a profile replaces the models the plugins name.
 
 1. Copy `src/rosettify-plugins/plugins.json`. Give a variant without a profile your profile name, for example `acme`. Keep the profile names other variants already have: a name also selects content.
 2. In a profile folder, write one file per profile name (`acme.json`, and one per kept name), each with your `modelOverrides` block. A block replaces the whole model map of the IDE it names, so map every model token explicitly. Claude takes family keys (`"opus": "claude-sonnet-5-5"`). Cursor takes exact tokens with Cursor ids (`"claude-opus-5-5-high": "claude-sonnet-5-5"`), Copilot the same keys with display names (`"claude-opus-5-5-high": "Claude Sonnet 5.5"`), and Codex exact `gpt-` tokens.
