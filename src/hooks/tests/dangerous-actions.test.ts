@@ -245,6 +245,17 @@ describe('evaluateDangerous — Write path rules', () => {
     expect(adviseMessage(r)).toContain('aws-credentials');
   });
 
+  test.each([
+    ['C:\\Users\\u\\.ssh\\id_rsa', 'ssh-private-key'],
+    ['C:\\Users\\u\\.aws\\credentials', 'aws-credentials'],
+    ['C:\\Users\\u\\.kube\\config', 'kube-config'],
+    ['C:\\Users\\u\\_netrc', 'netrc'],
+  ])('Windows path %s → advise %s', (filePath, id) => {
+    const r = evaluateDangerous(writeCtx(filePath, 'x'));
+    expect(r?.kind).toBe('advise');
+    expect(adviseMessage(r)).toContain(id);
+  });
+
   test('normal .ts file → null', () => {
     expect(evaluateDangerous(writeCtx('/proj/src/app.ts', 'const x = 1;'))).toBeNull();
   });
