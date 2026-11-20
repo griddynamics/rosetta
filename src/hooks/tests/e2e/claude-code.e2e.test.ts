@@ -234,7 +234,7 @@ describe('claude-code E2E — read-once', () => {
     expect(second.report.exitCode).toBe(0);  // claude advise → exit 0
     expect(second.report.stderrMessage).toBeUndefined();
     const out = JSON.parse(second.stdout[0]);
-    expect(out.hookSpecificOutput.permissionDecision).toBe('allow');
+    expect(out.hookSpecificOutput.permissionDecision).toBeUndefined();   // advise must not auto-approve
     expect(out.hookSpecificOutput.additionalContext).toContain('read-once:');
     expect(out.hookSpecificOutput.additionalContext).toContain('notes.md');
   });

@@ -28,7 +28,6 @@ async function execute(payload: unknown): Promise<string> {
 const expectedClaude = (filePath: string) => JSON.stringify({
   hookSpecificOutput: {
     hookEventName: 'PostToolUse',
-    permissionDecision: 'allow',
     additionalContext: advisoryMessage(filePath),
   },
 });
@@ -169,7 +168,7 @@ describe('Cursor format', () => {
     const out = await execute(payload);
     expect(out).not.toBe('');
     const parsed = JSON.parse(out);
-    expect(parsed.permission).toBe('allow');
+    expect(parsed.permission).toBeUndefined();
     expect(parsed.additional_context).toContain('app.ts');
   });
 

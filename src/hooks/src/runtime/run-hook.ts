@@ -78,8 +78,9 @@ const toHookContext = (norm: NormalizedInput): HookContext => ({
 // adapter's formatOutput (rather than a fabricated object). Behavior unchanged — this is the same
 // builder used by executeHook below.
 export const toCanonical = (result: NonNullable<HookResult>, ctx: HookContext): CanonicalOutput => {
+  // advise adds context only: a permissionDecision here would auto-approve the tool call.
   if (result.kind === 'advise')
-    return { hookSpecificOutput: { hookEventName: ctx.event ?? '', permissionDecision: 'allow', additionalContext: result.message } };
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? '', additionalContext: result.message } };
   if (result.kind === 'deny')
     return { hookSpecificOutput: { hookEventName: ctx.event ?? '', permissionDecision: 'deny', permissionDecisionReason: result.reason }, continue: false };
   if (result.kind === 'allow')

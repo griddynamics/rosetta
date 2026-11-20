@@ -125,9 +125,7 @@ describe('read-once', () => {
     await runHookWithRaw(readOnceHook, makeClaudeRead(filePath));
     const result = await runHookWithRaw(readOnceHook, makeClaudeRead(filePath));
 
-    expect(result?.hookSpecificOutput).toMatchObject({
-      permissionDecision: 'allow',
-    });
+    expect((result?.hookSpecificOutput as Record<string, unknown>).permissionDecision).toBeUndefined();
     expect((result?.hookSpecificOutput as Record<string, unknown>).additionalContext).toContain('already in context');
     expect((result?.hookSpecificOutput as Record<string, unknown>).additionalContext).toContain('retry via shell');
     expect((result?.hookSpecificOutput as Record<string, unknown>).additionalContext).toContain('# READ-OVERRIDE');
@@ -158,9 +156,7 @@ describe('read-once', () => {
     await runHookWithRaw(readOnceHook, makeClaudeRead(filePath, 'claude-session-a'));
     const result = await runHookWithRaw(readOnceHook, makeClaudeRead(filePath, 'claude-session-b'));
 
-    expect(result?.hookSpecificOutput).toMatchObject({
-      permissionDecision: 'allow',
-    });
+    expect((result?.hookSpecificOutput as Record<string, unknown>).permissionDecision).toBeUndefined();
     expect((result?.hookSpecificOutput as Record<string, unknown>).additionalContext).toContain('another context');
   });
 
@@ -213,9 +209,7 @@ describe('read-once', () => {
       agent_id: 'agent-b',
     });
 
-    expect(result?.hookSpecificOutput).toMatchObject({
-      permissionDecision: 'allow',
-    });
+    expect((result?.hookSpecificOutput as Record<string, unknown>).permissionDecision).toBeUndefined();
     expect((result?.hookSpecificOutput as Record<string, unknown>).additionalContext).toContain('another context');
   });
 
@@ -240,13 +234,9 @@ describe('read-once', () => {
       agent_id: 'agent-b',
     });
 
-    expect(agentAResult?.hookSpecificOutput).toMatchObject({
-      permissionDecision: 'allow',
-    });
+    expect((agentAResult?.hookSpecificOutput as Record<string, unknown>).permissionDecision).toBeUndefined();
     expect((agentAResult?.hookSpecificOutput as Record<string, unknown>).additionalContext).toContain('another context');
-    expect(agentBResult?.hookSpecificOutput).toMatchObject({
-      permissionDecision: 'allow',
-    });
+    expect((agentBResult?.hookSpecificOutput as Record<string, unknown>).permissionDecision).toBeUndefined();
     expect((agentBResult?.hookSpecificOutput as Record<string, unknown>).additionalContext).toContain('already in context');
   });
 
@@ -262,9 +252,7 @@ describe('read-once', () => {
     await runHookWithRaw(readOnceHook, raw);
     const result = await runHookWithRaw(readOnceHook, raw);
 
-    expect(result?.hookSpecificOutput).toMatchObject({
-      permissionDecision: 'allow',
-    });
+    expect((result?.hookSpecificOutput as Record<string, unknown>).permissionDecision).toBeUndefined();
     expect((result?.hookSpecificOutput as Record<string, unknown>).additionalContext).toContain('already in context');
   });
 
