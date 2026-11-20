@@ -375,13 +375,13 @@ describe('dangerousActionsHook — integration (runHook)', () => {
     expect(output()).toBe('');
   });
 
-  test('Write fixture targeting .aws/credentials → advise (allow + additionalContext, non-blocking)', async () => {
+  test('Write fixture targeting .aws/credentials → advise (additionalContext only, no permissionDecision)', async () => {
     const raw = { ...ccWrite, tool_input: { file_path: '/home/user/.aws/credentials', content: '[default]' } };
     const { writable, output } = captureOutput();
     await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
     const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
     const hso = parsed.hookSpecificOutput as Record<string, unknown>;
-    expect(hso.permissionDecision).toBe('allow');
+    expect(hso.permissionDecision).toBeUndefined();
     expect(hso.additionalContext as string).toContain('aws-credentials');
     expect(parsed.continue).toBeUndefined();
   });

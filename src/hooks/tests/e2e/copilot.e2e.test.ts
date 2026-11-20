@@ -450,10 +450,10 @@ describe('copilot E2E — read-once', () => {
     expect(second.report.stderrMessage).toBeUndefined();
     const out = JSON.parse(second.stdout[0]);
     // MERGED emit — top-level (R1/CLI honors) AND nested (R3/VS Code honors).
-    expect(out.permissionDecision).toBe('allow');
+    expect(out.permissionDecision).toBeUndefined();   // advise must not auto-approve
     expect(out.additionalContext).toContain('read-once:');
     expect(out.additionalContext).toContain('notes.md');
-    expect(out.hookSpecificOutput.permissionDecision).toBe('allow');
+    expect(out.hookSpecificOutput.permissionDecision).toBeUndefined();
     expect(out.hookSpecificOutput.additionalContext).toContain('read-once:');
     expect(out.hookSpecificOutput.additionalContext).toContain('notes.md');
   });

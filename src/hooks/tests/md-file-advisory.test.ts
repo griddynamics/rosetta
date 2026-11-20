@@ -32,14 +32,12 @@ async function execute(payload: unknown): Promise<string> {
 const expectedClaude = (filePath: string) => JSON.stringify({
   hookSpecificOutput: {
     hookEventName: 'PostToolUse',
-    permissionDecision: 'allow',
     additionalContext: advisoryMessage(filePath),
   },
 });
 
 const expectedCursor = (filePath: string) => JSON.stringify({
   additional_context: advisoryMessage(filePath),
-  permission: 'allow',
 });
 
 // ===========================================================================
@@ -75,7 +73,7 @@ describe('main() — Claude Code format (integration)', () => {
     const payload = { ...ccWrite, tool_input: { file_path: 'lib/draft.md' } };
     const parsed = JSON.parse(await execute(payload));
     expect(parsed.hookSpecificOutput.hookEventName).toBe('PostToolUse');
-    expect(parsed.hookSpecificOutput.permissionDecision).toBe('allow');
+    expect(parsed.hookSpecificOutput.permissionDecision).toBeUndefined();
     expect(parsed.hookSpecificOutput.additionalContext).toContain('draft.md');
   });
 
@@ -166,7 +164,7 @@ describe('main() — Cursor format (integration)', () => {
   test('output is valid JSON with correct Cursor fields', async () => {
     const payload = { ...cursorWrite, tool_input: { ...cursorWrite.tool_input, file_path: 'lib/draft.md' } };
     const parsed = JSON.parse(await execute(payload));
-    expect(parsed.permission).toBe('allow');
+    expect(parsed.permission).toBeUndefined();
     expect(parsed.additional_context).toContain('draft.md');
   });
 

@@ -414,13 +414,13 @@ describe('cursor E2E — read-once', () => {
     expect(second.report.exitCode).toBe(0);
     expect(second.report.stderrMessage).toBeUndefined();
     const out = JSON.parse(second.stdout[0]);
-    expect(out.permission).toBe('allow');            // FLAT cursor advise
+    expect(out.permission).toBeUndefined();          // FLAT cursor advise: context only
     expect(out.additional_context).toContain('read-once:');
     expect(out.additional_context).toContain('notes.md');
     expect(out.hookSpecificOutput).toBeUndefined();  // cursor never nests
   });
 
-  test('stateful (warn): first read → null; unchanged re-read same session → advise (FLAT additional_context+permission:allow), exit 0', async () => {
+  test('stateful (warn): first read → null; unchanged re-read same session → advise (FLAT additional_context only), exit 0', async () => {
     const file = path.join(tmp, 'notes.md');
     fs.writeFileSync(file, 'hello read-once cursor');
 
@@ -434,7 +434,7 @@ describe('cursor E2E — read-once', () => {
     const out = JSON.parse(second.stdout[0]);
     // FLAT snake_case — NO hookSpecificOutput wrapper.
     expect(out.hookSpecificOutput).toBeUndefined();
-    expect(out.permission).toBe('allow');
+    expect(out.permission).toBeUndefined();
     expect(out.additional_context).toContain('read-once:');
     expect(out.additional_context).toContain('notes.md');
   });
