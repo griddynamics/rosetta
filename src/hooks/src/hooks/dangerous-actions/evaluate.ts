@@ -88,7 +88,9 @@ function matchPatterns(
 }
 
 function matchDangerousPath(filePath: string): DangerPattern | null {
-  const normalizedPath = filePath.replace(/\/+$/, '');
+  // Windows tool inputs carry `\` separators (`C:\Users\u\.ssh\id_rsa`); the path
+  // patterns and the basename split below are written for `/`, so normalize first.
+  const normalizedPath = filePath.replace(/\\/g, '/').replace(/\/+$/, '');
   const basename = normalizedPath.split('/').pop() ?? normalizedPath;
   for (const p of DANGEROUS_PATHS) {
     if (p.re.test(normalizedPath)) return p;
