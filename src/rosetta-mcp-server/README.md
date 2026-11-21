@@ -99,6 +99,24 @@ Rosetta MCP supports two runtime modes:
 | `USERNAME` | Runtime (analytics context) | OS-dependent | Username source (priority 2) |
 | `LOGNAME` | Runtime (analytics context) | OS-dependent | Username source (priority 3) |
 
+The timeout and limit variables are listed in [Timeout and Limit Variables](#timeout-and-limit-variables).
+
+### Timeout and Limit Variables
+
+All values are whole seconds. Every variable is optional. Unset or non-integer values fall back to the default. Numeric ranges are not validated uniformly: the table states what each consumer does with `0` and negative values.
+
+| Variable | Scope | Default | Notes |
+|----------|-------|---------|-------|
+| `ROSETTA_RAGFLOW_HTTP_TIMEOUT` | Runtime (all modes) | `60` | Timeout for HTTP calls to Rosetta Server (RAGFlow). `0` or negative falls back to `60`. In legacy compatibility login it is passed through without that check. |
+| `ROSETTA_TOOL_TIMEOUT` | Runtime (all modes) | `120` | Per-call ceiling for a tool call. Keep it above `ROSETTA_RAGFLOW_HTTP_TIMEOUT`. `0` or negative falls back to `120`. |
+| `ROSETTA_REDIS_SOCKET_TIMEOUT` | Runtime (HTTP, with `REDIS_URL`) | `5` | Redis `socket_timeout`. Added to `REDIS_URL` only when the URL does not already set it. Any integer is passed through. |
+| `ROSETTA_REDIS_SOCKET_CONNECT_TIMEOUT` | Runtime (HTTP, with `REDIS_URL`) | `2` | Redis `socket_connect_timeout`. Added to `REDIS_URL` only when the URL does not already set it. Any integer is passed through. |
+| `ROSETTA_REDIS_HEALTH_CHECK_INTERVAL` | Runtime (HTTP, with `REDIS_URL`) | `30` | Redis `health_check_interval`. Added to `REDIS_URL` only when the URL does not already set it. Any integer is passed through. |
+| `ROSETTA_INFLIGHT_WARN_THRESHOLD` | Runtime (HTTP) | `30` | A request still running after this many seconds is logged as a warning by the in-flight watchdog, which also dumps all thread stack traces once for that request. The watchdog polls every `max(5, threshold // 6)` seconds. |
+| `ROSETTA_HEALTHZ_RAGFLOW_TIMEOUT` | Runtime (HTTP) | `5` | Timeout of the Rosetta Server probe behind `/healthz`. On timeout `/healthz` answers `503`. Any integer is passed through. |
+| `ROSETTA_HEALTHZ_CACHE_TTL` | Runtime (HTTP) | `10` | How long a `/healthz` result is reused. `0` or negative never serves a cached result. |
+| `ROSETTA_OAUTH_HTTP_TIMEOUT` | Runtime (HTTP OAuth) | `10` | Timeout for the OIDC discovery, GitHub API and token introspection calls made during OAuth. Any integer is passed through. |
+
 ### Shared Variables (Both Modes)
 
 | Variable | Description | Default |
