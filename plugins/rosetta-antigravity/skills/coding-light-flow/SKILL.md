@@ -19,7 +19,7 @@ Lightweight variant: a single architect pass produces discovery, design, specs, 
 <prerequisites phase="0" applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed
-2. MUST USE SKILL `load-project-context` (required: all), `orchestration` (all except trivial), `hitl` (all, unless `No HITL` or `Fully Autonomous`)
+2. MUST USE SKILL `load-project-context` (required: all), `orchestration` (all except small), `hitl` (all, unless `No HITL` or `Fully Autonomous`)
 3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
 4. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping, if in doubt - select the safest / longest path, no deviation from the workflow is allowed
 5. When debugging is needed, INVOKE SUBAGENT `engineer` with `debugging` skill to save LLM context
@@ -31,6 +31,7 @@ Lightweight variant: a single architect pass produces discovery, design, specs, 
 11. Run architect subagent with required model in the background and consult with it if already supported or prefer advisor if already available
 12. Coding workflow state MUST be saved to `agents/TEMP/<FEATURE>/coding-flow-state.md` file.
 13. If context already contains request for TDD => implement properly red and green adjusting this workflow, including by moving execution of phases `tests` and `review_tests` to be after `user_review_design` and before `implementation`.
+14. Small uses subagents only for `must-be-subagent` otherwise follow `orchestration`.
 
 </prerequisites>
 

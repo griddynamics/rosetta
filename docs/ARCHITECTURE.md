@@ -207,8 +207,8 @@ A new folder is a new sibling folder here plus a `folders` entry of a set in `sr
 
 | Set | Skills | Workflows | Workflow files | Rules | Agents |
 | --- | ------ | --------- | -------------- | ----- | ------ |
-| `core` | 43 | 17 | 70 | 5 | 10 |
-| **total (`rosetta`)** | **43** | **17** | **70** | **5** | **10** |
+| `core` | 44 | 17 | 70 | 5 | 10 |
+| **total (`rosetta`)** | **44** | **17** | **70** | **5** | **10** |
 
 "Workflows" = entry points (front-matter `tags` contains `workflow`); 15 of them are distinct request types. "Workflow files" = every workflow and phase file.
 
@@ -314,7 +314,7 @@ Plugins are the primary delivery mechanism for Rosetta. They deliver instruction
 
 Plugin folders are named `rosetta-<ide>` and `rosetta-<ide>-light`: seven IDE targets, two variants, 14 folders. The content is identical across IDEs; only the format differs.
 
-`plugins.json` declares two *plugin* sets: `rosetta` (bundles the `core` folder (43 skills, 17 workflows, 10 agents, 5 rules); standard and `lightweight` variants) and `core` (declared, not published). `--publish <name>[,<name>...]` limits writing to the named plugins (FR-CLI-0036). `scripts/pre_commit.py` passes `--publish rosetta,rosetta-light`, so only those 14 folders are written. Catalogs may declare more sets and more folders; the split catalog is in [plugins.split.json](REQUIREMENTS/plugin-generator/assets/plugins.split.json).
+`plugins.json` declares two *plugin* sets: `rosetta` (bundles the `core` folder (44 skills, 17 workflows, 10 agents, 5 rules); standard and `lightweight` variants) and `core` (declared, not published). `--publish <name>[,<name>...]` limits writing to the named plugins (FR-CLI-0036). `scripts/pre_commit.py` passes `--publish rosetta,rosetta-light`, so only those 14 folders are written. Catalogs may declare more sets and more folders; the split catalog is in [plugins.split.json](REQUIREMENTS/plugin-generator/assets/plugins.split.json).
 
 | Plugin folder | Contains | Published |
 | ------------- | -------- | --------- |
