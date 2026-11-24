@@ -27,6 +27,7 @@ User wants to learn a Rosetta flow — init, coding, or testing — by running i
 - The user's `/tutorial` is the explicit instruction that governs this whole session: READ-ONLY, simulation only, NO OVERRIDE. A later request to write, run, or do real work is a new task → say so, send it to a new session, re-present the open stop.
 - Reads allowed and expected: repo files and read-only commands (`git status`, `git log`, listing). Every write forbidden: code, `FEATURE PLAN folder`, `FEATURE TEMP folder` state files, docs, configs. The simulated flow demands them; emit inline instead.
 - Never real: `USE FLOW`, `APPLY PHASE`, `INVOKE SUBAGENT`, `USE SKILL`, or any command with side effects.
+- Never ask for, invite, or plant a real secret. Credentials in artifacts are fake placeholders (`<API_TOKEN>`). Before any auth question, tell the learner to give the mechanism and env var name only. A pasted secret → never repeat it, tell them to rotate it.
 - Simulation, not quiz: run the phases, produce the artifacts, stop where the flow stops. Never ask the learner to describe the flow.
 - State carries: their request, answers, and decisions feed the next phase's artifacts. A skipped answer resurfaces as a labelled assumption.
 - Teaching sources = the selected flow file + the phase files it delegates to + the already loaded `hitl` skill + any skill a phase file names for gate wording or user-facing instructions, loaded with `READ SKILL` (content only). They are the only source of truth for phases, gates, artifacts, and approval wording. Scripts may be stale — sources win, silently correct the script.
@@ -43,7 +44,7 @@ Every stop is one gate type. Wait for what the flow waits for, nothing stricter:
 - `approval` — explicit approval of the artifact on the page. Flow or its phase file prescribes exact wording → quote it, require it verbatim. Otherwise → any explicit affirmative sentence per `hitl`. Comments, questions, short acks = review, keep waiting.
 - `selection` — a choice among the options the flow presents.
 - `file` — the flow waits for a file the learner fills; they type what they would write into it, nothing is saved.
-- `evidence` — the flow waits for something only the learner can produce (execution results, page source); accept every form the flow accepts.
+- `evidence` — the flow waits for something only the learner can produce (execution results, page source); accept every form the flow accepts. Simulated work was never written, so nothing from it can run: accept results labelled `simulated:` in a form the flow accepts, or offer to generate a plausible set for them to hand back. Never ask for or read real evidence (page source, reports): they name what they would hand over; nothing is read or saved.
 - `report` — the flow reports and does not stop; ask what they would check before moving on, and label it a coaching stop, not a flow gate.
 
 </gate_types>
@@ -51,7 +52,7 @@ Every stop is one gate type. Wait for what the flow waits for, nothing stricter:
 <process>
 
 1. Say in 1-2 sentences what this is: their flow, their repo, their task — run for real minus the writing.
-2. Run `git status --porcelain --ignored` and `git diff --stat`; keep both outputs as the baseline (ignored paths cover `agents/TEMP/`). Not a git repo → note it; the no-write rule still binds.
+2. Run `git status --porcelain --ignored`, `git diff --stat`, and the state checksum `find agents/TEMP plans -type f -exec cksum {} + 2>/dev/null | sort | cksum`; keep the outputs as the baseline. Not a git repo → note it; the no-write rule still binds.
 3. User already named a supported flow → take it. Otherwise ask which one, conversationally:
    - init — onboarding a repo (`init-workspace-flow`)
    - coding — features, fixes, refactors, unit tests (`coding-flow`)
@@ -93,7 +94,7 @@ Off-topic or unreadable reply → say so plainly, restate the open stop once, ne
 
 <validation_checklist>
 
-- `git status --porcelain --ignored` and `git diff --stat` at session end equal the baseline from step 2.
+- The step 2 commands at session end equal the baseline, AND this session's own action history holds no write, edit, or side-effecting command. Either check unavailable → say read-only verification is incomplete.
 - Every phase, gate, artifact, and approval wording traces to a line in a teaching source read this session.
 - Every stop used exists at the task's size; no stop the flow would skip.
 - Every artifact names real code from this repo.

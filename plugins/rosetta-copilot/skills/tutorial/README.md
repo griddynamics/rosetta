@@ -12,9 +12,9 @@ A user-invoked practice run: the learner picks a Rosetta flow and a real task fr
 
 ## How it works
 
-`SKILL.md` `<process>`: introduce in 1-2 sentences → record a `git status --porcelain --ignored` + `git diff --stat` baseline → take or ask for the flow → ask for a real task in that flow's scope → `READ FLOW` the flow and the phase files that own gate wording → size the task as the flow does and keep only the stops that apply → brief in ≤6 sentences → read the matching script for calibration and the code the task touches → run stop to stop, one stop per turn → critique each reply → recap and offer another flow.
+`SKILL.md` `<process>`: introduce in 1-2 sentences → record a baseline (`git status --porcelain --ignored`, `git diff --stat`, a checksum of `agents/TEMP` and `plans`) → take or ask for the flow → ask for a real task in that flow's scope → `READ FLOW` the flow and the phase files that own gate wording → size the task as the flow does and keep only the stops that apply → brief in ≤6 sentences → read the matching script for calibration and the code the task touches → run stop to stop, one stop per turn → critique each reply → recap and offer another flow.
 
-`<gate_types>` defines what each stop waits for: `request`, `answers`, `approval`, `selection`, `file`, `evidence`, `report`. Exact approval wording is required only where the flow or its phase file prescribes it; otherwise any explicit approval per `hitl` counts. A `report` stop is a coaching stop where the flow itself does not wait.
+`<gate_types>` defines what each stop waits for: `request`, `answers`, `approval`, `selection`, `file`, `evidence`, `report`. Exact approval wording is required only where the flow or its phase file prescribes it; otherwise any explicit approval per `hitl` counts. A `report` stop is a coaching stop where the flow itself does not wait. An `evidence` stop accepts results labelled `simulated:`, because simulated work was never written and cannot run; real page source or reports are never read.
 
 Scripts in `references/` are `<sim_script flow="...">` files. Each `<stop>` carries `id`, `phase` (the flow's phase tag), `gate`, `applies` (the flow's condition) and `waits_on`, then Narrate / Emit / Stop / Defect lines and Good / Wrong / Carry cues.
 
@@ -41,7 +41,8 @@ Scripts in `references/` are `<sim_script flow="...">` files. Each `<stop>` carr
 - `name: tutorial` equals the folder name; registered in `docs/definitions/skills.md`.
 - `disable-model-invocation: true` stays; it also licenses the plain user-friendly `description`.
 - The session lock: read-only, no real `USE FLOW` / `APPLY PHASE` / `INVOKE SUBAGENT` / `USE SKILL`, binding on every turn.
-- The baseline in process step 2 and the matching validation check.
+- The baseline in process step 2 and the matching validation check, which also reviews the session's own action history.
+- No real secrets: credentials in artifacts are fake placeholders, auth questions ask for mechanism and env var name only, and no planted defect may invite a real value.
 - One stop per turn, then silence until the user replies.
 - Critique order: right, missing/wrong, why, what to do instead.
 - The resources table matches the `references/tut-*.md` filenames, and every script uses the stop attributes above.
