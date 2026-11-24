@@ -78,7 +78,8 @@ fork/clone → branch → edit → validate → push → PR
    - Test end-to-end through the HTTP MCP
 
 6. **Open a PR.**
-   - Follow the [Pull Request Checklist](/rosetta/docs/contributing/#pull-request-checklist)
+   - Go through the checklist in the [pull request template](https://github.com/griddynamics/rosetta/blob/main/.github/PULL_REQUEST_TEMPLATE.md)
+   - GitHub pre-fills the template only in the web UI. From the CLI use `gh pr create --template .github/PULL_REQUEST_TEMPLATE.md`.
    - Prompting: include a prompt brief, before/after examples, and validation evidence
    - Coding: include tests and validation changes
    - All: update documentation, including web site
@@ -428,7 +429,7 @@ The short version:
 - **Plugins** — install as a plugin (recommended)
 - **MCPs Installation** — install via MCP (optional, secondary)
 - **Overview** — mental model, terminology
-- **Contributing** — PR workflow, checklist
+- **Contributing** — PR workflow and contribution rules
 - **Developer Guide** (this doc) — repo navigation, local dev
 - **Context** — business context, target state (MCP Context for the self-hosted MCP business case)
 - **Architecture** — system structure, components, data flow (MCP Architecture for MCP server internals)

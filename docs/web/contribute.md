@@ -6,7 +6,7 @@ permalink: /contribute/
 
 <section class="hero">
   <h1>How To Contribute</h1>
-  <p>First-time or returning contributor. Read this before your first PR, use as a checklist for every PR after.</p>
+  <p>First-time or returning contributor. Read this before your first PR.</p>
 </section>
 
 <!-- ===== BEFORE YOU START ===== -->
