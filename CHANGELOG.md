@@ -118,6 +118,51 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 16.11 – Sun 22.11
+
+The AI now asks first about decisions where a mistake would be severe and about points it is least sure of, together with high-impact and high-risk ones (plugins v3.1.30). The same release ships the requirement id prefix described last week. PLUGINS.md gives step-by-step instructions to build plugins with replaced models for client organizations that cannot use a model. Cursor users get a direct install path.
+
+For self-hosted MCP, health probes and the server port follow the configured port, and settings that controlled nothing are removed. For maintainers, a pull request fails when its release version is already published. The planning and implementation pipelines start only by hand, because board content may carry injected instructions.
+
+**Highlights**
+
+- `[R3]` `hitl` and `questioning`: the AI puts high-severity and low-confidence questions first, together with high-impact, high-risk and key ones. Before, a question it was unsure about could wait behind others (v3.1.30)
+- `[R3]` `requirements-authoring`: the id template with the type prefix (`FR`, `NFR`, `INT`, `DATA`), announced last week, ships in v3.1.30
+- `[Docs]` PLUGINS.md "Replace models": install `rosetta-light` for lower model cost with no build; for a client organization that cannot use a model, build with a profile that maps each model per IDE (#517)
+- `[Docs]` Cursor: install from the GitHub repository in Settings → Customize → Plugins; team marketplaces have their own section. The user guide now says Rosetta ships two plugins
+- `[Server]` Helm chart 0.4.6: probes and `ROSETTA_HTTP_PORT` follow the first `ports` entry. Before, a changed port left probes on `port8000` and pods failed health checks (Arteom Balanuta, ArteomBalanuta, #419)
+- `[Server]` rosetta-mcp 3.0.7: `ROSETTA_READ_POLICY` is removed. It had no effect, because only instruction datasets are readable. A test now fails on any setting the server parses but never uses (Arteom Balanuta, ArteomBalanuta, #423)
+- `[CI]` A pull request fails when the version its release would publish already exists on npm, PyPI or Docker Hub. The image workflow no longer pushes an existing tag (#516, #476)
+- `[CI]` Board pipelines `repo-plan` and `repo-implement` start only by hand. Board issues and comments may come from malicious actors and carry injected instructions
+- `[Tooling]` rosettify 3.2.11 `specs migrate`: a requirement without `type` takes it from its id, so `NFR-PERF-0001` migrates as `NFR`. Missing source, priority and verification get `User`, `Must`, `Test` (Arteom Balanuta, ArteomBalanuta, #416)
+- `[Hooks]` `read-once`: only a trailing `# READ-OVERRIDE` in a shell command overrides dedup. Before, the text in a file name or content did too. Applies to builds with `--deterministic-hooks true` (Arteom Balanuta, ArteomBalanuta, #417)
+- Routine: plugins 3.1.29 → 3.1.30 (v3.1.28 and v3.1.29, shipped 16.11, are in last week's entry), rosettify 3.2.11, curiocity 0.2.15 (clear names for "not run" and "not evaluated", #420), rosettify-prompts 0.1.18 (SDK retries documented, #418), rosetta-mcp 3.0.7, Helm chart 0.4.6; `validate-test-cases` header states its manual trigger (#421); CODEOWNERS updated (#470); marketplace files name the owner URL; `daily-oss`, `sync-web-site`, `update-change-log` lessons (maintainer-internal); last week's entry landed; stats refreshed; web site synced
+
+#### Questions start where a mistake costs most
+
+- **What you get.** `[R3]` The AI asks first about what would hurt most if it guessed wrong, and about what it understands least. Before, it ordered questions by impact and risk. A severe-if-wrong point with a modest visible impact, or one the AI was unsure about, could come late. Now these come up front, where the user sees them first.
+- **What changed.** `hitl` and `questioning` each now read "High impact, high risk, high severity, low confidence, or key questions first". Both skills load on their own, so each carries the rule. Shipped in plugins v3.1.30 together with the `requirements-authoring` id prefix. (Igor Solomatov, isolomatov-gd)
+
+#### Plugins with replaced models for client organizations
+
+- **What you get.** `[Docs]` Some client organizations cannot use a given model. The generator supported model profiles before, documented only in its README. Now PLUGINS.md walks through a build that swaps models per IDE and keeps all content. For plain cost reduction, `rosetta-light` needs no build. Cursor users get a direct install from the GitHub repository.
+- **What changed.** "Replace models" under "Build customized plugins": copy `plugins.json`, add a profile file with a `modelOverrides` block per IDE, and build with `--config` and `--profileSource`. Key formats differ per IDE: Claude family keys, Cursor ids, Copilot display names, Codex `gpt-` tokens. Validated with `rosettify-plugins` 3.5.5: Cursor `architect` moved from Opus to Sonnet, other IDE outputs byte-identical (#517). (Igor Solomatov, isolomatov-gd)
+
+#### Self-hosted MCP: probes follow the port, unused settings removed
+
+- **What you get.** `[Server]` For the few organizations that host MCP themselves. Before, changing `ports` in the Helm chart left the probes and the server on 8000, and pods failed health checks with no error at deploy time. Now one `ports` value moves the probes and the server port together. `ROSETTA_READ_POLICY` is removed because it controlled nothing.
+- **What changed.** Helm chart 0.4.6 fills the probe port from the first `ports` entry when a probe has none, and sets `ROSETTA_HTTP_PORT` from it unless `env` sets it (#419, issue #261). rosetta-mcp 3.0.7 drops the read policy and two duplicate timeout fields; `ROSETTA_TOOL_TIMEOUT` and `ROSETTA_RAGFLOW_HTTP_TIMEOUT` still work. `test_config_field_readers.py` fails on any parsed setting with no reader; `INSTRUCTION_ROOT_FILTER` stays allowlisted until #172 (#423, issue #325). (Arteom Balanuta, ArteomBalanuta)
+
+#### Releases cannot overwrite a published version
+
+- **What you get.** `[CI]` A missing version bump now fails the pull request. Before, it passed review and failed only at publish time after merge. Contributors see the problem while the PR is open. Users get published versions that do not change under them.
+- **What changed.** `.github/actions/version-unpublished` checks npm, PyPI or Docker Hub anonymously. A `version-guard` job runs it in the PR CI of every published component and the Helm chart. The Docker image workflow runs it before each push. `publish-rosettify-plugins` skips changes to plugin templates, which the npm package does not contain (#476). (Igor Solomatov, isolomatov-gd)
+
+#### Board pipelines start only by hand
+
+- **What you get.** `[CI]` The planning and implementation pipelines no longer run on their own. Board issues and comments may come from malicious actors, so an unattended run could act on injected instructions. A maintainer now starts each run. Automatic starts return once a safer control mechanism is in place. The analysis pipeline already started only by hand.
+- **What changed.** `schedule` and `issues` triggers are commented out in `repo-plan.yml` and `repo-implement.yml`. `workflow_dispatch` stays. (Igor Solomatov, isolomatov-gd)
+
 ### Week Mon 09.11 – Sun 15.11
 
 In Claude Code, the Rosetta always-on rules and plugin mode load again after `/clear` and after compaction. Before, a long session ran its second half without them. On large tasks, a repeated `plan create` no longer erases a plan in progress. `rosetta-light` gets the small-task rules that `rosetta` got last week. The AI writes precise answers and concise designs, and keeps plans and specs compact and complete. High-risk questions come first.

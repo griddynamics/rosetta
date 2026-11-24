@@ -730,7 +730,7 @@ It is **NOT** recommended to perform compaction, but if there is reason and you 
 
 ```text
 /compact
-Compact context by high token compression using:
+Compact context by high fidelity lossless token compression using:
 - terms, patterns, unicode characters, and terse phrases
 - remove non-essential formatting, duplicates, wrong decisions, wrong thinking,
   incorrect information, and non-relevant information you are sure 100%
