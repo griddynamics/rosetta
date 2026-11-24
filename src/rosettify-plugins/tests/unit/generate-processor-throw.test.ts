@@ -1,10 +1,10 @@
 // FR-CLI-0002, FR-CLI-0041 — generate() catch block when a processor throws synchronously
 //
 // Separate file because vi.mock is hoisted at the module level and would interfere
-// with the real buildAllSpecs used by other generate.test.ts scenarios.
+// with the real buildSpecsForSet used by other generate.test.ts scenarios.
 //
 // Sequence diagram:
-//   test → generate() → buildAllSpecs [mocked: injects throwingProcessor as first step]
+//   test → generate() → buildSpecsForSet [mocked: injects throwingProcessor as first step]
 //                     → for (spec of specs)
 //                         → for (processor of pipeline)
 //                             throwingProcessor() throws Error
@@ -48,7 +48,7 @@ function buildFakeRepo(): string {
 
   const pluginsRoot = path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins');
   fs.mkdirSync(pluginsRoot, { recursive: true });
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex']) {
+  for (const target of ['template-claude', 'template-cursor', 'template-copilot', 'template-codex', 'template-antigravity']) {
     const src = path.join(SAMPLE_PLUGINS_DIR, target);
     if (fs.existsSync(src)) {
       const dest = path.join(pluginsRoot, target);
@@ -57,9 +57,15 @@ function buildFakeRepo(): string {
     }
   }
 
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex']) {
-    fs.mkdirSync(path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', target), { recursive: true });
+  for (const ide of ['claude', 'cursor', 'copilot', 'codex', 'antigravity']) {
+    fs.mkdirSync(path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', ide), { recursive: true });
   }
+
+  // DATA-CFG-0007: every run loads a plugin-set catalog at pre-flight.
+  fs.copyFileSync(
+    path.join(FIXTURES_DIR, 'sample-plugins.json'),
+    path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins.json'),
+  );
 
   fs.mkdirSync(path.join(tmpRepo, '.git'), { recursive: true });
   return tmpRepo;
@@ -71,22 +77,27 @@ function buildSources(repoRoot: string, outputDir: string): ResolvedSources {
     pluginsSource: path.join(repoRoot, 'src', 'rosettify-plugins', 'plugins'),
     hooksSource: path.join(repoRoot, 'src', 'hooks'),
     outputDir,
+    profileSource: path.join(repoRoot, 'src', 'rosettify-plugins', 'profiles'),
+    configPath: path.join(repoRoot, 'src', 'rosettify-plugins', 'plugins.json'),
   };
 }
 
-// vi.mock is hoisted — inject a mock for targets.js that wraps the real buildAllSpecs
+// vi.mock is hoisted — inject a mock for targets.js that wraps the real buildSpecsForSet
 // and inserts a throwing processor as the first step of the first spec.
+const injected = vi.hoisted(() => ({ throws: 0 }));
+
 vi.mock('../../src/spec/targets.js', async (importOriginal) => {
   const original = await importOriginal<typeof import('../../src/spec/targets.js')>();
   return {
     ...original,
-    buildAllSpecs: (...args: Parameters<typeof original.buildAllSpecs>) => {
-      const specs = original.buildAllSpecs(...args);
+    buildSpecsForSet: (...args: Parameters<typeof original.buildSpecsForSet>) => {
+      const specs = original.buildSpecsForSet(...args);
       if (specs.length === 0) return specs;
 
       // Replace the first spec's pipeline with a throwing processor as step 1
       const firstSpec = specs[0];
       function throwsAlways() {
+        injected.throws += 1;
         throw new Error('Injected processor failure for test');
       }
       const patchedSpec: PluginSpec = {
@@ -113,7 +124,7 @@ describe('generate() — processor throws synchronously (lines 91-99 catch block
   });
 
   it('processor throw → hard GenError added, exit code 1 returned (FR-CLI-0041)', async () => {
-    // Step 1: generate() runs the mocked buildAllSpecs which returns a spec
+    // Step 1: generate() runs the mocked buildSpecsForSet which returns a spec
     //         where the first processor always throws.
     // Step 2: The try/catch in generate.ts catches the throw for that target.
     // Step 3: A hard error is appended to allErrors, anyError = true, and the loop continues.
@@ -126,6 +137,14 @@ describe('generate() — processor throws synchronously (lines 91-99 catch block
     const discard = new PassThrough();
     discard.resume();
 
+    // Capture stderr: exit 1 alone also fires on any pre-flight failure (for example a missing
+    // catalog), so the test must prove the run got past pre-flight to the injected processor.
+    const stderrChunks: string[] = [];
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation((chunk: unknown) => {
+      stderrChunks.push(String(chunk));
+      return true;
+    });
+
     const code = await generate({
       sources: buildSources(tmpRepo, outputDir),
       release: 'r2',
@@ -135,7 +154,13 @@ describe('generate() — processor throws synchronously (lines 91-99 catch block
       out: discard,
     });
 
+    stderrSpy.mockRestore();
+    const stderr = stderrChunks.join('');
+
     // Hard error from the thrown processor → exit code must be 1
     expect(code).toBe(1);
+    expect(stderr).not.toContain('Failed to load plugin sets');
+    // The injected processor must have run — exit 1 from an earlier pre-flight failure is not proof.
+    expect(injected.throws).toBeGreaterThan(0);
   });
 });

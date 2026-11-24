@@ -29,7 +29,7 @@ import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
 import { type BatchBuild, applyBatchWrite } from "./write.js";
-import { autoRegisterAreas, ensureReservedAreas, type Spec } from "./core.js";
+import { autoRegisterAreas, ensureReservedAreas, parseId, type Spec } from "./core.js";
 import { describeError, ERR_MIGRATE_PARSE_ERROR, ERR_SOURCE_NOT_FOUND } from "./errors.js";
 import type { SpecFinding, SpecMigrateResult, SpecSkipped } from "./output.js";
 import { mapToSpec, scanReqBlocks } from "./req-parser.js";
@@ -41,7 +41,8 @@ import { mapToSpec, scanReqBlocks } from "./req-parser.js";
 function toFullSpec(partial: Partial<Spec>): Spec {
   return {
     id: partial.id!,
-    type: partial.type ?? "FR",
+    // a missing type comes from the id prefix; FR only when the id is absent or unparseable
+    type: partial.type ?? (partial.id ? parseId(partial.id)?.prefix : undefined) ?? "FR",
     level: partial.level || "System",
     subsystem: partial.subsystem ?? "",
     component: partial.component ?? "",

@@ -30,40 +30,11 @@ The instructions repo defines *how agents should behave*. The target repo is *wh
 
 Plugins are the primary delivery mode: instructions are generated once and shipped as files inside the IDE. No server, no live connection at request time.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│              Target Repository + IDE                    │
-│  Claude Code · Cursor · Copilot · Codex · Antigravity  │
-│  (plugin installed locally — no server, no live         │
-│   connection needed at request time)                    │
-└────────────────────────▲────────────────────────────────┘
-                         │ install (marketplace or standalone zip)
-              ┌──────────┴──────────┐
-              │   Rosetta Plugin    │
-              │  (core-<ide> package)│
-              │                     │
-              │  Bootstrap rule     │
-              │  Skills · Agents    │
-              │  Workflows · Rules  │
-              └──────────▲──────────┘
-                         │ generate (build time only)
-              ┌──────────┴──────────┐
-              │     Rosettify       │
-              │ (plugin generator)  │
-              │ rosettify-plugins   │
-              └──────────▲──────────┘
-                         │ reads
-              ┌──────────┴──────────┐
-              │  Instructions Repo  │
-              │  /instructions/r3/  │
-              │                     │
-              │  core/ · <org>/     │
-              │  skills · agents    │
-              │  workflows · rules  │
-              └─────────────────────┘
-```
+<img src="{{ '/assets/architecture/system-context.svg' | relative_url }}" alt="Rosetta system context" width="100%"/>
 
-Instructions flow up at build time: the plugin generator reads the instructions repo and produces IDE-native plugin packages. Once installed, the agent works entirely from local files — Rosetta does not see or process your source code, by design.
+<sub>Arrows show instructions and artifacts moving toward the coding agent. Solid edges are the primary plugin path; dashed edges are the optional MCP path. Diagram source: [`docs/web/assets/architecture/system-context.d2`](https://github.com/griddynamics/rosetta/blob/main/docs/web/assets/architecture/system-context.d2).</sub>
+
+Instructions flow at build time: the plugin generator reads the instructions repo and produces IDE-native plugin packages. Once installed, the agent works entirely from local files — Rosetta does not see or process your source code, by design.
 
 Generator internals (model rewriting, per-IDE format, hooks bundling, standalone variants) are in [Development — Plugins](#plugins) below.
 
@@ -132,7 +103,23 @@ The runtime footprint is minimal: `bootstrap-alwayson.md` (core policies, `reaso
    └── Applies guardrails and HITL gates throughout
 ```
 
+How the loaded pieces activate each other once the session is prepared:
+
+<img src="{{ '/assets/architecture/instruction-model.svg' | relative_url }}" alt="Instruction composition at runtime" width="100%"/>
+
+<sub>Arrows mean "loads or delegates to" through command aliases, not file includes. Diagram source: [`docs/web/assets/architecture/instruction-model.d2`](https://github.com/griddynamics/rosetta/blob/main/docs/web/assets/architecture/instruction-model.d2).</sub>
+
 Requests are classified only when the user invokes `/rosetta`; a plain request legitimately runs lean. In MCP mode the agent calls `get_context_instructions` exactly once per session.
+
+---
+
+## Versioning
+
+Each individual solution component follows its own version (except major).
+
+All plugins follow the same version.
+
+Every change bumps each affected component (`src/<component>/**`; `instructions/**` or `plugins/**` → plugins) in the same commit, using `scripts/bump_versions.sh` (covers all components). Prefer patch; minor/major only when warranted. Package publish pipelines fail on an already-published version, and the Docker image workflow refuses to push an existing tag. A `version-guard` in each component's PR CI fails when the version its release would publish already exists (`.github/actions/version-unpublished`: npm, PyPI, Docker Hub).
 
 ---
 
@@ -142,10 +129,12 @@ Local CLI/MCP utility for AI coding agents and users. Purpose: deterministic loc
 
 Published on npm as `rosettify`. Invoked via `npx -y rosettify@latest <command> [subcommand] [args]` or as a local MCP server (`rosettify --mcp`) over stdio.
 
+**Requirements-first:** spec-before-code from `docs/REQUIREMENTS/rosettify/` (authoritative; code follows).
+
 **Key points:**
 - **Dual frontend.** One CLI and one MCP server backed by the same run delegates. Identical behavior in both modes.
 - **Plan management** (current feature). `npx -y rosettify@latest plan <subcommand> <plan_file>` — create, track, and advance execution plans as local JSON files. Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`.
-- **Atomic write cycle with backup chain.** Every plan mutation uses a rename-as-guard cycle: rename the plan file to `<file>.bakNNN` as the atomic lock, then write the new content. The plan's `previous_version` field tracks the prior backup path. Up to 5 backups retained; bounded to 50 retries.
+- **Locked write cycle with backup chain.** Every plan write holds a `<file>.lock` directory (atomic `mkdir`) as a cross-process mutex. Inside the lock, a mutation renames the plan file to `<file>.bakNNN` (the rename only makes the backup), then writes the new content. The plan's `previous_version` field tracks the prior backup path. `create` never replaces an existing file: it fails with `plan_already_exists`. Up to 5 backups retained; bounded to 50 retries.
 - **Template registry.** Two compiled-in template kinds (`create`, `upsert`) with strict bidirectional placeholder matching. Seed templates ship with the package.
 - **Sequential phase enforcement.** `next` returns work from the earliest incomplete phase only; later phases are blocked until all earlier phases are done.
 - **Static tool registry.** Each command is a `ToolDef` with name, description, input/output schema, CLI and MCP flags, and a typed run delegate.
@@ -167,35 +156,50 @@ Published on npm as `rosettify`. Invoked via `npx -y rosettify@latest <command> 
 
 ## Instruction Structure
 
-Instructions live in `/instructions/r3/` in the instructions repository, using a layered folder structure.
+Instructions live in `/instructions/r3/` in the instructions repository. One top-level folder, `core`, holds everything and ships as the `rosetta` plugin. `plugins.json` declares which folders each plugin bundles. The generator can build several folders into several plugins ("plugin sets"). The catalog currently declares one.
 
 ```
 /instructions/r3/
-├── core/                  ← Rosetta instruction source
-│   ├── skills/
-│   │   └── <name>/
-│   │       ├── SKILL.md
-│   │       ├── README.md    ← maintainer doc (r3; never loaded at runtime)
-│   │       ├── references/
-│   │       └── assets/
-│   ├── agents/
-│   │   └── <name>.md
-│   ├── workflows/
-│   │   ├── <name>.md
-│   │   └── <name>-<phase>.md
-│   ├── rules/
-│   │   └── <name>.md
-│   └── commands/
-│
-└── <org>/                 ← Optional organization extensions (e.g., acme/)
+└── core/                  ← Skills, agents, workflows, always-on rules, templates
     ├── skills/
+    │   └── <name>/
+    │       ├── SKILL.md
+    │       ├── README.md    ← maintainer doc (never loaded at runtime)
+    │       ├── references/
+    │       └── assets/
     ├── agents/
+    │   └── <name>.md
     ├── workflows/
+    │   ├── <name>.md
+    │   └── <name>-<phase>.md
     ├── rules/
-    └── commands/
+    │   └── <name>.md
+    └── templates/
+        └── shell-schemas/
 ```
 
-**Layered customization.** Core provides the universal foundation. Organization folders extend or override it. Files at the same resource path get merged: in Plugin mode, the generator merges core + organization layers at build time. In MCP mode, files at the same VFS resource path are bundled together at request time by the Bundler (see [MCP Architecture — Bundler](/rosetta/docs/mcp-architecture/#bundler)). `INSTRUCTION_ROOT_FILTER` controls which layers are included in MCP mode (e.g., `CORE,GRID`).
+**What `core` carries** (counted on `instructions/r3/`, distinct components after collapsing `~profile-lightweight-only~` variants):
+
+| Set | Skills | Workflows | Workflow files | Rules | Agents |
+| --- | ------ | --------- | -------------- | ----- | ------ |
+| `core` | 43 | 17 | 70 | 5 | 10 |
+| **total (`rosetta`)** | **43** | **17** | **70** | **5** | **10** |
+
+15 of them are distinct request types. "Workflow files" = every workflow and phase file.
+
+"Workflows" = entry points (front-matter `tags` contains `workflow`).
+
+**Customization roots.** A team adds or changes instructions without a fork. `--customizations <dir>[,<dir>...]` (repeatable) names customization roots (FR-CUST-0001, FR-CLI-0035). A root has the layout of the main source: `<root>/<release>/<folder>/...`. The generator merges folder into folder, so the result looks like one source. Only `<root>/<release>/` is checked: each directory there must name a declared folder, and loose files there are an error. Other entries under `<root>/` are ignored (FR-CUST-0002).
+
+- **Order key.** Every source file gets the key `<letter>:<path>:<OrderToken>` (FR-ARCH-0026). The letter is `A` for the main source, `B` for the first root, `C` for the second, in the order given. The path is the file path inside its folder without the filename directive. The `OrderToken` is optional (FR-ARCH-0021, FR-ARCH-0022).
+- **Sort.** Keys sort as plain strings, so `10` sorts before `2`. Pad with zeros (`001`, `010`) for numeric order.
+- **Merge.** A new file is added. A file at an existing path is appended to the earlier contribution. A file with the `overwrite` directive replaces all earlier contributions, and the last overwrite wins. An overwrite with nothing to replace is an error (FR-ARCH-0024).
+- **Variants.** Directive suffixes such as `~profile-lightweight-only~` apply to customization files as to main files.
+- **Without roots.** Output is byte-identical to a run without the capability (FR-CUST-0001.AC5).
+
+Usage: [Plugins — Build customized plugins](/rosetta/docs/plugins/#build-customized-plugins). Requirements: [FR-CUST](https://github.com/griddynamics/rosetta/blob/main/docs/REQUIREMENTS/plugin-generator/FR-CUST.md).
+
+Filenames stay unique across the tree, so no two files share a VFS resource path and the MCP Bundler (see [MCP Architecture — Bundler](/rosetta/docs/mcp-architecture/#bundler)) normally has one document to return. `INSTRUCTION_ROOT_FILTER` is intended to select which folders MCP serves; it is parsed but not enforced yet ([#172](https://github.com/griddynamics/rosetta/issues/172)), see [MCP Architecture](/rosetta/docs/mcp-architecture/#instruction-root-filter).
 
 **Component relationships.** Workflows invoke subagents. Subagents use skills. Templates live inside skills. Guardrails are primarily on-demand skills engaged through always-on actor lists and skill descriptions. See [Overview — Key Concepts](/rosetta/docs/overview/#key-concepts) for definitions.
 
@@ -244,7 +248,11 @@ The `load-project-context` prep action reads `CONTEXT.md` and `ARCHITECTURE.md` 
 Instructions Repo ──► Rosettify-Plugins (generate) ──► Plugin Package ──► Target Repo + IDE
 ```
 
-1. **Generate.** The generator reads `instructions/<release>/core/` (plus org overlays), rewrites models per IDE, converts agent/workflow formats, builds indexes, renders templates, and bundles hooks — once, at build time.
+<img src="{{ '/assets/architecture/plugin-build.svg' | relative_url }}" alt="Plugin generation pipeline" width="100%"/>
+
+<sub>Stages group the processors in `src/rosettify-plugins/src/plugin-processors/`. One run builds every declared set variant, the `-light` variant included; `scripts/pre_commit.py` passes `--publish rosetta,rosetta-light`. Diagram source: [`docs/web/assets/architecture/plugin-build.d2`](https://github.com/griddynamics/rosetta/blob/main/docs/web/assets/architecture/plugin-build.d2).</sub>
+
+1. **Generate.** The generator reads the folders named by `src/rosettify-plugins/plugins.json` under `instructions/<release>/`, rewrites models per IDE, converts agent/workflow formats, renders templates, and bundles hooks — once, at build time.
 2. **Install.** The user installs the generated package from an IDE marketplace or extracts a standalone zip. No server, no credentials, no live connection.
 3. **Prepare, route, load, execute.** Identical to every other mode from this point — see [Bootstrap Flow](#bootstrap-flow) above. The agent reads `bootstrap-alwayson.md` locally, then follows the same classification, loading, and execution model as MCP or local mode.
 
@@ -257,6 +265,7 @@ MCP has its own, separate delivery flow (publish → index → serve) — see [M
 ### Prerequisites
 
 - Python 3.12 — ONE virtual environment at repo root: `venv/`. MUST be used for ALL Python code in this repo: every `src/*` package, tests, validation scripts, tools, ad-hoc runs. MUST NOT create any other venv (no `.venv`, no per-package venvs).
+- `jq` — required by the pre-commit `verify links` check (`scripts/verify/ac_links.sh` exits 2 without it).
 
 MCP server development and publishing instructions are covered in [MCP Architecture — Development](/rosetta/docs/mcp-architecture/#development).
 
@@ -271,35 +280,49 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are the primary delivery mechanism for Rosetta. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-Each plugin contains core instructions: 40 skills, 10 agents, 13 workflow types, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
+The `rosetta` plugin contains the `core` set (43 skills, 17 workflows, 10 agents, 5 rules).
 
-| Plugin | IDE | Mode |
-|---|---|---|
-| `core-claude` | Claude Code | Plugin marketplace |
-| `core-cursor` | Cursor | Plugin marketplace |
-| `core-copilot` | VS Code Copilot, JetBrains Copilot | Plugin marketplace |
-| `core-codex` | Codex | Plugin marketplace |
-| `core-antigravity` | Antigravity 2.0, Antigravity CLI, Antigravity IDE | Direct extraction into plugin folder (`.agents/plugins/rosetta/`) |
-| `core-cursor-standalone` | Cursor | Direct extraction into repo (`.cursor/`) |
-| `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot | Direct extraction into repo (`.github/`) |
+Plugin folders are named `<plugin>-<ide>`. `plugins.json` declares two published plugins, `rosetta` and `rosetta-light`, both built from `core`. Two plugins times seven IDE targets gives 14 folders. `--publish <name>[,<name>...]` limits writing to the named plugins (FR-CLI-0036). `scripts/pre_commit.py` passes `--publish rosetta,rosetta-light`, so only those 14 folders are written. Catalogs may declare more sets and more folders; the split catalog is in [plugins.split.json](https://github.com/griddynamics/rosetta/blob/main/docs/REQUIREMENTS/plugin-generator/assets/plugins.split.json). The content is identical across IDEs; only the format differs. Users install one plugin.
 
-All plugins are generated from a single source tree (`instructions/r3/core/`) by the plugin generator (`npx -y rosettify-plugins@latest`). The generator's `--release` defaults to `r3`, matching the rosetta-mcp `DEFAULT_VERSION`. Each release descriptor also carries a hook posture: r2 ships SessionStart bootstrap only, while r3 enables the deterministic advisory hooks by default — overridable via `--deterministic-hooks`. **Shipped plugins are built with `false`** (FR-CLI-0012): advisory hooks run before and after every tool call, adding per-call overhead, so they are opt-in and enabled progressively. The generator builds main plugins then derives the standalone variants from them. The generator copies core instructions and adapts them for the target coding agent:
+| Plugin folder prefix | Contains |
+| -------------------- | -------- |
+| `rosetta-<ide>` | The full plugin: the `core` folder, standard profile. |
+| `rosetta-<ide>-light` | The same content, lightweight profile (simpler workflows, smaller models). |
 
-- **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor normalizes to short IDs (e.g. `claude-sonnet-5`, `gpt-5.6-terra`); Copilot to display names (e.g. `Claude Sonnet 5`, `GPT-5.6-terra`); Claude Code to full model IDs (`claude-sonnet-5`, `claude-opus-5`, `claude-haiku-4-5`).
+The generator also supports several plugin sets (a catalog with more than one set, built with `--domain`). A split of `core` into several folders is kept as an inactive layout, see `docs/REQUIREMENTS/plugin-generator/assets/plugin-sets-split.md`.
+
+The seven IDE targets and how each is delivered:
+
+| IDE suffix             | IDE                                               | Mode                                                              |
+| ---------------------- | ------------------------------------------------- | ----------------------------------------------------------------- |
+| `-claude`              | Claude Code                                       | Plugin marketplace                                                |
+| `-cursor`              | Cursor                                            | Plugin marketplace                                                |
+| `-copilot`             | VS Code Copilot, JetBrains Copilot                | Plugin marketplace                                                |
+| `-codex`               | Codex                                             | Plugin marketplace                                                |
+| `-antigravity`         | Antigravity 2.0, Antigravity CLI, Antigravity IDE | Direct extraction into plugin folder (`.agents/plugins/rosetta/`) |
+| `-cursor-standalone`   | Cursor                                            | Direct extraction into repo (`.cursor/`)                          |
+| `-copilot-standalone`  | VS Code Copilot, JetBrains Copilot                | Direct extraction into repo (`.github/`)                          |
+
+Bootstrap and the advisory hooks ship in every plugin.
+
+
+All plugins are generated from the release-selected source tree (`instructions/<release>/`, folders selected per plugin by `src/rosettify-plugins/plugins.json`) by the plugin generator (`npx -y rosettify-plugins@latest`). **Requirements-first:** spec-before-code from `docs/REQUIREMENTS/plugin-generator/` (authoritative FRs/NFRs; code follows). The generator's `--release` defaults to `r3`, matching the rosetta-mcp `DEFAULT_VERSION`. Each release descriptor also carries a hook posture: r2 ships SessionStart bootstrap only, while r3 enables the deterministic advisory hooks by default — overridable via `--deterministic-hooks`. **Shipped plugins are built with `false`** (FR-CLI-0012): advisory hooks run before and after every tool call, adding per-call overhead, so they are opt-in and enabled progressively. The generator builds main plugins then derives the standalone variants from them. The generator copies core instructions and adapts them for the target coding agent:
+
+- **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor normalizes to short IDs (e.g. `claude-sonnet-5-5`, `gpt-6-luna`); Copilot to display names (e.g. `Claude Sonnet 5.5`, `GPT-6 Luna`); Claude Code to full model IDs (`claude-sonnet-5-5`, `claude-opus-5-5`, `claude-haiku-5-5`).
 - **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
 - **Directory layout** — restructures output to match IDE conventions (`.agents/` and `.codex/` for Codex, runtime configs at root for Copilot). Each target exposes workflows by one of three mechanisms, and reference rewriting differs accordingly:
   - **Manifest pointer (Claude)** — the folder stays `workflows/` on disk; `.claude-plugin/plugin.json` declares `"commands": "./workflows/"`, so Claude Code reads slash commands straight out of it. Nothing is renamed, so no rewrite pair is produced or needed.
   - **Pure folder relocation (Cursor, Copilot)** — Cursor renames `workflows/` → `commands/`; Copilot renames it to `prompts/` with files `*.md` → `*.prompt.md`. Documents keep their identity as one path segment inside the new folder, so both exact references (`workflows/coding-flow.md` → `commands/coding-flow.md`) and bare folder tokens (`workflows/` → `commands/`) are rewritten.
-  - **Restructuring into skills (Codex, Antigravity)** — main doc → `<base>/skills/<name>/SKILL.md` (`.agents/skills` for Codex, `skills` for Antigravity), phase files → `<base>/skills/<name>/phases/<phase>.md` with frontmatter stripped; no `workflows/` folder or index exists for either. Because a document lands deeper than one segment, a bare folder token carries no document identity: only exact document references are rewritten and bare `workflows/` is left alone.
+  - **Restructuring into skills (Codex, Antigravity)** — main doc → `<base>/skills/<name>/SKILL.md` (`.agents/skills` for Codex, `skills` for Antigravity), phase files → `<base>/skills/<name>/phases/<phase>.md` with frontmatter stripped; no `workflows/` folder or index exists for either. Because a document lands deeper than one segment, a bare folder token carries no document identity: **only exact document references are rewritten** (`workflows/coding-flow.md` → `skills/coding-flow/SKILL.md`) and bare `workflows/` is left alone (FR-ARCH-0049). Rewriting it would yield a nonexistent path and corrupt prose and glob mentions such as `` WORKFLOW/COMMAND `workflows/*.md` ``.
 
   All rewriting uses complete boundary-delimited path tokens to avoid accidental partial-word matches.
 - **Index generation** — produces `rules/INDEX.md` and `workflows/INDEX.md` (or `commands/INDEX.md` for Cursor, `prompts/INDEX.md` for Copilot) listings for Claude, Cursor, and Copilot. Only files with `tags: ["workflow"]` appear in the workflow index; phase files are excluded; the heading is `# Rosetta Workflows Index`. Codex has no workflow index; Antigravity's analog is `skills/INDEX.md`, populated from workflow-derived skills.
 - **Template processing** — `.tmpl` files render to a sibling file (same path, `.tmpl` suffix removed) with platform placeholders substituted. Cursor and Copilot each ship **two** templates: a plugin-marketplace form (paths resolve under plugin install dir) and a standalone form (paths resolve from a user's project root). Both forms render into the main plugin tree; the standalone generator picks the right one for extraction.
-- **Copilot session locking** — Copilot has no native hook deduplication, so the generated hooks include a file-based lock ensuring each bootstrap entry fires exactly once per session. Other platforms use IDE-native mechanisms (Claude Code: `"once": true`; Codex and Cursor: built-in deduplication).
+- **Copilot session locking** — Copilot has no native hook deduplication, so the generated hooks include a file-based lock ensuring each bootstrap entry fires exactly once per session. Other platforms need no lock. On Claude Code the `SessionStart` matcher decides when the bootstrap is delivered: it names `startup`, `clear` and `compact`, and leaves `resume` out, because a resumed session already holds the bootstrap from its transcript. The `"once": true` on the entries does not deduplicate them: Claude Code honors `once` for skills and agents only (`docs/hooks/claude-code.md`), and the entries run again on each `/clear` and each compaction. Codex and Cursor use built-in deduplication.
 
 Each standard plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`, `.github/`, `.codex-plugin/`) holding the IDE manifest (`plugin.json`) and static configs. `hooks/` is also preserved for Claude, Cursor, and Copilot (carries the plugin-form `hooks.json.tmpl`); Cursor additionally preserves a root-level `hooks.json.tmpl` (standalone-form). Everything outside preserved paths is wiped and regenerated per sync. Bootstrap payloads are embedded in Claude/Codex hook templates; Cursor and Copilot rely on rules and instructions instead.
 
-**Standalone plugins** (`core-cursor-standalone`, `core-copilot-standalone`) are a second-pass derivative built from the already-synced main plugins (including their hook bundles) and placed entirely under the IDE's expected subfolder (`.cursor/` or `.github/`). Wiped and recreated per sync. Each IDE expects hooks at a different relative path, so the templates and cleanup differ:
+**Standalone plugins** (`<plugin>-cursor-standalone`, `<plugin>-copilot-standalone`) are a second-pass derivative built from the already-synced main plugins (including their hook bundles) and placed entirely under the IDE's expected subfolder (`.cursor/` or `.github/`). Wiped and recreated per sync. Each IDE expects hooks at a different relative path, so the templates and cleanup differ:
 
 | | Cursor standalone | Copilot standalone |
 |---|---|---|
@@ -328,7 +351,7 @@ Source lives in `src/hooks/` and is compiled per-IDE before sync:
 
 Each hook is bundled separately per IDE via esbuild so each bundle contains only its adapter code. To add a new hook: create the `.ts` source in `src/hooks/src/hooks/`, then add its filename to the `HOOK_SOURCES` array in `src/hooks/scripts/build-bundles.mjs`.
 
-**Active hooks (the five bundles available to every plugin and standalone when deterministic hooks are enabled; the shipped plugins are generated with `--deterministic-hooks false`, so they carry the r3 content with SessionStart bootstrap only):**
+**Active hooks (the bundles available to every plugin and standalone when deterministic hooks are enabled; the shipped plugins are generated with `--deterministic-hooks false`, so they carry the r3 content with SessionStart bootstrap only):**
 
 | Hook | Event | Purpose |
 |---|---|---|
@@ -336,36 +359,43 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 | `loose-files.js` | PostToolUse (Write) | Nudges agent when `.py`/`.js` files are created without a module marker (`__init__.py` / `package.json`) |
 | `md-file-advisory.js` | PostToolUse (Write\|Edit) | Advises on markdown formatting/placement after `.md` edits |
 | `lint-format-advisory.js` | PostToolUse (Write\|Edit) | Suggests a syntax/type/lint/format check step after code edits |
+| `read-once.js` | PreRead / PreToolUse (Read, shell) | Flags a repeated full read of a file whose modification time has not changed since this session last read it. TTL from `READ_ONCE_TTL` (seconds, default 20 min). Advises by default; `READ_ONCE_MODE=deny` soft-denies, a shell retry carrying `# READ-OVERRIDE` bypasses it, `READ_ONCE_DISABLED=1` turns it off. |
+| `read-once-reset.js` | PreCompact / PostCompact | Clears the session's read-once state on context compaction so files can be read again. |
 | `codemap-refresh.js` | PostToolUse (Write\|Edit) | Refreshes the active code-map backend when source files change. Detects GitNexus (`.gitnexus/` marker, runs `npx -y gitnexus@latest analyze --force`) and Graphify (`graphify-out/graph.json` marker, runs `graphify update .`); no-op when neither is installed. When both are present, each backend gets an independent debounced refresh. |
 
 **`hooks.json` locations and forms per plugin variant** (each form references the bundles using paths appropriate to its runtime):
 
 | Plugin/standalone | hooks.json read by IDE at | Form | Path style |
 |---|---|---|---|
-| `core-claude` (marketplace) | `<plugin>/hooks/hooks.json` (referenced from `plugin.json`) | plugin-form | `node hooks/<file>.js` |
-| `core-cursor` (marketplace) | `<plugin>/hooks/hooks.json` (referenced from `plugin.json`) | plugin-form | `node hooks/<file>.js` |
-| `core-copilot` (marketplace) | `<plugin>/hooks.json` (root, copied from `.github/plugin/hooks.json` at sync time) | plugin-form | env-var lookup to plugin install root |
-| `core-codex` (marketplace) | `<plugin>/.codex-plugin/hooks.json` (also mirrored to `<plugin>/.codex/hooks.json` at sync time) | plugin-form | `node <abs-path>/hooks/<file>.js` via shell lookup |
-| `core-cursor-standalone` | `.cursor/hooks.json` (top of extracted subfolder) | standalone-form | `node .cursor/hooks/<file>.js` |
-| `core-copilot-standalone` | `.github/hooks/hooks.json` (nested inside extracted subfolder) | standalone-form | `node ".github/hooks/<file>.js"` |
+| `rosetta-claude` (marketplace) | `<plugin>/hooks/hooks.json` (referenced from `plugin.json`) | plugin-form | `node hooks/<file>.js` |
+| `rosetta-cursor` (marketplace) | `<plugin>/hooks/hooks.json` (referenced from `plugin.json`) | plugin-form | `node hooks/<file>.js` |
+| `rosetta-copilot` (marketplace) | `<plugin>/hooks.json` (root, copied from `.github/plugin/hooks.json` at sync time) | plugin-form | env-var lookup to plugin install root |
+| `rosetta-codex` (marketplace) | `<plugin>/.codex-plugin/hooks.json` (also mirrored to `<plugin>/.codex/hooks.json` at sync time) | plugin-form | `node <abs-path>/hooks/<file>.js` via shell lookup |
+| `rosetta-cursor-standalone` | `.cursor/hooks.json` (top of extracted subfolder) | standalone-form | `node .cursor/hooks/<file>.js` |
+| `rosetta-copilot-standalone` | `.github/hooks/hooks.json` (nested inside extracted subfolder) | standalone-form | `node ".github/hooks/<file>.js"` |
+
 
 Cursor and Copilot are the only plugins that need two distinct templates because they have distinct standalone distributions. Templates: cursor — `hooks/hooks.json.tmpl` (plugin) + `hooks.json.tmpl` at root (standalone); copilot — `.github/plugin/hooks.json.tmpl` (plugin) + `hooks/hooks.json.tmpl` (standalone). Both are rendered during sync; the standalone generator's bulk-copy lands each at the right path inside the standalone subfolder.
 
-- **IDE normalization** — `src/adapter.ts` detects the IDE (env signature first, then stdin shape: codex > cursor > claude-code > windsurf > copilot) and normalizes to a canonical `NormalizedInput`, which MUST be fully mapped: a field is empty only when the value is genuinely absent from the raw input AND not derivable from the event name, another field, or the IDE's documented tool/event vocabulary
+<img src="{{ '/assets/architecture/hooks-runtime.svg' | relative_url }}" alt="Hook execution path" width="100%"/>
+
+<sub>One bundle per hook per IDE; only the entrypoint's adapter is compiled in. Diagram source: [`docs/web/assets/architecture/hooks-runtime.d2`](https://github.com/griddynamics/rosetta/blob/main/docs/web/assets/architecture/hooks-runtime.d2).</sub>
+
+- **IDE normalization** — `src/adapter.ts` detects the IDE (env signature first, then stdin shape: codex > cursor > claude-code > windsurf > antigravity > copilot; Antigravity IDE is a VS Code fork, so its `ANTIGRAVITY_CONVERSATION_ID` env signal is checked before the generic `VSCODE_*` copilot catch-all) and normalizes to a canonical `NormalizedInput`, which MUST be fully mapped: a field is empty only when the value is genuinely absent from the raw input AND not derivable from the event name, another field, or the IDE's documented tool/event vocabulary
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
 
-`scripts/pre_commit.py` builds and tests hook bundles, then runs `npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false`, which syncs bundles into each main plugin's hooks directory (`plugins/core-{claude,cursor,copilot}/hooks/`, `plugins/core-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.
+`scripts/pre_commit.py` runs, in order: the hooks build; the plugin sync (`npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false --publish rosetta,rosetta-light`); the five verify steps `verify structure`, `verify crossrefs`, `verify hooks content`, `verify counts` and `verify links` (`scripts/verify/`, scope and rules in `docs/definitions/live_counts.json`); type validation; and tests. `--only <slug>` runs selected steps. When deterministic hooks are enabled the generator syncs the bundles into each hook-carrying plugin's hooks directory (`plugins/{rosetta,rosetta-light}-{claude,cursor,copilot}/hooks/`, `plugins/{rosetta,rosetta-light}-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.
 
 ---
 
 ## Pipelines
 
 We use `.github/workflows` pipelines to build and release: MCP PyPi package, Docker Image, Publish Instructions, Publish website.
-Triggers on push to `main` or manual dispatch. Use actionlint.
+Triggers on push to `main` or manual dispatch. Use actionlint. It lints workflows only, not the composite actions under `.github/actions/`, so those need review by hand.
 
-Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
+{% raw %}Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages. Original web content is not generated, but adapted and synchronized. Jekyll uses that content to build the website. The one exception is `docs/web/user-guide/`, which is synchronized from `user-guide/` by `scripts/sync_user_guide_web.py` (rewrites relative links to permalinks, `instructions/**` refs to GitHub blob URLs, and wraps mermaid blocks in `{% raw %}` so Liquid does not consume `{{"..."}}` hexagon nodes).{% endraw %}
 
-**Plugin distribution.** The publish-instructions pipeline zips each plugin folder and attaches the archives to a GitHub Release alongside `instructions.zip`. See [Plugins](#plugins) for how plugin files are generated.
+**Plugin distribution.** The publish-instructions pipeline zips each plugin folder as `<folder>-<version>-<date>.zip` and attaches the archives to a GitHub Release alongside `instructions.zip`. The generated release body is replaced on every run and lists the zips per IDE in 2 blocks: rosetta and rosetta-light, then all standalones. The Assets panel stays alphabetical. See [Plugins](#plugins) for how plugin files are generated.
 
 ---
 
@@ -373,11 +403,11 @@ Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
 
 Where contributors add or change things:
 
-- **New skill:** Add `instructions/r3/core/skills/<name>/SKILL.md` (or under an org folder; backport to `r2` if stable)
-- **New agent:** Add `instructions/r3/core/agents/<name>.md`
-- **New workflow:** Add `instructions/r3/core/workflows/<name>.md` (and phase files)
-- **New rule:** Add `instructions/r3/core/rules/<name>.md`
-- **Organization layer:** Create `instructions/r3/<org>/` with the same type structure
+- **New skill:** Add `instructions/r3/core/skills/<name>/SKILL.md`. Backport to `r2` only for fixes.
+- **New agent:** Add `instructions/r3/core/agents/<name>.md`.
+- **New workflow:** Add `instructions/r3/core/workflows/<name>.md` and its phase files.
+- **New rule:** Add `instructions/r3/core/rules/<name>.md`.
+- **Organization-specific instructions:** Keep them in a customization root and build with `--customizations`. See [Build customized plugins](https://github.com/griddynamics/rosetta/blob/main/PLUGINS.md#build-customized-plugins).
 - **MCP tools:** Modify `src/rosetta-mcp-server/rosetta_mcp/server.py`
 - **Tool prompts:** Modify `src/rosetta-mcp-server/rosetta_mcp/tool_prompts.py`
 - **CLI commands:** Add to `src/rosetta-cli/rosetta_cli/commands/`
@@ -390,7 +420,7 @@ After adding or changing instructions, publish with the CLI to make them availab
 ## Tradeoffs
 
 - **Release-based versioning over branch-based.** Release folders (r2, r3) coexist in the same repo; folder structure carries the version. R3 is the final numbered release — changes ship as incremental updates within `r3`, and `r2` receives backported fixes only.
-- **Layered customization over multi-tenancy.** Org folders extend core, not replace it. Requires unique filenames across the tree.
+- **Customization roots over forks.** Organizations layer their files on top of `core` at build time (append, `~overwrite~`, OrderToken) instead of forking the repository. Requires unique filenames across the tree.
 - **Command aliases over direct tool calls.** Portable across IDEs, decoupled from MCP API changes. An indirection layer contributors must learn.
 - **Native plugin format.** Coding agents expect subagents, skills, and commands in specific formats and locations. Plugins ship those directly in the IDE's own format — no proxy indirection, no staleness risk. (MCP mode instead needs copy-paste shell files to satisfy the same IDE expectations — see [MCP Architecture — Tradeoffs](/rosetta/docs/mcp-architecture/#tradeoffs).)
 

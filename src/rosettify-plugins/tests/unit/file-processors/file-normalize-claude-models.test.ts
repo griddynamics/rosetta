@@ -78,49 +78,49 @@ describe('fileNormalizeClaudeModels — guard cases (same instance)', () => {
 // ─── Normalization: multi-token scanning (PARITY-9) ──────────────────────────
 
 describe('fileNormalizeClaudeModels — multi-token scanning', () => {
-  it('gpt-4o first, claude-sonnet-4-6 second: picks first claude-compatible → claude-sonnet-5', () => {
+  it('gpt-4o first, claude-sonnet-4-6 second: picks first claude-compatible → claude-sonnet-5-5', () => {
     // normalizeClaude scans ALL tokens for first claude-compatible
     const content = '---\nmodel: gpt-4o, claude-sonnet-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-4o, claude-sonnet-4-6');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-sonnet-5');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-sonnet-5');
+    expect(result.target_contents as string).toContain('model: claude-sonnet-5-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-sonnet-5-5');
   });
 
-  it('gpt-5.5-high first, claude-4.8-opus-high second: picks opus → claude-opus-5', () => {
+  it('gpt-5.5-high first, claude-4.8-opus-high second: picks opus → claude-opus-5-5', () => {
     const content = '---\nmodel: gpt-5.5-high, claude-4.8-opus-high\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.5-high, claude-4.8-opus-high');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-opus-5');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5');
+    expect(result.target_contents as string).toContain('model: claude-opus-5-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5-5');
   });
 });
 
 // ─── Normalization: claude token cases ───────────────────────────────────────
 
 describe('fileNormalizeClaudeModels — claude token normalization', () => {
-  it('claude-opus-4-6 contains opus → maps to claude-opus-5', () => {
+  it('claude-opus-4-6 contains opus → maps to claude-opus-5-5', () => {
     const content = '---\nmodel: claude-opus-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-opus-4-6');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-opus-5');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5');
+    expect(result.target_contents as string).toContain('model: claude-opus-5-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-5-5');
   });
 
-  it('claude-sonnet-4-6 contains sonnet → maps to claude-sonnet-5', () => {
+  it('claude-sonnet-4-6 contains sonnet → maps to claude-sonnet-5-5', () => {
     const content = '---\nmodel: claude-sonnet-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-sonnet-4-6');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-sonnet-5');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-sonnet-5');
+    expect(result.target_contents as string).toContain('model: claude-sonnet-5-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-sonnet-5-5');
   });
 
-  it('claude-haiku-4-5 contains haiku → maps to claude-haiku-4-5', () => {
+  it('claude-haiku-4-5 contains haiku → maps to claude-haiku-5-5', () => {
     const content = '---\nmodel: claude-haiku-4-5\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-haiku-4-5');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-haiku-4-5');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-haiku-4-5');
+    expect(result.target_contents as string).toContain('model: claude-haiku-5-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-haiku-5-5');
   });
 
   it('bare claude- token (no opus/sonnet/haiku) → inherit fallback', () => {
@@ -138,7 +138,30 @@ describe('fileNormalizeClaudeModels — claude token normalization', () => {
     const result = fileNormalizeClaudeModels(frame, makeCtx());
     // The old value should be replaced
     const newContents = result.target_contents as string;
-    // claude-opus-4-6 is different from claude-opus-5
-    expect(newContents).toContain('claude-opus-5');
+    // claude-opus-4-6 is different from claude-opus-5-5
+    expect(newContents).toContain('claude-opus-5-5');
+  });
+});
+
+// ─── Current-generation tokens and the light-profile haiku rule ──────────────
+
+describe('fileNormalizeClaudeModels — Claude 5.5 family', () => {
+  it('claude-haiku-5-5-high (light-profile token, effort-qualified) → claude-haiku-5-5', () => {
+    const content = '---\nmodel: gpt-6-luna-xhigh, claude-haiku-5-5-high, gemini-3.8-flash-medium\ntags: []\n---\n# Body\n';
+    const frame = makeFrame(content, 'gpt-6-luna-xhigh, claude-haiku-5-5-high, gemini-3.8-flash-medium');
+    const result = fileNormalizeClaudeModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: claude-haiku-5-5\n');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-haiku-5-5');
+  });
+
+  it('superseded claude-opus-5-high and claude-sonnet-5-medium resolve forward to the 5.5 ids', () => {
+    for (const [input, expected] of [
+      ['claude-opus-5-high', 'claude-opus-5-5'],
+      ['claude-sonnet-5-medium', 'claude-sonnet-5-5'],
+    ]) {
+      const frame = makeFrame(`---\nmodel: ${input}\ntags: []\n---\n# Body\n`, input);
+      const result = fileNormalizeClaudeModels(frame, makeCtx());
+      expect(result.target_contents as string).toContain(`model: ${expected}\n`);
+    }
   });
 });

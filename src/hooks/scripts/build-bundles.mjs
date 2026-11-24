@@ -13,15 +13,16 @@ const hooksDir = path.join(srcDir, 'hooks');
 const outDir = path.resolve(__dirname, '..', 'dist', 'bundles');
 const quiet = process.argv.includes('--quiet');
 
+// Names are the bare IDE target ids (no `core-` prefix): they are the contract with the
+// plugin generator, which copies dist/bundles/<ide>/ into every generated <set>-<ide> plugin.
 const PLUGINS = [
-  { plugin: 'core-claude',      adapter: 'adapter-claude-code' },
-  { plugin: 'core-codex',       adapter: 'adapter-codex' },
-  { plugin: 'core-copilot',     adapter: 'adapter-copilot' },
-  { plugin: 'core-cursor',      adapter: 'adapter-cursor' },
-  { plugin: 'core-windsurf',    adapter: 'adapter-windsurf' },
+  { plugin: 'claude',      adapter: 'adapter-claude-code' },
+  { plugin: 'codex',       adapter: 'adapter-codex' },
+  { plugin: 'copilot',     adapter: 'adapter-copilot' },
+  { plugin: 'cursor',      adapter: 'adapter-cursor' },
   // Antigravity has NO non-blocking delivery channel (docs/hooks/antigravity.md + hooks-verify.md):
   // advise-only hooks can never reach the model there, so they are NOT bundled for it.
-  { plugin: 'core-antigravity', adapter: 'adapter-antigravity',
+  { plugin: 'antigravity', adapter: 'adapter-antigravity',
     excludeHooks: ['lint-format-advisory.ts', 'md-file-advisory.ts', 'loose-files.ts'] },
 ];
 

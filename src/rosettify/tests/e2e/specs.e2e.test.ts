@@ -5,7 +5,7 @@
  * Requires: npm run build must have been run first.
  */
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
-import { spawnSync } from "child_process";
+import { spawn, spawnSync } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -59,6 +59,24 @@ function run(args: string[], env?: Record<string, string | undefined>): SpawnRes
   return { stdout: out, stderr: result.stderr ?? "", status: result.status, json };
 }
 
+function runAsync(args: string[]): Promise<SpawnResult> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(NODE, [BIN, ...args], { stdio: "pipe", timeout: 15000 });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (data) => { stdout += data; });
+    child.stderr.on("data", (data) => { stderr += data; });
+    child.on("error", reject);
+    child.on("close", (status) => {
+      try {
+        resolve({ stdout, stderr, status, json: JSON.parse(stdout) });
+      } catch (error) {
+        reject(new Error(`Invalid CLI output (exit ${status}): ${stdout} ${stderr}`, { cause: error }));
+      }
+    });
+  });
+}
+
 const ITEM_1 = JSON.stringify({
   id: "FR-CHK-0001",
   type: "FR",
@@ -71,6 +89,27 @@ const ITEM_1 = JSON.stringify({
   subsystem: "checkout",
   component: "cart",
   acceptance: [{ ears: "event", when: "an item is added", system: "the checkout service", shall: "recompute the total" }],
+});
+
+// ---------------------------------------------------------------------------
+// Multi-process concurrent writers (FR-SPECS-0070, FR-SPECS-0071)
+// ---------------------------------------------------------------------------
+
+describe("CLI — specs concurrent writers", () => {
+  it("12 concurrent first adds on a missing document keep every spec", async () => {
+    const N = 12;
+    const file = specsFile();
+    const ids = Array.from({ length: N }, (_, i) => `FR-CHK-${String(i + 1).padStart(4, "0")}`);
+    const results = await Promise.all(ids.map((id) => runAsync([
+      "specs", "add", file, JSON.stringify({ ...JSON.parse(ITEM_1), id }), "--system", "checkout",
+    ])));
+    for (const result of results) expect(result.status, result.stdout + result.stderr).toBe(0);
+    const doc = JSON.parse(fs.readFileSync(file, "utf8")) as { specs: { id: string }[] };
+    expect(doc.specs.map((spec) => spec.id).sort()).toEqual(ids);
+    const previous = results.map((result) => (result.json as { document: { previous_version: string | null } }).document.previous_version);
+    expect(previous.filter((backup) => backup === null)).toHaveLength(1);
+    expect(fs.existsSync(file + ".lock")).toBe(false);
+  }, 60_000);
 });
 
 // ---------------------------------------------------------------------------

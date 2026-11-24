@@ -37,3 +37,15 @@ describe('computeCostUsd', () => {
     expect(cost).toBeCloseTo(7.0, 10);
   });
 });
+
+describe('Claude 5.5 pricing', () => {
+  it('prices the 5.5 generation from its own entries, not a shorter prefix', () => {
+    expect(resolvePricing('claude-opus-5-5')).toEqual({ input: 4.0, output: 20.0 });
+    expect(resolvePricing('claude-sonnet-5-5')).toEqual({ input: 2.0, output: 10.0 });
+    expect(resolvePricing('claude-haiku-5-5')).toEqual({ input: 0.1, output: 0.5 });
+  });
+
+  it('computes cost for a Haiku 5.5 run at the short-prompt rate', () => {
+    expect(computeCostUsd(1_000_000, 1_000_000, 'claude-haiku-5-5')).toBeCloseTo(0.6, 6);
+  });
+});

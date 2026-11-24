@@ -1,0 +1,92 @@
+# Rosetta CI enforced policy — the template for /etc/codex/requirements.toml.
+# `build_policy.py` swaps the placeholder line below for the plugin's managed hooks and
+# .github/actions/codex-setup installs the result. Note the placeholder is matched as a
+# WHOLE LINE, so mentioning it in prose (as this comment deliberately does not) is safe
+# either way. Codex's system requirements layer: merged with every other
+# config layer, strictest result wins, so nothing here can be relaxed by `codex-args`,
+# a project `.codex/`, or the model.
+#
+# Top-level keys must precede every table — keep `allow_managed_hooks_only` first.
+
+# Only hooks registered in THIS file run. Closes two holes at once: a hook
+# dropped into a project `.codex/hooks.json` (including anything that reaches
+# the workspace from an untrusted checkout) is ignored, and the Rosetta hooks
+# below need no interactive content-hash trust.
+allow_managed_hooks_only = true
+
+@@MANAGED_HOOKS@@
+# --- Command deny-list -------------------------------------------------------
+# Credential surface
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "auth" }]
+decision = "forbidden"
+justification = "gh auth token prints the live GitHub token. No pipeline needs it."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { any_of = ["secret", "variable", "ssh-key", "gpg-key"] }]
+decision = "forbidden"
+justification = "Repository secrets and keys are out of scope for every pipeline."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "sudo" }]
+decision = "forbidden"
+justification = "openai/codex-action already drops sudo; this makes the intent explicit."
+
+# --- Network egress other than the GitHub API --------------------------------
+[[rules.prefix_rules]]
+pattern = [{ any_of = ["curl", "wget", "nc", "ncat", "socat", "telnet", "ssh", "scp", "sftp", "rsync"] }]
+decision = "forbidden"
+justification = "Network access is granted for gh and git only. These are exfiltration paths."
+
+# --- Destructive repository operations ---------------------------------------
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "repo" }, { any_of = ["delete", "archive", "rename", "edit", "fork", "set-default"] }]
+decision = "forbidden"
+justification = "Repository settings are a human decision, never an agent's."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "release" }]
+decision = "forbidden"
+justification = "Releases are cut by the publish workflows, not by these pipelines."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { any_of = ["workflow", "cache"] }]
+decision = "forbidden"
+justification = "Triggering or disabling workflows lets a run rewrite its own guardrails."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "run" }, { any_of = ["cancel", "delete", "rerun"] }]
+decision = "forbidden"
+justification = "A run must not cancel or replay the CI that checks it."
+
+# --- Review and merge gates belong to the user -------------------------------
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "pr" }, { any_of = ["merge", "close", "ready", "review"] }]
+decision = "forbidden"
+justification = "Merge and review approval are the user's gates; the agent opens PRs only."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "issue" }, { any_of = ["delete", "transfer", "lock", "unlock", "pin", "unpin"] }]
+decision = "forbidden"
+justification = "Destructive or moderation-level issue actions are not part of any pipeline."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "project" }, { any_of = ["delete", "item-delete", "item-archive", "close", "field-create", "field-delete"] }]
+decision = "forbidden"
+justification = "Board structure is owned by the user; pipelines only move cards between lanes."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { token = "label" }, { any_of = ["delete", "clone"] }]
+decision = "forbidden"
+justification = "Deleting labels affects every issue in the repository."
+
+# --- Git history ------------------------------------------------------------
+[[rules.prefix_rules]]
+pattern = [{ token = "git" }, { token = "push" }, { any_of = ["-f", "--force", "--force-with-lease", "--delete", "--mirror"] }]
+decision = "forbidden"
+justification = "The implementer pushes a new branch; it never rewrites or deletes a ref."
+
+[[rules.prefix_rules]]
+pattern = [{ token = "git" }, { token = "config" }, { any_of = ["--global", "--system"] }]
+decision = "forbidden"
+justification = "Git identity and credentials are set by the workflow, not the agent."

@@ -36,7 +36,7 @@ Key Principles:
    - Do not ask to estimate quality just by giving one current prompt, give old and new, draft and final, etc.
    - Spawn fresh eye and smaller model subagent and ask for how it understood, what came as surprise, what was clear already, etc.
    - If explanation of what it will do is even slightly deviate => tune the source of deviation
-   - If suggests next right things => it understood, we might want to cut smth, maybe useful to include
+   - If suggests next right things => it understood, we might want to cut something, maybe useful to include
    - If suggest wrong things => critical issue
    - What was clear => Be careful => May not be biased => Will forget
    - Ignore => "I don't need MoSCoW", "too harsh", etc. => Likely without those it will not EVEN DO it

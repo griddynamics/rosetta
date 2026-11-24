@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { discoverCases } from '../../src/cases/discovery';
 import { validateCase } from '../../src/cases/validation';
@@ -43,5 +46,32 @@ describe('validateCase', () => {
     const res = validateCase(`${fixtures}/broken-config`, 'broken-config');
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.reason).toContain('invalid config.json');
+  });
+  it('skips a file-backed case with duplicate agent IDs before matrix creation', () => {
+    const source = mkdtempSync(join(tmpdir(), 'curiocity-duplicate-agent-'));
+    try {
+      const caseDir = join(source, 'duplicate-agents');
+      mkdirSync(caseDir);
+      for (const file of ['prompt.md', 'qna.md', 'evaluation.md', 'src.zip']) {
+        writeFileSync(join(caseDir, file), file === 'src.zip' ? '' : 'test fixture');
+      }
+      writeFileSync(join(caseDir, 'config.json'), JSON.stringify({
+        agents: ['codex', 'codex'],
+      }));
+
+      const checked = validateCase(caseDir, 'duplicate-agents');
+      expect(checked.ok).toBe(false);
+      if (!checked.ok) {
+        expect(checked.reason).toMatch(/invalid config\.json.*agents.*unique/i);
+      }
+
+      const discovered = discoverCases(source);
+      expect(discovered.valid).toEqual([]);
+      expect(discovered.skipped).toHaveLength(1);
+      expect(discovered.skipped[0]?.name).toBe('duplicate-agents');
+      expect(discovered.skipped[0]?.reason).toMatch(/invalid config\.json.*agents.*unique/i);
+    } finally {
+      rmSync(source, { recursive: true, force: true });
+    }
   });
 });

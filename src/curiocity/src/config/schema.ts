@@ -136,7 +136,10 @@ export type TopLevelConfig = z.infer<typeof topLevelConfigSchema>;
 
 // --- Case config.json (§9) ---------------------------------------------------
 export const caseConfigSchema = z.object({
-  agents: z.array(z.string().min(1)).min(1),
+  agents: z.array(z.string().min(1)).min(1).refine(
+    (agents) => new Set(agents).size === agents.length,
+    { message: 'agent IDs must be unique' },
+  ),
   timeoutSec: z.number().int().positive().optional(),
   maxTurns: z.number().int().positive().optional(),
   repeats: z.number().int().positive().optional(),

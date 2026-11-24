@@ -35,7 +35,7 @@ Sets up a repository so AI coding agents can work with Rosetta context from the 
 2. Shells — generate shell files for skills, agents, and workflows unless plugin mode makes local shells unnecessary
 3. Discovery — analyze project structure and produce `docs/TECHSTACK.md`, `docs/CODEMAP.md`, and `docs/DEPENDENCIES.md`
 4. Rules — optional local rule configuration; present in the workflow but disabled by default
-5. Patterns — extract reusable coding and architecture patterns into `docs/PATTERNS/`
+5. Patterns — optional, disabled by default; runs only if you ask: extract reusable coding and architecture patterns into `docs/PATTERNS/`
 6. Documentation — create or update `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md`, `docs/ASSUMPTIONS.md`, and memory
 7. Questions — ask targeted gap questions and update affected docs through subagents
 8. Verification — validate completeness, report remediation, and require a new chat session
@@ -453,11 +453,27 @@ Add project-specific rules alongside Rosetta without touching its files.
 |-------------|----------------|-----------------|
 | Cursor | `.cursor/rules/agents.mdc` | `.cursor/rules/*.mdc` |
 | Claude Code | `CLAUDE.md` | `.claude/rules/*.md` |
-| GitHub Copilot | `.github/copilot-instructions.md` | |
+| GitHub Copilot | `.github/copilot-instructions.md` | `.github/instructions/*.instructions.md` |
 | Windsurf | `.windsurf/rules/*.md` | All `.md` files auto-load |
 | JetBrains (Junie + AI Assistant) | `.aiassistant/rules/agents.md` | `.junie/guidelines.md` |
 | Antigravity / Google IDX | `.agents/rules/agents.md` | `.agents/rules/*.md` |
 | OpenCode | `AGENTS.md` | `.opencode/agent/*.md` |
+
+### Customize Rosetta
+
+To add your organization's skills, rules, and workflows, or adjust Rosetta's, without forking, keep them in a customization root that mirrors `instructions/` (for example `acme-rosetta/r3/core/skills/acme-deploy/SKILL.md`) and build your own plugin:
+
+```sh
+npx -y rosettify-plugins@latest --source <rosetta checkout> --customizations acme-rosetta \
+  --publish rosetta,rosetta-light --output <dir>
+```
+
+- A new path adds a file.
+- The same path as a Rosetta file appends your body to it.
+- `name~overwrite~.md` replaces the file.
+- A leading OrderToken (`name~001~.md`) orders several files at one path. It sorts as plain text, so pad it with zeros.
+
+Details, scoping tokens, and install steps: [Build customized plugins](PLUGINS.md#build-customized-plugins).
 
 ### Recommended MCP Servers
 
@@ -661,7 +677,7 @@ These rules are always active. They cannot be turned off.
 
 Rosetta is distributed as a single plugin for supported IDEs. The plugin bundles the full Rosetta instruction set locally, including workflows, skills, agents, rules, templates, and bootstrap guardrails.
 
-See [PLUGINS.md](PLUGINS.md) for install commands.
+See [PLUGINS.md](PLUGINS.md) for install commands. A lightweight variant, `rosetta-light`, is also available. To add your own instructions, see [Build customized plugins](PLUGINS.md#build-customized-plugins).
 
 ## Best Practices
 
@@ -677,7 +693,7 @@ See [PLUGINS.md](PLUGINS.md) for install commands.
 - **Do not delete files in `docs/`.** They are Rosetta's project knowledge. Deleting them means starting over.
 - **Switch sessions at 65% context.** Monitor context usage. If it goes above 65%, queue the message or wait for the earliest ability to switch over to a new session:
 
-  `Please save execution state, workflow state, findings, original intent with clarifications, and tasks left to do as concise "agents/TEMP/execution-state.md" so that I can start a fresh new session and continue execution where you left it off.`
+  `Please save execution state, workflow state, findings, decisions, intent with clarifications, honest concerns, failure modes, improvements, and tasks left to do as concise hand-off "agents/TEMP/execution-state.md" so that I can start a fresh new session and continue execution where you left it off. Also record work protocol, useful skills, processes.`
 
   Once file saved, start the new session with the same original slash command:
 
@@ -685,7 +701,7 @@ See [PLUGINS.md](PLUGINS.md) for install commands.
 
 - **If AI gets stuck.** Monitor AI if it tries to solve the same problem but gets stuck, going in loops, or diverges. You should provide inputs on how to exactly solve it or ways to tackle the problem. You can also ask AI to spawn a smarter, focused subagent to solve that problem only by filling in this template:
 
-  `Spawn subagent using <Claude Opus 5 | GPT-5.6-sol> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
+  `Spawn subagent using <Claude Opus 5.5 | GPT-6.1-sol> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
 
 - **Run a post-mortem on anything you want improved.** Not just failures — whenever a run disappointed you, fought you, or simply could have gone better, invoke the `post-mortem` skill (`/post-mortem`). It root-causes the behavior across your prompt, workspace files, local config, and Rosetta instructions, and recommends concrete fixes. If a defect is in Rosetta itself, it can also file sanitized feedback as a [Rosetta issue](https://github.com/griddynamics/rosetta/issues) — only with your explicit approval of the exact draft. Nothing is submitted without your sanction; no private code or data leaves your repository.
 - Save cost — add the line below to your workspace AGENTS.md/CLAUDE.md to cut model output tokens:
@@ -698,7 +714,7 @@ It is **NOT** recommended to perform compaction, but if there is reason and you 
 
 ```text
 /compact
-Compact context by high token compression using:
+Compact context by high fidelity lossless token compression using:
 - terms, patterns, unicode characters, and terse phrases
 - remove non-essential formatting, duplicates, wrong decisions, wrong thinking,
   incorrect information, and non-relevant information you are sure 100%

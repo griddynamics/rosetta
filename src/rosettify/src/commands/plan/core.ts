@@ -342,11 +342,12 @@ export function validateUniqueIds(plan: Plan): string | null {
 }
 
 export function validateDependencies(plan: Plan): string | null {
-  const allIds = new Set<string>();
+  const phaseIds = new Set<string>();
+  const stepIds = new Set<string>();
   for (const phase of plan.phases ?? []) {
-    if (phase.id) allIds.add(phase.id);
+    if (phase.id) phaseIds.add(phase.id);
     for (const step of phase.steps ?? []) {
-      if (step.id) allIds.add(step.id);
+      if (step.id) stepIds.add(step.id);
     }
   }
 
@@ -356,7 +357,7 @@ export function validateDependencies(plan: Plan): string | null {
     if (!phase.id) continue;
     phaseGraph.set(phase.id, []);
     for (const dep of phase.depends_on ?? []) {
-      if (!allIds.has(dep)) return "unknown_dependency";
+      if (!phaseIds.has(dep)) return "unknown_dependency";
       phaseGraph.get(phase.id)!.push(dep);
     }
   }
@@ -371,7 +372,7 @@ export function validateDependencies(plan: Plan): string | null {
       if (!step.id) continue;
       stepGraph.set(step.id, []);
       for (const dep of step.depends_on ?? []) {
-        if (!allIds.has(dep)) return "unknown_dependency";
+        if (!stepIds.has(dep)) return "unknown_dependency";
         stepGraph.get(step.id)!.push(dep);
       }
     }

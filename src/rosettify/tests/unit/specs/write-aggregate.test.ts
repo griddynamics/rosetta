@@ -52,13 +52,14 @@ describe("aggregate", () => {
 });
 
 // ---------------------------------------------------------------------------
-// applyBatchWrite — happy path, actor/time stamping, first-create bypass
+// applyBatchWrite — happy path, actor/time stamping, first create under the lock
 // ---------------------------------------------------------------------------
 
-describe("applyBatchWrite — first-create bypass (allowCreate)", () => {
+describe("applyBatchWrite — first create (allowCreate)", () => {
   it("creates the document when allowCreate is set and the file does not exist", async () => {
     const file = specsFile("new.json");
     const build: BatchBuild<string> = (doc) => {
+      expect(fs.existsSync(file + ".lock")).toBe(true);
       doc.specs = [...(doc.specs ?? []), makeSpec({ id: "FR-CHK-0001" })];
       return { ok: true, affected: ["FR-CHK-0001"], result: "created" };
     };
@@ -70,6 +71,8 @@ describe("applyBatchWrite — first-create bypass (allowCreate)", () => {
     expect(doc.system).toBe("Checkout");
     expect(doc.specs).toHaveLength(1);
     expect(doc.specs[0]!.changed_by).toBe("tester");
+    expect(doc.previous_version).toBeNull();
+    expect(fs.existsSync(file + ".lock")).toBe(false);
   });
 
   it("does not bypass when the file already exists, even with allowCreate", async () => {
@@ -82,6 +85,26 @@ describe("applyBatchWrite — first-create bypass (allowCreate)", () => {
     const result = await applyBatchWrite(file, build, { allowCreate: true });
     expect(result.ok).toBe(true);
     expect(result.result!.previous_version).not.toBeNull();
+  });
+
+  it("re-checks for a document created while waiting for the lock", async () => {
+    const file = specsFile();
+    fs.mkdirSync(file + ".lock");
+    const pending = applyBatchWrite(file, (doc) => {
+      expect(fs.existsSync(file + ".lock")).toBe(true);
+      doc.specs.push(makeSpec({ id: "FR-CHK-0002" }));
+      return { ok: true, affected: ["FR-CHK-0002"], result: "added" };
+    }, { allowCreate: true });
+    expect(fs.existsSync(file)).toBe(false);
+    saveSpecs(file, makeDoc({ specs: [makeSpec({ id: "FR-CHK-0001" })] }));
+    const before = fs.readFileSync(file);
+    fs.rmdirSync(file + ".lock");
+    const result = await pending;
+    expect(result.ok).toBe(true);
+    expect(result.result!.previous_version).toBe(file + ".bak000");
+    expect(loadSpecs(file)!.previous_version).toBe(file + ".bak000");
+    expect(loadSpecs(file)!.specs.map((spec) => spec.id)).toEqual(["FR-CHK-0001", "FR-CHK-0002"]);
+    expect(fs.readFileSync(file + ".bak000")).toEqual(before);
   });
 });
 

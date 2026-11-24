@@ -6,8 +6,10 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { cmdInfo } from "../../../src/commands/specs/info.js";
+import { cmdAdd } from "../../../src/commands/specs/add.js";
+import { cmdPurge } from "../../../src/commands/specs/purge.js";
 import { saveSpecs } from "../../../src/commands/specs/core.js";
-import { makeDoc, makeSpec } from "../../fixtures/specs.js";
+import { makeAddItem, makeDoc, makeSpec } from "../../fixtures/specs.js";
 
 let tmpDir: string;
 
@@ -119,6 +121,73 @@ describe("cmdInfo — defensive fallbacks and edge cases", () => {
     const next = result.result!.next_ids.find((n) => n.prefix === "FR" && n.area === "CHK")!;
     expect(next.highest).toBe(12);
     expect(next.suggested).toBe("FR-CHK-0013");
+  });
+});
+
+// FR-SPECS-0009 — a purged id stays taken, so next_ids must count the purged_ids registry too.
+describe("cmdInfo — next_ids skip purged ids", () => {
+  it("counts a purged id that is the highest of its prefix+area", async () => {
+    const file = specsFile();
+    saveSpecs(
+      file,
+      makeDoc({
+        specs: [makeSpec({ id: "FR-CHK-0001" }), makeSpec({ id: "FR-CHK-0002" })],
+        purged_ids: ["FR-CHK-0003"],
+      }),
+    );
+    const result = await cmdInfo(file);
+    expect(result.result!.next_ids).toEqual([{ prefix: "FR", area: "CHK", highest: 3, suggested: "FR-CHK-0004" }]);
+  });
+
+  it("reports a prefix+area whose every spec was purged", async () => {
+    const file = specsFile();
+    saveSpecs(
+      file,
+      makeDoc({
+        areas: [
+          { code: "CHK", name: "Checkout" },
+          { code: "PAY", name: "Payments" },
+        ],
+        specs: [makeSpec({ id: "FR-CHK-0001" })],
+        purged_ids: ["FR-PAY-0001", "FR-PAY-0002"],
+      }),
+    );
+    const result = await cmdInfo(file);
+    expect(result.result!.next_ids).toEqual([
+      { prefix: "FR", area: "CHK", highest: 1, suggested: "FR-CHK-0002" },
+      { prefix: "FR", area: "PAY", highest: 2, suggested: "FR-PAY-0003" },
+    ]);
+    expect(result.result!.areas.find((a) => a.code === "PAY")!.count).toBe(0); // counts stay live-only
+  });
+
+  it("keeps the live highest when the purged id is lower", async () => {
+    const file = specsFile();
+    saveSpecs(file, makeDoc({ specs: [makeSpec({ id: "FR-CHK-0005" })], purged_ids: ["FR-CHK-0002"] }));
+    const result = await cmdInfo(file);
+    expect(result.result!.next_ids).toEqual([{ prefix: "FR", area: "CHK", highest: 5, suggested: "FR-CHK-0006" }]);
+  });
+
+  it("reads a document stored without purged_ids", async () => {
+    const file = specsFile();
+    const legacy = makeDoc({ specs: [makeSpec({ id: "FR-CHK-0001" })] });
+    delete (legacy as Record<string, unknown>)["purged_ids"];
+    fs.writeFileSync(file, JSON.stringify(legacy));
+    const result = await cmdInfo(file);
+    expect(result.ok).toBe(true);
+    expect(result.result!.next_ids).toEqual([{ prefix: "FR", area: "CHK", highest: 1, suggested: "FR-CHK-0002" }]);
+  });
+
+  it("suggests an id that add accepts after the highest id was purged", async () => {
+    const file = specsFile();
+    const items = ["FR-CHK-0001", "FR-CHK-0002", "FR-PAY-0001"].map((id) => makeAddItem({ id }));
+    expect((await cmdAdd(file, items, undefined, "checkout")).ok).toBe(true);
+    expect((await cmdPurge(file, ["FR-CHK-0002", "FR-PAY-0001"], true)).ok).toBe(true);
+
+    const suggested = (await cmdInfo(file)).result!.next_ids.map((n) => n.suggested);
+    expect(suggested).toEqual(["FR-CHK-0003", "FR-PAY-0002"]);
+    const added = await cmdAdd(file, suggested.map((id) => makeAddItem({ id })));
+    expect(added.error).toBeNull();
+    expect(added.ok).toBe(true);
   });
 });
 

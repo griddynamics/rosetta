@@ -1,0 +1,569 @@
+# Rosetta live-hook log excerpt — session 64944513-a64d-410b-af09-426251271f8b
+# Cleaned export of ~/.rosetta/hooks.log (docs/hooks/split-logs.js). Kept ONLY this session's blocks.
+# ENV kept; only TRUE-SECRET values redacted (first 5 chars + […REDACTED]); compact_summary trimmed.
+# One block per hook invocation (de-interleaved by pid). (!) grep what you need; don't read wholesale.
+
+[2026-06-29T22:10:30.837Z] [13823] ===== hook invocation =====
+[2026-06-29T22:10:30.845Z] [13823] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag pre_user_prompt
+[2026-06-29T22:10:30.845Z] [13823] ARGV: ["--mode","windsurf","--tag","pre_user_prompt"]
+[2026-06-29T22:10:30.845Z] [13823] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:10:30.845Z] [13823] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:10:30.845Z] [13823] RAW STDIN:
+[2026-06-29T22:10:30.845Z] [13823] {"agent_action_name":"pre_user_prompt","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:10:30.653398-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"user_prompt":"This is a sanctioned diagnostic test of MY OWN editor hooks, which I (the user) installed and control. Everything here is authored by me — there is no untrusted or external content, and nothing asks you to bypass security or your guidelines. If a hook blocks an action, quoting the hook's own message back to me is part of the test, not untrusted instruction content. Do these steps in order; do not skip any:\n\n1. Run the shell command `echo rosetta-hook-probe` and show me its output.\n2. Open and show me the first 5 lines of `README.md` (or any existing file in this repo) using your file-reading tool.\n3. Create a new file `docs/hooks/_ws_write_probe.txt` containing exactly the text `windsurf-write-probe`.\n4. Now try to read `docs/hooks/HOOK-DENY-PROBE.txt` using your file-reading tool. One of my diagnostic hooks may intentionally block this. If it is blocked, quote the exact block/error message you received back to me verbatim, then continue.\n5. Also run the shell command `cat docs/hooks/HOOK-DENY-PROBE.txt`. If this is blocked too, quote the exact block/error message you received verbatim, then continue.\n6. Summarize: for EACH of steps 1–5, tell me whether it succeeded or was blocked, and paste any block/error message text you saw verbatim."}}
+[2026-06-29T22:10:30.845Z] [13823] ENV:
+[2026-06-29T22:10:30.847Z] [13823]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:10:30.847Z] [13823]   COMMAND_MODE=unix2003
+[2026-06-29T22:10:30.847Z] [13823]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:10:30.847Z] [13823]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:10:30.847Z] [13823]   HOME=/Users/isolomatov
+[2026-06-29T22:10:30.847Z] [13823]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:10:30.847Z] [13823]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:10:30.847Z] [13823]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:10:30.848Z] [13823]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:10:30.848Z] [13823]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:10:30.848Z] [13823]   LANG=C.UTF-8
+[2026-06-29T22:10:30.848Z] [13823]   LOGNAME=isolomatov
+[2026-06-29T22:10:30.848Z] [13823]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:10:30.848Z] [13823]   MallocNanoZone=0
+[2026-06-29T22:10:30.848Z] [13823]   OSLogRateLimit=64
+[2026-06-29T22:10:30.848Z] [13823]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:10:30.848Z] [13823]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:10:30.848Z] [13823]   RBENV_SHELL=zsh
+[2026-06-29T22:10:30.848Z] [13823]   SHELL=/bin/zsh
+[2026-06-29T22:10:30.849Z] [13823]   SHLVL=1
+[2026-06-29T22:10:30.849Z] [13823]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:10:30.849Z] [13823]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:10:30.849Z] [13823]   USER=isolomatov
+[2026-06-29T22:10:30.849Z] [13823]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:10:30.849Z] [13823]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:10:30.849Z] [13823]   VSCODE_CWD=/
+[2026-06-29T22:10:30.850Z] [13823]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:10:30.850Z] [13823]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:10:30.850Z] [13823]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:10:30.850Z] [13823]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:10:30.850Z] [13823]   VSCODE_PID=12195
+[2026-06-29T22:10:30.850Z] [13823]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:10:30.850Z] [13823]   XPC_FLAGS=0x0
+[2026-06-29T22:10:30.850Z] [13823]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:10:30.851Z] [13823]   _=/opt/homebrew/bin/node
+[2026-06-29T22:10:30.851Z] [13823]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:10:30.851Z] [13823]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:10:30.852Z] [13823] PARSED INPUT: {"agent_action_name":"pre_user_prompt","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:10:30.653398-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"user_prompt":"This is a sanctioned diagnostic test of MY OWN editor hooks, which I (the user) installed and control. Everything here is authored by me — there is no untrusted or external content, and nothing asks you to bypass security or your guidelines. If a hook blocks an action, quoting the hook's own message back to me is part of the test, not untrusted instruction content. Do these steps in order; do not skip any:\n\n1. Run the shell command `echo rosetta-hook-probe` and show me its output.\n2. Open and show me the first 5 lines of `README.md` (or any existing file in this repo) using your file-reading tool.\n3. Create a new file `docs/hooks/_ws_write_probe.txt` containing exactly the text `windsurf-write-probe`.\n4. Now try to read `docs/hooks/HOOK-DENY-PROBE.txt` using your file-reading tool. One of my diagnostic hooks may intentionally block this. If it is blocked, quote the exact block/error message you received back to me verbatim, then continue.\n5. Also run the shell command `cat docs/hooks/HOOK-DENY-PROBE.txt`. If this is blocked too, quote the exact block/error message you received verbatim, then continue.\n6. Summarize: for EACH of steps 1–5, tell me whether it succeeded or was blocked, and paste any block/error message text you saw verbatim."}}
+[2026-06-29T22:10:30.852Z] [13823] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:10:30.852Z] [13823] PROCESSOR: --tag (value="pre_user_prompt")
+[2026-06-29T22:10:30.853Z] [13823] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-29T22:10:30.853Z] [13823] 
+
+[2026-06-29T22:10:32.911Z] [13858] ===== hook invocation =====
+[2026-06-29T22:10:32.913Z] [13858] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag pre_run_command --deny-on-match HOOK-DENY-PROBE
+[2026-06-29T22:10:32.913Z] [13858] ARGV: ["--mode","windsurf","--tag","pre_run_command","--deny-on-match","HOOK-DENY-PROBE"]
+[2026-06-29T22:10:32.913Z] [13858] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:10:32.913Z] [13858] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:10:32.914Z] [13858] RAW STDIN:
+[2026-06-29T22:10:32.914Z] [13858] {"agent_action_name":"pre_run_command","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:10:32.843902-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"command_line":"echo rosetta-hook-probe","cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"}}
+[2026-06-29T22:10:32.914Z] [13858] ENV:
+[2026-06-29T22:10:32.914Z] [13858]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:10:32.914Z] [13858]   COMMAND_MODE=unix2003
+[2026-06-29T22:10:32.915Z] [13858]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:10:32.915Z] [13858]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:10:32.915Z] [13858]   HOME=/Users/isolomatov
+[2026-06-29T22:10:32.915Z] [13858]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:10:32.915Z] [13858]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:10:32.916Z] [13858]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:10:32.916Z] [13858]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:10:32.916Z] [13858]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:10:32.916Z] [13858]   LANG=C.UTF-8
+[2026-06-29T22:10:32.916Z] [13858]   LOGNAME=isolomatov
+[2026-06-29T22:10:32.916Z] [13858]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:10:32.916Z] [13858]   MallocNanoZone=0
+[2026-06-29T22:10:32.916Z] [13858]   OSLogRateLimit=64
+[2026-06-29T22:10:32.916Z] [13858]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:10:32.916Z] [13858]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:10:32.916Z] [13858]   RBENV_SHELL=zsh
+[2026-06-29T22:10:32.916Z] [13858]   SHELL=/bin/zsh
+[2026-06-29T22:10:32.917Z] [13858]   SHLVL=1
+[2026-06-29T22:10:32.917Z] [13858]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:10:32.917Z] [13858]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:10:32.917Z] [13858]   USER=isolomatov
+[2026-06-29T22:10:32.932Z] [13858]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:10:32.932Z] [13858]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:10:32.933Z] [13858]   VSCODE_CWD=/
+[2026-06-29T22:10:32.934Z] [13858]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:10:32.935Z] [13858]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:10:32.935Z] [13858]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:10:32.940Z] [13858]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:10:32.941Z] [13858]   VSCODE_PID=12195
+[2026-06-29T22:10:32.941Z] [13858]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:10:32.941Z] [13858]   XPC_FLAGS=0x0
+[2026-06-29T22:10:32.942Z] [13858]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:10:32.942Z] [13858]   _=/opt/homebrew/bin/node
+[2026-06-29T22:10:32.942Z] [13858]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:10:32.942Z] [13858]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:10:32.942Z] [13858] PARSED INPUT: {"agent_action_name":"pre_run_command","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:10:32.843902-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"command_line":"echo rosetta-hook-probe","cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"}}
+[2026-06-29T22:10:32.943Z] [13858] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:10:32.943Z] [13858] PROCESSOR: --tag (value="pre_run_command")
+[2026-06-29T22:10:32.943Z] [13858] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-06-29T22:10:32.943Z] [13858] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-29T22:10:32.944Z] [13858] 
+
+[2026-06-29T22:10:33.062Z] [13863] ===== hook invocation =====
+[2026-06-29T22:10:33.063Z] [13863] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag pre_read_code --deny-on-match HOOK-DENY-PROBE
+[2026-06-29T22:10:33.063Z] [13863] ARGV: ["--mode","windsurf","--tag","pre_read_code","--deny-on-match","HOOK-DENY-PROBE"]
+[2026-06-29T22:10:33.063Z] [13863] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:10:33.063Z] [13863] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:10:33.063Z] [13863] RAW STDIN:
+[2026-06-29T22:10:33.063Z] [13863] {"agent_action_name":"pre_read_code","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:10:33.008187-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/README.md"}}
+[2026-06-29T22:10:33.063Z] [13863] ENV:
+[2026-06-29T22:10:33.063Z] [13863]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:10:33.063Z] [13863]   COMMAND_MODE=unix2003
+[2026-06-29T22:10:33.063Z] [13863]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:10:33.063Z] [13863]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:10:33.063Z] [13863]   HOME=/Users/isolomatov
+[2026-06-29T22:10:33.064Z] [13863]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:10:33.064Z] [13863]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:10:33.064Z] [13863]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:10:33.064Z] [13863]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:10:33.064Z] [13863]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:10:33.064Z] [13863]   LANG=C.UTF-8
+[2026-06-29T22:10:33.064Z] [13863]   LOGNAME=isolomatov
+[2026-06-29T22:10:33.064Z] [13863]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:10:33.064Z] [13863]   MallocNanoZone=0
+[2026-06-29T22:10:33.064Z] [13863]   OSLogRateLimit=64
+[2026-06-29T22:10:33.064Z] [13863]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:10:33.064Z] [13863]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:10:33.064Z] [13863]   RBENV_SHELL=zsh
+[2026-06-29T22:10:33.064Z] [13863]   SHELL=/bin/zsh
+[2026-06-29T22:10:33.064Z] [13863]   SHLVL=1
+[2026-06-29T22:10:33.064Z] [13863]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:10:33.064Z] [13863]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:10:33.065Z] [13863]   USER=isolomatov
+[2026-06-29T22:10:33.065Z] [13863]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:10:33.065Z] [13863]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:10:33.065Z] [13863]   VSCODE_CWD=/
+[2026-06-29T22:10:33.065Z] [13863]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:10:33.065Z] [13863]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:10:33.065Z] [13863]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:10:33.065Z] [13863]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:10:33.066Z] [13863]   VSCODE_PID=12195
+[2026-06-29T22:10:33.066Z] [13863]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:10:33.066Z] [13863]   XPC_FLAGS=0x0
+[2026-06-29T22:10:33.066Z] [13863]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:10:33.066Z] [13863]   _=/opt/homebrew/bin/node
+[2026-06-29T22:10:33.066Z] [13863]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:10:33.066Z] [13863]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:10:33.066Z] [13863] PARSED INPUT: {"agent_action_name":"pre_read_code","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:10:33.008187-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/README.md"}}
+[2026-06-29T22:10:33.066Z] [13863] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:10:33.066Z] [13863] PROCESSOR: --tag (value="pre_read_code")
+[2026-06-29T22:10:33.066Z] [13863] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-06-29T22:10:33.066Z] [13863] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-29T22:10:33.066Z] [13863] 
+
+[2026-06-29T22:10:33.116Z] [13864] ===== hook invocation =====
+[2026-06-29T22:10:33.116Z] [13864] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag post_read_code
+[2026-06-29T22:10:33.116Z] [13864] ARGV: ["--mode","windsurf","--tag","post_read_code"]
+[2026-06-29T22:10:33.117Z] [13864] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:10:33.117Z] [13864] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:10:33.117Z] [13864] RAW STDIN:
+[2026-06-29T22:10:33.117Z] [13864] {"agent_action_name":"post_read_code","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:10:33.068463-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/README.md"}}
+[2026-06-29T22:10:33.117Z] [13864] ENV:
+[2026-06-29T22:10:33.117Z] [13864]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:10:33.117Z] [13864]   COMMAND_MODE=unix2003
+[2026-06-29T22:10:33.117Z] [13864]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:10:33.117Z] [13864]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:10:33.117Z] [13864]   HOME=/Users/isolomatov
+[2026-06-29T22:10:33.117Z] [13864]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:10:33.117Z] [13864]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:10:33.117Z] [13864]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:10:33.117Z] [13864]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:10:33.117Z] [13864]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:10:33.117Z] [13864]   LANG=C.UTF-8
+[2026-06-29T22:10:33.117Z] [13864]   LOGNAME=isolomatov
+[2026-06-29T22:10:33.117Z] [13864]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:10:33.118Z] [13864]   MallocNanoZone=0
+[2026-06-29T22:10:33.118Z] [13864]   OSLogRateLimit=64
+[2026-06-29T22:10:33.118Z] [13864]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:10:33.118Z] [13864]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:10:33.118Z] [13864]   RBENV_SHELL=zsh
+[2026-06-29T22:10:33.118Z] [13864]   SHELL=/bin/zsh
+[2026-06-29T22:10:33.118Z] [13864]   SHLVL=1
+[2026-06-29T22:10:33.118Z] [13864]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:10:33.118Z] [13864]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:10:33.118Z] [13864]   USER=isolomatov
+[2026-06-29T22:10:33.118Z] [13864]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:10:33.118Z] [13864]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:10:33.118Z] [13864]   VSCODE_CWD=/
+[2026-06-29T22:10:33.118Z] [13864]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:10:33.118Z] [13864]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:10:33.119Z] [13864]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:10:33.119Z] [13864]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:10:33.119Z] [13864]   VSCODE_PID=12195
+[2026-06-29T22:10:33.119Z] [13864]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:10:33.119Z] [13864]   XPC_FLAGS=0x0
+[2026-06-29T22:10:33.119Z] [13864]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:10:33.119Z] [13864]   _=/opt/homebrew/bin/node
+[2026-06-29T22:10:33.120Z] [13864]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:10:33.120Z] [13864]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:10:33.120Z] [13864] PARSED INPUT: {"agent_action_name":"post_read_code","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:10:33.068463-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/README.md"}}
+[2026-06-29T22:10:33.120Z] [13864] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:10:33.120Z] [13864] PROCESSOR: --tag (value="post_read_code")
+[2026-06-29T22:10:33.120Z] [13864] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-29T22:10:33.120Z] [13864] 
+
+[2026-06-29T22:15:52.731Z] [18501] ===== hook invocation =====
+[2026-06-29T22:15:52.732Z] [18501] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag post_run_command
+[2026-06-29T22:15:52.732Z] [18501] ARGV: ["--mode","windsurf","--tag","post_run_command"]
+[2026-06-29T22:15:52.732Z] [18501] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:15:52.732Z] [18501] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:15:52.732Z] [18501] RAW STDIN:
+[2026-06-29T22:15:52.732Z] [18501] {"agent_action_name":"post_run_command","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:15:52.636257-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"command_line":"echo rosetta-hook-probe","cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"}}
+[2026-06-29T22:15:52.733Z] [18501] ENV:
+[2026-06-29T22:15:52.733Z] [18501]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:15:52.733Z] [18501]   COMMAND_MODE=unix2003
+[2026-06-29T22:15:52.733Z] [18501]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:15:52.734Z] [18501]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:15:52.734Z] [18501]   HOME=/Users/isolomatov
+[2026-06-29T22:15:52.734Z] [18501]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:15:52.734Z] [18501]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:15:52.734Z] [18501]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:15:52.734Z] [18501]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:15:52.734Z] [18501]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:15:52.734Z] [18501]   LANG=C.UTF-8
+[2026-06-29T22:15:52.734Z] [18501]   LOGNAME=isolomatov
+[2026-06-29T22:15:52.734Z] [18501]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:15:52.734Z] [18501]   MallocNanoZone=0
+[2026-06-29T22:15:52.734Z] [18501]   OSLogRateLimit=64
+[2026-06-29T22:15:52.735Z] [18501]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:15:52.735Z] [18501]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:15:52.735Z] [18501]   RBENV_SHELL=zsh
+[2026-06-29T22:15:52.735Z] [18501]   SHELL=/bin/zsh
+[2026-06-29T22:15:52.735Z] [18501]   SHLVL=1
+[2026-06-29T22:15:52.735Z] [18501]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:15:52.735Z] [18501]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:15:52.735Z] [18501]   USER=isolomatov
+[2026-06-29T22:15:52.735Z] [18501]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:15:52.735Z] [18501]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:15:52.735Z] [18501]   VSCODE_CWD=/
+[2026-06-29T22:15:52.735Z] [18501]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:15:52.735Z] [18501]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:15:52.736Z] [18501]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:15:52.736Z] [18501]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:15:52.736Z] [18501]   VSCODE_PID=12195
+[2026-06-29T22:15:52.736Z] [18501]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:15:52.736Z] [18501]   XPC_FLAGS=0x0
+[2026-06-29T22:15:52.736Z] [18501]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:15:52.736Z] [18501]   _=/opt/homebrew/bin/node
+[2026-06-29T22:15:52.736Z] [18501]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:15:52.737Z] [18501]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:15:52.737Z] [18501] PARSED INPUT: {"agent_action_name":"post_run_command","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:15:52.636257-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"command_line":"echo rosetta-hook-probe","cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"}}
+[2026-06-29T22:15:52.737Z] [18501] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:15:52.737Z] [18501] PROCESSOR: --tag (value="post_run_command")
+[2026-06-29T22:15:52.737Z] [18501] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-29T22:15:52.737Z] [18501] 
+
+[2026-06-29T22:15:54.567Z] [18658] ===== hook invocation =====
+[2026-06-29T22:15:54.568Z] [18658] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag pre_write_code
+[2026-06-29T22:15:54.568Z] [18658] ARGV: ["--mode","windsurf","--tag","pre_write_code"]
+[2026-06-29T22:15:54.569Z] [18658] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:15:54.573Z] [18658] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:15:54.574Z] [18658] RAW STDIN:
+[2026-06-29T22:15:54.574Z] [18658] {"agent_action_name":"pre_write_code","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:15:54.494637-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"edits":[{"old_string":"","new_string":"windsurf-write-probe"}],"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/_ws_write_probe.txt"}}
+[2026-06-29T22:15:54.575Z] [18658] ENV:
+[2026-06-29T22:15:54.575Z] [18658]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:15:54.575Z] [18658]   COMMAND_MODE=unix2003
+[2026-06-29T22:15:54.575Z] [18658]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:15:54.576Z] [18658]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:15:54.576Z] [18658]   HOME=/Users/isolomatov
+[2026-06-29T22:15:54.576Z] [18658]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:15:54.576Z] [18658]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:15:54.576Z] [18658]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:15:54.577Z] [18658]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:15:54.578Z] [18658]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:15:54.578Z] [18658]   LANG=C.UTF-8
+[2026-06-29T22:15:54.578Z] [18658]   LOGNAME=isolomatov
+[2026-06-29T22:15:54.578Z] [18658]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:15:54.578Z] [18658]   MallocNanoZone=0
+[2026-06-29T22:15:54.579Z] [18658]   OSLogRateLimit=64
+[2026-06-29T22:15:54.579Z] [18658]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:15:54.579Z] [18658]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:15:54.579Z] [18658]   RBENV_SHELL=zsh
+[2026-06-29T22:15:54.579Z] [18658]   SHELL=/bin/zsh
+[2026-06-29T22:15:54.579Z] [18658]   SHLVL=1
+[2026-06-29T22:15:54.580Z] [18658]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:15:54.580Z] [18658]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:15:54.580Z] [18658]   USER=isolomatov
+[2026-06-29T22:15:54.580Z] [18658]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:15:54.580Z] [18658]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:15:54.580Z] [18658]   VSCODE_CWD=/
+[2026-06-29T22:15:54.580Z] [18658]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:15:54.580Z] [18658]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:15:54.580Z] [18658]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:15:54.581Z] [18658]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:15:54.581Z] [18658]   VSCODE_PID=12195
+[2026-06-29T22:15:54.581Z] [18658]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:15:54.581Z] [18658]   XPC_FLAGS=0x0
+[2026-06-29T22:15:54.581Z] [18658]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:15:54.581Z] [18658]   _=/opt/homebrew/bin/node
+[2026-06-29T22:15:54.581Z] [18658]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:15:54.581Z] [18658]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:15:54.581Z] [18658] PARSED INPUT: {"agent_action_name":"pre_write_code","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:15:54.494637-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"edits":[{"old_string":"","new_string":"windsurf-write-probe"}],"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/_ws_write_probe.txt"}}
+[2026-06-29T22:15:54.581Z] [18658] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:15:54.581Z] [18658] PROCESSOR: --tag (value="pre_write_code")
+[2026-06-29T22:15:54.582Z] [18658] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-29T22:15:54.582Z] [18658] 
+
+[2026-06-29T22:15:56.658Z] [18701] ===== hook invocation =====
+[2026-06-29T22:15:56.659Z] [18701] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag post_write_code
+[2026-06-29T22:15:56.659Z] [18701] ARGV: ["--mode","windsurf","--tag","post_write_code"]
+[2026-06-29T22:15:56.660Z] [18701] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:15:56.660Z] [18701] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:15:56.660Z] [18701] RAW STDIN:
+[2026-06-29T22:15:56.660Z] [18701] {"agent_action_name":"post_write_code","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:15:56.595107-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"edits":[{"old_string":"","new_string":"windsurf-write-probe"}],"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/_ws_write_probe.txt"}}
+[2026-06-29T22:15:56.660Z] [18701] ENV:
+[2026-06-29T22:15:56.660Z] [18701]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:15:56.660Z] [18701]   COMMAND_MODE=unix2003
+[2026-06-29T22:15:56.660Z] [18701]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:15:56.660Z] [18701]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:15:56.660Z] [18701]   HOME=/Users/isolomatov
+[2026-06-29T22:15:56.661Z] [18701]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:15:56.661Z] [18701]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:15:56.661Z] [18701]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:15:56.661Z] [18701]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:15:56.661Z] [18701]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:15:56.661Z] [18701]   LANG=C.UTF-8
+[2026-06-29T22:15:56.661Z] [18701]   LOGNAME=isolomatov
+[2026-06-29T22:15:56.661Z] [18701]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:15:56.661Z] [18701]   MallocNanoZone=0
+[2026-06-29T22:15:56.661Z] [18701]   OSLogRateLimit=64
+[2026-06-29T22:15:56.662Z] [18701]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:15:56.662Z] [18701]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:15:56.662Z] [18701]   RBENV_SHELL=zsh
+[2026-06-29T22:15:56.662Z] [18701]   SHELL=/bin/zsh
+[2026-06-29T22:15:56.662Z] [18701]   SHLVL=1
+[2026-06-29T22:15:56.662Z] [18701]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:15:56.662Z] [18701]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:15:56.663Z] [18701]   USER=isolomatov
+[2026-06-29T22:15:56.663Z] [18701]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:15:56.663Z] [18701]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:15:56.663Z] [18701]   VSCODE_CWD=/
+[2026-06-29T22:15:56.664Z] [18701]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:15:56.664Z] [18701]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:15:56.664Z] [18701]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:15:56.664Z] [18701]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:15:56.664Z] [18701]   VSCODE_PID=12195
+[2026-06-29T22:15:56.664Z] [18701]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:15:56.664Z] [18701]   XPC_FLAGS=0x0
+[2026-06-29T22:15:56.664Z] [18701]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:15:56.664Z] [18701]   _=/opt/homebrew/bin/node
+[2026-06-29T22:15:56.664Z] [18701]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:15:56.664Z] [18701]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:15:56.664Z] [18701] PARSED INPUT: {"agent_action_name":"post_write_code","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:15:56.595107-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"edits":[{"old_string":"","new_string":"windsurf-write-probe"}],"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/_ws_write_probe.txt"}}
+[2026-06-29T22:15:56.664Z] [18701] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:15:56.664Z] [18701] PROCESSOR: --tag (value="post_write_code")
+[2026-06-29T22:15:56.665Z] [18701] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-29T22:15:56.665Z] [18701] 
+
+[2026-06-29T22:15:57.483Z] [18713] ===== hook invocation =====
+[2026-06-29T22:15:57.484Z] [18713] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag pre_read_code --deny-on-match HOOK-DENY-PROBE
+[2026-06-29T22:15:57.484Z] [18713] ARGV: ["--mode","windsurf","--tag","pre_read_code","--deny-on-match","HOOK-DENY-PROBE"]
+[2026-06-29T22:15:57.484Z] [18713] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:15:57.484Z] [18713] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:15:57.485Z] [18713] RAW STDIN:
+[2026-06-29T22:15:57.485Z] [18713] {"agent_action_name":"pre_read_code","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:15:57.424477-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/HOOK-DENY-PROBE.txt"}}
+[2026-06-29T22:15:57.485Z] [18713] ENV:
+[2026-06-29T22:15:57.485Z] [18713]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:15:57.485Z] [18713]   COMMAND_MODE=unix2003
+[2026-06-29T22:15:57.485Z] [18713]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:15:57.485Z] [18713]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:15:57.485Z] [18713]   HOME=/Users/isolomatov
+[2026-06-29T22:15:57.485Z] [18713]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:15:57.485Z] [18713]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:15:57.485Z] [18713]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:15:57.486Z] [18713]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:15:57.486Z] [18713]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:15:57.486Z] [18713]   LANG=C.UTF-8
+[2026-06-29T22:15:57.486Z] [18713]   LOGNAME=isolomatov
+[2026-06-29T22:15:57.486Z] [18713]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:15:57.486Z] [18713]   MallocNanoZone=0
+[2026-06-29T22:15:57.486Z] [18713]   OSLogRateLimit=64
+[2026-06-29T22:15:57.486Z] [18713]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:15:57.486Z] [18713]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:15:57.486Z] [18713]   RBENV_SHELL=zsh
+[2026-06-29T22:15:57.487Z] [18713]   SHELL=/bin/zsh
+[2026-06-29T22:15:57.487Z] [18713]   SHLVL=1
+[2026-06-29T22:15:57.487Z] [18713]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:15:57.487Z] [18713]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:15:57.487Z] [18713]   USER=isolomatov
+[2026-06-29T22:15:57.487Z] [18713]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:15:57.487Z] [18713]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:15:57.487Z] [18713]   VSCODE_CWD=/
+[2026-06-29T22:15:57.487Z] [18713]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:15:57.488Z] [18713]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:15:57.488Z] [18713]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:15:57.488Z] [18713]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:15:57.488Z] [18713]   VSCODE_PID=12195
+[2026-06-29T22:15:57.488Z] [18713]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:15:57.488Z] [18713]   XPC_FLAGS=0x0
+[2026-06-29T22:15:57.488Z] [18713]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:15:57.488Z] [18713]   _=/opt/homebrew/bin/node
+[2026-06-29T22:15:57.488Z] [18713]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:15:57.488Z] [18713]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:15:57.489Z] [18713] PARSED INPUT: {"agent_action_name":"pre_read_code","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:15:57.424477-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"file_path":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/HOOK-DENY-PROBE.txt"}}
+[2026-06-29T22:15:57.489Z] [18713] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:15:57.489Z] [18713] PROCESSOR: --tag (value="pre_read_code")
+[2026-06-29T22:15:57.489Z] [18713] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-06-29T22:15:57.497Z] [18713] RESULT: exitCode=2 textLen=0 stderrLen=340
+[2026-06-29T22:15:57.497Z] [18713] 
+
+[2026-06-29T22:15:57.620Z] [18714] ===== hook invocation =====
+[2026-06-29T22:15:57.621Z] [18714] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag pre_run_command --deny-on-match HOOK-DENY-PROBE
+[2026-06-29T22:15:57.621Z] [18714] ARGV: ["--mode","windsurf","--tag","pre_run_command","--deny-on-match","HOOK-DENY-PROBE"]
+[2026-06-29T22:15:57.621Z] [18714] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:15:57.621Z] [18714] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:15:57.622Z] [18714] RAW STDIN:
+[2026-06-29T22:15:57.622Z] [18714] {"agent_action_name":"pre_run_command","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:15:57.54528-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"command_line":"cat docs/hooks/HOOK-DENY-PROBE.txt","cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"}}
+[2026-06-29T22:15:57.622Z] [18714] ENV:
+[2026-06-29T22:15:57.622Z] [18714]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:15:57.622Z] [18714]   COMMAND_MODE=unix2003
+[2026-06-29T22:15:57.622Z] [18714]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:15:57.622Z] [18714]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:15:57.622Z] [18714]   HOME=/Users/isolomatov
+[2026-06-29T22:15:57.622Z] [18714]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:15:57.623Z] [18714]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:15:57.623Z] [18714]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:15:57.623Z] [18714]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:15:57.623Z] [18714]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:15:57.623Z] [18714]   LANG=C.UTF-8
+[2026-06-29T22:15:57.623Z] [18714]   LOGNAME=isolomatov
+[2026-06-29T22:15:57.623Z] [18714]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:15:57.623Z] [18714]   MallocNanoZone=0
+[2026-06-29T22:15:57.623Z] [18714]   OSLogRateLimit=64
+[2026-06-29T22:15:57.623Z] [18714]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:15:57.623Z] [18714]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:15:57.623Z] [18714]   RBENV_SHELL=zsh
+[2026-06-29T22:15:57.624Z] [18714]   SHELL=/bin/zsh
+[2026-06-29T22:15:57.624Z] [18714]   SHLVL=1
+[2026-06-29T22:15:57.624Z] [18714]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:15:57.624Z] [18714]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:15:57.624Z] [18714]   USER=isolomatov
+[2026-06-29T22:15:57.624Z] [18714]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:15:57.624Z] [18714]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:15:57.624Z] [18714]   VSCODE_CWD=/
+[2026-06-29T22:15:57.624Z] [18714]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:15:57.624Z] [18714]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:15:57.624Z] [18714]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:15:57.624Z] [18714]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:15:57.625Z] [18714]   VSCODE_PID=12195
+[2026-06-29T22:15:57.625Z] [18714]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:15:57.625Z] [18714]   XPC_FLAGS=0x0
+[2026-06-29T22:15:57.625Z] [18714]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:15:57.625Z] [18714]   _=/opt/homebrew/bin/node
+[2026-06-29T22:15:57.625Z] [18714]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:15:57.625Z] [18714]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:15:57.625Z] [18714] PARSED INPUT: {"agent_action_name":"pre_run_command","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:15:57.54528-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"command_line":"cat docs/hooks/HOOK-DENY-PROBE.txt","cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"}}
+[2026-06-29T22:15:57.625Z] [18714] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:15:57.625Z] [18714] PROCESSOR: --tag (value="pre_run_command")
+[2026-06-29T22:15:57.625Z] [18714] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-06-29T22:15:57.630Z] [18714] RESULT: exitCode=2 textLen=0 stderrLen=340
+[2026-06-29T22:15:57.630Z] [18714] 
+
+[2026-06-29T22:16:01.297Z] [18777] ===== hook invocation =====
+[2026-06-29T22:16:01.298Z] [18777] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag post_cascade_response
+[2026-06-29T22:16:01.298Z] [18777] ARGV: ["--mode","windsurf","--tag","post_cascade_response"]
+[2026-06-29T22:16:01.298Z] [18777] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:16:01.298Z] [18777] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:16:01.298Z] [18777] RAW STDIN:
+[2026-06-29T22:16:01.298Z] [18777] {"agent_action_name":"post_cascade_response","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:16:01.234742-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"response":"### Planner Response\n\nI'll execute these diagnostic steps in order.\n\n*User accepted the command `echo rosetta-hook-probe`*\n\n*Viewed file:///Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/README.md*\n\n*Edited relevant file*\n\n*Viewed file:///Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/HOOK-DENY-PROBE.txt*\n\n*User accepted the command `cat docs/hooks/HOOK-DENY-PROBE.txt`*\n\n### Planner Response\n\n## Summary of Diagnostic Test Results\n\n**Step 1** - `echo rosetta-hook-probe`: **SUCCEEDED**\n- Output: `rosetta-hook-probe`\n\n**Step 2** - Read first 5 lines of README.md: **SUCCEEDED**\n- Showed lines 1-5 of the file\n\n**Step 3** - Create [docs/hooks/_ws_write_probe.txt](file:///Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/_ws_write_probe.txt:0:0-0:0): **SUCCEEDED**\n- File created with content \"windsurf-write-probe\"\n\n**Step 4** - Read `docs/hooks/HOOK-DENY-PROBE.txt`: **BLOCKED**\n- Error message: \"HOOK TEST (Rosetta diagnostic): this action was intentionally BLOCKED by a Cascade pre-hook (exit code 2) because the request matched the test target. This is only a test of hook-based prevention. Please (1) tell the user verbatim that a hook blocked this action and quote this message, then (2) continue with the rest of the task normally.: action blocked by hook\"\n\n**Step 5** - Run `cat docs/hooks/HOOK-DENY-PROBE.txt`: **BLOCKED**\n- Error message: \"HOOK TEST (Rosetta diagnostic): this action was intentionally BLOCKED by a Cascade pre-hook (exit code 2) because the request matched the test target. This is only a test of hook-based prevention. Please (1) tell the user verbatim that a hook blocked this action and quote this message, then (2) continue with the rest of the task normally.: action blocked by hook\""}}
+[2026-06-29T22:16:01.298Z] [18777] ENV:
+[2026-06-29T22:16:01.299Z] [18777]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:16:01.299Z] [18777]   COMMAND_MODE=unix2003
+[2026-06-29T22:16:01.299Z] [18777]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:16:01.299Z] [18777]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:16:01.299Z] [18777]   HOME=/Users/isolomatov
+[2026-06-29T22:16:01.299Z] [18777]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:16:01.299Z] [18777]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:16:01.299Z] [18777]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:16:01.299Z] [18777]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:16:01.299Z] [18777]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:16:01.299Z] [18777]   LANG=C.UTF-8
+[2026-06-29T22:16:01.299Z] [18777]   LOGNAME=isolomatov
+[2026-06-29T22:16:01.299Z] [18777]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:16:01.299Z] [18777]   MallocNanoZone=0
+[2026-06-29T22:16:01.300Z] [18777]   OSLogRateLimit=64
+[2026-06-29T22:16:01.300Z] [18777]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:16:01.300Z] [18777]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:16:01.300Z] [18777]   RBENV_SHELL=zsh
+[2026-06-29T22:16:01.300Z] [18777]   SHELL=/bin/zsh
+[2026-06-29T22:16:01.300Z] [18777]   SHLVL=1
+[2026-06-29T22:16:01.300Z] [18777]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:16:01.300Z] [18777]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:16:01.300Z] [18777]   USER=isolomatov
+[2026-06-29T22:16:01.300Z] [18777]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:16:01.300Z] [18777]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:16:01.300Z] [18777]   VSCODE_CWD=/
+[2026-06-29T22:16:01.300Z] [18777]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:16:01.301Z] [18777]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:16:01.301Z] [18777]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:16:01.301Z] [18777]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:16:01.301Z] [18777]   VSCODE_PID=12195
+[2026-06-29T22:16:01.301Z] [18777]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:16:01.301Z] [18777]   XPC_FLAGS=0x0
+[2026-06-29T22:16:01.301Z] [18777]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:16:01.301Z] [18777]   _=/opt/homebrew/bin/node
+[2026-06-29T22:16:01.301Z] [18777]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:16:01.301Z] [18777]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:16:01.301Z] [18777] PARSED INPUT: {"agent_action_name":"post_cascade_response","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:16:01.234742-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"response":"### Planner Response\n\nI'll execute these diagnostic steps in order.\n\n*User accepted the command `echo rosetta-hook-probe`*\n\n*Viewed file:///Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/README.md*\n\n*Edited relevant file*\n\n*Viewed file:///Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/HOOK-DENY-PROBE.txt*\n\n*User accepted the command `cat docs/hooks/HOOK-DENY-PROBE.txt`*\n\n### Planner Response\n\n## Summary of Diagnostic Test Results\n\n**Step 1** - `echo rosetta-hook-probe`: **SUCCEEDED**\n- Output: `rosetta-hook-probe`\n\n**Step 2** - Read first 5 lines of README.md: **SUCCEEDED**\n- Showed lines 1-5 of the file\n\n**Step 3** - Create [docs/hooks/_ws_write_probe.txt](file:///Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/_ws_write_probe.txt:0:0-0:0): **SUCCEEDED**\n- File created with content \"windsurf-write-probe\"\n\n**Step 4** - Read `docs/hooks/HOOK-DENY-PROBE.txt`: **BLOCKED**\n- Error message: \"HOOK TEST (Rosetta diagnostic): this action was intentionally BLOCKED by a Cascade pre-hook (exit code 2) because the request matched the test target. This is only a test of hook-based prevention. Please (1) tell the user verbatim that a hook blocked this action and quote this message, then (2) continue with the rest of the task normally.: action blocked by hook\"\n\n**Step 5** - Run `cat docs/hooks/HOOK-DENY-PROBE.txt`: **BLOCKED**\n- Error message: \"HOOK TEST (Rosetta diagnostic): this action was intentionally BLOCKED by a Cascade pre-hook (exit code 2) because the request matched the test target. This is only a test of hook-based prevention. Please (1) tell the user verbatim that a hook blocked this action and quote this message, then (2) continue with the rest of the task normally.: action blocked by hook\""}}
+[2026-06-29T22:16:01.301Z] [18777] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:16:01.302Z] [18777] PROCESSOR: --tag (value="post_cascade_response")
+[2026-06-29T22:16:01.302Z] [18777] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-29T22:16:01.302Z] [18777] 
+
+[2026-06-29T22:16:01.355Z] [18778] ===== hook invocation =====
+[2026-06-29T22:16:01.356Z] [18778] INVOCATION: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks/tester.js --mode windsurf --tag post_cascade_response_with_transcript
+[2026-06-29T22:16:01.356Z] [18778] ARGV: ["--mode","windsurf","--tag","post_cascade_response_with_transcript"]
+[2026-06-29T22:16:01.356Z] [18778] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:16:01.356Z] [18778] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/docs/hooks
+[2026-06-29T22:16:01.357Z] [18778] RAW STDIN:
+[2026-06-29T22:16:01.357Z] [18778] {"agent_action_name":"post_cascade_response_with_transcript","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:16:01.305097-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"transcript_path":"/Users/isolomatov/.windsurf/transcripts/64944513-a64d-410b-af09-426251271f8b.jsonl"}}
+[2026-06-29T22:16:01.357Z] [18778] ENV:
+[2026-06-29T22:16:01.357Z] [18778]   CODEIUM_EDITOR_APP_ROOT=/Applications/Devin.app/Contents/Resources/app
+[2026-06-29T22:16:01.357Z] [18778]   COMMAND_MODE=unix2003
+[2026-06-29T22:16:01.357Z] [18778]   ELECTRON_RUN_AS_NODE=1
+[2026-06-29T22:16:01.357Z] [18778]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-06-29T22:16:01.357Z] [18778]   HOME=/Users/isolomatov
+[2026-06-29T22:16:01.357Z] [18778]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-06-29T22:16:01.357Z] [18778]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-06-29T22:16:01.357Z] [18778]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-06-29T22:16:01.357Z] [18778]   INFOPATH=/opt/homebrew/share/info:
+[2026-06-29T22:16:01.357Z] [18778]   JAVA_HOME=    java.home = /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-06-29T22:16:01.357Z] [18778]   LANG=C.UTF-8
+[2026-06-29T22:16:01.358Z] [18778]   LOGNAME=isolomatov
+[2026-06-29T22:16:01.358Z] [18778]   MACH_PORT_RENDEZVOUS_PEER_VALDATION=0
+[2026-06-29T22:16:01.358Z] [18778]   MallocNanoZone=0
+[2026-06-29T22:16:01.358Z] [18778]   OSLogRateLimit=64
+[2026-06-29T22:16:01.358Z] [18778]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-06-29T22:16:01.358Z] [18778]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+[2026-06-29T22:16:01.358Z] [18778]   RBENV_SHELL=zsh
+[2026-06-29T22:16:01.358Z] [18778]   SHELL=/bin/zsh
+[2026-06-29T22:16:01.358Z] [18778]   SHLVL=1
+[2026-06-29T22:16:01.358Z] [18778]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.skvwTwhhK7/Listeners
+[2026-06-29T22:16:01.358Z] [18778]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-06-29T22:16:01.358Z] [18778]   USER=isolomatov
+[2026-06-29T22:16:01.358Z] [18778]   VSCODE_CODE_CACHE_PATH=/Users/isolomatov/Library/Application Support/Devin/CachedData/16737566f57f3b53bde136375fe0544eca12fac4
+[2026-06-29T22:16:01.358Z] [18778]   VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+[2026-06-29T22:16:01.358Z] [18778]   VSCODE_CWD=/
+[2026-06-29T22:16:01.358Z] [18778]   VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+[2026-06-29T22:16:01.358Z] [18778]   VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+[2026-06-29T22:16:01.358Z] [18778]   VSCODE_IPC_HOOK=/Users/isolomatov/Library/Application Support/Devin/1.11-main.sock
+[2026-06-29T22:16:01.359Z] [18778]   VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/Applications/Devin.app/Contents/Resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}
+[2026-06-29T22:16:01.359Z] [18778]   VSCODE_PID=12195
+[2026-06-29T22:16:01.359Z] [18778]   WINDSURF_CSRF_TOKEN=97b24…[REDACTED]
+[2026-06-29T22:16:01.359Z] [18778]   XPC_FLAGS=0x0
+[2026-06-29T22:16:01.359Z] [18778]   XPC_SERVICE_NAME=application.com.exafunction.windsurf.109386704.109386710
+[2026-06-29T22:16:01.359Z] [18778]   _=/opt/homebrew/bin/node
+[2026-06-29T22:16:01.359Z] [18778]   __CFBundleIdentifier=com.exafunction.windsurf
+[2026-06-29T22:16:01.359Z] [18778]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-06-29T22:16:01.359Z] [18778] PARSED INPUT: {"agent_action_name":"post_cascade_response_with_transcript","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:16:01.305097-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"transcript_path":"/Users/isolomatov/.windsurf/transcripts/64944513-a64d-410b-af09-426251271f8b.jsonl"}}
+[2026-06-29T22:16:01.359Z] [18778] PROCESSOR: --mode (value="windsurf")
+[2026-06-29T22:16:01.359Z] [18778] PROCESSOR: --tag (value="post_cascade_response_with_transcript")
+[2026-06-29T22:16:01.359Z] [18778] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-06-29T22:16:01.359Z] [18778] 

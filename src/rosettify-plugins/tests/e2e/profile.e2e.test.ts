@@ -1,11 +1,22 @@
 /**
- * Profile E2E — the end-to-end proof that a profiled build actually works
- * (FR-PROF-0020/0030/0040, gate G-C).
+ * Variant E2E — the end-to-end proof that a set's LIGHTWEIGHT VARIANT actually works
+ * (FR-PROF-0020/0030/0040, DATA-CFG-0007, gate G-C).
+ *
+ * What changed: the `-light` suffix used to come from the PROFILE descriptor and required a
+ * second `--profile lightweight` invocation. It is now a property of a set VARIANT declared in
+ * plugins.json, so ONE unprofiled invocation emits both `rosetta-<ide>` and `rosetta-<ide>-light`
+ * side by side. That makes this file's base-vs-light comparison a comparison between two folders of
+ * the SAME run, which is a stronger check than comparing two separate runs: any difference is
+ * attributable to the variant alone.
+ *
+ * The `rosetta` set is used throughout because the agent and workflow documents these assertions
+ * read (architect, discoverer, reviewer, engineer, coding-flow) live in `workflows/`, which only the
+ * multi-folder `rosetta` set layers.
  *
  * Where parity.e2e.test.ts proves the profiled output has the right SHAPE (path-set parity),
  * this file proves the profiled build does the right THING with real repo inputs:
- *   - a profiled run writes every target to its `core-*-light` destination and never touches a
- *     pre-existing unsuffixed `core-*` destination (FR-PROF-0020)
+ *   - the light variant writes every target to its `rosetta-<ide>-light` destination beside the
+ *     unsuffixed `rosetta-<ide>` destination (FR-PROF-0020)
  *   - the profile-scoped documents (`coding-flow~profile-lightweight-only~overwrite~.md` and the ten
  *     `<agent>~profile-lightweight-only~overwrite~.md` agent documents) supersede their base
  *     counterparts ONLY in the light plugins, and their lighter `model:` candidate lists resolve
@@ -28,6 +39,12 @@ import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { parse as parseToml } from 'smol-toml';
+import matter from 'gray-matter';
+import {
+  normalizeClaude, normalizeCursor, normalizeCopilot, normalizeCodex,
+  CLAUDE_VOCABULARY, CURSOR_VOCABULARY, COPILOT_VOCABULARY, CODEX_VOCABULARY,
+  type CodexModelResult,
+} from '../../src/spec/model-maps.js';
 import { generate } from '../../src/index.js';
 import type { ResolvedSources } from '../../src/types.js';
 
@@ -37,14 +54,15 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const PLUGINS_SOURCE = path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins');
 const PROFILE_SOURCE = path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'profiles');
 
+const SET = 'rosetta';
 const TARGETS = [
-  'core-claude',
-  'core-cursor',
-  'core-copilot',
-  'core-codex',
-  'core-cursor-standalone',
-  'core-copilot-standalone',
-  'core-antigravity',
+  'claude',
+  'cursor',
+  'copilot',
+  'codex',
+  'cursor-standalone',
+  'copilot-standalone',
+  'antigravity',
 ] as const;
 
 // Marker text unique to the profile-scoped body (instructions/r3/core/workflows/
@@ -66,6 +84,7 @@ function buildSources(outputDir: string): ResolvedSources {
     hooksSource: path.join(REPO_ROOT, 'src', 'hooks'),
     outputDir,
     profileSource: PROFILE_SOURCE,
+    configPath: path.join(REPO_ROOT, 'src', 'rosettify-plugins', 'plugins.json'),
   };
 }
 
@@ -123,33 +142,30 @@ async function silencingStderr<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-describe('Profile E2E — profiled build (--profile lightweight)', () => {
+describe('Variant E2E — one run emits both the base and the -light variant', () => {
   let tmpRoot: string;
   let outputDir: string;
   let exitCode: number;
 
+  const base = (target: string, ...rest: string[]): string =>
+    path.join(outputDir, `${SET}-${target}`, ...rest);
+  const light = (target: string, ...rest: string[]): string =>
+    path.join(outputDir, `${SET}-${target}-light`, ...rest);
+
   beforeAll(async () => {
-    tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'profile-e2e-light-'));
+    tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'variant-e2e-'));
     outputDir = path.join(tmpRoot, 'output');
     fs.mkdirSync(outputDir, { recursive: true });
 
-    // Pre-seed a sentinel in the UNSUFFIXED destination that a profiled run must never touch
-    // (FR-PROF-0020: the suffix applies to spec.destination only, and every one of the seven
-    // targets writes to its suffixed destination — none write to the unsuffixed one).
-    const sentinelDir = path.join(outputDir, 'core-claude');
-    fs.mkdirSync(sentinelDir, { recursive: true });
-    fs.writeFileSync(path.join(sentinelDir, 'SENTINEL.txt'), 'untouched', 'utf-8');
-
+    // NO `profile` field: the variant, not --profile, is what activates `lightweight` now.
     exitCode = await generate({
       sources: buildSources(outputDir),
       release: 'r3',
-      domain: 'core',
       dryRun: false,
       verbose: false,
       deterministicHooks: false,
-      profile: 'lightweight',
     });
-  }, 180000);
+  }, 300000);
 
   afterAll(() => {
     if (tmpRoot) fs.rmSync(tmpRoot, { recursive: true, force: true });
@@ -159,174 +175,65 @@ describe('Profile E2E — profiled build (--profile lightweight)', () => {
     expect(exitCode).toBe(0);
   });
 
-  it('writes every target to its core-*-light destination (FR-PROF-0020.AC1)', () => {
+  it('writes BOTH destinations for every target of the rosetta set (FR-PROF-0020.AC1)', () => {
     for (const target of TARGETS) {
-      expect(fs.existsSync(path.join(outputDir, `${target}-light`)), `${target}-light missing`).toBe(true);
+      expect(fs.existsSync(base(target)), `${SET}-${target} missing`).toBe(true);
+      expect(fs.existsSync(light(target)), `${SET}-${target}-light missing`).toBe(true);
     }
   });
 
-  it('does NOT touch the pre-existing unsuffixed core-claude destination', () => {
-    const sentinelPath = path.join(outputDir, 'core-claude', 'SENTINEL.txt');
-    expect(fs.existsSync(sentinelPath), 'sentinel file must survive untouched').toBe(true);
-    expect(fs.readFileSync(sentinelPath, 'utf-8')).toBe('untouched');
-    // Nothing else was written alongside it either — a profiled run writes core-claude-light,
-    // never core-claude.
-    const entries = fs.readdirSync(path.join(outputDir, 'core-claude'));
-    expect(entries).toEqual(['SENTINEL.txt']);
+  it('only the rosetta set declares a light variant — no other set gets a -light twin', () => {
+    const lightDirs = fs.readdirSync(outputDir).filter((d) => d.endsWith('-light'));
+    expect(lightDirs).toHaveLength(TARGETS.length);
+    expect(lightDirs.every((d) => d.startsWith(`${SET}-`))).toBe(true);
   });
 
-  it('light coding-flow body wins: the profile-scoped document supersedes the base one (FR-PROF-0030.AC1)', () => {
-    const p = path.join(outputDir, 'core-claude-light', 'workflows', 'coding-flow.md');
-    expect(fs.existsSync(p), 'core-claude-light/workflows/coding-flow.md must exist').toBe(true);
-    const content = fs.readFileSync(p, 'utf-8');
-    expect(content).toContain(LIGHT_MARKER);
-    expect(content).toContain(LIGHT_ONLY_PHASE);
+  it('light coding-flow body wins ONLY in the light variant (FR-PROF-0030.AC1, FR-PROF-0040.AC3)', () => {
+    const lightBody = fs.readFileSync(light('claude', 'workflows', 'coding-flow.md'), 'utf-8');
+    expect(lightBody).toContain(LIGHT_MARKER);
+    expect(lightBody).toContain(LIGHT_ONLY_PHASE);
     // Full replacement, not a merge: the base-only phase is gone.
-    expect(content).not.toContain(BASE_ONLY_PHASE);
+    expect(lightBody).not.toContain(BASE_ONLY_PHASE);
+
+    // The sibling base folder from the SAME run excludes the profile-scoped document entirely.
+    const baseBody = fs.readFileSync(base('claude', 'workflows', 'coding-flow.md'), 'utf-8');
+    expect(baseBody).not.toContain(LIGHT_MARKER);
+    expect(baseBody).not.toContain(LIGHT_ONLY_PHASE);
+    expect(baseBody).toContain(BASE_ONLY_PHASE);
   });
 
-  // The lightweight profile selects its models by shipping profile-scoped agent documents whose
-  // `model:` candidate list differs, resolved through each target's UNCHANGED built-in vocabulary —
-  // it declares no modelOverrides at all. These assertions cover every resolution strategy: Claude's
-  // exact-token tier and its family-substring fallback, Cursor's and Copilot's first-token exact
-  // match, and Codex's first-gpt-token match plus reasoning-effort split.
-  it('light agents resolve to the profile-scoped models on all four vocabularies', () => {
-    // Claude, exact-token tier: architect's light list carries claude-opus-5, which the Claude map
-    // resolves by EXACT token (#178 normalized the source token from claude-5-opus-high; both forms
-    // are exact keys and both resolve here, so the tier this exercises did not change). The `opus`
-    // family key resolves to the same value, so this agrees with the base build rather than diverging
-    // from it — Claude Code exposes three tiers and the light profile asks for the same one here.
-    // What the exact entry guarantees is that an author naming a version explicitly keeps getting
-    // THAT version even if the family default later moves.
-    const claudeArchitect = fs.readFileSync(
-      path.join(outputDir, 'core-claude-light', 'agents', 'architect.md'), 'utf-8');
-    expect(claudeArchitect).toMatch(/^model: claude-opus-5$/m);
-
-    // Claude, family fallback: discoverer's light list carries claude-haiku-4-5. CLAUDE_CODE_MAP has
-    // exact keys only for the opus tokens, so this still has no exact entry and the `haiku` family
-    // key resolves it — #178's source normalization (claude-4.5-haiku -> claude-haiku-4-5) kept this
-    // case on the family tier, so the family-substring fallback remains covered by the real source
-    // tree. (The base list leads with claude-sonnet-5, also family-resolved, via `sonnet`.)
-    const claudeDiscoverer = fs.readFileSync(
-      path.join(outputDir, 'core-claude-light', 'agents', 'discoverer.md'), 'utf-8');
-    expect(claudeDiscoverer).toMatch(/^model: claude-haiku-4-5$/m);
-
-    // Cursor: reviewer's light list leads with gemini-3.7-flash-medium, mapped to the IDE-native
-    // gemini-3.7-flash (the base list leads with gpt-5.6-terra-medium -> gpt-5.6-terra).
-    const cursorReviewer = fs.readFileSync(
-      path.join(outputDir, 'core-cursor-light', 'agents', 'reviewer.md'), 'utf-8');
-    expect(cursorReviewer).toMatch(/^model: gemini-3\.7-flash$/m);
-
-    // Copilot: architect's light list leads with gpt-5.6-sol-high, mapped to Copilot's display name.
-    const copilotArchitect = fs.readFileSync(
-      path.join(outputDir, 'core-copilot-light', 'agents', 'architect.agent.md'), 'utf-8');
-    expect(copilotArchitect).toMatch(/^model: GPT-5\.6 Sol$/m);
-
-    // Codex: engineer's light list's first gpt- token is gpt-5.6-luna-xhigh, split into model +
-    // reasoning effort (the base list's first gpt- token is gpt-5.4-medium).
-    const codexEngineer = fs.readFileSync(
-      path.join(outputDir, 'core-codex-light', '.codex', 'agents', 'engineer.toml'), 'utf-8');
-    expect(codexEngineer).toContain('model = "gpt-5.6-luna"');
-    expect(codexEngineer).toContain('model_reasoning_effort = "xhigh"');
+  it('every emitted agent TOML parses, in BOTH variants (NFR-0005, #271)', () => {
+    expectEveryCodexAgentTomlParses(outputDir, `${SET}-codex`);
+    expectEveryCodexAgentTomlParses(outputDir, `${SET}-codex-light`);
   });
 
-  it('every emitted core-codex-light agent TOML parses (NFR-0005, #271)', () => {
-    expectEveryCodexAgentTomlParses(outputDir, 'core-codex-light');
+  it('the manifest name/description carry the variant suffixes (FR-PROF-0021.AC1)', () => {
+    const baseManifest = JSON.parse(
+      fs.readFileSync(base('claude', '.claude-plugin', 'plugin.json'), 'utf-8'));
+    const lightManifest = JSON.parse(
+      fs.readFileSync(light('claude', '.claude-plugin', 'plugin.json'), 'utf-8'));
+
+    expect(baseManifest.name).toBe('rosetta');
+    expect(lightManifest.name).toBe('rosetta-light');
+    expect(lightManifest.description).toContain('lightweight');
+    expect(baseManifest.description).not.toContain('lightweight');
   });
 
-  it('light manifest name carries the -light suffix (FR-PROF-0021.AC1)', () => {
-    const manifestPath = path.join(outputDir, 'core-claude-light', '.claude-plugin', 'plugin.json');
-    expect(fs.existsSync(manifestPath)).toBe(true);
-    const data = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-    expect(data.name).toBe('rosetta-light');
+  it('the standalone manifest name composes as <base>-standalone<suffix>', () => {
+    const manifest = JSON.parse(
+      fs.readFileSync(light('cursor-standalone', 'plugin.json'), 'utf-8'));
+    expect(manifest.name).toBe('rosetta-standalone-light');
   });
 });
 
-describe('Profile E2E — no-profile run (regression guard, FR-PROF-0040)', () => {
-  let tmpRoot: string;
-  let outputDir: string;
-  let exitCode: number;
-
-  beforeAll(async () => {
-    tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'profile-e2e-base-'));
-    outputDir = path.join(tmpRoot, 'output');
-    fs.mkdirSync(outputDir, { recursive: true });
-
-    exitCode = await generate({
-      sources: buildSources(outputDir),
-      release: 'r3',
-      domain: 'core',
-      dryRun: false,
-      verbose: false,
-      deterministicHooks: false,
-      // no `profile` field: activeProfile === null
-    });
-  }, 180000);
-
-  afterAll(() => {
-    if (tmpRoot) fs.rmSync(tmpRoot, { recursive: true, force: true });
-  });
-
-  it('exits 0', () => {
-    expect(exitCode).toBe(0);
-  });
-
-  it('excludes the profile-scoped documents entirely: base coding-flow body lands, not the light override (FR-PROF-0040.AC3)', () => {
-    const p = path.join(outputDir, 'core-claude', 'workflows', 'coding-flow.md');
-    expect(fs.existsSync(p)).toBe(true);
-    const content = fs.readFileSync(p, 'utf-8');
-    expect(content).not.toContain(LIGHT_MARKER);
-    expect(content).not.toContain(LIGHT_ONLY_PHASE);
-    expect(content).toContain(BASE_ONLY_PHASE);
-  });
-
-  it('base agents keep their base models: the profile-scoped agent documents are excluded (FR-PROF-0040.AC3)', () => {
-    const claudeDiscoverer = fs.readFileSync(
-      path.join(outputDir, 'core-claude', 'agents', 'discoverer.md'), 'utf-8');
-    expect(claudeDiscoverer).toMatch(/^model: claude-sonnet-5$/m);
-
-    // The base architect resolves to the current Opus through the Claude vocabulary.
-    const claudeArchitect = fs.readFileSync(
-      path.join(outputDir, 'core-claude', 'agents', 'architect.md'), 'utf-8');
-    expect(claudeArchitect).toMatch(/^model: claude-opus-5$/m);
-
-    const cursorReviewer = fs.readFileSync(
-      path.join(outputDir, 'core-cursor', 'agents', 'reviewer.md'), 'utf-8');
-    expect(cursorReviewer).toMatch(/^model: gpt-5\.6-terra$/m);
-
-    const codexEngineer = fs.readFileSync(
-      path.join(outputDir, 'core-codex', '.codex', 'agents', 'engineer.toml'), 'utf-8');
-    expect(codexEngineer).toContain('model = "gpt-5.6-terra"');
-    expect(codexEngineer).toContain('model_reasoning_effort = "medium"');
-  });
-
-  it('every emitted core-codex agent TOML parses (NFR-0005, #271)', () => {
-    expectEveryCodexAgentTomlParses(outputDir, 'core-codex');
-  });
-
-  it('base manifest name carries no suffix (FR-PROF-0040.AC2)', () => {
-    const manifestPath = path.join(outputDir, 'core-claude', '.claude-plugin', 'plugin.json');
-    expect(fs.existsSync(manifestPath)).toBe(true);
-    const data = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-    expect(data.name).toBe('rosetta');
-  });
-
-  it('no core-*-light destination exists under a no-profile run (FR-PROF-0040.AC1)', () => {
-    for (const target of TARGETS) {
-      expect(fs.existsSync(path.join(outputDir, `${target}-light`))).toBe(false);
-    }
-  });
-});
-
-describe('Profile E2E — invalid profile name aborts before any output (FR-PROF-0001, G-D)', () => {
-  it('non-zero exit and writes nothing', async () => {
-    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'profile-e2e-invalid-'));
+describe('Variant E2E — --profile overrides every variant (debugging path)', () => {
+  it('an unknown --profile aborts before any output (FR-PROF-0001, G-D)', async () => {
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'variant-e2e-invalid-'));
     const outputDir = path.join(tmpRoot, 'output');
     try {
       const code = await silencingStderr(() => generate({
         sources: buildSources(outputDir),
         release: 'r3',
-        domain: 'core',
         dryRun: false,
         verbose: false,
         deterministicHooks: false,
@@ -335,9 +242,112 @@ describe('Profile E2E — invalid profile name aborts before any output (FR-PROF
       expect(code).not.toBe(0);
       // Pre-flight abort happens before buildVfs — the output directory is never created.
       expect(fs.existsSync(outputDir), 'output dir must not be created on abort').toBe(false);
-      expect(listFilesRecursive(outputDir)).toEqual([]);
     } finally {
       fs.rmSync(tmpRoot, { recursive: true, force: true });
     }
+  }, 60000);
+});
+
+// ---------------------------------------------------------------------------------------------
+// Model resolution on a FIXTURE source tree (FR-PROF-0040.AC3/AC4, FR-PROF-0011, FR-PROF-0020).
+//
+// The real `instructions/` models and efforts are owner-tunable (cost tiers), so no assertion here
+// names a real agent's model. A test-only agent pair carries a base and a profile-scoped lightweight
+// `model:` list that are fixed and deliberately different on every vocabulary; expected values are
+// derived from the fixture frontmatter through the generator's own mapping.
+// ---------------------------------------------------------------------------------------------
+const FIXTURE_INSTRUCTIONS = path.join(__dirname, '..', 'fixtures', 'profile-instructions');
+const FIXTURE_AGENT = 'zz-model-fixture';
+
+function fixtureModel(file: string): { model: string; effort: string } {
+  const data = matter(fs.readFileSync(
+    path.join(FIXTURE_INSTRUCTIONS, 'r3', 'core', 'agents', file), 'utf-8')).data;
+  return { model: data.model as string, effort: data.effort as string };
+}
+
+const BASE_SRC = fixtureModel(`${FIXTURE_AGENT}.md`);
+const LIGHT_SRC = fixtureModel(`${FIXTURE_AGENT}~profile-lightweight-only~overwrite~.md`);
+
+interface Resolved { claude: string; cursor: string; copilot: string; codex: CodexModelResult }
+function resolveExpected(modelField: string): Resolved {
+  return {
+    claude: normalizeClaude(modelField, CLAUDE_VOCABULARY.map) as string,
+    cursor: normalizeCursor(modelField, CURSOR_VOCABULARY.map) as string,
+    copilot: normalizeCopilot(modelField, COPILOT_VOCABULARY.map) as string,
+    codex: normalizeCodex(modelField, CODEX_VOCABULARY.map) as CodexModelResult,
+  };
+}
+
+function readFixtureOutputs(outputDir: string, suffix: string) {
+  const rd = (...p: string[]) => fs.readFileSync(path.join(outputDir, ...p), 'utf-8');
+  const modelLine = (c: string) => /^model: (.*)$/m.exec(c)?.[1];
+  const dest = (ide: string) => `${SET}-${ide}${suffix}`;
+  return {
+    claude: modelLine(rd(dest('claude'), 'agents', `${FIXTURE_AGENT}.md`)),
+    claudeRaw: rd(dest('claude'), 'agents', `${FIXTURE_AGENT}.md`),
+    cursor: modelLine(rd(dest('cursor'), 'agents', `${FIXTURE_AGENT}.md`)),
+    copilot: modelLine(rd(dest('copilot'), 'agents', `${FIXTURE_AGENT}.agent.md`)),
+    codex: parseToml(rd(dest('codex'), '.codex', 'agents', `${FIXTURE_AGENT}.toml`)) as
+      Record<string, unknown>,
+  };
+}
+
+describe('Profile E2E — model resolution on a fixture tree', () => {
+  let tmpRoot: string;
+  let baseDir: string;
+  let lightDir: string;
+
+  // One catalog run builds the base variant (no profile) and the -light variant (lightweight
+  // profile) of the rosetta set side by side (FR-SET-0030); both read the fixture instructions.
+  beforeAll(async () => {
+    tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'profile-e2e-fixture-'));
+    const outputDir = path.join(tmpRoot, 'output');
+    fs.mkdirSync(outputDir, { recursive: true });
+    baseDir = outputDir;
+    lightDir = outputDir;
+    const code = await generate({
+      sources: { ...buildSources(outputDir), instructionsSource: FIXTURE_INSTRUCTIONS },
+      release: 'r3', dryRun: false, verbose: false, deterministicHooks: false,
+      publish: ['rosetta', 'rosetta-light'],
+    });
+    expect(code).toBe(0);
+  }, 180000);
+
+  afterAll(() => {
+    if (tmpRoot) fs.rmSync(tmpRoot, { recursive: true, force: true });
+  });
+
+  it('fixture sanity: base and light lists resolve differently on every vocabulary', () => {
+    const b = resolveExpected(BASE_SRC.model);
+    const l = resolveExpected(LIGHT_SRC.model);
+    expect(b.claude).not.toBe(l.claude);
+    expect(b.cursor).not.toBe(l.cursor);
+    expect(b.copilot).not.toBe(l.copilot);
+    expect(b.codex).not.toEqual(l.codex);
+  });
+
+  it('no-profile run: the base agent keeps the base model; the light document is excluded (FR-PROF-0040.AC3, AC4)', () => {
+    const out = readFixtureOutputs(baseDir, '');
+    const exp = resolveExpected(BASE_SRC.model);
+    expect(out.claude).toBe(exp.claude);
+    expect(out.cursor).toBe(exp.cursor);
+    expect(out.copilot).toBe(exp.copilot);
+    expect(out.codex.model).toBe(exp.codex.model);
+    expect(out.codex.model_reasoning_effort).toBe(exp.codex.effort);
+    expect(out.claudeRaw).toContain('Base fixture body.');
+    expect(out.claudeRaw).not.toContain('Lightweight fixture body.');
+    expect(out.claudeRaw).toMatch(new RegExp(`^effort: ${BASE_SRC.effort}$`, 'm'));
+  });
+
+  it('lightweight run: the agent resolves to the profile-scoped model on all four vocabularies (FR-PROF-0020)', () => {
+    const out = readFixtureOutputs(lightDir, '-light');
+    const exp = resolveExpected(LIGHT_SRC.model);
+    expect(out.claude).toBe(exp.claude);
+    expect(out.cursor).toBe(exp.cursor);
+    expect(out.copilot).toBe(exp.copilot);
+    expect(out.codex.model).toBe(exp.codex.model);
+    expect(out.codex.model_reasoning_effort).toBe(exp.codex.effort);
+    expect(out.claudeRaw).toContain('Lightweight fixture body.');
+    expect(out.claudeRaw).toMatch(new RegExp(`^effort: ${LIGHT_SRC.effort}$`, 'm'));
   });
 });

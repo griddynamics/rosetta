@@ -156,6 +156,38 @@ function planFile(name = "plan.json"): string {
   return path.join(tmpDir, name);
 }
 
+describe("MCP — plan create refuses an existing file (FR-PLAN-0010)", () => {
+  it.each(["create", "create-with-template"])("%s fails with plan_already_exists and leaves the latest plan untouched", async (subcommand) => {
+    const file = planFile();
+    expect((await client.callTool("plan", { subcommand: "create", plan_file: file, data: { name: "Original", phases: [
+      { id: "p1", name: "P1", steps: [{ id: "s1", name: "S1", prompt: "do" }] },
+    ] } })).isError).toBe(false);
+    expect((await client.callTool("plan", { subcommand: "update_status", plan_file: file, target_id: "s1", new_status: "complete" })).isError).toBe(false);
+    const before = fs.readFileSync(file);
+    const entries = fs.readdirSync(path.dirname(file)).sort();
+    const result = await client.callTool("plan", subcommand === "create"
+      ? { subcommand, plan_file: file, data: { name: "Replacement" } }
+      : { subcommand, plan_file: file, template: "for-orchestrator", "plan-name": "Replacement", "plan-description": "desc", "phase-steps": "[]" });
+    expect(result.isError).toBe(true);
+    expect((result.payload as { error: string }).error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file)).toEqual(before);
+    expect(fs.readdirSync(path.dirname(file)).sort()).toEqual(entries);
+  });
+
+  it("create fails the same way on a corrupted file, and upsert first create still links null", async () => {
+    const file = planFile();
+    fs.writeFileSync(file, "corrupted");
+    const result = await client.callTool("plan", { subcommand: "create", plan_file: file, data: { name: "Recovered" } });
+    expect(result.isError).toBe(true);
+    expect((result.payload as { error: string }).error).toBe("plan_already_exists");
+    expect(fs.readFileSync(file, "utf8")).toBe("corrupted");
+    expect(fs.existsSync(file + ".bak000")).toBe(false);
+    const first = await client.callTool("plan", { subcommand: "upsert", plan_file: planFile("new.json"), target_id: "entire_plan", data: { name: "First" } });
+    expect(first.isError).toBe(false);
+    expect((first.payload as { plan: { previous_version: null } }).plan.previous_version).toBeNull();
+  });
+});
+
 // ---------------------------------------------------------------------------
 // tools/list
 // ---------------------------------------------------------------------------

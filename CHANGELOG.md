@@ -118,6 +118,490 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 16.11 – Sun 22.11
+
+The AI now asks first about decisions where a mistake would be severe and about points it is least sure of, together with high-impact and high-risk ones (plugins v3.1.30). The same release ships the requirement id prefix described last week. PLUGINS.md gives step-by-step instructions to build plugins with replaced models for client organizations that cannot use a model. Cursor users get a direct install path.
+
+For self-hosted MCP, health probes and the server port follow the configured port, and settings that controlled nothing are removed. For maintainers, a pull request fails when its release version is already published. The planning and implementation pipelines start only by hand, because board content may carry injected instructions.
+
+**Highlights**
+
+- `[R3]` `hitl` and `questioning`: the AI puts high-severity and low-confidence questions first, together with high-impact, high-risk and key ones. Before, a question it was unsure about could wait behind others (v3.1.30)
+- `[R3]` `requirements-authoring`: the id template with the type prefix (`FR`, `NFR`, `INT`, `DATA`), announced last week, ships in v3.1.30
+- `[Docs]` PLUGINS.md "Replace models": install `rosetta-light` for lower model cost with no build; for a client organization that cannot use a model, build with a profile that maps each model per IDE (#517)
+- `[Docs]` Cursor: install from the GitHub repository in Settings → Customize → Plugins; team marketplaces have their own section. The user guide now says Rosetta ships two plugins
+- `[Server]` Helm chart 0.4.6: probes and `ROSETTA_HTTP_PORT` follow the first `ports` entry. Before, a changed port left probes on `port8000` and pods failed health checks (Arteom Balanuta, ArteomBalanuta, #419)
+- `[Server]` rosetta-mcp 3.0.7: `ROSETTA_READ_POLICY` is removed. It had no effect, because only instruction datasets are readable. A test now fails on any setting the server parses but never uses (Arteom Balanuta, ArteomBalanuta, #423)
+- `[CI]` A pull request fails when the version its release would publish already exists on npm, PyPI or Docker Hub. The image workflow no longer pushes an existing tag (#516, #476)
+- `[CI]` Board pipelines `repo-plan` and `repo-implement` start only by hand. Board issues and comments may come from malicious actors and carry injected instructions
+- `[Tooling]` rosettify 3.2.11 `specs migrate`: a requirement without `type` takes it from its id, so `NFR-PERF-0001` migrates as `NFR`. Missing source, priority and verification get `User`, `Must`, `Test` (Arteom Balanuta, ArteomBalanuta, #416)
+- `[Hooks]` `read-once`: only a trailing `# READ-OVERRIDE` in a shell command overrides dedup. Before, the text in a file name or content did too. Applies to builds with `--deterministic-hooks true` (Arteom Balanuta, ArteomBalanuta, #417)
+- Routine: plugins 3.1.29 → 3.1.30 (v3.1.28 and v3.1.29, shipped 16.11, are in last week's entry), rosettify 3.2.11, curiocity 0.2.15 (clear names for "not run" and "not evaluated", #420), rosettify-prompts 0.1.18 (SDK retries documented, #418), rosetta-mcp 3.0.7, Helm chart 0.4.6; `validate-test-cases` header states its manual trigger (#421); CODEOWNERS updated (#470); marketplace files name the owner URL; `daily-oss`, `sync-web-site`, `update-change-log` lessons (maintainer-internal); last week's entry landed; stats refreshed; web site synced
+
+#### Questions start where a mistake costs most
+
+- **What you get.** `[R3]` The AI asks first about what would hurt most if it guessed wrong, and about what it understands least. Before, it ordered questions by impact and risk. A severe-if-wrong point with a modest visible impact, or one the AI was unsure about, could come late. Now these come up front, where the user sees them first.
+- **What changed.** `hitl` and `questioning` each now read "High impact, high risk, high severity, low confidence, or key questions first". Both skills load on their own, so each carries the rule. Shipped in plugins v3.1.30 together with the `requirements-authoring` id prefix. (Igor Solomatov, isolomatov-gd)
+
+#### Plugins with replaced models for client organizations
+
+- **What you get.** `[Docs]` Some client organizations cannot use a given model. The generator supported model profiles before, documented only in its README. Now PLUGINS.md walks through a build that swaps models per IDE and keeps all content. For plain cost reduction, `rosetta-light` needs no build. Cursor users get a direct install from the GitHub repository.
+- **What changed.** "Replace models" under "Build customized plugins": copy `plugins.json`, add a profile file with a `modelOverrides` block per IDE, and build with `--config` and `--profileSource`. Key formats differ per IDE: Claude family keys, Cursor ids, Copilot display names, Codex `gpt-` tokens. Validated with `rosettify-plugins` 3.5.5: Cursor `architect` moved from Opus to Sonnet, other IDE outputs byte-identical (#517). (Igor Solomatov, isolomatov-gd)
+
+#### Self-hosted MCP: probes follow the port, unused settings removed
+
+- **What you get.** `[Server]` For the few organizations that host MCP themselves. Before, changing `ports` in the Helm chart left the probes and the server on 8000, and pods failed health checks with no error at deploy time. Now one `ports` value moves the probes and the server port together. `ROSETTA_READ_POLICY` is removed because it controlled nothing.
+- **What changed.** Helm chart 0.4.6 fills the probe port from the first `ports` entry when a probe has none, and sets `ROSETTA_HTTP_PORT` from it unless `env` sets it (#419, issue #261). rosetta-mcp 3.0.7 drops the read policy and two duplicate timeout fields; `ROSETTA_TOOL_TIMEOUT` and `ROSETTA_RAGFLOW_HTTP_TIMEOUT` still work. `test_config_field_readers.py` fails on any parsed setting with no reader; `INSTRUCTION_ROOT_FILTER` stays allowlisted until #172 (#423, issue #325). (Arteom Balanuta, ArteomBalanuta)
+
+#### Releases cannot overwrite a published version
+
+- **What you get.** `[CI]` A missing version bump now fails the pull request. Before, it passed review and failed only at publish time after merge. Contributors see the problem while the PR is open. Users get published versions that do not change under them.
+- **What changed.** `.github/actions/version-unpublished` checks npm, PyPI or Docker Hub anonymously. A `version-guard` job runs it in the PR CI of every published component and the Helm chart. The Docker image workflow runs it before each push. `publish-rosettify-plugins` skips changes to plugin templates, which the npm package does not contain (#476). (Igor Solomatov, isolomatov-gd)
+
+#### Board pipelines start only by hand
+
+- **What you get.** `[CI]` The planning and implementation pipelines no longer run on their own. Board issues and comments may come from malicious actors, so an unattended run could act on injected instructions. A maintainer now starts each run. Automatic starts return once a safer control mechanism is in place. The analysis pipeline already started only by hand.
+- **What changed.** `schedule` and `issues` triggers are commented out in `repo-plan.yml` and `repo-implement.yml`. `workflow_dispatch` stays. (Igor Solomatov, isolomatov-gd)
+
+### Week Mon 09.11 – Sun 15.11
+
+In Claude Code, the Rosetta always-on rules and plugin mode load again after `/clear` and after compaction. Before, a long session ran its second half without them. On large tasks, a repeated `plan create` no longer erases a plan in progress. `rosetta-light` gets the small-task rules that `rosetta` got last week. The AI writes precise answers and concise designs, and keeps plans and specs compact and complete. High-risk questions come first.
+
+For maintainers, checks no longer pass when the work did not. Token reports count each response once, a mistyped evaluator id stops the run, e2e jobs fail on missing artifacts, and `parse` reports rejected documents as failed. The triage bot is limited to reviews, replies, and labels, and its policy denies issue creation. 84 Dependabot and 6 CodeQL alerts are fixed.
+
+**Highlights**
+
+- `[R3]` Claude Code: the Rosetta bootstrap loads again after `/clear` and after compaction, from v3.1.27. Before, the session continued without the always-on rules, plugin mode, and the plugin path (Serghei Hmeli, xyrolle, #450, issue #449)
+- `[R3]` Claude Code: installs made under the old name `core@rosetta` update again from v3.1.24. In v3.1.23 Claude Code reported "Plugin not found in marketplace" for them
+- `[R3]` `rosetta-light`: `coding-flow` now uses the small and medium task rules that `rosetta` got last week, from v3.1.25. Small tasks skip `orchestration` and use a subagent only for the code review
+- `[R3]` Copilot: the Speckit policy no longer loads in every session, from v3.1.24. In v3.1.23 its `applyTo: "**"` made Copilot load it every time; it now loads only when requested
+- `[R3]` The AI writes with more precision, tuned for newer models. The always-on bootstrap asks for precise, faithful answers, `design` output is concise, and `planning` and `tech-specs` are losslessly compressed, so every important detail stays in. ASD-STE100 now applies to everything the AI writes (v3.1.26 to v3.1.29)
+- `[R3]` `hitl` and `questioning`: the AI asks high-risk questions first, together with high-impact and key ones. Before, a risky question with small visible impact could wait behind the others (v3.1.28)
+- `[R3]` `requirements-authoring`: the requirement id template shows the type prefix (`FR`, `NFR`, `INT`, `DATA`). Before, it showed `FR-` for every type, so a non-functional requirement could get an `FR` id (next release)
+- `[Tooling]` rosettify `plan create` refuses a path that already holds a file (`plan_already_exists`) and changes nothing. Before, it overwrote the plan without a backup. The `orchestration` skill drives large tasks through this command. First writes to plans and specs now take the lock, so parallel subagents cannot drop each other's content (Serghei Hmeli, xyrolle, #398, issue #389)
+- `[Tooling]` rosettify specs: `info` no longer suggests a purged id, id batches over 500 are rejected, the help shows `--system`, and plan templates no longer substitute text inside an inserted value (Serghei Hmeli, xyrolle, #438, #442, #440, #444)
+- `[CI]` Triage is limited to reviews and comments. Senders without write access get one reply on the current item, maintainers' runs can also add or remove labels, and the policy denies issue creation. Security detections go to the job summary instead of new issues
+- `[Tooling, CI]` Checks fail when the work failed: curiocity counts Claude Code tokens once per response and rejects unknown evaluator ids, e2e jobs fail on missing artifacts (Arteom Balanuta, ArteomBalanuta, #422, issue #303), and rosetta-cli `parse` reports rejected documents as failed (Serghei Hmeli, xyrolle, #434, #436, #428)
+- `[Tooling]` Plugin generator: customizations can overwrite or filter binary files such as `.js` and `.png`, `--dry-run` delivers its full output to a pipe, and `--release r2` builds again (Serghei Hmeli, xyrolle, #430, #446, #448)
+- `[Server, Tooling]` 84 Dependabot and 6 CodeQL alerts fixed. The MCP server no longer writes the PostHog key to its debug log (Igor Solomatov, #463)
+- Routine: plugins 3.1.23 → 3.1.29 (v3.1.24 to v3.1.29), rosettify 3.2.10, rosettify-plugins 3.5.5, curiocity 0.2.14, rosettify-prompts 0.1.17, rosetta-cli 3.0.10, rosetta-mcp-server 3.0.6, Helm chart 0.4.5; `AGENTS.md` names each context file, when to read it, and its sections; docs and the `coding-agents-hooks-authoring` skill state that no Windsurf hook bundle ships; stats script keeps hand-added notes; stats refreshed; web site synced with the architecture docs; CODEOWNERS updated; `daily-oss`, `update-change-log`, `collect-github-stats`, `sync-web-site` lessons (maintainer-internal); last week's entry landed and its `rosetta-light` claim corrected
+
+#### Rosetta stays loaded in long Claude Code sessions
+
+- **What you get.** `[R3]` Long Claude Code sessions keep Rosetta to the end. Before, `/clear` or an automatic compaction removed the bootstrap, and the AI continued without the always-on rules and plugin mode. Long tasks compact most. From v3.1.27 the bootstrap loads again after both. Separately, installs made under the old name `core@rosetta` find the plugin and update again from v3.1.24.
+- **What changed.** The Claude Code `SessionStart` hook matched `startup` only. It now matches `startup|clear|compact`. `resume` stays out, because a resumed session already replays the bootstrap from its transcript (Serghei Hmeli, xyrolle, #450, issue #449). The v3.1.23 rename from `core` to `rosetta` had dropped the `renames` map in the Claude Code marketplace file. It is restored, and Claude Code maps `core` to `rosetta` again (Igor Solomatov, isolomatov-gd).
+
+#### Precise answers, complete plans and specs
+
+- **What you get.** `[R3]` The AI now writes for precision, with wording tuned for newer models. Answers are precise and faithful to the source. Designs, which people review, are concise. Plans and specs, which the AI reads, stay compact and keep every important detail.
+- **What changed.** `bootstrap-alwayson`: "compressed" is replaced by "even terse, no fillers, straight to the point, faithful", and "MUST talk in ASD-STE100" became "MUST use and follow ASD-STE100 everywhere" (v3.1.26). `design`: "Compressed" became "Concise" (v3.1.28). `planning` and `tech-specs`: "compressed" became "losslessly compressed" (v3.1.29). `reasoning`: the DEBRIEF threshold reads "confidence < 0.8 of 0..1", so the scale is explicit (v3.1.29). (Igor Solomatov, isolomatov-gd)
+
+#### Plans and specs keep their content
+
+- **What you get.** `[Tooling]` A plan the AI is working on can no longer be erased by a second `create`. Before, `plan create` on an existing file replaced it with no backup, and the progress in it was lost. Now the call fails with `plan_already_exists` and tells the AI to continue with `next`, `show_status`, or `upsert`. Parallel subagents that create a plan or a specs document at the same time no longer drop each other's content. The fix ships in rosettify on npm, which `orchestration` runs with `npx` on large tasks, not in the plugin.
+- **What changed.** rosettify 3.2.10. `create` and `create-with-template` check for the file under the plan lock and write nothing when it exists (#398, issue #389). First writes through `upsert` and specs `add`/`migrate` run under the same lock. `specs info` counts purged ids, so its suggested next id is free (#438, issue #437). The 500-item batch limit also covers id lists (#442, issue #441). The help for `specs add` and `migrate` shows `--system` (#440, issue #439). Plan templates substitute placeholders in one pass (#444, issue #443). (Serghei Hmeli, xyrolle)
+
+#### Triage bot: review and comment only
+
+- **What you get.** `[CI]` Anyone on GitHub can trigger the triage bot. Before, one `/rosetta` comment could make it open several bot-authored issues, and its own security check opened `[SECURITY ALERT]` issues on demand. Now its prompt and tool policy limit it to reviews and comments. Senders without write access get one reply on the current item. Maintainers' runs can also add or remove existing labels. Issue creation is denied for every sender.
+- **What changed.** The workflow reads the sender's repository permission and grants write tools per level (`triage_trust.py`). Claude gets a read-only allowlist plus those tools. Codex gets extra deny-only rule files through a new `codex-setup` `extra-rules` input. Detections go to the job summary as `ROSETTA-SECURITY-ALERT` blocks. A new CI job tests these rules on every `.github/` change. The Codex deny-list has known gaps, listed in `docs/AUTOMATION-ARCHITECTURE.md`, together with a target design where the agent holds no GitHub token. (Igor Solomatov, isolomatov-gd)
+
+#### Checks that pass only when the work passed
+
+- **What you get.** `[Tooling, CI]` Before, curiocity reported about 1.8 to 2 times the real Claude Code token use. A mistyped evaluator id removed every evaluator, and each trial passed with no verdict. An e2e job could pass with result artifacts missing. rosetta-cli `parse --force` reported success for a rejected request. A piped `--dry-run` lost most of its output and exited 0. Each now reports the real result.
+- **What changed.** curiocity 0.2.14 keeps one usage event per Claude Code message id (#434, issue #433) and rejects unknown `--only-evaluator` and `--skip-evaluator` ids with exit 2 (#436, issue #435). The e2e workflow fails unless the artifact check reports `pass` (Arteom Balanuta, ArteomBalanuta, #422, issue #303). rosetta-cli 3.0.10 polls only accepted documents and counts the rest as failed (#428, issue #427). rosettify-plugins 3.5.5 lets stdout drain before exit (#446, issue #445), builds `--release r2` again (#448, issue #447), and applies `~overwrite~` and `-only` filters to binary files in customizations (#430, issue #429). (Serghei Hmeli, xyrolle, except #422)
+
+#### Security alerts fixed
+
+- **What you get.** `[Server, Tooling]` 84 Dependabot and 6 CodeQL alerts are closed. The MCP server no longer writes the PostHog key to its debug log. The docs site no longer has two regular expressions open to ReDoS.
+- **What changed.** Lockfiles of rosettify, rosettify-plugins, rosettify-prompts, curiocity, and hooks are refreshed. Exact `overrides` pins are dropped: npm applies them only in the root project, so they never protected `npx` users and only held this repo below the fixed versions. Floors are raised for direct dependencies with alerts. Markdown table cells escape backslashes before pipes. `repo-implement.yml` gets read-only default permissions. Still open: curiocity `zod` and `extract-zip`. (Igor Solomatov, #463)
+
+### Week Mon 02.11 – Sun 08.11
+
+Everyday coding now costs less, and client organizations can make Rosetta their own without a fork. On small and medium tasks the AI does the work itself and starts subagents only for reviews or for work that splits into separate contexts, such as frontend and backend. The full subagent team is kept for large work. A client organization keeps its own skills, rules, and workflows in its own repository and builds its own `rosetta` plugin from it. The plugins also lost retired and duplicate files, so each instruction ships once, under one name.
+
+For maintainers, a broken release now stops before it ships. Each release zip is checked file by file against its plugin folder, and `publish` fails when documents do not parse. v3.1.23 is the first release with these checks. It also fixes the Copilot downloads that were missing their plugin manifest and hooks.
+
+**Highlights**
+
+- `[R3]` Small and medium coding tasks cost less. A medium task (up to about 2000 lines in up to 3 areas) stays with the AI. Subagents run only when contexts are separate, when there is a clear reason, or for a fresh-eye review. Before, a medium task meant building a subagent team. In `coding-flow` in `rosetta` (and in `rosetta-light` from v3.1.25), a small task skips `orchestration` and uses a subagent only for the code review
+- `[R3]` README: use skills for small to medium tasks. Workflows cost more and fit large work, such as a whole feature that runs for hours
+- `[R3]` The always-on bootstrap adds "No assumptions: find the truth or state unknown". It applies to every session and every subagent
+- `[R3, Tooling]` Client organizations can build customized plugins. Their files live in their own repository and mirror `instructions/`. A new path adds a file, the same path appends to Rosetta's file, and `name~overwrite~.md` replaces it. Needs `rosettify-plugins` 3.5.0, already on npm (Igor Solomatov, issue #315)
+- `[R3]` Release downloads are renamed from `core-<ide>-*.zip` to `rosetta-<ide>-<version>-<date>.zip`. Plugin names `rosetta` and `rosetta-light` stay the same. Scripts that download `core-*` zips must change their pattern
+- `[CI]` Copilot release downloads are complete from v3.1.23. Before, the `copilot` and `copilot-light` zips had no `.github/plugin/plugin.json` or `hooks.json`, and `copilot-standalone-light` held only its root `plugin.json` (Serghei Hmeli, xyrolle, #388, issue #387)
+- `[R3]` One home for each instruction. IDE guides live only in the `harness` skill, and the `READ CONFIGURE` alias is gone. The deprecated `/self-help-flow` is removed, use `/help-flow`. `coding-light-flow` no longer declares the name `coding-flow`
+- `[R3]` In plugin mode the AI finds skills, subagents, and workflows by name across every installed Rosetta plugin. This prepares for customized or split plugins. Install one of `rosetta` and `rosetta-light`, not both
+- `[R3]` Antigravity: the `security` skill points at its own template files again. A path rewrite had sent it to files that did not exist
+- `[R3]` Mobile design adds four points: reuse test cases across platforms, server-driven UI because store releases are slow, a 4.5+ star UX target, and local device tooling that the AI can drive
+- `[Tooling]` rosettify rejects a plan where a step depends on a phase, or a phase on a step. Before, the plan was accepted and then stalled (Serghei Hmeli, xyrolle, #396, issue #392)
+- `[Tooling]` `publish` now fails when a document is not parsed, times out, or is rejected. Last week only `parse` did (Serghei Hmeli, xyrolle, #397, issue #395)
+- Routine: plugins 3.1.21 → 3.1.23 (v3.1.22, v3.1.23), rosettify-plugins 3.5.0, rosettify 3.2.6, rosetta-cli 3.0.9, curiocity 0.2.10, rosettify-prompts 0.1.15; `docs/requirements` renamed `docs/REQUIREMENTS` (site URLs unchanged); architecture docs, CODEMAP, `llms-full.txt`, diagrams, and web site follow the new layout; aggregation notes for AI in `github-stats.json`; longer hand-off prompt in `USAGE_GUIDE.md`; `daily-oss`, `merge-main`, `sync-web-site`, `update-change-log` lessons (maintainer-internal); an unused Windsurf hook bundle is no longer built (it never shipped; the Windsurf hook code, tests, and spec stay); stats refreshed; last week's entry landed
+
+#### Small and medium tasks cost less
+
+- **What you get.** `[R3]` Before, a medium task made the AI a team manager. It built a subagent team and delegated the work. Each subagent loads its own context, and the AI pays again to brief and check each one. When the work fits one context, that cost bought no quality. Now the AI does small and medium work itself. It keeps subagents for independent reviews and for work that splits into separate contexts. Large work still gets the full team.
+- **What changed.** `orchestration` sizing: a MEDIUM task (under about 2000 lines, up to 3 areas) keeps the todo ledger and uses subagents only for separate contexts, a clear reason, or fresh-eye review. Building and managing a team moved to LARGE. `coding-flow` loads `orchestration` for all sizes except small (the lightweight copy from v3.1.25). A small task starts subagents only for phases marked `must-be-subagent`, which for small is the code review. Each phase loads its skills only when the previous phase is complete, so early loads do not stay in context for every later call. The README now says when to pick a skill and when a workflow. (Igor Solomatov, isolomatov-gd)
+
+#### Client organizations' instructions, without a fork
+
+- **What you get.** `[R3, Tooling]` Before, a client organization's layer lived as a folder inside the Rosetta `instructions/` tree. Keeping it meant keeping a fork in step with upstream. Now a client organization keeps its own skills, rules, and workflows in its own repository. The generator merges them into `rosetta` and `rosetta-light`. To take a Rosetta update, the client builds again. Errors in the customization stop the build before anything is written.
+- **What changed.** `rosettify-plugins` 3.5.0 adds `--customizations <dir>[,<dir>...]` (up to 25 roots, applied left to right) and `--publish <name>[,...]`, which writes only the listed plugins. A root mirrors `instructions/`: `<root>/r3/core/...`. A new path adds a file. The same path appends the client's body after Rosetta's and keeps Rosetta's frontmatter. `name~overwrite~.md` replaces the file, and an overwrite with nothing to replace is an error. Filename tokens limit a file to a profile or an IDE, and a leading OrderToken (`~001~`) orders several files at one path. The generator now builds from a catalog of plugin sets, and the shipped catalog publishes `rosetta` and `rosetta-light`. Plugin folders and release zips are renamed from `core-*` to `rosetta-*`. `PLUGINS.md` explains which plugin to install and how to build and install a customized one. (Igor Solomatov, isolomatov-gd, issue #315)
+
+#### One name and one home for each instruction
+
+- **What you get.** `[R3]` Each instruction now ships once, under one name. Before, the IDE guides shipped twice, at the plugin root and inside the `harness` skill. The deprecated `/self-help-flow` still shipped next to `/help-flow`. `coding-light-flow` declared the name `coding-flow`, so in every IDE two workflows claimed one name. Skill notes told the AI to search `instructions/r3/core`, a folder that does not exist in your repository. Workspace initialization in plugin mode asked for a template that no plugin ships. Each of these made the AI look for something that was not there, or pick between two copies.
+- **What changed.** The root `configure/` folder and the `READ CONFIGURE` alias are removed. The AI reaches the same guides through the `harness` skill (content unchanged). `self-help-flow` is deleted and its references point to `help-flow`. Skill READMEs name files as the plugin sees them (`skills/<name>/SKILL.md`), and `coding-agents-prompt-authoring` now requires this for new prompts. In plugin mode, workspace initialization writes the shell files from the folder listing and the schema instead of a template. The plugin bootstrap resolves skills, subagents, and workflows by name across every installed Rosetta plugin. For Antigravity, the `templates/` to `rules/` path rewrite no longer breaks skill-relative paths, so `security` points at files that exist. (Igor Solomatov, isolomatov-gd)
+
+#### Complete release downloads
+
+- **What you get.** `[CI]` If you install GitHub Copilot from a release zip, take v3.1.23 or later. Earlier `copilot` and `copilot-light` zips had no `.github/plugin/plugin.json` or `hooks.json`, and the `copilot-standalone-light` zip held only its root `plugin.json`. Each zip now has every file of its plugin folder, and a release with a partial plugin cannot be published. The release page lists the downloads per IDE in three groups: `rosetta` and `rosetta-light`, other plugins, then the standalones.
+- **What changed.** The archive step excluded `*.git*`, which also matched `.github/`. It now excludes only `.git`, and treats `*-standalone-light` folders as standalones. After each zip is built, its file list is compared with its folder, and any difference fails the job (Serghei Hmeli, xyrolle, #388, issue #387). A plugin folder without `plugin.json` used to be skipped with a warning. Now it fails the release. A new step builds the release index, and the release tag must match it before any tag moves (Igor Solomatov, isolomatov-gd, issue #315).
+
+#### Maintainers: plans, publishing, and generator checks
+
+- **What you get.** `[Tooling]` The operation manager no longer accepts a plan that it can never finish. A step that depended on a phase was accepted, then never served, and the plan stalled. `publish` now reports documents that uploaded but did not parse, so a maintainer does not move on with documents the MCP cannot serve. A standalone plugin cannot ship with a made-up version number. Pre-commit catches dead links, stale counts, and hook-file drift before review.
+- **What changed.** rosettify checks phase dependencies against phase ids and step dependencies against step ids. Anything else is `unknown_dependency` (Serghei Hmeli, xyrolle, #396, issue #392). rosetta-cli `publish` marks a file failed when its parse ends in FAIL, is still pending at the timeout, or was rejected, and exits non-zero: "Uploaded, but not parsed" (Serghei Hmeli, xyrolle, #397, issue #395). A missing or unusable parent manifest used to give a standalone plugin version `2.0.40` and exit 0. It is now a hard error, and FR-VAR-0060 states it (Serghei Hmeli, xyrolle, #386, issue #344). `pre_commit.py` runs new checks for structure, cross-references, hook content, counts, and links (Igor Solomatov, issue #315). The rosettify-prompts README now describes how thinking tokens are derived (Serghei Hmeli, xyrolle, #385, issue #345).
+
+### Week Mon 26.10 – Sun 01.11
+
+This week Rosetta closes points where the AI drifts from what was meant. In questions, the AI no longer adds its own assumptions to your words: it asks key questions first, shows real examples, tells back what it understood, and stays on one topic when it got an answer wrong. In handoffs, subagents read the tech specs instead of a summary, and the prompts they get must be precise. In its own instructions, four defects that forced the AI to guess are fixed. Small upgrades no longer hit phase rules that contradict each other or pay for the full process, interrupted prompt-authoring runs resume instead of restarting on top-tier models, research no longer requires tools that may not be installed, and the AI no longer believes that subagents cannot start subagents in Codex, Claude Code, and OpenCode.
+
+The work also follows your team's process and costs less. Discovery finds how the team builds, tests, verifies, and closes work, and workspace initialization records it without inventing anything. Sessions and subagent tasks are planned larger, so context is loaded fewer times. For maintainers, the release tooling is safer: dataset cleanup, parse results, Helm publishing, and the plugin generator.
+
+**Highlights**
+
+- `[R3]` `hitl` and `questioning`: quality, precision, and completeness come first. Key questions come first, because their answers remove most minor questions. Each question has a real example. The AI tells back what it understood in its own words, so you can see if it added its own assumptions. When it misreads an answer, it stops opening new topics and goes deeper on that one until it is resolved. `hitl` asks 3 to 10 questions per batch, as many as you can manage (was 5 to 10)
+- `[R3]` `requirements-authoring`: the same rules, in chunks of 3 to 5 questions. A question that either side did not understand is asked again in other words. Not entering focus mode, and not leaving it, are listed as pitfalls
+- `[R3]` The work follows the team's process. Discovery finds the team's existing procedures for the work and for closing it (for example a version bump or regenerated files), and how the team verifies a change. Workspace initialization records them per module in `ARCHITECTURE.md` and must not invent any, because every later session loads that file
+- `[R3]` Subagents work from the source, not a retelling. They must read the tech specs when these exist. Plans reference the specs and add EARS requirements instead of copying them, so plan and spec cannot drift apart
+- `[R3]` The same work costs less. A session is sized by its contexts of change: one large single-agent session, or several contexts with subagents. Before, every session was expected to use orchestration. Subagents get larger tasks, so context is loaded fewer times
+- `[R3]` Precise prompts to subagents. The always-on bootstrap rule adds "precise" and "no filler". It covers every message the AI writes, including prompts to subagents, where vague wording makes the subagent interpret
+- `[R3]` Modernization: a small upgrade such as Java 17 to 21 runs only Phases 2 and 6 before implementation, without instructions that contradict each other, instead of paying for the full process. The AI records the route in the state file, so a reviewer sees why phases were skipped (Arteom Balanuta, issue #356)
+- `[R3]` Prompt authoring: an interrupted run finds its state file and resumes instead of an expensive restart on top-tier models, and final validation receives the prompt set it must check (Arteom Balanuta, issue #357)
+- `[R3]` Research: DeepWiki and Context7 are required only when installed. A MUST that cannot be met no longer teaches the AI that MUSTs are optional (Arteom Balanuta, issue #355)
+- `[R3]` In Codex, Claude Code, and OpenCode, subagents can start their own subagents. The false claim that they cannot is removed from the Claude Code and OpenCode setup guidance and from `llms-full.txt`. The AI no longer designs around it, and research keeps its parallel subagents
+- `[Tooling, CI]` Maintainers: `cleanup-dataset` deletes only matching documents, so a mistyped tag cannot empty the server dataset (Arteom Balanuta, issue #312). `parse` fails on a timeout; `publish` does not check this yet (David Turner, issue #351). A Helm chart version cannot be overwritten (Vedant Madane, issue #324). An empty `--domain` stops the generator before it touches output (David Turner, issue #343). Curiocity skips a case that lists one agent twice (David Turner, issue #353)
+- `[Docs]` Five architecture diagrams replace the text drawings. `CODEMAP.md` and `ARCHITECTURE.md` match the current repo again, so contributors and their AI agents navigate from a correct map (Arteom Balanuta, #365)
+- Routine: plugins 3.1.18 → 3.1.21, rosettify-plugins 3.3.9, rosetta-cli 3.0.8, curiocity 0.2.9, Helm chart 0.4.4; unused code removed from rosetta-cli and hooks (#374); a Windows path fix in a generator test; `daily-oss` and `update-change-log` lessons (maintainer-internal); stats refreshed; last week's entry landed
+
+#### Questions aim at exact understanding
+
+- **What you get.** `[R3]` Before, the AI asked a set of 5 to 10 questions from mixed areas. It asked about minor details before the key decisions they depend on, so you answered questions that a later decision made void. It read answers literally and added its own assumptions. You saw the drift only later, in specs or code. After a wrong answer, it brought new questions from other areas, and neither side could tell which answer belonged to which question. Now key decisions come first, examples show what the AI means, and the tell-back shows how the AI read you. Only one topic stays open until it is resolved. You answer fewer questions, and what you said reaches the spec without a change in meaning.
+- **What changed.** `hitl` and `questioning` get the same "Questions Guidance" block. It puts quality, precision, and completeness first, without nitpicking. It asks for key questions first, real examples, a tell-back in the AI's own words, and attention to the user's word choice and how answers are given. Focus mode applies after a misread answer: one question at a time on that topic, big-picture questions, and exit once resolved. `hitl` batches 3 to 10 manageable questions (was 5 to 10). `requirements-authoring` has its own copy of these rules. It asks in chunks of 3 to 5, rephrases a question that either side did not understand, and lists not entering and not leaving focus mode as pitfalls. (Igor Solomatov, isolomatov-gd)
+
+#### The work follows the team's process
+
+- **What you get.** `[R3]` Discovery used to find what exists (code, files, patterns) but not how the team works on it. The AI then made the right change in its own default way: its own build and test commands, its own checks, and no closing steps. The work was done by the AI's standard but not by the team's, and you had to remind it every session. Now the AI follows the team's way of working and proves the change the way the team does. Workspace initialization records this once, so later sessions start with it.
+- **What changed.** The `discovery` skill and both `discoverer` variants (standard and lightweight) now look for the procedures that exist for the work and for after it, such as a version bump, regenerated files, or a docs update. Discovery also establishes how to verify the result. In workspace initialization, `ARCHITECTURE.md` now lists the existing SDLC processes per module, short, by command or file reference. The AI must not invent a process: every later session loads this file, so an invented process would be repeated as an instruction. (Igor Solomatov, isolomatov-gd)
+
+#### Subagents work from the source, at lower cost
+
+- **What you get.** `[R3]` Each retelling bends the meaning a little. A subagent that works from the orchestrator's summary, or from a vague prompt, builds something slightly different from what was agreed. Now subagents read the tech specs, and the prompts they get must be precise. The work is also cheaper. Every session and every subagent pays to load the same context, so fewer, larger units cost less for the same work. You also start and hand over fewer sessions.
+- **What changed.** `planning` sizes a session by its contexts of change: one large single-agent session, or larger with orchestration and subagents (several contexts). Before, every session was expected to use orchestration and subagents, which added overhead where one agent was enough. A plan that fits one session, even a large one, stays in one plan file plus a handoff. With tech specs present, the plan references them and focuses on EARS requirements, instead of copying them into a second source that drifts. `orchestration` prefers large subagent tasks and requires subagents to read the tech specs when available. The always-on bootstrap rule adds "precise" and "no filler", which covers the prompts the AI writes for subagents. (Igor Solomatov, isolomatov-gd)
+
+#### Instructions that no longer force the AI to guess
+
+- **What you get.** `[R3]` When instructions contradict each other, name something that does not exist, or demand the impossible, the AI has to guess. Each guess is a deviation. Four such cases are fixed. A small upgrade such as Java 17 to 21 runs at the size of the job, not at the cost of the full process. An interrupted prompt-authoring run resumes instead of restarting on top-tier models. Research works in every IDE. The AI no longer plans around a delegation limit that does not exist: in Codex, Claude Code, and OpenCode, subagents can start their own subagents.
+- **What changed.**
+  - Modernization: the flow allowed Phases 2 and 6 for a small upgrade, but the phase files required Phases 1, 5, and 7. The AI could run the full process for a version bump, stop, or skip without a record. The exception is now in the phase files the AI loads, and the AI records the route in the state file. The run can resume, and a reviewer sees why phases were skipped. Phase 6 re-reads the cross-project analysis only if it exists. The full route still applies when the AI discovers dependencies (issue #356).
+  - Prompt authoring: the prerequisites named the state file without `.md`, while every step wrote `coding-agents-prompting-flow-state.md`, so a resumed run did not find its state. Final validation took a `Candidate Prompt Set` that no step produced. Both names now match (issue #357). This workflow requires top-tier models, so a restart was expensive.
+  - Research: "MUST use DeepWiki and Context7" is now "when available" (issue #355). Plugin installs do not guarantee either one. A MUST that cannot be met teaches the AI that MUSTs are optional. (Arteom Balanuta, #368)
+  - Subagent limit: the Claude Code and OpenCode setup guidance said that subagents cannot start subagents. That is false: in Codex, Claude Code, and OpenCode, subagents can start their own subagents. The AI reads this guidance when it initializes a workspace, adapts prompts for an IDE, or builds a harness. The claim is removed there, from the `harness` copies, and from `llms-full.txt`. Research keeps its parallel subagents, and its README now says that the executing agent decides on dispatch, with no caller-specific rules. (Igor Solomatov, isolomatov-gd)
+
+#### Maintainers: instruction publishing and Helm releases
+
+- **What you get.** `[Tooling, CI]` A mistyped tag in a cleanup can no longer empty the server dataset that the MCP serves. A `parse` that times out shows as a failure, so a maintainer does not move on with unparsed documents. A Helm chart version can no longer be overwritten by a later push, so every install of a version gets the same chart.
+- **What changed.** RAGFlow returns the whole dataset when a metadata filter matches nothing. `cleanup-dataset` used to pass that list to delete. It now checks tags and prefix on each returned document, and deletes nothing when nothing matches (Arteom Balanuta, #366, issue #312). `parse` used to count documents still pending at the timeout as neither parsed nor failed, so it exited 0. It now counts them as failed, prints "Still pending", and exits non-zero. `publish` waits for parsing the same way but does not check the result yet (David Turner, #379, issue #351). The Helm publish job used to push whatever version `Chart.yaml` named, so re-pushing an existing version replaced the chart. Now the job asks Docker Hub first. It fails if the version exists, and it also fails if the registry cannot answer (Vedant Madane, #331, issue #324).
+
+#### Maintainers: plugin generator and Curiocity
+
+- **What you get.** `[Tooling]` A typo in `--domain` can no longer delete the generated plugins before a release. Curiocity evaluations, which we use to judge instruction changes, run each agent once per case.
+- **What changed.** A `--domain` value with no domain name in it (for example `" , , "`) gave an empty source, and output cleanup could then run. The generator now stops with "Domain input must include at least one non-empty domain" before it writes or removes anything. Requirement `FR-CLI-0030` now states this, and `FR-CLI-0010` now gives `r3` as the default release, as its statement already said (David Turner, #377, issue #343). A Curiocity case that repeated an agent id made two trials run at the same time into the same artifact folder. The case config now requires unique agent ids. A case that breaks this rule is skipped with a reason, and the rest of the run continues (David Turner, #378, issue #353).
+
+### Week Mon 19.10 – Sun 25.10
+
+Rosetta gains a `checklist` skill. The AI writes a checklist of requirements before it starts, keeps it current, and checks every item before it says the work is done. A fresh reviewer subagent then checks the result independently. In the same week, the AI asks questions in manageable batches instead of one at a time, and workspace initialization runs its reverse-engineering sub-work on cheaper models.
+
+Three fixes close gaps in tooling. A dangerous-actions override now works on MCP tools whose shell field is `cmd` or `shell_command`. Publishing to the server detects changed binary files of equal size and no longer deletes server documents after an unreadable local file. A Curiocity run in which every trial is skipped now fails with exit code 2 instead of passing.
+
+**Highlights**
+
+- `[R3]` New `checklist` skill: the AI builds a checklist of requirements, constraints, and evidence before implementation, keeps it in sync with scope, and validates every item before reporting completion. A fresh reviewer subagent then checks independently and gives a confidence score. This addresses drift and work that only looks complete
+- `[R3]` Question skills (`hitl`, `questioning`): the AI asks questions in manageable batches in every client. Before, it batched only when the client had an ask-user tool and otherwise asked strictly one at a time
+- `[R3]` Workspace initialization, documentation phase: the final documents still use the top-tier model. Reverse-engineering sub-work now goes to the discoverer subagent or a cheap, fast model at high reasoning (Haiku, Luna, Flash), in manageable-sized tasks. Before, the phase ran full reverse engineering on the expensive model
+- `[R3]` Planning: each session in a plan is expected to run with orchestration and subagents, and a session too small for that is now listed as a pitfall
+- `[R3]` Orchestration: reads and tool outputs are named as the main contributors to context size. A new rule states that a newer model generation at one reasoning step higher equals the older one (GPT-6 Luna xhigh = GPT-5.6 Terra high = GPT-5.5 medium)
+- `[Hooks]` The `Rosetta-AI-reviewed` override marker is now accepted in MCP `cmd` and `shell_command` fields. Before, an MCP tool that took its command in those fields could never be self-approved after a review
+- `[Tooling]` Publishing to the server detects binary files that change without changing size (David Turner)
+- `[Tooling]` Publishing fails a text file that is not valid UTF-8 instead of uploading it with bytes dropped. After an unreadable local file, duplicate and orphan cleanup is skipped so an incomplete inventory cannot delete server documents
+- `[Tooling]` A Curiocity run in which every trial is skipped (for example, a mistyped agent id) exits with code 2, "no runnable trials". Before, it exited 0 and the CI gate passed (Arteom Balanuta)
+- `[Tooling, CI]` Model-resolution tests for the plugin generator use a fixture agent pair. Retiering a real subagent no longer breaks pre-commit or the Rosettify Plugins pipeline. `docs/ARCHITECTURE.md` now states that every change bumps each affected component's version in the same commit
+- `[CI]` GitHub triage of new or updated PRs and issues uses the `daily-oss` and `backlog` skills. With no human present, it recommends approval and requests changes automatically
+- Routine (maintainer-internal): `checklist-A` and `checklist-B` project skills replaced by the published `checklist` skill; `daily-oss` proposals are self-contained (5W1H) and resume earlier subagents; `daily-oss` and `merge-main` can be invoked by the model; `update-change-log` tightened; plugins 3.1.16 → 3.1.18; stats snapshot refreshed; last week's changelog entry landed
+
+#### Checklist skill: self-verification before "done"
+
+- **Change.** `[R3]` Long sessions drift, forget requirements, and sometimes report completion early. The new `checklist` skill has the AI write a checklist before implementation context biases it. The list is grouped by category and aspect, with items of under 8 words that mix general checks (build clean, all unit tests pass) with request-specific ones and evidence items. Each item is scored 0 to 100, not ticked. The AI adds items as scope grows and never deletes or weakens one without a recorded reason. Before reporting completion it validates every item and repeats until it finds no unresolved medium or higher issue. It then spawns a fresh reviewer subagent with the source of truth, the checklist, and the evidence, but not its own conclusion. The reviewer checks checklist coverage and each item, and returns findings with a 0 to 100% confidence score. The AI reports completion only when both sides have zero unresolved medium+ findings. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Completion is claimed against a written list instead of the AI's memory of the request. The costly independent review runs once the AI's own checks pass, and the same reviewer is reused where possible.
+
+#### Questions in manageable batches
+
+- **Change.** `[R3]` The `hitl` skill told the AI to batch questions only through an ask-user tool and otherwise ask strictly one at a time. The `questioning` skill said to ask "few" questions. Both now say to ask in manageable batches unless the user requests otherwise. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Clients without an ask-user tool no longer turn a 5 to 10 question round into 5 to 10 round trips.
+
+#### Workspace initialization: reverse engineering on cheaper models
+
+- **Change.** `[R3]` The documentation phase of workspace initialization writes the five context documents that every later session loads. It ran full reverse engineering on the top-tier model. It still requires the top tier for the final documents. For the reverse-engineering sub-work, it now tells the AI to prefer the discoverer subagent or a built-in subagent on a cheap, fast model at high reasoning (Haiku, Luna, Flash), and to give each one a manageable-sized task. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Reading code costs less. The expensive model is kept for the documents themselves.
+
+#### Hooks: override marker works in MCP command fields
+
+- **Change.** `[Hooks]` The `dangerous-actions` hook lets the AI approve a flagged action by adding a `Rosetta-AI-reviewed` marker after a blast-radius check. For MCP tools, the marker was accepted only in `command`, `sql`, `query`, `new_string`, and `content`. A flagged call on a tool that takes its command in `cmd` or `shell_command` could not carry the marker. The accepted fields are now the MCP shell fields plus the content fields. Path fields stay excluded, so changing an operation's target cannot carry the override. A comment now warns that no danger pattern may contain the marker, or a match would override itself. (Igor Solomatov, #358, issue #173)
+- **Why it helps.** A flagged MCP shell call can now be approved after a review like any other tool. Marker placement in a path cannot approve a dangerous command.
+
+#### Publishing to the server: safer change detection and cleanup
+
+- **Change.** `[Tooling]` Rosetta publishes the instructions folder to the server and uploads only changed files. For binary files, the change hash used the file size. A replacement of the same size looked unchanged and was skipped. The hash now uses the file's content, so such changes are detected (David Turner, #359, issue #350). Binary files will re-upload once, because the stored hash changes. A text file that is not valid UTF-8 now fails with a named error. Before, the undecodable bytes were dropped. An unreadable local file is now reported as failed, and duplicate and orphan cleanup is skipped for that run. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Replaced binaries reach the server. A read error on one local file cannot make server documents look stale and delete them.
+
+#### Curiocity: a run with nothing to run now fails
+
+- **Change.** `[Tooling]` Curiocity runs agent evaluations and gates CI on the result. A suite in which every trial resolved to `skipped` (for example, every agent id mistyped) exited 0, so CI passed on a run that executed nothing. The gate now exits 2, "no runnable trials", as the architecture document already specified. One skipped trial among runnable ones stays non-fatal, and error statuses keep exit 3. Re-gating a saved all-skipped suite with `report` gives the same exit code. (Arteom Balanuta, #367, issue #326)
+- **Why it helps.** CI no longer shows a green gate for a run that evaluated nothing.
+
+### Week Mon 12.10 – Sun 18.10
+
+When Rosetta runs on Gemini, it now uses a more capable model, Gemini 4 Argon, for the architect, planner, requirements-engineer, and prompt-engineer subagents (lightweight profile: architect only). These subagents make the decisions that shape everything built afterwards. Claude and GPT already ran them on Opus and Sol, while Gemini used Flash. On Claude, discovery and research moved to the cheaper Haiku 5.5.
+
+Every model list also moved to new versions for each vendor. Work that ran on GPT-5.6 Terra now runs on GPT-6 Luna one reasoning step higher, which matches Terra in capability at about one eighth of the cost. Orchestration sizes work by expected code volume and context limits rather than mainly by file count, subagents report what they did not finish, and prompts are authored shorter.
+
+**Highlights**
+
+- Model versions updated for every vendor: Claude Opus 5.5, Sonnet 5.5, and Haiku 5.5 (were Opus 5, Sonnet 5, Haiku 4.5), GPT-6.1 Sol (was GPT-5.6 Sol), GPT-6 Luna (was GPT-5.6 Luna), Gemini 3.8 Flash (was 3.7), Grok 4.7 (was 4.6); Cursor Composer 2.5 is unchanged
+- Gemini 4 Argon added. When Rosetta runs on Gemini, the architect, planner, requirements-engineer, and prompt-engineer subagents, which make the decisions that shape the rest of the work, now use Argon (lightweight profile: architect only). All other subagents keep Gemini 3.8 Flash, and Claude, GPT, and Grok runs are unaffected. Before, Gemini used Flash for these subagents too
+- Lower cost on GPT: work that ran on GPT-5.6 Terra, the middle GPT tier, now runs on GPT-6 Luna, which matches Terra in capability at about one eighth of the cost (GPT-6 has no Terra model). In Codex model lists, reasoning effort is raised one step
+- Lower cost on Claude: discoverer and researcher moved from Sonnet to Haiku 5.5, and so did the lightweight profile's engineer, reviewer, and validator
+- Orchestration sizes a task as small, medium, or large from expected lines of code (under 200, under 2,000, more) and areas touched, with file count only a rough hint, and aims to keep each agent under 250K tokens of context (price doubles above 200K)
+- Orchestrators pick a subagent's model and reasoning effort from a written ladder (Strategist, Tactician, Implementer), and the large-work playbook gains a "worker pull" tactic
+- Subagent reports now state what was not done, fully or partly, so the orchestrator sees gaps before it accepts a result
+- Prompts are authored shorter: drafts keep only key points and leave decisions to the agent that runs them; `rosettify-prompts` compression follows the same rule
+- Workspace initialization is much faster and cheaper: it no longer extracts code patterns unless the user asks for it
+- Reference files for each IDE (Claude Code, Cursor, Copilot, Codex, OpenCode, Windsurf) and the agent-launching skill list the new models in each tool's own id format; older entries stay listed
+- Tooling and CI: Cursor and Copilot subagents no longer get a raw model id when a prompt names a Claude model with an effort suffix (for example `claude-sonnet-5-medium`); the `rosettify-prompts` quality judge works on Claude 5.5 models, which reject the `thinking: disabled` setting it used to send; CI jobs use the new models (Codex jobs run GPT-6 Luna at one step higher effort)
+- Routine: maintainer-internal skills tightened (`documentation`, `update-change-log`, `compress-prompt`, `sync-web-site`; the last two can now be invoked by the model, not only by name); weekly GitHub stats snapshot refreshed; last week's changelog entry landed
+
+#### Model lists moved to new versions for each vendor, GPT Terra tier removed
+
+- **Change.** `[R3]` Every agent and workflow step lists the model to use for each vendor, and each coding agent takes the entry for its own vendor. All entries moved to new versions:
+  - Claude: Opus 5 to Opus 5.5, Sonnet 5 to Sonnet 5.5, Haiku 4.5 to Haiku 5.5.
+  - OpenAI: GPT-5.6 Sol to GPT-6.1 Sol, GPT-5.6 Luna to GPT-6 Luna.
+  - OpenAI "Terra" (GPT-5.6 Terra, the middle tier): GPT-6 has no Terra model, so its work runs on GPT-6 Luna, which matches Terra in capability at about one eighth of the cost. In Codex model lists, reasoning effort is raised one step (low to medium, medium to high, high to xhigh).
+  - Google: Gemini 3.7 Flash to Gemini 3.8 Flash. xAI: Grok 4.6 to Grok 4.7. Cursor Composer 2.5 is unchanged.
+
+  The plugin generator translates these entries into each IDE's own model names and keeps older ids as inputs, so a prompt that still names an older model resolves to the current one. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Agents run on current models without anyone editing prompts one by one. Work that ran on Terra costs about one eighth as much, with matching capability.
+
+#### Lower cost: Claude Haiku 5.5 for discovery, research, and the lightweight profile
+
+- **Change.** `[R3]` On Claude, the discoverer and researcher subagents ran Sonnet. They now run Haiku 5.5, the cheaper model, at high effort (the researcher also gains Cursor Composer 2.5 as an option). In the lightweight profile, the engineer, reviewer, and validator moved from Sonnet to Haiku 5.5, and so did the matching steps of the lightweight coding workflow (implementation, review, tests, validation). The light engineer's reasoning effort rose from medium to high, and the light discoverer and researcher now run at medium effort. Architect, planner, requirements-engineer, prompt-engineer, and the full profile's engineer, reviewer, and validator keep their models. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Searching, reading, and routine checks run on a cheaper model, so each run costs less. Roles that make design decisions keep the stronger models.
+
+#### Gemini 4 Argon added for the subagents that make the main decisions
+
+- **Change.** `[R3]` Every subagent has a model list with one entry per vendor, and a coding agent takes the entry for its own vendor. Rosetta listed only Gemini Flash, so Gemini runs used Flash for every subagent, including the architect and planner. Gemini 4 Argon, Google's top-tier model in Rosetta's model ladder, is now listed before Gemini 3.8 Flash for the architect, planner, requirements-engineer, and prompt-engineer subagents (lightweight profile: the architect only), and for the workflow steps those subagents run (plus one research step and the workspace documentation step). These subagents make the decisions that shape the rest of the work, and Opus 5.5 and GPT-6.1 Sol already ran them on Claude and GPT. All other subagents keep Gemini 3.8 Flash, which stays in these lists as the next option. Claude, GPT, and Grok runs are unaffected. The plugin generator now maps Argon, and the older Gemini Pro ids, for Cursor and Copilot; before, those ids were dropped there. The agent-launching skill names Argon as Google's complex tier and, if the Gemini CLI rejects the id (Google's rollout is limited), drops the model flag and uses the CLI default. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** On Gemini, the decisions that shape the rest of the work now run on a more capable model, and the faster, cheaper Flash keeps the rest of the work. A rejected id does not stop a launch.
+
+#### Orchestration: sizing by code volume and context, with a written model ladder
+
+- **Change.** `[R3]` The orchestration skill sized a request from a rough file count, which says little about how much an agent must hold in context. It now sizes by expected lines of code and areas touched: small is under 200 lines in one area, medium is under 2,000 lines in up to three areas, and large is anything bigger. Files stay as a rough hint (about 5, 20, 40 or more). The skill states the goal: keep every agent and subagent under 250K tokens of context, because price doubles above 200K, and treat efficiency as organizing and adapting work, not skipping steps. The team-manager playbook now applies to large requests (it applied to medium before), and the orchestrator reports how it will organize that work. A new section sets a model ladder: Strategist (Opus 5.5, GPT-6.1 Sol, Gemini 4 Argon), Tactician (Sonnet 5.5, Gemini 3.8 Flash, Grok 4.7), Implementer (Haiku 5.5, GPT-6 Luna, Gemini 3.8 Flash, Composer 2.5), with what each reasoning effort allows and a few exceptions, for example Luna at xhigh counts as Tactician. The models above Strategist (Fable, GPT Astra) are not used. The playbook also gains a "worker pull" tactic. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Task size follows how much an agent must hold in context, so large work is meant to be split before its price doubles. An orchestrator picks a subagent's model by looking up a tier.
+
+#### Subagents report what they did not finish
+
+- **Change.** `[R3]` When an orchestrator hands work to a subagent, the prompt asks for proof of each claim (links, line ranges, short quotes). It now also asks the subagent to state what it did not do, fully or partly. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** The orchestrator has the stated gaps in hand when it checks the result.
+
+#### Prompt authoring: shorter prompts, decisions left to the running agent
+
+- **Change.** `[R3]` A prompt that spelled out a decision in full duplicated reasoning the running agent redid anyway, padding every prompt without adding anything it needed to act correctly. The `coding-agents-prompt-authoring` skill's draft and hardening rules now call for compressing a prompt to key points and terse phrases, keeping only "thinking points" rather than decisions, shrinking direction text to one to three words per step without dropping any step, and leaving the decision to whichever agent runs the prompt later. `rosettify-prompts`'s automated compression step and its "value lost" audit carry the same rule; the audit now restores only genuinely missing value, tersely, instead of re-adding verbose direction text. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** Shorter prompts cost less per call and leave the decision with the agent that has the actual context to make it.
+
+### Week Mon 28.09 – Sun 04.10
+
+A new `docs/air/INTENT.md` sets out Rosetta Air, a longer-term direction built on an atoms/molecules/organisms skill hierarchy and per-project "software factory" automation. It is a vision document, not a shipped change. The maintainer-internal `checklist` skill is split into two variants, run side by side to find out which produces better completion checks.
+
+Three independent fixes landed in prompt-testing tooling: the `dangerous-actions` hook now only honors the `Rosetta-AI-reviewed` self-approval marker in a `MultiEdit`'s actual written content, `curiocity`'s `command` evaluator can no longer hang a benchmark run past a configured timeout, and `rosettify-prompts` rejects a config with duplicate suite IDs before it runs.
+
+**Highlights**
+
+- `docs/air/INTENT.md` adds a vision document for "Rosetta Air": skills organized as atoms, molecules, and organisms, with priorities (atoms first) and open directions (self-improvement, self-organization, per-project software factories) — a design intent, nothing shipped yet
+- `dangerous-actions` hook (MultiEdit): the `Rosetta-AI-reviewed` self-approval marker now counts only in an edit's `new_string`, closing a bypass where it could sit in `old_string` or an unrelated field (#339)
+- `curiocity`'s `command` evaluator gets a `timeoutSec` (default 60s) and kills the whole process tree on timeout instead of just the shell (#338)
+- `rosettify-prompts` rejects a config with duplicate `suites[].id` values before any run starts (#362)
+- The `checklist` skill (maintainer-internal) is split into two variants run side by side — `checklist-A`, a flat itemized list, and `checklist-B`, the prior fresh-eye-reviewed lifecycle — to compare which works better
+- Routine: two new lessons recorded in the `daily-oss` skill (a fallback branch that silently dropped frontmatter tags, worktree test runs needing `PYTHONPATH` set)
+- Routine: weekly GitHub stats snapshot refreshed; one typo fixed in `docs/stories/articles-rules-of-power.md`
+
+#### Rosetta Air: a vision document for the next iteration
+
+- **Change.** `[Docs]` A new `docs/air/INTENT.md` sets out a longer-term direction for Rosetta: skills organized as atoms (single-concern, reusable — implementation, testing, discovery), molecules (configurable workflows combining atoms for one use case — coding, API AQA), and organisms (opinionated, end-to-end automation of a business process; "one organism is one autonomous software factory"). It states priorities (atoms over molecules over organisms; self-improvement ships with organisms) and lists directions still to work out: self-improvement, self-organizing the knowledge base, per-project customization built from atom/molecule/organism templates, and distributing skills via `npx skills` instead of plugins. Nothing in the current instructions, workflows, or plugins changes as a result — this is a design intent, not a release. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** A named hierarchy and an explicit priority order give future work a shared vocabulary before it starts: build small reusable pieces first, then automate on top of them, instead of designing each new skill from scratch.
+
+#### dangerous-actions hook: MultiEdit marker restricted to new_string (#339)
+
+- **Change.** `[Hooks]` The `Rosetta-AI-reviewed` marker, which lets the agent self-approve a `reconsider`-tier dangerous action, now counts for a `MultiEdit` call only when it appears in an edit's `new_string`. The hook previously scanned every field of every edit object, so the marker sitting in `old_string` (the file's existing content) or an unrelated field such as `description` was enough to pass the check. (David Turner, atomicdjt)
+- **Why it helps.** The marker is supposed to mean "the agent reviewed what it's about to write." A marker in content the edit didn't produce, or in a field nobody reads, proved nothing — this closes that gap.
+
+#### curiocity: command evaluator bounded by a timeout (#338)
+
+- **Change.** `[Tooling]` `curiocity`'s `command` evaluator gains a `timeoutSec` param (positive number, default 60s). Past the deadline it kills the whole process tree, not just the top-level shell — SIGKILL on the process group on POSIX, `taskkill /t` on Windows — since Execa's own `timeout` option only ended the shell while a nested child kept running. A timeout now reports as a failed (not errored) evaluator result. (David Turner, atomicdjt)
+- **Why it helps.** One evaluator with no way to end a wedged build or test command could hang an entire benchmark run indefinitely. A bounded, whole-tree kill guarantees every run finishes.
+
+#### rosettify-prompts: duplicate suite IDs rejected upfront (#362)
+
+- **Change.** `[Tooling]` `rosettify-prompts` now rejects a config where two `suites[].id` values match, failing at config-parse time before any run starts. (Shin, shin4141)
+- **Why it helps.** Reports group results by suite and variant ID; a silent duplicate would merge two suites' results together in the report. Catching it at parse time turns a confusing downstream mixup into an immediate, clear error.
+
+### Week Mon 21.09 – Sun 27.09
+
+GitHub Copilot's standalone install got simpler: it no longer asks users to hand-merge Rosetta's instructions into an existing `.github/copilot-instructions.md`, and JetBrains now follows the same steps as VS Code instead of a separate manual procedure.
+
+**Highlights**
+
+- Copilot standalone install drops the "merge contents into `.github/copilot-instructions.md`" step from `INSTALLATION.md`, `PLUGINS.md`, and their web mirrors
+- JetBrains Copilot testing collapses into the same procedure as VS Code, checking for `.github/instructions/plugin-files-mode.instructions.md` and `.github/instructions/bootstrap-alwayson.instructions.md`
+- `USAGE_GUIDE.md` and `llms-full.txt` updated to match: Copilot's project-rules path is `.github/instructions/*.instructions.md`
+- Routine: a repeated typo ("faiures" → "failures") fixed across seven skill files
+
+#### Copilot standalone install simplified
+
+- **Change.** `[Docs]` Copilot's standalone package now relies on its native `.github/instructions/*.instructions.md` convention instead of a single shared `.github/copilot-instructions.md`, removing the instruction to manually merge Rosetta content into a pre-existing file. The JetBrains-specific manual setup in `docs/TESTING-PLUGINS.md` (copy into `.github`, hand-append plugin-files-mode content) is replaced by the same two-step check used for VS Code. `USAGE_GUIDE.md`'s rules table and `llms-full.txt` are updated to match. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** A manual merge step risked users losing their own `copilot-instructions.md` content, or skipping the merge and losing Rosetta's. JetBrains and VS Code Copilot users now follow one procedure instead of two that could drift apart.
+
+### Week Mon 14.09 – Sun 20.09
+
+The README's skill list is replaced with a full catalog: all 42 skills grouped into 11 task-shaped categories (decide what to build, build it, stay safe, recover when it goes wrong, extend, domain packs, and more), instead of two flat top-N lists that had drifted out of sync with what actually ships. Each skill's own README gained a matching one-line pitch, written from the reader's job to be done rather than paraphrased from its "Why it exists" section.
+
+The public web site and `llms-full.txt` (the dense file an AI agent reads to learn Rosetta) caught up to match. A second pass closed several sections that had drifted out of sync long before this week: a dead anchor link, a missing FAQ answer, an Automated QA section absent from the web quickstart. `llms-full.txt`'s own skill list, never updated since the file was created, named eight skills that don't exist and was missing twelve real ones; it now matches the actual `instructions/r3/core/skills` tree. Skill counts quoted across three different docs, which had drifted to 40/40/38, now read 42 everywhere; the same docs' workflow-type counts went from 13 to 17.
+
+**Highlights**
+
+- Root README's `## Skills` section replaced with a full catalog: 42 skills across 11 task-shaped groups, replacing two flat "Top Guardrails" / "Top Skills" lists
+- Every skill README gained a matching one-line pitch as its second paragraph, written from the reader's job to be done, not paraphrased from its "Why it exists" section
+- `llms-full.txt`'s skill list, unedited since the file's creation, corrected: 8 named skills that don't exist in r3 removed, 12 missing real ones added, verified against the actual `instructions/r3/core/skills` tree
+- `orchestrator-contract` renamed to `orchestration` in the three places that still used the old name; a phantom `analyst` agent removed
+- Skill counts, drifted to 40/40/38 across `docs/ARCHITECTURE.md`, its web mirror, and `llms-full.txt`, now read 42 in all three; the same three docs' workflow-type counts went from 13 to 17
+- Web site sync also closed older drift unrelated to this week's own changes: a dead anchor link on the usage-guide page, a missing quickstart Automated QA section, an architecture Versioning section, a developer-guide git pre-commit hook section, and a "why not just use IDE rules?" answer missing from the web FAQ
+- Two lessons recorded for future sync runs: verify a handed-off file against the repo instead of trusting its author's summary (caught three more stale references this way), and never edit `docs/web/llms-full.txt` directly, since CI overwrites it from the root copy on every build
+- The `checklist` skill (maintainer-internal) now asks for a mix of general and request-specific items, not just archetypal ones
+- Routine: weekly GitHub stats snapshot refreshed
+
+#### README rebuilt around a full skills catalog
+
+- **Change.** `[Docs]` Root README's skill section, previously two flat top-N lists (guardrails, then skills) that had gone stale as new skills shipped, is replaced with a categorized catalog of all 42 skills, one line each, linked to its own README, grouped by the job it does (understand what exists, decide what to build, build it, delegate the work, stay safe, recover when it goes wrong, extend, domain packs, and more). Each skill's own README gained the same one-liner as a new second paragraph, mirroring the root list; a new lesson recorded in `agents/MEMORY.md` requires editing both together so the copies don't drift, and sets the bar for writing them: state what the skill is for, in the reader's terms, at its widest true scope, and never let a section name or a single example become the subject of the sentence. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** A flat "Top 8" list can't represent 42 skills without hiding most of them; a categorized catalog scales, and a reader can find the one skill for their actual job instead of scanning an arbitrary top list. The writing bar now exists once, in a place this and future skill READMEs can both reuse.
+
+#### Web site and llms-full.txt resynced; stale counts fixed
+
+- **Change.** `[Docs]` The web site's introduction and architecture pages, and `llms-full.txt`, are updated to match the new README skills catalog, then swept for older drift found independently: a dead `#how-rosetta-protects-you` anchor on the web usage-guide page, a missing quickstart Automated QA section, an architecture Versioning section, a developer-guide git pre-commit hook write-up, and a "why not just use IDE rules?" answer missing from the web FAQ (root `FAQ.md` got the same entry, so the pair can't drift apart again). `llms-full.txt`'s own skill list, unedited since the file was created, named eight skills that no longer exist in r3 and omitted twelve real ones; it's now verified against the actual `instructions/r3/core/skills` tree, with `orchestrator-contract` renamed to `orchestration` and a phantom `analyst` agent removed. Skill counts quoted in `docs/ARCHITECTURE.md`, its web mirror, and `llms-full.txt` had drifted to 40/40/38; all three now read 42. The same three docs' workflow-type counts moved from 13 to 17; agent counts (10) were already consistent and untouched. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** Docs that quote a stale skill list or a wrong count actively mislead a reader trying to learn what Rosetta can do; catching drift that predates the week's own changes, not just the changes themselves, is the point of a sync pass. Two lessons recorded for the next one: a peer session's own summary of its diff is a claim to verify, not evidence to adopt (verifying one handoff here caught three more stale references), and the web copy of `llms-full.txt` is a CI-generated artifact overwritten from the root file on every build, so it's never the one to edit.
+
+### Week Mon 31.08 – Sun 06.09
+
+A new harness skill formalizes how the AI builds the apparatus it needs to run, observe, and automate its own work — CLI/MCP actions, devcontainers, per-agent skill and hook authoring, unattended automations — covering eight coding agents (Claude Code, Codex, Cursor, Copilot, Windsurf, Antigravity, opencode, JetBrains Junie) with real captured session logs as evidence, not claims. The coding and testing skills now point at it directly instead of a narrow "CLI testing harness for libraries" line.
+
+Repo automation (analysis, triage, planning, implementation, prompt validation) can now run on Codex as well as Claude Code, chosen per dispatch or a repo-wide default, now Codex. Getting there took real debugging: a mutation gate that reported verified GitHub work as "changed nothing" three times, a filesystem deny that instead broke DNS and git for the whole run, and a mystery ~60-minute runner death that a watchdog and resource sampler were built to diagnose before the real cause turned up — a leftover process, not a timeout. That diagnostic scaffolding is gone now that the fix is known.
+
+**Highlights**
+
+- A new harness skill designs, gates, and proves the tooling an agent needs to run, observe, and automate its own work, across eight coding agents (#330)
+- coding and testing skills now recommend the harness skill directly when there's no way to run or observe a change locally
+- CI pipelines (analysis, triage, planning, implementation, prompt validation) can run on Codex as well as Claude Code, chosen per dispatch or a repo-wide `ROSETTA_CI_AGENT` variable, defaulting to Codex
+- Codex and Claude runs use matched model/effort tiers, drawn from the same ladder the subagent instructions already declare
+- The mutation gate's trace parser missed most of what Codex actually ran (JS-wrapped calls, template-literal commands, chained shell commands); fixed and verified against real runs that had been misreported as no-ops
+- A filesystem deny ported from Claude's per-tool model instead broke DNS and git config for the whole Codex run; removed
+- ~60-minute runner deaths traced to the Codex action leaving its process tree running after success, not a timeout; the watchdog and resource sampler built to chase it are deleted now that the real cause is fixed
+- The Codex action is pinned to v1.11: v1.12 carries two upstream bugs behind the deaths, one of which kills the whole runner's DNS
+- `repo-triage`, the one pipeline any GitHub user can trigger, deliberately keeps its stricter sudo-revoking safety strategy while the maintainer-gated pipelines get an escape hatch
+- The backlog skill now works disjoint bounded stories in parallel instead of one story per run
+- The lightweight coding workflow gained proper red/green TDD support
+- `validate-prompts` is back on pull requests and now publishes its execution trace like the other four pipelines
+
+#### A new harness skill: build the apparatus, then prove it (#330)
+
+- **Change.** `[R3]` A new model-invocable `harness` skill designs the executable apparatus an agent needs to run its work, prove it, and stop repeating it by hand: CLI/MCP actions against a live service, devcontainers, per-agent skill and hook authoring, and unattended automations. It classifies the gap, writes a specification, gates it on HITL approval, hands implementation to `coding-flow`, then requires proof by actual execution before recording a `## Harness` entry in `ARCHITECTURE.md`. It ships with hook-wiring reference guides for eight coding agents, each backed by real captured session logs. The `coding` and `testing` skills' validation guidance now recommends it directly, replacing a line scoped only to "CLI testing harness for libraries/packages". (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** The old guidance covered library CLIs only; one skill covering "cannot run, observe, or prove it" across five remedies means the AI reaches for the right one instead of improvising each time. Real logs per agent turn a hook-wiring claim into something checked against evidence.
+
+#### CI automation switches to Codex, with matched model tiers and permission profiles
+
+- **Change.** `[CI]` `repo-analysis`, `repo-triage`, `repo-plan`, `repo-implement`, and `validate-prompts` now run on either Claude Code or Codex behind one variable, chosen per dispatch input or a repo-wide `ROSETTA_CI_AGENT` default (now Codex). Both branches authenticate through the same Bifrost key on different routes — Anthropic base URL for Claude, the OpenAI Responses API for Codex. Codex model/effort pairs mirror the Claude ladder position-for-position from the subagent instructions (opus↔gpt-5.6-sol, sonnet↔gpt-5.6-terra, haiku↔gpt-5.6-luna). Codex has no per-tool allow-list, so three permission profiles stand in instead — read-only with network, workspace-write with no network, workspace-write with network — and each pipeline takes the least it needs. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** Running the same automation on a second model family is a real test of whether the instructions generalize past one vendor, and gives a fallback if either provider has an outage or a cost spike.
+
+#### Live Codex runs surfaced real trace-integrity gaps, now fixed
+
+- **Change.** `[CI]` The first smoke runs found a mutation gate that reported real, verified work — issue creation, project board edits — as "changed nothing", three separate times, because its trace parser understood only one of the three command shapes Codex's JS wrapper actually emits: bare JSON, quoted-but-bare keys, and backtick template literals. A fourth gap let chained commands (`pwd && gh issue create ...`) slip past a gate anchored to match only the first command in a line. All four are fixed and verified against the runs that had been misreported. Separately, a filesystem deny ported from Claude's tool-blocking model (`Read(//etc/**)`) instead removed `/etc` from the whole Codex process, taking out the TLS trust store and git config and breaking every network and git call; removed, since a Codex permission profile denies a path from the process, not a tool from the agent. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** A mutation gate that under-reports is the one failure mode a "did this run actually do anything" check can't afford — it would wave through a run that quietly did real work. A filesystem deny that breaks unrelated system function is worse than no deny at all.
+
+#### ~60-minute runner deaths traced to a leftover process, not a timeout
+
+- **Change.** `[CI]` Long Codex runs were dying at 52–67 minutes with no logs, execution trace, or diagnosis. Two rounds of instrumentation — a resource sampler, then a step-level watchdog with a liveness check — chased it as memory starvation, then a network stall, then an Actions timeout later proven to be silently ignored on composite-action steps. The real cause: `openai/codex-action` leaves its response proxy and exec process tree running after its step reports success, so the runner just waits on a still-open pipe until GitHub gives up on it around an hour in. Once found, the sampler and watchdog scaffolding built to chase it were deleted and replaced with one ordinary cleanup step, and the action is pinned to v1.11 — v1.12 carries the bug that caused this, plus a separate report of runs that never return. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** Root-causing it by reading what the failing runs actually had in common, instead of adding another timeout, turned a permanent diagnostic apparatus into one cleanup step. Pinning the action avoids a second upstream regression rather than working around it indefinitely.
+
+#### Smaller fixes: parallel backlog stories, TDD workflow support, restored prompt validation
+
+- **Change.** `[R3]` `[CI]` The backlog skill now works disjoint bounded stories in parallel instead of one story per run. The lightweight coding workflow gained explicit red/green TDD support: when the context requests it, test authoring and review move ahead of implementation. `validate-prompts` is back on pull requests — paused earlier on cost grounds, but its path filter already bounds that cost — and now publishes its execution trace like the other four pipelines, closing the one pipeline that could be audited for its report but not its actual behavior. Two prompt gaps found on live planner and implementer runs are closed: the planner's own Bash allow-list blocked it from reading the CodeQL data a different section of the same prompt told it to handle, and the implementer's workspace-write profile pointed npm's cache and the GitHub step summary at read-only paths. (Igor Solomatov, isolomatov-gd)
+- **Why it helps.** A permission gate that contradicts the same prompt's stated job, or a pipeline no one can audit for behavior, undermines trust in the automation faster than it saves time.
+
+### Week Mon 24.08 – Sun 30.08
+
+A new backlog skill splits two jobs that used to live inside planning: grading whether a tracked story is actually ready for development (business and technical verdicts, each independent), and writing the human work breakdown once it is. The split let both get sharper: readiness grading gained a three-state severity scale (blocker, hold, advisory) instead of one binary flag, an idempotency key so a repeat run can't duplicate tracker items, and a hard limit on what it's allowed to write. Every subagent role also picked up an explicit effort setting and a color shown in Claude Code's UI, with the lightweight profile deliberately keeping architect on stronger models while moving other high-complexity roles to cheaper ones for the same effort.
+
+On the server side, a dead team-authorization path that never actually scoped anything to a team is removed, and dataset name lookups stopped silently returning the wrong dataset on a name collision. The dangerous-actions hook's pattern matcher had a second quadratic-blowup bug, this time across thirteen matchers rather than just git branch delete, fixed the same way: check only the first candidate a lookahead window would ever match. A batch of twelve smaller fixes closed real gaps across the MCP server, CLI, plugin generator, and CI, and a documentation pass brought model IDs up to date and corrected a false claim that the dangerous-actions hook has a hard-deny tier (it doesn't; every match is advise or reconsider).
+
+**Highlights**
+
+- A new backlog skill validates story readiness (business and technical verdicts) before handing off a work breakdown, replacing planning's old bolt-on human-WBS mode (#307, #318)
+- Readiness grading now has three severity levels, blocker/hold/advisory, instead of one pass/fail flag, and won't create duplicate tracker items on a re-run
+- Every subagent role gained an explicit effort setting and a UI color; the lightweight profile deliberately keeps architect on stronger models while moving other high-complexity roles to cheaper ones, same effort, lower cost
+- A dead RAGFlow team-authorization path that never actually scoped access to a team is removed from the MCP server, and dataset name lookups no longer silently return the wrong dataset on a name collision (#319)
+- The dangerous-actions hook's quadratic pattern-matching bug is fixed across thirteen more matchers, not just git branch delete; adversarial input that used to take seconds now resolves in single-digit milliseconds (#320, #329)
+- Docs corrected: newly released model IDs across the agent-farm skill, and the false claim that dangerous-actions has a hard-deny tier is gone (#328)
+- A batch of twelve fixes closed real gaps: RAGFlow cleanup no longer sweeps up unmanaged docs, a migration lock can no longer be deleted out from under its next owner, and Codex TOML output no longer breaks on backslashes or repeated quotes (#323)
+- CLI dataset-name resolution (explicit name, single prefix match, ambiguous match, fallback) is now regression-tested (#322)
+- Rosetta's own daily GitHub-triage routing and self-improvement lessons-learned policy got tightened (maintainer-internal, high-confidence lessons only)
+- Plugins 3.1.11 / rosettify 3.2.4 / rosettify-plugins 3.3.4 / rosetta-cli 3.0.6 / rosetta-mcp 3.0.5 carry all of the above
+
+#### Backlog skill splits story readiness from work breakdown (#307, #318)
+
+- **Change.** `[R3]` A new backlog skill takes over two jobs that used to live inside planning: grading whether a tracked story is ready for development, and writing the human work breakdown once it clears. Readiness grading runs independent business and technical passes over the story and its tracker history, then derives two verdicts with three severity levels: a start blocker, a completion hold, or an advisory note that blocks nothing. A follow-up pass added an idempotency key so a repeat run can't create duplicate tracker items, a hard write-scope limit to the validated item and anything the run itself created, and an explicit rule that filing a follow-up ticket doesn't itself resolve the finding that triggered it. Work breakdown, unchanged in purpose, now sizes steps by shape (wide-shallow versus deep-narrow) instead of by which person or agent does them, and writes only to plan-folder artifacts, never the tracker. (Igor Solomatov, isolomatov-gd, with Claude Opus 5)
+- **Why it helps.** Planning previously mixed two different audiences, AI-executor session graphs and human work breakdowns, in one skill; splitting them let each get the depth it needs. The severity scale and idempotency guard close a real failure mode: one bad finding used to drag an otherwise-ready story to fully blocked, and a repeat validation run could double-file the same ticket.
+
+#### Subagent models, effort, and colors tuned for cost (lightweight profile)
+
+- **Change.** `[R3]` `[Tooling]` Every subagent role now declares an explicit effort level instead of leaving it implied by a model-name suffix, and gained a color shown next to its name in Claude Code's UI. The lightweight profile, built to run cheaper without giving up result quality, moved four of its highest-complexity roles (architect, planner, prompt-engineer, requirements-engineer) to xhigh effort on cheaper models; architect alone was then deliberately kept on its stronger opus and sol models, since architecture decisions carry the highest blast radius even in a lightweight build. (isolomatov-gd)
+- **Why it helps.** An effort field that isn't tied to a specific model id survives the next model generation without a rewrite. The lightweight profile's whole point is running cheaper at the same quality; keeping architect on stronger models where blast radius is highest, while moving the rest to cheaper ones, is that trade-off applied deliberately rather than uniformly.
+
+#### MCP: dead team authorization removed, dataset lookup hardened (#319)
+
+- **Change.** `[Server]` The MCP server's RAGFlow team-authorization path, whose own membership check ignored which dataset was being accessed, is removed along with the RAGFlow team API client and the `team` read policy value. Dataset name lookups are hardened separately: RAGFlow dataset names aren't unique across an API key's visible datasets, and a name collision used to overwrite the cached mapping with whichever dataset loaded last. A collision now marks the name ambiguous and returns nothing rather than guessing. (David Turner)
+- **Why it helps.** The team policy was unreachable dead code, so removing it costs nothing in practice, but the stale claim it left in docs and the README is now corrected too. A wrong-dataset guess on a name collision would have silently served the wrong content; failing safe is the right default here.
+
+#### Dangerous-actions matcher: quadratic blowup fixed across thirteen more patterns (#320, #329)
+
+- **Change.** `[Hooks]` Last week's fix closed a specific bypass in the git-branch-delete guard by widening its lookahead to catch flag variants like `-fd` and `--delete --force`. Those wider lookaheads turned out to re-scan overlapping windows on every candidate in a string, an O(n²) cost that matters on a matcher running before every Bash call. This week the same fix, checking only the first candidate a lookahead would ever match, is generalized across the other thirteen affected matchers: `rm -rf`, SQL DELETE/UPDATE without a WHERE clause, git force-push, `aws s3 rm --recursive`, `kubectl delete` on production, dropdb/psql, `dd` of a device, curl-pipe-to-shell, and GPG private key handling. A new scaling test suite pins exact pre-change detection semantics across all of them and asserts a latency budget. (David Turner for the initial git-branch-delete fix, Igor Solomatov for the generalization)
+- **Why it helps.** An adversarial input of a few thousand near-miss candidates used to take the matcher from milliseconds to multiple seconds; on a hook gating every shell call, that's a stall the agent and the user both feel. The scaling tests mean a regression to the old pattern now fails on latency, not just correctness.
+
+#### Docs corrected: newly released model IDs, hard-deny claim removed (#328)
+
+- **Change.** `[Docs]` The coding-agents-farm skill's model-selection guidance is rewritten tier-first (workhorse, complex, fast) with the newly released model ids (Claude Opus 5, GPT-5.6 Terra/Sol/Luna, Gemini 3.7 Flash) as a dated snapshot rather than a fact to trust from memory, and gains a fallback: if the CLI rejects an id, drop the flag and take its default instead of substituting a remembered name. Architecture docs are corrected to match actual hook behavior: dangerous-actions has no hard-deny tier, every match is either a non-blocking advise notice or an overridable reconsider soft-deny, and the hook is registered on shell and MCP tool calls only (write/edit evaluation exists in code but isn't wired into any IDE's hooks.json yet, a deliberate release scoping). (Igor Solomatov, with Claude Opus 5)
+- **Why it helps.** A stale model id or an overclaimed safety tier in the AI's own instructions is worse than no claim at all, since the AI trusts it by default. Tier-first guidance survives the next model release; the old flat list didn't.
+
+#### A batch of smaller fixes and new test coverage
+
+- **Change.** `[Server]` `[CLI]` `[Tooling]` `[CI]` Twelve low-risk fixes landed together: RAGFlow cleanup now only touches docs it actually manages, a Redis migration lock is now released with a per-run token so it can't delete a successor's lock after its own TTL expires, `parse` collapses several RAGFlow list calls into one, and three PyPI publish workflows gained least-privilege `contents: read` instead of relying on repository defaults. The plugin generator's Codex TOML output now escapes backslashes and repeated quotes correctly, and a missing Gemini 3.5 Flash vocabulary entry for Copilot is filled in. Separately, CLI dataset-name resolution (explicit name, single prefix match, ambiguous match, fallback to default) gained regression tests. (Igor Solomatov, David Turner)
+- **Why it helps.** Each of these either corrupted state silently, blocked on an unbounded network call, or would have broken on the first instruction body containing a backslash; none needed a redesign, just a real fix backed by a test.
+
 ### Week Mon 17.08 – Sun 23.08
 
 The planning skill got rebuilt around how Rosetta actually works: it now hands each execution session a self-contained "what to do and what to check" file instead of a human-style work breakdown, with the old format demoted to an explicit ask. A new arrange-workspace-flow turns workspace setup from an unenforced checklist into a tracked six-phase interview, and two new skills, discovery and design, add disciplined fact-finding and reversibility-weighted decisions you can trigger directly.
@@ -346,7 +830,7 @@ The R3 publish week. The cutover batch that sat staged on `on-v3-release` merged
 
 #### `specs`: requirements as data, not markdown
 
-- **Change.** `[Tooling]` Added `npx rosettify specs`, a new command that stores requirements as AI-native JSON instead of hand-edited markdown. One document per component, 17 subcommands (`add`, `update`, `get`, `query`, `approve`, `deprecate`, `implemented`, `reopen`, `delete`, `restore`, `purge`, `graph`, `render`, `validate`, `migrate`, `rubric`, `info`), each spec unit carrying structured given/when/then acceptance criteria, MoSCoW priority, verification method, and actor-stamped status history. `depends_on` edges are walked and kept acyclic; `render` produces the human-readable view on demand, so there is no markdown mirror to drift. Backed by an 826-line requirement spec (`docs/requirements/rosettify/SPECS.md`) and roughly 5,000 lines of tests. Shipped in rosettify 3.1.0. (Igor Solomatov)
+- **Change.** `[Tooling]` Added `npx rosettify specs`, a new command that stores requirements as AI-native JSON instead of hand-edited markdown. One document per component, 17 subcommands (`add`, `update`, `get`, `query`, `approve`, `deprecate`, `implemented`, `reopen`, `delete`, `restore`, `purge`, `graph`, `render`, `validate`, `migrate`, `rubric`, `info`), each spec unit carrying structured given/when/then acceptance criteria, MoSCoW priority, verification method, and actor-stamped status history. `depends_on` edges are walked and kept acyclic; `render` produces the human-readable view on demand, so there is no markdown mirror to drift. Backed by an 826-line requirement spec (`docs/REQUIREMENTS/rosettify/SPECS.md`) and roughly 5,000 lines of tests. Shipped in rosettify 3.1.0. (Igor Solomatov)
 - **Why it helps.** The `requirements-authoring` skill owns human judgment — intent capture, EARS phrasing, per-unit approval. What it lacked was a mechanical engine underneath: agents were hand-editing XML blocks in markdown, where duplicate identifiers, dangling dependencies, and incomplete acceptance criteria are invisible until someone reads carefully. Those are now machine-checkable, and batch edits stop being a text-surgery exercise.
 
 #### Google Antigravity: the seventh target (#143, #144)

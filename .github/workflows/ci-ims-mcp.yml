@@ -1,0 +1,36 @@
+name: CI IMS MCP
+
+# Pre-merge gate for the ims-mcp package. publish-ims-mcp.yml publishes on push to
+# main for the same paths; this fails the PR when that version is already on PyPI.
+on:
+  pull_request:
+    paths:
+      - 'src/ims-mcp-server/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version-guard:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Read version
+      id: version
+      run: echo "version=$(grep '^version = ' src/ims-mcp-server/pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')" >> "$GITHUB_OUTPUT"
+
+    - name: Fail if ims-mcp version is already published
+      uses: ./.github/actions/version-unpublished
+      with:
+        registry: pypi
+        package: ims-mcp
+        version: ${{ steps.version.outputs.version }}
+        version-file: src/ims-mcp-server/pyproject.toml

@@ -14,9 +14,15 @@ Decide whether this story carries enough information to be built without assumpt
 
 <inputs>
 
-The intake record (story, parents, children, sibling tasks, links, every comment) and the repository scope. Treat the intake record as the only source-of-record text; do not re-fetch.
+The intake record (story, parents, children, sibling tasks, links, every comment), the repository scope, and the findings prior runs raised with their ids. Treat the intake record as the only source-of-record text; do not re-fetch.
 
 </inputs>
+
+<ids>
+
+Prior-run findings arrive with their ids. A finding that persists keeps its id, unchanged. Number a new finding above the highest id this item has ever carried. Never renumber, never reuse a retired id — the write-back matches created items on these ids.
+
+</ids>
 
 <skills>
 
@@ -78,7 +84,8 @@ Plain business language inside every element. No mechanism, no implementation vo
 - Proposing a design, an interface, a schema, or code
 - Any write to the issue tracker, wiki, or test management system
 - Filling a gap silently instead of recording it
-- Grading the story; the two verdicts are decided outside this dispatch
+- Grading the story, or classifying a finding as blocker, hold, or advisory; both are decided outside this dispatch
+- Renumbering a finding that a prior run already gave an id
 
 </forbidden>
 

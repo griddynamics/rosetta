@@ -57,11 +57,6 @@ export const readTimestampFile = (filePath: string): number | null => {
   }
 };
 
-export const writeTimestampFile = (filePath: string, now = Date.now()): void => {
-  fs.writeFileSync(filePath, String(now));
-  debugLogBranch('file-coordination', 'write-timestamp', { filePath, now });
-};
-
 export const tryAcquireTimedLock = (
   lockPath: string,
   opts: TimedLockOptions,

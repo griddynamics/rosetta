@@ -37,13 +37,10 @@ function collectPlaceholderTokens(value: unknown): Set<string> {
 /** Replaces all [token] occurrences in a JSON tree (only in string leaves) with params values. */
 function substituteValues(value: unknown, params: Record<string, string>): unknown {
   if (typeof value === "string") {
-    // FR-PLAN-0034 — literal string replacement; values are not re-interpreted
-    let result = value;
-    for (const [token, replacement] of Object.entries(params)) {
-      // Replace all occurrences of [token]
-      result = result.split(`[${token}]`).join(replacement);
-    }
-    return result;
+    // FR-PLAN-0034 — literal string replacement; values are not re-interpreted. One pass over
+    // the template text, so a [token] inside an inserted value is never substituted itself.
+    // renderTemplate has already checked that every [token] found here has a value.
+    return value.replace(PLACEHOLDER_REGEX, (_match, token: string) => params[token]);
   }
   if (Array.isArray(value)) {
     return value.map((item) => substituteValues(item, params));

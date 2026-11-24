@@ -44,29 +44,23 @@ function captureError(fn: () => void): Error {
 }
 
 const VALID_DESCRIPTOR = {
-  destinationSuffix: '-light',
-  pluginNameSuffix: '-light',
-  pluginDescriptionSuffix: ' (lightweight)',
   modelOverrides: {
-    'core-claude': { opus: 'claude-sonnet-5', sonnet: 'claude-sonnet-5' },
-    'core-cursor': { 'claude-sonnet-5': 'gpt-5.4', 'claude-opus-4-8': 'gpt-5.4' },
-    'core-copilot': { 'claude-opus-4-8': 'Claude Sonnet 5' },
-    'core-codex': { 'gpt-5.5-high': 'gpt-5.4-medium' },
+    'claude': { opus: 'claude-sonnet-5', sonnet: 'claude-sonnet-5' },
+    'cursor': { 'claude-sonnet-5': 'gpt-5.4', 'claude-opus-4-8': 'gpt-5.4' },
+    'copilot': { 'claude-opus-4-8': 'Claude Sonnet 5' },
+    'codex': { 'gpt-5.5-high': 'gpt-5.4-medium' },
   },
 };
 
 describe('loadProfile — valid descriptor', () => {
-  it('loads the real committed lightweight.json reference profile', () => {
+  it('loads the real committed lightweight.json reference profile, now an empty descriptor', () => {
+    // The suffixes this profile used to carry moved onto the plugin-set VARIANT in plugins.json:
+    // the same `lightweight` profile is activated by variants that suffix differently (the
+    // `rosetta` set's lightweight variant suffixes `-light`, every other set's suffixes nothing),
+    // so a suffix cannot be a property of the profile. What remains is an empty descriptor whose
+    // sole job is to make `profile-lightweight-only` filename directives resolve.
     const descriptor = loadProfile(REPO_PROFILES_DIR, 'lightweight');
-    expect(descriptor.destinationSuffix).toBe('-light');
-    expect(descriptor.pluginNameSuffix).toBe('-light');
-    expect(descriptor.pluginDescriptionSuffix).toContain('lightweight profile');
-    // The reference profile declares suffixes only: it selects lighter models by shipping
-    // profile-scoped instruction sources (agent `model:` lists resolved through each target's
-    // built-in vocabulary), not by overriding the vocabularies themselves. An absent
-    // `modelOverrides` field therefore normalizes to an empty map, and every target keeps its
-    // built-in vocabulary with `exhaustive` false (see resolveEffectiveVocabulary below).
-    expect(descriptor.modelOverrides).toEqual({});
+    expect(descriptor).toEqual({ modelOverrides: {} });
   });
 
   it('loads a fixture profile from an isolated temp dir, idempotently (same result every call)', () => {
@@ -103,14 +97,13 @@ describe('loadProfile — V-parse: unparseable JSON', () => {
 });
 
 describe('loadProfile — V1: modelOverrides outer key not one of the seven target names', () => {
-  it.each(['cursor', 'core-cursr', 'core-windsurf'])(
+  // 'core-cursor' is the RETIRED spelling: target ids are bare IDE identities now, so the old
+  // `core-`-prefixed names must be rejected rather than silently matching nothing.
+  it.each(['core-cursor', 'cursr', 'windsurf'])(
     'throws naming the offending key "%s" and listing the seven accepted names',
     (badKey) => {
       withTempProfileDir((dir) => {
         writeProfile(dir, 'bad-outer', {
-          destinationSuffix: '',
-          pluginNameSuffix: '',
-          pluginDescriptionSuffix: '',
           modelOverrides: { [badKey]: { opus: 'claude-sonnet-5' } },
         });
         const err = captureError(() => loadProfile(dir, 'bad-outer'));
@@ -118,39 +111,33 @@ describe('loadProfile — V1: modelOverrides outer key not one of the seven targ
         // Names the offending value.
         expect(err.message).toContain(`"${badKey}"`);
         // Lists the accepted set.
-        expect(err.message).toContain('core-claude');
-        expect(err.message).toContain('core-cursor-standalone');
-        expect(err.message).toContain('core-copilot-standalone');
+        expect(err.message).toContain('claude');
+        expect(err.message).toContain('cursor-standalone');
+        expect(err.message).toContain('copilot-standalone');
       });
     },
   );
 });
 
-describe('loadProfile — V2: a core-antigravity block', () => {
+describe('loadProfile — V2: an antigravity block', () => {
   it('throws ProfileValidationError reporting that target has no model vocabulary to override', () => {
     withTempProfileDir((dir) => {
       writeProfile(dir, 'antigravity-block', {
-        destinationSuffix: '',
-        pluginNameSuffix: '',
-        pluginDescriptionSuffix: '',
-        modelOverrides: { 'core-antigravity': {} },
+        modelOverrides: { 'antigravity': {} },
       });
       const err = captureError(() => loadProfile(dir, 'antigravity-block'));
       expect(err).toBeInstanceOf(ProfileValidationError);
-      expect(err.message).toContain('"core-antigravity"');
+      expect(err.message).toContain('"antigravity"');
       expect(err.message).toContain('no model vocabulary');
     });
   });
 });
 
-describe('loadProfile — V3: a core-claude inner key outside {opus, sonnet, haiku}', () => {
+describe('loadProfile — V3: a claude inner key outside {opus, sonnet, haiku}', () => {
   it('throws on the trap case "claude-opus-4-8" — looks right, but would silently drop Opus without this check', () => {
     withTempProfileDir((dir) => {
       writeProfile(dir, 'bad-inner', {
-        destinationSuffix: '',
-        pluginNameSuffix: '',
-        pluginDescriptionSuffix: '',
-        modelOverrides: { 'core-claude': { 'claude-opus-4-8': 'claude-sonnet-5' } },
+        modelOverrides: { 'claude': { 'claude-opus-4-8': 'claude-sonnet-5' } },
       });
       const err = captureError(() => loadProfile(dir, 'bad-inner'));
       expect(err).toBeInstanceOf(ProfileValidationError);
@@ -168,14 +155,11 @@ describe('loadProfile — V6: modelOverrides entry must be an object', () => {
   it('throws when a block is a string, naming the offending target key', () => {
     withTempProfileDir((dir) => {
       writeProfile(dir, 'non-object-block', {
-        destinationSuffix: '',
-        pluginNameSuffix: '',
-        pluginDescriptionSuffix: '',
-        modelOverrides: { 'core-cursor': 'oops' },
+        modelOverrides: { 'cursor': 'oops' },
       });
       const err = captureError(() => loadProfile(dir, 'non-object-block'));
       expect(err).toBeInstanceOf(ProfileValidationError);
-      expect(err.message).toContain('"core-cursor"');
+      expect(err.message).toContain('"cursor"');
       expect(err.message).toContain('object');
     });
   });
@@ -183,14 +167,11 @@ describe('loadProfile — V6: modelOverrides entry must be an object', () => {
   it('throws when a block is an array, naming the offending target key', () => {
     withTempProfileDir((dir) => {
       writeProfile(dir, 'array-block', {
-        destinationSuffix: '',
-        pluginNameSuffix: '',
-        pluginDescriptionSuffix: '',
-        modelOverrides: { 'core-cursor': ['a'] },
+        modelOverrides: { 'cursor': ['a'] },
       });
       const err = captureError(() => loadProfile(dir, 'array-block'));
       expect(err).toBeInstanceOf(ProfileValidationError);
-      expect(err.message).toContain('"core-cursor"');
+      expect(err.message).toContain('"cursor"');
       expect(err.message).toContain('object');
     });
   });
@@ -198,14 +179,11 @@ describe('loadProfile — V6: modelOverrides entry must be an object', () => {
   it('throws when an inner value is not a string, naming the offending target and inner key', () => {
     withTempProfileDir((dir) => {
       writeProfile(dir, 'non-string-inner-value', {
-        destinationSuffix: '',
-        pluginNameSuffix: '',
-        pluginDescriptionSuffix: '',
-        modelOverrides: { 'core-cursor': { 'gpt-5.4': 42 } },
+        modelOverrides: { 'cursor': { 'gpt-5.4': 42 } },
       });
       const err = captureError(() => loadProfile(dir, 'non-string-inner-value'));
       expect(err).toBeInstanceOf(ProfileValidationError);
-      expect(err.message).toContain('"core-cursor"');
+      expect(err.message).toContain('"cursor"');
       expect(err.message).toContain('"gpt-5.4"');
       expect(err.message).toContain('must be strings');
     });
@@ -216,13 +194,13 @@ describe('loadProfile — modelOverrides must be an object (FR-PROF-0001)', () =
   it.each([
     ['a number', 5],
     ['a string', 'oops'],
-    ['an array', ['core-cursor']],
+    ['an array', ['cursor']],
   ])('rejects modelOverrides that is %s', (_label, badValue) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'prof-mo-'));
     try {
       fs.writeFileSync(
         path.join(dir, 'bad.json'),
-        JSON.stringify({ destinationSuffix: '-x', modelOverrides: badValue }),
+        JSON.stringify({ modelOverrides: badValue }),
       );
       expect(() => loadProfile(dir, 'bad')).toThrow(/modelOverrides/);
     } finally {
@@ -231,48 +209,29 @@ describe('loadProfile — modelOverrides must be an object (FR-PROF-0001)', () =
   });
 });
 
-describe('loadProfile — suffix fields must be strings', () => {
+describe('loadProfile — the suffix fields moved to the plugin-set variant', () => {
+  // Regression guard for the move: a descriptor still carrying one of the three old suffix fields
+  // must FAIL rather than silently ignore it, or a profile authored against the old shape would
+  // quietly stop suffixing anything.
   it.each(['destinationSuffix', 'pluginNameSuffix', 'pluginDescriptionSuffix'])(
-    'throws when "%s" is a number, naming the offending field',
+    'rejects the retired field "%s" as unrecognized, pointing at plugins.json',
     (field) => {
       withTempProfileDir((dir) => {
-        writeProfile(dir, 'bad-suffix', {
-          destinationSuffix: '',
-          pluginNameSuffix: '',
-          pluginDescriptionSuffix: '',
-          modelOverrides: {},
-          [field]: 42,
-        });
-        const err = captureError(() => loadProfile(dir, 'bad-suffix'));
+        writeProfile(dir, 'old-shape', { modelOverrides: {}, [field]: '-light' });
+        const err = captureError(() => loadProfile(dir, 'old-shape'));
         expect(err).toBeInstanceOf(ProfileValidationError);
         expect(err.message).toContain(`"${field}"`);
-        expect(err.message).toContain('must be a string');
+        expect(err.message).toContain('plugins.json');
       });
     },
   );
 });
 
 describe('loadProfile — every descriptor field is optional (DATA-CFG-0006.AC10/AC11)', () => {
-  it('accepts a suffix-only descriptor: modelOverrides normalizes to an empty map', () => {
+  it('normalizes an absent modelOverrides to an empty map', () => {
     withTempProfileDir((dir) => {
-      writeProfile(dir, 'suffix-only', {
-        destinationSuffix: '-light',
-        pluginNameSuffix: '-light',
-        pluginDescriptionSuffix: ' (light)',
-      });
-      const descriptor = loadProfile(dir, 'suffix-only');
-      expect(descriptor.modelOverrides).toEqual({});
-      expect(descriptor.destinationSuffix).toBe('-light');
-    });
-  });
-
-  it('defaults every absent suffix to the empty string', () => {
-    withTempProfileDir((dir) => {
-      writeProfile(dir, 'no-suffixes', { modelOverrides: {} });
-      const descriptor = loadProfile(dir, 'no-suffixes');
-      expect(descriptor.destinationSuffix).toBe('');
-      expect(descriptor.pluginNameSuffix).toBe('');
-      expect(descriptor.pluginDescriptionSuffix).toBe('');
+      writeProfile(dir, 'no-overrides', {});
+      expect(loadProfile(dir, 'no-overrides').modelOverrides).toEqual({});
     });
   });
 
@@ -280,20 +239,17 @@ describe('loadProfile — every descriptor field is optional (DATA-CFG-0006.AC10
     withTempProfileDir((dir) => {
       writeProfile(dir, 'empty', {});
       expect(loadProfile(dir, 'empty')).toEqual({
-        destinationSuffix: '',
-        pluginNameSuffix: '',
-        pluginDescriptionSuffix: '',
         modelOverrides: {},
       });
     });
   });
 
-  it('a suffix-only descriptor leaves every target its built-in vocabulary, non-exhaustively', () => {
+  it('an empty descriptor leaves every target its built-in vocabulary, non-exhaustively', () => {
     withTempProfileDir((dir) => {
-      writeProfile(dir, 'suffix-only', { destinationSuffix: '-light' });
-      const descriptor = loadProfile(dir, 'suffix-only');
+      writeProfile(dir, 'empty-desc', {});
+      const descriptor = loadProfile(dir, 'empty-desc');
       const builtin: ModelVocabulary = { map: { opus: 'claude-opus-4-8' } };
-      const resolved = resolveEffectiveVocabulary('core-claude', builtin, descriptor);
+      const resolved = resolveEffectiveVocabulary('claude', builtin, descriptor);
       expect(resolved.map).toBe(builtin.map);
       expect(resolved.exhaustive).toBe(false);
     });
@@ -304,9 +260,6 @@ describe('loadProfile — V7: unrecognized top-level descriptor field', () => {
   it('throws ProfileValidationError naming the unrecognized field', () => {
     withTempProfileDir((dir) => {
       writeProfile(dir, 'extra-field', {
-        destinationSuffix: '',
-        pluginNameSuffix: '',
-        pluginDescriptionSuffix: '',
         modelOverrides: {},
         extraTopLevelField: 'oops',
       });
@@ -323,19 +276,16 @@ describe('resolveEffectiveVocabulary — no profile / no block', () => {
   };
 
   it('with no profile at all, returns the built-in map unchanged with exhaustive falsy', () => {
-    const result = resolveEffectiveVocabulary('core-claude', builtin, null);
+    const result = resolveEffectiveVocabulary('claude', builtin, null);
     expect(result.map).toBe(builtin.map);
     expect(result.exhaustive).toBeFalsy();
   });
 
   it('with a profile that declares no block for this target, returns the built-in map unchanged with exhaustive falsy', () => {
     const profile: ProfileDescriptor = {
-      destinationSuffix: '',
-      pluginNameSuffix: '',
-      pluginDescriptionSuffix: '',
-      modelOverrides: { 'core-cursor': { 'claude-sonnet-5': 'gpt-5.4' } },
+      modelOverrides: { 'cursor': { 'claude-sonnet-5': 'gpt-5.4' } },
     };
-    const result = resolveEffectiveVocabulary('core-claude', builtin, profile);
+    const result = resolveEffectiveVocabulary('claude', builtin, profile);
     expect(result.map).toBe(builtin.map);
     expect(result.exhaustive).toBeFalsy();
   });
@@ -349,12 +299,9 @@ describe('resolveEffectiveVocabulary — a block replaces the built-in map, exha
   it('a declared block is returned as the whole effective map with exhaustive:true', () => {
     const block = { opus: 'claude-sonnet-5' };
     const profile: ProfileDescriptor = {
-      destinationSuffix: '',
-      pluginNameSuffix: '',
-      pluginDescriptionSuffix: '',
-      modelOverrides: { 'core-claude': block },
+      modelOverrides: { 'claude': block },
     };
-    const result = resolveEffectiveVocabulary('core-claude', builtin, profile);
+    const result = resolveEffectiveVocabulary('claude', builtin, profile);
     expect(result.map).toBe(block);
     expect(result.exhaustive).toBe(true);
   });
@@ -363,15 +310,12 @@ describe('resolveEffectiveVocabulary — a block replaces the built-in map, exha
 describe('resolveEffectiveVocabulary — V4: standalone block inheritance', () => {
   const builtin: ModelVocabulary = { map: { 'claude-sonnet-5': 'claude-sonnet-5' } };
 
-  it('a standalone with no block of its own INHERITS its parent (core-cursor) block', () => {
+  it('a standalone with no block of its own INHERITS its parent (cursor) block', () => {
     const parentBlock = { 'claude-sonnet-5': 'gpt-5.4' };
     const profile: ProfileDescriptor = {
-      destinationSuffix: '',
-      pluginNameSuffix: '',
-      pluginDescriptionSuffix: '',
-      modelOverrides: { 'core-cursor': parentBlock },
+      modelOverrides: { 'cursor': parentBlock },
     };
-    const result = resolveEffectiveVocabulary('core-cursor-standalone', builtin, profile);
+    const result = resolveEffectiveVocabulary('cursor-standalone', builtin, profile);
     expect(result.map).toBe(parentBlock);
     expect(result.exhaustive).toBe(true);
   });
@@ -380,15 +324,12 @@ describe('resolveEffectiveVocabulary — V4: standalone block inheritance', () =
     const parentBlock = { 'claude-sonnet-5': 'gpt-5.4' };
     const standaloneBlock = { 'claude-sonnet-5': 'gpt-5.5' };
     const profile: ProfileDescriptor = {
-      destinationSuffix: '',
-      pluginNameSuffix: '',
-      pluginDescriptionSuffix: '',
       modelOverrides: {
-        'core-cursor': parentBlock,
-        'core-cursor-standalone': standaloneBlock,
+        'cursor': parentBlock,
+        'cursor-standalone': standaloneBlock,
       },
     };
-    const result = resolveEffectiveVocabulary('core-cursor-standalone', builtin, profile);
+    const result = resolveEffectiveVocabulary('cursor-standalone', builtin, profile);
     expect(result.map).toBe(standaloneBlock);
     expect(result.exhaustive).toBe(true);
   });
@@ -396,12 +337,9 @@ describe('resolveEffectiveVocabulary — V4: standalone block inheritance', () =
   it('the same inheritance applies to core-copilot-standalone from core-copilot', () => {
     const parentBlock = { 'claude-opus-4-8': 'Claude Sonnet 5' };
     const profile: ProfileDescriptor = {
-      destinationSuffix: '',
-      pluginNameSuffix: '',
-      pluginDescriptionSuffix: '',
-      modelOverrides: { 'core-copilot': parentBlock },
+      modelOverrides: { 'copilot': parentBlock },
     };
-    const result = resolveEffectiveVocabulary('core-copilot-standalone', builtin, profile);
+    const result = resolveEffectiveVocabulary('copilot-standalone', builtin, profile);
     expect(result.map).toBe(parentBlock);
     expect(result.exhaustive).toBe(true);
   });
@@ -415,14 +353,11 @@ describe('resolveEffectiveVocabulary — V5: dead inner entry accepted silently'
     try {
       const block = { opus: 'claude-sonnet-5', 'nonexistent-model-token': 'claude-haiku-4-5' };
       const profile: ProfileDescriptor = {
-        destinationSuffix: '',
-        pluginNameSuffix: '',
-        pluginDescriptionSuffix: '',
-        modelOverrides: { 'core-claude': block },
+        modelOverrides: { 'claude': block },
       };
 
-      expect(() => resolveEffectiveVocabulary('core-claude', builtin, profile)).not.toThrow();
-      const result = resolveEffectiveVocabulary('core-claude', builtin, profile);
+      expect(() => resolveEffectiveVocabulary('claude', builtin, profile)).not.toThrow();
+      const result = resolveEffectiveVocabulary('claude', builtin, profile);
 
       expect(result.map).toEqual(block);
       expect(result.exhaustive).toBe(true);

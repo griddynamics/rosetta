@@ -11,13 +11,35 @@
 # 3. For each case: create root_old, root_new, run prompt-request, run validation
 # 4. Write results to PR_COMMENT_FILE
 #
+# Runs on EITHER agent, selected by ROSETTA_AGENT (claude|codex; default codex). The
+# two CLIs are not flag-compatible, so every invocation goes through agent_prompt()
+# and agent_validate() rather than a bare $CLI_CMD. Differences that are inherent to
+# Codex, not choices made here:
+#   - no `--append-system-prompt`: the preamble is prepended to the prompt text;
+#   - no `--allowedTools`: reach is set by `--sandbox` (workspace-write / read-only);
+#   - no `--agent`: the validator's own instruction file is prepended to the
+#     validation prompt instead of being loaded as a subagent;
+#   - a different memory file: `AGENTS.md`, not `.claude/claude.md`.
+#
 
 set -euo pipefail
 
 REPO_ROOT="${REPO_ROOT:-$(pwd)}"
 INSTRUCTIONS_NEW="${INSTRUCTIONS_NEW:-$REPO_ROOT/instructions}"
-CLI_CMD="${VALIDATE_CLI_CMD:-claude}"
-MODEL="${MODEL:-sonnet}"
+ROSETTA_AGENT="${ROSETTA_AGENT:-codex}"
+# VALIDATE_CLI_CMD stays the override hook it always was; the default now follows
+# the selected agent.
+if [[ "$ROSETTA_AGENT" == "claude" ]]; then
+  CLI_CMD="${VALIDATE_CLI_CMD:-claude}"
+  MODEL="${MODEL:-sonnet}"
+else
+  CLI_CMD="${VALIDATE_CLI_CMD:-codex}"
+  # The tier counterpart of the claude default above. The ladder is the one
+  # instructions/r3/core/agents/*.md already pairs: opus<->gpt-6.1-sol,
+  # sonnet<->gpt-6-luna (effort one step higher), haiku<->gpt-6-luna.
+  MODEL="${MODEL:-gpt-6-luna}"
+fi
+CODEX_EFFORT="${CODEX_EFFORT:-high}"
 BASE_SHA="${BASE_SHA:-HEAD^}"
 TEST_LIB="${TEST_LIB:-$REPO_ROOT/test-library}"
 ROOT_ZIP="${ROOT_ZIP:-$TEST_LIB/spring-boot-react-mysql.zip}"
@@ -36,6 +58,73 @@ if [[ "$_py_major" -lt 3 ]] || { [[ "$_py_major" -eq 3 ]] && [[ "$_py_minor" -lt
     echo "ERROR: Python 3.10+ is required (found: $_py_ver). Please upgrade Python." >&2
     exit 1
 fi
+
+# Run a prompt in $1 (working directory) with write access to that directory.
+# $2 = system preamble, $3 = prompt text. Stdout of the agent goes to $4 (log file).
+agent_prompt() {
+  local workdir="$1" preamble="$2" prompt="$3" log="$4"
+
+  if [[ "$ROSETTA_AGENT" == "claude" ]]; then
+    (cd "$workdir" && $CLI_CMD --model "$MODEL" --append-system-prompt "$preamble" \
+        --allowedTools "Read(./**) Write(./**) Edit(./**)" -p "$prompt" 2>&1) > "$log" || true
+    return 0
+  fi
+
+  # Codex: the preamble has no dedicated flag, so it leads the prompt. The case
+  # workspaces are extracted zips, not git checkouts, hence --skip-git-repo-check.
+  local model_args=()
+  [[ -n "$MODEL" ]] && model_args=(-m "$MODEL")
+  (cd "$workdir" && $CLI_CMD exec "${preamble}"$'\n\n'"${prompt}" \
+      "${model_args[@]}" \
+      -c model_reasoning_effort="\"$CODEX_EFFORT\"" \
+      --sandbox workspace-write \
+      --skip-git-repo-check \
+      --color never 2>&1) > "$log" || true
+}
+
+# Run the validation prompt in $1 (read-only) and echo the agent's final message.
+# $2 = prompt file.
+agent_validate() {
+  local workdir="$1" prompt_file="$2"
+
+  if [[ "$ROSETTA_AGENT" == "claude" ]]; then
+    (cd "$workdir" && $CLI_CMD --model "$MODEL" --agent test-case-result-validator \
+        --allowedTools "Read(./**)" -p < "$prompt_file" 2>&1) || true
+    return 0
+  fi
+
+  # Codex has no subagents, so the validator's instruction file becomes the head of
+  # the prompt. `-o` is what makes the verdict parseable: `codex exec` writes progress
+  # to stdout, so the caller must read the LAST message from a file, not from stdout.
+  local last_msg="$workdir/.codex-last-message.txt"
+  local combined="$workdir/.codex-validation-prompt.txt"
+  {
+    # Strip the agent file's frontmatter -- it addresses Claude's agent loader, not
+    # the model, and `tools:`/`model:` there would only mislead Codex. The `head`
+    # guard matters: without it, a file that ever loses its frontmatter would emit
+    # only its first line, because `q` prints the current line before quitting.
+    if head -1 "$VALIDATOR_AGENT" | grep -q '^---$'; then
+      sed '1,/^---$/d' "$VALIDATOR_AGENT"
+    else
+      cat "$VALIDATOR_AGENT"
+    fi
+    printf '\n\n'
+    cat "$prompt_file"
+  } > "$combined"
+
+  local model_args=()
+  [[ -n "$MODEL" ]] && model_args=(-m "$MODEL")
+  (cd "$workdir" && $CLI_CMD exec - \
+      "${model_args[@]}" \
+      -c model_reasoning_effort="\"$CODEX_EFFORT\"" \
+      --sandbox read-only \
+      --skip-git-repo-check \
+      --color never \
+      -o "$last_msg" < "$combined" >&2) || true
+  rm -f "$combined"
+  [[ -f "$last_msg" ]] && cat "$last_msg"
+  rm -f "$last_msg"
+}
 
 # 1. Parse CHANGED_FILES into array
 echo "[1/6] Parsing CHANGED_FILES..."
@@ -64,7 +153,10 @@ get_cases() {
   [[ ${#cases[@]} -gt 0 ]] && printf '%s\n' "${cases[@]}" | sort -u
 }
 
-# Get files changed in $modified vs $base (baseline). Excludes agents/, .claude/, .git/
+# Get files changed in $modified vs $base (baseline). Excludes the injected
+# instruction trees and memory files (agents/, .claude/, AGENTS.md) and .git/ -- those
+# are harness scaffolding, not agent output, and would otherwise show up as a
+# "changed file" in every case on the Codex branch.
 get_changed_files() {
   local base="$1"
   local modified="$2"
@@ -81,7 +173,7 @@ get_changed_files() {
         echo "${f#$mod_abs/}" | sed 's|^/||'
       done
     fi
-  done | grep -vE '^agents/|^\.claude/|^\.git/' | sort -u
+  done | grep -vE '^agents/|^\.claude/|^AGENTS\.md$|^\.git/' | sort -u
 }
 
 # 3. Prepare root_old and root_new for a test case
@@ -124,15 +216,33 @@ prepare_case() {
   cp -a "$INSTRUCTIONS_NEW" "$root_new/agents/"
   git -C "$REPO_ROOT" archive "$BASE_SHA" instructions 2>/dev/null | tar -x -C "$root_old/agents/" 2>/dev/null
 
-  echo "  [3e] Creating .claude/claude.md..."
-  if [[ -f "$root_new/agents/instructions/r1/local.md" ]]; then
-    cp "$root_new/agents/instructions/r1/local.md" "$root_old/.claude/claude.md"
-    cp "$root_old/agents/instructions/r1/local.md" "$root_new/.claude/claude.md"
+  # The memory file the agent actually reads: CLAUDE.md-style for Claude, AGENTS.md
+  # for Codex. Writing the wrong one would leave the injected instructions unloaded
+  # and quietly compare two identical runs.
+  local memory_old memory_new
+  if [[ "$ROSETTA_AGENT" == "claude" ]]; then
+    memory_old="$root_old/.claude/claude.md"
+    memory_new="$root_new/.claude/claude.md"
+  else
+    memory_old="$root_old/AGENTS.md"
+    memory_new="$root_new/AGENTS.md"
   fi
 
-  echo "  [3f] Injecting test-case-result-validator agent..."
-  mkdir -p "$REPO_ROOT/.claude/agents"
-  cp "$VALIDATOR_AGENT" "$REPO_ROOT/.claude/agents/test-case-result-validator.md"
+  echo "  [3e] Creating memory file ($ROSETTA_AGENT): $(basename "$memory_new")..."
+  if [[ -f "$root_new/agents/instructions/r1/local.md" ]]; then
+    cp "$root_new/agents/instructions/r1/local.md" "$memory_old"
+    cp "$root_old/agents/instructions/r1/local.md" "$memory_new"
+  fi
+
+  # Claude loads the validator as a project subagent; Codex has no subagents and gets
+  # the same file prepended to the validation prompt in agent_validate() instead.
+  if [[ "$ROSETTA_AGENT" == "claude" ]]; then
+    echo "  [3f] Injecting test-case-result-validator agent..."
+    mkdir -p "$REPO_ROOT/.claude/agents"
+    cp "$VALIDATOR_AGENT" "$REPO_ROOT/.claude/agents/test-case-result-validator.md"
+  else
+    echo "  [3f] Skipping subagent injection — Codex has no subagents."
+  fi
 }
 
 # 4. Run test case: prompt-request on both, validation, compare
@@ -157,12 +267,12 @@ run_case() {
   prompt_content=$(cat "$prompt_request")
   local no_questions="You are running in automated test mode. NEVER ask clarifying questions. NEVER wait for user input. NEVER suggest options to choose from. Execute the prompt directly and produce the requested output files immediately."
   echo "  [4b] prompt_content: $prompt_content" >&2
-  echo "  [4b] Running prompt-request in root_old..." >&2
-  (cd "$root_old" && $CLI_CMD --model $MODEL --append-system-prompt "$no_questions" --allowedTools "Read(./**) Write(./**) Edit(./**)" -p "${prompt_content}" 2>&1) > "$dir/output_old.log" || true
+  echo "  [4b] Running prompt-request in root_old ($ROSETTA_AGENT)..." >&2
+  agent_prompt "$root_old" "$no_questions" "$prompt_content" "$dir/output_old.log"
   echo "  [4b] root_old done" >&2
 
-  echo "  [4c] Running prompt-request in root_new..." >&2
-  (cd "$root_new" && $CLI_CMD --model $MODEL --append-system-prompt "$no_questions" --allowedTools "Read(./**) Write(./**) Edit(./**)" -p "${prompt_content}" 2>&1) > "$dir/output_new.log" || true
+  echo "  [4c] Running prompt-request in root_new ($ROSETTA_AGENT)..." >&2
+  agent_prompt "$root_new" "$no_questions" "$prompt_content" "$dir/output_new.log"
   echo "  [4c] root_new done" >&2
 
   echo "  [4d] Computing changed files vs baseline..." >&2
@@ -245,11 +355,11 @@ $(echo "$files_new" | sed 's/^/- /' | grep -v '^- $')
   validation_prompt="$(cat "$prompt_validation")
 $files_section
 "
-  echo "  [4f] Running validation with agent: test-case-result-validator..." >&2
+  echo "  [4f] Running validation with test-case-result-validator ($ROSETTA_AGENT)..." >&2
   printf '%s' "$validation_prompt" > "$dir/.validation-prompt.txt"
   local validation_output
   local json_file="$dir/validation-result.json"
-  validation_output=$(cd "$dir" && $CLI_CMD --model $MODEL --agent test-case-result-validator --allowedTools "Read(./**)" -p < ./.validation-prompt.txt 2>&1) || true
+  validation_output=$(agent_validate "$dir" "$dir/.validation-prompt.txt")
   echo "  [4f] Validation output: $validation_output" >&2
   printf '%s' "$validation_output" > "$json_file"
   rm -f "$dir/.validation-prompt.txt"
@@ -326,6 +436,7 @@ write_comment() {
 # Main
 main() {
   echo "[0] Starting run-test-cases.sh"
+  echo "  ROSETTA_AGENT=$ROSETTA_AGENT (CLI_CMD=$CLI_CMD)"
   echo "  REPO_ROOT=$REPO_ROOT"
   echo "  BASE_SHA=$BASE_SHA"
   echo "  TEST_LIB=$TEST_LIB"

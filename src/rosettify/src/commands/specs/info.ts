@@ -34,13 +34,14 @@ function computeTotals(doc: SpecsDocument): SpecTotals {
 }
 
 /** FR-SPECS-0004/0024 — highest used NNNN (+1 suggested) per prefix+area combination that has
- * at least one existing spec. A combination with no existing specs is not reported — an
+ * at least one existing or purged spec. A purged id stays taken (FR-SPECS-0009), so the
+ * `purged_ids` registry counts as used. A combination with neither is not reported — an
  * authoring agent introducing a genuinely new prefix+area starts from 0001 by convention, which
  * `add`'s own auto-registration already handles without needing a next_ids entry. */
 function computeNextIds(doc: SpecsDocument): SpecNextId[] {
   const highest = new Map<string, number>(); // key: `${prefix}|${area}`
-  for (const spec of doc.specs ?? []) {
-    const parsed = parseId(spec.id);
+  for (const id of [...(doc.specs ?? []).map((s) => s.id), ...(doc.purged_ids ?? [])]) {
+    const parsed = parseId(id);
     if (!parsed) continue;
     const key = `${parsed.prefix}|${parsed.area}`;
     if (parsed.seq > (highest.get(key) ?? 0)) highest.set(key, parsed.seq);

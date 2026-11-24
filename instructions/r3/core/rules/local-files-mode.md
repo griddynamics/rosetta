@@ -21,7 +21,7 @@ Command Aliases — root = `instructions/r3/core/`; paths below relative. Actual
 - `READ/APPLY SKILL FILE <subpath>` => `skills/<current-skill>/<subpath>` (a skill's own files only)
 - `USE/READ FLOW <file>.md`, `APPLY PHASE <file>.md` => `workflows/<file>.md`
 - `INVOKE SUBAGENT <name>` => spawn <name> per `agents/<name>.md`; always prepend `Must fully assume agent from "{path}"`; unavailable → generic task executor. `READ SUBAGENT <name>` => definition only
-- `READ/APPLY RULE <file>.md` => `rules/<file>.md`, `READ TEMPLATE <file>.md` => `templates/**/<file>.md`, `READ CONFIGURE <tool>.md` => `configure/<tool>.md`
+- `READ/APPLY RULE <file>.md` => `rules/<file>.md`, `READ TEMPLATE <file>.md` => `templates/**/<file>.md`
 - `LIST <path>` => immediate children of `<path>/` (no content)
 - `call "get_context_instructions"`, `execute prep steps` => run Rosetta Prep Steps above (already in context)
 - Additional sources: RULE `rules/*.md`, SKILL `skills/*/SKILL.md`, AGENT/SUBAGENT `agents/*.md`, WORKFLOW/COMMAND `workflows/*.md`

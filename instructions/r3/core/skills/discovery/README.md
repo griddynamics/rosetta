@@ -2,6 +2,8 @@
 
 Establishes what exists: cited findings on the current system, prior attempts with a verdict, what was left alone, what is unknown, and whether that is enough to act on.
 
+Evidence-backed picture of what exists today, including whether this was already attempted and done wrong.
+
 ## Why it exists
 Targets method failures a capable model still makes unprompted: the first matching file taken for the answer, inference reported as fact, areas dropped silently, a wrong prior solution assumed absent instead of hunted for, and no statement of whether findings suffice. It carries no procedure a competent model already knows.
 

@@ -248,6 +248,8 @@ def main() -> int:
         "locations": merge_value_counts(prev.get("locations", []), locations, today),
         "weekly_snapshots": weekly,
     }
+    # Keep hand-added top-level keys (e.g. critical_notes) and prior key order.
+    doc = {**{k: doc.get(k, v) for k, v in prev.items()}, **doc}
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tmp = out_path.with_suffix(out_path.suffix + ".tmp")

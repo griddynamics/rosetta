@@ -7,21 +7,21 @@ describe('resolveProvisionPluginPaths (plugin `path` resolves relative to the ca
   it('resolves a relative plugin path against baseDir', () => {
     const provision: ProvisionSpec = {
       mcps: [],
-      plugins: [{ name: 'rosetta', path: '../.runtime/rosetta/core-claude' }],
+      plugins: [{ name: 'rosetta', path: '../.runtime/rosetta/rosetta-claude' }],
     };
     const baseDir = '/repo/tests/e2e-tests/coding-rosetta';
     const resolved = resolveProvisionPluginPaths(provision, baseDir);
-    expect(resolved.plugins[0]!.path).toBe(resolve(baseDir, '../.runtime/rosetta/core-claude'));
-    expect(resolved.plugins[0]!.path).toBe('/repo/tests/e2e-tests/.runtime/rosetta/core-claude');
+    expect(resolved.plugins[0]!.path).toBe(resolve(baseDir, '../.runtime/rosetta/rosetta-claude'));
+    expect(resolved.plugins[0]!.path).toBe('/repo/tests/e2e-tests/.runtime/rosetta/rosetta-claude');
   });
 
   it('passes an absolute plugin path through unchanged', () => {
     const provision: ProvisionSpec = {
       mcps: [],
-      plugins: [{ name: 'rosetta', path: '/abs/plugin/core-claude' }],
+      plugins: [{ name: 'rosetta', path: '/abs/plugin/rosetta-claude' }],
     };
     const resolved = resolveProvisionPluginPaths(provision, '/repo/tests/e2e-tests/coding-rosetta');
-    expect(resolved.plugins[0]!.path).toBe('/abs/plugin/core-claude');
+    expect(resolved.plugins[0]!.path).toBe('/abs/plugin/rosetta-claude');
   });
 
   it('leaves a plugin without a path unchanged (no crash)', () => {

@@ -36,8 +36,10 @@ export function pluginAssembleCopilotBootstrap(
       return buildCopilotBootstrapEntry(bash, powershell);
     },
     (folderPairs) => {
-      const bash = applyFolderRewrites(COPILOT_PLUGIN_ROOT_BASH, folderPairs);
-      const powershell = applyFolderRewrites(COPILOT_PLUGIN_ROOT_POWERSHELL, folderPairs);
+      // Set-aware: the probe embeds this spec's own output folder name.
+      const dest = p.spec.destination;
+      const bash = applyFolderRewrites(COPILOT_PLUGIN_ROOT_BASH(dest), folderPairs);
+      const powershell = applyFolderRewrites(COPILOT_PLUGIN_ROOT_POWERSHELL(dest), folderPairs);
       return buildCopilotBootstrapEntry(bash, powershell);
     },
   );

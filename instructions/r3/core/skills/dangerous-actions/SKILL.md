@@ -1,6 +1,6 @@
 ---
 name: dangerous-actions
-description: "CRITICAL. MUST activate when action OR its consequence is potentially dangerous/irreversible/destructive, or HIGH RISK — even if it seems safe. If stage, pre-prod, prod envs. Activate even on a remote chance."
+description: "MUST activate when action OR its consequence is potentially dangerous/irreversible/destructive, or HIGH RISK, or environment is stage, pre-prod, prod, or blast radius."
 license: Apache-2.0
 user-invocable: false
 baseSchema: docs/schemas/skill.md

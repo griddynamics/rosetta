@@ -12,10 +12,10 @@ def _capture_wait(monkeypatch) -> dict:
 
     def fake_wait(self, documents, timeout=300, poll_interval=0.5):
         captured["timeout"] = timeout
-        return len(documents), 0
+        return {doc["id"]: "DONE" for doc in documents}
 
     monkeypatch.setattr(
-        "rosetta_cli.services.document_service.DocumentService.wait_for_parsing",
+        "rosetta_cli.services.document_service.DocumentService.wait_for_parsing_results",
         fake_wait,
     )
     return captured

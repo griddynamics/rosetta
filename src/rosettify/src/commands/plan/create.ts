@@ -1,9 +1,10 @@
 // Implements FR-PLAN-0010 (create subcommand) and FR-PLAN-0040 (compressed-tree output).
-// Uses FR-PLAN-0024 write cycle (first-create path: direct write, previous_version=null).
+// Writes under the FR-PLAN-0024 lock and never replaces an existing file.
 
 import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
+import { atomicCreate } from "../../shared/doc-io.js";
 import {
   type Plan,
   type Phase,
@@ -15,6 +16,7 @@ import {
   savePlan,
 } from "./core.js";
 import { buildPlanWriteResult, type PlanWriteResult } from "./output.js";
+import { ERR_PLAN_ALREADY_EXISTS } from "./errors.js";
 
 // FR-PLAN-0010 — create returns compressed-tree shape (FR-PLAN-0040)
 export const createInputSchema = {
@@ -84,12 +86,14 @@ export async function cmdCreate(
     if (sizeErr) return err(sizeErr);
 
     propagateStatuses(plan);
-    // FR-PLAN-0026 — savePlan writes pretty-formatted JSON (2-space indent)
-    savePlan(planFile, plan);
+    // FR-PLAN-0010 — an existing file is refused under the lock; nothing is written
+    const writeResult = await atomicCreate(planFile, plan, savePlan, ERR_PLAN_ALREADY_EXISTS);
+    if (!writeResult.ok) {
+      return { ok: false, result: null, error: writeResult.error, include_help: writeResult.include_help };
+    }
 
     logger.info({ planFile, name: plan.name }, "plan created");
-    // FR-PLAN-0040 — return PlanWriteResult shape (plan + phases); previous_version=null on first create (FR-PLAN-0010)
-    return ok(buildPlanWriteResult(plan, null));
+    return ok(buildPlanWriteResult(plan, writeResult.result!.backupPath));
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return err(`internal_error: ${msg}`);

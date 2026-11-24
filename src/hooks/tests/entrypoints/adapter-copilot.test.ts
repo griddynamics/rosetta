@@ -1,5 +1,5 @@
-// adapter-copilot.test.ts — Tests for the SHIPPED core-copilot bundle's slim adapter.
-// This is the entrypoint esbuild actually aliases `../adapter` to for the core-copilot bundle
+// adapter-copilot.test.ts — Tests for the SHIPPED copilot bundle's slim adapter.
+// This is the entrypoint esbuild actually aliases `../adapter` to for the copilot bundle
 // (scripts/build-bundles.mjs) — it is what runs in production, not src/adapter.ts's
 // multi-IDE dispatcher. Proves the routing-bug fix (hooks-verify.md): VS Code Copilot's
 // snake_case payloads no longer fall back to the claude-code adapter's tool-name vocabulary.

@@ -1,7 +1,7 @@
 ---
 name: demo
-model: claude-opus-5[thinking=true,context=300k,effort=high,fast=false]
+model: gpt-5.6-luna[context=272k,reasoning=high,fast=false]
 description: Do not use!
 ---
 
-Your task is to report in detail but concise about currently running model.
+Your task is to report in detail but concise about currently running model, knowledge cutoff, and effort level.

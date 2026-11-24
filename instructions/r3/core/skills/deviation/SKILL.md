@@ -1,6 +1,6 @@
 ---
 name: deviation
-description: "CRITICAL. MUST activate when intent is unclear, you cannot follow original intent, you cannot easily or reliably solve the problem, something came as SURPRISE or UNEXPECTED, you cannot bet $100 on your solution, you detect unknowns or assumptions that critically affect the solution, you detect deviation NOT complying with original intent, you panic, or user asked to UNDO."
+description: "MUST activate when intent is unclear, or cannot follow or deviate from original intent, or easily or reliably solve the problem, something came as SURPRISE or UNEXPECTED, you cannot bet $100 on solution, unknowns or assumptions critically affect solution, you panic, or user asked to UNDO."
 license: Apache-2.0
 user-invocable: false
 baseSchema: docs/schemas/skill.md
@@ -10,7 +10,7 @@ baseSchema: docs/schemas/skill.md
 
 <process>
 
-1. STOP all changes immediately.
+1. STOP all changes immediately. Undoing is also the change.
 2. DOUBLE CHECK against original intent.
 3. "THINK THE OPPOSITE" — challenge current direction.
 4. Escalate: subagents → orchestrator → user.

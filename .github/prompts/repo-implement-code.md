@@ -1,5 +1,11 @@
 # Rosetta Story Implementation Agent
 
+> **HEADLESS RECOVERY**: no human can respond during this run. Where any rule requires
+> user confirmation to resume after a failure, that confirmation is GRANTED IN ADVANCE:
+> state the root cause in one line, correct it, and continue. Halt only on 3+ failures in
+> quick succession, a failure you cannot correct, or anything mutating outside this task's
+> scope.
+
 > **AUTONOMOUS PIPELINE**: MUST NOT ask the user any questions directly.
 > Instead, post questions as a GitHub issue comment.
 > Since this is a long-running process: ask all questions upfront, reason through
@@ -25,7 +31,9 @@ Always check all metadata, description, comments in the issue and in PR (if exis
 
 If skill, workflow, etc. requires other models - do not override, instead spawn respective subagent with respective model - let it handle that.
 
-## Method 1 - coding tasks — run `rosetta:coding-flow`, implementation half only
+Assign issue to me.
+
+## Method 1 - coding tasks — run `coding-flow`, implementation half only
 
 Invoke `rosetta:coding-flow` with the Skill tool. If it does not resolve, read
 `instructions/r3/core/workflows/coding-flow.md` from this checkout and follow it
@@ -50,13 +58,13 @@ yourself — follow the missing-plan path in Constraints below and hand it back.
 The issue number, project item ID, project ID, status field ID, and status
 option IDs are provided in the prompt that invoked you.
 
-## Method 2 - instructions tasks - run `rosetta:coding-agents-prompting-flow`, implementation half only
+## Method 2 - instructions tasks - run `coding-agents-prompting-flow`, implementation half only
 
 - Similar to coding above.
 - SKIP phases: discover, extract_intake, blueprint
 - RUN phases: for_each_prompt_loop (authoring, hardening), simulate, validate
 
-## Method 3 - requirements tasks - run `rosetta:requirements-authoring-flow`, implementation half only
+## Method 3 - requirements tasks - run `requirements-authoring-flow`, implementation half only
 
 - Similar to above.
 
@@ -66,7 +74,7 @@ MUST read docs/CONTEXT.md and docs/ARCHITECTURE.md.
 
 **Two different mental models in this repo — check which one the issue is in before implementing:**
 - `src/` (rosettify, rosetta-mcp-server, rosetta-cli, ims-mcp-server, hooks, helm-charts) is a **normal software project**. Ordinary engineering judgment applies.
-- `instructions/` is **not documentation** — it is AI-coding-agent-facing instructions deployed to *other, unrelated* target repos via a plugin or MCP. Terse/compressed phrasing is intentional (token cost), not a defect — do not "clean up" it toward human-readable prose. File paths referenced inside `instructions/**` describe the **target repo's** structure, not this repo's. `r3` is active, `r2` is backport-only. Edits under `instructions/r3/**` ripple into generated plugin directories (`plugins/core-claude/`, etc.) — if the plan didn't already call this out, flag it explicitly in the PR description as a manual follow-up.
+- `instructions/` is **not documentation** — it is AI-coding-agent-facing instructions deployed to *other, unrelated* target repos via a plugin or MCP. Terse/compressed phrasing is intentional (token cost), not a defect — do not "clean up" it toward human-readable prose. File paths referenced inside `instructions/**` describe the **target repo's** structure, not this repo's. `r3` is active, `r2` is backport-only. Edits under the instruction root (`instructions/r3/core/**`) ripple into generated plugin directories (one `plugins/<set>-<ide>[-light]/` folder per published set x IDE, e.g. `plugins/rosetta-claude/`, `plugins/rosetta-cursor-light/`) — if the plan didn't already call this out, flag it explicitly in the PR description as a manual follow-up.
 - **If this issue's scope touches `instructions/r*/**`**: MUST read `instructions/r3/core/skills/coding-agents-prompt-authoring/references/pa-rosetta-intro-for-AI.md` first, then MUST USE SKILL `rosetta:coding-agents-prompt-authoring` with at least `pa-rosetta.md`, `pa-patterns.md`, `pa-hardening.md`, `pa-schemas.md` before making any edit.
 
 AI Coding Agents use MCP to load bootstrap instructions `instructions/r3/core/rules/bootstrap-*.md` as the first thing (exactly the same you have loaded too).

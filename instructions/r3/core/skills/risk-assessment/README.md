@@ -2,6 +2,8 @@
 
 Guardrail skill that scores environment risk (low/medium/high/critical) before execution and escalates when access to databases, cloud, or S3-like external systems is in play.
 
+Checks what the AI can actually reach, such as databases, cloud accounts, and production servers. Rates the risk and blocks outright when it is critical.
+
 ## Why it exists
 
 Without this skill a model treats every environment as equally safe and jumps straight into acting once it has an MCP connection to a database, cloud service, or S3-like system, without stopping to weigh what read/write scope and environment tier (dev vs. shared vs. production) actually mean for blast radius. The two `<pitfalls>` name the failure modes directly: "Defaulting to 'low' without checking accessible MCPs" and "Not re-assessing when new environments join mid-session." The `<process>`'s additive scoring (start from read-only/local = low, shared dev/stage/qa = medium, +1 for write access, +1 for access to higher environments including production) is what forces the model to actually enumerate access instead of assuming it's benign.
@@ -28,7 +30,7 @@ Single flat `SKILL.md`, no `assets/` or `references/` subfolders. Root `<risk_as
 - `description` is the sole engagement trigger (no `<when_to_use_skill>` section exists), so its keywords — "databases, cloud services, S3, or similar external systems" and "assessing environment risk level" — are load-bearing; dropping any of them narrows what auto-fires the skill. The description uses the canonical guardrail form (`"Rosetta CRITICAL MUST skill. MUST activate when <condition>"`), matching its tier-mates `sensitive-data` and `dangerous-actions` — keep the prefix.
 - `user-invocable: false` must stay as-is: the skill must remain model-invocable (fires proactively) and hidden from the `/` menu (background guardrail knowledge, not user-invoked).
 - Root tag `<risk_assessment>` (underscored, matching the skill name) follows the `docs/schemas/skill.md` convention (`<[the_skill_name]>`); no other file references this tag or its children (`<process>`, `<pitfalls>`) by name, so nothing external breaks if their prose changes, but renaming them would desync the file from the schema convention.
-- The output contract `AI Risk Assessment: {LEVEL}` (line 20) is the skill's declared human-facing output format; no file in `instructions/r3/core` greps for or parses this string, so it is a convention to preserve for consistency, not a hard cross-file dependency.
+- The output contract `AI Risk Assessment: {LEVEL}` (line 20) is the skill's declared human-facing output format; no file in the plugin root (`.`) greps for or parses this string, so it is a convention to preserve for consistency, not a hard cross-file dependency.
 - `baseSchema: docs/schemas/skill.md` must stay pointed at the schema file.
 
 ## Editing guide

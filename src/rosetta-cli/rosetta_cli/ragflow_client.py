@@ -17,7 +17,7 @@ import requests
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, TypedDict, cast
 
 from ragflow_sdk import RAGFlow
 from ragflow_sdk.modules.dataset import DataSet
@@ -63,6 +63,14 @@ class DocumentMetadata:
     frontmatter: JsonDict | None = None
     line_count: int | None = None
     doc_title: str = ""  # Bare filename for server-side filtering
+
+
+class ParseBatchResult(TypedDict):
+    """Dataset outcomes and error messages from a batch parse trigger."""
+
+    success: list[str]
+    failed: list[str]
+    errors: dict[str, str]
 
 
 class RAGFlowClientError(Exception):
@@ -775,7 +783,7 @@ class RAGFlowClient:
         documents: list[JsonDict],
         silent: bool = False,
         dry_run: bool = False
-    ) -> dict[str, list[str]]:
+    ) -> ParseBatchResult:
         """
         Trigger parsing for multiple documents across datasets.
         
@@ -784,10 +792,11 @@ class RAGFlowClient:
         
         Args:
             documents: List of {"id": doc_id, "name": name, "dataset_id": dataset_id}
-            silent: If True, don't print progress messages
+            silent: If True, don't print progress messages (errors are still printed)
         
         Returns:
-            Dict with "success" and "failed" lists of dataset_ids
+            Dict with "success" and "failed" lists of dataset_ids, and
+            "errors" mapping rejected dataset_ids to their trigger error messages
         
         Examples:
             >>> documents = [
@@ -812,6 +821,7 @@ class RAGFlowClient:
         # Track success/failures
         success_datasets: list[str] = []
         failed_datasets: list[str] = []
+        errors: dict[str, str] = {}
         
         # Trigger parsing per dataset
         for dataset_id, docs in by_dataset.items():
@@ -825,11 +835,10 @@ class RAGFlowClient:
                 success_datasets.append(dataset_id)
             except Exception as e:
                 failed_datasets.append(dataset_id)
-                if not silent:
-                    print(f"  ✗ Parse trigger failed: {e}")
-                    print(f"  ℹ️  Documents uploaded but not parsed. Check RAGFlow UI.")
+                errors[dataset_id] = str(e)
+                print(f"  ✗ Parse trigger failed for {len(doc_ids)} document(s) in dataset {dataset_id}: {e}")
         
-        return {"success": success_datasets, "failed": failed_datasets}
+        return {"success": success_datasets, "failed": failed_datasets, "errors": errors}
     
     def get_parse_status(self, dataset_id: str, document_id: str) -> JsonDict:
         """

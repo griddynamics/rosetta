@@ -9,8 +9,14 @@
 > `src/hooks/tests/adapter.antigravity.test.ts` and `src/hooks/tests/e2e/antigravity.e2e.test.ts`.
 > `loose-files` specifically is NOT bundled for Antigravity — it has no non-blocking delivery
 > channel, so advise-only hooks can never reach the model (see `excludeHooks` for
-> `core-antigravity` in `src/hooks/scripts/build-bundles.mjs`). So there is nothing to test
+> `antigravity` in `src/hooks/scripts/build-bundles.mjs`). So there is nothing to test
 > for THIS hook on Antigravity.
+>
+> **Windsurf (Devin Desktop):** Rosetta ships no Windsurf hooks — windsurf is not a generator target
+> and no Windsurf bundle is built (`PLUGINS` in `src/hooks/scripts/build-bundles.mjs`). The Windsurf
+> column below records the expected adapter behavior only (`loose-files` never fires there). The
+> adapter is covered by `src/hooks/tests/adapter.windsurf.test.ts` and
+> `src/hooks/tests/e2e/windsurf.e2e.test.ts`; for a manual pipe see "Test with Windsurf fixture shape".
 >
 ---
 
@@ -230,7 +236,7 @@ Windsurf's `post_write_code` payload carries `edits[]`, so the adapter normalize
 `toolKinds: ['write']`, so it never fires on Windsurf and produces no output.
 
 ### Antigravity — hook not bundled
-`loose-files` is excluded from `core-antigravity` (`excludeHooks` in
+`loose-files` is excluded from the `antigravity` bundle (`excludeHooks` in
 `src/hooks/scripts/build-bundles.mjs`) because Antigravity has no non-blocking delivery channel.
 
 ---
@@ -251,7 +257,7 @@ Windsurf's `post_write_code` payload carries `edits[]`, so the adapter normalize
 
 > *Windsurf never nudges for this hook. `post_write_code` carries `edits[]`, so the adapter
 > normalizes it to tool kind `multi-edit`, and `loose-files` declares `toolKinds: ['write']`.
-> Verified: piping `windsurf-post-tool-use-write.json` through the bundle produces no output.
+> Verified: piping `windsurf-post-tool-use-write.json` through an ad hoc Windsurf bundle produces no output.
 >
 > †`Edit` does not nudge on any IDE. `loose-files` matches tool kind `write` only, and Claude Code
 > maps `Edit` to kind `edit` (`src/hooks/src/runtime/ide-rows/claude-code.ts`). Verified: piping
@@ -370,7 +376,7 @@ Windsurf's `post_write_code` payload carries `edits[]`, so the adapter normalize
 **Action:** Manually pipe fixture to test this (AI won't normally write to node_modules):
 ```bash
 echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","tool_input":{"file_path":"/tmp/node_modules/foo/bar.py","content":"pass"}}' \
-  | node src/hooks/dist/bundles/core-claude/loose-files.js
+  | node src/hooks/dist/bundles/claude/loose-files.js
 ```
 
 **Expected:** No output (exit 0, empty stdout).
@@ -381,7 +387,7 @@ echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","to
 
 ```bash
 echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","tool_input":{"file_path":"/tmp/scripts/setup.py","content":"pass"}}' \
-  | node src/hooks/dist/bundles/core-claude/loose-files.js
+  | node src/hooks/dist/bundles/claude/loose-files.js
 ```
 
 **Expected:** No output (exit 0, empty stdout).
@@ -403,7 +409,7 @@ npm --prefix src/hooks run build
 ### Trigger nudge (loose Python)
 ```bash
 echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","tool_input":{"file_path":"/tmp/orphan.py","content":"pass"}}' \
-  | node src/hooks/dist/bundles/core-claude/loose-files.js
+  | node src/hooks/dist/bundles/claude/loose-files.js
 ```
 Expected output:
 ```json
@@ -414,14 +420,14 @@ Expected output:
 ```bash
 mkdir -p /tmp/mypkg && touch /tmp/mypkg/__init__.py
 echo '{"hook_event_name":"PostToolUse","tool_name":"Write","session_id":"s1","tool_input":{"file_path":"/tmp/mypkg/utils.py","content":"pass"}}' \
-  | node src/hooks/dist/bundles/core-claude/loose-files.js
+  | node src/hooks/dist/bundles/claude/loose-files.js
 ```
 Expected: no output, exit 0.
 
 ### Test with Cursor fixture shape
 ```bash
 cat src/hooks/tests/fixtures/cursor-post-tool-use-write.json \
-  | node src/hooks/dist/bundles/core-cursor/loose-files.js
+  | node src/hooks/dist/bundles/cursor/loose-files.js
 ```
 Expected: nudge for `app.js` at `/proj/src/app.js` (no `package.json` at `/proj/src/`), in Cursor's
 output format:
@@ -430,15 +436,19 @@ output format:
 ```
 
 ### Test with Windsurf fixture shape
+No Windsurf bundle is built: windsurf is not a generator target and has no entry in `PLUGINS`
+(`src/hooks/scripts/build-bundles.mjs`). To run this pipe, add a temporary local entry
+`{ plugin: 'windsurf', adapter: 'adapter-windsurf' }` to `PLUGINS`, run
+`npm --prefix src/hooks run build`, and do not commit the entry.
 ```bash
 cat src/hooks/tests/fixtures/windsurf-post-tool-use-write.json \
-  | node src/hooks/dist/bundles/core-windsurf/loose-files.js
+  | node src/hooks/dist/bundles/windsurf/loose-files.js
 ```
 Expected: no output, exit 0. Windsurf's `post_write_code` carries an `edits[]` array, so the adapter
 normalizes it to `MultiEdit` (tool kind `multi-edit`), while `loose-files` only fires on tool kind
 `write` — see `TOOL_KINDS` in `src/hooks/src/runtime/ide-rows/windsurf.ts` and `on.toolKinds` in
-`src/hooks/src/hooks/loose-files.ts`. The Windsurf expectations elsewhere in this document predate
-that mapping and are stale.
+`src/hooks/src/hooks/loose-files.ts`. Automated coverage: `src/hooks/tests/adapter.windsurf.test.ts`
+and `src/hooks/tests/e2e/windsurf.e2e.test.ts`.
 
 ---
 

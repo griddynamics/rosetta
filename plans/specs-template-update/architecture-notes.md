@@ -1,6 +1,6 @@
 # Architecture Notes — Specs Template Update
 
-Design for the 17 in-scope requirements of `docs/requirements/rosettify/SPECS.md` against
+Design for the 17 in-scope requirements of `docs/REQUIREMENTS/rosettify/SPECS.md` against
 `src/rosettify/src/commands/specs/`. Builds on `discovery-notes.md` (same folder); every claim below
 is either verified in this pass (marked **V**) or carried from discovery on trust (marked **D**).
 

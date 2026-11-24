@@ -1,5 +1,9 @@
 # Patterns Change Log
 
+## 2026-11-05 — Customization roots and single `core` folder
+
+Rewrote `domain-set-architecture.md` (now titled Instruction Folder Architecture) for one `core` folder, plugin sets as a catalog capability, and customization roots. Resynced instruction paths in `document-bundling.md`, `tag-based-retrieval.md`, `vfs-resource-paths.md`, `pre-commit-plugin-sync.md`, and `shell-proxy-pattern.md`.
+
 ## 2026-08-24 — Policy-based authorization pattern removed
 
 Removed `policy-based-authorization.md` after the dead `team` authorization path and project-dataset policy surface were removed from the MCP implementation. The remaining read-policy behavior is limited to the live `all` and `none` paths; this change log entry records the pattern deletion rather than replacing it with a new pattern.
@@ -20,7 +24,7 @@ Mode: upgrade. All patterns created from scratch (no prior PATTERNS/ folder exis
 | `tag-based-retrieval.md` | Tag-Based Retrieval | `src/rosetta-cli/rosetta_cli/services/document_data.py`, `src/rosetta-mcp-server/services/query_builder.py` |
 | `document-bundling.md` | Document Bundling | `src/rosetta-mcp-server/services/bundler.py` |
 | `vfs-resource-paths.md` | VFS Resource Paths | `src/rosetta-cli/rosetta_cli/services/document_data.py`, `src/rosetta-mcp-server/tools/resources.py` |
-| `layered-instruction-architecture.md` | Layered Instruction Architecture | `instructions/r2/core/`, `instructions/r2/grid/` |
+| `domain-set-architecture.md` (was `layered-instruction-architecture.md`) | Domain Set Architecture | `instructions/r2/core/`, `instructions/r2/grid/` |
 | `md5-change-detection.md` | MD5 Change Detection | `src/rosetta-cli/rosetta_cli/services/document_data.py` |
 | `dual-backend-store.md` | Dual-Backend Store | `src/rosetta-mcp-server/rosetta_mcp/server.py`, `src/rosetta-mcp-server/rosetta_mcp/auth/oauth.py` |
 | `ttl-cache-pattern.md` | TTL Cache | `src/rosetta-mcp-server/clients/doc_cache.py`, `src/rosetta-mcp-server/server.py` |

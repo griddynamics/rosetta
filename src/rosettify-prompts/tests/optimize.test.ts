@@ -198,9 +198,11 @@ describe('optimize prompts', () => {
     expect(STEP_REFERENCE_SECTIONS.compression.hardening).toContain('Never drop signal to hit the word cap');
     expect(STEP_REFERENCE_SECTIONS.compression.patterns).toContain('<transform-passes>');
     expect(OPTIMIZE_INVARIANT).toContain('COMMANDS + their args');
-    // compression = anti-slop (4 original + 12 ported) + compactness (7 original + 7 ported) merged,
-    // with zero duplicate lines between the two members (verified) so mergeUnique drops nothing: 30 lines.
-    expect(STEP_REFERENCE_SECTIONS.compression.hardening?.split('\n').filter(Boolean).length).toBe(30);
+    expect(STEP_REFERENCE_SECTIONS.compression.hardening).toContain('keep only thinking points (not even decisions)');
+    expect(STEP_REFERENCE_SECTIONS.compression.hardening).toContain('Allow running AI to make decisions.');
+    // compression = anti-slop (4 original + 12 ported) + compactness (7 original + 7 ported + 1 key-points directive)
+    // merged, with zero duplicate lines between the two members (verified) so mergeUnique drops nothing: 31 lines.
+    expect(STEP_REFERENCE_SECTIONS.compression.hardening?.split('\n').filter(Boolean).length).toBe(31);
   });
 
   it('uses target/supporting/additional semantics and writes every target preserving relative paths', async () => {
@@ -278,6 +280,8 @@ describe('optimize prompts', () => {
 
     const finalPrompt = textOf(calls[9].messages.at(-1)?.content);
     expect(finalPrompt).toContain('Final global preservation audit');
+    expect(finalPrompt).toContain('Restore only truly missing value');
+    expect(finalPrompt).toContain('Do not re-add decisions');
     // Final value-lost is instructions only: no re-rendered original/draft file blocks.
     expect(finalPrompt).not.toContain('ORIGINAL_TARGET_FILE');
     expect(finalPrompt).not.toContain('Skill prompt with mental hook');
@@ -716,6 +720,29 @@ describe('optimize prompts', () => {
     expect(report).toContain('## Questions & Answers');
     expect(report).toContain('answer one');
     expect(report).toContain('(skipped)');
+  });
+
+  it('escapes backslashes before pipes in the Questions & Answers report cells', async () => {
+    const calls: OptimizeCall[] = [];
+    const log: AskInvocation[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    const result = await runPromptOptimization(
+      fakeClient(calls, ['SKILL.md'], { 1: [{ id: 'q1', question: 'Q a\\|b?' }] }),
+      {
+        targetPaths: [target],
+        outDir,
+        model: 'claude-test',
+        maxOutputTokens: 2048,
+        enableQuestions: true,
+        askQuestions: fakeAsker({ q1: 'C:\\x|y' }, log),
+      },
+    );
+
+    const report = await readFile(result.files!.reportPath, 'utf-8');
+    // Backslash is doubled first, then the pipe is escaped, so a user backslash cannot cancel the pipe escape.
+    expect(report).toContain('Q a\\\\\\|b?');
+    expect(report).toContain('C:\\\\x\\|y');
   });
 
   it('never re-asks a question by id or by identical text across steps', async () => {

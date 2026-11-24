@@ -22,8 +22,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
-from .services.document_service import DocumentService
-from .services.document_data import DocumentData
+from .services.document_service import DocumentService, ParseOutcome
+from .services.document_data import DocumentData, InvalidTextEncodingError
 from .ragflow_client import DocumentMetadata, RAGFlowClient, RAGFlowClientError
 from .rosetta_config import DEFAULT_PARSE_TIMEOUT
 from .typing_utils import DocumentLike, JsonDict
@@ -171,6 +171,7 @@ class ContentPublisher:
         print("Reading files...")
         all_caches = []   # ALL successfully read caches (for cleanup/orphan detection)
         results = []
+        read_failures: list[Path] = []
 
         for file in files:
             try:
@@ -178,17 +179,32 @@ class ContentPublisher:
                 cache = DocumentData.from_file(
                     file,
                     self.workspace_root,
-                    self.file_extensions,
                     publish_root=folder,
                 )
                 all_caches.append(cache)
 
             except Exception as e:
+                read_failures.append(file)
                 print(f"✗ Error reading {file.name}: {e}")
-                continue
+                results.append(PublishResult(
+                    success=False,
+                    document_id="",
+                    file_path=str(file),
+                    tags=[],
+                    error=str(e),
+                ))
 
-        # Duplicate cleanup: remove stale server copies of the same file (before publish)
-        self._cleanup_duplicates(all_caches, dry_run)
+        # Destructive cleanup requires a complete local inventory. If even one
+        # file could not be read, preserve remote documents until a full run can
+        # determine which paths are truly stale.
+        if read_failures:
+            print(
+                "\nDuplicate cleanup skipped "
+                f"({len(read_failures)} local file(s) could not be read)"
+            )
+        else:
+            # Remove stale server copies of the same file before publishing.
+            self._cleanup_duplicates(all_caches, dry_run)
 
         # Check for changes after cleanup so skip decisions reflect current server state.
         doc_caches = []   # Only changed caches (for publishing)
@@ -260,8 +276,11 @@ class ContentPublisher:
         if parse_documents and wait_for_parsing and not dry_run:
             if docs_to_parse:
                 print(f"\nStarting parsing for {len(docs_to_parse)} document(s)...")
-                self._parse_documents(docs_to_parse, wait_for_completion=False, silent=True)
-                self._wait_for_all_parsing_with_progress(docs_to_parse)
+                parse_errors = self._parse_documents(docs_to_parse, silent=True)
+                for result in results:
+                    if str(result.document_id) in parse_errors:
+                        result.success = False
+                        result.error = f"Uploaded, but not parsed: {parse_errors[str(result.document_id)]}"
         
         # Print summary
         self._print_summary(results, dry_run)
@@ -271,15 +290,23 @@ class ContentPublisher:
         # docs — running orphan detection would delete everything else.
         is_full_publish = folder.name == "instructions" or folder.parent == self.workspace_root
         if is_full_publish:
-            managed_domains_by_dataset: dict[str, set[str]] = {}
-            for cache in all_caches:
-                dataset_name = self._resolve_dataset_name({"release": cache.release})
-                managed_domains_by_dataset.setdefault(dataset_name, set()).add(cache.domain)
-            self._cleanup_orphans(
-                all_caches,
-                dry_run,
-                managed_domains_by_dataset=managed_domains_by_dataset,
-            )
+            if read_failures:
+                # The local inventory is incomplete, so a failed read must not
+                # make an existing server document look like an orphan.
+                print(
+                    "\nOrphan detection skipped "
+                    f"({len(read_failures)} local file(s) could not be read)"
+                )
+            else:
+                managed_domains_by_dataset: dict[str, set[str]] = {}
+                for cache in all_caches:
+                    dataset_name = self._resolve_dataset_name({"release": cache.release})
+                    managed_domains_by_dataset.setdefault(dataset_name, set()).add(cache.domain)
+                self._cleanup_orphans(
+                    all_caches,
+                    dry_run,
+                    managed_domains_by_dataset=managed_domains_by_dataset,
+                )
         else:
             print("\nOrphan detection skipped (subfolder publish)")
 
@@ -347,12 +374,20 @@ class ContentPublisher:
                 )
             
             # Create cache on-the-fly (still better than reading multiple times)
-            cache = DocumentData.from_file(
-                file,
-                self.workspace_root,
-                self.file_extensions,
-                publish_root=file.parent,
-            )
+            try:
+                cache = DocumentData.from_file(
+                    file,
+                    self.workspace_root,
+                    publish_root=file.parent,
+                )
+            except InvalidTextEncodingError as e:
+                return PublishResult(
+                    success=False,
+                    document_id="",
+                    file_path=str(file),
+                    tags=[],
+                    error=str(e),
+                )
             
             ims_doc_id = cache.ims_doc_id
             content = cache.content
@@ -411,7 +446,8 @@ class ContentPublisher:
             
             # Upload to RAGFlow using pre-read content from cache (no re-reading!)
             # In dry_run, upload_document gates each SDK write at the call site,
-            # prints the would-be payloads, and returns None (treated as skipped).
+            # prints the would-be payloads, and returns a placeholder document
+            # (or None when the content is unchanged).
             result = self.client.upload_document(
                 file_path=file,
                 metadata=doc_metadata,
@@ -451,10 +487,13 @@ class ContentPublisher:
                         "name": file.name,
                         "dataset_id": dataset_id
                     }]
-                    self._parse_documents(
+                    parse_errors = self._parse_documents(
                         documents,
                         wait_for_completion=wait_for_parsing
                     )
+                    if str(doc.id) in parse_errors:
+                        publish_result.success = False
+                        publish_result.error = f"Uploaded, but not parsed: {parse_errors[str(doc.id)]}"
                 else:
                     print(f"    ⊘ Skipping parse (unsupported extension): {file.name}")
             
@@ -482,41 +521,44 @@ class ContentPublisher:
         documents: list[JsonDict],
         wait_for_completion: bool = True,
         silent: bool = False
-    ) -> None:
+    ) -> dict[str, str]:
         """
         Trigger parsing for one or more documents.
         
         Args:
             documents: List of {"id": doc_id, "name": name, "dataset_id": dataset_id}
             wait_for_completion: Wait for parsing to complete
-            silent: If True, don't print progress messages (for streaming mode)
+            silent: If True, don't print trigger progress messages
+
+        Returns:
+            Unsuccessful document IDs mapped to trigger, failure or timeout reasons.
         """
-        # Delegate to client's batch parsing method
         result = self.client.parse_documents_batch(documents, silent=silent)
-        
-        # Wait for completion if requested (only for successful datasets)
-        if wait_for_completion and not silent and result["success"]:
-            # Filter to only successfully triggered documents
-            docs_to_wait = [
-                doc for doc in documents 
-                if doc["dataset_id"] in result["success"]
-            ]
-            
-            if docs_to_wait:
-                # Use DocumentService for consistent waiting with progress bar
-                doc_service = DocumentService(self.client)
-                doc_service.wait_for_parsing(docs_to_wait, self.parse_timeout)
+        parse_errors = {
+            str(doc["id"]): result["errors"][str(doc["dataset_id"])]
+            for doc in documents if str(doc["dataset_id"]) in result["failed"]
+        }
+        accepted = [doc for doc in documents if str(doc["dataset_id"]) in result["success"]]
+        if wait_for_completion and accepted:
+            outcomes = self._wait_for_all_parsing_with_progress(accepted)
+            for doc_id, status in outcomes.items():
+                if status != "DONE":
+                    parse_errors[doc_id] = (
+                        "parsing failed" if status == "FAIL"
+                        else f"no final parse status within the {self.parse_timeout}s timeout"
+                    )
+        return parse_errors
     
     def _wait_for_all_parsing_with_progress(
         self,
         documents: list[JsonDict],
         timeout: int | None = None,
         poll_interval: float = 0.5
-    ) -> None:
+    ) -> dict[str, ParseOutcome]:
         """
         Wait for all documents to finish parsing with clean progress display grouped by folder.
         
-        Delegates to DocumentService.wait_for_parsing() for reusable implementation.
+        Returns per-document outcomes from DocumentService.wait_for_parsing_results().
         
         Args:
             documents: List of {"id": doc_id, "name": name, "dataset_id": dataset_id, "folder": folder}
@@ -526,7 +568,7 @@ class ContentPublisher:
         doc_service = DocumentService(self.client)
         if timeout is None:
             timeout = self.parse_timeout
-        doc_service.wait_for_parsing(documents, timeout, poll_interval)
+        return doc_service.wait_for_parsing_results(documents, timeout, poll_interval)
     
     def _has_content_changed_cached(self, cache: DocumentData) -> bool:
         """

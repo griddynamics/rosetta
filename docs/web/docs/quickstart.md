@@ -15,7 +15,7 @@ permalink: /docs/quickstart/
 > You must receive prior approval from your manager and company to use it.
 
 > [!WARNING]
-> Use **Sonnet 5 medium**, **GPT-5.6-terra-medium**, **gemini-3.7-flash-high** or newer models. Please use **medium** reasoning effort or it will take 30 minutes in useless reasoning. Avoid Auto model selection. 
+> Use **Sonnet 5.5 medium**, **GPT-6-luna-high**, **gemini-3.8-flash-high** or newer models. Please use the reasoning effort named above (do not go higher) or it will take 30 minutes in useless reasoning. Avoid Auto model selection. 
 
 > [!NOTE]
 > Rosetta is designed to never use or see data or IP.
@@ -105,6 +105,22 @@ To properly set up an entire workspace, refer to [CONFIGURATION.md](/rosetta/doc
 
 ```
 /requirements-authoring-flow update existing requirements for <component name> so that it <does new behavior/supports new capability>. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected.
+```
+
+### Automated QA
+
+**WHAT**: Helps user go from a test case in Test Management System to a working test in the automation framework. Give it a test case, it gathers what it needs from your code and ticket system (for example, Jira) and AQA implements the automated test, asks questions when it sees contradictions, and helps fix the test until it passes.
+
+```
+/ui-aqa-flow Automate the test case for the checkout flow, ...
+```
+
+```
+/api-aqa-flow Implement automation for the API test cases in suite ..., ...
+```
+
+```
+/ui-aqa-flow Fix the failing automated test for ..., ...
 ```
 
 ### Modernization

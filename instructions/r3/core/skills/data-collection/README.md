@@ -1,6 +1,8 @@
 # data-collection
 Read-only source-of-record collector that pulls issue/wiki/TMS artifacts into a provided raw-context contract without inventing fields, paths, or meaning.
 
+Read-only pull from issue tracker, test management, wiki, and the codebase. A ticket gets recorded, not acted on. Gaps and permission walls recorded, never guessed.
+
 ## Why it exists
 Without this skill, an agent doing intake work will quietly guess a vendor, improvise an output shape, treat a permission wall as "no data," paraphrase missing source text from memory, or pull sensitive comments straight into versioned artifacts. `data-collection` fixes that by making collection literal, contract-bound, provenance-aware, gap-preserving, and redaction-gated.
 

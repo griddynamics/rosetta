@@ -2,6 +2,8 @@
 
 Generates and maintains `CODEMAP.md`, a top-level structural map of a workspace (folders, entry points, file counts, short descriptions), and routes to a code-graph backend (LSP/graphify/gitnexus) when one is already requested.
 
+Gives the AI a structural map of the repo to navigate by. Uses your LSP or code-graph tooling when available.
+
 ## Why it exists
 
 Without this skill an agent dropped into an unfamiliar workspace either greps around ad hoc (missing whole modules, wasting turns) or tries to build its own mental map from a partial file listing that goes stale as soon as the codebase changes. It also has no reason to prefer an already-installed graph tool over guessing at file structure, and no shared, greppable artifact that other skills (like large-workspace-handling) can scope work against. codemap fixes this by producing one canonical, regenerable `CODEMAP.md` and by gating tool choice on an explicit precedence order instead of trial-and-error.
@@ -41,7 +43,7 @@ No `references/` subfolder exists.
 - `user-invocable: false` — deliberate: this is a routed-to helper, not a standalone entry point; flipping it changes who can trigger it and duplicates entry paths already owned by the callers listed above.
 - `description: "To generate, populate, and use a project codemap for structural discovery."` — short, keyword-dense, matches the "To <verb>..." convention used elsewhere; it is what a human/agent reads when scanning the skill list, so keep it accurate.
 - Precedence order "LSPs > graphify > gitnexus > shell scripts" and the **REQUESTED**-gating — callers and the setup instructions for graphify/gitnexus assume this exact ordering.
-- `MUST USE SKILL \`graphify\`` is CORRECT and resolves — graphify is a third-party AI-coding-assistant skill the USER installs (`graphify install` writes the skill manifest and registers `/graphify query|path|explain`): https://github.com/safishamsi/graphify. It has no folder under `instructions/r3/core/skills/` and no entry in `docs/definitions/skills.md` **by design**; that absence is not a broken reference. Do not rewrite it as a bare CLI call.
+- `MUST USE SKILL \`graphify\`` is CORRECT and resolves — graphify is a third-party AI-coding-assistant skill the USER installs (`graphify install` writes the skill manifest and registers `/graphify query|path|explain`): https://github.com/safishamsi/graphify. It has no folder under `skills/` and no entry in `docs/definitions/skills.md` **by design**; that absence is not a broken reference. Do not rewrite it as a bare CLI call.
 - Cross-skill references use intent form (`MUST USE SKILL \`graphify\``) never file paths; asset routing uses `MUST APPLY SKILL FILE \`assets/gitnexus-*.md\`` — per-file, never a bare skill name, since these are files inside this skill's own folder, not another skill.
 - The five asset filenames (`codemap.sh.txt`, `codemap.ps1.txt`, `gitnexus-cli.md`, `gitnexus-examples.md`, `gitnexus-use.md`) are referenced by exact path from SKILL.md — renaming any breaks its `READ`/`APPLY SKILL FILE` lines.
 - `CODEMAP.md` output contract: markdown headers of the form `path (N files) — description`, immediate-children file list, 3-4 levels deep, written to the workspace root. `large-workspace-handling` literally greps `#` headers of this file to draw scope boundaries before dispatching subagents — changing the heading shape breaks that grep, independent of any `USE SKILL` link (the coupling is to the generated file, not to this skill).

@@ -20,6 +20,12 @@ Enforce that target prompt:
 - Clear separation of concerns, actors, events, models, actions
 - Sequential activities use numbered list
 - Rephrase, restructure, compress for much more compact prompt without loosing value, including but not limited to removing useless words, duplication, abbreviation, using unicode characters and icons, phrases instead of full sentences (except user facing), never soften prompts, replace obvious facts AI already knows into one-two word nudges (topics, terms, abbreviations, etc), intrinsics (X is Y, A != B, C > D, F not G, etc), and steppers (A->B->C, etc.), remove meta-explanation (X is needed because Y, A no longer does B, etc), etc.
+- Contains only key points, terse phrases
+- Keeps only thinking points, not even decisions
+- Direction text is 1-3 words per step
+- Keeps every step and mental hooks
+- Leaves decisions to running AI
+- Adds only what is truly missing
 
 </hardening>
 

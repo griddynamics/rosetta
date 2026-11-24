@@ -227,7 +227,7 @@ Every single-value field is an attribute; only prose and structured children are
 Attributes are ordered by volatility — status, approved_by, changed always change together and share one line, so an approval is a one-line diff.
 
 ```xml
-<req id="FR-[AREA]-####" type="FR|NFR|INT|DATA" level="System|Subsystem|Component"
+<req id="[FR|NFR|INT|DATA]-[AREA]-####" type="FR|NFR|INT|DATA" level="System|Subsystem|Component"
      subsystem="[name; required when level is Subsystem or Component; otherwise fill when known]"
      component="[name; required when level is Component; otherwise fill when known]"
      ticketId="[tracker key]" classification="business|technical"
@@ -371,6 +371,14 @@ The statement is still one pattern, one trigger, one response; criteria decompos
 - Confirm scope and goals
 - List assumptions explicitly
 - Ask targeted clarifying questions
+- Provide REAL examples when asking
+- Ask in user manageable chunks of 3-5 questions
+- Ask rephrased questions if not understood by you or user
+- Ask high impact or key questions first
+- QUALITY, PRECISION, COMPLETENESS is the top priority, without nitpicking
+- Tell back in your own words
+- Pay attention not only to text but also HOW those are given
+- If you misunderstood answer or you were way off with your understanding GET into FOCUSED mode on that topic only: one question at a time, pay attention to wording, try to get big picture, ask big picture questions
 - Propose MECE requirement outline
 - Draft requirements as `<req>`
 - Place each req correctly
@@ -485,6 +493,8 @@ The statement is still one pattern, one trigger, one response; criteria decompos
 - Add scope without explicit approval
 - Skip boundary and failure scenarios
 - Treat requirement groupings as mere organization when they are requirements themselves
+- Not entering focused mode on one topic when not getting it right
+- Not exiting focused mode when topic is resolved
 
 </pitfalls>
 

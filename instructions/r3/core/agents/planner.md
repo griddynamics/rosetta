@@ -2,7 +2,7 @@
 name: planner
 description: "Plan execution: turn approved intent/specs into a sequenced plan scaled to size. Full subagent."
 mode: subagent
-model: claude-opus-5-high, gpt-5.6-sol-high, gemini-3.7-flash-high, grok-4.6-high
+model: claude-opus-5-5-high, gpt-6.1-sol-high, gemini-4-argon-high, gemini-3.8-flash-high, grok-4.7-high
 effort: high
 color: orange
 readonly: false

@@ -32,7 +32,7 @@ Without a final verification pass, incomplete or inconsistent documentation ship
 3. Collect unresolved gaps from Phase 8
 </read_state>
 
-<execute_verification step="9.2" subagent="built-in" role="Workspace initialization auditor" subagent_recommended_model="claude-sonnet-5,gpt-5.6-terra-medium">
+<execute_verification step="9.2" subagent="built-in" role="Workspace initialization auditor" subagent_recommended_model="claude-sonnet-5-5,gpt-6-luna-high">
 
 Act as a senior workspace initialization auditor. This is the final phase of workspace initialization. Consolidates all init-phase outputs into a single completeness audit, runs catch-up for gaps, and revalidates assumptions.
 
@@ -66,7 +66,7 @@ INIT INTEGRITY:
 13. Shell files: frontmatter + single ACQUIRE, zero inline logic
 14. load-project-context shell and bootstrap rule installed
 15. Shells match schema — no structural deviations, no absolute paths
-16. docs/PATTERNS/ with INDEX.md; each pattern in 2+ locations; INDEX.md is consistent
+16. Only if phase 5 ran: docs/PATTERNS/ with INDEX.md; each pattern in 2+ locations; INDEX.md is consistent
 
 CROSS-FILE CONSISTENCY:
 

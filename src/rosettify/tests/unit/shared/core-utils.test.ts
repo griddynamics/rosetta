@@ -338,6 +338,44 @@ describe("validateDependencies", () => {
     expect(validateDependencies(plan)).toBe("unknown_dependency");
   });
 
+  it("returns unknown_dependency for a step depending on a phase", () => {
+    const plan = fullPlan();
+    plan.phases[1]!.steps[0]!.depends_on = ["p1"];
+    expect(validateDependencies(plan)).toBe("unknown_dependency");
+  });
+
+  it("returns unknown_dependency for a phase depending on a step", () => {
+    const plan = fullPlan();
+    plan.phases[1]!.depends_on = ["s1"];
+    expect(validateDependencies(plan)).toBe("unknown_dependency");
+  });
+
+  it("returns unknown_dependency for a phase depending on a missing id", () => {
+    const plan = fullPlan();
+    plan.phases[1]!.depends_on = ["nonexistent"];
+    expect(validateDependencies(plan)).toBe("unknown_dependency");
+  });
+
+  it("accepts a cross-phase step dependency", () => {
+    const plan = fullPlan();
+    plan.phases[1]!.depends_on = [];
+    plan.phases[1]!.steps[0]!.depends_on = ["s2"];
+    expect(validateDependencies(plan)).toBeNull();
+  });
+
+  it("accepts a phase dependency", () => {
+    const plan = fullPlan();
+    plan.phases[1]!.depends_on = ["p1"];
+    plan.phases[1]!.steps[0]!.depends_on = [];
+    expect(validateDependencies(plan)).toBeNull();
+  });
+
+  it("returns dependency_cycle for a step cycle across phases", () => {
+    const plan = fullPlan();
+    plan.phases[0]!.steps[0]!.depends_on = ["s3"];
+    expect(validateDependencies(plan)).toBe("dependency_cycle");
+  });
+
   it("returns dependency_cycle for cycle", () => {
     const plan: Plan = {
       name: "Cycle",

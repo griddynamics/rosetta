@@ -87,10 +87,9 @@ Rosetta MCP supports two runtime modes:
 | `ROSETTA_OAUTH_EXTRA_SCOPES` | Runtime (HTTP OAuth) | Empty | Space-separated scopes forwarded to IdP authorize endpoint (e.g. `openid email offline_access`) |
 | `ROSETTA_JWT_SIGNING_KEY` | Runtime (HTTP OAuth) | Empty | Secret for signing FastMCP JWTs; if unset, derived from client secret |
 | `FERNET_KEY` | Runtime (HTTP OAuth) | Empty | Fernet key for encrypting OAuth token storage in Redis |
-| `ROSETTA_READ_POLICY` | Runtime (authz) | `all` | `all` or `none` for non-instruction dataset reads; unsupported values fall back to `all` |
 | `ROSETTA_USER_EMAIL` | Runtime (authz) | `rosetta@example.com` | STDIO identity and HTTP fallback identity |
 | `ROSETTA_MODE` | Runtime (prompts) | `HARD` | Prompt mode selection: `HARD` or `SOFT` |
-| `INSTRUCTION_ROOT_FILTER` | Runtime (instructions query) | Empty | Comma-separated root tags filter |
+| `INSTRUCTION_ROOT_FILTER` | Runtime (instructions query) | Empty | Comma-separated folder filter; parsed but not enforced yet ([#172](https://github.com/griddynamics/rosetta/issues/172)) |
 | `ROSETTA_DEBUG` | Runtime (debug) | Disabled | Enable debug logs (`1`, `true`, `yes`, `on`); legacy alias `IMS_DEBUG` still honored |
 | `FASTMCP_LOG_LEVEL` | Runtime (debug) | `INFO` | Set to `DEBUG` alongside `ROSETTA_DEBUG=1` for full FastMCP internals (auth, middleware) |
 | `FASTMCP_ENABLE_RICH_LOGGING` | Runtime (debug) | `true` | Set to `false` to disable Rich formatting — use in production/Grafana to prevent multiline log splitting |
@@ -164,11 +163,10 @@ OAuth variables for HTTP mode:
 | `ROSETTA_JWT_SIGNING_KEY` | all | Secret for signing FastMCP JWTs |
 | `FERNET_KEY` | both | Fernet key for encrypting token storage in Redis |
 
-Authorization policy variables:
+Identity variables:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `ROSETTA_READ_POLICY` | `all` or `none` for non-instruction dataset reads; unsupported values fall back to `all` | `all` |
 | `ROSETTA_USER_EMAIL` | Fallback user email (used in STDIO, and HTTP fallback) | `rosetta@example.com` |
 
 OAuth callback URL examples:

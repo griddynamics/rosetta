@@ -1,4 +1,4 @@
-// Slim adapter for core-cursor bundle — only cursor code, zero other IDE adapters.
+// Slim adapter for cursor bundle — only cursor code, zero other IDE adapters.
 // run-hook.ts imports `{ adapter }` from '../adapter'; the bundler aliases '../adapter' here.
 // Cursor's exit-0 + permission:"deny" JSON deny is confirmed working and field-selective
 // (docs/hooks/cursor.md Run 1+3); pairing exit-2 with the body dumps it raw/unparsed instead

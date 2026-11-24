@@ -44,7 +44,88 @@ Please follow **[Quick Start Guide](QUICKSTART.md)** which will walk you through
 
 Very detailed information on installation and configuration in all available modes is in [Installation Guide](INSTALLATION.md).
 
+## Skills
+
+Reusable units of work the AI loads on demand. If your tasks are small to medium use skills. Workflows pick them for you, and most can also be called by name.
+
+**Let Rosetta decide**
+
+1. [`rosetta`](instructions/r3/core/skills/rosetta/README.md): You want Rosetta to handle it itself. Classifies your request, picks the matching workflow, and runs it end to end.
+
+**Understand what exists**
+
+1. [`load-project-context`](instructions/r3/core/skills/load-project-context/README.md): Gives the AI your project's business context, architecture, and past decisions before any work starts.
+2. [`codemap`](instructions/r3/core/skills/codemap/README.md): Gives the AI a structural map of the repo to navigate by. Uses your LSP or code-graph tooling when available.
+3. [`discovery`](instructions/r3/core/skills/discovery/README.md): Evidence-backed picture of what exists today, including whether this was already attempted and done wrong.
+4. [`reverse-engineering`](instructions/r3/core/skills/reverse-engineering/README.md): Recovers domain rules and intent from code into business specs.
+5. [`research`](instructions/r3/core/skills/research/README.md): Researches any question grounded in your project, with real sources. Compares options and validates its own conclusions.
+
+**Decide what to build**
+
+1. [`requirements-authoring`](instructions/r3/core/skills/requirements-authoring/README.md): Precise and atomic requirement units: EARS acceptance criteria, rationale, alternatives, dependencies, traceability. You combine them into stories or features.
+2. [`requirements-use`](instructions/r3/core/skills/requirements-use/README.md): Plans and builds from approved requirements. Every task, test, and result traces back to a requirement ID.
+3. [`design`](instructions/r3/core/skills/design/README.md): Deep architecture decisions with defended rejections, plus domain playbooks: distributed systems, multi-tenancy, payments, regulated data, migrations.
+4. [`tech-specs`](instructions/r3/core/skills/tech-specs/README.md): Produces target-state interfaces, API contracts, data models, and security considerations. Forces the AI to read the real code, grounding its assumptions.
+5. [`planning`](instructions/r3/core/skills/planning/README.md): An ordered graph of AI sessions for automated execution, each with its own scope, checklist, and handoff.
+6. [`backlog`](instructions/r3/core/skills/backlog/README.md): Turns a thin ticket into a buildable one: gaps found, questions posed, facts written back. Also produces a WBS for people.
+7. [`reasoning`](instructions/r3/core/skills/reasoning/README.md): Breaks a hard problem down, identifies roles, boundaries, events, models. Works via Tree-of-Thoughts, expanding every alternative to its conclusion before committing.
+
+**Build it**
+
+1. [`coding`](instructions/r3/core/skills/coding/README.md): Simple, minimal, in-scope changes following KISS/SOLID/DRY. Systematic dependency-ordered validation: database, API, web, mobile. Covers IaC.
+2. [`testing`](instructions/r3/core/skills/testing/README.md): Isolated and idempotent at 80%+ coverage, external calls mocked only. Scenario tests start from a sequence diagram: what depends on what, what is shared setup, then the test.
+3. [`debugging`](instructions/r3/core/skills/debugging/README.md): OODA. Root cause with evidence before any fix, one hypothesis at a time, prevention recommended. Three failed fixes means a design problem.
+4. [`security`](instructions/r3/core/skills/security/README.md): Threat modeling plus code, dependency, IaC, container, cloud, and API review. Secrets gated before ingestion, active testing only where authorized. Output is remediation tasks.
+5. [`natural-writing`](instructions/r3/core/skills/natural-writing/README.md): Strips AI giveaways: hype words, em-dashes, rhetorical questions, fake engagement. For docs, emails, posts, release notes.
+
+**Test automation and QA**
+
+1. [`qa-knowledge`](instructions/r3/core/skills/qa-knowledge/README.md): QA engineering end to end: sources into requirements, gap analysis, Given-When-Then specs, TMS export, runnable API and UI tests, failure triage. Every case is implemented or recorded as a gap, never dropped.
+2. [`qa-structure`](instructions/r3/core/skills/qa-structure/README.md): Canonical paths, slugs, and state files for QA runs. Each session in its own folder, so parallel runs never collide and a long flow knows which phase is done.
+3. [`data-collection`](instructions/r3/core/skills/data-collection/README.md): Read-only pull from issue tracker, test management, wiki, and the codebase. A ticket gets recorded, not acted on. Gaps and permission walls recorded, never guessed.
+
+**Delegate the work**
+
+1. [`orchestration`](instructions/r3/core/skills/orchestration/README.md): Sizes the work, builds and briefs a subagent team, and gates every result through fresh eyes instead of self-review. Large plans run with phases, steps, and tasks.
+2. [`subagent-directives`](instructions/r3/core/skills/subagent-directives/README.md): Requested automatically by the orchestrator for every subagent: stay in scope, stop and report when blocked rather than improvise, prove each claim with links and line ranges.
+3. [`large-workspace-handling`](instructions/r3/core/skills/large-workspace-handling/README.md): Use when a repository is too big to handle at once. Splits into non-overlapping scopes, one subagent each, then a second wave verifies the work.
+4. [`coding-agents-farm`](instructions/r3/core/skills/coding-agents-farm/README.md): Runs Claude, Codex, Copilot, Gemini and others in parallel on isolated git worktrees, for throughput or cross-model validation. Burns money fast, so it is gated behind explicit consent.
+
+**Keep the session on track**
+
+1. [`hitl`](instructions/r3/core/skills/hitl/README.md): Makes the AI work together with you. Approval gates at specs, implementation, and closing, with review in small batches. A clear affirmative counts.
+2. [`questioning`](instructions/r3/core/skills/questioning/README.md): A few high-impact questions before work starts, each one decision, with why it matters and a recommended answer. Anything researchable it answers itself.
+3. [`self-organization`](instructions/r3/core/skills/self-organization/README.md): Keeps work organized as it grows: splits oversized tasks and files, clears stale content, flags when a session should restart. Announces before it reorganizes.
+
+**Stay safe**
+
+1. [`sensitive-data`](instructions/r3/core/skills/sensitive-data/README.md): Secrets, keys, PII, PHI, and payment data never get read, printed, logged, or committed. Masked on sight, and the same care applies to the code it writes.
+2. [`dangerous-actions`](instructions/r3/core/skills/dangerous-actions/README.md): Before anything irreversible: blast radius first, safer alternatives offered, explicit approval required. Higher environments are off limits.
+3. [`risk-assessment`](instructions/r3/core/skills/risk-assessment/README.md): Checks what the AI can actually reach, such as databases, cloud accounts, and production servers. Rates the risk and blocks outright when it is critical.
+
+**Recover when it goes wrong**
+
+1. [`deviation`](instructions/r3/core/skills/deviation/README.md): Stops the moment work no longer matches what you asked, or the AI cannot stand behind its own solution. Escalates instead of pressing on.
+2. [`self-learning`](instructions/r3/core/skills/self-learning/README.md): After a failure or a wrong result, stops and finds the cause, then records a reusable rule in the repo's memory so it does not repeat.
+3. [`post-mortem`](instructions/r3/core/skills/post-mortem/README.md): Diagnoses why a session went wrong across your prompt, workspace docs, local config, Rosetta instructions, and tooling. Can file a sanitized issue when Rosetta is at fault.
+
+**Extend**
+
+1. [`harness`](instructions/r3/core/skills/harness/README.md): Builds what the AI needs to run and check your system: command-line and MCP actions, dev containers, skills, subagents, workflows, hooks, and unattended automation. Encoded once, proved on every run.
+2. [`coding-agents-prompt-authoring`](instructions/r3/core/skills/coding-agents-prompt-authoring/README.md): Write, review, harden, and port your own skills, subagents, workflows, and rules, including between different IDEs and agents.
+3. [`coding-agents-hooks-authoring`](instructions/r3/core/skills/coding-agents-hooks-authoring/README.md): Author, register, and debug hooks that fire on agent actions across every supported IDE.
+
+**Domain packs**
+
+1. [`solr-query`](instructions/r3/core/skills/solr-query/README.md): Apache Solr queries that return what you meant: eDisMax, block join, JSON facets, kNN, explain output, relevancy tuning.
+2. [`solr-schema`](instructions/r3/core/skills/solr-schema/README.md): Apache Solr schema and solrconfig, audit or design: field types, analyzer symmetry, docValues, synonyms, commit strategy.
+3. [`solr-extending`](instructions/r3/core/skills/solr-extending/README.md): Custom Apache Solr plugins: SearchComponent, DocTransformer, QParser, update processors, function queries, and their solrconfig wiring.
+4. [`solr-semantic-search`](instructions/r3/core/skills/solr-semantic-search/README.md): Phrase-tagging semantic search on Solr: concept tagging, taxonomy, graph paths, ambiguity resolution. Lexical, not vector.
+5. [`specflow-use`](instructions/r3/core/skills/specflow-use/README.md): Connects your workspace to Grid Dynamics SpecFlow through its MCP.
+
 ## [Top Workflows](USAGE_GUIDE.md#workflows)
+
+Workflows are more expensive to run, those are supposed to be used on large areas of work: entire feature or multiple related features at once. It is expected to give tasks that those workflows will work on for hours.
 
 1. `coding-flow`: AI creates features, fixes defects, and performs refactoring, everything end-to-end. AI performs discovery, design, specs and a plan, user review, then AI implements and runs separate review and validation passes (including running application). Most useful for medium to large coding tasks, and for controlled component-by-component migration/modernization work.
 2. `requirements-authoring-flow`: AI works with user and raw artifacts to define entire-application requirements. AI discovers context and existing constraints, captures intent, drafts atomic requirement units, validates them, and finalizes traceability artifacts. This is the most efficient use of coding agents. Requirements then Coding.
@@ -54,28 +135,7 @@ Very detailed information on installation and configuration in all available mod
 6. `help-flow`: AI explains available Rosetta workflows, skills, and agents. Most useful when the user is unsure which Rosetta capability to use.
 7. `init-workspace-flow`: AI sets up a repository for AI use in both brownfield and greenfield projects. AI first analyzes the workspace, builds baseline docs, asks gap-filling questions, and verifies the result. Use it once per repository as its purpose is to build context for subsequent sessions.
 
-If you prefer more vibe-coding, check the guardrails and useful skills below.
-
-## Top Guardrails
-
-1. Dangerous actions detection and handling: AI will think about blast radius and will not take unsafe actions without clear acceptance from a user.
-2. Sensitive data handling (Secrets, PCI, PHI, PII, etc): AI will not read, query, or distribute (affects itself), and it will code respecting that (affects code).
-3. Shared infrastructure understanding: AI will not behave as if the environment belongs only to it.
-4. Deviation control: AI will detect drift and will try to overcome that.
-5. Human-in-the-Loop: AI will ask for user review or approval whenever it is needed.
-6. Risk assessment: AI will review current workspace setup, if there is a chance AI can damage - it will report.
-7. Self-learning and organization: AI learns on mistakes (repo-level) and organizes its own work.
-
-## [Top Skills](USAGE_GUIDE.md)
-
-1. `planning`, `tech-specs`: Turn a request into a clear plan and actionable specs.
-2. `orchestration`: Coordinate an efficient team of subagents for large tasks (also request "team manager" capability for full experience).
-3. `questioning`, `hitl`: AI to work with human, not over or behind, to be more human-oriented.
-4. `research`, `reverse-engineering`: Repository grounded research and logical reverse engineering (business logic extraction).
-5. `coding`, `debugging`, `testing`: Implementation, debugging with root-cause analysis, and validation.
-6. `security`: Run authorized security reviews with secret-first safety gates, bounded testing, lossless evidence, independent review, and remediation-task preparation.
-7. `reasoning`: Requires AI to decompose and recompose the problem, boundaries, actors, roles, gaps, contradictions, and perform recursive tree-of-thoughts reasoning.
-8. `solr-*`: AI will help to build SOLR search-related artifacts.
+If you prefer to follow your own workflows, check the skills above.
 
 ## Without Rosetta / With Rosetta
 
@@ -172,7 +232,7 @@ AI coding agents can read code, generate code, and run commands. But that is onl
 
 4. **Source of truth and request classification.** AI does not establish or maintain a source of truth. It does the opposite — it mixes everything together, confuses its own outputs with ground truth, leaks abstractions, and blends responsibilities. It does not take time to think about systems, actors, relationships, and actions at a foundational level. On brownfield projects this is catastrophic: the agent cannot tell if the existing code is wrong, if the test is wrong, or if the user's request contradicts the actual system behavior. It just tries to make things fit.
 
-   Rosetta instructions require the agent to handle requirements with traceability. Before any work begins, the agent — following Rosetta's bootstrap — auto-classifies every request into one of thirteen workflow types: coding, security review, testing, research, requirements, initialization, modernization, code analysis, QA automation, and others. Each type loads entirely different instructions, subagents, skills, and approval gates. A "fix this bug" request follows a completely different path than "analyze this architecture" or "write requirements for checkout." Classification eliminates the guessing that agents do when they receive an unstructured prompt and try to figure out on the fly what kind of work this is.
+   Rosetta instructions require the agent to handle requirements with traceability. Before any work begins, the agent — following Rosetta's bootstrap — auto-classifies every request into one of fifteen request types: coding, security review, testing, research, requirements, initialization, modernization, code analysis, QA automation, and others. Each type loads entirely different instructions, subagents, skills, and approval gates. A "fix this bug" request follows a completely different path than "analyze this architecture" or "write requirements for checkout." Classification eliminates the guessing that agents do when they receive an unstructured prompt and try to figure out on the fly what kind of work this is.
 
 5. **Analysis before execution.** The majority of AI coding agents are optimized to start implementation as fast as possible. This is the opposite of quality. This is the opposite of enterprise software development, where the cost of an error is extremely high. A bug caught during development costs minutes. The same bug caught after release costs the combined time of the engineer who debugs it, the lead who triages it, QA who verifies the fix, the manager who tracks it, and every person involved in the review, release, and retest cycle. Even a small bug amplifies the total cost by an order of magnitude once it escapes local development.
 
@@ -188,7 +248,7 @@ AI coding agents can read code, generate code, and run commands. But that is onl
 
 8. **Workflows designed from observed failure modes.** Ask any AI to create a complete coding workflow from scratch. It will produce something superficial — a few obvious steps that cover maybe 20% of what actually matters. It will focus on one or two concerns and completely forget about everything else. This is not a failure of intelligence. It is a failure of experience. The model has never watched itself fail across hundreds of real tasks and identified the patterns.
 
-   Rosetta contains workflows created by humans who used AI extensively, observed every category of failure, identified root causes, and encoded solutions as structured processes. These workflows cover thirteen SDLC activities. Each defines phases, subagents, skills, HITL gates, and artifact expectations. The agent with Rosetta workflows does not become smarter — it stops skipping the steps that matter. It discovers knowledge, conventions, and dependencies it would otherwise miss entirely. It installs the package that another project in the same solution already uses. It distinguishes planning from specs. It performs reviews and checkpoints at the moments where they catch the most errors.
+   Rosetta contains workflows created by humans who used AI extensively, observed every category of failure, identified root causes, and encoded solutions as structured processes. These workflows cover fifteen SDLC activities. Each defines phases, subagents, skills, HITL gates, and artifact expectations. The agent with Rosetta workflows does not become smarter — it stops skipping the steps that matter. It discovers knowledge, conventions, and dependencies it would otherwise miss entirely. It installs the package that another project in the same solution already uses. It distinguishes planning from specs. It performs reviews and checkpoints at the moments where they catch the most errors.
 
 9. **Self-learning and self-organization.** AI coding agents are only now getting basic memory features, but self-learning is not just memory. Self-organization is equally important. AI is fully capable of reorganizing files, restructuring its approach, cleaning up stale information, and adapting based on past mistakes — but it does not do any of this because it was never instructed to. It treats reorganization as deviation from the task. It treats cleanup as out of scope. It treats learning as someone else's job.
 
@@ -202,7 +262,7 @@ AI coding agents can read code, generate code, and run commands. But that is onl
 
 12. **One system, every AI tool, customizable at every level.** Rosetta works across Cursor, Claude Code, VS Code, JetBrains, Windsurf, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Instructions are written once and adapt to each environment. Organizations that switch between AI tools or use multiple tools simultaneously keep their entire instruction investment intact. No vendor lock-in. No per-tool maintenance.
 
-    Three layers merge at runtime: core (universal best practices shipped with Rosetta), organization (your company's conventions and policies), and project (local constraints and context). Teams customize without forking. Improvements to higher layers propagate to every project automatically. Instructions are versioned in place: R3 is the current release and evolves through incremental, reviewed updates without breaking agents on it. Rollback is immediate. AI behavior is authored in markdown, version-controlled in Git, reviewed in pull requests, and approved before deployment — the same engineering rigor applied to the instructions that control your AI agents.
+    Rosetta ships as two plugins: `rosetta` and `rosetta-light` (lightweight profile). Your project's own context (architecture, conventions, constraints) layers on top. Organizations add or adjust Rosetta instructions without forking by building a customized plugin, see [Build customized plugins](PLUGINS.md#build-customized-plugins). Instructions are versioned in place: R3 is the current release and evolves through incremental, reviewed updates without breaking agents on it. Rollback is immediate. AI behavior is authored in markdown, version-controlled in Git, reviewed in pull requests, and approved before deployment, the same engineering rigor applied to the instructions that control your AI agents.
 
 </details>
 
@@ -219,6 +279,7 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and e
 | Use Rosetta day to day                               | [User Guide](user-guide/README.md)         |
 | Set up Rosetta                                       | [QUICKSTART.md](QUICKSTART.md)             |
 | Install as a plugin (recommended)                    | [PLUGINS.md](PLUGINS.md)                   |
+| Customize Rosetta for your organization              | [Build customized plugins](PLUGINS.md#build-customized-plugins) |
 | Connect over MCP (optional, secondary)               | [MCPs.md](MCPs.md)                         |
 | Configure your coding-agent workspace                | [CONFIGURATION.md](CONFIGURATION.md)       |
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md)                 |

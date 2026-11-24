@@ -1,0 +1,1437 @@
+# Rosetta live-hook log excerpt — session 9996e494-b3d9-4cf7-aabf-36acef4972bf
+# Cleaned export of ~/.rosetta/hooks.log (docs/hooks/split-logs.js). Kept ONLY this session's blocks.
+# ENV kept; only TRUE-SECRET values redacted (first 5 chars + […REDACTED]); compact_summary trimmed.
+# One block per hook invocation (de-interleaved by pid). (!) grep what you need; don't read wholesale.
+
+[2026-07-23T20:32:01.693Z] [27483] ===== hook invocation =====
+[2026-07-23T20:32:01.694Z] [27483] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --inject-on-invocation {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1."},{"userMessage":"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1."}]} --tag PreInvocation
+[2026-07-23T20:32:01.694Z] [27483] ARGV: ["--inject-on-invocation","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}","--tag","PreInvocation"]
+[2026-07-23T20:32:01.694Z] [27483] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:01.694Z] [27483] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:01.694Z] [27483] RAW STDIN:
+[2026-07-23T20:32:01.694Z] [27483] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":1,"invocationNum":0,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:01.694Z] [27483] ENV:
+[2026-07-23T20:32:01.694Z] [27483]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:01.694Z] [27483]   COLORTERM=truecolor
+[2026-07-23T20:32:01.694Z] [27483]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:01.695Z] [27483]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:01.695Z] [27483]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:01.695Z] [27483]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:01.695Z] [27483]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:01.695Z] [27483]   HOME=/Users/isolomatov
+[2026-07-23T20:32:01.695Z] [27483]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:01.695Z] [27483]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:01.695Z] [27483]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:01.695Z] [27483]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:01.695Z] [27483]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:01.695Z] [27483]   LANG=en_US.UTF-8
+[2026-07-23T20:32:01.695Z] [27483]   LOGNAME=isolomatov
+[2026-07-23T20:32:01.696Z] [27483]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:01.696Z] [27483]   OSLogRateLimit=64
+[2026-07-23T20:32:01.696Z] [27483]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:01.696Z] [27483]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:01.696Z] [27483]   RBENV_SHELL=zsh
+[2026-07-23T20:32:01.696Z] [27483]   SHELL=/bin/zsh
+[2026-07-23T20:32:01.696Z] [27483]   SHLVL=2
+[2026-07-23T20:32:01.696Z] [27483]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:01.696Z] [27483]   TERM=tmux-256color
+[2026-07-23T20:32:01.696Z] [27483]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:01.696Z] [27483]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:01.696Z] [27483]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:01.696Z] [27483]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:01.696Z] [27483]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:01.696Z] [27483]   TMUX_PANE=%3
+[2026-07-23T20:32:01.696Z] [27483]   USER=isolomatov
+[2026-07-23T20:32:01.697Z] [27483]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:01.697Z] [27483]   XPC_FLAGS=0x0
+[2026-07-23T20:32:01.697Z] [27483]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:01.697Z] [27483]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:01.697Z] [27483]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:01.697Z] [27483]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:01.697Z] [27483] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":1,"invocationNum":0,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:01.697Z] [27483] PROCESSOR: --inject-on-invocation (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}")
+[2026-07-23T20:32:01.697Z] [27483] PROCESSOR: --tag (value="PreInvocation")
+[2026-07-23T20:32:01.699Z] [27483] RESULT: exitCode=0 textLen=162 stderrLen=0
+[2026-07-23T20:32:01.699Z] [27483] 
+
+[2026-07-23T20:32:01.733Z] [27484] ===== hook invocation =====
+[2026-07-23T20:32:01.734Z] [27484] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --tag PostToolUse
+[2026-07-23T20:32:01.734Z] [27484] ARGV: ["--tag","PostToolUse"]
+[2026-07-23T20:32:01.734Z] [27484] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:01.734Z] [27484] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:01.734Z] [27484] RAW STDIN:
+[2026-07-23T20:32:01.734Z] [27484] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":3,"toolCall":null,"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:01.734Z] [27484] ENV:
+[2026-07-23T20:32:01.734Z] [27484]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:01.734Z] [27484]   COLORTERM=truecolor
+[2026-07-23T20:32:01.734Z] [27484]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:01.734Z] [27484]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:01.734Z] [27484]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:01.734Z] [27484]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:01.734Z] [27484]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:01.735Z] [27484]   HOME=/Users/isolomatov
+[2026-07-23T20:32:01.735Z] [27484]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:01.735Z] [27484]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:01.735Z] [27484]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:01.735Z] [27484]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:01.735Z] [27484]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:01.735Z] [27484]   LANG=en_US.UTF-8
+[2026-07-23T20:32:01.735Z] [27484]   LOGNAME=isolomatov
+[2026-07-23T20:32:01.735Z] [27484]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:01.735Z] [27484]   OSLogRateLimit=64
+[2026-07-23T20:32:01.735Z] [27484]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:01.735Z] [27484]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:01.735Z] [27484]   RBENV_SHELL=zsh
+[2026-07-23T20:32:01.735Z] [27484]   SHELL=/bin/zsh
+[2026-07-23T20:32:01.735Z] [27484]   SHLVL=2
+[2026-07-23T20:32:01.735Z] [27484]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:01.735Z] [27484]   TERM=tmux-256color
+[2026-07-23T20:32:01.735Z] [27484]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:01.735Z] [27484]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:01.735Z] [27484]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:01.735Z] [27484]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:01.735Z] [27484]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:01.735Z] [27484]   TMUX_PANE=%3
+[2026-07-23T20:32:01.736Z] [27484]   USER=isolomatov
+[2026-07-23T20:32:01.736Z] [27484]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:01.736Z] [27484]   XPC_FLAGS=0x0
+[2026-07-23T20:32:01.736Z] [27484]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:01.736Z] [27484]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:01.736Z] [27484]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:01.736Z] [27484]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:01.736Z] [27484] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":3,"toolCall":null,"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:01.736Z] [27484] PROCESSOR: --tag (value="PostToolUse")
+[2026-07-23T20:32:01.736Z] [27484] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:01.736Z] [27484] 
+
+[2026-07-23T20:32:03.579Z] [27485] ===== hook invocation =====
+[2026-07-23T20:32:03.580Z] [27485] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --mode antigravity --output {"decision":"allow","reason":"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1."} --deny-on-match HOOK-DENY-PROBE --tag PreToolUse
+[2026-07-23T20:32:03.580Z] [27485] ARGV: ["--mode","antigravity","--output","{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}","--deny-on-match","HOOK-DENY-PROBE","--tag","PreToolUse"]
+[2026-07-23T20:32:03.580Z] [27485] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:03.580Z] [27485] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:03.581Z] [27485] RAW STDIN:
+[2026-07-23T20:32:03.581Z] [27485] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","modelName":"gemini-3.6-flash-high","stepIdx":5,"toolCall":{"args":{"CommandLine":"echo rosetta-hook-probe","Cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql","WaitMsBeforeAsync":5000},"name":"run_command"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:03.581Z] [27485] ENV:
+[2026-07-23T20:32:03.581Z] [27485]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:03.581Z] [27485]   COLORTERM=truecolor
+[2026-07-23T20:32:03.581Z] [27485]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:03.581Z] [27485]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:03.581Z] [27485]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:03.581Z] [27485]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:03.581Z] [27485]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:03.581Z] [27485]   HOME=/Users/isolomatov
+[2026-07-23T20:32:03.582Z] [27485]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:03.582Z] [27485]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:03.582Z] [27485]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:03.582Z] [27485]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:03.582Z] [27485]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:03.582Z] [27485]   LANG=en_US.UTF-8
+[2026-07-23T20:32:03.582Z] [27485]   LOGNAME=isolomatov
+[2026-07-23T20:32:03.582Z] [27485]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:03.582Z] [27485]   OSLogRateLimit=64
+[2026-07-23T20:32:03.582Z] [27485]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:03.583Z] [27485]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:03.583Z] [27485]   RBENV_SHELL=zsh
+[2026-07-23T20:32:03.583Z] [27485]   SHELL=/bin/zsh
+[2026-07-23T20:32:03.583Z] [27485]   SHLVL=2
+[2026-07-23T20:32:03.583Z] [27485]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:03.583Z] [27485]   TERM=tmux-256color
+[2026-07-23T20:32:03.583Z] [27485]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:03.583Z] [27485]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:03.583Z] [27485]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:03.583Z] [27485]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:03.583Z] [27485]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:03.583Z] [27485]   TMUX_PANE=%3
+[2026-07-23T20:32:03.584Z] [27485]   USER=isolomatov
+[2026-07-23T20:32:03.584Z] [27485]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:03.584Z] [27485]   XPC_FLAGS=0x0
+[2026-07-23T20:32:03.584Z] [27485]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:03.584Z] [27485]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:03.584Z] [27485]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:03.584Z] [27485]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:03.584Z] [27485] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","modelName":"gemini-3.6-flash-high","stepIdx":5,"toolCall":{"args":{"CommandLine":"echo rosetta-hook-probe","Cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql","WaitMsBeforeAsync":5000},"name":"run_command"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:03.584Z] [27485] PROCESSOR: --mode (value="antigravity")
+[2026-07-23T20:32:03.584Z] [27485] PROCESSOR: --output (value="{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}")
+[2026-07-23T20:32:03.585Z] [27485] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-07-23T20:32:03.585Z] [27485] PROCESSOR: --tag (value="PreToolUse")
+[2026-07-23T20:32:03.586Z] [27485] RESULT: exitCode=0 textLen=81 stderrLen=0
+[2026-07-23T20:32:03.586Z] [27485] 
+
+[2026-07-23T20:32:03.636Z] [27487] ===== hook invocation =====
+[2026-07-23T20:32:03.637Z] [27487] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --tag PostToolUse
+[2026-07-23T20:32:03.637Z] [27487] ARGV: ["--tag","PostToolUse"]
+[2026-07-23T20:32:03.637Z] [27487] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:03.637Z] [27487] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:03.637Z] [27487] RAW STDIN:
+[2026-07-23T20:32:03.637Z] [27487] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":5,"toolCall":{"args":{"CommandLine":"echo rosetta-hook-probe","Cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql","WaitMsBeforeAsync":5000,"toolAction":"Running shell command","toolSummary":"Run echo command"},"name":"run_command"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:03.637Z] [27487] ENV:
+[2026-07-23T20:32:03.637Z] [27487]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:03.637Z] [27487]   COLORTERM=truecolor
+[2026-07-23T20:32:03.637Z] [27487]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:03.638Z] [27487]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:03.638Z] [27487]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:03.638Z] [27487]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:03.638Z] [27487]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:03.638Z] [27487]   HOME=/Users/isolomatov
+[2026-07-23T20:32:03.638Z] [27487]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:03.638Z] [27487]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:03.638Z] [27487]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:03.638Z] [27487]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:03.638Z] [27487]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:03.638Z] [27487]   LANG=en_US.UTF-8
+[2026-07-23T20:32:03.638Z] [27487]   LOGNAME=isolomatov
+[2026-07-23T20:32:03.638Z] [27487]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:03.638Z] [27487]   OSLogRateLimit=64
+[2026-07-23T20:32:03.638Z] [27487]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:03.638Z] [27487]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:03.638Z] [27487]   RBENV_SHELL=zsh
+[2026-07-23T20:32:03.639Z] [27487]   SHELL=/bin/zsh
+[2026-07-23T20:32:03.639Z] [27487]   SHLVL=2
+[2026-07-23T20:32:03.639Z] [27487]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:03.639Z] [27487]   TERM=tmux-256color
+[2026-07-23T20:32:03.639Z] [27487]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:03.639Z] [27487]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:03.639Z] [27487]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:03.639Z] [27487]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:03.639Z] [27487]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:03.639Z] [27487]   TMUX_PANE=%3
+[2026-07-23T20:32:03.639Z] [27487]   USER=isolomatov
+[2026-07-23T20:32:03.639Z] [27487]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:03.639Z] [27487]   XPC_FLAGS=0x0
+[2026-07-23T20:32:03.639Z] [27487]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:03.639Z] [27487]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:03.639Z] [27487]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:03.639Z] [27487]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:03.639Z] [27487] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":5,"toolCall":{"args":{"CommandLine":"echo rosetta-hook-probe","Cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql","WaitMsBeforeAsync":5000,"toolAction":"Running shell command","toolSummary":"Run echo command"},"name":"run_command"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:03.639Z] [27487] PROCESSOR: --tag (value="PostToolUse")
+[2026-07-23T20:32:03.639Z] [27487] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:03.640Z] [27487] 
+
+[2026-07-23T20:32:03.673Z] [27488] ===== hook invocation =====
+[2026-07-23T20:32:03.673Z] [27488] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --emit-once {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1."}]} --tag PostInvocation
+[2026-07-23T20:32:03.673Z] [27488] ARGV: ["--emit-once","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}","--tag","PostInvocation"]
+[2026-07-23T20:32:03.673Z] [27488] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:03.673Z] [27488] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:03.673Z] [27488] RAW STDIN:
+[2026-07-23T20:32:03.674Z] [27488] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":1,"invocationNum":0,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:03.674Z] [27488] ENV:
+[2026-07-23T20:32:03.674Z] [27488]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:03.674Z] [27488]   COLORTERM=truecolor
+[2026-07-23T20:32:03.674Z] [27488]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:03.674Z] [27488]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:03.674Z] [27488]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:03.674Z] [27488]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:03.674Z] [27488]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:03.674Z] [27488]   HOME=/Users/isolomatov
+[2026-07-23T20:32:03.674Z] [27488]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:03.674Z] [27488]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:03.674Z] [27488]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:03.674Z] [27488]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:03.674Z] [27488]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:03.674Z] [27488]   LANG=en_US.UTF-8
+[2026-07-23T20:32:03.675Z] [27488]   LOGNAME=isolomatov
+[2026-07-23T20:32:03.675Z] [27488]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:03.675Z] [27488]   OSLogRateLimit=64
+[2026-07-23T20:32:03.675Z] [27488]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:03.675Z] [27488]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:03.675Z] [27488]   RBENV_SHELL=zsh
+[2026-07-23T20:32:03.675Z] [27488]   SHELL=/bin/zsh
+[2026-07-23T20:32:03.675Z] [27488]   SHLVL=2
+[2026-07-23T20:32:03.675Z] [27488]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:03.675Z] [27488]   TERM=tmux-256color
+[2026-07-23T20:32:03.675Z] [27488]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:03.675Z] [27488]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:03.675Z] [27488]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:03.675Z] [27488]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:03.675Z] [27488]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:03.675Z] [27488]   TMUX_PANE=%3
+[2026-07-23T20:32:03.675Z] [27488]   USER=isolomatov
+[2026-07-23T20:32:03.675Z] [27488]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:03.675Z] [27488]   XPC_FLAGS=0x0
+[2026-07-23T20:32:03.675Z] [27488]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:03.675Z] [27488]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:03.675Z] [27488]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:03.676Z] [27488]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:03.676Z] [27488] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":1,"invocationNum":0,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:03.676Z] [27488] PROCESSOR: --emit-once (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}")
+[2026-07-23T20:32:03.676Z] [27488] PROCESSOR: --tag (value="PostInvocation")
+[2026-07-23T20:32:03.677Z] [27488] RESULT: exitCode=0 textLen=93 stderrLen=0
+[2026-07-23T20:32:03.677Z] [27488] 
+
+[2026-07-23T20:32:03.712Z] [27489] ===== hook invocation =====
+[2026-07-23T20:32:03.713Z] [27489] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --inject-on-invocation {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1."},{"userMessage":"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1."}]} --tag PreInvocation
+[2026-07-23T20:32:03.713Z] [27489] ARGV: ["--inject-on-invocation","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}","--tag","PreInvocation"]
+[2026-07-23T20:32:03.713Z] [27489] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:03.713Z] [27489] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:03.713Z] [27489] RAW STDIN:
+[2026-07-23T20:32:03.714Z] [27489] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":8,"invocationNum":1,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:03.714Z] [27489] ENV:
+[2026-07-23T20:32:03.714Z] [27489]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:03.714Z] [27489]   COLORTERM=truecolor
+[2026-07-23T20:32:03.714Z] [27489]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:03.714Z] [27489]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:03.714Z] [27489]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:03.714Z] [27489]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:03.714Z] [27489]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:03.714Z] [27489]   HOME=/Users/isolomatov
+[2026-07-23T20:32:03.714Z] [27489]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:03.714Z] [27489]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:03.714Z] [27489]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:03.714Z] [27489]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:03.714Z] [27489]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:03.714Z] [27489]   LANG=en_US.UTF-8
+[2026-07-23T20:32:03.714Z] [27489]   LOGNAME=isolomatov
+[2026-07-23T20:32:03.714Z] [27489]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:03.714Z] [27489]   OSLogRateLimit=64
+[2026-07-23T20:32:03.715Z] [27489]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:03.715Z] [27489]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:03.715Z] [27489]   RBENV_SHELL=zsh
+[2026-07-23T20:32:03.715Z] [27489]   SHELL=/bin/zsh
+[2026-07-23T20:32:03.715Z] [27489]   SHLVL=2
+[2026-07-23T20:32:03.715Z] [27489]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:03.715Z] [27489]   TERM=tmux-256color
+[2026-07-23T20:32:03.715Z] [27489]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:03.715Z] [27489]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:03.715Z] [27489]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:03.715Z] [27489]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:03.715Z] [27489]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:03.715Z] [27489]   TMUX_PANE=%3
+[2026-07-23T20:32:03.715Z] [27489]   USER=isolomatov
+[2026-07-23T20:32:03.715Z] [27489]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:03.715Z] [27489]   XPC_FLAGS=0x0
+[2026-07-23T20:32:03.715Z] [27489]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:03.715Z] [27489]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:03.715Z] [27489]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:03.715Z] [27489]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:03.715Z] [27489] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":8,"invocationNum":1,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:03.716Z] [27489] PROCESSOR: --inject-on-invocation (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}")
+[2026-07-23T20:32:03.716Z] [27489] PROCESSOR: --tag (value="PreInvocation")
+[2026-07-23T20:32:03.716Z] [27489] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:03.716Z] [27489] 
+
+[2026-07-23T20:32:04.217Z] [27490] ===== hook invocation =====
+[2026-07-23T20:32:04.218Z] [27490] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --tag PostToolUse
+[2026-07-23T20:32:04.218Z] [27490] ARGV: ["--tag","PostToolUse"]
+[2026-07-23T20:32:04.218Z] [27490] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:04.218Z] [27490] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:04.218Z] [27490] RAW STDIN:
+[2026-07-23T20:32:04.218Z] [27490] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":7,"toolCall":null,"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:04.219Z] [27490] ENV:
+[2026-07-23T20:32:04.219Z] [27490]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:04.219Z] [27490]   COLORTERM=truecolor
+[2026-07-23T20:32:04.219Z] [27490]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:04.219Z] [27490]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:04.219Z] [27490]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:04.219Z] [27490]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:04.219Z] [27490]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:04.219Z] [27490]   HOME=/Users/isolomatov
+[2026-07-23T20:32:04.219Z] [27490]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:04.219Z] [27490]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:04.219Z] [27490]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:04.220Z] [27490]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:04.220Z] [27490]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:04.220Z] [27490]   LANG=en_US.UTF-8
+[2026-07-23T20:32:04.220Z] [27490]   LOGNAME=isolomatov
+[2026-07-23T20:32:04.220Z] [27490]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:04.220Z] [27490]   OSLogRateLimit=64
+[2026-07-23T20:32:04.220Z] [27490]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:04.220Z] [27490]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:04.220Z] [27490]   RBENV_SHELL=zsh
+[2026-07-23T20:32:04.220Z] [27490]   SHELL=/bin/zsh
+[2026-07-23T20:32:04.220Z] [27490]   SHLVL=2
+[2026-07-23T20:32:04.220Z] [27490]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:04.220Z] [27490]   TERM=tmux-256color
+[2026-07-23T20:32:04.221Z] [27490]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:04.221Z] [27490]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:04.221Z] [27490]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:04.221Z] [27490]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:04.221Z] [27490]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:04.221Z] [27490]   TMUX_PANE=%3
+[2026-07-23T20:32:04.221Z] [27490]   USER=isolomatov
+[2026-07-23T20:32:04.222Z] [27490]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:04.222Z] [27490]   XPC_FLAGS=0x0
+[2026-07-23T20:32:04.222Z] [27490]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:04.222Z] [27490]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:04.222Z] [27490]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:04.222Z] [27490]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:04.222Z] [27490] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":7,"toolCall":null,"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:04.222Z] [27490] PROCESSOR: --tag (value="PostToolUse")
+[2026-07-23T20:32:04.222Z] [27490] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:04.222Z] [27490] 
+
+[2026-07-23T20:32:10.170Z] [27494] ===== hook invocation =====
+[2026-07-23T20:32:10.170Z] [27494] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --mode antigravity --output {"decision":"allow","reason":"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1."} --deny-on-match HOOK-DENY-PROBE --tag PreToolUse
+[2026-07-23T20:32:10.171Z] [27494] ARGV: ["--mode","antigravity","--output","{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}","--deny-on-match","HOOK-DENY-PROBE","--tag","PreToolUse"]
+[2026-07-23T20:32:10.171Z] [27494] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:10.171Z] [27494] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:10.171Z] [27494] RAW STDIN:
+[2026-07-23T20:32:10.171Z] [27494] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","modelName":"gemini-3.6-flash-high","stepIdx":9,"toolCall":{"args":{"CodeContent":"rosetta antigravity probe line one","Description":"Creating hook-probe-tmp.txt for self-test probe","Overwrite":true,"TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt"},"name":"write_to_file"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:10.171Z] [27494] ENV:
+[2026-07-23T20:32:10.171Z] [27494]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:10.171Z] [27494]   COLORTERM=truecolor
+[2026-07-23T20:32:10.171Z] [27494]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:10.171Z] [27494]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:10.171Z] [27494]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:10.171Z] [27494]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:10.172Z] [27494]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:10.172Z] [27494]   HOME=/Users/isolomatov
+[2026-07-23T20:32:10.172Z] [27494]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:10.172Z] [27494]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:10.172Z] [27494]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:10.172Z] [27494]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:10.172Z] [27494]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:10.172Z] [27494]   LANG=en_US.UTF-8
+[2026-07-23T20:32:10.172Z] [27494]   LOGNAME=isolomatov
+[2026-07-23T20:32:10.172Z] [27494]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:10.172Z] [27494]   OSLogRateLimit=64
+[2026-07-23T20:32:10.172Z] [27494]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:10.172Z] [27494]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:10.172Z] [27494]   RBENV_SHELL=zsh
+[2026-07-23T20:32:10.172Z] [27494]   SHELL=/bin/zsh
+[2026-07-23T20:32:10.172Z] [27494]   SHLVL=2
+[2026-07-23T20:32:10.172Z] [27494]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:10.173Z] [27494]   TERM=tmux-256color
+[2026-07-23T20:32:10.173Z] [27494]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:10.173Z] [27494]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:10.173Z] [27494]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:10.173Z] [27494]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:10.173Z] [27494]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:10.173Z] [27494]   TMUX_PANE=%3
+[2026-07-23T20:32:10.173Z] [27494]   USER=isolomatov
+[2026-07-23T20:32:10.173Z] [27494]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:10.173Z] [27494]   XPC_FLAGS=0x0
+[2026-07-23T20:32:10.173Z] [27494]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:10.173Z] [27494]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:10.173Z] [27494]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:10.173Z] [27494]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:10.173Z] [27494] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","modelName":"gemini-3.6-flash-high","stepIdx":9,"toolCall":{"args":{"CodeContent":"rosetta antigravity probe line one","Description":"Creating hook-probe-tmp.txt for self-test probe","Overwrite":true,"TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt"},"name":"write_to_file"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:10.173Z] [27494] PROCESSOR: --mode (value="antigravity")
+[2026-07-23T20:32:10.173Z] [27494] PROCESSOR: --output (value="{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}")
+[2026-07-23T20:32:10.174Z] [27494] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-07-23T20:32:10.174Z] [27494] PROCESSOR: --tag (value="PreToolUse")
+[2026-07-23T20:32:10.176Z] [27494] RESULT: exitCode=0 textLen=81 stderrLen=0
+[2026-07-23T20:32:10.176Z] [27494] 
+
+[2026-07-23T20:32:10.219Z] [27495] ===== hook invocation =====
+[2026-07-23T20:32:10.220Z] [27495] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --tag PostToolUse
+[2026-07-23T20:32:10.220Z] [27495] ARGV: ["--tag","PostToolUse"]
+[2026-07-23T20:32:10.220Z] [27495] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:10.220Z] [27495] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:10.220Z] [27495] RAW STDIN:
+[2026-07-23T20:32:10.221Z] [27495] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":9,"toolCall":{"args":{"CodeContent":"rosetta antigravity probe line one","Description":"Creating hook-probe-tmp.txt for self-test probe","Overwrite":true,"TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt","toolAction":"Creating file","toolSummary":"Create hook-probe-tmp.txt"},"name":"write_to_file"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:10.221Z] [27495] ENV:
+[2026-07-23T20:32:10.221Z] [27495]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:10.221Z] [27495]   COLORTERM=truecolor
+[2026-07-23T20:32:10.221Z] [27495]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:10.221Z] [27495]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:10.221Z] [27495]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:10.221Z] [27495]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:10.221Z] [27495]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:10.221Z] [27495]   HOME=/Users/isolomatov
+[2026-07-23T20:32:10.221Z] [27495]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:10.221Z] [27495]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:10.221Z] [27495]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:10.221Z] [27495]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:10.221Z] [27495]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:10.221Z] [27495]   LANG=en_US.UTF-8
+[2026-07-23T20:32:10.222Z] [27495]   LOGNAME=isolomatov
+[2026-07-23T20:32:10.222Z] [27495]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:10.222Z] [27495]   OSLogRateLimit=64
+[2026-07-23T20:32:10.222Z] [27495]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:10.222Z] [27495]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:10.222Z] [27495]   RBENV_SHELL=zsh
+[2026-07-23T20:32:10.222Z] [27495]   SHELL=/bin/zsh
+[2026-07-23T20:32:10.222Z] [27495]   SHLVL=2
+[2026-07-23T20:32:10.222Z] [27495]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:10.222Z] [27495]   TERM=tmux-256color
+[2026-07-23T20:32:10.222Z] [27495]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:10.222Z] [27495]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:10.222Z] [27495]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:10.222Z] [27495]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:10.222Z] [27495]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:10.222Z] [27495]   TMUX_PANE=%3
+[2026-07-23T20:32:10.222Z] [27495]   USER=isolomatov
+[2026-07-23T20:32:10.222Z] [27495]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:10.222Z] [27495]   XPC_FLAGS=0x0
+[2026-07-23T20:32:10.222Z] [27495]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:10.222Z] [27495]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:10.222Z] [27495]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:10.223Z] [27495]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:10.223Z] [27495] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":9,"toolCall":{"args":{"CodeContent":"rosetta antigravity probe line one","Description":"Creating hook-probe-tmp.txt for self-test probe","Overwrite":true,"TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt","toolAction":"Creating file","toolSummary":"Create hook-probe-tmp.txt"},"name":"write_to_file"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:10.223Z] [27495] PROCESSOR: --tag (value="PostToolUse")
+[2026-07-23T20:32:10.223Z] [27495] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:10.223Z] [27495] 
+
+[2026-07-23T20:32:10.255Z] [27496] ===== hook invocation =====
+[2026-07-23T20:32:10.255Z] [27496] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --emit-once {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1."}]} --tag PostInvocation
+[2026-07-23T20:32:10.256Z] [27496] ARGV: ["--emit-once","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}","--tag","PostInvocation"]
+[2026-07-23T20:32:10.256Z] [27496] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:10.256Z] [27496] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:10.256Z] [27496] RAW STDIN:
+[2026-07-23T20:32:10.256Z] [27496] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":8,"invocationNum":1,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:10.256Z] [27496] ENV:
+[2026-07-23T20:32:10.256Z] [27496]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:10.256Z] [27496]   COLORTERM=truecolor
+[2026-07-23T20:32:10.256Z] [27496]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:10.256Z] [27496]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:10.256Z] [27496]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:10.256Z] [27496]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:10.256Z] [27496]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:10.256Z] [27496]   HOME=/Users/isolomatov
+[2026-07-23T20:32:10.256Z] [27496]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:10.256Z] [27496]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:10.257Z] [27496]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:10.257Z] [27496]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:10.257Z] [27496]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:10.257Z] [27496]   LANG=en_US.UTF-8
+[2026-07-23T20:32:10.257Z] [27496]   LOGNAME=isolomatov
+[2026-07-23T20:32:10.257Z] [27496]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:10.257Z] [27496]   OSLogRateLimit=64
+[2026-07-23T20:32:10.257Z] [27496]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:10.257Z] [27496]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:10.257Z] [27496]   RBENV_SHELL=zsh
+[2026-07-23T20:32:10.257Z] [27496]   SHELL=/bin/zsh
+[2026-07-23T20:32:10.257Z] [27496]   SHLVL=2
+[2026-07-23T20:32:10.257Z] [27496]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:10.257Z] [27496]   TERM=tmux-256color
+[2026-07-23T20:32:10.257Z] [27496]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:10.257Z] [27496]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:10.257Z] [27496]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:10.257Z] [27496]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:10.258Z] [27496]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:10.258Z] [27496]   TMUX_PANE=%3
+[2026-07-23T20:32:10.258Z] [27496]   USER=isolomatov
+[2026-07-23T20:32:10.258Z] [27496]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:10.258Z] [27496]   XPC_FLAGS=0x0
+[2026-07-23T20:32:10.258Z] [27496]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:10.258Z] [27496]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:10.258Z] [27496]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:10.258Z] [27496]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:10.258Z] [27496] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":8,"invocationNum":1,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:10.258Z] [27496] PROCESSOR: --emit-once (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}")
+[2026-07-23T20:32:10.258Z] [27496] PROCESSOR: --tag (value="PostInvocation")
+[2026-07-23T20:32:10.258Z] [27496] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:10.258Z] [27496] 
+
+[2026-07-23T20:32:10.289Z] [27497] ===== hook invocation =====
+[2026-07-23T20:32:10.289Z] [27497] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --inject-on-invocation {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1."},{"userMessage":"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1."}]} --tag PreInvocation
+[2026-07-23T20:32:10.290Z] [27497] ARGV: ["--inject-on-invocation","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}","--tag","PreInvocation"]
+[2026-07-23T20:32:10.290Z] [27497] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:10.290Z] [27497] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:10.290Z] [27497] RAW STDIN:
+[2026-07-23T20:32:10.290Z] [27497] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":10,"invocationNum":2,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:10.290Z] [27497] ENV:
+[2026-07-23T20:32:10.290Z] [27497]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:10.290Z] [27497]   COLORTERM=truecolor
+[2026-07-23T20:32:10.290Z] [27497]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:10.290Z] [27497]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:10.290Z] [27497]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:10.290Z] [27497]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:10.290Z] [27497]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:10.290Z] [27497]   HOME=/Users/isolomatov
+[2026-07-23T20:32:10.290Z] [27497]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:10.290Z] [27497]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:10.290Z] [27497]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:10.290Z] [27497]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:10.290Z] [27497]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:10.291Z] [27497]   LANG=en_US.UTF-8
+[2026-07-23T20:32:10.291Z] [27497]   LOGNAME=isolomatov
+[2026-07-23T20:32:10.291Z] [27497]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:10.291Z] [27497]   OSLogRateLimit=64
+[2026-07-23T20:32:10.291Z] [27497]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:10.291Z] [27497]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:10.291Z] [27497]   RBENV_SHELL=zsh
+[2026-07-23T20:32:10.291Z] [27497]   SHELL=/bin/zsh
+[2026-07-23T20:32:10.291Z] [27497]   SHLVL=2
+[2026-07-23T20:32:10.291Z] [27497]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:10.291Z] [27497]   TERM=tmux-256color
+[2026-07-23T20:32:10.291Z] [27497]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:10.291Z] [27497]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:10.291Z] [27497]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:10.291Z] [27497]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:10.291Z] [27497]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:10.291Z] [27497]   TMUX_PANE=%3
+[2026-07-23T20:32:10.291Z] [27497]   USER=isolomatov
+[2026-07-23T20:32:10.291Z] [27497]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:10.291Z] [27497]   XPC_FLAGS=0x0
+[2026-07-23T20:32:10.291Z] [27497]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:10.291Z] [27497]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:10.291Z] [27497]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:10.291Z] [27497]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:10.292Z] [27497] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":10,"invocationNum":2,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:10.292Z] [27497] PROCESSOR: --inject-on-invocation (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}")
+[2026-07-23T20:32:10.292Z] [27497] PROCESSOR: --tag (value="PreInvocation")
+[2026-07-23T20:32:10.292Z] [27497] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:10.292Z] [27497] 
+
+[2026-07-23T20:32:17.194Z] [27510] ===== hook invocation =====
+[2026-07-23T20:32:17.196Z] [27510] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --mode antigravity --output {"decision":"allow","reason":"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1."} --deny-on-match HOOK-DENY-PROBE --tag PreToolUse
+[2026-07-23T20:32:17.196Z] [27510] ARGV: ["--mode","antigravity","--output","{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}","--deny-on-match","HOOK-DENY-PROBE","--tag","PreToolUse"]
+[2026-07-23T20:32:17.196Z] [27510] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:17.196Z] [27510] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:17.196Z] [27510] RAW STDIN:
+[2026-07-23T20:32:17.196Z] [27510] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","modelName":"gemini-3.6-flash-high","stepIdx":11,"toolCall":{"args":{"AllowMultiple":false,"Description":"Replacing line one with line two","EndLine":1,"Instruction":"Replace 'line one' with 'line two'","ReplacementContent":"rosetta antigravity probe line two","StartLine":1,"TargetContent":"rosetta antigravity probe line one","TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt"},"name":"replace_file_content"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:17.196Z] [27510] ENV:
+[2026-07-23T20:32:17.196Z] [27510]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:17.196Z] [27510]   COLORTERM=truecolor
+[2026-07-23T20:32:17.197Z] [27510]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:17.197Z] [27510]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:17.197Z] [27510]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:17.197Z] [27510]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:17.197Z] [27510]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:17.197Z] [27510]   HOME=/Users/isolomatov
+[2026-07-23T20:32:17.197Z] [27510]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:17.197Z] [27510]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:17.197Z] [27510]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:17.197Z] [27510]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:17.197Z] [27510]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:17.197Z] [27510]   LANG=en_US.UTF-8
+[2026-07-23T20:32:17.197Z] [27510]   LOGNAME=isolomatov
+[2026-07-23T20:32:17.197Z] [27510]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:17.198Z] [27510]   OSLogRateLimit=64
+[2026-07-23T20:32:17.198Z] [27510]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:17.198Z] [27510]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:17.198Z] [27510]   RBENV_SHELL=zsh
+[2026-07-23T20:32:17.198Z] [27510]   SHELL=/bin/zsh
+[2026-07-23T20:32:17.198Z] [27510]   SHLVL=2
+[2026-07-23T20:32:17.198Z] [27510]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:17.198Z] [27510]   TERM=tmux-256color
+[2026-07-23T20:32:17.198Z] [27510]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:17.199Z] [27510]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:17.199Z] [27510]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:17.199Z] [27510]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:17.199Z] [27510]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:17.199Z] [27510]   TMUX_PANE=%3
+[2026-07-23T20:32:17.199Z] [27510]   USER=isolomatov
+[2026-07-23T20:32:17.199Z] [27510]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:17.199Z] [27510]   XPC_FLAGS=0x0
+[2026-07-23T20:32:17.199Z] [27510]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:17.201Z] [27510]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:17.201Z] [27510]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:17.201Z] [27510]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:17.201Z] [27510] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","modelName":"gemini-3.6-flash-high","stepIdx":11,"toolCall":{"args":{"AllowMultiple":false,"Description":"Replacing line one with line two","EndLine":1,"Instruction":"Replace 'line one' with 'line two'","ReplacementContent":"rosetta antigravity probe line two","StartLine":1,"TargetContent":"rosetta antigravity probe line one","TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt"},"name":"replace_file_content"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:17.201Z] [27510] PROCESSOR: --mode (value="antigravity")
+[2026-07-23T20:32:17.201Z] [27510] PROCESSOR: --output (value="{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}")
+[2026-07-23T20:32:17.202Z] [27510] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-07-23T20:32:17.202Z] [27510] PROCESSOR: --tag (value="PreToolUse")
+[2026-07-23T20:32:17.204Z] [27510] RESULT: exitCode=0 textLen=81 stderrLen=0
+[2026-07-23T20:32:17.204Z] [27510] 
+
+[2026-07-23T20:32:17.244Z] [27511] ===== hook invocation =====
+[2026-07-23T20:32:17.245Z] [27511] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --tag PostToolUse
+[2026-07-23T20:32:17.245Z] [27511] ARGV: ["--tag","PostToolUse"]
+[2026-07-23T20:32:17.245Z] [27511] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:17.245Z] [27511] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:17.245Z] [27511] RAW STDIN:
+[2026-07-23T20:32:17.245Z] [27511] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":11,"toolCall":{"args":{"AllowMultiple":false,"Description":"Replacing line one with line two","EndLine":1,"Instruction":"Replace 'line one' with 'line two'","ReplacementContent":"rosetta antigravity probe line two","StartLine":1,"TargetContent":"rosetta antigravity probe line one","TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt","toolAction":"Replacing text in file","toolSummary":"Replace line one with line two"},"name":"replace_file_content"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:17.245Z] [27511] ENV:
+[2026-07-23T20:32:17.245Z] [27511]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:17.245Z] [27511]   COLORTERM=truecolor
+[2026-07-23T20:32:17.245Z] [27511]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:17.245Z] [27511]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:17.245Z] [27511]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:17.245Z] [27511]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:17.245Z] [27511]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:17.246Z] [27511]   HOME=/Users/isolomatov
+[2026-07-23T20:32:17.246Z] [27511]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:17.246Z] [27511]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:17.246Z] [27511]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:17.246Z] [27511]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:17.246Z] [27511]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:17.246Z] [27511]   LANG=en_US.UTF-8
+[2026-07-23T20:32:17.246Z] [27511]   LOGNAME=isolomatov
+[2026-07-23T20:32:17.246Z] [27511]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:17.246Z] [27511]   OSLogRateLimit=64
+[2026-07-23T20:32:17.246Z] [27511]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:17.246Z] [27511]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:17.246Z] [27511]   RBENV_SHELL=zsh
+[2026-07-23T20:32:17.246Z] [27511]   SHELL=/bin/zsh
+[2026-07-23T20:32:17.246Z] [27511]   SHLVL=2
+[2026-07-23T20:32:17.246Z] [27511]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:17.246Z] [27511]   TERM=tmux-256color
+[2026-07-23T20:32:17.246Z] [27511]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:17.246Z] [27511]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:17.246Z] [27511]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:17.247Z] [27511]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:17.247Z] [27511]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:17.247Z] [27511]   TMUX_PANE=%3
+[2026-07-23T20:32:17.247Z] [27511]   USER=isolomatov
+[2026-07-23T20:32:17.247Z] [27511]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:17.247Z] [27511]   XPC_FLAGS=0x0
+[2026-07-23T20:32:17.247Z] [27511]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:17.247Z] [27511]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:17.247Z] [27511]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:17.247Z] [27511]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:17.247Z] [27511] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":11,"toolCall":{"args":{"AllowMultiple":false,"Description":"Replacing line one with line two","EndLine":1,"Instruction":"Replace 'line one' with 'line two'","ReplacementContent":"rosetta antigravity probe line two","StartLine":1,"TargetContent":"rosetta antigravity probe line one","TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt","toolAction":"Replacing text in file","toolSummary":"Replace line one with line two"},"name":"replace_file_content"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:17.247Z] [27511] PROCESSOR: --tag (value="PostToolUse")
+[2026-07-23T20:32:17.247Z] [27511] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:17.247Z] [27511] 
+
+[2026-07-23T20:32:17.277Z] [27512] ===== hook invocation =====
+[2026-07-23T20:32:17.278Z] [27512] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --emit-once {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1."}]} --tag PostInvocation
+[2026-07-23T20:32:17.278Z] [27512] ARGV: ["--emit-once","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}","--tag","PostInvocation"]
+[2026-07-23T20:32:17.278Z] [27512] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:17.278Z] [27512] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:17.278Z] [27512] RAW STDIN:
+[2026-07-23T20:32:17.278Z] [27512] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":10,"invocationNum":2,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:17.278Z] [27512] ENV:
+[2026-07-23T20:32:17.278Z] [27512]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:17.278Z] [27512]   COLORTERM=truecolor
+[2026-07-23T20:32:17.278Z] [27512]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:17.278Z] [27512]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:17.278Z] [27512]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:17.278Z] [27512]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:17.279Z] [27512]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:17.279Z] [27512]   HOME=/Users/isolomatov
+[2026-07-23T20:32:17.279Z] [27512]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:17.279Z] [27512]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:17.279Z] [27512]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:17.279Z] [27512]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:17.279Z] [27512]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:17.279Z] [27512]   LANG=en_US.UTF-8
+[2026-07-23T20:32:17.279Z] [27512]   LOGNAME=isolomatov
+[2026-07-23T20:32:17.279Z] [27512]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:17.279Z] [27512]   OSLogRateLimit=64
+[2026-07-23T20:32:17.279Z] [27512]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:17.279Z] [27512]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:17.279Z] [27512]   RBENV_SHELL=zsh
+[2026-07-23T20:32:17.279Z] [27512]   SHELL=/bin/zsh
+[2026-07-23T20:32:17.279Z] [27512]   SHLVL=2
+[2026-07-23T20:32:17.279Z] [27512]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:17.279Z] [27512]   TERM=tmux-256color
+[2026-07-23T20:32:17.280Z] [27512]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:17.280Z] [27512]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:17.280Z] [27512]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:17.280Z] [27512]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:17.280Z] [27512]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:17.280Z] [27512]   TMUX_PANE=%3
+[2026-07-23T20:32:17.280Z] [27512]   USER=isolomatov
+[2026-07-23T20:32:17.280Z] [27512]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:17.280Z] [27512]   XPC_FLAGS=0x0
+[2026-07-23T20:32:17.280Z] [27512]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:17.280Z] [27512]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:17.280Z] [27512]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:17.280Z] [27512]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:17.280Z] [27512] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":10,"invocationNum":2,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:17.281Z] [27512] PROCESSOR: --emit-once (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}")
+[2026-07-23T20:32:17.281Z] [27512] PROCESSOR: --tag (value="PostInvocation")
+[2026-07-23T20:32:17.281Z] [27512] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:17.281Z] [27512] 
+
+[2026-07-23T20:32:17.311Z] [27513] ===== hook invocation =====
+[2026-07-23T20:32:17.312Z] [27513] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --inject-on-invocation {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1."},{"userMessage":"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1."}]} --tag PreInvocation
+[2026-07-23T20:32:17.312Z] [27513] ARGV: ["--inject-on-invocation","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}","--tag","PreInvocation"]
+[2026-07-23T20:32:17.312Z] [27513] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:17.312Z] [27513] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:17.312Z] [27513] RAW STDIN:
+[2026-07-23T20:32:17.312Z] [27513] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":12,"invocationNum":3,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:17.312Z] [27513] ENV:
+[2026-07-23T20:32:17.312Z] [27513]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:17.312Z] [27513]   COLORTERM=truecolor
+[2026-07-23T20:32:17.313Z] [27513]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:17.313Z] [27513]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:17.313Z] [27513]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:17.313Z] [27513]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:17.313Z] [27513]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:17.313Z] [27513]   HOME=/Users/isolomatov
+[2026-07-23T20:32:17.313Z] [27513]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:17.313Z] [27513]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:17.313Z] [27513]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:17.313Z] [27513]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:17.313Z] [27513]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:17.313Z] [27513]   LANG=en_US.UTF-8
+[2026-07-23T20:32:17.313Z] [27513]   LOGNAME=isolomatov
+[2026-07-23T20:32:17.313Z] [27513]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:17.313Z] [27513]   OSLogRateLimit=64
+[2026-07-23T20:32:17.313Z] [27513]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:17.313Z] [27513]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:17.313Z] [27513]   RBENV_SHELL=zsh
+[2026-07-23T20:32:17.313Z] [27513]   SHELL=/bin/zsh
+[2026-07-23T20:32:17.313Z] [27513]   SHLVL=2
+[2026-07-23T20:32:17.313Z] [27513]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:17.314Z] [27513]   TERM=tmux-256color
+[2026-07-23T20:32:17.314Z] [27513]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:17.314Z] [27513]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:17.314Z] [27513]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:17.314Z] [27513]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:17.314Z] [27513]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:17.314Z] [27513]   TMUX_PANE=%3
+[2026-07-23T20:32:17.314Z] [27513]   USER=isolomatov
+[2026-07-23T20:32:17.314Z] [27513]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:17.314Z] [27513]   XPC_FLAGS=0x0
+[2026-07-23T20:32:17.314Z] [27513]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:17.314Z] [27513]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:17.314Z] [27513]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:17.314Z] [27513]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:17.314Z] [27513] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":12,"invocationNum":3,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:17.314Z] [27513] PROCESSOR: --inject-on-invocation (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}")
+[2026-07-23T20:32:17.314Z] [27513] PROCESSOR: --tag (value="PreInvocation")
+[2026-07-23T20:32:17.314Z] [27513] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:17.314Z] [27513] 
+
+[2026-07-23T20:32:25.287Z] [27517] ===== hook invocation =====
+[2026-07-23T20:32:25.288Z] [27517] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --mode antigravity --output {"decision":"allow","reason":"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1."} --deny-on-match HOOK-DENY-PROBE --tag PreToolUse
+[2026-07-23T20:32:25.288Z] [27517] ARGV: ["--mode","antigravity","--output","{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}","--deny-on-match","HOOK-DENY-PROBE","--tag","PreToolUse"]
+[2026-07-23T20:32:25.288Z] [27517] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:25.288Z] [27517] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:25.289Z] [27517] RAW STDIN:
+[2026-07-23T20:32:25.289Z] [27517] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","modelName":"gemini-3.6-flash-high","stepIdx":13,"toolCall":{"args":{"Description":"Making two edits at once (changing rosetta to ROSETTA and probe to PROBE)","Instruction":"Change rosetta to ROSETTA and probe to PROBE","ReplacementChunks":[{"AllowMultiple":false,"EndLine":1,"ReplacementContent":"ROSETTA","StartLine":1,"TargetContent":"rosetta"},{"AllowMultiple":false,"EndLine":1,"ReplacementContent":"PROBE","StartLine":1,"TargetContent":"probe"}],"TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt"},"name":"multi_replace_file_content"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:25.289Z] [27517] ENV:
+[2026-07-23T20:32:25.289Z] [27517]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:25.289Z] [27517]   COLORTERM=truecolor
+[2026-07-23T20:32:25.289Z] [27517]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:25.289Z] [27517]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:25.289Z] [27517]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:25.289Z] [27517]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:25.289Z] [27517]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:25.290Z] [27517]   HOME=/Users/isolomatov
+[2026-07-23T20:32:25.290Z] [27517]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:25.290Z] [27517]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:25.290Z] [27517]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:25.290Z] [27517]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:25.290Z] [27517]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:25.290Z] [27517]   LANG=en_US.UTF-8
+[2026-07-23T20:32:25.290Z] [27517]   LOGNAME=isolomatov
+[2026-07-23T20:32:25.290Z] [27517]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:25.290Z] [27517]   OSLogRateLimit=64
+[2026-07-23T20:32:25.290Z] [27517]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:25.290Z] [27517]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:25.291Z] [27517]   RBENV_SHELL=zsh
+[2026-07-23T20:32:25.291Z] [27517]   SHELL=/bin/zsh
+[2026-07-23T20:32:25.291Z] [27517]   SHLVL=2
+[2026-07-23T20:32:25.291Z] [27517]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:25.291Z] [27517]   TERM=tmux-256color
+[2026-07-23T20:32:25.291Z] [27517]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:25.291Z] [27517]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:25.291Z] [27517]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:25.291Z] [27517]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:25.291Z] [27517]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:25.291Z] [27517]   TMUX_PANE=%3
+[2026-07-23T20:32:25.291Z] [27517]   USER=isolomatov
+[2026-07-23T20:32:25.292Z] [27517]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:25.292Z] [27517]   XPC_FLAGS=0x0
+[2026-07-23T20:32:25.292Z] [27517]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:25.292Z] [27517]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:25.292Z] [27517]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:25.292Z] [27517]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:25.293Z] [27517] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","modelName":"gemini-3.6-flash-high","stepIdx":13,"toolCall":{"args":{"Description":"Making two edits at once (changing rosetta to ROSETTA and probe to PROBE)","Instruction":"Change rosetta to ROSETTA and probe to PROBE","ReplacementChunks":[{"AllowMultiple":false,"EndLine":1,"ReplacementContent":"ROSETTA","StartLine":1,"TargetContent":"rosetta"},{"AllowMultiple":false,"EndLine":1,"ReplacementContent":"PROBE","StartLine":1,"TargetContent":"probe"}],"TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt"},"name":"multi_replace_file_content"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:25.293Z] [27517] PROCESSOR: --mode (value="antigravity")
+[2026-07-23T20:32:25.293Z] [27517] PROCESSOR: --output (value="{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}")
+[2026-07-23T20:32:25.293Z] [27517] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-07-23T20:32:25.293Z] [27517] PROCESSOR: --tag (value="PreToolUse")
+[2026-07-23T20:32:25.295Z] [27517] RESULT: exitCode=0 textLen=81 stderrLen=0
+[2026-07-23T20:32:25.295Z] [27517] 
+
+[2026-07-23T20:32:25.336Z] [27518] ===== hook invocation =====
+[2026-07-23T20:32:25.337Z] [27518] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --tag PostToolUse
+[2026-07-23T20:32:25.337Z] [27518] ARGV: ["--tag","PostToolUse"]
+[2026-07-23T20:32:25.337Z] [27518] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:25.337Z] [27518] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:25.337Z] [27518] RAW STDIN:
+[2026-07-23T20:32:25.337Z] [27518] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":13,"toolCall":{"args":{"Description":"Making two edits at once (changing rosetta to ROSETTA and probe to PROBE)","Instruction":"Change rosetta to ROSETTA and probe to PROBE","ReplacementChunks":[{"AllowMultiple":false,"EndLine":1,"ReplacementContent":"ROSETTA","StartLine":1,"TargetContent":"rosetta"},{"AllowMultiple":false,"EndLine":1,"ReplacementContent":"PROBE","StartLine":1,"TargetContent":"probe"}],"TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt","toolAction":"Making multiple edits to file","toolSummary":"Multiple replace in hook-probe-tmp.txt"},"name":"multi_replace_file_content"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:25.337Z] [27518] ENV:
+[2026-07-23T20:32:25.337Z] [27518]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:25.337Z] [27518]   COLORTERM=truecolor
+[2026-07-23T20:32:25.337Z] [27518]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:25.337Z] [27518]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:25.337Z] [27518]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:25.337Z] [27518]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:25.337Z] [27518]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:25.337Z] [27518]   HOME=/Users/isolomatov
+[2026-07-23T20:32:25.338Z] [27518]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:25.338Z] [27518]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:25.338Z] [27518]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:25.338Z] [27518]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:25.338Z] [27518]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:25.338Z] [27518]   LANG=en_US.UTF-8
+[2026-07-23T20:32:25.338Z] [27518]   LOGNAME=isolomatov
+[2026-07-23T20:32:25.338Z] [27518]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:25.338Z] [27518]   OSLogRateLimit=64
+[2026-07-23T20:32:25.338Z] [27518]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:25.338Z] [27518]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:25.338Z] [27518]   RBENV_SHELL=zsh
+[2026-07-23T20:32:25.338Z] [27518]   SHELL=/bin/zsh
+[2026-07-23T20:32:25.338Z] [27518]   SHLVL=2
+[2026-07-23T20:32:25.338Z] [27518]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:25.338Z] [27518]   TERM=tmux-256color
+[2026-07-23T20:32:25.338Z] [27518]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:25.338Z] [27518]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:25.338Z] [27518]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:25.338Z] [27518]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:25.338Z] [27518]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:25.338Z] [27518]   TMUX_PANE=%3
+[2026-07-23T20:32:25.338Z] [27518]   USER=isolomatov
+[2026-07-23T20:32:25.339Z] [27518]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:25.339Z] [27518]   XPC_FLAGS=0x0
+[2026-07-23T20:32:25.339Z] [27518]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:25.339Z] [27518]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:25.339Z] [27518]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:25.339Z] [27518]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:25.339Z] [27518] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":13,"toolCall":{"args":{"Description":"Making two edits at once (changing rosetta to ROSETTA and probe to PROBE)","Instruction":"Change rosetta to ROSETTA and probe to PROBE","ReplacementChunks":[{"AllowMultiple":false,"EndLine":1,"ReplacementContent":"ROSETTA","StartLine":1,"TargetContent":"rosetta"},{"AllowMultiple":false,"EndLine":1,"ReplacementContent":"PROBE","StartLine":1,"TargetContent":"probe"}],"TargetFile":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/hook-probe-tmp.txt","toolAction":"Making multiple edits to file","toolSummary":"Multiple replace in hook-probe-tmp.txt"},"name":"multi_replace_file_content"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:25.339Z] [27518] PROCESSOR: --tag (value="PostToolUse")
+[2026-07-23T20:32:25.339Z] [27518] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:25.339Z] [27518] 
+
+[2026-07-23T20:32:25.369Z] [27519] ===== hook invocation =====
+[2026-07-23T20:32:25.369Z] [27519] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --emit-once {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1."}]} --tag PostInvocation
+[2026-07-23T20:32:25.370Z] [27519] ARGV: ["--emit-once","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}","--tag","PostInvocation"]
+[2026-07-23T20:32:25.370Z] [27519] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:25.370Z] [27519] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:25.370Z] [27519] RAW STDIN:
+[2026-07-23T20:32:25.370Z] [27519] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":12,"invocationNum":3,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:25.370Z] [27519] ENV:
+[2026-07-23T20:32:25.370Z] [27519]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:25.370Z] [27519]   COLORTERM=truecolor
+[2026-07-23T20:32:25.370Z] [27519]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:25.370Z] [27519]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:25.370Z] [27519]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:25.370Z] [27519]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:25.370Z] [27519]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:25.370Z] [27519]   HOME=/Users/isolomatov
+[2026-07-23T20:32:25.370Z] [27519]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:25.370Z] [27519]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:25.370Z] [27519]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:25.370Z] [27519]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:25.370Z] [27519]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:25.371Z] [27519]   LANG=en_US.UTF-8
+[2026-07-23T20:32:25.371Z] [27519]   LOGNAME=isolomatov
+[2026-07-23T20:32:25.371Z] [27519]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:25.371Z] [27519]   OSLogRateLimit=64
+[2026-07-23T20:32:25.371Z] [27519]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:25.371Z] [27519]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:25.371Z] [27519]   RBENV_SHELL=zsh
+[2026-07-23T20:32:25.371Z] [27519]   SHELL=/bin/zsh
+[2026-07-23T20:32:25.371Z] [27519]   SHLVL=2
+[2026-07-23T20:32:25.371Z] [27519]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:25.371Z] [27519]   TERM=tmux-256color
+[2026-07-23T20:32:25.371Z] [27519]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:25.371Z] [27519]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:25.371Z] [27519]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:25.371Z] [27519]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:25.371Z] [27519]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:25.371Z] [27519]   TMUX_PANE=%3
+[2026-07-23T20:32:25.371Z] [27519]   USER=isolomatov
+[2026-07-23T20:32:25.371Z] [27519]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:25.371Z] [27519]   XPC_FLAGS=0x0
+[2026-07-23T20:32:25.371Z] [27519]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:25.371Z] [27519]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:25.371Z] [27519]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:25.371Z] [27519]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:25.371Z] [27519] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":12,"invocationNum":3,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:25.372Z] [27519] PROCESSOR: --emit-once (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}")
+[2026-07-23T20:32:25.372Z] [27519] PROCESSOR: --tag (value="PostInvocation")
+[2026-07-23T20:32:25.372Z] [27519] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:25.372Z] [27519] 
+
+[2026-07-23T20:32:25.402Z] [27520] ===== hook invocation =====
+[2026-07-23T20:32:25.404Z] [27520] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --inject-on-invocation {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1."},{"userMessage":"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1."}]} --tag PreInvocation
+[2026-07-23T20:32:25.404Z] [27520] ARGV: ["--inject-on-invocation","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}","--tag","PreInvocation"]
+[2026-07-23T20:32:25.404Z] [27520] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:25.404Z] [27520] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:25.404Z] [27520] RAW STDIN:
+[2026-07-23T20:32:25.404Z] [27520] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":14,"invocationNum":4,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:25.404Z] [27520] ENV:
+[2026-07-23T20:32:25.404Z] [27520]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:25.404Z] [27520]   COLORTERM=truecolor
+[2026-07-23T20:32:25.404Z] [27520]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:25.405Z] [27520]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:25.405Z] [27520]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:25.405Z] [27520]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:25.405Z] [27520]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:25.405Z] [27520]   HOME=/Users/isolomatov
+[2026-07-23T20:32:25.405Z] [27520]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:25.405Z] [27520]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:25.405Z] [27520]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:25.405Z] [27520]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:25.405Z] [27520]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:25.405Z] [27520]   LANG=en_US.UTF-8
+[2026-07-23T20:32:25.405Z] [27520]   LOGNAME=isolomatov
+[2026-07-23T20:32:25.405Z] [27520]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:25.405Z] [27520]   OSLogRateLimit=64
+[2026-07-23T20:32:25.405Z] [27520]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:25.405Z] [27520]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:25.405Z] [27520]   RBENV_SHELL=zsh
+[2026-07-23T20:32:25.405Z] [27520]   SHELL=/bin/zsh
+[2026-07-23T20:32:25.405Z] [27520]   SHLVL=2
+[2026-07-23T20:32:25.405Z] [27520]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:25.405Z] [27520]   TERM=tmux-256color
+[2026-07-23T20:32:25.405Z] [27520]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:25.406Z] [27520]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:25.406Z] [27520]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:25.406Z] [27520]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:25.406Z] [27520]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:25.406Z] [27520]   TMUX_PANE=%3
+[2026-07-23T20:32:25.406Z] [27520]   USER=isolomatov
+[2026-07-23T20:32:25.406Z] [27520]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:25.406Z] [27520]   XPC_FLAGS=0x0
+[2026-07-23T20:32:25.406Z] [27520]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:25.406Z] [27520]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:25.406Z] [27520]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:25.406Z] [27520]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:25.406Z] [27520] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":14,"invocationNum":4,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:25.406Z] [27520] PROCESSOR: --inject-on-invocation (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}")
+[2026-07-23T20:32:25.406Z] [27520] PROCESSOR: --tag (value="PreInvocation")
+[2026-07-23T20:32:25.406Z] [27520] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:25.406Z] [27520] 
+
+[2026-07-23T20:32:33.871Z] [27524] ===== hook invocation =====
+[2026-07-23T20:32:33.872Z] [27524] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --mode antigravity --output {"decision":"allow","reason":"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1."} --deny-on-match HOOK-DENY-PROBE --tag PreToolUse
+[2026-07-23T20:32:33.872Z] [27524] ARGV: ["--mode","antigravity","--output","{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}","--deny-on-match","HOOK-DENY-PROBE","--tag","PreToolUse"]
+[2026-07-23T20:32:33.872Z] [27524] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:33.872Z] [27524] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:33.873Z] [27524] RAW STDIN:
+[2026-07-23T20:32:33.873Z] [27524] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","modelName":"gemini-3.6-flash-high","stepIdx":15,"toolCall":{"args":{"AbsolutePath":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/HOOK-DENY-PROBE.txt"},"name":"view_file"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:33.873Z] [27524] ENV:
+[2026-07-23T20:32:33.873Z] [27524]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:33.873Z] [27524]   COLORTERM=truecolor
+[2026-07-23T20:32:33.873Z] [27524]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:33.873Z] [27524]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:33.873Z] [27524]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:33.873Z] [27524]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:33.873Z] [27524]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:33.874Z] [27524]   HOME=/Users/isolomatov
+[2026-07-23T20:32:33.874Z] [27524]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:33.874Z] [27524]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:33.874Z] [27524]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:33.874Z] [27524]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:33.874Z] [27524]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:33.874Z] [27524]   LANG=en_US.UTF-8
+[2026-07-23T20:32:33.874Z] [27524]   LOGNAME=isolomatov
+[2026-07-23T20:32:33.874Z] [27524]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:33.874Z] [27524]   OSLogRateLimit=64
+[2026-07-23T20:32:33.874Z] [27524]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:33.874Z] [27524]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:33.875Z] [27524]   RBENV_SHELL=zsh
+[2026-07-23T20:32:33.875Z] [27524]   SHELL=/bin/zsh
+[2026-07-23T20:32:33.875Z] [27524]   SHLVL=2
+[2026-07-23T20:32:33.875Z] [27524]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:33.875Z] [27524]   TERM=tmux-256color
+[2026-07-23T20:32:33.875Z] [27524]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:33.875Z] [27524]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:33.875Z] [27524]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:33.875Z] [27524]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:33.875Z] [27524]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:33.875Z] [27524]   TMUX_PANE=%3
+[2026-07-23T20:32:33.875Z] [27524]   USER=isolomatov
+[2026-07-23T20:32:33.875Z] [27524]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:33.875Z] [27524]   XPC_FLAGS=0x0
+[2026-07-23T20:32:33.875Z] [27524]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:33.876Z] [27524]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:33.876Z] [27524]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:33.876Z] [27524]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:33.876Z] [27524] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","modelName":"gemini-3.6-flash-high","stepIdx":15,"toolCall":{"args":{"AbsolutePath":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/HOOK-DENY-PROBE.txt"},"name":"view_file"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:33.876Z] [27524] PROCESSOR: --mode (value="antigravity")
+[2026-07-23T20:32:33.876Z] [27524] PROCESSOR: --output (value="{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}")
+[2026-07-23T20:32:33.877Z] [27524] PROCESSOR: --deny-on-match (value="HOOK-DENY-PROBE")
+[2026-07-23T20:32:33.877Z] [27524] PROCESSOR: --tag (value="PreToolUse")
+[2026-07-23T20:32:33.879Z] [27524] RESULT: exitCode=0 textLen=393 stderrLen=0
+[2026-07-23T20:32:33.879Z] [27524] 
+
+[2026-07-23T20:32:33.917Z] [27525] ===== hook invocation =====
+[2026-07-23T20:32:33.917Z] [27525] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --tag PostToolUse
+[2026-07-23T20:32:33.917Z] [27525] ARGV: ["--tag","PostToolUse"]
+[2026-07-23T20:32:33.918Z] [27525] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:33.918Z] [27525] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:33.918Z] [27525] RAW STDIN:
+[2026-07-23T20:32:33.918Z] [27525] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":15,"toolCall":{"args":{"AbsolutePath":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/HOOK-DENY-PROBE.txt","toolAction":"Viewing file","toolSummary":"View HOOK-DENY-PROBE.txt"},"name":"view_file"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:33.918Z] [27525] ENV:
+[2026-07-23T20:32:33.918Z] [27525]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:33.918Z] [27525]   COLORTERM=truecolor
+[2026-07-23T20:32:33.918Z] [27525]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:33.918Z] [27525]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:33.918Z] [27525]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:33.918Z] [27525]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:33.918Z] [27525]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:33.918Z] [27525]   HOME=/Users/isolomatov
+[2026-07-23T20:32:33.918Z] [27525]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:33.918Z] [27525]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:33.918Z] [27525]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:33.918Z] [27525]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:33.918Z] [27525]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:33.918Z] [27525]   LANG=en_US.UTF-8
+[2026-07-23T20:32:33.918Z] [27525]   LOGNAME=isolomatov
+[2026-07-23T20:32:33.919Z] [27525]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:33.919Z] [27525]   OSLogRateLimit=64
+[2026-07-23T20:32:33.919Z] [27525]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:33.919Z] [27525]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:33.919Z] [27525]   RBENV_SHELL=zsh
+[2026-07-23T20:32:33.919Z] [27525]   SHELL=/bin/zsh
+[2026-07-23T20:32:33.919Z] [27525]   SHLVL=2
+[2026-07-23T20:32:33.919Z] [27525]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:33.919Z] [27525]   TERM=tmux-256color
+[2026-07-23T20:32:33.919Z] [27525]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:33.919Z] [27525]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:33.919Z] [27525]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:33.919Z] [27525]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:33.919Z] [27525]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:33.919Z] [27525]   TMUX_PANE=%3
+[2026-07-23T20:32:33.919Z] [27525]   USER=isolomatov
+[2026-07-23T20:32:33.919Z] [27525]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:33.919Z] [27525]   XPC_FLAGS=0x0
+[2026-07-23T20:32:33.919Z] [27525]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:33.920Z] [27525]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:33.920Z] [27525]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:33.920Z] [27525]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:33.920Z] [27525] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","modelName":"gemini-3.6-flash-high","stepIdx":15,"toolCall":{"args":{"AbsolutePath":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/HOOK-DENY-PROBE.txt","toolAction":"Viewing file","toolSummary":"View HOOK-DENY-PROBE.txt"},"name":"view_file"},"transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:33.920Z] [27525] PROCESSOR: --tag (value="PostToolUse")
+[2026-07-23T20:32:33.920Z] [27525] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:33.920Z] [27525] 
+
+[2026-07-23T20:32:33.949Z] [27526] ===== hook invocation =====
+[2026-07-23T20:32:33.950Z] [27526] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --emit-once {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1."}]} --tag PostInvocation
+[2026-07-23T20:32:33.950Z] [27526] ARGV: ["--emit-once","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}","--tag","PostInvocation"]
+[2026-07-23T20:32:33.950Z] [27526] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:33.950Z] [27526] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:33.950Z] [27526] RAW STDIN:
+[2026-07-23T20:32:33.950Z] [27526] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":14,"invocationNum":4,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:33.950Z] [27526] ENV:
+[2026-07-23T20:32:33.950Z] [27526]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:33.950Z] [27526]   COLORTERM=truecolor
+[2026-07-23T20:32:33.950Z] [27526]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:33.951Z] [27526]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:33.951Z] [27526]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:33.951Z] [27526]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:33.951Z] [27526]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:33.951Z] [27526]   HOME=/Users/isolomatov
+[2026-07-23T20:32:33.951Z] [27526]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:33.951Z] [27526]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:33.951Z] [27526]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:33.951Z] [27526]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:33.951Z] [27526]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:33.951Z] [27526]   LANG=en_US.UTF-8
+[2026-07-23T20:32:33.951Z] [27526]   LOGNAME=isolomatov
+[2026-07-23T20:32:33.951Z] [27526]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:33.951Z] [27526]   OSLogRateLimit=64
+[2026-07-23T20:32:33.951Z] [27526]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:33.951Z] [27526]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:33.951Z] [27526]   RBENV_SHELL=zsh
+[2026-07-23T20:32:33.951Z] [27526]   SHELL=/bin/zsh
+[2026-07-23T20:32:33.952Z] [27526]   SHLVL=2
+[2026-07-23T20:32:33.952Z] [27526]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:33.952Z] [27526]   TERM=tmux-256color
+[2026-07-23T20:32:33.952Z] [27526]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:33.952Z] [27526]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:33.952Z] [27526]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:33.952Z] [27526]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:33.952Z] [27526]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:33.952Z] [27526]   TMUX_PANE=%3
+[2026-07-23T20:32:33.952Z] [27526]   USER=isolomatov
+[2026-07-23T20:32:33.952Z] [27526]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:33.952Z] [27526]   XPC_FLAGS=0x0
+[2026-07-23T20:32:33.952Z] [27526]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:33.952Z] [27526]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:33.952Z] [27526]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:33.952Z] [27526]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:33.952Z] [27526] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":14,"invocationNum":4,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:33.952Z] [27526] PROCESSOR: --emit-once (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}")
+[2026-07-23T20:32:33.953Z] [27526] PROCESSOR: --tag (value="PostInvocation")
+[2026-07-23T20:32:33.953Z] [27526] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:33.953Z] [27526] 
+
+[2026-07-23T20:32:33.982Z] [27527] ===== hook invocation =====
+[2026-07-23T20:32:33.982Z] [27527] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --inject-on-invocation {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1."},{"userMessage":"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1."}]} --tag PreInvocation
+[2026-07-23T20:32:33.983Z] [27527] ARGV: ["--inject-on-invocation","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}","--tag","PreInvocation"]
+[2026-07-23T20:32:33.983Z] [27527] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:33.983Z] [27527] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:33.983Z] [27527] RAW STDIN:
+[2026-07-23T20:32:33.983Z] [27527] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":16,"invocationNum":5,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:33.983Z] [27527] ENV:
+[2026-07-23T20:32:33.983Z] [27527]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:33.983Z] [27527]   COLORTERM=truecolor
+[2026-07-23T20:32:33.983Z] [27527]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:33.983Z] [27527]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:33.983Z] [27527]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:33.984Z] [27527]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:33.984Z] [27527]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:33.984Z] [27527]   HOME=/Users/isolomatov
+[2026-07-23T20:32:33.984Z] [27527]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:33.984Z] [27527]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:33.984Z] [27527]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:33.984Z] [27527]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:33.984Z] [27527]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:33.984Z] [27527]   LANG=en_US.UTF-8
+[2026-07-23T20:32:33.984Z] [27527]   LOGNAME=isolomatov
+[2026-07-23T20:32:33.984Z] [27527]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:33.984Z] [27527]   OSLogRateLimit=64
+[2026-07-23T20:32:33.984Z] [27527]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:33.984Z] [27527]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:33.984Z] [27527]   RBENV_SHELL=zsh
+[2026-07-23T20:32:33.984Z] [27527]   SHELL=/bin/zsh
+[2026-07-23T20:32:33.984Z] [27527]   SHLVL=2
+[2026-07-23T20:32:33.984Z] [27527]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:33.985Z] [27527]   TERM=tmux-256color
+[2026-07-23T20:32:33.985Z] [27527]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:33.985Z] [27527]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:33.985Z] [27527]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:33.985Z] [27527]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:33.985Z] [27527]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:33.985Z] [27527]   TMUX_PANE=%3
+[2026-07-23T20:32:33.985Z] [27527]   USER=isolomatov
+[2026-07-23T20:32:33.985Z] [27527]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:33.985Z] [27527]   XPC_FLAGS=0x0
+[2026-07-23T20:32:33.985Z] [27527]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:33.985Z] [27527]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:33.985Z] [27527]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:33.985Z] [27527]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:33.985Z] [27527] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":16,"invocationNum":5,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:33.986Z] [27527] PROCESSOR: --inject-on-invocation (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}")
+[2026-07-23T20:32:33.986Z] [27527] PROCESSOR: --tag (value="PreInvocation")
+[2026-07-23T20:32:33.986Z] [27527] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:33.986Z] [27527] 
+
+[2026-07-23T20:32:43.061Z] [27532] ===== hook invocation =====
+[2026-07-23T20:32:43.062Z] [27532] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --emit-once {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1."}]} --tag PostInvocation
+[2026-07-23T20:32:43.062Z] [27532] ARGV: ["--emit-once","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}","--tag","PostInvocation"]
+[2026-07-23T20:32:43.062Z] [27532] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:43.062Z] [27532] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:43.062Z] [27532] RAW STDIN:
+[2026-07-23T20:32:43.062Z] [27532] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":16,"invocationNum":5,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:43.062Z] [27532] ENV:
+[2026-07-23T20:32:43.062Z] [27532]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:43.063Z] [27532]   COLORTERM=truecolor
+[2026-07-23T20:32:43.063Z] [27532]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:43.063Z] [27532]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:43.063Z] [27532]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:43.063Z] [27532]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:43.063Z] [27532]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:43.063Z] [27532]   HOME=/Users/isolomatov
+[2026-07-23T20:32:43.063Z] [27532]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:43.063Z] [27532]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:43.063Z] [27532]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:43.063Z] [27532]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:43.063Z] [27532]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:43.063Z] [27532]   LANG=en_US.UTF-8
+[2026-07-23T20:32:43.063Z] [27532]   LOGNAME=isolomatov
+[2026-07-23T20:32:43.064Z] [27532]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:43.064Z] [27532]   OSLogRateLimit=64
+[2026-07-23T20:32:43.064Z] [27532]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:43.064Z] [27532]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:43.064Z] [27532]   RBENV_SHELL=zsh
+[2026-07-23T20:32:43.064Z] [27532]   SHELL=/bin/zsh
+[2026-07-23T20:32:43.064Z] [27532]   SHLVL=2
+[2026-07-23T20:32:43.064Z] [27532]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:43.064Z] [27532]   TERM=tmux-256color
+[2026-07-23T20:32:43.064Z] [27532]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:43.064Z] [27532]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:43.064Z] [27532]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:43.064Z] [27532]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:43.064Z] [27532]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:43.064Z] [27532]   TMUX_PANE=%3
+[2026-07-23T20:32:43.065Z] [27532]   USER=isolomatov
+[2026-07-23T20:32:43.065Z] [27532]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:43.065Z] [27532]   XPC_FLAGS=0x0
+[2026-07-23T20:32:43.065Z] [27532]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:43.065Z] [27532]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:43.065Z] [27532]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:43.065Z] [27532]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:43.065Z] [27532] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":16,"invocationNum":5,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:43.065Z] [27532] PROCESSOR: --emit-once (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}")
+[2026-07-23T20:32:43.065Z] [27532] PROCESSOR: --tag (value="PostInvocation")
+[2026-07-23T20:32:43.066Z] [27532] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:43.066Z] [27532] 
+
+[2026-07-23T20:32:43.102Z] [27533] ===== hook invocation =====
+[2026-07-23T20:32:43.103Z] [27533] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --mode antigravity --block-stop-once --tag Stop
+[2026-07-23T20:32:43.103Z] [27533] ARGV: ["--mode","antigravity","--block-stop-once","--tag","Stop"]
+[2026-07-23T20:32:43.103Z] [27533] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:43.103Z] [27533] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:43.103Z] [27533] RAW STDIN:
+[2026-07-23T20:32:43.104Z] [27533] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","executionNum":0,"fullyIdle":true,"modelName":"gemini-3.6-flash-high","terminationReason":"NO_TOOL_CALL","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:43.104Z] [27533] ENV:
+[2026-07-23T20:32:43.104Z] [27533]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:43.104Z] [27533]   COLORTERM=truecolor
+[2026-07-23T20:32:43.104Z] [27533]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:43.104Z] [27533]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:43.104Z] [27533]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:43.104Z] [27533]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:43.104Z] [27533]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:43.104Z] [27533]   HOME=/Users/isolomatov
+[2026-07-23T20:32:43.104Z] [27533]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:43.104Z] [27533]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:43.104Z] [27533]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:43.104Z] [27533]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:43.104Z] [27533]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:43.105Z] [27533]   LANG=en_US.UTF-8
+[2026-07-23T20:32:43.105Z] [27533]   LOGNAME=isolomatov
+[2026-07-23T20:32:43.105Z] [27533]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:43.105Z] [27533]   OSLogRateLimit=64
+[2026-07-23T20:32:43.105Z] [27533]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:43.105Z] [27533]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:43.105Z] [27533]   RBENV_SHELL=zsh
+[2026-07-23T20:32:43.105Z] [27533]   SHELL=/bin/zsh
+[2026-07-23T20:32:43.105Z] [27533]   SHLVL=2
+[2026-07-23T20:32:43.105Z] [27533]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:43.105Z] [27533]   TERM=tmux-256color
+[2026-07-23T20:32:43.105Z] [27533]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:43.105Z] [27533]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:43.105Z] [27533]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:43.106Z] [27533]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:43.106Z] [27533]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:43.106Z] [27533]   TMUX_PANE=%3
+[2026-07-23T20:32:43.106Z] [27533]   USER=isolomatov
+[2026-07-23T20:32:43.106Z] [27533]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:43.106Z] [27533]   XPC_FLAGS=0x0
+[2026-07-23T20:32:43.106Z] [27533]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:43.106Z] [27533]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:43.106Z] [27533]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:43.106Z] [27533]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:43.106Z] [27533] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","executionNum":0,"fullyIdle":true,"modelName":"gemini-3.6-flash-high","terminationReason":"NO_TOOL_CALL","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:43.106Z] [27533] PROCESSOR: --mode (value="antigravity")
+[2026-07-23T20:32:43.106Z] [27533] PROCESSOR: --block-stop-once (value=true)
+[2026-07-23T20:32:43.107Z] [27533] PROCESSOR: --tag (value="Stop")
+[2026-07-23T20:32:43.108Z] [27533] RESULT: exitCode=0 textLen=322 stderrLen=0
+[2026-07-23T20:32:43.108Z] [27533] 
+
+[2026-07-23T20:32:43.142Z] [27534] ===== hook invocation =====
+[2026-07-23T20:32:43.143Z] [27534] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --inject-on-invocation {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1."},{"userMessage":"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1."}]} --tag PreInvocation
+[2026-07-23T20:32:43.143Z] [27534] ARGV: ["--inject-on-invocation","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}","--tag","PreInvocation"]
+[2026-07-23T20:32:43.143Z] [27534] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:43.143Z] [27534] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:43.143Z] [27534] RAW STDIN:
+[2026-07-23T20:32:43.143Z] [27534] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":18,"invocationNum":6,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:43.143Z] [27534] ENV:
+[2026-07-23T20:32:43.143Z] [27534]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:43.143Z] [27534]   COLORTERM=truecolor
+[2026-07-23T20:32:43.143Z] [27534]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:43.143Z] [27534]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:43.143Z] [27534]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:43.144Z] [27534]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:43.144Z] [27534]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:43.144Z] [27534]   HOME=/Users/isolomatov
+[2026-07-23T20:32:43.144Z] [27534]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:43.144Z] [27534]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:43.144Z] [27534]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:43.144Z] [27534]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:43.144Z] [27534]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:43.144Z] [27534]   LANG=en_US.UTF-8
+[2026-07-23T20:32:43.144Z] [27534]   LOGNAME=isolomatov
+[2026-07-23T20:32:43.144Z] [27534]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:43.144Z] [27534]   OSLogRateLimit=64
+[2026-07-23T20:32:43.144Z] [27534]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:43.144Z] [27534]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:43.144Z] [27534]   RBENV_SHELL=zsh
+[2026-07-23T20:32:43.144Z] [27534]   SHELL=/bin/zsh
+[2026-07-23T20:32:43.144Z] [27534]   SHLVL=2
+[2026-07-23T20:32:43.144Z] [27534]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:43.145Z] [27534]   TERM=tmux-256color
+[2026-07-23T20:32:43.145Z] [27534]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:43.145Z] [27534]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:43.145Z] [27534]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:43.145Z] [27534]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:43.145Z] [27534]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:43.145Z] [27534]   TMUX_PANE=%3
+[2026-07-23T20:32:43.145Z] [27534]   USER=isolomatov
+[2026-07-23T20:32:43.145Z] [27534]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:43.145Z] [27534]   XPC_FLAGS=0x0
+[2026-07-23T20:32:43.145Z] [27534]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:43.145Z] [27534]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:43.145Z] [27534]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:43.145Z] [27534]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:43.145Z] [27534] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":18,"invocationNum":6,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:43.145Z] [27534] PROCESSOR: --inject-on-invocation (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}")
+[2026-07-23T20:32:43.145Z] [27534] PROCESSOR: --tag (value="PreInvocation")
+[2026-07-23T20:32:43.145Z] [27534] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:43.145Z] [27534] 
+
+[2026-07-23T20:32:52.292Z] [27544] ===== hook invocation =====
+[2026-07-23T20:32:52.293Z] [27544] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --emit-once {"injectSteps":[{"ephemeralMessage":"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1."}]} --tag PostInvocation
+[2026-07-23T20:32:52.293Z] [27544] ARGV: ["--emit-once","{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}","--tag","PostInvocation"]
+[2026-07-23T20:32:52.293Z] [27544] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:52.293Z] [27544] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:52.294Z] [27544] RAW STDIN:
+[2026-07-23T20:32:52.294Z] [27544] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":18,"invocationNum":6,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:52.294Z] [27544] ENV:
+[2026-07-23T20:32:52.294Z] [27544]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:52.294Z] [27544]   COLORTERM=truecolor
+[2026-07-23T20:32:52.294Z] [27544]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:52.294Z] [27544]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:52.294Z] [27544]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:52.294Z] [27544]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:52.294Z] [27544]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:52.294Z] [27544]   HOME=/Users/isolomatov
+[2026-07-23T20:32:52.294Z] [27544]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:52.294Z] [27544]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:52.295Z] [27544]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:52.295Z] [27544]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:52.295Z] [27544]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:52.295Z] [27544]   LANG=en_US.UTF-8
+[2026-07-23T20:32:52.295Z] [27544]   LOGNAME=isolomatov
+[2026-07-23T20:32:52.295Z] [27544]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:52.295Z] [27544]   OSLogRateLimit=64
+[2026-07-23T20:32:52.295Z] [27544]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:52.295Z] [27544]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:52.295Z] [27544]   RBENV_SHELL=zsh
+[2026-07-23T20:32:52.295Z] [27544]   SHELL=/bin/zsh
+[2026-07-23T20:32:52.295Z] [27544]   SHLVL=2
+[2026-07-23T20:32:52.295Z] [27544]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:52.295Z] [27544]   TERM=tmux-256color
+[2026-07-23T20:32:52.295Z] [27544]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:52.295Z] [27544]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:52.296Z] [27544]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:52.296Z] [27544]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:52.296Z] [27544]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:52.296Z] [27544]   TMUX_PANE=%3
+[2026-07-23T20:32:52.296Z] [27544]   USER=isolomatov
+[2026-07-23T20:32:52.296Z] [27544]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:52.296Z] [27544]   XPC_FLAGS=0x0
+[2026-07-23T20:32:52.296Z] [27544]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:52.296Z] [27544]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:52.296Z] [27544]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:52.296Z] [27544]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:52.296Z] [27544] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","initialNumSteps":18,"invocationNum":6,"modelName":"gemini-3.6-flash-high","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:52.296Z] [27544] PROCESSOR: --emit-once (value="{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}")
+[2026-07-23T20:32:52.297Z] [27544] PROCESSOR: --tag (value="PostInvocation")
+[2026-07-23T20:32:52.297Z] [27544] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:52.297Z] [27544] 
+
+[2026-07-23T20:32:52.328Z] [27545] ===== hook invocation =====
+[2026-07-23T20:32:52.329Z] [27545] INVOCATION: /opt/homebrew/Cellar/node/26.5.0/bin/node /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks/tester.js --mode antigravity --block-stop-once --tag Stop
+[2026-07-23T20:32:52.329Z] [27545] ARGV: ["--mode","antigravity","--block-stop-once","--tag","Stop"]
+[2026-07-23T20:32:52.329Z] [27545] CWD: /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:52.329Z] [27545] SCRIPT DIR (__dirname): /Users/isolomatov/Sources/GAIN/rosetta/docs/hooks
+[2026-07-23T20:32:52.329Z] [27545] RAW STDIN:
+[2026-07-23T20:32:52.329Z] [27545] {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","executionNum":1,"fullyIdle":true,"modelName":"gemini-3.6-flash-high","terminationReason":"NO_TOOL_CALL","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:52.329Z] [27545] ENV:
+[2026-07-23T20:32:52.329Z] [27545]   ANTIGRAVITY_CONVERSATION_ID=9996e494-b3d9-4cf7-aabf-36acef4972bf
+[2026-07-23T20:32:52.329Z] [27545]   COLORTERM=truecolor
+[2026-07-23T20:32:52.329Z] [27545]   COMMAND_MODE=unix2003
+[2026-07-23T20:32:52.329Z] [27545]   FPATH=/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+[2026-07-23T20:32:52.330Z] [27545]   GHOSTTY_BIN_DIR=/Applications/Ghostty.app/Contents/MacOS
+[2026-07-23T20:32:52.330Z] [27545]   GHOSTTY_RESOURCES_DIR=/Applications/Ghostty.app/Contents/Resources/ghostty
+[2026-07-23T20:32:52.330Z] [27545]   GHOSTTY_SHELL_FEATURES=cursor:blink,path,title
+[2026-07-23T20:32:52.330Z] [27545]   HOME=/Users/isolomatov
+[2026-07-23T20:32:52.330Z] [27545]   HOMEBREW_CELLAR=/opt/homebrew/Cellar
+[2026-07-23T20:32:52.330Z] [27545]   HOMEBREW_PREFIX=/opt/homebrew
+[2026-07-23T20:32:52.330Z] [27545]   HOMEBREW_REPOSITORY=/opt/homebrew
+[2026-07-23T20:32:52.330Z] [27545]   INFOPATH=/opt/homebrew/share/info:
+[2026-07-23T20:32:52.330Z] [27545]   JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
+[2026-07-23T20:32:52.330Z] [27545]   LANG=en_US.UTF-8
+[2026-07-23T20:32:52.330Z] [27545]   LOGNAME=isolomatov
+[2026-07-23T20:32:52.330Z] [27545]   MANPATH=:/usr/share/man:/usr/local/share/man:/Applications/Ghostty.app/Contents/Resources/ghostty/../man:
+[2026-07-23T20:32:52.330Z] [27545]   OSLogRateLimit=64
+[2026-07-23T20:32:52.330Z] [27545]   PATH=/Users/isolomatov/.codeium/windsurf/bin:/Users/isolomatov/.antigravity-ide/antigravity-ide/bin:/Users/isolomatov/.local/bin:/Users/isolomatov/.rbenv/shims:/Users/isolomatov/.antigravity/antigravity/bin:/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/isolomatov/Library/Application Support/JetBrains/Toolbox/scripts:/Users/isolomatov/.lmstudio/bin
+[2026-07-23T20:32:52.330Z] [27545]   PWD=/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql/.agents
+[2026-07-23T20:32:52.330Z] [27545]   RBENV_SHELL=zsh
+[2026-07-23T20:32:52.330Z] [27545]   SHELL=/bin/zsh
+[2026-07-23T20:32:52.330Z] [27545]   SHLVL=2
+[2026-07-23T20:32:52.331Z] [27545]   SSH_AUTH_SOCK=/var/run/com.apple.launchd.nrAguGvY8l/Listeners
+[2026-07-23T20:32:52.331Z] [27545]   TERM=tmux-256color
+[2026-07-23T20:32:52.331Z] [27545]   TERMINFO=/Applications/Ghostty.app/Contents/Resources/terminfo
+[2026-07-23T20:32:52.331Z] [27545]   TERM_PROGRAM=tmux
+[2026-07-23T20:32:52.331Z] [27545]   TERM_PROGRAM_VERSION=3.7b
+[2026-07-23T20:32:52.331Z] [27545]   TMPDIR=/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/
+[2026-07-23T20:32:52.331Z] [27545]   TMUX=/private/tmp/tmux-502/default,4383,0
+[2026-07-23T20:32:52.331Z] [27545]   TMUX_PANE=%3
+[2026-07-23T20:32:52.331Z] [27545]   USER=isolomatov
+[2026-07-23T20:32:52.331Z] [27545]   XDG_DATA_DIRS=/usr/local/share:/usr/share:/Applications/Ghostty.app/Contents/Resources/ghostty/..
+[2026-07-23T20:32:52.331Z] [27545]   XPC_FLAGS=0x0
+[2026-07-23T20:32:52.331Z] [27545]   XPC_SERVICE_NAME=0
+[2026-07-23T20:32:52.331Z] [27545]   _=/opt/homebrew/bin/node
+[2026-07-23T20:32:52.331Z] [27545]   __CFBundleIdentifier=com.mitchellh.ghostty
+[2026-07-23T20:32:52.332Z] [27545]   __CF_USER_TEXT_ENCODING=0x1F6:0x0:0x0
+[2026-07-23T20:32:52.332Z] [27545] PARSED INPUT: {"artifactDirectoryPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf","conversationId":"9996e494-b3d9-4cf7-aabf-36acef4972bf","error":"","executionNum":1,"fullyIdle":true,"modelName":"gemini-3.6-flash-high","terminationReason":"NO_TOOL_CALL","transcriptPath":"/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl","workspacePaths":["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]}
+[2026-07-23T20:32:52.332Z] [27545] PROCESSOR: --mode (value="antigravity")
+[2026-07-23T20:32:52.332Z] [27545] PROCESSOR: --block-stop-once (value=true)
+[2026-07-23T20:32:52.332Z] [27545] PROCESSOR: --tag (value="Stop")
+[2026-07-23T20:32:52.332Z] [27545] RESULT: exitCode=0 textLen=0 stderrLen=0
+[2026-07-23T20:32:52.332Z] [27545] 

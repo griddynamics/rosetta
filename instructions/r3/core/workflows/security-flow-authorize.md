@@ -25,7 +25,7 @@ Phase 2. Requires a passing or user-approved DEV/QA-envs secret gate.
 4. Surface decisions for approval
 </phase_steps>
 
-<recommend_contract step="2.1" subagent="engineer" role="Enterprise security scope and authorization advisor" subagent_required_model="claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.7-flash-low, grok-4.6">
+<recommend_contract step="2.1" subagent="engineer" role="Enterprise security scope and authorization advisor" subagent_required_model="claude-sonnet-5-5, gpt-6-luna-high, gemini-3.8-flash-low, grok-4.7">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security`.

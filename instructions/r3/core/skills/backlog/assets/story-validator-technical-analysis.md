@@ -14,9 +14,15 @@ Establish how this can actually be implemented, and whether the information to d
 
 <inputs>
 
-The intake record, the business findings, and the answers already confirmed with the user. Treat confirmed answers as fact and labelled assumptions as unconfirmed.
+The intake record, the business findings, the answers already confirmed with the user, the findings prior runs raised with their ids, and the id range assigned to this pass. Treat confirmed answers as fact and labelled assumptions as unconfirmed.
 
 </inputs>
+
+<ids>
+
+Prior-run findings arrive with their ids. A finding that persists keeps its id, unchanged. Number a new finding above the highest id this item has ever carried. Never renumber, never reuse a retired id — the write-back matches created items on these ids.
+
+</ids>
 
 <skills>
 
@@ -88,7 +94,8 @@ The intake record, the business findings, and the answers already confirmed with
 - Any write to the issue tracker, wiki, or test management system
 - Declaring feasible on the strength of a plausible-looking approach with no cited evidence
 - Collapsing separate concerns into one verdict
-- Grading the story; the two verdicts are decided outside this dispatch
+- Grading the story, or classifying a concern as blocker, hold, or advisory; both are decided outside this dispatch
+- Renumbering a finding that a prior run already gave an id, or emitting ids outside the range assigned to this pass
 
 </forbidden>
 

@@ -25,6 +25,17 @@ Confirmed business findings, technical concerns with their states, user answers,
 
 </skills>
 
+<write_scope>
+
+Two rules, and together they are the whole blast radius:
+
+- **Modify** the validated item, and the items this run created. Never edit, relabel, transition, or close a sibling, a parent, a linked item, or anything in another project — however obviously related it looks.
+- **Create** the follow-up and split items the agreed toolbox move calls for, each linked to the validated item, each carrying `readiness-generated`.
+
+A change needed on an item outside this scope is a recommendation in the report, addressed to its owner. It is never an operation. This scope is the whole authority of this skill; every guardrail on tracker access still applies inside it.
+
+</write_scope>
+
 <write_binding>
 
 Operations are named by capability, not by tool name. Resolve each through the configured Issue Tracker integration: **get issue**, **create issue**, **update issue**, **add comment**, **set labels**, **link issues**.
@@ -39,14 +50,49 @@ Operations are named by capability, not by tool name. Resolve each through the c
 
 </write_binding>
 
+<capture>
+
+A finding does not earn an item by failing. The analysis comment is the default home; an item is the exception.
+
+Create an item only when the finding is at least one of:
+
+- independently actionable, or owned by somebody other than the implementer
+- blocking other work, or a decision that needs its own tracked answer
+- certain to be lost if it lives only in a comment
+
+Everything else goes in the consolidated analysis comment, with its class and its owner.
+
+- Combine findings that share an owner and a resolution. One answer -> one item.
+- A small, coherent item defaults to zero created items. The comment is the deliverable.
+- More than three created items in one run -> present the expanded split and get explicit approval for the split itself, before the payload preview.
+- Creating an item captures a finding. It never resolves one, and it never moves a verdict.
+
+</capture>
+
+<idempotency>
+
+Runs repeat on the same item for weeks, and this binding has no delete: a duplicate created here is permanent.
+
+- Every item this skill creates carries the label `readiness-generated` and, in its title, a stable concern key — the `BA-nn` / `TA-nn` id of the finding it closes. Never a paraphrase of the wording, which changes between runs.
+- Before creating anything: read the descendants of the validated item and match on `readiness-generated` plus the concern key. Match found -> update it, or comment on it. Never create a second one.
+- Match found for a finding now void -> comment saying it is void and why, and propose closing it. A human closes it.
+- Status transitions apply only to items carrying `readiness-generated`.
+
+</idempotency>
+
 <labels>
 
-Apply both verdicts as labels on the validated item, and restate them in the report:
+One label per axis on the validated item. Restate both verdicts, and the derived overall grade, in the report and in the analysis comment header:
 
-- `ready-for-development` or `not-ready-for-development`
-- `tech-ready` or `not-tech-ready`
+- `readiness-business-ready` · `readiness-business-conditional` · `readiness-business-blocked`
+- `readiness-technical-ready` · `readiness-technical-conditional` · `readiness-technical-blocked`
 
-Remove the opposite label of each pair when present. Where the project's taxonomy forbids new labels, record the verdicts in the analysis comment header instead, and say so.
+- At most one label per axis prefix. Setting one removes every other label carrying that prefix.
+- No axis label means never assessed. Never write a label to mean negative.
+- No label for the overall grade. It is derived from the two axes, and a stored derivative drifts from its inputs on any partial write.
+- Tracker has native mutually exclusive labels — scoped labels, label groups, a single-select field: bind the axis to that mechanism rather than enforcing exclusion yourself.
+- Project taxonomy forbids new labels: record the verdicts in the analysis comment header only, and say so. `readiness-generated` is then unavailable too, so `<idempotency>` matches on the concern key in the title alone.
+- `readiness-generated` is a separate marker with a separate job. See `<idempotency>`. It is never removed.
 
 </labels>
 
@@ -99,10 +145,11 @@ Comments are the durable question channel: stakeholders answer where they alread
 
 <method>
 
-1. Shape the change set from the verdicts, the open questions, the facts to promote, and the agreed toolbox move: split · comment · spike task · spec-first task · best-guess plus follow-up · simplest-assumption plus follow-up.
-2. Draft every item in full. Redact. Preview the whole set with exact payloads.
-3. On approval, execute in dependency order: parents before children · targets before links · story facts before question comments · labels last.
-4. Report each applied operation with its key or URL, each unapplied one with the reason.
+1. Read the descendants of the validated item and match every existing `readiness-generated` item to its concern key. That set decides create against update, per `<idempotency>`.
+2. Shape the change set from the verdicts, the open questions, the facts to promote, the `<capture>` test, and the agreed toolbox move: split · comment · spike task · spec-first task · best-guess plus follow-up · simplest-assumption plus follow-up.
+3. Draft every item in full. Redact. Preview the whole set with exact payloads.
+4. On approval, execute in dependency order: parents before children · targets before links · story facts before question comments · labels last.
+5. Report each applied operation with its key or URL, each unapplied one with the reason.
 
 </method>
 
@@ -115,6 +162,9 @@ Comments are the durable question channel: stakeholders answer where they alread
 - Re-posting a question that already carries an answer, or reusing a `Q-nn` id for a different question
 - Technical content anywhere in a story outside the `## Established technical facts` block
 - Deleting any tracker item
+- Modifying any item this run did not create, other than the validated item itself
+- Creating a second item for a finding that already carries one
+- An item per finding, when the analysis comment is where the finding belongs
 - Estimates, story points, sprint assignment, or priority changes
 
 </forbidden>

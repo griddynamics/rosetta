@@ -22,10 +22,10 @@ argument-hint: "[Hint shown during autocomplete to indicate expected arguments]"
 # Tools & Model Configuration (Optional)
 # allowed-tools — [Tools Claude can use without asking permission when this skill is active, dangerous, only keep it when you know exactly] [string] [Claude Code] [ex: Bash(git diff:*)]
 allowed-tools: "[Tools Claude can use without asking permission when this skill is active, dangerous, only keep it when you know exactly]"
-# model — [Model to use when this skill is active] [string] [Claude Code] [ex: claude-sonnet-5]
+# model — [Model to use when this skill is active] [string] [Claude Code] [ex: claude-sonnet-5-5]
 model: "[Model to use when this skill is active]"
 
-# [Latest Models: Anthropic (claude-opus-5, claude-sonnet-5, claude-haiku-4-5), OpenAI (gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna), Google (gemini-3.7-flash), Cursor (grok-4.6, composer-2.5), Z.ai (glm-5).]
+# [Latest Models: Anthropic (claude-opus-5-5, claude-sonnet-5-5, claude-haiku-5-5), OpenAI (gpt-6.1-sol, gpt-6-luna), Google (gemini-4-argon, gemini-3.8-flash), Cursor (grok-4.7, composer-2.5), Z.ai (glm-5).]
 
 # Execution Context (Optional)
 # context — [Set to 'fork' to run in a forked subagent context] [string] [Claude Code]

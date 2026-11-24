@@ -49,6 +49,10 @@ const VALID_SUBCOMMANDS = [
 
 const VALID_SUBCOMMANDS_STR = VALID_SUBCOMMANDS.join(", ");
 
+// FR-SPECS-0030 — the subcommands whose batch is the `ids` list. graph is not one of them: it
+// reads ids[0] only (FR-SPECS-0022).
+const ID_BATCH_SUBCOMMANDS: readonly string[] = ["get", "delete", "purge", "approve", "deprecate", "restore", "reopen"];
+
 /** FR-SPECS-0030 — undefined -> []; a single object -> [object]; an array -> itself, unchanged. */
 function normalizeBatch(x: unknown): unknown[] {
   if (x === undefined) return [];
@@ -97,18 +101,23 @@ async function runSpecs(input: SpecInput): Promise<RunEnvelope<unknown>> {
     }
   }
 
-  // FR-SPECS-0030 — batch normalize (1 item <-> array of 1) for every data-bearing subcommand,
+  // FR-SPECS-0030 — batch normalize (1 item <-> array of 1) for every data-bearing subcommand.
+  // The batch — the data items, or the ids of an id-bearing subcommand — is
   // enforced against SPECS_MAX_BATCH_SIZE before any per-item processing.
   let items: unknown[] | undefined;
+  let batchSize = 0;
   if (subcommand === "add" || subcommand === "update" || subcommand === "implemented") {
     items = normalizeBatch(parsedData);
-    if (items.length > SPECS_MAX_BATCH_SIZE) {
-      return err(
-        aggregate("size_limit_exceeded", [
-          { ref: "(batch)", reason: `batch of ${items.length} exceeds the maximum of ${SPECS_MAX_BATCH_SIZE} items` },
-        ]),
-      );
-    }
+    batchSize = items.length;
+  } else if (ID_BATCH_SUBCOMMANDS.includes(subcommand)) {
+    batchSize = ids?.length ?? 0;
+  }
+  if (batchSize > SPECS_MAX_BATCH_SIZE) {
+    return err(
+      aggregate("size_limit_exceeded", [
+        { ref: "(batch)", reason: `batch of ${batchSize} exceeds the maximum of ${SPECS_MAX_BATCH_SIZE} items` },
+      ]),
+    );
   }
 
   switch (subcommand) {

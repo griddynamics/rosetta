@@ -1,5 +1,5 @@
 {
-  "agents": ["claude-code"],
+  "agents": ["claude-code", "codex"],
   "timeoutSec": 1800,
   "repeats": 1,
   "evaluators": [

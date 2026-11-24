@@ -37,14 +37,15 @@ Order matters: `run-hook.ts:98` gates on `toolKinds` before calling `run(ctx)`. 
 
 ### Registration
 
-Every new hook must appear in every plugin's `hooks.json`. The canonical source is `plugins/core-claude/hooks/hooks.json.tmpl` (and equivalent templates in other plugins). Direct edits to generated `hooks.json` files are overwritten on the next `npx rosettify-plugins` run.
+Every new hook must appear in every plugin's `hooks.json`. The canonical source is `src/rosettify-plugins/plugins/template-claude/hooks/hooks.json.tmpl` (and equivalent `template-<ide>` folders). Direct edits to generated `hooks.json` files are overwritten on the next `npx rosettify-plugins` run.
 
-Paths by plugin:
-- `plugins/core-claude/hooks/hooks.json.tmpl` → `hooks.json`
-- `plugins/core-copilot/hooks/hooks.json.tmpl` → `hooks/hooks.json`
-- `plugins/core-cursor/.cursor/hooks/hooks.json.tmpl` → `hooks.json`
-- `plugins/core-codex/.codex/hooks/hooks.json.tmpl` → `hooks.json`
-- `plugins/core-windsurf/` — bundles are distributed but hooks.json registration is not covered by the regression test (`hooks-registered.test.ts`); register manually if needed.
+Template paths by plugin (under `src/rosettify-plugins/plugins/`):
+- `template-claude/hooks/hooks.json.tmpl` → `hooks/hooks.json`
+- `template-copilot/hooks/hooks.json.tmpl` → `hooks/hooks.json`
+- `template-cursor/hooks.json.tmpl` and `template-cursor/hooks/hooks.json.tmpl`
+- `template-codex/.codex-plugin/hooks.json.tmpl`
+- `template-antigravity/hooks.json.tmpl`
+- Windsurf has no `build-bundles.mjs` `PLUGINS` entry, no `template-windsurf` folder and no `hooks.json` registration.
 
 ### Platform-scoped events
 
@@ -81,7 +82,7 @@ src/hooks/scripts/build-bundles.mjs
 src/hooks/src/runtime/ide-registry.ts
 src/hooks/src/runtime/ide-rows/claude-code.ts
 src/hooks/src/runtime/run-hook.ts:98
-plugins/core-claude/hooks/hooks.json.tmpl
+src/rosettify-plugins/plugins/template-claude/hooks/hooks.json.tmpl
 src/hooks/tests/regression/hooks-registered.test.ts
 ```
 

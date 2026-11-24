@@ -1,0 +1,72 @@
+name: Version unpublished
+description: >-
+  Fails when a package version is already published. Pull requests whose paths
+  trigger a release pipeline run it, so a missing version bump blocks the PR instead
+  of failing (or overwriting) at publish time on main. Anonymous registry reads only.
+
+inputs:
+  registry:
+    description: "npm | pypi | dockerhub"
+    required: true
+  package:
+    description: "Package name (npm, PyPI) or Docker Hub repository (<namespace>/<name>)"
+    required: true
+  version:
+    description: "Version that the release pipeline would publish"
+    required: true
+  version-file:
+    description: "File that holds the version, named in the error message"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check ${{ inputs.package }} ${{ inputs.version }} on ${{ inputs.registry }}
+      shell: bash
+      env:
+        REGISTRY: ${{ inputs.registry }}
+        PACKAGE: ${{ inputs.package }}
+        VERSION: ${{ inputs.version }}
+        VERSION_FILE: ${{ inputs.version-file }}
+      run: |
+        set -euo pipefail
+        if [ -z "${VERSION}" ]; then
+          echo "::error::Could not read the version of ${PACKAGE} from ${VERSION_FILE}"
+          exit 1
+        fi
+        case "${REGISTRY}" in
+          npm)
+            HTTP_CODE="$(curl -sS --max-time 20 --retry 3 -o /dev/null -w '%{http_code}' "https://registry.npmjs.org/${PACKAGE}/${VERSION}")"
+            ;;
+          pypi)
+            HTTP_CODE="$(curl -sS --max-time 20 --retry 3 -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/${PACKAGE}/${VERSION}/json")"
+            ;;
+          dockerhub)
+            TOKEN="$(curl -fsS --max-time 20 --retry 3 "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${PACKAGE}:pull" | jq -r '.token')"
+            if [ -z "${TOKEN}" ] || [ "${TOKEN}" = "null" ]; then
+              echo "::error::Could not obtain an anonymous pull token from Docker Hub for ${PACKAGE}"
+              exit 1
+            fi
+            HTTP_CODE="$(curl -sS --max-time 20 --retry 3 -o /dev/null -w '%{http_code}' -I \
+              -H "Authorization: Bearer ${TOKEN}" \
+              -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json" \
+              "https://registry-1.docker.io/v2/${PACKAGE}/manifests/${VERSION}")"
+            ;;
+          *)
+            echo "::error::Unknown registry '${REGISTRY}' (expected npm, pypi or dockerhub)"
+            exit 1
+            ;;
+        esac
+        case "${HTTP_CODE}" in
+          200)
+            echo "::error::${PACKAGE} ${VERSION} is already published on ${REGISTRY}. Publishing it again would fail or overwrite it. Bump the version in ${VERSION_FILE} (scripts/bump_versions.sh)."
+            exit 1
+            ;;
+          404)
+            echo "${PACKAGE} ${VERSION} is not published on ${REGISTRY}."
+            ;;
+          *)
+            echo "::error::Unexpected HTTP ${HTTP_CODE} checking ${PACKAGE} ${VERSION} on ${REGISTRY}"
+            exit 1
+            ;;
+        esac

@@ -26,6 +26,7 @@
 - requirements-use
 - coding
 - testing
+- harness
 - debugging
 - codemap
 - load-project-context
@@ -52,3 +53,4 @@
 - qa-structure
 - orchestration
 - subagent-directives
+- checklist

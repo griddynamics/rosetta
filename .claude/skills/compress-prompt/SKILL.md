@@ -101,9 +101,9 @@ INVARIANTS (always-on, declared once): `## KEEP verbatim` + `## NEVER`. Run pass
 ## Process (HITL)
 1. Read target + its type schema + the grammar above. Nothing else.
 2. Inventory: per-scope purpose + LOAD-BEARING verdict (keep/shrink/cut) + duplications, stale items, repeated literals.
-3. Draft the compressed artifact as file next to current one, running `## Transform` to fixpoint. Do not overwrite yet.
+3. Compress to just key points and terse phrases, keep only thinking points (not even decisions), heavily compress direction text (to 1-3 words per step, not amount of steps). Allow running AI to make decisions. Draft the compressed artifact as file next to current one, running `## Transform` to fixpoint. Do not overwrite yet.
 4. HITL: present to the user → word Δ (before→after, %) + where the cuts came from + your reasoned take on the subagent findings.
-5. VERIFY via subagent — `INVOKE SUBAGENT` (Sonnet-5 class, low reasoning (!), e.g. `claude-sonnet-5`) with a fresh read of OLD vs NEW, asking only:
+5. VERIFY via subagent — `INVOKE SUBAGENT` (Sonnet-5.5 low reasoning or GPT 6 Luna medium class) with a fresh read of OLD vs NEW, asking only:
    - Does anything change in an executing agent's understanding or behavior?
    - Is anything now ambiguous, underspecified, or lost?
    - Any rule / gate / distinction present in OLD but missing or weaker in NEW?
@@ -115,8 +115,8 @@ INVARIANTS (always-on, declared once): `## KEEP verbatim` + `## NEVER`. Run pass
 7. HITL: present to the user → proposed artifact + word Δ (before→after, %) + where the cuts came from + your reasoned take on the subagent findings.
 8. On explicit user approval → write the TARGET file only.
 
-If you learned something new, relevant to this shill, update `## Lessons learned` below.
+If you learned something new which is reusable, there are process efficiency improvements, you can prevent failures in the future, update `## Lessons learned` below for self-improvement.
 
-## Lessons learned (keep updating, first line is template, follow <instructions>):
+## Lessons learned (self-improvement, keep updating, first line is template, keep template, follow "<instructions>", high confidence only):
 
-- **<key action item, less then 7 words>** <concise: what happened, why, root cause, reasoning, less then 25 words>.
+- **<key action item, less then 7 words>** <concise/terse: what happened, why, root cause, reasoning, less then 25 words>.

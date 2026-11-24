@@ -133,6 +133,21 @@ describe("specsSchemasDict — the published SpecDocumentSummary shape (FR-SPECS
 
 // FR-SPECS-0008 AC3 — every property takes its description from SPEC_FIELD_GUIDE by lookup, so the
 // schema dictionary and the help field_guide section are the same strings by construction.
+// FR-SPECS-0002 — add and migrate may create the document, so both accept its system.
+describe("specsSchemasDict — the inputs that may create a document (FR-SPECS-0002)", () => {
+  it.each(["SpecAddInput", "SpecMigrateInput"])("%s publishes system as a string", (typeName) => {
+    expect(propsOf(typeName)["system"]?.type).toBe("string");
+  });
+
+  it("no other input publishes system", () => {
+    const others = Object.keys(specsSchemasDict).filter(
+      (name) => name.endsWith("Input") && name !== "SpecAddInput" && name !== "SpecMigrateInput",
+    );
+    expect(others.length).toBeGreaterThan(0);
+    for (const name of others) expect(propsOf(name), name).not.toHaveProperty("system");
+  });
+});
+
 describe("specsSchemasDict — every published field carries authoring guidance", () => {
   it.each(["Spec", "AcceptanceCriterion"])("gives every %s property a non-empty description", (typeName) => {
     const undescribed = Object.entries(propsOf(typeName))

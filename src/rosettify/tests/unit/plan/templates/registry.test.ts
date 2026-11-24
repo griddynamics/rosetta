@@ -26,11 +26,11 @@ const REPO_ROOT = path.resolve(ROSETTIFY_ROOT, "../..");
 // Asset paths (in the monorepo docs folder, sibling of src/rosettify/)
 const CREATE_ASSET = path.join(
   REPO_ROOT,
-  "docs/requirements/rosettify/assets/templates/create-for-orchestrator.json",
+  "docs/REQUIREMENTS/rosettify/assets/templates/create-for-orchestrator.json",
 );
 const UPSERT_ASSET = path.join(
   REPO_ROOT,
-  "docs/requirements/rosettify/assets/templates/upsert-for-subagent.json",
+  "docs/REQUIREMENTS/rosettify/assets/templates/upsert-for-subagent.json",
 );
 
 /** Canonical JSON comparison: sort all object keys recursively. */

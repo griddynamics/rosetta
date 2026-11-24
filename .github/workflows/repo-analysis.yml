@@ -6,9 +6,15 @@ name: Rosetta Repo Analysis
 # Status "Backlog". Board membership is the scoping mechanism (replaces the
 # old Jira epic parent).
 #
+# Runs on EITHER agent -- see docs/AUTOMATION-ARCHITECTURE.md, "Agent switch".
+# Codex is the default; pick per run with the `agent` input, or repo-wide with the
+# `ROSETTA_CI_AGENT` repository variable.
+#
 # Required GitHub Secrets:
-#   - BIFROST_HOST_NAME: Bifrost gateway hostname (no protocol/port/path), routes Anthropic API calls through Bifrost
-#   - BIFROST_API_KEY: Bifrost-issued API key
+#   - BIFROST_HOST_NAME: Bifrost gateway hostname (no protocol/port/path). Routes
+#     Anthropic API calls (Claude branch, `/anthropic`) and OpenAI Responses API
+#     calls (Codex branch, `/openai/v1/responses`) through Bifrost.
+#   - BIFROST_API_KEY: Bifrost-issued API key. Used by both branches.
 #   - SELF_AUTOMATION_PROJECTS_TOKEN: PAT with org Projects (read/write) plus repo
 #     Issues/Pull requests/Contents (read/write) scope.
 #     The default GITHUB_TOKEN cannot read or write GitHub Projects v2 items,
@@ -18,6 +24,14 @@ on:
   #schedule:
   #  - cron: '0 23 * * *'
   workflow_dispatch:
+    inputs:
+      agent:
+        description: 'Coding agent to run'
+        type: choice
+        options:
+          - codex
+          - claude
+        default: codex
 
 permissions:
   contents: read
@@ -27,6 +41,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 240
     env:
+      # The agent switch. A dispatch input wins; otherwise the repository variable
+      # ROSETTA_CI_AGENT; otherwise codex. Every agent-specific step below keys off
+      # this one value, so the two branches can never both run.
+      ROSETTA_AGENT: ${{ inputs.agent || vars.ROSETTA_CI_AGENT || 'codex' }}
+      # Claude-branch only; inert on the Codex branch, which reaches Bifrost through
+      # openai/codex-action's Responses API proxy instead of a base-URL env var.
       ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
       ENABLE_TOOL_SEARCH: "true"
       CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
@@ -37,11 +57,21 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Install Bun
+        if: env.ROSETTA_AGENT == 'claude'
         id: bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.3.6
           token: ${{ github.token }}
+
+      # Codex has no `plugins:` input and no `--allowedTools`; both are arranged here.
+      # See .github/actions/codex-setup/action.yml for the full rationale.
+      - name: Set up Codex
+        if: env.ROSETTA_AGENT == 'codex'
+        id: codex
+        uses: ./.github/actions/codex-setup
+        with:
+          github-token: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
 
       # Removes `run_in_background` from the Agent tool schema, so subagents cannot
       # be backgrounded. A backgrounded subagent's report is delivered on a later
@@ -52,6 +82,7 @@ jobs:
         run: echo "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1" >> "$GITHUB_ENV"
 
       - name: Run Claude
+        if: env.ROSETTA_AGENT == 'claude'
         uses: anthropics/claude-code-action@v1
         env:
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
@@ -73,27 +104,105 @@ jobs:
             --disallowedTools
             "ScheduleWakeup,Bash(* --show-token),Bash(* --show-token*)"
 
+      # Codex counterpart of the step above. Differences that are inherent to the
+      # action, not choices made here:
+      #   - No per-tool allow-list exists. Reach is bounded by the `rosetta-read-net`
+      #     permission profile (read-only filesystem, network for `gh`) plus what
+      #     SELF_AUTOMATION_PROJECTS_TOKEN itself can do. That is coarser than the
+      #     Claude branch's `gh`-subcommand allow-list.
+      #   - Subagents DO run here: run 33664134418 fanned out to four of them
+      #     (five rollout files, 124 commands, inter-agent records between them).
+      #     An earlier comment claimed otherwise; the trace parser was simply
+      #     blind to those rollouts and reported them as empty.
+      #   - `model`/`effort` are set below to the Codex tier paired with the Claude
+      #     branch's `--model opus --effort high`; see "Model tiers" in the doc.
+      # GH_TOKEN is passed as step env because Codex has no `github_token` input; the
+      # action's own steps and `codex exec` both inherit it.
+      - name: Run Codex
+        if: env.ROSETTA_AGENT == 'codex'
+      # Pinned to v1.11 deliberately. `@v1` resolves to v1.12, which introduced BOTH
+      # of the failures seen here: #160 (drop-sudo chmods /run sockets to 0700, killing
+      # systemd-resolved, so the runner loses DNS and dies 52-65 minutes in -- every
+      # long Codex run in this repo did exactly that) and #150 (the Linux run never
+      # returns after the turn completes). `restrictRootServiceSocket` is absent from
+      # src/dropSudo.ts in v1.11 and earlier. Pinning keeps `safety-strategy` at its
+      # secure `drop-sudo` default rather than trading the sudo revocation away.
+      # Revisit when both are fixed upstream; v1.11 accepts every input used here.
+        uses: openai/codex-action@v1.11
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+        with:
+          openai-api-key: ${{ secrets.BIFROST_API_KEY }}
+          # Uncomment to pin the CLI if a floating `latest` ever regresses the beta
+          # permission profiles (they need >= 0.138.0). This is the rollback lever.
+          # codex-version: "0.142.2"
+          responses-api-endpoint: https://${{ secrets.BIFROST_HOST_NAME }}/openai/v1/responses
+          codex-home: ${{ steps.codex.outputs.codex-home }}
+          permission-profile: rosetta-read-net
+          # Mirrors the Claude branch's `--model opus --effort high`. The tier ladder is
+          # the one instructions/r3/core/agents/*.md already pairs, position by position:
+          # opus<->gpt-6.1-sol, sonnet<->gpt-6-luna (effort one step higher), haiku<->gpt-6-luna. Effort is a
+          # separate axis on Codex, so the `-high` suffix form collapses to model+effort.
+          model: gpt-6.1-sol
+          effort: high
+          output-file: ${{ runner.temp }}/codex-final-message.md
+          prompt: |
+            Environment: `.agents/`, `.codex/`, and `.codex-plugin/` hold the Rosetta instruction
+            set -- tooling CI extracted into this workspace, not repository content. Read those
+            paths from the working tree (`cat`, `sed`); never through git (`git show`, `git log`,
+            `git diff`).
+
+            MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-analysis.md
+
+      # `openai/codex-action` leaves its responses proxy and `codex exec` tree running
+      # after the step reports success, and a runner cannot finalise a job while those
+      # hold the step's output pipe. Every Codex run that did real work hung because of
+      # it -- triage was cancelled at the job cap, analysis sat until GitHub declared
+      # the runner lost at ~62 minutes. See .github/scripts/reap_agent_processes.sh.
+      - name: Reap leftover agent processes
+        if: always()
+        run: .github/scripts/reap_agent_processes.sh
+
       # The trace is a full tool transcript published as a downloadable artifact,
       # outside Actions log masking. Redact credentials before it leaves the runner.
+      # Both branches are named: the one that did not run has no files and is a no-op.
       - name: Scrub credentials from execution trace
         if: always()
         env:
           SCRUB_VALUES: |
             ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
             ${{ secrets.BIFROST_API_KEY }}
-        run: python3 .github/scripts/scrub_trace.py /home/runner/work/_temp/claude-execution-output.json
+        run: |
+          python3 .github/scripts/scrub_trace.py \
+            /home/runner/work/_temp/claude-execution-output.json \
+            "${{ steps.codex.outputs.sessions-dir }}"
 
       - name: Upload Claude execution trace
-        if: always()
+        if: always() && env.ROSETTA_AGENT == 'claude'
         uses: actions/upload-artifact@v6
         with:
           name: claude-execution-trace
           path: /home/runner/work/_temp/claude-execution-output.json
           retention-days: 3
 
+      - name: Upload Codex execution trace
+        if: always() && env.ROSETTA_AGENT == 'codex'
+        uses: actions/upload-artifact@v6
+        with:
+          name: codex-execution-trace
+          path: ${{ steps.codex.outputs.sessions-dir }}
+          retention-days: 3
+          if-no-files-found: warn
+
       # claude-code-action decides success from `subtype`/`is_error` alone, so a run
       # that abandons its subagents and files nothing is indistinguishable from a
       # clean one. This inspects the trace and fails the job instead.
       - name: Verify the run did real work
-        if: always()
+        if: always() && env.ROSETTA_AGENT == 'claude'
         run: python3 .github/scripts/check_trace.py /home/runner/work/_temp/claude-execution-output.json
+
+      # Codex equivalent, minus the abandoned-subagent check, which has no Codex
+      # analogue -- see check_codex_trace.py.
+      - name: Verify the run did real work (Codex)
+        if: always() && env.ROSETTA_AGENT == 'codex'
+        run: python3 .github/scripts/check_codex_trace.py "${{ steps.codex.outputs.sessions-dir }}"

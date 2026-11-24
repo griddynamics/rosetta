@@ -10,14 +10,15 @@ baseSchema: docs/schemas/phase.md
 <init_workspace_flow_documentation>
 
 <description_and_purpose>
-Agents without workspace documentation re-discover facts, repeat mistakes, and make incorrect assumptions every session. This phase creates the shared understanding layer all subsequent agent work depends on. Proof: five doc files exist and every prepped-workspace skill reads them. Use top tier model, as this documentation will be loaded every signle time in every single user session with AI.
+Agents without workspace documentation re-discover facts, repeat mistakes, and make incorrect assumptions every session. This phase creates the shared understanding layer all subsequent agent work depends on. Proof: five doc files exist and every prepped-workspace skill reads them. Use top tier model, as this documentation will be loaded every single time in every single user session with AI.
 </description_and_purpose>
 
 <workflow_context>
 - Phase 7 of 9 in init-workspace-flow
-- Input: TECHSTACK, CODEMAP, DEPENDENCIES, source code, PATTERNS, state.file_count, state.mode, state.composite
+- Input: TECHSTACK, CODEMAP, DEPENDENCIES, source code, PATTERNS (if phase 5 ran), state.file_count, state.mode, state.composite
 - Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md
-- Prerequisite: Phases 3 and 5 complete
+- Prerequisite: Phase 3 complete; phase 5 only if it ran
+- Notes: if subagents needed: prefer discoverer subagent or built-in subagent with cheap/fast model with high reasoning (haiku, luna, flash, etc) for reverse engineering, give them manageable sized tasks
 </workflow_context>
 
 <phase_steps>
@@ -32,7 +33,7 @@ Agents without workspace documentation re-discover facts, repeat mistakes, and m
 3. Read state.mode, state.composite, state.file_count
 </read_state>
 
-<execute_documentation step="7.2" subagent="built-in" role="Senior technical writer synthesizing workspace documentation" subagent_recommended_model="claude-opus-5,gpt-5.6-sol-high,gemini-3.7-flash-high">
+<execute_documentation step="7.2" subagent="built-in" role="Senior technical writer synthesizing workspace documentation" subagent_recommended_model="claude-opus-5-5,gpt-6.1-sol-high,gemini-4-argon-high,gemini-3.8-flash-high">
 
 Act as a senior technical writer — recovers intent from code, not transcribes implementation. Workspaces lack structured documentation, forcing every session to re-discover facts and repeat mistakes. This creates five foundational docs from source code analysis. Proof: all five docs exist, are non-empty, complementary, and track unknowns.
 
@@ -76,6 +77,7 @@ ARCHITECTURE.md:
 - Architecture, modules, workspace structure, testing, styling, building blocks
 - No business context — reference CONTEXT.md
 - Reference CODEMAP.md for file structure
+- Also include pre-existing processes (do not invent: document use existing commands or use existing documentation, per module, make it short, use file refs or just commands, sdlc related how-tos).
 - Limit to 150 lines, if there is MORE => keep ARCHITECTURE.md with core ARCHITECTURE plus index to per-area <AREA>-ARCHITECTURE.md files with a set of terms what it contains.
 
 IMPLEMENTATION.md:

@@ -15,6 +15,10 @@ Applies to installed clients that cannot be force-upgraded: mobile apps, desktop
 - State survives what the OS does: kill, background eviction, upgrade mid-flow
 - Platform divergence explicit: what is shared, what is per-platform, and who owns parity
 - Store policy as a constraint on architecture: payment rules, data disclosure labels, review-rejection risk of dynamic behavior
+- Tests usually cover the same thing for different platforms: reuse test cases, parity, automated tests code maybe reused
+- Publishing takes time, corporate may choose to use Server-Driven UI, which can be light (only data and big components) or full (entire structure of fine grained components, very small components, interactions, data, triggers, actions) or anything in between
+- UX is highly important, companies aim at 4.5+ stars at least, caching, prefetching, different screen sizes, different performance devices, etc
+- There are available tooling to actually run locally and even can be connected to AI via CLI, MCP, Computer Use - rapidly changing and evolving - either defined or needs to be searched, etc
 
 ## Default priorities
 

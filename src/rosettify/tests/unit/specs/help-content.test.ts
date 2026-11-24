@@ -33,6 +33,7 @@ const VALID_SUBCOMMANDS = [
 // note added without a topic here fails rather than slipping through untested.
 const FR_SPECS_0061_NOTE_TOPICS = [
   "inline JSON string",
+  "must name its system with --system",
   "ids are caller-provided",
   "nine recommended quality-characteristic codes",
   "the statement carries the rule",
@@ -111,6 +112,18 @@ describe("specsHelpContent.subcommands — all 16 registered, each fully specifi
     expect(sub!.examples).toBeDefined();
     expect(sub!.examples.tip.length).toBeGreaterThan(0);
     expect(sub!.examples.real.length).toBeGreaterThan(0);
+  });
+});
+
+// FR-SPECS-0002 — add and migrate may create the document, and that call must name its system.
+describe("specsHelpContent.subcommands — add and migrate document --system (FR-SPECS-0060)", () => {
+  it.each(["add", "migrate"] as const)("subcommand '%s' names --system in usage, args, required, and both examples", (name) => {
+    const sub = specsHelpContent.subcommands.find((s) => s.name === name)!;
+    expect(sub.usage).toContain("[--system <name>]");
+    expect(sub.args).toHaveProperty("--system");
+    expect(sub.required).toContain("--system is required when the call creates the document");
+    expect(sub.examples.tip).toContain("--system [system-name]");
+    expect(sub.examples.real).toContain("--system checkout");
   });
 });
 

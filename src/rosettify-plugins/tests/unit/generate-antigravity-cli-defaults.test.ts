@@ -42,7 +42,7 @@ function buildFakeRepo(): string {
 
   const pluginsRoot = path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins');
   fs.mkdirSync(pluginsRoot, { recursive: true });
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex']) {
+  for (const target of ['template-claude', 'template-cursor', 'template-copilot', 'template-codex']) {
     const src = path.join(SAMPLE_PLUGINS_DIR, target);
     if (fs.existsSync(src)) {
       const dest = path.join(pluginsRoot, target);
@@ -50,13 +50,20 @@ function buildFakeRepo(): string {
       copyDirSync(src, dest);
     }
   }
-  // core-antigravity's real preserved source is tiny (plugin.json + hooks.json.tmpl) — copy
+  // template-antigravity's real preserved source is tiny (plugin.json + hooks.json.tmpl) — copy
   // read-only from the repo (not modified) so the target's own pipeline runs realistically.
-  copyDirSync(REAL_PLUGINS_DIR + '/core-antigravity', path.join(pluginsRoot, 'core-antigravity'));
+  copyDirSync(REAL_PLUGINS_DIR + '/template-antigravity', path.join(pluginsRoot, 'template-antigravity'));
 
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex']) {
-    fs.mkdirSync(path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', target), { recursive: true });
+  // Bundle directories are bare IDE ids (src/hooks/scripts/build-bundles.mjs).
+  for (const ide of ['claude', 'cursor', 'copilot', 'codex', 'antigravity']) {
+    fs.mkdirSync(path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', ide), { recursive: true });
   }
+
+  // DATA-CFG-0007: every run loads a plugin-set catalog at pre-flight.
+  fs.copyFileSync(
+    path.join(FIXTURES_DIR, 'sample-plugins.json'),
+    path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins.json'),
+  );
 
   fs.mkdirSync(path.join(tmpRepo, '.git'), { recursive: true });
   return tmpRepo;
@@ -68,6 +75,8 @@ function buildSources(repoRoot: string, outputDir: string): ResolvedSources {
     pluginsSource: path.join(repoRoot, 'src', 'rosettify-plugins', 'plugins'),
     hooksSource: path.join(repoRoot, 'src', 'hooks'),
     outputDir,
+    profileSource: path.join(repoRoot, 'src', 'rosettify-plugins', 'profiles'),
+    configPath: path.join(repoRoot, 'src', 'rosettify-plugins', 'plugins.json'),
   };
 }
 
@@ -107,15 +116,15 @@ describe('generate() — Antigravity deterministic_hooks CLI default (FR-CLI-001
     // deterministicHooks:true makes pluginSyncBundles required for EVERY target in this run
     // (generate() always processes all 7 specs) — stub bundle files for all of them so only
     // the Antigravity-specific effective-value behavior is under test here, not bundle sync.
+    // Every module the fixture set declares, plus read-once's support modules. Bundle dirs are
+    // keyed by IDE FAMILY (standalones read their parent's), so five dirs cover all seven targets.
     const bundleFiles = [
       'dangerous-actions.js', 'codemap-refresh.js', 'lint-format-advisory.js',
-      'loose-files.js', 'md-file-advisory.js', 'read-once.js', 'read-once-reset.js',
+      'loose-files.js', 'md-file-advisory.js',
+      'read-once.js', 'read-once-reset.js', 'read-once-shared.js',
     ];
-    for (const target of [
-      'core-claude', 'core-cursor', 'core-copilot', 'core-codex',
-      'core-cursor-standalone', 'core-copilot-standalone', 'core-antigravity',
-    ]) {
-      const bundleDir = path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', target);
+    for (const ide of ['claude', 'cursor', 'copilot', 'codex', 'antigravity']) {
+      const bundleDir = path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', ide);
       fs.mkdirSync(bundleDir, { recursive: true });
       for (const f of bundleFiles) fs.writeFileSync(path.join(bundleDir, f), '// stub');
     }

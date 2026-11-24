@@ -28,11 +28,11 @@ fork/clone → branch → edit → validate → push → PR
 
 2. **Develop using claude code / codex / cursor** or **use the prompting flow.**
    - **Development:** use rosetta plugins to develop rosetta. [TESTING-PLUGINS.md](https://github.com/griddynamics/rosetta/blob/main/docs/TESTING-PLUGINS.md) shows how to install and test plugins locally. Plugins allow contributors to see their in-progress instruction changes reflected almost immediately. End users should use plugins built from `main` or the production MCP endpoints.
-   - **Prompting:** use the [`coding-agents-prompting-flow`](/rosetta/docs/usage-guide/#workflows) with the `coding-agents-prompt-authoring` skill to author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with the Opus 5 model.
+   - **Prompting:** use the [`coding-agents-prompting-flow`](/rosetta/docs/usage-guide/#workflows) with the `coding-agents-prompt-authoring` skill to author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with the Opus 5.5 model.
 
      Example invocations:
 
-     - Run the flow by slash-command (requires the plugin installed — see [Plugins](/rosetta/docs/plugins/#step-1-install-plugin)):
+     - Run the flow by slash-command (after installing the plugin, see [Plugins](/rosetta/docs/plugins/#step-1-install-plugin)):
 
        ```
        /coding-agents-prompting-flow to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
@@ -117,6 +117,7 @@ rosetta/
 
 - **Python 3.12+**
 - **uvx** (included with [uv](https://docs.astral.sh/uv/getting-started/installation/))
+- **jq** (required by the pre-commit `verify links` check)
 - **Podman or Docker** (optional, for Redis, used by full MCP execution_controller tests)
 
 ---
@@ -284,6 +285,36 @@ venv/bin/pytest src/rosetta-cli/tests
 
 Run this after any Python code change.
 
+### Git pre-commit hook
+
+The repository ships a native Git pre-commit hook shim in `.githooks/pre-commit`.
+It runs the Python entrypoint at `scripts/pre_commit.py`, which runs, in order: the hooks build; the plugin sync (a single `npx -y rosettify-plugins@latest` call that reads `src/rosettify-plugins/plugins.json` and emits every `<set>-<ide>` folder in one pass); the `verify structure`, `verify crossrefs`, `verify hooks content`, `verify counts` and `verify links` steps (`scripts/verify/`, scope and rules in `docs/definitions/live_counts.json`); type validation; and tests. The `verify links` step needs `jq` installed (`ac_links.sh` exits 2 without it). `--only <slug>` runs selected steps.
+
+Use the root repo virtualenv for hook execution:
+
+```bash
+python3 -m venv venv
+venv/bin/pip install -r requirements.txt
+git config core.hooksPath .githooks
+```
+
+Git does not automatically use the repository's `.githooks/` directory.
+Each developer must run `git config core.hooksPath .githooks` once in their local clone to enable the native pre-commit hook.
+
+On Windows, use the matching root-venv interpreter and pip executable:
+
+```powershell
+py -3 -m venv venv
+venv\Scripts\pip.exe install -r requirements.txt
+git config core.hooksPath .githooks
+```
+
+You can test the hook entrypoint directly:
+
+```bash
+venv/bin/python scripts/pre_commit.py
+```
+
 ---
 
 ## Dev Environment: Integration Testing
@@ -370,13 +401,15 @@ venv/bin/rosetta-cli list-dataset --dataset aia-r3
 
 ## Where to Change What
 
+Instruction sources live in `instructions/r3/core/`. Organization-specific additions go in a customization root, not in this repository. See [Instruction Structure](/rosetta/docs/architecture/#instruction-structure).
+
 | Change type            | Location                                              | Validation                               |
 | ---------------------- | ----------------------------------------------------- | ---------------------------------------- |
-| New/modified skill     | `instructions/r3/core/skills/<name>/SKILL.md`         | Publish, test via MCP                    |
-| New/modified agent     | `instructions/r3/core/agents/<name>.md`               | Publish, test via MCP                    |
-| New/modified workflow  | `instructions/r3/core/workflows/<name>.md`            | Publish, test via MCP                    |
-| New/modified rule      | `instructions/r3/core/rules/<name>.md`                | Publish, test via MCP                    |
-| Organization extension | `instructions/r3/<org>/` (same type structure)        | Publish, test via MCP                    |
+| New/modified skill     | `instructions/r3/core/skills/<name>/SKILL.md` | Publish, test via MCP |
+| New/modified agent     | `instructions/r3/core/agents/<name>.md` | Publish, test via MCP |
+| New/modified workflow  | `instructions/r3/core/workflows/<name>.md` | Publish, test via MCP |
+| New/modified rule      | `instructions/r3/core/rules/<name>.md` | Publish, test via MCP |
+| Organization-specific instructions | A customization root built with `--customizations`. See [Build customized plugins](https://github.com/griddynamics/rosetta/blob/main/PLUGINS.md#build-customized-plugins) | Generate the plugin, inspect output |
 | MCP tool or prompt     | `src/rosetta-mcp-server/rosetta_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, src/validate-types.sh |
 | CLI command            | `src/rosetta-cli/rosetta_cli/commands/`               | pytest, dry-run, publish to dev          |
 | Website                | `docs/web/`                                           | Local Jekyll build                       |

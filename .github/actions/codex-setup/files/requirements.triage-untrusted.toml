@@ -1,0 +1,12 @@
+# Rosetta CI — extra deny rules for `repo-triage` when the event sender is UNTRUSTED
+# (repository permission below write). Appended after requirements.triage.toml.
+# ONLY [[rules.prefix_rules]] entries are allowed here.
+#
+# An untrusted run reads and posts one reply comment on the current item; it never
+# edits items, labels included. Known gap: a comment on another item cannot be denied
+# by prefix (the item number follows the subcommand) — see requirements.triage.toml.
+
+[[rules.prefix_rules]]
+pattern = [{ token = "gh" }, { any_of = ["issue", "pr"] }, { token = "edit" }]
+decision = "forbidden"
+justification = "Untrusted senders get read access plus one reply comment; no edits, labels included."

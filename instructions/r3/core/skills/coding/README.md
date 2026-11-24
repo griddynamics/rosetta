@@ -2,6 +2,8 @@
 
 The default implementation skill: writes/fixes/refactors code (including IaC) under KISS/SOLID/DRY with a fixed validation methodology.
 
+Simple, minimal, in-scope changes following KISS/SOLID/DRY. Systematic dependency-ordered validation: database, API, web, mobile. Covers IaC.
+
 ## Why it exists
 
 Without this skill a model implementing a task would: skip impact analysis on "small" changes, treat passing tests as done, add unrequested refactors/features while it's in the file, leave pre-existing warnings/errors unfixed under a "pre-existing" excuse, validate ad hoc instead of in dependency order (DB → API → Web → Mobile), and run IaC without security scanning, blast-radius analysis, or HITL on deletions. The skill forces zero-tolerance validation, scope discipline, and a mandatory IaC sub-procedure instead.

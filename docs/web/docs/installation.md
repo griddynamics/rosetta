@@ -14,7 +14,7 @@ permalink: /docs/installation/
 > You must receive prior approval from your manager and company to use Rosetta.
 
 > [!WARNING]
-> Use **Sonnet 5 medium**, **GPT-5.6-terra-medium**, **gemini-3.7-flash-high** or newer models. Avoid Auto model selection.
+> Use **Sonnet 5.5 medium**, **GPT-6-luna-high**, **gemini-3.8-flash-high** or newer models. Avoid Auto model selection.
 
 > [!NOTE]
 > There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
@@ -83,7 +83,7 @@ For detailed setup instructions, see the Cursor documentation:
 
 #### Standalone
 
-1. Download `core-cursor-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-cursor-standalone-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract the archive contents into your repository.
 3. Verify you can see a file `.cursor/agents/architect.md`. Ensure there are no `.cursor/.cursor` folders.
 
@@ -115,8 +115,8 @@ Use when your Marketplace/plugin catalog isn't available, or to avoid a live reg
 > [!NOTE]
 > The standalone installation is also detected by VS Code, so installing Rosetta through the standalone and marketplace methods will result in duplicate tools, commands, and context.
 
-1. Download `core-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
-2. Extract the archive contents into your repository. If `.github/copilot-instructions.md` already exists, merge contents — Rosetta first, then the original content.
+1. Download `rosetta-copilot-standalone-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+2. Extract the archive contents into your repository.
 3. Verify you can see a file `.github/agents/architect.agent.md`. Ensure there are no `.github/.github` folders.
 
 </details>
@@ -131,7 +131,7 @@ Use when your Marketplace/plugin catalog isn't available, or to avoid a live reg
 
 #### Standalone
 
-1. Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-codex-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract the archive contents into your repository.
 3. Enable hooks:
 
@@ -150,10 +150,10 @@ One plugin serves Antigravity 2.0, Antigravity CLI, and Antigravity IDE.
 
 #### Standalone
 
-1. Download `core-antigravity-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+1. Download `rosetta-antigravity-<version>-<date>.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Create the folder `.agents/plugins/rosetta/` at your workspace root.
 3. Extract the archive contents into it.
-4. Verify you can see a file `.agents/plugins/rosetta/plugin.json`. Ensure there are no `.agents/plugins/rosetta/core-antigravity` folders.
+4. Verify you can see a file `.agents/plugins/rosetta/plugin.json`. Ensure there are no `.agents/plugins/rosetta/rosetta-antigravity` folders.
 
 For all workspaces instead of one, extract into `~/.gemini/config/plugins/rosetta/` — same contents.
 
@@ -545,7 +545,7 @@ Required for STDIO transport. Optional otherwise.
 | `ROSETTA_API_KEY`         | (empty)                    | API key for Rosetta Server access. **Required.**                                                                                                            |
 | `ROSETTA_USER_EMAIL`      | `rosetta@example.com`      | User identity for authorization checks                                                                                                                      |
 | `ROSETTA_MODE`            | `HARD`                     | `HARD` adds more content to context with stricter requirements. `SOFT` is lighter and allows more agent independence, better when mcp-files-mode.md is also used |
-| `INSTRUCTION_ROOT_FILTER` | (empty)                    | Comma-separated root tags filter for instructions                                                                                                           |
+| `INSTRUCTION_ROOT_FILTER` | (empty)                    | Comma-separated folder filter (for example `core`). Parsed but not enforced yet ([#172](https://github.com/griddynamics/rosetta/issues/172)). See [MCP Architecture](/rosetta/docs/mcp-architecture/#instruction-root-filter). |
 | `ROSETTA_DEBUG`               | disabled                   | Enable debug logs (`1`, `true`, `yes`, `on`); legacy alias `IMS_DEBUG` still honored                                                                                                                |
 | `POSTHOG_API_KEY`         | (disabled)                 | Your PostHog project API key. Opt-in usage analytics — set to enable, omit or set to `DISABLED` to disable                                                  |
 | `POSTHOG_HOST`            | `https://eu.i.posthog.com` | Your PostHog instance URL, e.g. `https://posthog.internal.company.com`                                                                                      |

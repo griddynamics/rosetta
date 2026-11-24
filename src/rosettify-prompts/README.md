@@ -107,7 +107,9 @@ The conversation is:
 - A **mid value-lost review** after step 3, restoring anything the proposals so
   far weakened.
 - **Finalize-draft**: materialize accepted proposals into complete files.
-- **Final value-lost audit**: a last pass comparing originals vs the draft.
+- **Final value-lost audit**: a last pass comparing originals vs the draft; restores
+  only truly missing value, tersely, without re-adding decisions or direction text
+  that compression removed.
 
 ```bash
 npx -y rosettify-prompts@latest optimize \
@@ -117,7 +119,7 @@ npx -y rosettify-prompts@latest optimize \
   --supporting my-special-context.md \
   --additional "Prefer terse wording; keep examples concrete." \
   --out results/optimized-prompt \
-  --model claude-sonnet-5 \
+  --model claude-sonnet-5-5 \
   --max-output-tokens 32000
 ```
 
@@ -164,6 +166,10 @@ Outputs:
 Use `--dry-run` to validate the command shape and print the exact stage plan
 without creating an API client or writing files.
 
+### Retries
+
+The Anthropic SDK client retries a failed request up to 2 times, with backoff. It retries timeouts, connection errors, 408, 409, 429 and 5xx, and follows the `retry-after` header. An error that arrives after a streamed response has started is not retried, and that step fails.
+
 ## Writing a config
 
 A config is one JSON file with global defaults plus a list of suites. A suite
@@ -171,7 +177,7 @@ is one experiment: a set of variants to compare against each other.
 
 ```jsonc
 {
-  "model": "claude-sonnet-5",
+  "model": "claude-sonnet-5-5",
   "maxOutputTokens": 16384,
   "thinking": { "enabled": true, "mode": "adaptive", "effort": "high" },
   "repetitions": 5,
@@ -198,10 +204,12 @@ Fields:
 - `model`, `maxOutputTokens`, `thinking`, `repetitions`, `concurrency`: global
   defaults. Any of them can be overridden per suite (`suites[].model`,
   `suites[].thinking`, etc.).
+- `suites[].id`: must be unique across the config. Duplicate suite IDs are
+  rejected before any runs because reports group results by suite and variant ID.
 - `thinking.mode`:
   - `"adaptive"` (default): depth is controlled by `effort`
     (`low`/`medium`/`high`/`xhigh`/`max`). Required by current-gen models
-    (`claude-sonnet-5`, `claude-opus-4-7`/`4-8`, and later).
+    (`claude-sonnet-5-5`, `claude-opus-5-5`, `claude-opus-4-7`/`4-8`, and later).
   - `"manual"`: depth is controlled by `budgetTokens`. Only works on older
     models; `budget_tokens` is deprecated or rejected on newer ones.
 - `suites[].variants[].turns`: the whole point. An ordered list of user
@@ -222,11 +230,17 @@ it as a template, not as the schema.
 ## Metrics
 
 - **Input/output tokens**: billed figures straight from the API's `usage`.
-- **Thinking tokens**: read from `usage.output_tokens_details.thinking_tokens`
-  when the API reports it, otherwise estimated via `countTokens` on the
-  extracted `thinking` block (marked `"estimated"` in `report.json`). Already
-  included in billed output tokens; broken out here for analysis, not added
-  on top for cost.
+- **Thinking tokens**: recorded per turn in `report.json`. Usually derived as
+  billed `output_tokens` minus a `countTokens` measurement of the visible
+  reply text (`thinkingTokensSource: "derived"`). If the API reports
+  `usage.output_tokens_details.thinking_tokens`, that value is used instead
+  (`"usage"`). Without a reported value, `thinkingTokens` and
+  `thinkingTokensSource` are both `null` when thinking is disabled, the reply
+  has no visible text, `countTokens` is unavailable or fails, or the result
+  would be negative. The returned `thinking` block is not counted: it can be
+  a summary, so its length may not reflect the billed thinking tokens. Run
+  totals sum the turns that have a count. Already included in billed output
+  tokens; broken out here for analysis, not added on top for cost.
 - **Cost**: billed input/output tokens times the pricing table in
   `src/pricing.ts`, overridable via `pricingOverrides`.
 - **Text metrics**: char/word count and unicode-symbol density per reply, a

@@ -1,6 +1,8 @@
 # qa-structure
 QA path and state-layout authority: resolves where QA artifacts live, how slugs are formed, and how the QA state/config files are shaped.
 
+Canonical paths, slugs, and state files for QA runs. Each session in its own folder, so parallel runs never collide and a long flow knows which phase is done.
+
 ## Why it exists
 Without this skill, an agent doing QA setup will invent folder names, guess slugs, write session artifacts into shared `agents/` paths, or drift from the canonical state/config layout. `qa-structure` fixes that by making path resolution, slug rules, and state-file shape single-source and flow-specific.
 

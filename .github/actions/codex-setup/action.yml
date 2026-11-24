@@ -1,0 +1,183 @@
+name: Rosetta Codex setup
+description: >-
+  Prepares a Codex run for the Rosetta pipelines: a TRUSTED Codex home (permission
+  profiles + the hooks feature) and, optionally, the Rosetta `rosetta-codex` plugin
+  extracted into the workspace. Output `codex-home` feeds `openai/codex-action`.
+
+# Why this action exists
+#
+# `openai/codex-action@v1` has no counterpart to `claude-code-action`'s
+# `plugin_marketplaces`/`plugins` inputs and no `--allowedTools`. The two things the
+# Rosetta pipelines need on the Codex path therefore have to be arranged here:
+#
+#   1. Permission profiles. Every pipeline shells out to `gh`, which needs NETWORK.
+#      Codex's legacy `sandbox` modes cannot express "read-only filesystem + network":
+#      `read-only` blocks egress and `danger-full-access` drops the sandbox entirely.
+#      Named permission profiles CAN, because Codex describes filesystem and network
+#      independently. `codex-args` overrides that change permissions are rejected on
+#      protected runs, so the profiles must come from a trusted `config.toml` under a
+#      `codex-home` this action owns -- never from the checkout.
+#      Requires Codex CLI >= 0.138.0 (profiles are beta); pin `codex-version` in the
+#      caller if the floating latest ever regresses.
+#
+#   2. A command deny-list. Codex CANNOT express `--allowedTools` (allow-list), but it
+#      CAN express `--disallowedTools`: execpolicy `prefix_rules` in the system
+#      `requirements.toml` (/etc/codex/requirements.toml on Unix), which is the ENFORCED
+#      managed layer -- `codex-args` and project config cannot override it. Written below.
+#      Requires sudo, so this step must run BEFORE openai/codex-action's `drop-sudo`.
+#
+#   3. Rosetta instructions, with hooks that actually fire. The Codex plugin is a
+#      release archive extracted at the workspace root (`.agents/`, `.codex/`,
+#      `.codex-plugin/`). Two things are needed for its bootstrap to reach the model:
+#        - `[features] hooks = true` -- the on-disk effect of `codex features enable
+#          hooks`, written here because the Codex CLI is not installed until
+#          `openai/codex-action` runs.
+#        - MANAGED registration. A hook found in a project `.codex/hooks.json` is
+#          HookTrustStatus::Untrusted until a human trusts its content hash via
+#          `/hooks`; discovery.rs:701 runs a hook only if `bypass_hook_trust ||
+#          Managed | Trusted`, a headless run has nobody to trust it, and
+#          codex-action rejects `--dangerously-bypass-hook-trust` on a protected run.
+#          So the plugin's hooks.json is transpiled into the `[hooks]` block of the
+#          system requirements.toml, where `append_managed_requirement_handlers`
+#          marks it `is_managed: true` => HookTrustStatus::Managed => it runs.
+#          (`hooks.managed_dir` is only a display path; it loads nothing.)
+
+inputs:
+  install-plugin:
+    description: "Extract the Rosetta rosetta-codex plugin into the workspace so the agent boots with the Rosetta instruction set."
+    required: false
+    default: "true"
+  release-tag:
+    description: "Rosetta release to take the rosetta-codex asset from. Empty means the latest release."
+    required: false
+    default: ""
+  github-token:
+    description: "Token used to download the release asset. Needs contents:read on this repository."
+    required: true
+  extra-rules:
+    description: >-
+      Whitespace-separated file names under this action's `files/` directory, each holding
+      only `[[rules.prefix_rules]]` deny rules, appended after the shared requirements.toml.
+      Lets one pipeline tighten the policy without affecting the others. Empty means none.
+    required: false
+    default: ""
+outputs:
+  codex-home:
+    description: "Trusted Codex home to pass to openai/codex-action's `codex-home` input."
+    value: ${{ steps.home.outputs.path }}
+  sessions-dir:
+    description: "Where Codex writes its rollout transcripts, for the scrub/upload steps."
+    value: ${{ steps.home.outputs.sessions }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install trusted Codex home
+      id: home
+      shell: bash
+      env:
+        SRC: ${{ github.action_path }}/files/config.toml
+      run: |
+        set -euo pipefail
+        home="${RUNNER_TEMP}/rosetta-codex-home"
+        mkdir -p "$home"
+        cp "$SRC" "$home/config.toml"
+        {
+          echo "path=$home"
+          echo "sessions=$home/sessions"
+        } >> "$GITHUB_OUTPUT"
+        echo "Trusted Codex home: $home"
+        cat "$home/config.toml"
+
+    - name: Install Rosetta rosetta-codex plugin
+      if: inputs.install-plugin == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        RELEASE_TAG: ${{ inputs.release-tag }}
+      run: |
+        set -euo pipefail
+        dl="${RUNNER_TEMP}/rosetta-plugin"
+        mkdir -p "$dl"
+
+        # `gh release download` with no tag takes the latest release. The asset name
+        # carries version and date, so match on the prefix and exclude the `-light`
+        # variant, which is a different (reduced) instruction set.
+        if [ -n "$RELEASE_TAG" ]; then
+          gh release download "$RELEASE_TAG" --repo griddynamics/rosetta \
+            --pattern 'rosetta-codex-[0-9]*.zip' --dir "$dl" --clobber
+        else
+          gh release download --repo griddynamics/rosetta \
+            --pattern 'rosetta-codex-[0-9]*.zip' --dir "$dl" --clobber
+        fi
+
+        # One release can carry several dated builds of the same version and `gh`
+        # downloads every match, so pick deterministically by NAME, descending. Sorting
+        # by mtime (`ls -t`) ordered by download completion instead, which is arbitrary:
+        # it installed the 2026-08-31 build on 2026-09-01 when both were present.
+        # The name embeds version then ISO date; `sort -Vr` handles both, where a plain
+        # `sort -r` would rank 3.1.9 above 3.1.13.
+        # `|| true` so an empty match reports the message below instead of `set -e`
+        # aborting on the glob.
+        zip=$(ls -1 "$dl"/rosetta-codex-[0-9]*.zip 2>/dev/null | sort -Vr | head -n1 || true)
+        [ -n "$zip" ] || { echo "::error::no rosetta-codex asset found in the release"; exit 1; }
+        echo "Rosetta rosetta-codex asset: $(basename "$zip")"
+
+        unzip -oq "$zip" -d "$GITHUB_WORKSPACE"
+
+        # The plugin lands as untracked files in the working tree. The implementer
+        # pipeline commits from that tree, so keep them out of `git status` -- tracked
+        # files are never affected by an exclude, so this cannot hide real work.
+        exclude="$GITHUB_WORKSPACE/.git/info/exclude"
+        if [ -f "$exclude" ]; then
+          {
+            echo ""
+            echo "# Rosetta rosetta-codex plugin, extracted by .github/actions/codex-setup"
+            echo "/.agents/"
+            echo "/.codex/"
+            echo "/.codex-plugin/"
+          } >> "$exclude"
+        fi
+
+        test -f "$GITHUB_WORKSPACE/.codex/hooks.json" \
+          || { echo "::error::plugin extracted but .codex/hooks.json is missing"; exit 1; }
+        test -f "$GITHUB_WORKSPACE/.agents/rules/bootstrap-alwayson.md" \
+          || { echo "::error::plugin extracted but .agents/rules/bootstrap-alwayson.md is missing"; exit 1; }
+        echo "Rosetta rosetta-codex plugin installed at the workspace root."
+
+    - name: Install enforced policy
+      shell: bash
+      env:
+        TEMPLATE: ${{ github.action_path }}/files/requirements.toml
+        BUILDER: ${{ github.action_path }}/build_policy.py
+        FILES_DIR: ${{ github.action_path }}/files
+        EXTRA_RULES: ${{ inputs.extra-rules }}
+      run: |
+        set -euo pipefail
+        policy="${RUNNER_TEMP}/rosetta-requirements.toml"
+        hooks="$GITHUB_WORKSPACE/.codex/hooks.json"
+        args=(--template "$TEMPLATE" --out "$policy")
+
+        # build_policy.py fails if the plugin's hooks produce nothing, which under
+        # `allow_managed_hooks_only` would silently leave the run with no hooks at all.
+        if [ -f "$hooks" ]; then
+          args+=(--hooks-json "$hooks")
+        fi
+
+        # Plain file names only, resolved inside this action's files/: the policy source
+        # must stay this trusted action's own code, never a path into the checkout.
+        for name in $EXTRA_RULES; do
+          [[ "$name" =~ ^[A-Za-z0-9._-]+\.toml$ ]] \
+            || { echo "::error::extra-rules entry '$name' is not a plain .toml file name"; exit 1; }
+          [ -f "$FILES_DIR/$name" ] \
+            || { echo "::error::extra-rules file '$name' not found in codex-setup/files"; exit 1; }
+          args+=(--extra-rules "$FILES_DIR/$name")
+        done
+
+        python3 "$BUILDER" "${args[@]}"
+
+        # /etc/codex/requirements.toml needs root, so this step MUST run before
+        # openai/codex-action's `drop-sudo`.
+        sudo mkdir -p /etc/codex
+        sudo cp "$policy" /etc/codex/requirements.toml
+        echo "Enforced policy installed at /etc/codex/requirements.toml"

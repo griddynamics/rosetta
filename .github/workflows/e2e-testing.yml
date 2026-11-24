@@ -1,13 +1,31 @@
 name: E2E Testing (Curiocity)
 
-# Manually-triggered end-to-end run of the Curiocity coding suite. Two cases exist under
-# tests/e2e-tests: `coding-vanilla` (plain Claude Code) and `coding-rosetta` (Claude Code +
-# the live checked-in plugins/core-claude, whatever version is committed). Each case's
-# src.zip is a maintainer-provided test-library archive copied verbatim. workflow_dispatch only.
+# Manually-triggered end-to-end run of the Curiocity coding suite. Cases live under
+# tests/e2e-tests: `coding-vanilla` / `coding-vanilla-full` (a plain agent) and
+# `coding-rosetta` (an agent + the live checked-in plugins/rosetta-claude, whatever version
+# is committed). Each case's src.zip is a maintainer-provided test-library archive copied
+# verbatim. workflow_dispatch only.
+#
+# Runs on EITHER agent, via the `agent` input -- but NOT symmetrically, and unlike the
+# other Rosetta pipelines the default here stays claude-code. The agent under test is a
+# property of each Curiocity CASE (`agents` in its config.json), not of this workflow, and
+# `coding-rosetta` provisions the Rosetta plugin into the agent's session -- something the
+# Curiocity codex adapter refuses by design (it cannot provision plugins workspace-scoped;
+# see src/curiocity/src/agents/codex/adapter.ts). So `coding-rosetta` is claude-code only,
+# and choosing `codex` runs the vanilla cases and reports the rosetta case as skipped.
+# Making it symmetric means authoring a codex-provisioned rosetta case, not editing this
+# workflow.
 
 on:
   workflow_dispatch:
     inputs:
+      agent:
+        description: 'Agent under test (coding-rosetta is claude-code only)'
+        type: choice
+        options:
+          - claude-code
+          - codex
+        default: claude-code
       suite:
         description: 'Which cases to run'
         type: choice
@@ -22,25 +40,25 @@ on:
         type: string
         default: "1"
       agent_model:
-        description: 'Claude Code agent model (--agent-model claude-code=<v>)'
+        description: 'Agent CLI model (--agent-model <agent>=<v>); empty = the CLI default'
         type: string
-        default: claude-sonnet-5
+        default: claude-sonnet-5-5
       agent_effort:
-        description: 'Claude Code agent reasoning effort (--agent-effort claude-code=<v>)'
+        description: 'Agent CLI reasoning effort (--agent-effort <agent>=<v>)'
         type: string
         default: low
       fast_model:
         description: 'Fast-tier model override (--fast-model)'
         type: string
-        default: anthropic/claude-sonnet-5
+        default: anthropic/claude-sonnet-5-5
       workhorse_model:
         description: 'Workhorse-tier model override (--workhorse-model)'
         type: string
-        default: anthropic/claude-sonnet-5
+        default: anthropic/claude-sonnet-5-5
       judge_model:
         description: 'Judge-tier model override (--judge-model)'
         type: string
-        default: anthropic/claude-sonnet-5
+        default: anthropic/claude-sonnet-5-5
       timeout_sec:
         description: 'Per-trial wall-clock cap in seconds (--timeout)'
         type: string
@@ -70,6 +88,7 @@ jobs:
 
     env:
       RESULTS_DIR: curiocity-results
+      AGENT_ID: ${{ inputs.agent }}
 
     steps:
       - name: Checkout code
@@ -94,9 +113,16 @@ jobs:
           sudo apt-get install -y build-essential
 
       - name: Install Claude Code CLI
+        if: inputs.agent == 'claude-code'
         run: |
           npm install -g @anthropic-ai/claude-code
           claude --version
+
+      - name: Install Codex CLI
+        if: inputs.agent == 'codex'
+        run: |
+          npm install -g @openai/codex
+          codex --version
 
       - name: Build curiocity
         working-directory: src/curiocity
@@ -104,11 +130,12 @@ jobs:
           npm ci
           npm run build
 
-      # The coding-rosetta case references the LIVE repo plugin at plugins/core-claude
+      # The coding-rosetta case references the LIVE repo plugin at plugins/rosetta-claude
       # (whatever version is checked in) — no plugin generation, no dormant copy.
       - name: Verify live Rosetta plugin present
+        if: inputs.agent == 'claude-code'
         run: |
-          PLUGIN_HOOKS="plugins/core-claude/hooks/hooks.json"
+          PLUGIN_HOOKS="plugins/rosetta-claude/hooks/hooks.json"
           if [ ! -f "$PLUGIN_HOOKS" ]; then
             echo "::error::Live plugin manifest not found: $PLUGIN_HOOKS"
             exit 1
@@ -132,6 +159,13 @@ jobs:
           ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
           ENABLE_TOOL_SEARCH: "true"
           CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
+          # Codex under test authenticates with secrets.OPENAI_API_KEY, NOT through
+          # Bifrost -- and deliberately so. Curiocity forks its curions with a deny-list
+          # that strips every `OPENAI_*` / `ANTHROPIC_*` var except the two exact key
+          # names (AGENT_API_KEY_ALLOWLIST in src/curiocity/src/orchestrator/env.ts), so
+          # a base-URL override cannot reach the agent PTY from here. Routing the agent
+          # under test through Bifrost is a Curiocity change, not a workflow change.
+          # (The same is already true of ANTHROPIC_BASE_URL above.)
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           mkdir -p "$RESULTS_DIR"
@@ -151,6 +185,45 @@ jobs:
               ;;
           esac
 
+          # coding-rosetta provisions the Rosetta plugin into the agent session, which the
+          # Curiocity codex adapter refuses workspace-scoped. Narrow the selection rather
+          # than letting the run die inside provisioning, and say so in the log.
+          if [ "$AGENT_ID" = "codex" ]; then
+            case "${{ inputs.suite }}" in
+              rosetta)
+                echo "::error::suite=rosetta is not runnable on codex: the case provisions the Rosetta plugin, which the Curiocity codex adapter cannot do workspace-scoped. Pick vanilla or vanilla-full."
+                exit 1
+                ;;
+              all)
+                CASE_ARGS="--case coding-vanilla --case coding-vanilla-full"
+                echo "::warning::agent=codex — running the vanilla cases only; coding-rosetta is skipped (claude-code only)."
+                ;;
+            esac
+          fi
+
+          # One `agent_model` input serves both agents. Translate a Claude tier token to
+          # its Codex counterpart (the ladder in instructions/r3/core/agents/*.md:
+          # opus<->sol, sonnet<->luna with the effort one step higher, haiku<->luna) so
+          # codex never receives a claude-* id. Anything already gpt-* passes through
+          # untouched (model and effort alike).
+          AGENT_MODEL="${{ inputs.agent_model }}"
+          AGENT_EFFORT="${{ inputs.agent_effort }}"
+          if [ "$AGENT_ID" = "codex" ]; then
+            case "$AGENT_MODEL" in
+              *opus*)   AGENT_MODEL="gpt-6.1-sol" ;;
+              *sonnet*)
+                AGENT_MODEL="gpt-6-luna"
+                case "$AGENT_EFFORT" in
+                  low) AGENT_EFFORT="medium" ;;
+                  medium) AGENT_EFFORT="high" ;;
+                  high) AGENT_EFFORT="xhigh" ;;
+                esac
+                ;;
+              *haiku*)  AGENT_MODEL="gpt-6-luna" ;;
+            esac
+            echo "::notice::agent=codex — agent model resolved to $AGENT_MODEL, effort $AGENT_EFFORT"
+          fi
+
           KEEP_ARGS=""
           if [ "${{ inputs.keep_workspaces }}" = "true" ]; then
             KEEP_ARGS="--keep-workspace"
@@ -164,8 +237,9 @@ jobs:
             --out "$RESULTS_DIR" \
             $CASE_ARGS \
             --repeats "${{ inputs.trials }}" \
-            --agent-model claude-code=${{ inputs.agent_model }} \
-            --agent-effort claude-code=${{ inputs.agent_effort }} \
+            --agent "$AGENT_ID" \
+            --agent-model "$AGENT_ID=$AGENT_MODEL" \
+            --agent-effort "$AGENT_ID=$AGENT_EFFORT" \
             --fast-model "${{ inputs.fast_model }}" \
             --workhorse-model "${{ inputs.workhorse_model }}" \
             --judge-model "${{ inputs.judge_model }}" \
@@ -265,6 +339,8 @@ jobs:
       - name: Write step summary
         if: always()
         shell: bash
+        env:
+          ARTIFACT_CHECK: ${{ steps.verify.outputs.artifact_check }}
         run: |
           {
             echo "## Curiocity E2E — ${{ inputs.suite }}"
@@ -289,6 +365,13 @@ jobs:
               2) echo "### ⚠️ Gate outcome: config/infra failure — invalid config or no runnable trials (exit 2)" ;;
               3) echo "### ⚠️ Gate outcome: partial infra failure — some trials errored, remaining gates passed (exit 3)" ;;
               *) echo "### ⚠️ Gate outcome: unknown exit code ($CURIOCITY_EXIT)" ;;
+            esac
+            echo ""
+
+            case "$ARTIFACT_CHECK" in
+              pass) echo "### ✅ Artifact check: pass" ;;
+              fail) echo "### ❌ Artifact check: fail — expected result artifacts are missing (job will fail)" ;;
+              *) echo "### ❌ Artifact check: not determined (verify step did not report; job will fail)" ;;
             esac
             echo ""
 
@@ -330,4 +413,18 @@ jobs:
 
       - name: Reflect Curiocity gate outcome
         if: always()
-        run: exit "${CURIOCITY_EXIT:-1}"
+        shell: bash
+        env:
+          ARTIFACT_CHECK: ${{ steps.verify.outputs.artifact_check }}
+        run: |
+          # Curiocity's own exit code wins when non-zero (more specific).
+          EXIT="${CURIOCITY_EXIT:-1}"
+          if [ "$EXIT" -ne 0 ]; then
+            exit "$EXIT"
+          fi
+          # Curiocity passed: still fail unless artifacts were positively verified.
+          # Unset/empty (verify skipped, cancelled, or crashed) is treated as failure.
+          if [ "$ARTIFACT_CHECK" != "pass" ]; then
+            echo "::error::Artifact check did not pass (result: ${ARTIFACT_CHECK:-unset})"
+            exit 1
+          fi

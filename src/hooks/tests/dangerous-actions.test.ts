@@ -624,6 +624,34 @@ describe('Rosetta-AI-reviewed — retry marker', () => {
     expect(evaluateDangerous(ctx)).toBeNull();
   });
 
+  test('MultiEdit: marker only in edit.old_string → deny (write-field boundary locked)', () => {
+    const ctx: HookContext = {
+      ide: 'claude-code', event: 'PreToolUse', toolKind: 'multi-edit',
+      toolName: 'MultiEdit', filePath: 'schema.sql', cwd: '/proj', sessionId: null,
+      toolInput: {
+        file_path: 'schema.sql',
+        edits: [
+          { old_string: 'DROP TABLE x; -- Rosetta-AI-reviewed', new_string: 'DROP TABLE x;' },
+        ],
+      },
+    };
+    expect(evaluateDangerous(ctx)).not.toBeNull();
+  });
+
+  test('MultiEdit: marker only in an unrelated edit field → deny', () => {
+    const ctx: HookContext = {
+      ide: 'claude-code', event: 'PreToolUse', toolKind: 'multi-edit',
+      toolName: 'MultiEdit', filePath: 'schema.sql', cwd: '/proj', sessionId: null,
+      toolInput: {
+        file_path: 'schema.sql',
+        edits: [
+          { old_string: 'a', new_string: 'DROP TABLE x;', description: 'Rosetta-AI-reviewed' },
+        ],
+      },
+    };
+    expect(evaluateDangerous(ctx)).not.toBeNull();
+  });
+
   test('hasAIReviewedMarker: tab-separated marker → true', () => {
     expect(hasAIReviewedMarker({ command: 'rm -rf /tmp/x\t# Rosetta-AI-reviewed' }, 'Bash')).toBe(true);
   });
@@ -648,6 +676,13 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
     ));
     expect(r?.kind).toBe('deny');
     expect((r as {kind:'deny';reason:string}).reason).toContain('rm-rf-root');
+  });
+
+  test('mcp shell command with marker only in path → deny (paths cannot override)', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__plugin_serena_serena__execute_shell_command',
+      { command: 'rm -rf /tmp/x', path: '/tmp/Rosetta-AI-reviewed' }
+    ))?.kind).toBe('deny');
   });
 
   test('mcp filesystem write_file to .aws/credentials → advise aws-credentials (non-blocking)', () => {
@@ -716,6 +751,34 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
       { command: 'rm -rf /tmp/x  # Rosetta-AI-reviewed' }
     ));
     expect(r).toBeNull();
+  });
+
+  test('mcp shell cmd with `# Rosetta-AI-reviewed` → null (marker applies to every MCP shell field)', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__shell__run',
+      { cmd: 'rm -rf /tmp/x  # Rosetta-AI-reviewed' }
+    ))).toBeNull();
+  });
+
+  test('mcp shell cmd without marker → deny', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__shell__run',
+      { cmd: 'rm -rf /tmp/x' }
+    ))?.kind).toBe('deny');
+  });
+
+  test('mcp shell shell_command with `# Rosetta-AI-reviewed` → null (marker applies to every MCP shell field)', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__shell__run',
+      { shell_command: 'rm -rf /tmp/x  # Rosetta-AI-reviewed' }
+    ))).toBeNull();
+  });
+
+  test('mcp shell shell_command without marker → deny', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__shell__run',
+      { shell_command: 'rm -rf /tmp/x' }
+    ))?.kind).toBe('deny');
   });
 
   // Obj9: MCP marker in query field (not just command)

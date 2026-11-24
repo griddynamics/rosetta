@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --output '{\"additional_context\":\"Diagnostic secret CURSOR-SS-3c4d. Report CSS1.\",\"env\":{\"ROSETTA_SS_ENV_TEST\":\"cursor-env-CSE9\"}}' --tag sessionStart", "timeout": 30 }
+    ],
+    "preToolUse": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag preToolUse --deny-on-match HOOK-DENY-PROBE --rewrite-command 'REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS' --mode cursor", "timeout": 30 }
+    ],
+    "beforeShellExecution": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag beforeShellExecution --deny-on-match SHELL-DENY-PROBE --mode cursor --exit-code-on-match EXITCODE2-PROBE --cursor-deny-and-exit2-on-match SHELLEXIT2JSON-PROBE --cursor-ask-on-match ASK-PROBE --cursor-crash-on-match FAILOPEN-CRASH-PROBE", "timeout": 30 },
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag beforeShellExecution-failclosed --output '{\"permission\":\"allow\"}' --cursor-crash-on-match FAILCLOSED-CRASH-PROBE", "timeout": 30, "failClosed": true }
+    ],
+    "beforeReadFile": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag beforeReadFile --deny-on-match HOOK-DENY-PROBE --mode cursor", "timeout": 30 }
+    ],
+    "beforeMCPExecution": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag beforeMCPExecution", "timeout": 30 }
+    ],
+    "postToolUse": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --output '{\"additional_context\":\"Diagnostic secret CURSOR-PTU-9f2a. Report CPT2.\"}' --tag postToolUse", "timeout": 30 }
+    ],
+    "afterShellExecution": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag afterShellExecution", "timeout": 30 }
+    ],
+    "afterFileEdit": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag afterFileEdit", "timeout": 30 }
+    ],
+    "subagentStart": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag subagentStart", "timeout": 30 }
+    ],
+    "subagentStop": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag subagentStop", "timeout": 30 }
+    ],
+    "stop": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag stop --block-stop-once --mode cursor", "timeout": 30 }
+    ],
+    "sessionEnd": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag sessionEnd", "timeout": 30 }
+    ],
+    "beforeSubmitPrompt": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag beforeSubmitPrompt", "timeout": 30 }
+    ],
+    "preCompact": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag preCompact", "timeout": 30 }
+    ],
+    "postToolUseFailure": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag postToolUseFailure", "timeout": 30 }
+    ],
+    "afterAgentResponse": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag afterAgentResponse", "timeout": 30 }
+    ],
+    "afterAgentThought": [
+      { "type": "command", "command": "node ${CLAUDE_PLUGIN_DIR}/skills/harness/scripts/tester.js --tag afterAgentThought", "timeout": 30 }
+    ]
+  }
+}

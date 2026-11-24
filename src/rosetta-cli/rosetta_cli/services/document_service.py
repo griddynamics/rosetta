@@ -5,13 +5,54 @@ Handles document operations including listing, filtering, and status management.
 Eliminates code duplication and fixes naming inconsistencies.
 """
 
+import json
 import time
-from typing import cast
+from typing import Literal, cast
 
 from tqdm import tqdm
 from ..ragflow_client import RAGFlowClient
 from ..rosetta_config import DEFAULT_PARSE_TIMEOUT
 from ..typing_utils import DatasetLike, DocumentLike, JsonDict
+
+
+ParseOutcome = Literal["DONE", "FAIL", "PENDING"]
+
+
+def _doc_meta(document: DocumentLike) -> object:
+    """meta_fields of a document. May be a dict, a JSON string, or an object
+    with attributes (same tolerance as the MCP-side helper in
+    rosetta_mcp/tools/instructions.py); invalid JSON yields {}."""
+    meta = getattr(document, "meta_fields", {}) or {}
+    if isinstance(meta, str):
+        try:
+            meta = json.loads(meta)
+        except Exception:
+            meta = {}
+    return meta
+
+
+def _meta_value(meta: object, key: str) -> object:
+    if isinstance(meta, dict):
+        return meta.get(key)
+    return getattr(meta, key, None)
+
+
+def _extract_doc_tags(document: DocumentLike) -> set[str]:
+    """Tags of a document, lowercased."""
+    tags = _meta_value(_doc_meta(document), "tags") or []
+    if not isinstance(tags, (list, tuple, set)):
+        return set()
+    return {str(tag).strip().lower() for tag in tags if str(tag).strip()}
+
+
+def _extract_doc_title(document: DocumentLike) -> str:
+    """doc_title metadata (what the server-side prefix filter matches),
+    falling back to the document name. RAGFlow may rename a document on a
+    display-name collision (e.g. SKILL(7).md), so name can differ."""
+    title = _meta_value(_doc_meta(document), "doc_title")
+    if title:
+        return str(title)
+    return str(getattr(document, "name", "") or "")
 
 
 class DocumentService:
@@ -26,56 +67,6 @@ class DocumentService:
         """
         self.client = client
     
-    def list_documents_by_status(
-        self,
-        dataset: DatasetLike,
-        statuses: list[str] | None = None,
-        limit: int = 1000
-    ) -> list[DocumentLike]:
-        """
-        List documents filtered by parse status using server-side filtering.
-        
-        Args:
-            dataset: Dataset object
-            statuses: List of status values to filter by (e.g., ["FAIL", "UNSTART", "CANCEL"])
-                     Supported values: "UNSTART", "RUNNING", "CANCEL", "DONE", "FAIL"
-            limit: Maximum number of documents to return
-        
-        Returns:
-            List of Document objects matching the criteria
-            
-        Raises:
-            Exception: If RAGFlow API returns error
-        """
-        try:
-            # Use server-side filtering via HTTP API run parameter
-            # If statuses is None, no filter is applied (fetches all)
-            documents = self.client.list_documents(
-                dataset,
-                run=statuses,
-                page_size=limit
-            )
-            
-            return documents if documents else []
-            
-        except Exception as e:
-            # Fallback to client-side filtering if HTTP API fails
-            print(f"Warning: Server-side filtering failed, using fallback: {e}")
-            
-            all_documents = dataset.list_documents(page_size=limit)
-            
-            if not all_documents or not statuses:
-                return all_documents or []
-            
-            # Client-side filtering fallback
-            filtered: list[DocumentLike] = []
-            for doc in all_documents:
-                doc_status = getattr(doc, 'run', 'UNSTART')
-                if doc_status in statuses:
-                    filtered.append(doc)
-            
-            return filtered
-    
     def filter_documents_by_prefix(
         self,
         dataset: DatasetLike,
@@ -83,7 +74,12 @@ class DocumentService:
         limit: int = 1000
     ) -> list[DocumentLike]:
         """
-        Filter documents by title prefix using server-side filtering.
+        Filter documents by title prefix.
+
+        Sends a server-side metadata hint and enforces the prefix client-side:
+        RAGFlow applies metadata_condition only when at least one document
+        matches; when none match, it returns the whole dataset
+        (infiniflow/ragflow#14962), so the returned list must be re-filtered.
         
         Args:
             dataset: Dataset object
@@ -108,7 +104,10 @@ class DocumentService:
             metadata_condition=metadata_filter
         )
         
-        return documents if documents else []
+        return [
+            document for document in (documents or [])
+            if _extract_doc_title(document).startswith(prefix)
+        ]
     
     def filter_documents_by_tags(
         self,
@@ -117,7 +116,12 @@ class DocumentService:
         limit: int = 1000
     ) -> list[DocumentLike]:
         """
-        Filter documents by tags using server-side metadata filtering.
+        Filter documents by tags.
+
+        Sends a server-side metadata hint and enforces the tags client-side:
+        RAGFlow applies metadata_condition only when at least one document
+        matches; when none match, it returns the whole dataset
+        (infiniflow/ragflow#14962), so the returned list must be re-filtered.
         
         Uses "or" logic to find documents containing ANY of the specified tags.
         
@@ -155,7 +159,11 @@ class DocumentService:
             metadata_condition=metadata_filter
         )
         
-        return documents if documents else []
+        wanted = {tag.strip().lower() for tag in tags if tag and tag.strip()}
+        return [
+            document for document in (documents or [])
+            if _extract_doc_tags(document) & wanted
+        ]
     
     def get_document_summary(self, document: DocumentLike) -> JsonDict:
         """
@@ -240,10 +248,33 @@ class DocumentService:
             poll_interval: Seconds between status checks (default: 0.5 for smooth progress)
         
         Returns:
-            Tuple of (success_count, failed_count)
+            Tuple of (success_count, unsuccessful_count); the latter includes
+            documents still pending when the polling deadline expires.
+        """
+        results = self.wait_for_parsing_results(documents, timeout, poll_interval)
+        success_count = sum(status == "DONE" for status in results.values())
+        return success_count, len(documents) - success_count
+
+    def wait_for_parsing_results(
+        self,
+        documents: list[JsonDict],
+        timeout: int = DEFAULT_PARSE_TIMEOUT,
+        poll_interval: float = 0.5
+    ) -> dict[str, ParseOutcome]:
+        """
+        Wait for documents to finish parsing with progress display grouped by folder.
+
+        Args:
+            documents: List of {"id": doc_id, "name": name, "dataset_id": dataset_id, "folder": folder}
+            timeout: Max seconds to wait (default: DEFAULT_PARSE_TIMEOUT = 1200 = 20 minutes)
+            poll_interval: Seconds between status checks (default: 0.5 for smooth progress)
+
+        Returns:
+            Document IDs mapped to DONE, FAIL or PENDING. PENDING means no
+            terminal status was observed before the timeout.
         """
         if not documents:
-            return 0, 0
+            return {}
         
         # Group by folder for display
         by_folder: dict[str, list[str]] = {}
@@ -347,7 +378,11 @@ class DocumentService:
             if len(completed) == len(documents):
                 print(f"\n✅ All {len(documents)} documents parsed successfully ({elapsed:.1f}s)")
             else:
-                print(f"\n⚠️  Completed: {len(completed)}, Failed: {len(failed)}, Total: {len(documents)}")
+                remaining = len(documents) - len(completed) - len(failed)
+                print(
+                    f"\n⚠️  Completed: {len(completed)}, Failed: {len(failed)}, "
+                    f"Still pending: {remaining}, Total: {len(documents)}"
+                )
         
         except KeyboardInterrupt:
             pbar.close()
@@ -355,4 +390,7 @@ class DocumentService:
             print("ℹ️  Parsing continues on server. Check RAGFlow UI for status.")
             raise
         
-        return len(completed), len(failed)
+        return {
+            doc_id: "DONE" if doc_id in completed else "FAIL" if doc_id in failed else "PENDING"
+            for doc_id in doc_info
+        }

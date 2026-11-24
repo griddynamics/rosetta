@@ -4,9 +4,11 @@ fullnameOverride: ""
 replicaCount: 1
 
 # Health probes
+# The probe `port` is intentionally NOT set here: when omitted, the template fills it with the container port
+# name of the first entry of `ports` (ports: [9000] -> port9000; default -> port8000).
+# An explicitly set probe port (httpGet.port / tcpSocket.port) always wins over the derived one.
 livenessProbe:
-  tcpSocket:
-    port: port8000
+  tcpSocket: {}
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 3
@@ -14,7 +16,6 @@ livenessProbe:
 readinessProbe:
   httpGet:
     path: /healthz
-    port: port8000
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 3
@@ -22,7 +23,6 @@ readinessProbe:
 startupProbe:
   httpGet:
     path: /healthz
-    port: port8000
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 40
@@ -133,8 +133,7 @@ env:
       value: "http"
     - name: ROSETTA_HTTP_HOST
       value: "0.0.0.0"
-    - name: ROSETTA_HTTP_PORT
-      value: "8000"
+    # ROSETTA_HTTP_PORT is set by the template from the first entry of `ports`; list it here only to override.
     - name: ROSETTA_MODE
       value: "SOFT"  # HARD or SOFT
     - name: FASTMCP_ENABLE_RICH_LOGGING

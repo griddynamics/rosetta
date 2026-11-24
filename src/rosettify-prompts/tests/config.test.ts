@@ -23,7 +23,7 @@ function minimalSuite(overrides: Record<string, unknown> = {}) {
 describe('parseConfig', () => {
   it('applies defaults for a minimal config', () => {
     const config = parseConfig(minimalSuite());
-    expect(config.model).toBe('claude-sonnet-5');
+    expect(config.model).toBe('claude-sonnet-5-5');
     expect(config.repetitions).toBe(5);
     expect(config.thinking.enabled).toBe(true);
     expect(config.thinking.budgetTokens).toBe(8192);
@@ -65,6 +65,27 @@ describe('parseConfig', () => {
         ],
       }),
     ).toThrow(/duplicate variant id/);
+  });
+
+  it('rejects duplicate suite ids before execution', () => {
+    expect(() =>
+      parseConfig({
+        suites: [
+          { id: 'suite-a', variants: [{ id: 'v1', turns: ['first'] }] },
+          { id: 'suite-a', variants: [{ id: 'v1', turns: ['second'] }] },
+        ],
+      }),
+    ).toThrow(/Duplicate suite id "suite-a"/);
+  });
+
+  it('allows the same variant id in different suites', () => {
+    const config = parseConfig({
+      suites: [
+        { id: 'suite-a', variants: [{ id: 'v1', turns: ['first'] }] },
+        { id: 'suite-b', variants: [{ id: 'v1', turns: ['second'] }] },
+      ],
+    });
+    expect(config.suites.map((suite) => suite.id)).toEqual(['suite-a', 'suite-b']);
   });
 
   it('rejects a thinking budget below the Anthropic minimum of 1024', () => {

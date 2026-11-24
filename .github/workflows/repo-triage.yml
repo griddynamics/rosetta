@@ -1,12 +1,20 @@
 name: Rosetta GitHub Triage
 
 # Event-driven workflow triggered by PR and issue activity.
-# Reviews PRs and issues, adds labels, posts triage comments,
-# and handles /rosetta slash commands in comments.
+# Reviews PRs and issues, posts triage comments, and handles /rosetta slash
+# commands in comments -- and nothing else: it never creates issues. Write tools are
+# set per run by the event sender's repository permission (step `trust`): senders
+# without write access get one reply on the current item; maintainers may also label.
+#
+# Runs on EITHER agent -- see docs/AUTOMATION-ARCHITECTURE.md, "Agent switch".
+# This workflow has no workflow_dispatch trigger, so the agent is chosen only by the
+# `ROSETTA_CI_AGENT` repository variable, defaulting to codex.
 #
 # Required GitHub Secrets:
-#   - BIFROST_HOST_NAME: Bifrost gateway hostname (no protocol/port/path), routes Anthropic API calls through Bifrost
-#   - BIFROST_API_KEY: Bifrost-issued API key
+#   - BIFROST_HOST_NAME: Bifrost gateway hostname (no protocol/port/path). Routes
+#     Anthropic API calls (Claude branch, `/anthropic`) and OpenAI Responses API
+#     calls (Codex branch, `/openai/v1/responses`) through Bifrost.
+#   - BIFROST_API_KEY: Bifrost-issued API key. Used by both branches.
 
 on:
   pull_request_target:
@@ -33,6 +41,12 @@ jobs:
       checks: read
       actions: read
     env:
+      # The agent switch. No dispatch trigger here, so this is the repository variable
+      # ROSETTA_CI_AGENT, defaulting to codex. Every agent-specific step keys off this
+      # one value, so the two branches can never both run.
+      ROSETTA_AGENT: ${{ vars.ROSETTA_CI_AGENT || 'codex' }}
+      # Claude-branch only; inert on the Codex branch, which reaches Bifrost through
+      # openai/codex-action's Responses API proxy instead of a base-URL env var.
       ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
       ENABLE_TOOL_SEARCH: "true"
       CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
@@ -43,10 +57,14 @@ jobs:
       !(github.event_name == 'pull_request_review_comment' && !contains(github.event.comment.body, '/rosetta'))
 
     steps:
+      # persist-credentials off: triage runs only local git reads, and a persisted token
+      # in .git/config would sit inside the agent's Read grant -- one comment away from
+      # being posted publicly.
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           ref: main
+          persist-credentials: false
 
       # Fork content lands in pr/ as data the agent READS -- nothing here builds,
       # installs or executes from that tree, and the allowlist below grants only
@@ -64,17 +82,57 @@ jobs:
           allow-unsafe-pr-checkout: true
           persist-credentials: false
 
+      # Triage reviews and comments, nothing else. Trust decides the write surface on top
+      # of the shared read-only toolset, keyed on the EVENT SENDER's repository permission:
+      #   trusted   (admin / maintain / write): comments, label-only edits on this item;
+      #   untrusted (everyone else, any lookup failure, bots): ONE reply on this item.
+      # No level can create issues. The outputs feed both agents' tool policies below;
+      # see .github/scripts/triage_trust.py. Runs from the `main` checkout above, never
+      # from pr/, so the script is trusted code even under pull_request_target.
+      - name: Resolve sender trust
+        id: trust
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SENDER: ${{ github.event.sender.login }}
+          ITEM: ${{ github.event.issue.number || github.event.pull_request.number }}
+        run: |
+          set -uo pipefail
+          if ! permission=$(gh api "repos/$REPO/collaborators/$SENDER/permission" --jq .permission 2>"$RUNNER_TEMP/trust.err"); then
+            permission=""
+            # A 404 is normal for bots; a 403 for everyone means the token cannot read
+            # permissions and every maintainer is silently downgraded -- make it visible.
+            echo "::warning title=Sender trust lookup failed::$SENDER treated as untrusted: $(head -c 200 "$RUNNER_TEMP/trust.err" | tr '\n' ' ')"
+          fi
+          echo "Sender $SENDER repository permission: ${permission:-<none>}"
+          python3 .github/scripts/triage_trust.py --permission "$permission" --item "$ITEM"
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: false
 
       - name: Install Bun
+        if: env.ROSETTA_AGENT == 'claude'
         id: bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.3.6
           token: ${{ github.token }}
+
+      # Codex has no `plugins:` input and no `--allowedTools`; both are arranged here.
+      # Safe under pull_request_target because the base repo is checked out at `ref: main`
+      # above, so this local action is trusted code, never the fork's.
+      - name: Set up Codex
+        if: env.ROSETTA_AGENT == 'codex'
+        id: codex
+        uses: ./.github/actions/codex-setup
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Triage-only deny rules on top of the shared list; untrusted senders add a
+          # second file that also denies `gh issue|pr edit`. Codex has no allowlist, so
+          # gaps remain -- listed in files/requirements.triage.toml.
+          extra-rules: ${{ steps.trust.outputs.codex_extra_rules }}
 
       # allowed_non_write_users bypasses claude-code-action's own actor-permission
       # gate, which otherwise hard-fails the whole job for any PR/issue/comment
@@ -82,13 +140,14 @@ jobs:
       # exactly who triage exists to greet. "*" (not a named allow-list) is
       # required because the point is unknown first-time contributors, not a
       # known set of people. This is a deliberate, bounded tradeoff: it widens
-      # who can *trigger* a run, but grants no new capability once triggered --
-      # the GITHUB_TOKEN permissions above and the --allowedTools/--disallowedTools
-      # allowlist below are unchanged, so the worst case is a spammy/misleading
-      # gh comment or issue (still subject to the prompt-injection guardrail in
-      # repo-triage.md), or run-triggering cost abuse -- never code execution,
-      # `contents: write`, or secret exposure.
+      # who can *trigger* a run, but what a run may WRITE is set by sender trust
+      # (step `trust` above): an untrusted sender's run can post one reply on the
+      # current item and nothing else, and no run can create issues. The worst
+      # case is a misleading reply on the sender's own thread, or run-triggering
+      # cost abuse -- never tracker spam, code execution, `contents: write`, or
+      # secret exposure.
       - name: Triage
+        if: env.ROSETTA_AGENT == 'claude'
         uses: anthropics/claude-code-action@v1
         env:
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
@@ -112,6 +171,8 @@ jobs:
             Issue URL: ${{ github.event.issue.html_url }}
             Comment ID: ${{ github.event.comment.id }}
             Comment URL: ${{ github.event.comment.html_url }}
+            Sender: ${{ github.event.sender.login }}
+            Sender Trust: ${{ steps.trust.outputs.level }}
 
             MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-triage.md
           show_full_output: false
@@ -124,34 +185,173 @@ jobs:
           # explicit /proc and /etc denies in disallowedTools are redundant with
           # that scoping (deny wins regardless of specificity) but kept as a second
           # layer in case the allow scope is ever loosened by mistake.
+          #
+          # The allowlist below is READ-ONLY, and no entry has a wildcard BEFORE its verb:
+          # `Bash(gh * list*)` would also admit `gh issue close 5 --comment "list"`.
+          # Every write tool comes from step `trust`
+          # (`claude_write_tools`): untrusted = comment on this item only; trusted = also
+          # comment elsewhere and add/remove labels on this item. The `gh issue|pr edit *` flag
+          # denies keep a label grant from carrying a title/body/base/assignee edit
+          # after the label flag; issue/PR creation is denied outright. Comment grants
+          # require inline `--body` (gh rejects it alongside `--body-file`), and
+          # `--attach`/`--body-file`/`/proc/` are denied: a file read into a public
+          # comment is the exfiltration path (the process env holds live tokens).
           claude_args: |
             --allowedTools
-            "Read(/${{ github.workspace }}/**),Glob(/${{ github.workspace }}/**),Grep(/${{ github.workspace }}/**),Agent,Skill,Bash(gh * list*),Bash(gh * status*),Bash(gh --version),Bash(git status*),Bash(git diff*),Bash(git log*),Bash(git show*),Bash(git branch*),Bash(git ls-files*),Bash(git rev-parse*),Bash(gh pr view*),Bash(gh pr diff*),Bash(gh pr edit*),Bash(gh pr comment*),Bash(gh issue view*),Bash(gh issue edit*),Bash(gh issue comment*),Bash(gh issue create*),Bash(gh api repos/*/issues/*),Bash(gh api repos/*/pulls/*),Bash(gh api repos/*/contents/*),Bash(gh api repos/*/git/*),Bash(gh api repos/*/tags*),Bash(gh api repos/*/code-scanning/alerts*),Bash(gh api repos/*/code-scanning/analyses*),Bash(gh api repos/*/dependabot/alerts*),Bash(gh api repos/*/commits/*),Bash(gh api repos/*/actions/runs*),Bash(gh api repos/*/labels*),Bash(gh pr checks*),Bash(git -C * status*),Bash(git -C * diff*),Bash(git -C * log*),Bash(git -C * show*),Bash(git -C * branch*),Bash(git -C * ls-files*),Bash(git -C * rev-parse*)"
+            "Read(/${{ github.workspace }}/**),Glob(/${{ github.workspace }}/**),Grep(/${{ github.workspace }}/**),Agent,Skill,Bash(gh issue list*),Bash(gh pr list*),Bash(gh label list*),Bash(gh run list*),Bash(gh release list*),Bash(gh issue status*),Bash(gh pr status*),Bash(gh --version),Bash(git status*),Bash(git diff*),Bash(git log*),Bash(git show*),Bash(git branch*),Bash(git ls-files*),Bash(git rev-parse*),Bash(gh pr view*),Bash(gh pr diff*),Bash(gh issue view*),Bash(gh api repos/*/issues/*),Bash(gh api repos/*/pulls/*),Bash(gh api repos/*/contents/*),Bash(gh api repos/*/git/*),Bash(gh api repos/*/tags*),Bash(gh api repos/*/code-scanning/alerts*),Bash(gh api repos/*/code-scanning/analyses*),Bash(gh api repos/*/dependabot/alerts*),Bash(gh api repos/*/commits/*),Bash(gh api repos/*/actions/runs*),Bash(gh api repos/*/labels*),Bash(gh pr checks*),Bash(git -C pr status*),Bash(git -C pr diff*),Bash(git -C pr log*),Bash(git -C pr show*),Bash(git -C pr branch*),Bash(git -C pr ls-files*),Bash(git -C pr rev-parse*)${{ steps.trust.outputs.claude_write_tools && format(',{0}', steps.trust.outputs.claude_write_tools) || '' }}"
             --disallowedTools
-            "ScheduleWakeup,Read(//proc/**),Read(//etc/**),Glob(//proc/**),Glob(//etc/**),Grep(//proc/**),Grep(//etc/**),Bash(* --show-token),Bash(* --show-token*),Bash(gh api * -X*),Bash(gh api * --method*),Bash(gh api * -f*),Bash(gh api * -F*),Bash(gh api * --field*),Bash(gh api * --raw-field*),Bash(gh api * --input*)"
+            "ScheduleWakeup,Read(//proc/**),Read(//etc/**),Glob(//proc/**),Glob(//etc/**),Grep(//proc/**),Grep(//etc/**),Bash(* --show-token),Bash(* --show-token*),Bash(gh api * -X*),Bash(gh api * --method*),Bash(gh api * -f*),Bash(gh api * -F*),Bash(gh api * --field*),Bash(gh api * --raw-field*),Bash(gh api * --input*),Bash(gh api graphql*),Bash(gh issue create*),Bash(gh pr create*),Bash(gh * --attach*),Bash(gh * --body-file*),Bash(*/proc/*),Bash(gh issue comment * --edit-last*),Bash(gh issue comment * --delete-last*),Bash(gh pr comment * --edit-last*),Bash(gh pr comment * --delete-last*),Bash(gh issue edit * --t*),Bash(gh issue edit * --b*),Bash(gh issue edit * --add-a*),Bash(gh issue edit * --remove-a*),Bash(gh issue edit * --add-p*),Bash(gh issue edit * --remove-p*),Bash(gh issue edit * --add-r*),Bash(gh issue edit * --remove-r*),Bash(gh issue edit * --m*),Bash(gh issue edit * --remove-m*),Bash(gh issue edit * -t*),Bash(gh issue edit * -b*),Bash(gh issue edit * -B*),Bash(gh issue edit * -F*),Bash(gh issue edit * -a*),Bash(gh issue edit * -m*),Bash(gh issue edit * -p*),Bash(gh pr edit * --t*),Bash(gh pr edit * --b*),Bash(gh pr edit * --add-a*),Bash(gh pr edit * --remove-a*),Bash(gh pr edit * --add-p*),Bash(gh pr edit * --remove-p*),Bash(gh pr edit * --add-r*),Bash(gh pr edit * --remove-r*),Bash(gh pr edit * --m*),Bash(gh pr edit * --remove-m*),Bash(gh pr edit * -t*),Bash(gh pr edit * -b*),Bash(gh pr edit * -B*),Bash(gh pr edit * -F*),Bash(gh pr edit * -a*),Bash(gh pr edit * -m*),Bash(gh pr edit * -p*)"
             --model sonnet
             --effort high
 
+      # Codex counterpart of the step above. `allow-users: "*"` is the same deliberate,
+      # bounded tradeoff as `allowed_non_write_users` on the Claude branch, for the same
+      # reason -- see the comment there.
+      #
+      # SECURITY DELTA, stated plainly because this is the workflow that reads untrusted
+      # fork content. What bounds a Codex triage run:
+      #   - the `rosetta-read-net` permission profile: read-only filesystem, so nothing
+      #     in the checkout or in `pr/` can be modified, with `/proc` and `/etc` denied
+      #     -- the same reads the Claude branch's disallowedTools blocks;
+      #   - the enforced execpolicy deny-list at /etc/codex/requirements.toml, written by
+      #     the setup step: no `gh auth`, no secrets, no egress outside gh/git, no
+      #     merge/close/review, no destructive repo/board/label operations. This is the
+      #     counterpart of `--disallowedTools`, and it cannot be relaxed by codex-args,
+      #     project config, or the model, because the strictest layer wins;
+      #   - the job's GITHUB_TOKEN permissions block above, unchanged;
+      #   - `safety-strategy: drop-sudo` (the action's default), which revokes the
+      #     runner's sudo before Codex starts -- a protection the Claude branch lacks.
+      #     It is kept precisely because this pipeline is the one ANY GitHub user can
+      #     trigger, on content they wrote; see the version pin below for why keeping
+      #     it no longer costs us the runner.
+      #
+      # What genuinely has NO counterpart -- exactly two things:
+      #   1. Allow-list semantics. execpolicy is structurally a deny-list: an unmatched
+      #      command yields no decision, and the strictest match wins, so "forbid all,
+      #      then permit these" is unexpressible. `--allowedTools` cannot be ported. So
+      #      a `gh` subcommand that is neither needed nor explicitly forbidden (e.g.
+      #      `gh gist create`) runs on Codex and would be refused on Claude.
+      #   2. `gh api <endpoint> -X POST`. Pattern tokens are `token` or `any_of` with no
+      #      wildcard, and matching is prefix-only, so a flag that follows the endpoint
+      #      argument cannot be matched. The Claude branch's `Bash(gh api * -X*)` denies
+      #      have no exact equivalent; a rule covering only the flag-first form would be
+      #      worse than none, so none is written.
+      # Both are bounded by this job's GITHUB_TOKEN: worst case is a misleading comment,
+      # label or gist. Not code execution, not `contents: write`, and not secret exposure
+      # -- the Bifrost key never enters the Codex process, because openai/codex-action
+      # pipes it into a separate proxy process instead of the agent's environment.
+      # See docs/AUTOMATION-ARCHITECTURE.md, "Command policy".
+      - name: Triage (Codex)
+        if: env.ROSETTA_AGENT == 'codex'
+      # Pinned to v1.11 deliberately. `@v1` resolves to v1.12, which introduced BOTH
+      # of the failures seen here: #160 (drop-sudo chmods /run sockets to 0700, killing
+      # systemd-resolved, so the runner loses DNS and dies 52-65 minutes in -- every
+      # long Codex run in this repo did exactly that) and #150 (the Linux run never
+      # returns after the turn completes). `restrictRootServiceSocket` is absent from
+      # src/dropSudo.ts in v1.11 and earlier. Pinning keeps `safety-strategy` at its
+      # secure `drop-sudo` default rather than trading the sudo revocation away.
+      # Revisit when both are fixed upstream; v1.11 accepts every input used here.
+        uses: openai/codex-action@v1.11
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          allow-users: "*"
+          allow-bots: "true"
+          openai-api-key: ${{ secrets.BIFROST_API_KEY }}
+          # Uncomment to pin the CLI if a floating `latest` ever regresses the beta
+          # permission profiles (they need >= 0.138.0). This is the rollback lever.
+          # codex-version: "0.142.2"
+          responses-api-endpoint: https://${{ secrets.BIFROST_HOST_NAME }}/openai/v1/responses
+          codex-home: ${{ steps.codex.outputs.codex-home }}
+          permission-profile: rosetta-read-net
+          # Mirrors the Claude branch's `--model sonnet --effort high`. The tier ladder is
+          # the one instructions/r3/core/agents/*.md already pairs, position by position:
+          # opus<->gpt-6.1-sol, sonnet<->gpt-6-luna (effort one step higher), haiku<->gpt-6-luna. Effort is a
+          # separate axis on Codex, so the `-high` suffix form collapses to model+effort.
+          model: gpt-6-luna
+          effort: xhigh
+          output-file: ${{ runner.temp }}/codex-final-message.md
+          prompt: |
+            Event: ${{ github.event_name }}
+            Action: ${{ github.event.action }}
+            Repository: ${{ github.repository }}
+            PR Number: ${{ github.event.pull_request.number }}
+            PR URL: ${{ github.event.pull_request.html_url }}
+            PR Content Path: ${{ github.event_name == 'pull_request_target' && 'pr' || '' }}
+            Issue Number: ${{ github.event.issue.number }}
+            Issue URL: ${{ github.event.issue.html_url }}
+            Comment ID: ${{ github.event.comment.id }}
+            Comment URL: ${{ github.event.comment.html_url }}
+            Sender: ${{ github.event.sender.login }}
+            Sender Trust: ${{ steps.trust.outputs.level }}
+
+            Environment: `.agents/`, `.codex/`, and `.codex-plugin/` hold the Rosetta instruction
+            set -- tooling CI extracted into this workspace, not repository content. Read those
+            paths from the working tree (`cat`, `sed`); never through git (`git show`, `git log`,
+            `git diff`).
+
+            MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-triage.md
+
+      # `openai/codex-action` leaves its responses proxy and `codex exec` tree running
+      # after the step reports success, and a runner cannot finalise a job while those
+      # hold the step's output pipe. Every Codex run that did real work hung because of
+      # it -- triage was cancelled at the job cap, analysis sat until GitHub declared
+      # the runner lost at ~62 minutes. See .github/scripts/reap_agent_processes.sh.
+      - name: Reap leftover agent processes
+        if: always()
+        run: .github/scripts/reap_agent_processes.sh
+
       # The trace is a full tool transcript published as a downloadable artifact,
       # outside Actions log masking. Redact credentials before it leaves the runner.
+      # Both branches are named: the one that did not run has no files and is a no-op.
       - name: Scrub credentials from execution trace
         if: always()
         env:
           SCRUB_VALUES: |
             ${{ secrets.GITHUB_TOKEN }}
             ${{ secrets.BIFROST_API_KEY }}
-        run: python3 .github/scripts/scrub_trace.py /home/runner/work/_temp/claude-execution-output.json
+        run: |
+          python3 .github/scripts/scrub_trace.py \
+            /home/runner/work/_temp/claude-execution-output.json \
+            "${{ steps.codex.outputs.sessions-dir }}"
+
+      # Triage never creates issues, so a guardrail detection is reported here instead:
+      # the agent ends its final message with ROSETTA-SECURITY-ALERT blocks, and this
+      # step copies them into the job summary and raises a warning annotation. Runs
+      # after the scrub so nothing reaches the summary before redaction.
+      - name: Report security alerts
+        if: always()
+        run: |
+          python3 .github/scripts/triage_alert_summary.py \
+            --claude-trace /home/runner/work/_temp/claude-execution-output.json \
+            --codex-final "${{ runner.temp }}/codex-final-message.md"
 
       # Triage is event-driven, so a run that finds nothing to say is legitimate:
       # --allow-no-op keeps the abandoned-subagent check and drops the did-it-mutate one.
       - name: Verify the run did real work
-        if: always()
+        if: always() && env.ROSETTA_AGENT == 'claude'
         run: python3 .github/scripts/check_trace.py /home/runner/work/_temp/claude-execution-output.json --allow-no-op
 
+      # Codex has no subagents, so with --allow-no-op this check has nothing left to
+      # assert. It runs anyway for its one remaining job: failing the run when no
+      # rollout exists at all, i.e. the agent step never really started.
+      - name: Verify the run did real work (Codex)
+        if: always() && env.ROSETTA_AGENT == 'codex'
+        run: python3 .github/scripts/check_codex_trace.py "${{ steps.codex.outputs.sessions-dir }}" --allow-no-op
+
       - name: Upload Claude execution trace
-        if: always()
+        if: always() && env.ROSETTA_AGENT == 'claude'
         uses: actions/upload-artifact@v6
         with:
           name: claude-execution-output
           path: /home/runner/work/_temp/claude-execution-output.json
           retention-days: 3
+
+      - name: Upload Codex execution trace
+        if: always() && env.ROSETTA_AGENT == 'codex'
+        uses: actions/upload-artifact@v6
+        with:
+          name: codex-execution-output
+          path: ${{ steps.codex.outputs.sessions-dir }}
+          retention-days: 3
+          if-no-files-found: warn

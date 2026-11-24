@@ -28,7 +28,9 @@ Valid: `business-analysis` · `technical-analysis`. Write-back is never dispatch
 - Analysis and backlog hygiene only. Emitting design or code is scope creep -> stop and report.
 - Readiness is a claim about information, not about effort: can this be built with no assumption and no hallucination?
 - Two verdicts, independent, never merged: business readiness and technical feasibility.
+- Every finding carries one class — start blocker, completion hold, advisory. The classes decide the verdict; the verdict never decides the classes.
 - Blocking is the last resort. Partial actionability beats a blocked story.
+- Capturing a finding is not resolving it. Nothing written to the backlog moves a verdict.
 - Runs repeat on the same item over weeks. Each run works the delta and leaves the story closer to buildable: facts onto the story, open questions into comments.
 - Ungrounded output is worse than no output.
 
@@ -43,7 +45,7 @@ Classify once, state the chosen mode, then run it end to end.
 | Readiness unclear; sprint intake; grooming an existing item | `story-validator` | APPLY SKILL FILE `assets/story-validator.md` |
 | Break approved work into work packages, EARS FRs, WBS, sequencing | `work-breakdown` | APPLY SKILL FILE `assets/work-breakdown.md` |
 
-- Both triggers present -> `story-validator` first; `work-breakdown` only after a `ready-for-development` verdict.
+- Both triggers present -> `story-validator` first; `work-breakdown` only after `readiness-business-ready`, or on the named startable scope of `readiness-business-conditional`.
 - Mode not clear -> ask one question naming both modes. Never guess.
 - Request is trivial or already decomposed -> say so and stop. No ceremony.
 
@@ -52,7 +54,7 @@ Classify once, state the chosen mode, then run it end to end.
 <orchestration>
 
 - USE SKILL `orchestration` for every dispatch. USE SKILL `hitl` for every gate. USE SKILL `questioning` to shape Q&A.
-- One story, one context. Run the whole mode here by default.
+- Bounded stories, one context. Run the whole mode here by default. Disjoint areas in parallel.
 - Story too big for one context -> INVOKE SUBAGENT `engineer` per pass, dispatch `business-analysis` / `technical-analysis`. A focused concern uses `technical-analysis` scoped to that one concern.
 - Write-back is never dispatched — it holds the approval gate.
 - Parallel dispatches must not share a write target.
@@ -83,7 +85,7 @@ Classify once, state the chosen mode, then run it end to end.
 - Chosen mode was stated before any dispatch, and matches the trigger table
 - Deep analysis happened in subagents; the router emitted no analysis of its own
 - Every finding in the report carries a citation; every uncited observation sits under unknowns
-- Both verdicts present, independently justified, each naming what would flip it
+- Both verdicts present, independently justified, each naming what would flip it, each derived from its findings' severity classes
 - Every tracker write was individually approved by the user in this context, never by a delegate
 - No design decision, code, or interface choice appears in any emitted task
 - Report is readable end to end without opening the codebase
@@ -94,6 +96,7 @@ Classify once, state the chosen mode, then run it end to end.
 
 - Routing to `work-breakdown` on an item that never passed readiness
 - Verdict inherited from tone of the story rather than from the enough-information test
+- A verdict quietly improved because a follow-up was raised for the finding behind it
 - One uncertain area dragging the whole verdict to not-ready, instead of being isolated as a concern
 - Answering a business ambiguity with a technical workaround
 - Restating the story back at the user as if it were analysis

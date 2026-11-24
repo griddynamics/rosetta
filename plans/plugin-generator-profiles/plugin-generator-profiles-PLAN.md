@@ -2,7 +2,7 @@
 
 Read first: `plugin-generator-profiles-SPECS.md` (WHAT) · `architecture-notes.md` (WHY, decisions
 A–E) · `agents/TEMP/plugin-generator-profiles/{implementation-scope,decisions,discovery-notes}.md`.
-Authority = `docs/requirements/plugin-generator/`. This file owns HOW only — contracts/signatures
+Authority = `docs/REQUIREMENTS/plugin-generator/`. This file owns HOW only — contracts/signatures
 live in SPECS, not restated here.
 
 Governing rules (one line each):

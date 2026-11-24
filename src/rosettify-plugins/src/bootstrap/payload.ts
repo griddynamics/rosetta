@@ -139,7 +139,7 @@ export function assembleBootstrapPayload(
     // pass/fail by which IDE happens to be rendering it.
     if (rewrittenContext.length > MAX_ENTRY_CHARS) {
       errors.push({
-        target: spec.name,
+        target: spec.destination,
         file: ref.basename,
         message: `Bootstrap entry exceeds ${MAX_ENTRY_CHARS} chars (${rewrittenContext.length})`,
         kind: 'soft',

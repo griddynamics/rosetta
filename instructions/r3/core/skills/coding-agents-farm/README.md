@@ -2,6 +2,8 @@
 
 Runs the executor as a "Farm Leader" driving multiple external coding-agent CLIs (Claude, Codex, Copilot, Gemini, OpenCode, Goose) in parallel on isolated git worktrees.
 
+Runs Claude, Codex, Copilot, Gemini and others in parallel on isolated git worktrees, for throughput or cross-model validation. Burns money fast, so it is gated behind explicit consent.
+
 ## Why it exists
 
 Without this skill a model asked to "parallelize this across a few agents" would improvise: skip the explicit money-risk confirmation, guess at CLI flags from stale training data (wrong `--yolo`/permission-mode syntax, wrong model ids), run agents on the same working tree instead of separate worktrees (write collisions), and fail to notice a sub-agent claiming completion with no test evidence, going idle on a rate limit, or drifting out of scope. This skill fixes those by hardcoding the confirmation gate, the exact CLI/flag table per provider, worktree isolation, and a monitor/intervene loop with named failure signals.
@@ -19,7 +21,7 @@ Single-file skill: SKILL.md only, no `assets/` or `references/`. Body order: `<r
 - `MUST EXPLICITLY CONFIRM WITH USER HE WANTS TO DO THAT: IT IS DANGEROUS, IT CAN EAT MONEY VERY QUICK.` — blocks any farm launch behind an explicit risk acknowledgment.
 - `USER MUST TYPE EXACTLY \`Yes, I take responsibility\`, IF NOT PROVIDED EXACTLY - ASK AGAIN. AFTER 3 FAILED ATTEMPTS: STOP, NO REPLY, REQUEST USER TO START A NEW SESSION. NO OVERRIDE ALLOWED.` — an exact-string gate with a hard stop; the executor cannot paraphrase-accept or self-override after 3 misses.
 - `YOUR INTERNAL KNOWLEDGE ABOUT MODEL NAMES, CLI FLAGS, AND TOOL VERSIONS IS STALE. Use ONLY the names and flags listed in this skill.` — explicit override of the model's own training-data priors; forbids substituting remembered flags. Paired with an escape hatch that keeps the override safe once it ages: a listed id the CLI rejects means drop the model flag and take the CLI default, never substitute a remembered name.
-- Model selection guidance is stated tier-first (workhorse / complex / fast) with the ids as a dated snapshot: the tier assignment is the durable contract, each id perishes on the next vendor release, and Google carries an explicit "no verified current id" for the pro/complex tier rather than a guessed name.
+- Model selection guidance is stated tier-first (workhorse / complex / fast) with the ids as a dated snapshot: the tier assignment is the durable contract, each id perishes on the next vendor release, and Google's complex tier names `gemini-4-argon`, which Google had not yet published as a public API id when it was added — a CLI rejection falls back to dropping the model flag, as for every other id.
 - "Known auto-approve issues" list encodes dated, perishable claims the skill itself asserts as current: Claude Code allowlist-silently-denied bug "as of Feb 2026" (use `bypassPermissions`, not allowlists), Codex per-project trust gate "Fixed in v0.88+", Gemini `--yolo` confirmation regression "in v0.28+" — these are external-tool facts that will drift out of date.
 - Auto-approve flag table pairs a CLI flag with an equivalent env/config setting and says to use "ALL applicable flags, not just one" — belt-and-suspenders is the intended posture, not redundancy to prune.
 - Pre-flight rule: "before launching any CLI, verify auto-approve is effective by running a trivial test command... and confirming no prompt appeared" — a runtime self-check, not a one-time setup assumption.

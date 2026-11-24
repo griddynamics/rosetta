@@ -119,6 +119,22 @@ function validateEvaluatorParams(resolved: ResolvedCaseConfig[]): void {
   }
 }
 
+/**
+ * Validate the ids of one `--only-evaluator` / `--skip-evaluator` flag against the
+ * evaluator registry. A mistyped `--only-evaluator` id would otherwise filter every
+ * evaluator out of every case, and each trial would pass with no verdict. An unknown
+ * id fails fast as `ConfigError` (exit 2), like an unknown `use` in a case config.
+ */
+function validateEvaluatorFilter(flag: string, ids: string[] | undefined): void {
+  for (const id of ids ?? []) {
+    try {
+      evaluatorRegistry.get(id);
+    } catch (err) {
+      throw new ConfigError(`${flag}: ${(err as Error).message}`);
+    }
+  }
+}
+
 function cliModels(opts: RunOptions): PartialModelRoles {
   const models: PartialModelRoles = {};
   if (opts.fastModel) models.fast = opts.fastModel;
@@ -173,6 +189,9 @@ export async function runRun(opts: RunOptions): Promise<number> {
       return Object.keys(agentEfforts).length > 0 ? { agentEfforts } : {};
     })(),
   };
+  // Evaluator filter ids are checked before any case is resolved.
+  validateEvaluatorFilter('--only-evaluator', opts.onlyEvaluator);
+  validateEvaluatorFilter('--skip-evaluator', opts.skipEvaluator);
 
   // --- Mode & case set (D4/D7) ---
   let cases: CaseDefinition[];

@@ -36,7 +36,6 @@ def _make_config(**overrides) -> RosettaConfig:
         oauth_mode="oauth",
         oauth_oidc_config_url="",
         oauth_required_scopes=None,
-        read_policy="all",
         user_email="rosetta@example.com",
     )
     defaults.update(overrides)
