@@ -1,6 +1,8 @@
 <sim_script flow="coding-flow">
 
-Sizing decides the stops: discovery only when the request is unclear; SMALL folds the plan gate into the design gate and final validation into the implementation gate. The lightweight `coding-flow` has a single design gate before implementation and no plan gate — when that is the flow file read, drop stops 4 and 5 and move their checks into stop 3.
+Sizing decides the stops: discovery only when the request is unclear. SMALL folds the plan gate into the design gate, and opens the implementation gate after tests, combined with final validation: narrate tests, emit stop 6's test list inside stop 5's artifact, wait for stop 5's sentence, skip stop 6.
+
+Lightweight `coding-flow` (one `solution_design` architect pass, `user_review_design` as the only gate): stop 2 becomes the architect's questions inside `solution_design`, applied only when it asks any; stop 3 carries architecture notes, specs, plan and review findings with stop 4's checks; stop 5 is not a gate — its checks move into stop 6, whose coaching point becomes "no gate of theirs stands after design approval".
 
 <stop id="1" phase="intake" gate="request" applies="ALL" waits_on="the request they type">
 
@@ -65,7 +67,7 @@ Defect: one plan item outside the approved design — a refactor, a dependency b
 
 </stop>
 
-<stop id="5" phase="user_review_impl" gate="approval" applies="ALL; SMALL: combined with final validation" waits_on="the implementation approval sentence">
+<stop id="5" phase="user_review_impl" gate="approval" applies="ALL; SMALL: after tests, combined with final validation" waits_on="the implementation approval sentence">
 
 Narrate: an `engineer` implements the approved plan with the build passing, a `reviewer` inspects the diff against the specs; MEDIUM and LARGE add a `validator` that runs it and reports whether it actually works, SMALL gets that check from the reviewer.
 Emit: the change summary — real files, what each does — plus review and validation findings, one gap left open.
@@ -81,7 +83,7 @@ Defect: a file in the diff no approved plan item asked for, or validation that r
 
 </stop>
 
-<stop id="6" phase="tests and final_validation" gate="report" applies="ALL; review_tests and final_validation MEDIUM,LARGE" waits_on="their read of the report">
+<stop id="6" phase="tests and final_validation" gate="report" applies="MEDIUM,LARGE; SMALL: folded into stop 5" waits_on="their read of the report">
 
 Narrate: an `engineer` writes and runs the tests; on MEDIUM and LARGE a `reviewer` checks coverage, scenarios, and mocking, and a `validator` closes with dependency-by-dependency checks and manual QA.
 Emit: the test list against their real modules, the coverage claim, and the final validation report.

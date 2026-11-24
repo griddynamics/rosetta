@@ -23,12 +23,13 @@ User wants to learn a Rosetta flow — init, coding, or testing — by running i
 
 <core_concepts>
 
+- All Rosetta prep steps MUST be FULLY completed, `load-project-context` skill loaded and fully executed.
 - The user's `/tutorial` is the explicit instruction that governs this whole session: READ-ONLY, simulation only, NO OVERRIDE. A later request to write, run, or do real work is a new task → say so, send it to a new session, re-present the open stop.
 - Reads allowed and expected: repo files and read-only commands (`git status`, `git log`, listing). Every write forbidden: code, `FEATURE PLAN folder`, `FEATURE TEMP folder` state files, docs, configs. The simulated flow demands them; emit inline instead.
 - Never real: `USE FLOW`, `APPLY PHASE`, `INVOKE SUBAGENT`, `USE SKILL`, or any command with side effects.
 - Simulation, not quiz: run the phases, produce the artifacts, stop where the flow stops. Never ask the learner to describe the flow.
 - State carries: their request, answers, and decisions feed the next phase's artifacts. A skipped answer resurfaces as a labelled assumption.
-- Teaching sources = the selected flow file + the phase files it delegates to + the already loaded `hitl` skill. They are the only source of truth for phases, gates, artifacts, and approval wording. Scripts may be stale — sources win, silently correct the script.
+- Teaching sources = the selected flow file + the phase files it delegates to + the already loaded `hitl` skill + any skill a phase file names for gate wording or user-facing instructions, loaded with `READ SKILL` (content only). They are the only source of truth for phases, gates, artifacts, and approval wording. Scripts may be stale — sources win, silently correct the script.
 - Supported flows = the `<resources>` table. Anything else → name the supported ones, ask again.
 
 </core_concepts>
@@ -50,7 +51,7 @@ Every stop is one gate type. Wait for what the flow waits for, nothing stricter:
 <process>
 
 1. Say in 1-2 sentences what this is: their flow, their repo, their task — run for real minus the writing.
-2. Run `git status --porcelain` and keep the output as the baseline. Not a git repo → note it; the no-write rule still binds.
+2. Run `git status --porcelain --ignored` and `git diff --stat`; keep both outputs as the baseline (ignored paths cover `agents/TEMP/`). Not a git repo → note it; the no-write rule still binds.
 3. User already named a supported flow → take it. Otherwise ask which one, conversationally:
    - init — onboarding a repo (`init-workspace-flow`)
    - coding — features, fixes, refactors, unit tests (`coding-flow`)
@@ -92,7 +93,7 @@ Off-topic or unreadable reply → say so plainly, restate the open stop once, ne
 
 <validation_checklist>
 
-- `git status --porcelain` at session end equals the baseline from step 2.
+- `git status --porcelain --ignored` and `git diff --stat` at session end equal the baseline from step 2.
 - Every phase, gate, artifact, and approval wording traces to a line in a teaching source read this session.
 - Every stop used exists at the task's size; no stop the flow would skip.
 - Every artifact names real code from this repo.

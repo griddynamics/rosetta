@@ -12,7 +12,7 @@ A user-invoked practice run: the learner picks a Rosetta flow and a real task fr
 
 ## How it works
 
-`SKILL.md` `<process>`: introduce in 1-2 sentences → record a `git status --porcelain` baseline → take or ask for the flow → ask for a real task in that flow's scope → `READ FLOW` the flow and the phase files that own gate wording → size the task as the flow does and keep only the stops that apply → brief in ≤6 sentences → read the matching script for calibration and the code the task touches → run stop to stop, one stop per turn → critique each reply → recap and offer another flow.
+`SKILL.md` `<process>`: introduce in 1-2 sentences → record a `git status --porcelain --ignored` + `git diff --stat` baseline → take or ask for the flow → ask for a real task in that flow's scope → `READ FLOW` the flow and the phase files that own gate wording → size the task as the flow does and keep only the stops that apply → brief in ≤6 sentences → read the matching script for calibration and the code the task touches → run stop to stop, one stop per turn → critique each reply → recap and offer another flow.
 
 `<gate_types>` defines what each stop waits for: `request`, `answers`, `approval`, `selection`, `file`, `evidence`, `report`. Exact approval wording is required only where the flow or its phase file prescribes it; otherwise any explicit approval per `hitl` counts. A `report` stop is a coaching stop where the flow itself does not wait.
 
