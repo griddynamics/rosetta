@@ -94,7 +94,7 @@ Defect: one assumed value (marked `[ASSUMED: ...]`) in a test the specs never se
 
 Narrate: an `engineer` triages the results read-only: each failure gets an id, one API-failure category, a root cause, and an evidence label (`api-aqa-flow-execution-and-report-analysis.md`).
 Emit: `execution-report.md` content — summary, failures by category, 2-3 failure entries from their results with `ERR-N`, root cause, and `Confirmed` / `Assumption` / `Unknown`, then patterns and recommendations. Report location unknown and not in `agents/user-instructions/` → ask for it instead and wait.
-Stop: coaching only — ask which failure they would trust least and why. Refuse "just fix it now": Phase 6 is read-only (same file).
+Stop: coaching only — ask which failure they would trust least and why. Refuse "just fix it now": Phase 6 is read-only (same file). Exception: entries still unlabelled after two validation cycles → the flow asks once how to label them (step 6.2); that ask is an `answers` stop.
 Defect: one root cause labelled `Confirmed` on evidence that supports only an assumption.
 
 - Good: checks the evidence label against the output they ran, and challenges the overconfident one.

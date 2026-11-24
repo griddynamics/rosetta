@@ -18,7 +18,7 @@ Defect: none; their own words are the artifact under review.
 <stop id="2" phase="data_collection" gate="answers" applies="ALL" waits_on="the run-folder slug confirmation">
 
 Narrate: a `discoverer` (UI-AQA data collector) resolves the TMS and Wiki from `gain.json`, their explicit names or URLs, and available integrations, then cross-references the sources into `plans/ui-aqa-<test-name>/test-plan.md`.
-Emit: the test plan content for their real case or description (case info, feature context, access and truncation notes, cross-reference notes) and the proposed slug, derived from the case title or their description, with a request to confirm it before the folder is created.
+Emit: the proposed slug, derived from the case title or their description, with a request to confirm it before the folder is created. The test plan (case info, feature context, access and truncation notes, cross-reference notes) comes after confirmation, narrated at the next stop.
 Stop: their confirmation or another slug (`ui-aqa-flow-data-collection.md`, step 1.1). The slug is never fabricated.
 Defect: propose a slug broader than the one case, for example the whole screen instead of the single scenario.
 
@@ -31,7 +31,7 @@ Defect: propose a slug broader than the one case, for example the whole screen i
 
 <stop id="3" phase="requirements_clarification" gate="answers" applies="ALL" waits_on="their answers to the clarifying questions">
 
-Narrate: Phase 1 is done. An `architect` (test requirements analyst) runs gap analysis on the plan across steps clarity, result measurability, test data, edge cases and success criteria, and derives typed assertions where a measurable form exists.
+Narrate: Phase 1 finishes on the confirmed slug: the collector cross-references the sources into `plans/ui-aqa-<test-name>/test-plan.md` — show its essentials in 3-5 lines. An `architect` (test requirements analyst) runs gap analysis on the plan across steps clarity, result measurability, test data, edge cases and success criteria, and derives typed assertions where a measurable form exists.
 Emit: the gaps from their real test plan as a batch of questions, each with its derived assertion where one exists (Presence, State, Content, Behavioral), per `ui-aqa-flow-requirements-clarification.md`.
 Stop: their answers. The flow waits for all of them before Phase 3 (`ui-aqa-flow-requirements-clarification.md`, step 2.3).
 Defect: one derived Content assertion written as "contains" where the case implies an exact value, such as exact confirmation text.
