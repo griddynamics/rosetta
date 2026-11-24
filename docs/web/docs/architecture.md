@@ -182,8 +182,8 @@ Instructions live in `/instructions/r3/` in the instructions repository. One top
 
 | Set | Skills | Workflows | Workflow files | Rules | Agents |
 | --- | ------ | --------- | -------------- | ----- | ------ |
-| `core` | 43 | 17 | 70 | 5 | 10 |
-| **total (`rosetta`)** | **43** | **17** | **70** | **5** | **10** |
+| `core` | 44 | 17 | 70 | 5 | 10 |
+| **total (`rosetta`)** | **44** | **17** | **70** | **5** | **10** |
 
 15 of them are distinct request types. "Workflow files" = every workflow and phase file.
 
@@ -280,7 +280,7 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are the primary delivery mechanism for Rosetta. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-The `rosetta` plugin contains the `core` set (43 skills, 17 workflows, 10 agents, 5 rules).
+The `rosetta` plugin contains the `core` set (44 skills, 17 workflows, 10 agents, 5 rules).
 
 Plugin folders are named `<plugin>-<ide>`. `plugins.json` declares two published plugins, `rosetta` and `rosetta-light`, both built from `core`. Two plugins times seven IDE targets gives 14 folders. `--publish <name>[,<name>...]` limits writing to the named plugins (FR-CLI-0036). `scripts/pre_commit.py` passes `--publish rosetta,rosetta-light`, so only those 14 folders are written. Catalogs may declare more sets and more folders; the split catalog is in [plugins.split.json](https://github.com/griddynamics/rosetta/blob/main/docs/REQUIREMENTS/plugin-generator/assets/plugins.split.json). The content is identical across IDEs; only the format differs. Users install one plugin.
 

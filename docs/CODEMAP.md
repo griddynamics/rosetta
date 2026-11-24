@@ -147,7 +147,7 @@ shell-schemas/ (workflow-shell.md agent-shell.md skill-shell.md)
 
 ### instructions/r2/core/ — previous release, backported fixes only (146 tracked files)
 
-In r3 `core`: 43 skills, 70 workflow files, 5 rules, 10 agents (20 files).
+In r3 `core`: 44 skills, 70 workflow files, 5 rules, 10 agents (20 files).
 17 of the workflow files are entry points (frontmatter `tags: ["workflow"]`); 15 of those
 are distinct request types, since `aqa-flow` is a backward-compat router over
 `ui-aqa-flow`/`api-aqa-flow`/`testgen-flow` and `coding-light-flow` is a variant of
