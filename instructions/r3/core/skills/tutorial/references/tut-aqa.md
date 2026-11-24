@@ -1,28 +1,36 @@
-<sample_task_set flow="aqa-flow">
+<sim_script flow="aqa-flow">
 
-<sample_task id="1" ties="reaching for aqa-flow">
+`aqa-flow` is a router: it classifies once, routes to exactly one of `ui-aqa-flow`, `api-aqa-flow`, `testgen-flow`, and does no phase work itself. These stops end at the route; the target flow's script takes over from its own first stop after the request.
 
-Scenario: your team wants the checkout page covered by automated browser tests. You're new to Rosetta and don't know what any of the flows are called.
-Task: type the one line you'd send.
+<stop id="1" phase="routing" gate="request" applies="ALL" waits_on="the request they type">
 
-Rubric:
-- Good if: calls `/aqa-flow` and describes the need in plain words — knowing the flow names is not a prerequisite.
-- Good if: expects it to route once, to a UI flow, and then get out of the way; the flow it picks owns everything after.
-- Wrong/missing if: goes hunting for the exact flow name first, or guesses one — a wrong guess sends you into the flow that writes the wrong artifacts.
-- Wrong/missing if: reaches for `/coding-flow` because tests are code; test automation has its own flows.
+Narrate: nothing yet — the session opens on their line.
+Emit: nothing.
+Stop: ask for the exact line they would send to get this testing task done on this repo.
+Defect: none — their own words are the artifact under review here.
 
-</sample_task>
+- Good: calls `/aqa-flow` and describes the need in plain words — knowing the three flow names is not a prerequisite.
+- Good: names the signals the router reads — browser, page, selectors for UI; endpoints, OpenAPI, request/response for API; ticket-to-test-cases or TMS export without code for testgen.
+- Good: already knows the target and calls it directly — `/ui-aqa-flow`, `/api-aqa-flow`, `/testgen-flow` skip the router.
+- Wrong: reaches for `/coding-flow` because tests are code — test automation has its own flows, phases, and artifacts.
+- Wrong: sends the task with no command — a plain request runs the lean path, none of the AQA gates stop for them.
+- Carry: their request goes to the target flow verbatim; vague words here become a guessed route or a question at stop 2.
 
-<sample_task id="2" ties="calling the flow explicitly">
+</stop>
 
-Scenario: the new discount rules need tests. You don't know which flow that is, so you send the task on its own and expect the right flow to kick in by itself.
-Task: say what that costs you, and what you send instead.
+<stop id="2" phase="routing" gate="selection" applies="request is unclear (no reliable signal) or mixed (e.g. UI and API)" waits_on="their choice of flow or order">
 
-Rubric:
-- Good if: sends `/aqa-flow` with the same plain description — naming it is what guarantees a flow runs at all.
-- Good if: names the cost — unprompted, the agent may just write tests its own way, and you lose the phases, gates, and artifacts you installed Rosetta for.
-- Wrong/missing if: relies on it being picked up automatically; that happens sometimes, not reliably, and the reply looks much the same either way.
+Narrate: the router classifies the request and finds no reliable signal, or finds two.
+Emit: unclear → the three options with a one-line description each; mixed → the named split and a proposal to run the flows one after another, order theirs to pick.
+Stop: their pick.
+Defect: describe one option so it overlaps the other (e.g. testgen sounding like it writes test code), so a hasty pick lands in the wrong flow.
 
-</sample_task>
+- Good: picks by the artifact they want — test cases and requirements (testgen), browser tests (UI), API tests (API).
+- Good: on a mixed request, picks an order with a reason — e.g. test cases first, then automation built on them.
+- Wrong: "you decide" — the router is told not to guess here because the flows write different artifact sets; a wrong route means artifacts in the wrong shape.
+- Wrong: asks for both at once in one run — the router routes exactly once; the second flow is a second run.
+- Carry: the chosen flow owns everything downstream; continue with that flow's script and its gates.
 
-</sample_task_set>
+</stop>
+
+</sim_script>
