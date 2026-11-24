@@ -1,0 +1,189 @@
+diff --git a/messages/en.json b/messages/en.json
+index 94a1cf3..6764623 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -64,6 +64,7 @@
+ 			"description": "Description",
+ 			"productDetails": "Product Details",
+ 			"careInstructions": "Care Instructions",
++			"storageConditions": "Storage conditions",
+ 			"shippingReturns": "Shipping & Returns",
+ 			"shippingBody": "Free shipping on orders over {freeShippingThreshold}. Standard delivery 3-5 business days.",
+ 			"returnsBody": "Free returns within {returnsWindowDays} days of purchase. Items must be unworn with tags attached.",
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+index 51a91eb..08006be 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+@@ -214,6 +214,9 @@ async function ProductShell({
+ 			descriptionHtml={view.descriptionHtml}
+ 			attributes={view.attributes}
+ 			careInstructions={view.careInstructions}
++			storageConditions={
++				typeof view.extensions.storageConditions === "string" ? view.extensions.storageConditions : null
++			}
+ 			policyLabels={policyLabels}
+ 		/>
+ 	);
+diff --git a/src/config/storefront-view.test.ts b/src/config/storefront-view.test.ts
+new file mode 100644
+index 0000000..c9bb584
+--- /dev/null
++++ b/src/config/storefront-view.test.ts
+@@ -0,0 +1,49 @@
++import { describe, expect, it } from "vitest";
++
++import type { ProductShell } from "@/lib/catalog/get-product-data";
++import { mapProductExtensions } from "@/config/storefront-view";
++
++function shell(base: unknown, translated?: unknown): ProductShell {
++	return {
++		id: "p1",
++		storageConditions: base,
++		translation: translated === undefined ? null : { storageConditions: translated },
++	} as unknown as ProductShell;
++}
++
++describe("mapProductExtensions storageConditions", () => {
++	it("prefers the translation over the base value", () => {
++		expect(mapProductExtensions(shell("Keep cold", "Gardez au frais"))).toEqual({
++			storageConditions: "Gardez au frais",
++		});
++	});
++
++	it("falls back to base when translation is null, blank or absent", () => {
++		for (const translated of [null, "", "   ", undefined]) {
++			expect(mapProductExtensions(shell("Keep cold", translated))).toEqual({
++				storageConditions: "Keep cold",
++			});
++		}
++	});
++
++	it("trims the resolved value", () => {
++		expect(mapProductExtensions(shell("  Keep cold  "))).toEqual({ storageConditions: "Keep cold" });
++	});
++
++	it("returns {} when base is null and no translation", () => {
++		expect(mapProductExtensions(shell(null))).toEqual({});
++	});
++
++	it("returns {} when both are empty or whitespace", () => {
++		expect(mapProductExtensions(shell("", " "))).toEqual({});
++		expect(mapProductExtensions(shell("  ", ""))).toEqual({});
++	});
++
++	it("uses the translation when base is absent", () => {
++		expect(mapProductExtensions(shell(null, "Frio"))).toEqual({ storageConditions: "Frio" });
++	});
++
++	it("ignores non-string values", () => {
++		expect(mapProductExtensions(shell(42, { a: 1 }))).toEqual({});
++	});
++});
+diff --git a/src/config/storefront-view.ts b/src/config/storefront-view.ts
+index 924a8d2..474049e 100644
+--- a/src/config/storefront-view.ts
++++ b/src/config/storefront-view.ts
+@@ -1,14 +1,36 @@
+ import "server-only";
+ 
+ import type { ProductShell } from "@/lib/catalog/get-product-data";
++import { pickTranslatedField } from "@/lib/saleor-translations";
++
++type StorageConditionsSource = {
++	storageConditions?: unknown;
++	translation?: { storageConditions?: unknown } | null;
++};
++
++function asString(value: unknown): string | null {
++	return typeof value === "string" ? value : null;
++}
++
++/** Translation wins when non-blank, else base value; trimmed; null when blank or absent. */
++function resolveStorageConditions(product: StorageConditionsSource): string | null {
++	const resolved = pickTranslatedField(
++		{ storageConditions: asString(product.translation?.storageConditions) },
++		"storageConditions",
++		asString(product.storageConditions),
++	);
++	const trimmed = resolved?.trim();
++	return trimmed ? trimmed : null;
++}
+ 
+ /**
+  * Fork-owned extras on `ProductView.extensions`.
+  *
+  * Add the selection in `src/graphql/extensions/ProductDetailsExtension.graphql`,
+  * run `pnpm generate`, then map the new field here. Do not edit
+- * `src/lib/storefront/mappers/product.ts` or the product route.
++ * `src/lib/storefront/mappers/product.ts`.
+  */
+-export function mapProductExtensions(_product: ProductShell): Record<string, unknown> {
+-	return {};
++export function mapProductExtensions(product: ProductShell): Record<string, unknown> {
++	const storageConditions = resolveStorageConditions(product);
++	return storageConditions ? { storageConditions } : {};
+ }
+diff --git a/src/graphql/extensions/ProductDetailsExtension.graphql b/src/graphql/extensions/ProductDetailsExtension.graphql
+index 0a67217..8e94c1b 100644
+--- a/src/graphql/extensions/ProductDetailsExtension.graphql
++++ b/src/graphql/extensions/ProductDetailsExtension.graphql
+@@ -1,4 +1,8 @@
+ # Fork-owned fields on the PDP shell. Add selections here; do not edit ProductDetails.graphql.
+ fragment ProductDetailsExtension on Product {
+ 	__typename
++	storageConditions
++	translation(languageCode: $languageCode) {
++		storageConditions
++	}
+ }
+diff --git a/src/ui/components/pdp/product-attributes.tsx b/src/ui/components/pdp/product-attributes.tsx
+index 004d495..5c20213 100644
+--- a/src/ui/components/pdp/product-attributes.tsx
++++ b/src/ui/components/pdp/product-attributes.tsx
+@@ -25,6 +25,8 @@ interface ProductAttributesProps {
+ 	descriptionHtml?: string[] | null;
+ 	attributes?: Attribute[];
+ 	careInstructions?: string | null;
++	/** Plain text; rendered as a text node, never as HTML. */
++	storageConditions?: string | null;
+ 	policyLabels: PolicyLabelValues;
+ }
+ 
+@@ -41,6 +43,7 @@ export function ProductAttributes({
+ 	descriptionHtml,
+ 	attributes = [],
+ 	careInstructions,
++	storageConditions,
+ 	policyLabels,
+ }: ProductAttributesProps) {
+ 	const t = useTranslations("pdp.attributes");
+@@ -64,19 +67,27 @@ export function ProductAttributes({
+ 	// Filter out variant attributes that are shown elsewhere (Size, Color)
+ 	const displayAttributes = attributes.filter((attr) => !["Size", "Color"].includes(attr.name));
+ 
++	const hasDescription = Boolean(descriptionHtml && descriptionHtml.length > 0);
++
+ 	return (
+ 		<Accordion type="multiple" defaultValue={["description"]} className="w-full">
+-			{descriptionHtml && descriptionHtml.length > 0 && (
++			{(hasDescription || storageConditions) && (
+ 				<AccordionItemWithContext value="description" className="border-border">
+ 					<AccordionTrigger className="py-4 text-sm font-medium hover:no-underline">
+ 						{t("description")}
+ 					</AccordionTrigger>
+ 					<AccordionContent>
+ 						<div className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-foreground prose-strong:text-foreground">
+-							{descriptionHtml.map((html) => (
++							{descriptionHtml?.map((html) => (
+ 								<div key={html} dangerouslySetInnerHTML={{ __html: html }} />
+ 							))}
+ 						</div>
++						{storageConditions && (
++							<p className="mt-3 text-sm text-muted-foreground">
++								<span className="font-medium text-foreground">{t("storageConditions")}:</span>{" "}
++								{storageConditions}
++							</p>
++						)}
+ 					</AccordionContent>
+ 				</AccordionItemWithContext>
+ 			)}

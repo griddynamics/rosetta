@@ -1,0 +1,979 @@
+diff --git a/e2e/age-restrictions.spec.ts b/e2e/age-restrictions.spec.ts
+new file mode 100644
+index 0000000..104d160
+--- /dev/null
++++ b/e2e/age-restrictions.spec.ts
+@@ -0,0 +1,102 @@
++import { existsSync } from "node:fs";
++import { expect, test, type Browser, type Page } from "@playwright/test";
++
++const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3020";
++const productPath = process.env.AGE_RESTRICTIONS_E2E_RESTRICTED_PRODUCT_PATH;
++const missingBirthdayStorageState = process.env.AGE_RESTRICTIONS_E2E_MISSING_BIRTHDAY_STORAGE_STATE;
++const underageStorageState = process.env.AGE_RESTRICTIONS_E2E_UNDERAGE_STORAGE_STATE;
++const eligibleStorageState = process.env.AGE_RESTRICTIONS_E2E_ELIGIBLE_STORAGE_STATE;
++
++test.skip(!productPath, "requires AGE_RESTRICTIONS_E2E_RESTRICTED_PRODUCT_PATH");
++
++function isConfigured(storageState?: string): storageState is string {
++	return Boolean(productPath && storageState && existsSync(storageState));
++}
++
++async function addRestrictedProduct(page: Page) {
++	await page.goto(new URL(productPath!, baseURL).toString());
++	const addToCart = page.locator("button:not([disabled])", { hasText: /add to (cart|bag)/i }).first();
++
++	await expect(addToCart).toBeVisible({ timeout: 30_000 });
++	await addToCart.click();
++}
++
++async function withAuthenticatedPage(
++	browser: Browser,
++	storageState: string,
++	assertion: (page: Page) => Promise<void>,
++) {
++	const context = await browser.newContext({ baseURL, storageState });
++	const page = await context.newPage();
++
++	try {
++		await assertion(page);
++	} finally {
++		await context.close();
++	}
++}
++
++test.describe("age-restricted products", () => {
++	test("guides guests to sign in", async ({ page }) => {
++		await addRestrictedProduct(page);
++		await expect(page.getByRole("alert")).toContainText("Sign in to add age-restricted products.");
++		await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
++	});
++
++	test("guides customers without a birthday to their profile", async ({ browser }) => {
++		test.skip(
++			!isConfigured(missingBirthdayStorageState),
++			"requires product path and a missing-birthday authenticated storage state",
++		);
++
++		await withAuthenticatedPage(browser, missingBirthdayStorageState, async (page) => {
++			await addRestrictedProduct(page);
++			await expect(page.getByRole("alert")).toContainText(
++				"Add your birthday to buy age-restricted products.",
++			);
++			await expect(page.getByRole("link", { name: "Update profile" })).toBeVisible();
++		});
++	});
++
++	test("rejects underage customers", async ({ browser }) => {
++		test.skip(
++			!isConfigured(underageStorageState),
++			"requires product path and an underage authenticated storage state",
++		);
++
++		await withAuthenticatedPage(browser, underageStorageState, async (page) => {
++			await addRestrictedProduct(page);
++			await expect(page.getByRole("alert")).toContainText(
++				"You do not meet the age requirement for this product.",
++			);
++		});
++	});
++
++	test("lets eligible customers continue to checkout", async ({ browser }) => {
++		test.skip(
++			!isConfigured(eligibleStorageState),
++			"requires product path and an eligible authenticated storage state",
++		);
++
++		await withAuthenticatedPage(browser, eligibleStorageState, async (page) => {
++			await addRestrictedProduct(page);
++			await expect(page.getByRole("alert")).toHaveCount(0);
++			let checkoutId: string | undefined;
++
++			await expect
++				.poll(async () => {
++					checkoutId = (await page.context().cookies()).find((cookie) =>
++						cookie.name.startsWith("checkoutId-"),
++					)?.value;
++					return checkoutId;
++				})
++				.toBeTruthy();
++
++			const checkoutURL = new URL("/checkout", baseURL);
++
++			checkoutURL.searchParams.set("checkout", checkoutId!);
++			await page.goto(checkoutURL.toString());
++			await expect(page).toHaveURL(/\/checkout\?.*checkout=/);
++		});
++	});
++});
+diff --git a/messages/de.json b/messages/de.json
+index cd8d760..edd90fc 100644
+--- a/messages/de.json
++++ b/messages/de.json
+@@ -172,6 +172,7 @@
+ 			"newPassword": "Neues Passwort",
+ 			"confirmNewPassword": "Neues Passwort bestätigen",
+ 			"name": "Name",
++			"birthday": "Birthday",
+ 			"companyOptional": "Firma (optional)",
+ 			"streetAddress": "Straße und Hausnummer",
+ 			"streetAddress2Optional": "Wohnung, Suite usw. (optional)",
+diff --git a/messages/en.json b/messages/en.json
+index 94a1cf3..ce6a182 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -172,6 +172,7 @@
+ 			"newPassword": "New password",
+ 			"confirmNewPassword": "Confirm new password",
+ 			"name": "Name",
++			"birthday": "Birthday",
+ 			"companyOptional": "Company (optional)",
+ 			"streetAddress": "Street address",
+ 			"streetAddress2Optional": "Apt, suite, etc. (optional)",
+diff --git a/messages/fi.json b/messages/fi.json
+index 4fd92e3..0156222 100644
+--- a/messages/fi.json
++++ b/messages/fi.json
+@@ -172,6 +172,7 @@
+ 			"newPassword": "Uusi salasana",
+ 			"confirmNewPassword": "Vahvista uusi salasana",
+ 			"name": "Nimi",
++			"birthday": "Birthday",
+ 			"companyOptional": "Yritys (valinnainen)",
+ 			"streetAddress": "Katuosoite",
+ 			"streetAddress2Optional": "Asunto, huoneisto jne. (valinnainen)",
+diff --git a/messages/fr.json b/messages/fr.json
+index 6662017..f5d6c55 100644
+--- a/messages/fr.json
++++ b/messages/fr.json
+@@ -172,6 +172,7 @@
+ 			"newPassword": "Nouveau mot de passe",
+ 			"confirmNewPassword": "Confirmer le nouveau mot de passe",
+ 			"name": "Nom",
++			"birthday": "Birthday",
+ 			"companyOptional": "Société (facultatif)",
+ 			"streetAddress": "Adresse",
+ 			"streetAddress2Optional": "Appartement, suite, etc. (facultatif)",
+diff --git a/messages/ja.json b/messages/ja.json
+index c8be825..00b842c 100644
+--- a/messages/ja.json
++++ b/messages/ja.json
+@@ -172,6 +172,7 @@
+ 			"newPassword": "新しいパスワード",
+ 			"confirmNewPassword": "新しいパスワード（確認）",
+ 			"name": "名前",
++			"birthday": "Birthday",
+ 			"companyOptional": "会社名（任意）",
+ 			"streetAddress": "住所",
+ 			"streetAddress2Optional": "建物名・部屋番号など（任意）",
+diff --git a/messages/ko.json b/messages/ko.json
+index 218b88d..c3beffd 100644
+--- a/messages/ko.json
++++ b/messages/ko.json
+@@ -163,6 +163,7 @@
+ 			"newPassword": "새 비밀번호",
+ 			"confirmNewPassword": "새 비밀번호 확인",
+ 			"name": "이름",
++			"birthday": "Birthday",
+ 			"companyOptional": "회사명 (선택)",
+ 			"streetAddress": "도로명 주소",
+ 			"streetAddress2Optional": "상세 주소, 동/호수 등 (선택)",
+diff --git a/messages/nb.json b/messages/nb.json
+index d1d7039..2f04a56 100644
+--- a/messages/nb.json
++++ b/messages/nb.json
+@@ -172,6 +172,7 @@
+ 			"newPassword": "Nytt passord",
+ 			"confirmNewPassword": "Bekreft nytt passord",
+ 			"name": "Navn",
++			"birthday": "Birthday",
+ 			"companyOptional": "Firma (valgfritt)",
+ 			"streetAddress": "Gateadresse",
+ 			"streetAddress2Optional": "Leilighet, suite osv. (valgfritt)",
+diff --git a/messages/pl.json b/messages/pl.json
+index ecaf8f2..9723246 100644
+--- a/messages/pl.json
++++ b/messages/pl.json
+@@ -172,6 +172,7 @@
+ 			"newPassword": "Nowe hasło",
+ 			"confirmNewPassword": "Potwierdź nowe hasło",
+ 			"name": "Imię i nazwisko",
++			"birthday": "Birthday",
+ 			"companyOptional": "Firma (opcjonalnie)",
+ 			"streetAddress": "Ulica i numer",
+ 			"streetAddress2Optional": "Mieszkanie, lokal itp. (opcjonalnie)",
+diff --git a/src/app/(checkout)/actions.ts b/src/app/(checkout)/actions.ts
+index 388b7ad..35a3e16 100644
+--- a/src/app/(checkout)/actions.ts
++++ b/src/app/(checkout)/actions.ts
+@@ -583,7 +583,7 @@ export async function runCheckoutComplete(checkoutId: string): Promise<CheckoutC
+ 		const { server: t } = await getCheckoutServerTranslations();
+ 		return {
+ 			ok: false,
+-			error: payload.errors[0].message ?? t("completeOrderFailed"),
++			error: payload.errors[0].code ?? t("completeOrderFailed"),
+ 			fieldErrors: payload.errors.map((error) => ({
+ 				field: error.field,
+ 				message: error.message ?? t("completeOrderFailed"),
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts b/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
+index 0e2ad45..9dbed18 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
+@@ -20,9 +20,10 @@ import type { AccountActionResult } from "@/ui/components/account/account-action
+ export async function updateProfile(formData: FormData): Promise<AccountActionResult> {
+ 	const firstName = getFormString(formData, "firstName");
+ 	const lastName = getFormString(formData, "lastName");
++	const birthday = getFormStringOptional(formData, "birthday");
+ 
+ 	const result = await mutate(AccountUpdateDocument, {
+-		variables: { input: { firstName, lastName } },
++		variables: { input: { firstName, lastName, birthday } },
+ 	});
+ 
+ 	if (!result.ok) {
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/account/profile-birthday.test.ts b/src/app/(storefront)/[locale]/[channel]/(main)/account/profile-birthday.test.ts
+new file mode 100644
+index 0000000..636ddb8
+--- /dev/null
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/account/profile-birthday.test.ts
+@@ -0,0 +1,54 @@
++import { describe, expect, it, vi } from "vitest";
++import { AccountUpdateDocument, CurrentUserProfileDocument } from "@/gql/graphql";
++
++const { mutate } = vi.hoisted(() => ({ mutate: vi.fn() }));
++
++vi.mock("@/lib/saleor", () => ({ mutate }));
++vi.mock("next/cache", () => ({ refresh: vi.fn() }));
++
++import { updateProfile } from "./actions";
++
++function profileForm(birthday: string): FormData {
++	const form = new FormData();
++	form.set("firstName", "Ada");
++	form.set("lastName", "Lovelace");
++	form.set("birthday", birthday);
++	return form;
++}
++
++describe("profile birthday", () => {
++	it("saves a valid birthday through the private account mutation", async () => {
++		mutate.mockResolvedValueOnce({
++			ok: true,
++			data: { accountUpdate: { errors: [] } },
++		});
++
++		await expect(updateProfile(profileForm("1990-12-10"))).resolves.toEqual({ success: true });
++		expect(mutate).toHaveBeenCalledWith(AccountUpdateDocument, {
++			variables: {
++				input: { firstName: "Ada", lastName: "Lovelace", birthday: "1990-12-10" },
++			},
++		});
++	});
++
++	it("returns the API validation error for a future birthday", async () => {
++		mutate.mockResolvedValueOnce({
++			ok: true,
++			data: {
++				accountUpdate: {
++					errors: [{ field: "birthday", message: "Must be valid and not after today." }],
++				},
++			},
++		});
++
++		await expect(updateProfile(profileForm("2999-01-01"))).resolves.toEqual({
++			success: false,
++			error: "Must be valid and not after today.",
++		});
++	});
++
++	it("selects birthday only from the authenticated profile query", () => {
++		expect(CurrentUserProfileDocument.toString()).toContain("query CurrentUserProfile");
++		expect(CurrentUserProfileDocument.toString()).toContain("birthday");
++	});
++});
+diff --git a/src/app/actions.ts b/src/app/actions.ts
+index 1392671..5fdf18c 100644
+--- a/src/app/actions.ts
++++ b/src/app/actions.ts
+@@ -11,6 +11,11 @@ import {
+ } from "@/gql/graphql";
+ import { emitCommerceEvent } from "@/lib/analytics/emit.server";
+ import * as Checkout from "@/lib/checkout";
++import { getAgeEligibilityIssue, type CheckoutAvailabilityIssue } from "@/checkout/lib/checkout-availability";
++
++export type CartMutationResult =
++	| { ok: true }
++	| { ok: false; eligibility: NonNullable<CheckoutAvailabilityIssue["eligibility"]> };
+ 
+ // Private state (session/cart cookies) lives in dynamic holes that read cookies at
+ // request time — it is never in the shared cache, so there is nothing global to
+@@ -82,19 +87,32 @@ export async function deleteCartLine(checkoutId: string, lineId: string) {
+ 	refresh();
+ }
+ 
+-export async function updateCartLineQuantity(checkoutId: string, lineId: string, quantity: number) {
++export async function updateCartLineQuantity(
++	checkoutId: string,
++	lineId: string,
++	quantity: number,
++): Promise<CartMutationResult | void> {
+ 	if (quantity < 1) {
+ 		return deleteCartLine(checkoutId, lineId);
+ 	}
+ 
+-	await mutate(CheckoutLinesUpdateDocument, {
++	const result = await mutate(CheckoutLinesUpdateDocument, {
+ 		variables: {
+ 			checkoutId,
+ 			lines: [{ lineId, quantity }],
+ 		},
+ 	});
+ 
++	if (result.ok) {
++		const error = result.data.checkoutLinesUpdate?.errors[0] as { code?: string | null } | undefined;
++		const eligibility = error ? getAgeEligibilityIssue(error) : null;
++		if (eligibility) {
++			return { ok: false, eligibility };
++		}
++	}
++
+ 	refresh();
++	return { ok: true };
+ }
+ 
+ /** Add a variant to the channel cart. Private refresh only — never busts the shared cache. */
+@@ -104,7 +122,7 @@ export async function addVariantToCart(input: {
+ 	variantId: string;
+ 	value?: number;
+ 	currency?: string;
+-}) {
++}): Promise<CartMutationResult> {
+ 	const checkout = await Checkout.findOrCreate({
+ 		checkoutId: await Checkout.getIdFromCookies(input.channel),
+ 		channel: input.channel,
+@@ -113,7 +131,7 @@ export async function addVariantToCart(input: {
+ 
+ 	if (!checkout) {
+ 		console.error("Add to cart: Failed to create checkout");
+-		return;
++		return { ok: true };
+ 	}
+ 
+ 	await Checkout.saveIdToCookie(input.channel, checkout.id);
+@@ -127,12 +145,17 @@ export async function addVariantToCart(input: {
+ 
+ 	if (!addResult.ok) {
+ 		console.error("Add to cart failed:", addResult.error.message);
+-		return;
++		return { ok: true };
+ 	}
+ 
+ 	if (addResult.data.checkoutLinesAdd?.errors?.length) {
+-		console.error("Add to cart failed:", addResult.data.checkoutLinesAdd.errors);
+-		return;
++		const error = addResult.data.checkoutLinesAdd.errors[0] as { code?: string | null };
++		const eligibility = getAgeEligibilityIssue(error);
++		if (eligibility) {
++			return { ok: false, eligibility };
++		}
++		console.error("Add to cart failed");
++		return { ok: true };
+ 	}
+ 
+ 	emitCommerceEvent({
+@@ -143,4 +166,5 @@ export async function addVariantToCart(input: {
+ 	});
+ 
+ 	refresh();
++	return { ok: true };
+ }
+diff --git a/src/checkout/lib/checkout-availability.test.ts b/src/checkout/lib/checkout-availability.test.ts
+index ee1872b..f970d25 100644
+--- a/src/checkout/lib/checkout-availability.test.ts
++++ b/src/checkout/lib/checkout-availability.test.ts
+@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
+ 
+ import {
+ 	availabilityIssueFromFieldErrors,
++	getAgeEligibilityIssue,
+ 	isAvailabilityFieldError,
+ 	matchUnavailableLineIds,
+ 	messageMentionsVariant,
+@@ -17,6 +18,20 @@ describe("isAvailabilityFieldError", () => {
+ 	});
+ });
+ 
++describe("getAgeEligibilityIssue", () => {
++	it.each([
++		["AGE_RESTRICTED_GUEST", "guest"],
++		["AGE_RESTRICTED_MISSING_BIRTHDAY", "birthday"],
++		["AGE_RESTRICTED_UNDERAGE", "underage"],
++	])("maps %s without using the server message", (code, issue) => {
++		expect(getAgeEligibilityIssue({ code })).toBe(issue);
++	});
++
++	it("does not classify unrelated errors as eligibility errors", () => {
++		expect(getAgeEligibilityIssue({ code: "INSUFFICIENT_STOCK" })).toBeNull();
++	});
++});
++
+ describe("partitionCheckoutFieldErrors", () => {
+ 	it("splits stock errors away from address fields", () => {
+ 		expect(
+@@ -82,6 +97,15 @@ describe("availabilityIssueFromFieldErrors", () => {
+ 			),
+ 		).toBeNull();
+ 	});
++
++	it("returns an eligibility issue without matching the backend message", () => {
++		expect(
++			availabilityIssueFromFieldErrors(
++				[{ id: "line-m", variant: { name: "M" } }],
++				[{ code: "AGE_RESTRICTED_UNDERAGE" as never, message: "Internal backend copy" }],
++			),
++		).toEqual({ message: "Internal backend copy", lineIds: [], eligibility: "underage" });
++	});
+ });
+ 
+ describe("matchUnavailableLineIds", () => {
+diff --git a/src/checkout/lib/checkout-availability.ts b/src/checkout/lib/checkout-availability.ts
+index c072148..a0632d9 100644
+--- a/src/checkout/lib/checkout-availability.ts
++++ b/src/checkout/lib/checkout-availability.ts
+@@ -3,10 +3,31 @@ import type { CheckoutFieldError } from "@/checkout/lib/checkout-action-types";
+ export type CheckoutAvailabilityIssue = {
+ 	message: string;
+ 	lineIds: string[];
++	eligibility?: "guest" | "birthday" | "underage";
+ };
+ 
+ export function isAvailabilityFieldError(error: { field?: string | null; code?: string | null }): boolean {
+-	return error.field === "quantity" || error.field === "variant" || error.code === "INSUFFICIENT_STOCK";
++	return (
++		error.field === "quantity" ||
++		error.field === "variant" ||
++		error.code === "INSUFFICIENT_STOCK" ||
++		getAgeEligibilityIssue(error) !== null
++	);
++}
++
++export function getAgeEligibilityIssue(error: {
++	code?: string | null;
++}): CheckoutAvailabilityIssue["eligibility"] | null {
++	switch (error.code) {
++		case "AGE_RESTRICTED_GUEST":
++			return "guest";
++		case "AGE_RESTRICTED_MISSING_BIRTHDAY":
++			return "birthday";
++		case "AGE_RESTRICTED_UNDERAGE":
++			return "underage";
++		default:
++			return null;
++	}
+ }
+ 
+ export function partitionCheckoutFieldErrors(errors: ReadonlyArray<CheckoutFieldError>): {
+@@ -55,10 +76,12 @@ export function availabilityIssueFromFieldErrors(
+ 		return null;
+ 	}
+ 
++	const eligibility = getAgeEligibilityIssue(first);
+ 	const message = first.message ?? fallbackMessage;
+ 	return {
+ 		message,
+-		lineIds: matchUnavailableLineIds(lines, message),
++		lineIds: eligibility ? [] : matchUnavailableLineIds(lines, message),
++		...(eligibility ? { eligibility } : {}),
+ 	};
+ }
+ 
+diff --git a/src/checkout/lib/payment/format-checkout-complete-error.test.ts b/src/checkout/lib/payment/format-checkout-complete-error.test.ts
+index bbdc830..e4a358a 100644
+--- a/src/checkout/lib/payment/format-checkout-complete-error.test.ts
++++ b/src/checkout/lib/payment/format-checkout-complete-error.test.ts
+@@ -6,6 +6,14 @@ describe("formatCheckoutCompleteError", () => {
+ 		expect(formatCheckoutCompleteError("CHECKOUT_NOT_FULLY_PAID: amount mismatch")).toMatch(/authorized/i);
+ 	});
+ 
++	it.each([
++		["AGE_RESTRICTED_GUEST", /sign in/i],
++		["AGE_RESTRICTED_MISSING_BIRTHDAY", /birthday/i],
++		["AGE_RESTRICTED_UNDERAGE", /age requirement/i],
++	])("does not expose backend copy for %s", (code, expected) => {
++		expect(formatCheckoutCompleteError(`${code}: internal message`)).toMatch(expected);
++	});
++
+ 	it("passes through unknown errors", () => {
+ 		expect(formatCheckoutCompleteError("Something else failed")).toBe("Something else failed");
+ 	});
+diff --git a/src/checkout/lib/payment/format-checkout-complete-error.ts b/src/checkout/lib/payment/format-checkout-complete-error.ts
+index d4b5d54..2bd95f5 100644
+--- a/src/checkout/lib/payment/format-checkout-complete-error.ts
++++ b/src/checkout/lib/payment/format-checkout-complete-error.ts
+@@ -5,6 +5,18 @@
+  * amounts cover the total). Capture at fulfillment is separate.
+  */
+ export function formatCheckoutCompleteError(error: string): string {
++	if (error.includes("AGE_RESTRICTED_GUEST")) {
++		return "Sign in to continue with age-restricted products.";
++	}
++
++	if (error.includes("AGE_RESTRICTED_MISSING_BIRTHDAY")) {
++		return "Add your birthday in your account profile to continue.";
++	}
++
++	if (error.includes("AGE_RESTRICTED_UNDERAGE")) {
++		return "You do not meet the age requirement for this product.";
++	}
++
+ 	if (error.includes("CHECKOUT_NOT_FULLY_PAID")) {
+ 		return "Payment does not fully cover this order total yet. Refresh the page — if funds were authorized, use Complete order. Do not pay again until we confirm the status.";
+ 	}
+diff --git a/src/checkout/views/saleor-checkout/saleor-checkout.tsx b/src/checkout/views/saleor-checkout/saleor-checkout.tsx
+index 9f5da28..73be6f7 100644
+--- a/src/checkout/views/saleor-checkout/saleor-checkout.tsx
++++ b/src/checkout/views/saleor-checkout/saleor-checkout.tsx
+@@ -3,9 +3,10 @@
+ import { useCallback, useState, type FC } from "react";
+ import { useSearchParams } from "next/navigation";
+ import { useTranslations } from "next-intl";
++import Link from "next/link";
+ 
+ import { removeCheckoutLine } from "@/app/(checkout)/actions";
+-import { Button } from "@/ui/components/ui/button";
++import { Button, buttonClassName } from "@/ui/components/ui/button";
+ import { CheckoutIssueBanner } from "@/checkout/components/checkout-issue-banner";
+ import { useCheckout } from "@/checkout/hooks/use-checkout";
+ import { useCheckoutStep } from "@/checkout/hooks/use-checkout-step";
+@@ -27,6 +28,8 @@ import { PaymentStep } from "./payment-step";
+ import { useCheckoutTransition } from "@/checkout/hooks/use-checkout-transition";
+ import { CheckoutSkeleton } from "./checkout-skeleton";
+ import { PaymentCompletingScreen } from "./payment-completing-screen";
++import { useCheckoutBrowseLocale } from "@/checkout/providers/checkout-browse";
++import { buildStorefrontPath } from "@/lib/storefront-path";
+ 
+ export const SaleorCheckout: FC = () => {
+ 	return (
+@@ -42,6 +45,7 @@ const SaleorCheckoutView: FC = () => {
+ 	const { checkout, setCheckout, refetch } = useCheckout();
+ 	const { availabilityIssue, setAvailabilityIssue } = useCheckoutAvailability();
+ 	const tErrors = useTranslations("checkout.errors");
++	const storefrontLocale = useCheckoutBrowseLocale();
+ 	// RootViews shows PaymentCompletingScreen while `transition === "completing"` — keep this
+ 	// as defense-in-depth if SaleorCheckout is ever mounted outside RootViews.
+ 	const [isPaymentBusy, setIsPaymentBusy] = useState(false);
+@@ -50,6 +54,10 @@ const SaleorCheckoutView: FC = () => {
+ 	const refreshCheckoutRsc = useRefreshCheckoutRsc();
+ 	const isPaymentFlowActive = transition === "completing";
+ 	const isCheckoutNavigationLocked = isPaymentFlowActive || isPaymentBusy;
++	const eligibilityHref =
++		availabilityIssue?.eligibility === "guest"
++			? buildStorefrontPath(storefrontLocale, checkout?.channel.slug ?? "", "/login")
++			: buildStorefrontPath(storefrontLocale, checkout?.channel.slug ?? "", "/account/settings");
+ 
+ 	const removeUnavailableLine = useCallback(
+ 		async (lineId: string) => {
+@@ -156,9 +164,29 @@ const SaleorCheckoutView: FC = () => {
+ 								{availabilityIssue ? (
+ 									<div className="mb-8">
+ 										<CheckoutIssueBanner
+-											title={tErrors("itemUnavailableTitle")}
++											title={
++												availabilityIssue.eligibility === "guest"
++													? "Sign in required"
++													: availabilityIssue.eligibility === "birthday"
++														? "Birthday required"
++														: availabilityIssue.eligibility === "underage"
++															? "Age requirement not met"
++															: tErrors("itemUnavailableTitle")
++											}
+ 											action={
+-												availabilityIssue.lineIds[0] ? (
++												availabilityIssue.eligibility === "guest" ||
++												availabilityIssue.eligibility === "birthday" ? (
++													<Link
++														href={eligibilityHref}
++														className={buttonClassName({
++															variant: "outline-solid",
++															size: "sm",
++															asLink: true,
++														})}
++													>
++														{availabilityIssue.eligibility === "guest" ? "Sign in" : "Update profile"}
++													</Link>
++												) : availabilityIssue.lineIds[0] ? (
+ 													<Button
+ 														type="button"
+ 														variant="outline-solid"
+@@ -172,9 +200,15 @@ const SaleorCheckoutView: FC = () => {
+ 											}
+ 										>
+ 											<p>
+-												{availabilityIssue.lineIds.length
+-													? tErrors("itemUnavailableRemoveMessage")
+-													: tErrors("itemUnavailableMessage")}
++												{availabilityIssue.eligibility === "guest"
++													? "Sign in to continue with age-restricted products."
++													: availabilityIssue.eligibility === "birthday"
++														? "Add your birthday in your account profile to continue."
++														: availabilityIssue.eligibility === "underage"
++															? "You do not meet the age requirement for this product."
++															: availabilityIssue.lineIds.length
++																? tErrors("itemUnavailableRemoveMessage")
++																: tErrors("itemUnavailableMessage")}
+ 											</p>
+ 											{removeUnavailableError ? (
+ 												<p className="mt-2 text-destructive">{removeUnavailableError}</p>
+diff --git a/src/graphql/AccountUpdate.graphql b/src/graphql/AccountUpdate.graphql
+index 1a4a4e7..eff77ad 100644
+--- a/src/graphql/AccountUpdate.graphql
++++ b/src/graphql/AccountUpdate.graphql
+@@ -2,6 +2,7 @@ mutation AccountUpdate($input: AccountInput!) {
+ 	accountUpdate(input: $input) {
+ 		user {
+ 			...UserDetails
++			birthday
+ 		}
+ 		errors {
+ 			field
+diff --git a/src/graphql/CheckoutAddLine.graphql b/src/graphql/CheckoutAddLine.graphql
+index 222e882..b1692db 100644
+--- a/src/graphql/CheckoutAddLine.graphql
++++ b/src/graphql/CheckoutAddLine.graphql
+@@ -14,7 +14,9 @@ mutation CheckoutAddLine($id: ID!, $productVariantId: ID!) {
+ 			}
+ 		}
+ 		errors {
++			field
+ 			message
++			code
+ 		}
+ 	}
+ }
+diff --git a/src/graphql/CurrentUserProfile.graphql b/src/graphql/CurrentUserProfile.graphql
+index 9bb3519..a7de2a0 100644
+--- a/src/graphql/CurrentUserProfile.graphql
++++ b/src/graphql/CurrentUserProfile.graphql
+@@ -1,6 +1,7 @@
+ query CurrentUserProfile {
+ 	me {
+ 		...UserDetails
++		birthday
+ 		dateJoined
+ 		addresses {
+ 			...AddressDetails
+diff --git a/src/graphql/extensions/ProductListItemExtension.graphql b/src/graphql/extensions/ProductListItemExtension.graphql
+index 0bea242..0be50c8 100644
+--- a/src/graphql/extensions/ProductListItemExtension.graphql
++++ b/src/graphql/extensions/ProductListItemExtension.graphql
+@@ -1,4 +1,6 @@
+ # Fork-owned fields on listing cards. Add selections here; do not edit ProductListItem.graphql.
+ fragment ProductListItemExtension on Product {
+ 	__typename
++	isAgeRestricted
++	ageRestrictionMinimumAge
+ }
+diff --git a/src/lib/listing/providers/saleor/to-card.ts b/src/lib/listing/providers/saleor/to-card.ts
+index ac17f93..73bc330 100644
+--- a/src/lib/listing/providers/saleor/to-card.ts
++++ b/src/lib/listing/providers/saleor/to-card.ts
+@@ -124,5 +124,6 @@ export function toProductCardData(
+ 		variantTotalCount,
+ 		variantSampleSize,
+ 		isOverVariantCap: variantTotalCount > PDP_VARIANT_CAP,
++		ageRestrictionMinimumAge: product.isAgeRestricted ? product.ageRestrictionMinimumAge : null,
+ 	};
+ }
+diff --git a/src/lib/storefront/contract/listing.ts b/src/lib/storefront/contract/listing.ts
+index 06b0694..17369a6 100644
+--- a/src/lib/storefront/contract/listing.ts
++++ b/src/lib/storefront/contract/listing.ts
+@@ -87,6 +87,8 @@ export interface ProductCardView {
+ 	 * open a variant sheet; shoppers go to the PDP.
+ 	 */
+ 	isOverVariantCap?: boolean;
++	/** Storewide purchase-age requirement shown for age-restricted products. */
++	ageRestrictionMinimumAge?: number | null;
+ }
+ 
+ export type FacetControl = "swatch" | "chip" | "range" | "tree";
+diff --git a/src/ui/components/account/edit-name-form.tsx b/src/ui/components/account/edit-name-form.tsx
+index 8205022..924a2dc 100644
+--- a/src/ui/components/account/edit-name-form.tsx
++++ b/src/ui/components/account/edit-name-form.tsx
+@@ -12,9 +12,10 @@ import { resolveAccountActionError } from "@/ui/components/account/account-actio
+ type Props = {
+ 	firstName: string;
+ 	lastName: string;
++	birthday?: string | null;
+ };
+ 
+-export function EditNameForm({ firstName, lastName }: Props) {
++export function EditNameForm({ firstName, lastName, birthday }: Props) {
+ 	const t = useTranslations("account");
+ 	const router = useRouter();
+ 	const [isEditing, setIsEditing] = useState(false);
+@@ -87,6 +88,17 @@ export function EditNameForm({ firstName, lastName }: Props) {
+ 					<Input id="lastName" name="lastName" autoComplete="family-name" defaultValue={lastName} required />
+ 				</div>
+ 			</div>
++			<div className="space-y-1.5">
++				<Label htmlFor="birthday">{t("fields.birthday")}</Label>
++				<Input
++					id="birthday"
++					name="birthday"
++					type="date"
++					autoComplete="bday"
++					defaultValue={birthday ?? ""}
++					max={new Date().toISOString().slice(0, 10)}
++				/>
++			</div>
+ 			<div className="flex gap-2">
+ 				<Button type="submit" size="sm" disabled={isPending}>
+ 					{isPending ? t("common.saving") : t("common.save")}
+diff --git a/src/ui/components/account/settings-page.tsx b/src/ui/components/account/settings-page.tsx
+index d2154d6..a7a4d02 100644
+--- a/src/ui/components/account/settings-page.tsx
++++ b/src/ui/components/account/settings-page.tsx
+@@ -42,7 +42,7 @@ export function AccountSettingsPage() {
+ 				</div>
+ 
+ 				<div className="p-4 sm:p-6">
+-					<EditNameForm firstName={user.firstName} lastName={user.lastName} />
++					<EditNameForm firstName={user.firstName} lastName={user.lastName} birthday={user.birthday} />
+ 				</div>
+ 
+ 				<div className="p-4 sm:p-6">
+diff --git a/src/ui/components/cart/cart-drawer.tsx b/src/ui/components/cart/cart-drawer.tsx
+index bbeaac2..18e8ebc 100644
+--- a/src/ui/components/cart/cart-drawer.tsx
++++ b/src/ui/components/cart/cart-drawer.tsx
+@@ -134,6 +134,7 @@ export function CartDrawer({
+ }: CartDrawerProps) {
+ 	const { isOpen, closeCart } = useCart();
+ 	const [isCartBusy, setIsCartBusy] = useState(false);
++	const [eligibilityError, setEligibilityError] = useState<"guest" | "birthday" | "underage" | null>(null);
+ 	// Functional drawer chrome (totals, buttons, a11y labels) — code-owned i18n (ADR 0002).
+ 	const t = useTranslations("cart.drawer");
+ 
+@@ -142,14 +143,22 @@ export function CartDrawer({
+ 	const currency = totalPrice?.gross.currency ?? localeConfig.fallbackCurrency;
+ 	const intlLocale = resolveLocaleFromSlug(localeSlug).bcp47;
+ 
+-	const runCartMutation = (mutation: () => Promise<void>) => {
++	const runCartMutation = (
++		mutation: () => Promise<
++			{ ok: true } | { ok: false; eligibility: "guest" | "birthday" | "underage" } | void
++		>,
++	) => {
+ 		setIsCartBusy(true);
+-		void mutation().finally(() => {
+-			// This tab re-renders via `refresh()` inside the action; other tabs
+-			// sync their cart chrome on next focus.
+-			bumpChromeVersion();
+-			setIsCartBusy(false);
+-		});
++		void mutation()
++			.then((result) => {
++				setEligibilityError(result && !result.ok ? result.eligibility : null);
++			})
++			.finally(() => {
++				// This tab re-renders via `refresh()` inside the action; other tabs
++				// sync their cart chrome on next focus.
++				bumpChromeVersion();
++				setIsCartBusy(false);
++			});
+ 	};
+ 
+ 	const handleRemove = (lineId: string) => {
+@@ -223,6 +232,30 @@ export function CartDrawer({
+ 
+ 				{/* Cart Items */}
+ 				<div className="flex-1 overflow-y-auto">
++					{eligibilityError ? (
++						<div
++							role="alert"
++							className="mx-6 mt-4 rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm"
++						>
++							{eligibilityError === "guest" ? (
++								<p>
++									Sign in to add age-restricted products.{" "}
++									<LinkWithChannel href="/login" className="underline">
++										Sign in
++									</LinkWithChannel>
++								</p>
++							) : eligibilityError === "birthday" ? (
++								<p>
++									Add your birthday to buy age-restricted products.{" "}
++									<LinkWithChannel href="/account/settings" className="underline">
++										Update profile
++									</LinkWithChannel>
++								</p>
++							) : (
++								<p>You do not meet the age requirement for this product.</p>
++							)}
++						</div>
++					) : null}
+ 					{lines.length === 0 ? (
+ 						<div className="flex h-full flex-col items-center justify-center px-6 text-center">
+ 							<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+diff --git a/src/ui/components/cart/cart-mutations.ts b/src/ui/components/cart/cart-mutations.ts
+index 43bbf08..e450f06 100644
+--- a/src/ui/components/cart/cart-mutations.ts
++++ b/src/ui/components/cart/cart-mutations.ts
+@@ -1,3 +1,7 @@
+ export type DeleteCartLine = (checkoutId: string, lineId: string) => Promise<void>;
+ 
+-export type UpdateCartLineQuantity = (checkoutId: string, lineId: string, quantity: number) => Promise<void>;
++export type UpdateCartLineQuantity = (
++	checkoutId: string,
++	lineId: string,
++	quantity: number,
++) => Promise<{ ok: true } | { ok: false; eligibility: "guest" | "birthday" | "underage" } | void>;
+diff --git a/src/ui/components/pdp/add-to-cart-form.tsx b/src/ui/components/pdp/add-to-cart-form.tsx
+new file mode 100644
+index 0000000..36147f2
+--- /dev/null
++++ b/src/ui/components/pdp/add-to-cart-form.tsx
+@@ -0,0 +1,43 @@
++"use client";
++
++import { useActionState } from "react";
++import { LinkWithChannel } from "@/ui/atoms/link-with-channel";
++import { AddToCart } from "./add-to-cart";
++import type { CartMutationResult } from "@/app/actions";
++
++type Props = {
++	action: () => Promise<CartMutationResult>;
++	children: React.ReactNode;
++} & React.ComponentProps<typeof AddToCart>;
++
++export function AddToCartForm({ action, children, ...props }: Props) {
++	const [result, formAction] = useActionState(async () => action(), null as CartMutationResult | null);
++
++	return (
++		<form action={formAction} className="order-3 mt-4 space-y-6">
++			{children}
++			{result && !result.ok ? (
++				<div role="alert" className="rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm">
++					{result.eligibility === "guest" ? (
++						<p>
++							Sign in to add age-restricted products.{" "}
++							<LinkWithChannel href="/login" className="underline">
++								Sign in
++							</LinkWithChannel>
++						</p>
++					) : result.eligibility === "birthday" ? (
++						<p>
++							Add your birthday to buy age-restricted products.{" "}
++							<LinkWithChannel href="/account/settings" className="underline">
++								Update profile
++							</LinkWithChannel>
++						</p>
++					) : (
++						<p>You do not meet the age requirement for this product.</p>
++					)}
++				</div>
++			) : null}
++			<AddToCart {...props} />
++		</form>
++	);
++}
+diff --git a/src/ui/components/pdp/variant-section-dynamic.tsx b/src/ui/components/pdp/variant-section-dynamic.tsx
+index af0bf04..cb291d8 100644
+--- a/src/ui/components/pdp/variant-section-dynamic.tsx
++++ b/src/ui/components/pdp/variant-section-dynamic.tsx
+@@ -8,7 +8,7 @@ import { getTranslations } from "next-intl/server";
+ import { resolvePdpVariants } from "@/lib/catalog/get-product-data";
+ import { pickTranslatedSlug } from "@/lib/saleor-translations";
+ 
+-import { AddToCart } from "./add-to-cart";
++import { AddToCartForm } from "./add-to-cart-form";
+ import { NonMatrixBuyBox } from "./non-matrix-buy-box";
+ import { VariantSelectionSection } from "./variant-selection";
+ import { StickyBar } from "./sticky-bar";
+@@ -115,16 +115,16 @@ export async function VariantSectionDynamic({
+ 			: null;
+ 	const secureCheckoutLabel = content.surfaces.checkout.trust.secureCheckout;
+ 
+-	async function addToCart() {
++	async function addToCart(): Promise<import("@/app/actions").CartMutationResult> {
+ 		"use server";
+ 
+ 		if (!selectedVariantID) {
+-			return;
++			return { ok: true };
+ 		}
+ 
+ 		try {
+ 			const linePrice = selectedVariant?.pricing?.price?.gross;
+-			await addVariantToCart({
++			return addVariantToCart({
+ 				channel,
+ 				localeSlug,
+ 				variantId: selectedVariantID,
+@@ -133,6 +133,7 @@ export async function VariantSectionDynamic({
+ 			});
+ 		} catch (error) {
+ 			console.error("Add to cart failed:", error);
++			return { ok: true };
+ 		}
+ 	}
+ 
+@@ -165,21 +166,19 @@ export async function VariantSectionDynamic({
+ 				)}
+ 			</div>
+ 
+-			<form action={addToCart} className="order-3 mt-4 space-y-6">
++			<AddToCartForm
++				action={addToCart}
++				price={price}
++				compareAtPrice={compareAtPrice}
++				discountPercent={discountPercent}
++				disabled={isAddToCartDisabled}
++				disabledReason={disabledReason}
++				secureCheckoutLabel={secureCheckoutLabel}
++				freeShippingTrustLabel={freeShippingTrustLabel}
++			>
+ 				{buyBox}
+-
+-				<AddToCart
+-					price={price}
+-					compareAtPrice={compareAtPrice}
+-					discountPercent={discountPercent}
+-					disabled={isAddToCartDisabled}
+-					disabledReason={disabledReason}
+-					secureCheckoutLabel={secureCheckoutLabel}
+-					freeShippingTrustLabel={freeShippingTrustLabel}
+-				/>
+-
+ 				<StickyBar productName={product.name} price={price} show={!isAddToCartDisabled} />
+-			</form>
++			</AddToCartForm>
+ 		</>
+ 	);
+ }
+diff --git a/src/ui/components/plp/product-card-base.tsx b/src/ui/components/plp/product-card-base.tsx
+index 82ed5b1..c129eb6 100644
+--- a/src/ui/components/plp/product-card-base.tsx
++++ b/src/ui/components/plp/product-card-base.tsx
+@@ -1,6 +1,7 @@
+ import type { ReactNode } from "react";
+ import Image from "next/image";
+ import { DiscountPercentLabel, NewBadge, SaleBadge, BestsellerBadge } from "@/ui/components/ui/sale-label";
++import { Badge } from "@/ui/components/ui/badge";
+ import { cn } from "@/lib/utils";
+ import { formatProductPrice } from "./format-product-price";
+ import { formatPrice } from "./utils";
+@@ -58,6 +59,11 @@ export function ProductCardBase({
+ 						{product.badge === "New" ? <NewBadge /> : null}
+ 					</div>
+ 				)}
++				{product.ageRestrictionMinimumAge != null ? (
++					<Badge className="pointer-events-none absolute right-3 top-3 z-[1] text-xs">
++						{product.ageRestrictionMinimumAge}+
++					</Badge>
++				) : null}
+ 
+ 				{imageOverlay ? <div className="absolute inset-0 z-10">{imageOverlay}</div> : null}
+ 			</div>

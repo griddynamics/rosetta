@@ -1,0 +1,341 @@
+diff --git a/messages/de.json b/messages/de.json
+index cd8d760..5edb5d0 100644
+--- a/messages/de.json
++++ b/messages/de.json
+@@ -62,6 +62,7 @@
+ 		},
+ 		"attributes": {
+ 			"description": "Beschreibung",
++			"storageConditions": "Lagerbedingungen",
+ 			"productDetails": "Produktdetails",
+ 			"careInstructions": "Pflegehinweise",
+ 			"shippingReturns": "Versand & Rückgabe",
+diff --git a/messages/en.json b/messages/en.json
+index 94a1cf3..6b1e1ee 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -62,6 +62,7 @@
+ 		},
+ 		"attributes": {
+ 			"description": "Description",
++			"storageConditions": "Storage conditions",
+ 			"productDetails": "Product Details",
+ 			"careInstructions": "Care Instructions",
+ 			"shippingReturns": "Shipping & Returns",
+diff --git a/messages/fi.json b/messages/fi.json
+index 4fd92e3..391317e 100644
+--- a/messages/fi.json
++++ b/messages/fi.json
+@@ -62,6 +62,7 @@
+ 		},
+ 		"attributes": {
+ 			"description": "Kuvaus",
++			"storageConditions": "Säilytysohjeet",
+ 			"productDetails": "Tuotetiedot",
+ 			"careInstructions": "Hoito-ohjeet",
+ 			"shippingReturns": "Toimitus ja palautukset",
+diff --git a/messages/fr.json b/messages/fr.json
+index 6662017..0ab6e06 100644
+--- a/messages/fr.json
++++ b/messages/fr.json
+@@ -62,6 +62,7 @@
+ 		},
+ 		"attributes": {
+ 			"description": "Description",
++			"storageConditions": "Conditions de conservation",
+ 			"productDetails": "Détails du produit",
+ 			"careInstructions": "Entretien",
+ 			"shippingReturns": "Livraison et retours",
+diff --git a/messages/ja.json b/messages/ja.json
+index c8be825..07e3ed8 100644
+--- a/messages/ja.json
++++ b/messages/ja.json
+@@ -62,6 +62,7 @@
+ 		},
+ 		"attributes": {
+ 			"description": "商品説明",
++			"storageConditions": "保管条件",
+ 			"productDetails": "商品詳細",
+ 			"careInstructions": "お手入れ方法",
+ 			"shippingReturns": "配送と返品",
+diff --git a/messages/ko.json b/messages/ko.json
+index 218b88d..6d3a7bc 100644
+--- a/messages/ko.json
++++ b/messages/ko.json
+@@ -54,6 +54,7 @@
+ 		},
+ 		"attributes": {
+ 			"description": "상세 설명",
++			"storageConditions": "보관 조건",
+ 			"productDetails": "상품 정보",
+ 			"careInstructions": "세탁 및 관리 방법",
+ 			"shippingReturns": "배송 및 반품",
+diff --git a/messages/nb.json b/messages/nb.json
+index d1d7039..fb59756 100644
+--- a/messages/nb.json
++++ b/messages/nb.json
+@@ -62,6 +62,7 @@
+ 		},
+ 		"attributes": {
+ 			"description": "Beskrivelse",
++			"storageConditions": "Oppbevaringsbetingelser",
+ 			"productDetails": "Produktdetaljer",
+ 			"careInstructions": "Vaskeanvisning",
+ 			"shippingReturns": "Frakt og retur",
+diff --git a/messages/pl.json b/messages/pl.json
+index ecaf8f2..5b54309 100644
+--- a/messages/pl.json
++++ b/messages/pl.json
+@@ -62,6 +62,7 @@
+ 		},
+ 		"attributes": {
+ 			"description": "Opis",
++			"storageConditions": "Warunki przechowywania",
+ 			"productDetails": "Szczegóły produktu",
+ 			"careInstructions": "Instrukcje pielęgnacji",
+ 			"shippingReturns": "Dostawa i zwroty",
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+index 51a91eb..43a63f3 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/products/[slug]/page.tsx
+@@ -212,6 +212,7 @@ async function ProductShell({
+ 	const productAttributesNode = (
+ 		<ProductAttributes
+ 			descriptionHtml={view.descriptionHtml}
++			storageConditions={view.storageConditions}
+ 			attributes={view.attributes}
+ 			careInstructions={view.careInstructions}
+ 			policyLabels={policyLabels}
+diff --git a/src/graphql/ProductDetails.graphql b/src/graphql/ProductDetails.graphql
+index 86b7c36..b359fb3 100644
+--- a/src/graphql/ProductDetails.graphql
++++ b/src/graphql/ProductDetails.graphql
+@@ -9,12 +9,14 @@ query ProductDetails(
+ 		name
+ 		slug
+ 		description
++		storageConditions
+ 		seoTitle
+ 		seoDescription
+ 		isAvailable
+ 		translation(languageCode: $languageCode) {
+ 			name
+ 			description
++			storageConditions
+ 			seoTitle
+ 			seoDescription
+ 			slug
+diff --git a/src/lib/storefront/__contracts__/templates.contract.test.ts b/src/lib/storefront/__contracts__/templates.contract.test.ts
+index 1666981..17c6bbc 100644
+--- a/src/lib/storefront/__contracts__/templates.contract.test.ts
++++ b/src/lib/storefront/__contracts__/templates.contract.test.ts
+@@ -18,6 +18,7 @@ const product: ProductView = {
+ 	name: "Tee",
+ 	category: null,
+ 	descriptionHtml: ["<p>Soft</p>"],
++	storageConditions: null,
+ 	attributes: [{ name: "Material", value: "Cotton" }],
+ 	careInstructions: null,
+ 	images: [],
+@@ -36,7 +37,7 @@ function slot(id: string) {
+ 
+ describe("PDP templates", () => {
+ 	it("pins the contract version", () => {
+-		expect(STOREFRONT_CONTRACT_VERSION).toBe(2);
++		expect(STOREFRONT_CONTRACT_VERSION).toBe(3);
+ 	});
+ 
+ 	it("selects a registered template whose gallery matches ACTIVE_PDP_GALLERY", () => {
+diff --git a/src/lib/storefront/contract/product.ts b/src/lib/storefront/contract/product.ts
+index a743cc9..d65cca2 100644
+--- a/src/lib/storefront/contract/product.ts
++++ b/src/lib/storefront/contract/product.ts
+@@ -39,6 +39,8 @@ export interface ProductView {
+ 	category: ProductViewCategory | null;
+ 	/** Sanitized HTML blocks from the product description. */
+ 	descriptionHtml: string[] | null;
++	/** Plain-text storage guidance returned by the Product API. */
++	storageConditions: string | null;
+ 	/** Specs. Size, color, care, and bestseller flags are already removed. */
+ 	attributes: ProductViewAttribute[];
+ 	careInstructions: string | null;
+diff --git a/src/lib/storefront/contract/version.ts b/src/lib/storefront/contract/version.ts
+index 3cd877c..bcc76b5 100644
+--- a/src/lib/storefront/contract/version.ts
++++ b/src/lib/storefront/contract/version.ts
+@@ -3,6 +3,7 @@
+  *
+  * Bump this when a view-model field is removed, renamed, or changes meaning.
+  * Adding an optional field is not a bump. Version 2 adds the listing contract
+- * (`ListingQuery` / `ListingResult`). Forks key off this number in upgrades.
++ * (`ListingQuery` / `ListingResult`); version 3 adds product storage conditions.
++ * Forks key off this number in upgrades.
+  */
+-export const STOREFRONT_CONTRACT_VERSION = 2;
++export const STOREFRONT_CONTRACT_VERSION = 3;
+diff --git a/src/lib/storefront/mappers/product.test.ts b/src/lib/storefront/mappers/product.test.ts
+index 6d7cf17..1705422 100644
+--- a/src/lib/storefront/mappers/product.test.ts
++++ b/src/lib/storefront/mappers/product.test.ts
+@@ -9,6 +9,8 @@ function shell(): ProductShell {
+ 		slug: "tee",
+ 		name: "Tee",
+ 		description: "Soft cotton",
++		storageConditions: "Store in a cool, dry place.",
++		translation: null,
+ 		seoTitle: "SEO tee",
+ 		seoDescription: null,
+ 		category: { id: "c1", name: "Tops", slug: "tops" },
+@@ -63,6 +65,7 @@ describe("toProductView", () => {
+ 			name: "Tee",
+ 			category: { id: "c1", name: "Tops", slug: "tops" },
+ 			careInstructions: "Cold wash",
++			storageConditions: "Store in a cool, dry place.",
+ 			isAvailable: true,
+ 			isBestseller: true,
+ 			variantCount: 3,
+@@ -80,4 +83,24 @@ describe("toProductView", () => {
+ 		});
+ 		expect(view.images[0]?.srcSet).toContain("512w");
+ 	});
++
++	it("falls back to null when storage conditions are absent or empty", () => {
++		const absent = shell();
++		delete absent.storageConditions;
++		expect(toProductView(absent).storageConditions).toBeNull();
++
++		const empty = shell();
++		empty.storageConditions = "   ";
++		expect(toProductView(empty).storageConditions).toBeNull();
++	});
++
++	it("prefers nonempty translated storage conditions and otherwise uses the base value", () => {
++		const translated = shell();
++		translated.translation = { storageConditions: "Conserver dans un endroit frais et sec." };
++		expect(toProductView(translated).storageConditions).toBe("Conserver dans un endroit frais et sec.");
++
++		const emptyTranslation = shell();
++		emptyTranslation.translation = { storageConditions: "  " };
++		expect(toProductView(emptyTranslation).storageConditions).toBe("Store in a cool, dry place.");
++	});
+ });
+diff --git a/src/lib/storefront/mappers/product.ts b/src/lib/storefront/mappers/product.ts
+index d65ed5c..d268baa 100644
+--- a/src/lib/storefront/mappers/product.ts
++++ b/src/lib/storefront/mappers/product.ts
+@@ -33,6 +33,7 @@ export function toProductView(product: ProductShell): ProductView {
+ 			? { id: product.category.id, name: product.category.name, slug: product.category.slug }
+ 			: null,
+ 		descriptionHtml: parseDescription(product.description),
++		storageConditions: extractStorageConditions(product),
+ 		attributes: extractProductAttributes(product),
+ 		careInstructions: extractCareInstructions(product),
+ 		images: defaultProductImages(product),
+@@ -52,6 +53,14 @@ export function toProductView(product: ProductShell): ProductView {
+ 	};
+ }
+ 
++function extractStorageConditions(product: ProductShell): string | null {
++	return normalizeStorageConditions(product.translation?.storageConditions) ?? normalizeStorageConditions(product.storageConditions);
++}
++
++function normalizeStorageConditions(storageConditions: string | null | undefined): string | null {
++	return storageConditions?.trim() || null;
++}
++
+ function parseDescription(description: string | null | undefined): string[] | null {
+ 	if (!description) return null;
+ 
+diff --git a/src/ui/components/pdp/product-attributes.test.ts b/src/ui/components/pdp/product-attributes.test.ts
+new file mode 100644
+index 0000000..af843ce
+--- /dev/null
++++ b/src/ui/components/pdp/product-attributes.test.ts
+@@ -0,0 +1,42 @@
++import { NextIntlClientProvider } from "next-intl";
++import { createElement, type ComponentProps, type ReactElement } from "react";
++import { renderToStaticMarkup } from "react-dom/server";
++import { describe, expect, it } from "vitest";
++
++import { ProductAttributes } from "@/ui/components/pdp/product-attributes";
++import messages from "../../../../messages/en.json";
++
++const policyLabels = { freeShippingThreshold: "$75", returnsWindowDays: 30 };
++const IntlProvider = NextIntlClientProvider as (
++	props: Omit<ComponentProps<typeof NextIntlClientProvider>, "children">,
++) => ReactElement;
++
++function render(storageConditions?: string | null) {
++	return renderToStaticMarkup(
++		createElement(
++			IntlProvider,
++			{ locale: "en", messages, timeZone: "UTC" },
++			createElement(ProductAttributes, {
++				descriptionHtml: ["<p>Product description</p>"],
++				storageConditions,
++				policyLabels,
++			}),
++		),
++	);
++}
++
++describe("ProductAttributes", () => {
++	it("renders a labeled plain-text storage conditions block after the description", () => {
++		const html = render("Store below 25°C.");
++
++		expect(html).toContain("Product description");
++		expect(html).toContain("Storage conditions");
++		expect(html).toContain("Store below 25°C.");
++		expect(html.indexOf("Product description")).toBeLessThan(html.indexOf("Storage conditions"));
++	});
++
++	it("omits storage conditions when the API data is absent or empty", () => {
++		expect(render()).not.toContain("Storage conditions");
++		expect(render("   ")).not.toContain("Storage conditions");
++	});
++});
+diff --git a/src/ui/components/pdp/product-attributes.tsx b/src/ui/components/pdp/product-attributes.tsx
+index 004d495..155dcb5 100644
+--- a/src/ui/components/pdp/product-attributes.tsx
++++ b/src/ui/components/pdp/product-attributes.tsx
+@@ -23,6 +23,7 @@ interface ProductAttributesProps {
+ 	 * Already sanitized with xss on the server
+ 	 */
+ 	descriptionHtml?: string[] | null;
++	storageConditions?: string | null;
+ 	attributes?: Attribute[];
+ 	careInstructions?: string | null;
+ 	policyLabels: PolicyLabelValues;
+@@ -39,6 +40,7 @@ const attributeIcons: Record<string, ReactNode> = {
+ 
+ export function ProductAttributes({
+ 	descriptionHtml,
++	storageConditions,
+ 	attributes = [],
+ 	careInstructions,
+ 	policyLabels,
+@@ -66,16 +68,22 @@ export function ProductAttributes({
+ 
+ 	return (
+ 		<Accordion type="multiple" defaultValue={["description"]} className="w-full">
+-			{descriptionHtml && descriptionHtml.length > 0 && (
++			{(descriptionHtml?.length || storageConditions?.trim()) && (
+ 				<AccordionItemWithContext value="description" className="border-border">
+ 					<AccordionTrigger className="py-4 text-sm font-medium hover:no-underline">
+ 						{t("description")}
+ 					</AccordionTrigger>
+ 					<AccordionContent>
+ 						<div className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-foreground prose-strong:text-foreground">
+-							{descriptionHtml.map((html) => (
++							{descriptionHtml?.map((html) => (
+ 								<div key={html} dangerouslySetInnerHTML={{ __html: html }} />
+ 							))}
++							{storageConditions?.trim() && (
++								<section className="mt-4">
++									<h3 className="text-sm font-medium text-foreground">{t("storageConditions")}</h3>
++									<p className="mt-1 whitespace-pre-wrap">{storageConditions.trim()}</p>
++								</section>
++							)}
+ 						</div>
+ 					</AccordionContent>
+ 				</AccordionItemWithContext>

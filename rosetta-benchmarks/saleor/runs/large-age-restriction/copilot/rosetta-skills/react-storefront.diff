@@ -1,0 +1,1987 @@
+diff --git a/data-layer.lock.md b/data-layer.lock.md
+index 5cbd13c..09073e8 100644
+--- a/data-layer.lock.md
++++ b/data-layer.lock.md
+@@ -32,6 +32,7 @@ Rows are keyed by file and enclosing function, not line, so formatting does not
+ | mutate           | AccountRequestDeletionDocument          | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › requestAccountDeletion    |
+ | mutate           | AccountSetDefaultAddressDocument        | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › setDefaultAddress         |
+ | mutate           | AccountAddressUpdateDocument            | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › updateAddress             |
++| mutate           | AccountUpdateDocument                   | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › updateBirthday            |
+ | mutate           | AccountUpdateDocument                   | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › updateProfile             |
+ | mutate           | CheckoutAddLineDocument                 | —                                             | src/app/actions.ts › addVariantToCart                                                         |
+ | mutate           | CheckoutDeleteLinesDocument             | —                                             | src/app/actions.ts › deleteCartLine                                                           |
+@@ -49,6 +50,8 @@ Rows are keyed by file and enclosing function, not line, so formatting does not
+ | sessionQuery     | OrderByNumberDocument                   | —                                             | src/lib/account/get-orders.ts › getOrdersForNumberLookup                                      |
+ | rawMutation      | —                                       | —                                             | src/lib/auth/confirm-account.ts › confirmAccountWithToken                                     |
+ | sessionQuery     | operation                               | —                                             | src/lib/auth/fetch-authenticated-user.ts › fetchAuthenticatedUserIfSession                    |
++| sessionQuery     | CurrentUserAgeStatusDocument            | —                                             | src/lib/auth/get-age-restriction-kind.ts › getAgeRestrictionKind                              |
++| liveQuery        | ShopAgeRestrictionDocument              | —                                             | src/lib/catalog/age-restriction-label.ts › fetchMinimumAge                                    |
+ | cachedQuery      | ProductListByCategoryDocument           | CACHE_PROFILES.categories                     | src/lib/catalog/get-category-data.ts › getCategoryData.fetchCategory                          |
+ | cachedQuery      | ProductListByCollectionDocument         | CACHE_PROFILES.collections                    | src/lib/catalog/get-collection-data.ts › getCollectionData.fetchCollection                    |
+ | cachedQuery      | ProductListByCollectionDocument         | CACHE_PROFILES.collections                    | src/lib/catalog/get-featured-products.ts › getFeaturedProducts                                |
+diff --git a/e2e/age-restricted-pdp.spec.ts b/e2e/age-restricted-pdp.spec.ts
+new file mode 100644
+index 0000000..d275c7b
+--- /dev/null
++++ b/e2e/age-restricted-pdp.spec.ts
+@@ -0,0 +1,26 @@
++import { expect, test } from "@playwright/test";
++
++/**
++ * Guest routing on an age-restricted product. Needs a product with `isAgeRestricted: true`
++ * in the target catalog; set E2E_AGE_RESTRICTED_PRODUCT_PATH to its PDP path
++ * (for example `/en/default-channel/products/<slug>?variant=<id>`). Skipped otherwise.
++ *
++ * Authenticated eligible/ineligible purchase behavior is decided by core and needs seeded
++ * customers with known birthdays; it is covered by the core API tests, not here.
++ */
++const restrictedProductPath = process.env.E2E_AGE_RESTRICTED_PRODUCT_PATH;
++
++test.describe("age-restricted PDP as guest", () => {
++	test.skip(!restrictedProductPath, "E2E_AGE_RESTRICTED_PRODUCT_PATH is not set");
++
++	test("replaces add-to-bag with a sign-in link", async ({ page }) => {
++		await page.goto(restrictedProductPath as string);
++
++		const signIn = page.getByTestId("age-restricted-sign-in");
++		await expect(signIn).toBeVisible({ timeout: 30_000 });
++		await expect(page.locator("button:not([disabled])", { hasText: /add to (cart|bag)/i })).toHaveCount(0);
++
++		await signIn.click();
++		await expect(page).toHaveURL(/\/login/);
++	});
++});
+diff --git a/messages/de.json b/messages/de.json
+index cd8d760..d8408c3 100644
+--- a/messages/de.json
++++ b/messages/de.json
+@@ -47,7 +47,8 @@
+ 		"badges": {
+ 			"sale": "Sale",
+ 			"new": "Neu",
+-			"bestseller": "Bestseller"
++			"bestseller": "Bestseller",
++			"ageRestricted": "Altersbeschränkt: ab {age}"
+ 		},
+ 		"variant": {
+ 			"outOfStockTitle": "{name} — nicht auf Lager",
+@@ -190,7 +191,8 @@
+ 				"postal": "Postleitzahl",
+ 				"postTown": "Ort",
+ 				"prefecture": "Präfektur"
+-			}
++			},
++			"birthday": "Geburtstag"
+ 		},
+ 		"placeholders": {
+ 			"email": "sie@beispiel.de",
+@@ -246,7 +248,9 @@
+ 			"updateAddressFailed": "Adresse konnte nicht aktualisiert werden",
+ 			"deleteAddressFailed": "Adresse konnte nicht gelöscht werden",
+ 			"setDefaultAddressFailed": "Standardadresse konnte nicht festgelegt werden",
+-			"deleteAccountFailed": "Löschanfrage für das Konto konnte nicht gesendet werden"
++			"deleteAccountFailed": "Löschanfrage für das Konto konnte nicht gesendet werden",
++			"updateBirthdayFailed": "Geburtstag konnte nicht aktualisiert werden",
++			"invalidBirthday": "Gib einen gültigen Geburtstag ein, der nicht in der Zukunft liegt."
+ 		},
+ 		"login": {
+ 			"title": "Willkommen zurück",
+@@ -364,7 +368,9 @@
+ 		"settings": {
+ 			"title": "Einstellungen",
+ 			"subtitle": "Verwalten Sie Ihre Kontoeinstellungen",
+-			"memberSince": "Mitglied seit {date}"
++			"memberSince": "Mitglied seit {date}",
++			"birthdayHint": "Optional. Wird nur zur Prüfung altersbeschränkter Käufe verwendet. Selbst angegeben und nur für dich sichtbar.",
++			"birthdayClearHint": "Leer lassen, um deinen Geburtstag zu entfernen."
+ 		},
+ 		"addresses": {
+ 			"title": "Adressen",
+@@ -632,5 +638,11 @@
+ 			"paymentWebhookFailed": "Webhook der Zahlungs-App fehlgeschlagen. Prüfen Sie im Saleor Dashboard → Apps → Dummy Payment App, ob Webhook-Zustellungen erfolgreich sind.",
+ 			"paymentInitFailed": "Zahlung konnte nicht initialisiert werden. Prüfen Sie, ob die Zahlungs-App in Saleor läuft."
+ 		}
++	},
++	"ageRestriction": {
++		"guest": "Dieses Produkt ist altersbeschränkt. Melde dich an, um es in den Warenkorb zu legen.",
++		"profile": "Dieses Produkt ist altersbeschränkt. Trage deinen Geburtstag in den Kontoeinstellungen ein. Ist er bereits gesetzt, erfüllst du das Mindestalter möglicherweise nicht.",
++		"ineligible": "Du erfüllst das Mindestalter für dieses Produkt nicht.",
++		"signIn": "Zum Kaufen anmelden"
+ 	}
+ }
+diff --git a/messages/en.json b/messages/en.json
+index 94a1cf3..f5ef2ff 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -47,7 +47,8 @@
+ 		"badges": {
+ 			"sale": "Sale",
+ 			"new": "New",
+-			"bestseller": "Bestseller"
++			"bestseller": "Bestseller",
++			"ageRestricted": "Age restricted: {age}+"
+ 		},
+ 		"variant": {
+ 			"outOfStockTitle": "{name} - Out of stock",
+@@ -190,7 +191,8 @@
+ 				"postal": "Postal code",
+ 				"postTown": "Post town",
+ 				"prefecture": "Prefecture"
+-			}
++			},
++			"birthday": "Birthday"
+ 		},
+ 		"placeholders": {
+ 			"email": "you@example.com",
+@@ -246,7 +248,9 @@
+ 			"updateAddressFailed": "Failed to update address",
+ 			"deleteAddressFailed": "Failed to delete address",
+ 			"setDefaultAddressFailed": "Failed to set default address",
+-			"deleteAccountFailed": "Failed to request account deletion"
++			"deleteAccountFailed": "Failed to request account deletion",
++			"updateBirthdayFailed": "Failed to update birthday",
++			"invalidBirthday": "Enter a valid birthday that is not in the future."
+ 		},
+ 		"login": {
+ 			"title": "Welcome Back",
+@@ -364,7 +368,9 @@
+ 		"settings": {
+ 			"title": "Settings",
+ 			"subtitle": "Manage your account settings",
+-			"memberSince": "Member since {date}"
++			"memberSince": "Member since {date}",
++			"birthdayHint": "Optional. Used only to check age-restricted purchases. It is self-declared and visible only to you.",
++			"birthdayClearHint": "Leave empty to remove your birthday."
+ 		},
+ 		"addresses": {
+ 			"title": "Addresses",
+@@ -631,5 +637,11 @@
+ 			"paymentWebhookFailed": "Payment app webhook failed. In Saleor Dashboard → Apps → Dummy Payment App, check webhook deliveries are succeeding.",
+ 			"paymentInitFailed": "Payment could not be initialized. Check that the payment app is running in Saleor."
+ 		}
++	},
++	"ageRestriction": {
++		"guest": "This product is age-restricted. Sign in to add it to your bag.",
++		"profile": "This product is age-restricted. Add your birthday in account settings. If it is already set, you may not meet the minimum age.",
++		"ineligible": "You don't meet the minimum age required to buy this product.",
++		"signIn": "Sign in to buy"
+ 	}
+ }
+diff --git a/messages/fi.json b/messages/fi.json
+index 4fd92e3..9a75cb3 100644
+--- a/messages/fi.json
++++ b/messages/fi.json
+@@ -47,7 +47,8 @@
+ 		"badges": {
+ 			"sale": "Ale",
+ 			"new": "Uutuus",
+-			"bestseller": "Myydyin"
++			"bestseller": "Myydyin",
++			"ageRestricted": "Ikäraja: {age}+"
+ 		},
+ 		"variant": {
+ 			"outOfStockTitle": "{name} — loppunut varastosta",
+@@ -190,7 +191,8 @@
+ 				"postal": "Postinumero",
+ 				"postTown": "Postitoimipaikka",
+ 				"prefecture": "Prefektuuri"
+-			}
++			},
++			"birthday": "Syntymäpäivä"
+ 		},
+ 		"placeholders": {
+ 			"email": "sinä@esimerkki.fi",
+@@ -246,7 +248,9 @@
+ 			"updateAddressFailed": "Osoitteen päivittäminen epäonnistui",
+ 			"deleteAddressFailed": "Osoitteen poistaminen epäonnistui",
+ 			"setDefaultAddressFailed": "Oletusosoitteen asettaminen epäonnistui",
+-			"deleteAccountFailed": "Tilin poistopyynnön lähetys epäonnistui"
++			"deleteAccountFailed": "Tilin poistopyynnön lähetys epäonnistui",
++			"updateBirthdayFailed": "Syntymäpäivän päivitys epäonnistui",
++			"invalidBirthday": "Anna kelvollinen syntymäpäivä, joka ei ole tulevaisuudessa."
+ 		},
+ 		"login": {
+ 			"title": "Tervetuloa takaisin",
+@@ -364,7 +368,9 @@
+ 		"settings": {
+ 			"title": "Asetukset",
+ 			"subtitle": "Hallitse tilisi asetuksia",
+-			"memberSince": "Jäsen {date} lähtien"
++			"memberSince": "Jäsen {date} lähtien",
++			"birthdayHint": "Valinnainen. Käytetään vain ikärajallisten ostosten tarkistamiseen. Itse ilmoitettu ja näkyy vain sinulle.",
++			"birthdayClearHint": "Jätä tyhjäksi poistaaksesi syntymäpäivän."
+ 		},
+ 		"addresses": {
+ 			"title": "Osoitteet",
+@@ -632,5 +638,11 @@
+ 			"paymentWebhookFailed": "Maksusovelluksen webhook epäonnistui. Tarkista Saleor-hallintapaneelissa → Sovellukset → Dummy Payment App, että webhook-toimitukset onnistuvat.",
+ 			"paymentInitFailed": "Maksua ei voitu alustaa. Tarkista, että maksusovellus on käynnissä Saleorissa."
+ 		}
++	},
++	"ageRestriction": {
++		"guest": "Tuotteella on ikäraja. Kirjaudu sisään lisätäksesi sen ostoskoriin.",
++		"profile": "Tuotteella on ikäraja. Lisää syntymäpäiväsi tilin asetuksissa. Jos se on jo asetettu, et ehkä täytä vähimmäisikää.",
++		"ineligible": "Et täytä tämän tuotteen vähimmäisikävaatimusta.",
++		"signIn": "Kirjaudu sisään ostaaksesi"
+ 	}
+ }
+diff --git a/messages/fr.json b/messages/fr.json
+index 6662017..56965b6 100644
+--- a/messages/fr.json
++++ b/messages/fr.json
+@@ -47,7 +47,8 @@
+ 		"badges": {
+ 			"sale": "Promo",
+ 			"new": "Nouveau",
+-			"bestseller": "Best-seller"
++			"bestseller": "Best-seller",
++			"ageRestricted": "Limite d'âge : {age}+"
+ 		},
+ 		"variant": {
+ 			"outOfStockTitle": "{name} — rupture de stock",
+@@ -190,7 +191,8 @@
+ 				"postal": "Code postal",
+ 				"postTown": "Ville",
+ 				"prefecture": "Préfecture"
+-			}
++			},
++			"birthday": "Date de naissance"
+ 		},
+ 		"placeholders": {
+ 			"email": "vous@exemple.com",
+@@ -246,7 +248,9 @@
+ 			"updateAddressFailed": "Échec de la mise à jour de l'adresse",
+ 			"deleteAddressFailed": "Échec de la suppression de l'adresse",
+ 			"setDefaultAddressFailed": "Échec de la définition de l'adresse par défaut",
+-			"deleteAccountFailed": "Échec de la demande de suppression du compte"
++			"deleteAccountFailed": "Échec de la demande de suppression du compte",
++			"updateBirthdayFailed": "Échec de la mise à jour de la date de naissance",
++			"invalidBirthday": "Saisissez une date de naissance valide qui n'est pas dans le futur."
+ 		},
+ 		"login": {
+ 			"title": "Bon retour",
+@@ -364,7 +368,9 @@
+ 		"settings": {
+ 			"title": "Paramètres",
+ 			"subtitle": "Gérez les paramètres de votre compte",
+-			"memberSince": "Membre depuis {date}"
++			"memberSince": "Membre depuis {date}",
++			"birthdayHint": "Facultatif. Utilisée uniquement pour vérifier les achats soumis à une limite d'âge. Déclarative et visible par vous seul.",
++			"birthdayClearHint": "Laissez vide pour supprimer votre date de naissance."
+ 		},
+ 		"addresses": {
+ 			"title": "Adresses",
+@@ -632,5 +638,11 @@
+ 			"paymentWebhookFailed": "Échec du webhook de l'application de paiement. Dans Saleor Dashboard → Apps → Dummy Payment App, vérifiez que les livraisons de webhooks réussissent.",
+ 			"paymentInitFailed": "Le paiement n'a pas pu être initialisé. Vérifiez que l'application de paiement fonctionne dans Saleor."
+ 		}
++	},
++	"ageRestriction": {
++		"guest": "Ce produit est soumis à une limite d'âge. Connectez-vous pour l'ajouter à votre panier.",
++		"profile": "Ce produit est soumis à une limite d'âge. Ajoutez votre date de naissance dans les paramètres du compte. Si elle est déjà renseignée, vous n'avez peut-être pas l'âge minimum.",
++		"ineligible": "Vous n'avez pas l'âge minimum requis pour acheter ce produit.",
++		"signIn": "Se connecter pour acheter"
+ 	}
+ }
+diff --git a/messages/ja.json b/messages/ja.json
+index c8be825..7b69711 100644
+--- a/messages/ja.json
++++ b/messages/ja.json
+@@ -47,7 +47,8 @@
+ 		"badges": {
+ 			"sale": "セール",
+ 			"new": "新着",
+-			"bestseller": "ベストセラー"
++			"bestseller": "ベストセラー",
++			"ageRestricted": "年齢制限：{age}歳以上"
+ 		},
+ 		"variant": {
+ 			"outOfStockTitle": "{name} - 在庫切れ",
+@@ -190,7 +191,8 @@
+ 				"postal": "郵便番号",
+ 				"postTown": "郵便区",
+ 				"prefecture": "都道府県"
+-			}
++			},
++			"birthday": "生年月日"
+ 		},
+ 		"placeholders": {
+ 			"email": "you@example.com",
+@@ -246,7 +248,9 @@
+ 			"updateAddressFailed": "住所の更新に失敗しました",
+ 			"deleteAddressFailed": "住所の削除に失敗しました",
+ 			"setDefaultAddressFailed": "既定の住所の設定に失敗しました",
+-			"deleteAccountFailed": "アカウント削除のリクエストに失敗しました"
++			"deleteAccountFailed": "アカウント削除のリクエストに失敗しました",
++			"updateBirthdayFailed": "生年月日を更新できませんでした",
++			"invalidBirthday": "未来の日付ではない有効な生年月日を入力してください。"
+ 		},
+ 		"login": {
+ 			"title": "おかえりなさい",
+@@ -364,7 +368,9 @@
+ 		"settings": {
+ 			"title": "設定",
+ 			"subtitle": "アカウント設定を管理",
+-			"memberSince": "{date} からメンバー"
++			"memberSince": "{date} からメンバー",
++			"birthdayHint": "任意。年齢制限のある購入の確認にのみ使用されます。自己申告で、あなただけに表示されます。",
++			"birthdayClearHint": "空欄にすると生年月日を削除します。"
+ 		},
+ 		"addresses": {
+ 			"title": "住所",
+@@ -629,5 +635,11 @@
+ 			"paymentWebhookFailed": "決済アプリのWebhookが失敗しました。Saleorダッシュボード → Apps → Dummy Payment App でWebhook配信が成功しているか確認してください。",
+ 			"paymentInitFailed": "支払いを初期化できませんでした。Saleorで決済アプリが稼働しているか確認してください。"
+ 		}
++	},
++	"ageRestriction": {
++		"guest": "この商品には年齢制限があります。バッグに追加するにはサインインしてください。",
++		"profile": "この商品には年齢制限があります。アカウント設定で生年月日を追加してください。すでに設定済みの場合は、最低年齢を満たしていない可能性があります。",
++		"ineligible": "この商品の購入に必要な最低年齢を満たしていません。",
++		"signIn": "サインインして購入"
+ 	}
+ }
+diff --git a/messages/ko.json b/messages/ko.json
+index 218b88d..abfc460 100644
+--- a/messages/ko.json
++++ b/messages/ko.json
+@@ -42,7 +42,8 @@
+ 		"badges": {
+ 			"sale": "세일",
+ 			"new": "신상품",
+-			"bestseller": "베스트셀러"
++			"bestseller": "베스트셀러",
++			"ageRestricted": "연령 제한: {age}세 이상"
+ 		},
+ 		"variant": {
+ 			"outOfStockTitle": "{name} - 품절",
+@@ -181,7 +182,8 @@
+ 				"postal": "우편번호",
+ 				"postTown": "우체국 관할 지역",
+ 				"prefecture": "현"
+-			}
++			},
++			"birthday": "생년월일"
+ 		},
+ 		"placeholders": {
+ 			"email": "you@example.com",
+@@ -237,7 +239,9 @@
+ 			"updateAddressFailed": "주소 업데이트에 실패했습니다",
+ 			"deleteAddressFailed": "주소 삭제에 실패했습니다",
+ 			"setDefaultAddressFailed": "기본 주소 설정에 실패했습니다",
+-			"deleteAccountFailed": "계정 삭제 요청에 실패했습니다"
++			"deleteAccountFailed": "계정 삭제 요청에 실패했습니다",
++			"updateBirthdayFailed": "생년월일을 업데이트하지 못했습니다",
++			"invalidBirthday": "미래가 아닌 올바른 생년월일을 입력하세요."
+ 		},
+ 		"login": {
+ 			"title": "다시 오신 것을 환영합니다",
+@@ -355,7 +359,9 @@
+ 		"settings": {
+ 			"title": "설정",
+ 			"subtitle": "계정 설정을 관리하세요",
+-			"memberSince": "{date}부터 회원"
++			"memberSince": "{date}부터 회원",
++			"birthdayHint": "선택 사항입니다. 연령 제한 구매 확인에만 사용되며, 본인이 직접 입력하고 본인에게만 표시됩니다.",
++			"birthdayClearHint": "비워 두면 생년월일이 삭제됩니다."
+ 		},
+ 		"addresses": {
+ 			"title": "주소",
+@@ -620,5 +626,11 @@
+ 			"paymentWebhookFailed": "결제 앱 웹훅이 실패했습니다. Saleor 대시보드 → 앱 → 테스트 결제 앱에서 웹훅 전달 상태를 확인해주세요.",
+ 			"paymentInitFailed": "결제를 초기화할 수 없습니다. Saleor에서 결제 앱이 실행 중인지 확인해주세요."
+ 		}
++	},
++	"ageRestriction": {
++		"guest": "이 상품은 연령 제한이 있습니다. 가방에 담으려면 로그인하세요.",
++		"profile": "이 상품은 연령 제한이 있습니다. 계정 설정에서 생년월일을 추가하세요. 이미 설정되어 있다면 최소 연령을 충족하지 못할 수 있습니다.",
++		"ineligible": "이 상품을 구매하기 위한 최소 연령을 충족하지 않습니다.",
++		"signIn": "로그인하여 구매"
+ 	}
+ }
+diff --git a/messages/nb.json b/messages/nb.json
+index d1d7039..92c3915 100644
+--- a/messages/nb.json
++++ b/messages/nb.json
+@@ -47,7 +47,8 @@
+ 		"badges": {
+ 			"sale": "Salg",
+ 			"new": "Ny",
+-			"bestseller": "Bestselger"
++			"bestseller": "Bestselger",
++			"ageRestricted": "Aldersgrense: {age}+"
+ 		},
+ 		"variant": {
+ 			"outOfStockTitle": "{name} — utsolgt",
+@@ -190,7 +191,8 @@
+ 				"postal": "Postnummer",
+ 				"postTown": "Poststed",
+ 				"prefecture": "Prefektur"
+-			}
++			},
++			"birthday": "Fødselsdato"
+ 		},
+ 		"placeholders": {
+ 			"email": "deg@eksempel.no",
+@@ -246,7 +248,9 @@
+ 			"updateAddressFailed": "Kunne ikke oppdatere adresse",
+ 			"deleteAddressFailed": "Kunne ikke slette adresse",
+ 			"setDefaultAddressFailed": "Kunne ikke angi standardadresse",
+-			"deleteAccountFailed": "Kunne ikke sende forespørsel om sletting av konto"
++			"deleteAccountFailed": "Kunne ikke sende forespørsel om sletting av konto",
++			"updateBirthdayFailed": "Kunne ikke oppdatere fødselsdato",
++			"invalidBirthday": "Oppgi en gyldig fødselsdato som ikke er i fremtiden."
+ 		},
+ 		"login": {
+ 			"title": "Velkommen tilbake",
+@@ -364,7 +368,9 @@
+ 		"settings": {
+ 			"title": "Innstillinger",
+ 			"subtitle": "Administrer kontoinnstillingene dine",
+-			"memberSince": "Medlem siden {date}"
++			"memberSince": "Medlem siden {date}",
++			"birthdayHint": "Valgfritt. Brukes bare til å kontrollere aldersbegrensede kjøp. Selvoppgitt og bare synlig for deg.",
++			"birthdayClearHint": "La stå tomt for å fjerne fødselsdatoen."
+ 		},
+ 		"addresses": {
+ 			"title": "Adresser",
+@@ -632,5 +638,11 @@
+ 			"paymentWebhookFailed": "Webhook for betalingsappen mislyktes. I Saleor Dashboard → Apps → Dummy Payment App, sjekk at webhook-leveranser lykkes.",
+ 			"paymentInitFailed": "Betalingen kunne ikke initialiseres. Sjekk at betalingsappen kjører i Saleor."
+ 		}
++	},
++	"ageRestriction": {
++		"guest": "Dette produktet har aldersgrense. Logg inn for å legge det i handlekurven.",
++		"profile": "Dette produktet har aldersgrense. Legg til fødselsdatoen din i kontoinnstillingene. Hvis den allerede er satt, oppfyller du kanskje ikke minstealderen.",
++		"ineligible": "Du oppfyller ikke minstealderen for å kjøpe dette produktet.",
++		"signIn": "Logg inn for å kjøpe"
+ 	}
+ }
+diff --git a/messages/pl.json b/messages/pl.json
+index ecaf8f2..9bbaa9c 100644
+--- a/messages/pl.json
++++ b/messages/pl.json
+@@ -47,7 +47,8 @@
+ 		"badges": {
+ 			"sale": "Promocja",
+ 			"new": "Nowość",
+-			"bestseller": "Bestseller"
++			"bestseller": "Bestseller",
++			"ageRestricted": "Ograniczenie wiekowe: {age}+"
+ 		},
+ 		"variant": {
+ 			"outOfStockTitle": "{name} — brak w magazynie",
+@@ -190,7 +191,8 @@
+ 				"postal": "Kod pocztowy",
+ 				"postTown": "Miejscowość",
+ 				"prefecture": "Prefektura"
+-			}
++			},
++			"birthday": "Data urodzenia"
+ 		},
+ 		"placeholders": {
+ 			"email": "ty@example.com",
+@@ -246,7 +248,9 @@
+ 			"updateAddressFailed": "Nie udało się zaktualizować adresu",
+ 			"deleteAddressFailed": "Nie udało się usunąć adresu",
+ 			"setDefaultAddressFailed": "Nie udało się ustawić domyślnego adresu",
+-			"deleteAccountFailed": "Nie udało się złożyć wniosku o usunięcie konta"
++			"deleteAccountFailed": "Nie udało się złożyć wniosku o usunięcie konta",
++			"updateBirthdayFailed": "Nie udało się zaktualizować daty urodzenia",
++			"invalidBirthday": "Podaj prawidłową datę urodzenia, która nie jest w przyszłości."
+ 		},
+ 		"login": {
+ 			"title": "Witaj ponownie",
+@@ -364,7 +368,9 @@
+ 		"settings": {
+ 			"title": "Ustawienia",
+ 			"subtitle": "Zarządzaj ustawieniami konta",
+-			"memberSince": "Członek od {date}"
++			"memberSince": "Członek od {date}",
++			"birthdayHint": "Opcjonalnie. Używana tylko do sprawdzania zakupów z ograniczeniem wiekowym. Podana samodzielnie i widoczna tylko dla Ciebie.",
++			"birthdayClearHint": "Pozostaw puste, aby usunąć datę urodzenia."
+ 		},
+ 		"addresses": {
+ 			"title": "Adresy",
+@@ -632,5 +638,11 @@
+ 			"paymentWebhookFailed": "Webhook aplikacji płatności nie powiódł się. W panelu Saleor → Aplikacje → Dummy Payment App sprawdź dostarczanie webhooków.",
+ 			"paymentInitFailed": "Nie udało się zainicjować płatności. Sprawdź, czy aplikacja płatności działa w Saleor."
+ 		}
++	},
++	"ageRestriction": {
++		"guest": "Ten produkt ma ograniczenie wiekowe. Zaloguj się, aby dodać go do koszyka.",
++		"profile": "Ten produkt ma ograniczenie wiekowe. Dodaj datę urodzenia w ustawieniach konta. Jeśli jest już ustawiona, możesz nie spełniać wymaganego wieku.",
++		"ineligible": "Nie spełniasz minimalnego wieku wymaganego do zakupu tego produktu.",
++		"signIn": "Zaloguj się, aby kupić"
+ 	}
+ }
+diff --git a/paper-version.json b/paper-version.json
+index f8b1e34..25b6cd5 100644
+--- a/paper-version.json
++++ b/paper-version.json
+@@ -113,6 +113,22 @@
+ 		{
+ 			"path": "src/lib/storefront/AGENTS.md",
+ 			"reason": "Agent docs removed from this fork"
++		},
++		{
++			"path": "src/lib/saleor/operations.ts",
++			"reason": "Age restrictions: register CurrentUserAgeStatus and ShopAgeRestriction operations"
++		},
++		{
++			"path": "src/lib/storefront/contract/listing.ts",
++			"reason": "Age restrictions: isAgeRestricted and ageRestrictionMinimumAge on ProductCardView"
++		},
++		{
++			"path": "src/lib/listing/load.ts",
++			"reason": "Age restrictions: stamp the current Shop minimum age on restricted cards after the cached load"
++		},
++		{
++			"path": "src/lib/listing/providers/saleor/to-card.ts",
++			"reason": "Age restrictions: map isAgeRestricted onto card data"
+ 		}
+ 	]
+ }
+diff --git a/src/app/(checkout)/actions.ts b/src/app/(checkout)/actions.ts
+index 388b7ad..6973608 100644
+--- a/src/app/(checkout)/actions.ts
++++ b/src/app/(checkout)/actions.ts
+@@ -84,6 +84,10 @@ import { getStripePaymentGuardError, isStripePaymentEnabled } from "@/checkout/l
+ import { buildMarketingConsentMetadata } from "@/checkout/lib/marketing-consent";
+ import { enrichCheckoutCommerceContext } from "@/checkout/lib/server/enrich-commerce-context";
+ import { fetchCheckoutOnServer } from "@/checkout/lib/server/fetch-checkout";
++import { getTranslations } from "next-intl/server";
++import { getCheckoutLocaleSlug } from "@/lib/browse-locale-server";
++import { hasAgeRestrictionError } from "@/lib/age-restriction";
++import { getAgeRestrictionKind } from "@/lib/auth/get-age-restriction-kind";
+ import { getCheckoutServerTranslations } from "@/checkout/lib/server/get-checkout-server-translations";
+ import { toCheckoutActionResult } from "@/checkout/lib/server/mutation-result";
+ import { toTypedDocument } from "@/checkout/lib/server/to-typed-document";
+@@ -581,9 +585,16 @@ export async function runCheckoutComplete(checkoutId: string): Promise<CheckoutC
+ 
+ 	if (payload.errors?.length) {
+ 		const { server: t } = await getCheckoutServerTranslations();
++		// Core's AGE_RESTRICTION stays authoritative; only the generic message is localized here.
++		const ageRestricted = hasAgeRestrictionError(payload.errors);
++		const ageMessage = ageRestricted
++			? (await getTranslations({ locale: await getCheckoutLocaleSlug(), namespace: "ageRestriction" }))(
++					await getAgeRestrictionKind(),
++				)
++			: null;
+ 		return {
+ 			ok: false,
+-			error: payload.errors[0].message ?? t("completeOrderFailed"),
++			error: ageMessage ?? payload.errors[0].message ?? t("completeOrderFailed"),
+ 			fieldErrors: payload.errors.map((error) => ({
+ 				field: error.field,
+ 				message: error.message ?? t("completeOrderFailed"),
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.birthday.test.ts b/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.birthday.test.ts
+new file mode 100644
+index 0000000..7bafd98
+--- /dev/null
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.birthday.test.ts
+@@ -0,0 +1,60 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++
++const mutate = vi.fn();
++vi.mock("@/lib/saleor", () => ({ mutate }));
++vi.mock("next/cache", () => ({ refresh: vi.fn() }));
++
++const { updateBirthday } = await import("./actions");
++
++function form(birthday?: string) {
++	const fd = new FormData();
++	if (birthday !== undefined) fd.set("birthday", birthday);
++	return fd;
++}
++
++describe("updateBirthday", () => {
++	beforeEach(() => mutate.mockReset());
++
++	it("sends the date to accountUpdate only (no other fields)", async () => {
++		mutate.mockResolvedValue({ ok: true, data: { accountUpdate: { errors: [] } } });
++
++		await expect(updateBirthday(form("1990-05-17"))).resolves.toEqual({ success: true });
++		expect(mutate.mock.calls[0][1]).toEqual({ variables: { input: { birthday: "1990-05-17" } } });
++	});
++
++	it("clears the birthday with null when the field is empty", async () => {
++		mutate.mockResolvedValue({ ok: true, data: { accountUpdate: { errors: [] } } });
++
++		await updateBirthday(form(""));
++		expect(mutate.mock.calls[0][1]).toEqual({ variables: { input: { birthday: null } } });
++	});
++
++	it("rejects malformed input without calling core", async () => {
++		await expect(updateBirthday(form("1990-02-31"))).resolves.toEqual({
++			success: false,
++			errorKey: "invalidBirthday",
++		});
++		expect(mutate).not.toHaveBeenCalled();
++	});
++
++	it("maps a core birthday field error to a fixed key (future date)", async () => {
++		mutate.mockResolvedValue({
++			ok: true,
++			data: { accountUpdate: { errors: [{ field: "birthday", message: "core text", code: "INVALID" }] } },
++		});
++
++		await expect(updateBirthday(form("2999-01-01"))).resolves.toEqual({
++			success: false,
++			errorKey: "invalidBirthday",
++		});
++	});
++
++	it("does not leak transport error text", async () => {
++		mutate.mockResolvedValue({ ok: false, error: { message: "boom 1990-05-17" } });
++
++		await expect(updateBirthday(form("1990-05-17"))).resolves.toEqual({
++			success: false,
++			errorKey: "updateBirthdayFailed",
++		});
++	});
++});
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts b/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
+index 0e2ad45..14b8213 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts
+@@ -15,6 +15,7 @@ import {
+ } from "@/gql/graphql";
+ import { mutate } from "@/lib/saleor";
+ import { getFormString, getFormStringOptional } from "@/ui/components/account/form-utils";
++import { parseBirthdayInput } from "@/ui/components/account/birthday";
+ import type { AccountActionResult } from "@/ui/components/account/account-action-result";
+ 
+ export async function updateProfile(formData: FormData): Promise<AccountActionResult> {
+@@ -40,6 +41,38 @@ export async function updateProfile(formData: FormData): Promise<AccountActionRe
+ 	return { success: true };
+ }
+ 
++/**
++ * Owner-only birthday edit. An empty value clears it. The date is never logged and is
++ * never echoed in the result — failures return fixed translation keys, not core messages.
++ */
++export async function updateBirthday(formData: FormData): Promise<AccountActionResult> {
++	const parsed = parseBirthdayInput(getFormStringOptional(formData, "birthday"));
++	if (!parsed.ok) {
++		return { success: false, errorKey: "invalidBirthday" };
++	}
++
++	const result = await mutate(AccountUpdateDocument, {
++		variables: { input: { birthday: parsed.value } },
++	});
++
++	if (!result.ok) {
++		return { success: false, errorKey: "updateBirthdayFailed" };
++	}
++
++	const errors = result.data.accountUpdate?.errors;
++	if (errors?.length) {
++		return {
++			success: false,
++			errorKey: errors.some((error) => error.field === "birthday")
++				? "invalidBirthday"
++				: "updateBirthdayFailed",
++		};
++	}
++
++	revalidateAccountLayout();
++	return { success: true };
++}
++
+ export async function changePassword(formData: FormData): Promise<AccountActionResult> {
+ 	const oldPassword = getFormString(formData, "oldPassword");
+ 	const newPassword = getFormString(formData, "newPassword");
+diff --git a/src/app/(storefront)/[locale]/[channel]/(main)/page.tsx b/src/app/(storefront)/[locale]/[channel]/(main)/page.tsx
+index 41baf7a..51583a6 100644
+--- a/src/app/(storefront)/[locale]/[channel]/(main)/page.tsx
++++ b/src/app/(storefront)/[locale]/[channel]/(main)/page.tsx
+@@ -1,6 +1,7 @@
+-import { Suspense } from "react";
++import { Suspense, type ReactNode } from "react";
+ import { brandConfig } from "@/config/brand";
+ import { resolveLocaleFromSlug } from "@/config/locale";
++import { getAgeRestrictionMinimumAge } from "@/lib/catalog/age-restriction-label";
+ import { getFeaturedProducts } from "@/lib/catalog/get-featured-products";
+ import { resolveChannelCurrency } from "@/lib/channels/resolve-channel-currency";
+ import { buildPolicyLabelValues } from "@/lib/content";
+@@ -8,6 +9,7 @@ import { formatContentLabel } from "@/lib/content/format-label";
+ import { getStorefrontContent } from "@/lib/content/server";
+ import { buildSaleorSrcSet } from "@/lib/images";
+ import { pickTranslatedSlug } from "@/lib/saleor-translations";
++import { AgeRestrictionBadge } from "@/ui/components/ui/sale-label";
+ import { PaperSignEditorialPlaceholder } from "@/ui/components/shared/paper-sign";
+ import { CategoryTileGrid, type CategoryTile } from "@/ui/sections/category-tile-grid/category-tile-grid";
+ import { EditorialHero } from "@/ui/sections/editorial-hero/editorial-hero";
+@@ -58,7 +60,11 @@ function pickImage(product: FeaturedProduct | undefined) {
+  * category's own background image (merchandised lifestyle art); fall back to a
+  * representative product thumbnail when the category has no image set.
+  */
+-function buildCategoryTiles(products: readonly FeaturedProduct[], max = 3): CategoryTile[] {
++function buildCategoryTiles(
++	products: readonly FeaturedProduct[],
++	ageBadge: (product: FeaturedProduct) => ReactNode,
++	max = 3,
++): CategoryTile[] {
+ 	const seen = new Set<string>();
+ 	const tiles: CategoryTile[] = [];
+ 	for (const product of products) {
+@@ -75,6 +81,8 @@ function buildCategoryTiles(products: readonly FeaturedProduct[], max = 3): Cate
+ 			image,
+ 			imageSrcSet: background?.url ? categoryBackgroundSrcSet(category) : productThumbnailSrcSet(product),
+ 			imageAlt,
++			// The tile shows the product only when the category has no background of its own.
++			badge: background?.url ? undefined : ageBadge(product),
+ 		});
+ 		if (tiles.length >= max) break;
+ 	}
+@@ -123,7 +131,12 @@ async function HomePageContent({ params }: { params: HomeParams }) {
+ 		(product) => product.slug !== heroProduct?.slug && product.thumbnail?.url,
+ 	);
+ 	const editorialFallbackImage = pickImage(editorialProduct);
+-	const categoryTiles = buildCategoryTiles(products);
++	const ageMinimum = products.some((product) => product.isAgeRestricted)
++		? await getAgeRestrictionMinimumAge()
++		: null;
++	const ageBadge = (product: FeaturedProduct | undefined) =>
++		product?.isAgeRestricted && ageMinimum != null ? <AgeRestrictionBadge minimumAge={ageMinimum} /> : undefined;
++	const categoryTiles = buildCategoryTiles(products, ageBadge);
+ 
+ 	const currency = await resolveChannelCurrency(channel);
+ 	const policyValues = buildPolicyLabelValues(content.policies, {
+@@ -158,6 +171,7 @@ async function HomePageContent({ params }: { params: HomeParams }) {
+ 					image={heroImage?.url}
+ 					imageSrcSet={heroImage?.srcSet}
+ 					imageAlt={heroImage?.alt ?? ""}
++					imageBadge={ageBadge(heroProduct)}
+ 					primaryCta={{ label: hero.primaryCtaLabel, href: "/products" }}
+ 					placeholder={<PaperSignEditorialPlaceholder />}
+ 				/>
+@@ -189,6 +203,7 @@ async function HomePageContent({ params }: { params: HomeParams }) {
+ 				image={editorial.image ?? editorialFallbackImage?.url}
+ 				imageSrcSet={editorial.image ? undefined : editorialFallbackImage?.srcSet}
+ 				imageAlt={editorial.image ? editorial.imageAlt : (editorialFallbackImage?.alt ?? "")}
++				imageBadge={editorial.image ? undefined : ageBadge(editorialProduct)}
+ 				imageFit={editorial.image ? "cover" : "contain"}
+ 				imagePosition={editorial.imagePosition}
+ 				placeholder={<PaperSignEditorialPlaceholder />}
+diff --git a/src/app/actions.age-restriction.test.ts b/src/app/actions.age-restriction.test.ts
+new file mode 100644
+index 0000000..f2400aa
+--- /dev/null
++++ b/src/app/actions.age-restriction.test.ts
+@@ -0,0 +1,77 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++
++const mutate = vi.fn();
++const getAgeRestrictionKind = vi.fn();
++const emitCommerceEvent = vi.fn();
++const refresh = vi.fn();
++
++vi.mock("@/lib/saleor", () => ({ mutate }));
++vi.mock("@/lib/auth/get-age-restriction-kind", () => ({ getAgeRestrictionKind }));
++vi.mock("@/lib/auth/bff-server", () => ({ signOutSession: vi.fn() }));
++vi.mock("@/lib/analytics/emit.server", () => ({ emitCommerceEvent }));
++vi.mock("next/cache", () => ({ refresh }));
++vi.mock("next/headers", () => ({ cookies: vi.fn() }));
++vi.mock("@/lib/checkout", () => ({
++	findOrCreate: vi.fn().mockResolvedValue({ id: "checkout-1" }),
++	getIdFromCookies: vi.fn().mockResolvedValue(undefined),
++	saveIdToCookie: vi.fn(),
++	clearCheckoutCookie: vi.fn(),
++	detachCustomer: vi.fn(),
++}));
++
++const { addVariantToCart } = await import("./actions");
++
++const input = { channel: "default", localeSlug: "en", variantId: "variant-1" };
++
++describe("addVariantToCart age restriction", () => {
++	beforeEach(() => {
++		mutate.mockReset();
++		getAgeRestrictionKind.mockReset();
++		emitCommerceEvent.mockReset();
++		refresh.mockReset();
++		vi.spyOn(console, "error").mockImplementation(() => undefined);
++	});
++
++	it("reports a guest rejection from core without logging an error or emitting analytics", async () => {
++		getAgeRestrictionKind.mockResolvedValue("guest");
++		mutate.mockResolvedValue({
++			ok: true,
++			data: { checkoutLinesAdd: { errors: [{ field: "lines", message: "x", code: "AGE_RESTRICTION" }] } },
++		});
++
++		await expect(addVariantToCart(input)).resolves.toEqual({ ok: false, ageRestriction: "guest" });
++		expect(console.error).not.toHaveBeenCalled();
++		expect(emitCommerceEvent).not.toHaveBeenCalled();
++		expect(refresh).not.toHaveBeenCalled();
++	});
++
++	it.each(["profile", "ineligible"] as const)(
++		"passes the %s kind through for signed-in customers",
++		async (kind) => {
++			getAgeRestrictionKind.mockResolvedValue(kind);
++			mutate.mockResolvedValue({
++				ok: true,
++				data: { checkoutLinesAdd: { errors: [{ field: "lines", message: "x", code: "AGE_RESTRICTION" }] } },
++			});
++
++			await expect(addVariantToCart(input)).resolves.toEqual({ ok: false, ageRestriction: kind });
++		},
++	);
++
++	it("keeps other core errors as plain failures", async () => {
++		mutate.mockResolvedValue({
++			ok: true,
++			data: { checkoutLinesAdd: { errors: [{ field: "lines", message: "x", code: "INVALID" }] } },
++		});
++
++		await expect(addVariantToCart(input)).resolves.toEqual({ ok: false });
++		expect(console.error).toHaveBeenCalled();
++	});
++
++	it("adds the line when core accepts it", async () => {
++		mutate.mockResolvedValue({ ok: true, data: { checkoutLinesAdd: { errors: [] } } });
++
++		await expect(addVariantToCart(input)).resolves.toEqual({ ok: true });
++		expect(emitCommerceEvent).toHaveBeenCalled();
++	});
++});
+diff --git a/src/app/actions.ts b/src/app/actions.ts
+index 1392671..79944e1 100644
+--- a/src/app/actions.ts
++++ b/src/app/actions.ts
+@@ -10,6 +10,8 @@ import {
+ 	CheckoutLinesUpdateDocument,
+ } from "@/gql/graphql";
+ import { emitCommerceEvent } from "@/lib/analytics/emit.server";
++import { hasAgeRestrictionError, type AgeRestrictionKind } from "@/lib/age-restriction";
++import { getAgeRestrictionKind } from "@/lib/auth/get-age-restriction-kind";
+ import * as Checkout from "@/lib/checkout";
+ 
+ // Private state (session/cart cookies) lives in dynamic holes that read cookies at
+@@ -97,14 +99,19 @@ export async function updateCartLineQuantity(checkoutId: string, lineId: string,
+ 	refresh();
+ }
+ 
+-/** Add a variant to the channel cart. Private refresh only — never busts the shared cache. */
++export type AddVariantToCartResult = { ok: true } | { ok: false; ageRestriction?: AgeRestrictionKind };
++
++/**
++ * Add a variant to the channel cart. Private refresh only — never busts the shared cache.
++ * Core's `AGE_RESTRICTION` error is surfaced as `ageRestriction` so the caller can route the shopper.
++ */
+ export async function addVariantToCart(input: {
+ 	channel: string;
+ 	localeSlug: string;
+ 	variantId: string;
+ 	value?: number;
+ 	currency?: string;
+-}) {
++}): Promise<AddVariantToCartResult> {
+ 	const checkout = await Checkout.findOrCreate({
+ 		checkoutId: await Checkout.getIdFromCookies(input.channel),
+ 		channel: input.channel,
+@@ -113,7 +120,7 @@ export async function addVariantToCart(input: {
+ 
+ 	if (!checkout) {
+ 		console.error("Add to cart: Failed to create checkout");
+-		return;
++		return { ok: false };
+ 	}
+ 
+ 	await Checkout.saveIdToCookie(input.channel, checkout.id);
+@@ -127,12 +134,21 @@ export async function addVariantToCart(input: {
+ 
+ 	if (!addResult.ok) {
+ 		console.error("Add to cart failed:", addResult.error.message);
+-		return;
++		return { ok: false };
++	}
++
++	const addErrors = addResult.data.checkoutLinesAdd?.errors;
++	if (hasAgeRestrictionError(addErrors)) {
++		// Expected policy outcome, not a fault: no error log, and nothing about the customer is read.
++		return {
++			ok: false,
++			ageRestriction: await getAgeRestrictionKind(),
++		};
+ 	}
+ 
+-	if (addResult.data.checkoutLinesAdd?.errors?.length) {
+-		console.error("Add to cart failed:", addResult.data.checkoutLinesAdd.errors);
+-		return;
++	if (addErrors?.length) {
++		console.error("Add to cart failed:", addErrors);
++		return { ok: false };
+ 	}
+ 
+ 	emitCommerceEvent({
+@@ -143,4 +159,5 @@ export async function addVariantToCart(input: {
+ 	});
+ 
+ 	refresh();
++	return { ok: true };
+ }
+diff --git a/src/graphql/CheckoutAddLine.graphql b/src/graphql/CheckoutAddLine.graphql
+index 222e882..b1692db 100644
+--- a/src/graphql/CheckoutAddLine.graphql
++++ b/src/graphql/CheckoutAddLine.graphql
+@@ -14,7 +14,9 @@ mutation CheckoutAddLine($id: ID!, $productVariantId: ID!) {
+ 			}
+ 		}
+ 		errors {
++			field
+ 			message
++			code
+ 		}
+ 	}
+ }
+diff --git a/src/graphql/CurrentUserAgeStatus.graphql b/src/graphql/CurrentUserAgeStatus.graphql
+new file mode 100644
+index 0000000..0ad4079
+--- /dev/null
++++ b/src/graphql/CurrentUserAgeStatus.graphql
+@@ -0,0 +1,7 @@
++# Owner-only presence flag (never the date) used to pick the age-restriction message.
++query CurrentUserAgeStatus {
++	me {
++		id
++		birthdayPresent
++	}
++}
+diff --git a/src/graphql/CurrentUserProfile.graphql b/src/graphql/CurrentUserProfile.graphql
+index 9bb3519..34cd5ce 100644
+--- a/src/graphql/CurrentUserProfile.graphql
++++ b/src/graphql/CurrentUserProfile.graphql
+@@ -2,6 +2,9 @@ query CurrentUserProfile {
+ 	me {
+ 		...UserDetails
+ 		dateJoined
++		# Owner-only field: read here for the account settings flow and nowhere else.
++		birthday
++		birthdayPresent
+ 		addresses {
+ 			...AddressDetails
+ 		}
+diff --git a/src/graphql/ShopAgeRestriction.graphql b/src/graphql/ShopAgeRestriction.graphql
+new file mode 100644
+index 0000000..a99a673
+--- /dev/null
++++ b/src/graphql/ShopAgeRestriction.graphql
+@@ -0,0 +1,7 @@
++# Public Shop minimum age (N in the "N+" card label). Fetched separately from card data so the
++# number is never frozen inside cached listing results.
++query ShopAgeRestriction {
++	shop {
++		ageRestrictionMinimumAge
++	}
++}
+diff --git a/src/graphql/extensions/ProductDetailsExtension.graphql b/src/graphql/extensions/ProductDetailsExtension.graphql
+index 0a67217..ca6d03c 100644
+--- a/src/graphql/extensions/ProductDetailsExtension.graphql
++++ b/src/graphql/extensions/ProductDetailsExtension.graphql
+@@ -1,4 +1,6 @@
+ # Fork-owned fields on the PDP shell. Add selections here; do not edit ProductDetails.graphql.
+ fragment ProductDetailsExtension on Product {
+ 	__typename
++	# Public flag: lets the PDP direct guests to sign in before any cart mutation.
++	isAgeRestricted
+ }
+diff --git a/src/graphql/extensions/ProductListItemExtension.graphql b/src/graphql/extensions/ProductListItemExtension.graphql
+index 0bea242..c64407a 100644
+--- a/src/graphql/extensions/ProductListItemExtension.graphql
++++ b/src/graphql/extensions/ProductListItemExtension.graphql
+@@ -1,4 +1,6 @@
+ # Fork-owned fields on listing cards. Add selections here; do not edit ProductListItem.graphql.
+ fragment ProductListItemExtension on Product {
+ 	__typename
++	# Public flag: drives the "N+" label on every restricted-product card.
++	isAgeRestricted
+ }
+diff --git a/src/lib/age-restriction.test.ts b/src/lib/age-restriction.test.ts
+new file mode 100644
+index 0000000..276be6c
+--- /dev/null
++++ b/src/lib/age-restriction.test.ts
+@@ -0,0 +1,35 @@
++import { describe, expect, it } from "vitest";
++import { hasAgeRestrictionError, resolveAgeRestrictionKind } from "./age-restriction";
++
++describe("hasAgeRestrictionError", () => {
++	it("detects the core error code", () => {
++		expect(hasAgeRestrictionError([{ code: "INVALID" }, { code: "AGE_RESTRICTION" }])).toBe(true);
++	});
++
++	it("ignores other codes and empty input", () => {
++		expect(hasAgeRestrictionError([{ code: "INVALID" }])).toBe(false);
++		expect(hasAgeRestrictionError([])).toBe(false);
++		expect(hasAgeRestrictionError(null)).toBe(false);
++		expect(hasAgeRestrictionError(undefined)).toBe(false);
++	});
++});
++
++describe("resolveAgeRestrictionKind", () => {
++	it("directs guests to sign in", () => {
++		expect(resolveAgeRestrictionKind({ isAuthenticated: false })).toBe("guest");
++		expect(resolveAgeRestrictionKind({ isAuthenticated: false, birthdayPresent: true })).toBe("guest");
++	});
++
++	it("sends signed-in customers without a birthday to the profile message", () => {
++		expect(resolveAgeRestrictionKind({ isAuthenticated: true, birthdayPresent: false })).toBe("profile");
++	});
++
++	it("falls back to the profile message when presence is unknown", () => {
++		expect(resolveAgeRestrictionKind({ isAuthenticated: true })).toBe("profile");
++		expect(resolveAgeRestrictionKind({ isAuthenticated: true, birthdayPresent: null })).toBe("profile");
++	});
++
++	it("shows the ineligible message when a birthday is on file", () => {
++		expect(resolveAgeRestrictionKind({ isAuthenticated: true, birthdayPresent: true })).toBe("ineligible");
++	});
++});
+diff --git a/src/lib/age-restriction.ts b/src/lib/age-restriction.ts
+new file mode 100644
+index 0000000..2a05934
+--- /dev/null
++++ b/src/lib/age-restriction.ts
+@@ -0,0 +1,33 @@
++/**
++ * Client-side routing for Saleor's `AGE_RESTRICTION` checkout error.
++ *
++ * Core is authoritative: this module only chooses which generic message and destination to
++ * show once core has rejected a mutation. It never decides eligibility and never handles a
++ * birthday or an age.
++ */
++export const AGE_RESTRICTION_ERROR_CODE = "AGE_RESTRICTION";
++
++export type AgeRestrictionKind = "guest" | "profile" | "ineligible";
++
++export function hasAgeRestrictionError(
++	errors: ReadonlyArray<{ code?: string | null }> | null | undefined,
++): boolean {
++	return Boolean(errors?.some((error) => error.code === AGE_RESTRICTION_ERROR_CODE));
++}
++
++/**
++ * - guest: no session, so sign in.
++ * - profile: signed in and `birthdayPresent` is false (or unknown) — go to account settings.
++ * - ineligible: signed in and `birthdayPresent` is true — a birthday is on file, so the age message.
++ *
++ * `birthdayPresent` is core's owner-only boolean; the birthday itself is never needed here.
++ */
++export function resolveAgeRestrictionKind(input: {
++	isAuthenticated: boolean;
++	birthdayPresent?: boolean | null;
++}): AgeRestrictionKind {
++	if (!input.isAuthenticated) {
++		return "guest";
++	}
++	return input.birthdayPresent === true ? "ineligible" : "profile";
++}
+diff --git a/src/lib/auth/get-age-restriction-kind.test.ts b/src/lib/auth/get-age-restriction-kind.test.ts
+new file mode 100644
+index 0000000..0cc6029
+--- /dev/null
++++ b/src/lib/auth/get-age-restriction-kind.test.ts
+@@ -0,0 +1,38 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++
++const hasAuthSession = vi.fn();
++const sessionQuery = vi.fn();
++vi.mock("server-only", () => ({}));
++vi.mock("@/lib/auth/has-auth-session", () => ({ hasAuthSession }));
++vi.mock("@/lib/saleor", () => ({ sessionQuery }));
++
++const { getAgeRestrictionKind } = await import("./get-age-restriction-kind");
++
++describe("getAgeRestrictionKind", () => {
++	beforeEach(() => {
++		hasAuthSession.mockReset();
++		sessionQuery.mockReset();
++	});
++
++	it("returns guest without querying core when there is no session", async () => {
++		hasAuthSession.mockResolvedValue(false);
++		await expect(getAgeRestrictionKind()).resolves.toBe("guest");
++		expect(sessionQuery).not.toHaveBeenCalled();
++	});
++
++	it.each([
++		[false, "profile"],
++		[true, "ineligible"],
++		[null, "profile"],
++	])("maps birthdayPresent=%s to %s", async (birthdayPresent, expected) => {
++		hasAuthSession.mockResolvedValue(true);
++		sessionQuery.mockResolvedValue({ ok: true, data: { me: { id: "u1", birthdayPresent } } });
++		await expect(getAgeRestrictionKind()).resolves.toBe(expected);
++	});
++
++	it("falls back to profile when the read fails", async () => {
++		hasAuthSession.mockResolvedValue(true);
++		sessionQuery.mockResolvedValue({ ok: false, error: { message: "boom" } });
++		await expect(getAgeRestrictionKind()).resolves.toBe("profile");
++	});
++});
+diff --git a/src/lib/auth/get-age-restriction-kind.ts b/src/lib/auth/get-age-restriction-kind.ts
+new file mode 100644
+index 0000000..c689d5a
+--- /dev/null
++++ b/src/lib/auth/get-age-restriction-kind.ts
+@@ -0,0 +1,22 @@
++import "server-only";
++
++import { CurrentUserAgeStatusDocument } from "@/gql/graphql";
++import { resolveAgeRestrictionKind, type AgeRestrictionKind } from "@/lib/age-restriction";
++import { hasAuthSession } from "@/lib/auth/has-auth-session";
++import { sessionQuery } from "@/lib/saleor";
++
++/**
++ * Picks the message for a core `AGE_RESTRICTION` rejection. Signed-in customers are asked only for
++ * `birthdayPresent` (owner-only boolean); a failed or null read falls back to the profile message.
++ */
++export async function getAgeRestrictionKind(): Promise<AgeRestrictionKind> {
++	if (!(await hasAuthSession())) {
++		return resolveAgeRestrictionKind({ isAuthenticated: false });
++	}
++
++	const result = await sessionQuery(CurrentUserAgeStatusDocument);
++	return resolveAgeRestrictionKind({
++		isAuthenticated: true,
++		birthdayPresent: result.ok ? result.data.me?.birthdayPresent : null,
++	});
++}
+diff --git a/src/lib/catalog/age-restriction-label.test.ts b/src/lib/catalog/age-restriction-label.test.ts
+new file mode 100644
+index 0000000..6ad49b8
+--- /dev/null
++++ b/src/lib/catalog/age-restriction-label.test.ts
+@@ -0,0 +1,57 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++
++const liveQuery = vi.fn();
++vi.mock("server-only", () => ({}));
++vi.mock("@/lib/saleor", () => ({ liveQuery }));
++
++const { applyAgeRestrictionLabel, getAgeRestrictionMinimumAge, withAgeRestrictionLabel } =
++	await import("./age-restriction-label");
++
++type Item = { id: string; isAgeRestricted?: boolean; ageRestrictionMinimumAge?: number | null };
++const restricted: Item = { id: "a", isAgeRestricted: true };
++const open: Item = { id: "b", isAgeRestricted: false };
++const unknownFlag: Item = { id: "c" };
++
++describe("applyAgeRestrictionLabel", () => {
++	it("stamps the current Shop age on restricted items only", () => {
++		const result = applyAgeRestrictionLabel([restricted, open, unknownFlag], 21);
++		expect(result[0]).toEqual({ ...restricted, ageRestrictionMinimumAge: 21 });
++		expect(result[1]).toBe(open);
++		expect(result[2]).toBe(unknownFlag);
++	});
++
++	it("uses whatever age it is given (dynamic, not 18)", () => {
++		expect(applyAgeRestrictionLabel([restricted], 16)[0].ageRestrictionMinimumAge).toBe(16);
++		expect(applyAgeRestrictionLabel([restricted], 120)[0].ageRestrictionMinimumAge).toBe(120);
++	});
++
++	it("leaves items unchanged when the age is unknown, and never drops or reorders them", () => {
++		const items: Item[] = [open, restricted, unknownFlag];
++		const result = applyAgeRestrictionLabel(items, null);
++		expect(result).toEqual(items);
++		expect(result.map((i) => i.id)).toEqual(["b", "a", "c"]);
++	});
++});
++
++describe("withAgeRestrictionLabel", () => {
++	beforeEach(() => liveQuery.mockReset());
++
++	it("does not query the Shop when no card is restricted", async () => {
++		await expect(withAgeRestrictionLabel([open, unknownFlag])).resolves.toEqual([open, unknownFlag]);
++		expect(liveQuery).not.toHaveBeenCalled();
++	});
++
++	it("labels restricted cards with the Shop age from core", async () => {
++		liveQuery.mockResolvedValue({ ok: true, data: { shop: { ageRestrictionMinimumAge: 18 } } });
++		const result = await withAgeRestrictionLabel([restricted, open]);
++		expect(result.map((i) => i.id)).toEqual(["a", "b"]);
++		expect(result[0].ageRestrictionMinimumAge).toBe(18);
++		expect(result[1]).toBe(open);
++	});
++
++	it("keeps every card visible when the Shop age cannot be read", async () => {
++		liveQuery.mockResolvedValue({ ok: false, error: { message: "down" } });
++		await expect(getAgeRestrictionMinimumAge()).resolves.toBeNull();
++		await expect(withAgeRestrictionLabel([restricted, open])).resolves.toEqual([restricted, open]);
++	});
++});
+diff --git a/src/lib/catalog/age-restriction-label.ts b/src/lib/catalog/age-restriction-label.ts
+new file mode 100644
+index 0000000..2c9b1e6
+--- /dev/null
++++ b/src/lib/catalog/age-restriction-label.ts
+@@ -0,0 +1,44 @@
++import "server-only";
++
++import { ShopAgeRestrictionDocument } from "@/gql/graphql";
++import { liveQuery } from "@/lib/saleor";
++
++type AgeRestrictable = { isAgeRestricted?: boolean; ageRestrictionMinimumAge?: number | null };
++
++/**
++ * Shop minimum age, read live (request-memoized) so a policy change shows on the next render and
++ * is never frozen into a cached listing. Called only when a restricted card is present.
++ */
++async function fetchMinimumAge(): Promise<number> {
++	const result = await liveQuery(ShopAgeRestrictionDocument);
++	if (!result.ok) throw new Error(`[age-label] ${result.error.message}`);
++	return result.data.shop.ageRestrictionMinimumAge;
++}
++
++/** `null` when the Shop age cannot be read — cards then render without a label; nothing is hidden. */
++export async function getAgeRestrictionMinimumAge(): Promise<number | null> {
++	try {
++		return await fetchMinimumAge();
++	} catch {
++		return null;
++	}
++}
++
++/** Pure: stamp `N` on restricted items only. Unrestricted items are returned untouched. */
++export function applyAgeRestrictionLabel<T extends AgeRestrictable>(
++	items: readonly T[],
++	minimumAge: number | null,
++): T[] {
++	return items.map((item) =>
++		item.isAgeRestricted && minimumAge != null ? { ...item, ageRestrictionMinimumAge: minimumAge } : item,
++	);
++}
++
++/**
++ * Add the current Shop minimum age to restricted cards. Runs outside cached listing/featured data and
++ * only queries the Shop when at least one card is restricted. Never filters or reorders items.
++ */
++export async function withAgeRestrictionLabel<T extends AgeRestrictable>(items: readonly T[]): Promise<T[]> {
++	if (!items.some((item) => item.isAgeRestricted)) return [...items];
++	return applyAgeRestrictionLabel(items, await getAgeRestrictionMinimumAge());
++}
+diff --git a/src/lib/listing/load.ts b/src/lib/listing/load.ts
+index ab70ee8..7b5f5b8 100644
+--- a/src/lib/listing/load.ts
++++ b/src/lib/listing/load.ts
+@@ -3,6 +3,7 @@ import "server-only";
+ import type { ListingPayload, ListingSurface } from "@/lib/catalog/listing-query";
+ import type { ListingViewParams } from "@/lib/catalog/listing-view";
+ import { loadListing } from "@/lib/listing/policy";
++import { withAgeRestrictionLabel } from "@/lib/catalog/age-restriction-label";
+ import { toListingPayload } from "@/lib/listing/payload";
+ import { listingQueryFromInput } from "@/lib/listing/query";
+ 
+@@ -16,5 +17,7 @@ export async function loadListingView(input: {
+ 	const query = listingQueryFromInput(input);
+ 	if (!query) return null;
+ 	const result = await loadListing(query);
+-	return result ? toListingPayload(result) : null;
++	if (!result) return null;
++	const payload = toListingPayload(result);
++	return { ...payload, products: await withAgeRestrictionLabel(payload.products) };
+ }
+diff --git a/src/lib/listing/providers/saleor/to-card.ts b/src/lib/listing/providers/saleor/to-card.ts
+index ac17f93..9470a5a 100644
+--- a/src/lib/listing/providers/saleor/to-card.ts
++++ b/src/lib/listing/providers/saleor/to-card.ts
+@@ -124,5 +124,6 @@ export function toProductCardData(
+ 		variantTotalCount,
+ 		variantSampleSize,
+ 		isOverVariantCap: variantTotalCount > PDP_VARIANT_CAP,
++		isAgeRestricted: product.isAgeRestricted,
+ 	};
+ }
+diff --git a/src/lib/saleor/operations.ts b/src/lib/saleor/operations.ts
+index 611ba7f..637760a 100644
+--- a/src/lib/saleor/operations.ts
++++ b/src/lib/saleor/operations.ts
+@@ -46,6 +46,8 @@ const CORE_OPERATIONS = {
+ 	// Storefront session reads.
+ 	CurrentUser: session(),
+ 	CurrentUserProfile: session(),
++	CurrentUserAgeStatus: session(),
++	ShopAgeRestriction: live(),
+ 	CurrentUserOrderList: session(),
+ 	CurrentUserOrdersPaginated: session(),
+ 	OrderByNumber: session(),
+diff --git a/src/lib/storefront/contract/listing.ts b/src/lib/storefront/contract/listing.ts
+index 06b0694..d5e9f67 100644
+--- a/src/lib/storefront/contract/listing.ts
++++ b/src/lib/storefront/contract/listing.ts
+@@ -87,6 +87,13 @@ export interface ProductCardView {
+ 	 * open a variant sheet; shoppers go to the PDP.
+ 	 */
+ 	isOverVariantCap?: boolean;
++	/** Public product flag. Visibility and purchase rules are unchanged by it. */
++	isAgeRestricted?: boolean;
++	/**
++	 * Shop minimum age shown as `N+`. Stamped after the cached listing load
++	 * (`withAgeRestrictionLabel`) so a Shop policy change is never frozen into a cached grid.
++	 */
++	ageRestrictionMinimumAge?: number | null;
+ }
+ 
+ export type FacetControl = "swatch" | "chip" | "range" | "tree";
+diff --git a/src/ui/components/account/account-action-result.ts b/src/ui/components/account/account-action-result.ts
+index 1a922d6..a0428ce 100644
+--- a/src/ui/components/account/account-action-result.ts
++++ b/src/ui/components/account/account-action-result.ts
+@@ -5,6 +5,8 @@ export type AccountActionErrorKey =
+ 	| "passwordMinLength"
+ 	| "passwordsMismatch"
+ 	| "updateProfileFailed"
++	| "updateBirthdayFailed"
++	| "invalidBirthday"
+ 	| "changePasswordFailed"
+ 	| "createAddressFailed"
+ 	| "updateAddressFailed"
+diff --git a/src/ui/components/account/birthday.test.ts b/src/ui/components/account/birthday.test.ts
+new file mode 100644
+index 0000000..3c2bb9e
+--- /dev/null
++++ b/src/ui/components/account/birthday.test.ts
+@@ -0,0 +1,37 @@
++import { describe, expect, it } from "vitest";
++import { formatBirthday, parseBirthdayInput } from "./birthday";
++
++describe("parseBirthdayInput", () => {
++	it("treats empty input as clearing the birthday", () => {
++		expect(parseBirthdayInput(undefined)).toEqual({ ok: true, value: null });
++		expect(parseBirthdayInput("  ")).toEqual({ ok: true, value: null });
++	});
++
++	it("accepts a real date-only value, including Feb 29 on a leap year", () => {
++		expect(parseBirthdayInput("1990-05-17")).toEqual({ ok: true, value: "1990-05-17" });
++		expect(parseBirthdayInput("2000-02-29")).toEqual({ ok: true, value: "2000-02-29" });
++	});
++
++	it.each([
++		"1999-02-29",
++		"1990-13-01",
++		"1990-00-10",
++		"17/05/1990",
++		"1990-5-7",
++		"1800-01-01",
++		"2000-01-01T00:00:00Z",
++	])("rejects %s", (value) => {
++		expect(parseBirthdayInput(value)).toEqual({ ok: false });
++	});
++});
++
++describe("formatBirthday", () => {
++	it("formats without time-zone drift", () => {
++		expect(formatBirthday("1990-01-01", "en-US")).toBe("January 1, 1990");
++		expect(formatBirthday("1990-12-31", "en-US")).toBe("December 31, 1990");
++	});
++
++	it("returns malformed input unchanged", () => {
++		expect(formatBirthday("nope", "en-US")).toBe("nope");
++	});
++});
+diff --git a/src/ui/components/account/birthday.ts b/src/ui/components/account/birthday.ts
+new file mode 100644
+index 0000000..d4ff3ed
+--- /dev/null
++++ b/src/ui/components/account/birthday.ts
+@@ -0,0 +1,40 @@
++const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
++
++export type BirthdayInput = { ok: true; value: string | null } | { ok: false };
++
++/**
++ * Validates a date-only `YYYY-MM-DD` birthday form value. Empty input means "clear" (`null`).
++ * Future-date checks stay with core (Shop-local date) — this only rejects malformed values.
++ */
++export function parseBirthdayInput(raw: string | undefined): BirthdayInput {
++	if (raw === undefined || raw.trim() === "") {
++		return { ok: true, value: null };
++	}
++
++	const match = ISO_DATE.exec(raw);
++	if (!match) {
++		return { ok: false };
++	}
++
++	const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
++	const date = new Date(Date.UTC(year, month - 1, day));
++	const isRealDate =
++		date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
++
++	return isRealDate && year >= 1900 ? { ok: true, value: raw } : { ok: false };
++}
++
++/** Formats a date-only value without time-zone drift (no local-time `Date` parsing). */
++export function formatBirthday(value: string, intlLocale: string): string {
++	const match = ISO_DATE.exec(value);
++	if (!match) {
++		return value;
++	}
++	const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
++	return date.toLocaleDateString(intlLocale, {
++		year: "numeric",
++		month: "long",
++		day: "numeric",
++		timeZone: "UTC",
++	});
++}
+diff --git a/src/ui/components/account/edit-birthday-form.tsx b/src/ui/components/account/edit-birthday-form.tsx
+new file mode 100644
+index 0000000..9691c32
+--- /dev/null
++++ b/src/ui/components/account/edit-birthday-form.tsx
+@@ -0,0 +1,107 @@
++"use client";
++
++import { useState, useTransition, useCallback } from "react";
++import { useRouter } from "next/navigation";
++import { useTranslations } from "next-intl";
++import { Button } from "@/ui/components/ui/button";
++import { Input } from "@/ui/components/ui/input";
++import { Label } from "@/ui/components/ui/label";
++import { updateBirthday } from "@/app/(storefront)/[locale]/[channel]/(main)/account/actions";
++import { resolveAccountActionError } from "@/ui/components/account/account-action-result";
++import { formatBirthday } from "@/ui/components/account/birthday";
++
++type Props = {
++	/** Date-only `YYYY-MM-DD` of the signed-in owner, or null. Only ever rendered in account settings. */
++	birthday: string | null;
++	intlLocale: string;
++};
++
++export function EditBirthdayForm({ birthday, intlLocale }: Props) {
++	const t = useTranslations("account");
++	const router = useRouter();
++	const [isEditing, setIsEditing] = useState(false);
++	const [isPending, startTransition] = useTransition();
++	const [error, setError] = useState("");
++	const [success, setSuccess] = useState(false);
++
++	const submit = useCallback(
++		(formData: FormData) => {
++			setError("");
++			setSuccess(false);
++
++			startTransition(async () => {
++				const result = await updateBirthday(formData);
++				if (!result.success) {
++					setError(resolveAccountActionError(t, result));
++				} else {
++					setSuccess(true);
++					setIsEditing(false);
++					router.refresh();
++				}
++			});
++		},
++		[router, startTransition, t],
++	);
++
++	if (!isEditing) {
++		return (
++			<div className="flex items-center justify-between">
++				<div>
++					<p className="text-sm text-muted-foreground">{t("fields.birthday")}</p>
++					<p className="font-medium">
++						{birthday ? formatBirthday(birthday, intlLocale) : t("common.notSet")}
++					</p>
++					<p className="mt-1 text-xs text-muted-foreground">{t("settings.birthdayHint")}</p>
++				</div>
++				<div className="flex items-center gap-2">
++					{success && (
++						<span aria-live="polite" className="text-sm text-green-600">
++							{t("common.updated")}
++						</span>
++					)}
++					<Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
++						{t("common.edit")}
++					</Button>
++				</div>
++			</div>
++		);
++	}
++
++	return (
++		<form action={submit} className="space-y-4">
++			{error && (
++				<p role="alert" className="text-sm text-destructive">
++					{error}
++				</p>
++			)}
++			<div className="space-y-1.5">
++				<Label htmlFor="birthday">{t("fields.birthday")}</Label>
++				<Input
++					id="birthday"
++					name="birthday"
++					type="date"
++					autoComplete="bday"
++					defaultValue={birthday ?? ""}
++					className="sm:max-w-xs"
++				/>
++				<p className="text-xs text-muted-foreground">{t("settings.birthdayClearHint")}</p>
++			</div>
++			<div className="flex gap-2">
++				<Button type="submit" size="sm" disabled={isPending}>
++					{isPending ? t("common.saving") : t("common.save")}
++				</Button>
++				<Button
++					type="button"
++					variant="ghost"
++					size="sm"
++					onClick={() => {
++						setIsEditing(false);
++						setError("");
++					}}
++				>
++					{t("common.cancel")}
++				</Button>
++			</div>
++		</form>
++	);
++}
+diff --git a/src/ui/components/account/settings-page.tsx b/src/ui/components/account/settings-page.tsx
+index d2154d6..7fa017a 100644
+--- a/src/ui/components/account/settings-page.tsx
++++ b/src/ui/components/account/settings-page.tsx
+@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
+ import { Mail, Calendar } from "lucide-react";
+ import { resolveLocaleFromSlug } from "@/config/locale";
+ import { EditNameForm } from "@/ui/components/account/edit-name-form";
++import { EditBirthdayForm } from "@/ui/components/account/edit-birthday-form";
+ import { ChangePasswordForm } from "@/ui/components/account/change-password-form";
+ import { DeleteAccountSection } from "@/ui/components/account/delete-account-section";
+ import { useAccountUser } from "@/ui/components/account/account-context";
+@@ -45,6 +46,10 @@ export function AccountSettingsPage() {
+ 					<EditNameForm firstName={user.firstName} lastName={user.lastName} />
+ 				</div>
+ 
++				<div className="p-4 sm:p-6">
++					<EditBirthdayForm birthday={user.birthday ?? null} intlLocale={intlLocale} />
++				</div>
++
+ 				<div className="p-4 sm:p-6">
+ 					<ChangePasswordForm />
+ 				</div>
+@@ -57,7 +62,7 @@ export function AccountSettingsPage() {
+ 				</div>
+ 			</div>
+ 
+-			<div className="border-destructive/20 rounded-lg border p-4 sm:p-6">
++			<div className="rounded-lg border border-destructive/20 p-4 sm:p-6">
+ 				<DeleteAccountSection />
+ 			</div>
+ 		</div>
+diff --git a/src/ui/components/pdp/add-to-cart.tsx b/src/ui/components/pdp/add-to-cart.tsx
+index 41eb161..021d183 100644
+--- a/src/ui/components/pdp/add-to-cart.tsx
++++ b/src/ui/components/pdp/add-to-cart.tsx
+@@ -5,7 +5,8 @@ import { useFormStatus } from "react-dom";
+ import { useTranslations } from "next-intl";
+ import { ShoppingBag } from "lucide-react";
+ import { bumpChromeVersion } from "@/lib/chrome-sync";
+-import { Button } from "@/ui/components/ui/button";
++import { Button, buttonClassName } from "@/ui/components/ui/button";
++import { LinkWithChannel } from "@/ui/atoms/link-with-channel";
+ import { DiscountPercentLabel } from "@/ui/components/ui/sale-label";
+ import { cn } from "@/lib/utils";
+ 
+@@ -17,6 +18,8 @@ interface AddToCartProps {
+ 	disabledReason?: "no-selection" | "out-of-stock";
+ 	secureCheckoutLabel: string;
+ 	freeShippingTrustLabel?: string | null;
++	/** Guest on an age-restricted product: replaces the submit button with a sign-in link. */
++	guestSignIn?: { label: string; message: string };
+ }
+ 
+ function AddToCartButton({
+@@ -68,6 +71,7 @@ export function AddToCart({
+ 	disabledReason,
+ 	secureCheckoutLabel,
+ 	freeShippingTrustLabel,
++	guestSignIn,
+ }: AddToCartProps) {
+ 	return (
+ 		<div className="space-y-4">
+@@ -81,7 +85,22 @@ export function AddToCart({
+ 				)}
+ 			</div>
+ 
+-			<AddToCartButton disabled={disabled} disabledReason={disabledReason} />
++			{guestSignIn ? (
++				<div className="space-y-3">
++					<p role="status" className="text-sm text-muted-foreground">
++						{guestSignIn.message}
++					</p>
++					<LinkWithChannel
++						href="/login"
++						data-testid="age-restricted-sign-in"
++						className={cn(buttonClassName({ size: "lg", asLink: true }), "w-full text-base")}
++					>
++						{guestSignIn.label}
++					</LinkWithChannel>
++				</div>
++			) : (
++				<AddToCartButton disabled={disabled} disabledReason={disabledReason} />
++			)}
+ 
+ 			<div className="flex items-center justify-center gap-6 pt-2 text-xs text-muted-foreground">
+ 				<span className="flex items-center gap-1.5">
+diff --git a/src/ui/components/pdp/variant-section-dynamic.tsx b/src/ui/components/pdp/variant-section-dynamic.tsx
+index af0bf04..fda0c88 100644
+--- a/src/ui/components/pdp/variant-section-dynamic.tsx
++++ b/src/ui/components/pdp/variant-section-dynamic.tsx
+@@ -3,7 +3,10 @@ import { resolveLocaleFromSlug } from "@/config/locale";
+ import { getDiscountInfo } from "@/lib/pricing";
+ import { resolveChannelCurrency } from "@/lib/channels/resolve-channel-currency";
+ import { getStorefrontContent } from "@/lib/content/server";
++import { redirect } from "next/navigation";
+ import { addVariantToCart } from "@/app/actions";
++import { hasAuthSession } from "@/lib/auth/has-auth-session";
++import { buildStorefrontPath } from "@/lib/storefront-path";
+ import { getTranslations } from "next-intl/server";
+ import { resolvePdpVariants } from "@/lib/catalog/get-product-data";
+ import { pickTranslatedSlug } from "@/lib/saleor-translations";
+@@ -20,7 +23,7 @@ interface VariantSectionDynamicProps {
+ 	product: Product;
+ 	channel: string;
+ 	localeSlug: string;
+-	searchParams: Promise<{ variant?: string; sku?: string }>;
++	searchParams: Promise<{ variant?: string; sku?: string; ageRestriction?: string }>;
+ }
+ 
+ /**
+@@ -38,18 +41,22 @@ export async function VariantSectionDynamic({
+ 	localeSlug,
+ 	searchParams,
+ }: VariantSectionDynamicProps) {
+-	const { variant: variantParam, sku: skuParam } = await searchParams;
++	const { variant: variantParam, sku: skuParam, ageRestriction: ageRestrictionParam } = await searchParams;
+ 	const intlLocale = resolveLocaleFromSlug(localeSlug).bcp47;
+ 
+-	const [t, content, currency, variantResult] = await Promise.all([
++	const [t, tAge, content, currency, variantResult, isSignedIn] = await Promise.all([
+ 		getTranslations({ locale: localeSlug, namespace: "pdp" }),
++		getTranslations({ locale: localeSlug, namespace: "ageRestriction" }),
+ 		getStorefrontContent(channel, localeSlug),
+ 		resolveChannelCurrency(channel),
+ 		resolvePdpVariants(product, channel, localeSlug, {
+ 			variantId: variantParam,
+ 			sku: skuParam,
+ 		}),
++		// Only consulted for age-restricted products; core still enforces on every cart mutation.
++		product.isAgeRestricted ? hasAuthSession() : Promise.resolve(true),
+ 	]);
++	const isGuestOnRestrictedProduct = Boolean(product.isAgeRestricted) && !isSignedIn;
+ 
+ 	const { variants, totalCount, overBudget, strategy } = variantResult;
+ 	const productWithVariants: Product = {
+@@ -122,9 +129,10 @@ export async function VariantSectionDynamic({
+ 			return;
+ 		}
+ 
++		let result: Awaited<ReturnType<typeof addVariantToCart>> | undefined;
+ 		try {
+ 			const linePrice = selectedVariant?.pricing?.price?.gross;
+-			await addVariantToCart({
++			result = await addVariantToCart({
+ 				channel,
+ 				localeSlug,
+ 				variantId: selectedVariantID,
+@@ -134,6 +142,25 @@ export async function VariantSectionDynamic({
+ 		} catch (error) {
+ 			console.error("Add to cart failed:", error);
+ 		}
++
++		// Core rejected the line (stale or bypassed client). Route by its authoritative error.
++		// `redirect` throws, so it must stay outside the try/catch above.
++		if (result && !result.ok && result.ageRestriction) {
++			if (result.ageRestriction === "guest") {
++				redirect(buildStorefrontPath(localeSlug, channel, "/login"));
++			}
++			if (result.ageRestriction === "profile") {
++				redirect(buildStorefrontPath(localeSlug, channel, "/account/settings"));
++			}
++			redirect(
++				`${buildStorefrontPath(localeSlug, channel, `/products/${pickTranslatedSlug(product)}`)}?${new URLSearchParams(
++					{
++						...(selectedVariantID ? { variant: selectedVariantID } : {}),
++						ageRestriction: "ineligible",
++					},
++				)}`,
++			);
++		}
+ 	}
+ 
+ 	const buyBox =
+@@ -165,6 +192,12 @@ export async function VariantSectionDynamic({
+ 				)}
+ 			</div>
+ 
++			{ageRestrictionParam === "ineligible" && (
++				<p role="alert" className="order-2 mt-4 text-sm text-destructive">
++					{tAge("ineligible")}
++				</p>
++			)}
++
+ 			<form action={addToCart} className="order-3 mt-4 space-y-6">
+ 				{buyBox}
+ 
+@@ -176,9 +209,16 @@ export async function VariantSectionDynamic({
+ 					disabledReason={disabledReason}
+ 					secureCheckoutLabel={secureCheckoutLabel}
+ 					freeShippingTrustLabel={freeShippingTrustLabel}
++					guestSignIn={
++						isGuestOnRestrictedProduct ? { label: tAge("signIn"), message: tAge("guest") } : undefined
++					}
+ 				/>
+ 
+-				<StickyBar productName={product.name} price={price} show={!isAddToCartDisabled} />
++				<StickyBar
++					productName={product.name}
++					price={price}
++					show={!isAddToCartDisabled && !isGuestOnRestrictedProduct}
++				/>
+ 			</form>
+ 		</>
+ 	);
+diff --git a/src/ui/components/plp/product-card-age-label.test.tsx b/src/ui/components/plp/product-card-age-label.test.tsx
+new file mode 100644
+index 0000000..49740c4
+--- /dev/null
++++ b/src/ui/components/plp/product-card-age-label.test.tsx
+@@ -0,0 +1,53 @@
++import { renderToStaticMarkup } from "react-dom/server";
++import { NextIntlClientProvider } from "next-intl";
++import { describe, expect, it, vi } from "vitest";
++import en from "../../../../messages/en.json";
++
++vi.mock("./product-card-link", () => ({
++	ProductCardLink: ({ children, href }: { children: React.ReactNode; href: string }) => (
++		<a href={href}>{children}</a>
++	),
++}));
++vi.mock("@/ui/atoms/saleor-image", () => ({ SaleorImage: () => null }));
++
++const { ProductCardBase } = await import("./product-card-base");
++
++const base = {
++	id: "p1",
++	name: "Whisky",
++	slug: "whisky",
++	price: 10,
++	currency: "USD",
++	image: "/x.png",
++	href: "/en/default/products/whisky",
++};
++
++function render(product: Parameters<typeof ProductCardBase>[0]["product"]) {
++	return renderToStaticMarkup(
++		<NextIntlClientProvider locale="en" messages={en}>
++			<ProductCardBase product={product} />
++		</NextIntlClientProvider>,
++	);
++}
++
++describe("ProductCardBase age label", () => {
++	it.each([16, 18, 21])("shows %i+ on a restricted card", (age) => {
++		const html = render({ ...base, isAgeRestricted: true, ageRestrictionMinimumAge: age });
++		expect(html).toContain('data-testid="age-restriction-badge"');
++		expect(html).toContain(`${age}+`);
++		expect(html).toContain(`aria-label="Age restricted: ${age}+"`);
++	});
++
++	it("shows no label on an unrestricted card", () => {
++		expect(render({ ...base, isAgeRestricted: false, ageRestrictionMinimumAge: 18 })).not.toContain(
++			"age-restriction-badge",
++		);
++		expect(render(base)).not.toContain("age-restriction-badge");
++	});
++
++	it("still renders the restricted card link and name (visibility unchanged)", () => {
++		const html = render({ ...base, isAgeRestricted: true, ageRestrictionMinimumAge: 18 });
++		expect(html).toContain('href="/en/default/products/whisky"');
++		expect(html).toContain("Whisky");
++	});
++});
+diff --git a/src/ui/components/plp/product-card-base.tsx b/src/ui/components/plp/product-card-base.tsx
+index 82ed5b1..2962411 100644
+--- a/src/ui/components/plp/product-card-base.tsx
++++ b/src/ui/components/plp/product-card-base.tsx
+@@ -1,6 +1,12 @@
+ import type { ReactNode } from "react";
+ import Image from "next/image";
+-import { DiscountPercentLabel, NewBadge, SaleBadge, BestsellerBadge } from "@/ui/components/ui/sale-label";
++import {
++	AgeRestrictionBadge,
++	DiscountPercentLabel,
++	NewBadge,
++	SaleBadge,
++	BestsellerBadge,
++} from "@/ui/components/ui/sale-label";
+ import { cn } from "@/lib/utils";
+ import { formatProductPrice } from "./format-product-price";
+ import { formatPrice } from "./utils";
+@@ -59,6 +65,12 @@ export function ProductCardBase({
+ 					</div>
+ 				)}
+ 
++				{product.isAgeRestricted && product.ageRestrictionMinimumAge ? (
++					<div className="pointer-events-none absolute right-3 top-3 z-[1]">
++						<AgeRestrictionBadge minimumAge={product.ageRestrictionMinimumAge} />
++					</div>
++				) : null}
++
+ 				{imageOverlay ? <div className="absolute inset-0 z-10">{imageOverlay}</div> : null}
+ 			</div>
+ 
+diff --git a/src/ui/components/ui/product-badges.tsx b/src/ui/components/ui/product-badges.tsx
+index 4eb9502..c15daba 100644
+--- a/src/ui/components/ui/product-badges.tsx
++++ b/src/ui/components/ui/product-badges.tsx
+@@ -38,3 +38,19 @@ export function BestsellerBadge({ className }: { className?: string }) {
+ 		</Badge>
+ 	);
+ }
++
++/** "N+" chip for age-restricted product cards. `minimumAge` is the Shop's current minimum age. */
++export function AgeRestrictionBadge({ minimumAge, className }: { minimumAge: number; className?: string }) {
++	const t = useTranslations("pdp.badges");
++
++	return (
++		<Badge
++			variant="outline-solid"
++			className={cn("bg-background text-xs font-semibold tabular-nums", className)}
++			aria-label={t("ageRestricted", { age: minimumAge })}
++			data-testid="age-restriction-badge"
++		>
++			{minimumAge}+
++		</Badge>
++	);
++}
+diff --git a/src/ui/components/ui/sale-label.tsx b/src/ui/components/ui/sale-label.tsx
+index 9061509..c489871 100644
+--- a/src/ui/components/ui/sale-label.tsx
++++ b/src/ui/components/ui/sale-label.tsx
+@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
+ 
+ // Localized badges live in a client module (next-intl). Re-exported here so existing
+ // `@/ui/components/ui/sale-label` import paths keep working.
+-export { SaleBadge, NewBadge, BestsellerBadge } from "@/ui/components/ui/product-badges";
++export { SaleBadge, NewBadge, BestsellerBadge, AgeRestrictionBadge } from "@/ui/components/ui/product-badges";
+ 
+ type DiscountPercentLabelProps = {
+ 	percent: number;
+diff --git a/src/ui/sections/category-tile-grid/category-tile-grid.tsx b/src/ui/sections/category-tile-grid/category-tile-grid.tsx
+index 11c24ce..7fff106 100644
+--- a/src/ui/sections/category-tile-grid/category-tile-grid.tsx
++++ b/src/ui/sections/category-tile-grid/category-tile-grid.tsx
+@@ -15,6 +15,8 @@ export interface CategoryTile {
+ 	imageAlt?: string;
+ 	/** Small overline above the title (e.g. item count, category group). */
+ 	subtitle?: string;
++	/** Overlay on the tile image (e.g. the age label when the image is a restricted product). */
++	badge?: React.ReactNode;
+ }
+ 
+ export type CategoryTileColumns = 2 | 3 | 4;
+@@ -122,6 +124,7 @@ export function CategoryTileGrid({
+ 											className="object-contain p-8 transition-transform duration-slow ease-standard motion-reduce:transition-none md:group-hover:scale-105"
+ 										/>
+ 									) : null}
++									{tile.badge ? <div className="absolute right-3 top-3 z-[1]">{tile.badge}</div> : null}
+ 								</div>
+ 								<div className="mt-4 flex items-center justify-between gap-3">
+ 									<div>
+@@ -153,6 +156,7 @@ export function CategoryTileGrid({
+ 										className="object-cover transition-transform duration-slow ease-standard motion-reduce:transition-none md:group-hover:scale-105"
+ 									/>
+ 								) : null}
++								{tile.badge ? <div className="absolute right-3 top-3 z-[1]">{tile.badge}</div> : null}
+ 								<div
+ 									className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-foreground/15 to-transparent"
+ 									aria-hidden="true"
+diff --git a/src/ui/sections/editorial-hero/editorial-hero.tsx b/src/ui/sections/editorial-hero/editorial-hero.tsx
+index f7949e2..3ed171c 100644
+--- a/src/ui/sections/editorial-hero/editorial-hero.tsx
++++ b/src/ui/sections/editorial-hero/editorial-hero.tsx
+@@ -23,6 +23,8 @@ export interface EditorialHeroProps {
+ 	/** Saleor rung set for `image`. Absent for CMS uploads, which fall back to `next/image`. */
+ 	imageSrcSet?: string;
+ 	imageAlt?: string;
++	/** Overlay on the image panel (e.g. the age label when the image is a restricted product). */
++	imageBadge?: ReactNode;
+ 	/** Rendered on the image panel when no image is provided. */
+ 	placeholder?: ReactNode;
+ 	/** Unique heading id for `aria-labelledby`. Override when rendering more than one per page. */
+@@ -52,6 +54,7 @@ export function EditorialHero({
+ 	image,
+ 	imageSrcSet,
+ 	imageAlt = "",
++	imageBadge,
+ 	placeholder,
+ 	id = "homepage-hero-heading",
+ 	className,
+@@ -108,6 +111,7 @@ export function EditorialHero({
+ 					) : (
+ 						placeholder
+ 					)}
++					{image && imageBadge ? <div className="absolute right-4 top-4 z-[1]">{imageBadge}</div> : null}
+ 				</div>
+ 			</div>
+ 		</section>
+diff --git a/src/ui/sections/featured-collection-section/featured-collection-section.tsx b/src/ui/sections/featured-collection-section/featured-collection-section.tsx
+index 507c81e..74b9b42 100644
+--- a/src/ui/sections/featured-collection-section/featured-collection-section.tsx
++++ b/src/ui/sections/featured-collection-section/featured-collection-section.tsx
+@@ -1,4 +1,5 @@
+ import { getFeaturedProducts } from "@/lib/catalog/get-featured-products";
++import { withAgeRestrictionLabel } from "@/lib/catalog/age-restriction-label";
+ import { toProductCardData } from "@/lib/listing/providers/saleor/to-card";
+ import { FEATURED_COLLECTION_IMAGE_SIZES } from "@/lib/images";
+ import { ProductGrid, type ProductGridDesktopColumns } from "@/ui/components/plp/product-grid";
+@@ -35,8 +36,10 @@ export async function FeaturedCollectionSection({
+ 	width = "content",
+ 	className,
+ }: FeaturedCollectionSectionProps) {
+-	const products = (await getFeaturedProducts(channel, locale, limit, collectionSlug)).map((product) =>
+-		toProductCardData(product, locale, channel),
++	const products = await withAgeRestrictionLabel(
++		(await getFeaturedProducts(channel, locale, limit, collectionSlug)).map((product) =>
++			toProductCardData(product, locale, channel),
++		),
+ 	);
+ 	const headingId = "featured-collection-heading";
+ 
+diff --git a/src/ui/sections/image-with-text/image-with-text.tsx b/src/ui/sections/image-with-text/image-with-text.tsx
+index 30270a8..9e25e86 100644
+--- a/src/ui/sections/image-with-text/image-with-text.tsx
++++ b/src/ui/sections/image-with-text/image-with-text.tsx
+@@ -33,6 +33,8 @@ export interface ImageWithTextProps {
+ 	width?: ImageWithTextWidth;
+ 	/** Unique heading id for `aria-labelledby` — pass a distinct value when stacking instances. */
+ 	id?: string;
++	/** Overlay on the image panel (e.g. the age label when the image is a restricted product). */
++	imageBadge?: ReactNode;
+ 	/** Shown when `image` is absent; defaults to wave pattern. */
+ 	placeholder?: ReactNode;
+ 	className?: string;
+@@ -63,6 +65,7 @@ export function ImageWithText({
+ 	tone = "default",
+ 	width = "content",
+ 	id = "image-with-text-heading",
++	imageBadge,
+ 	placeholder,
+ 	className,
+ }: ImageWithTextProps) {
+@@ -91,6 +94,7 @@ export function ImageWithText({
+ 					) : (
+ 						(placeholder ?? <WavePattern className="h-full w-full text-secondary" />)
+ 					)}
++					{hasImage && imageBadge ? <div className="absolute right-4 top-4 z-[1]">{imageBadge}</div> : null}
+ 				</div>
+ 
+ 				<div

@@ -1,0 +1,2828 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 835cfa3..b81ec78 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -2,6 +2,12 @@
+ 
+ All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
+ 
++# Unreleased
++
++### GraphQL API
++
++- Add private customer birthday access with value-free audit events and an explicit `clearBirthday` flag, age-restricted product flags, and shop minimum-age/time-zone settings.
++
+ # 3.23.0
+ 
+ ### Breaking changes
+diff --git a/docs/ARCHITECTURE.md b/docs/ARCHITECTURE.md
+index 1b517aa..41178c5 100644
+--- a/docs/ARCHITECTURE.md
++++ b/docs/ARCHITECTURE.md
+@@ -43,6 +43,12 @@ Style: terse bullets, repo-relative paths, grep by `##`. File tree: `docs/CODEMA
+ - Storefront traffic guard: `saleor/graphql/storefront_traffic.py` (ADR-0006/0007).
+ - Outbound HTTP only via `saleor/core/http_client.py` (`HTTPClient`, SSRF IP filter); semgrep-enforced.
+ 
++## Age restriction foundation
++- `Product.age_restricted` is a purchase-only signal; do not use it to filter catalogue visibility or availability.
++- `SiteSettings.minimum_age` and `time_zone` define the shop policy; timezone updates accept IANA names only.
++- `User.birthday` is nullable and private: owner self-service plus active-superuser access; writes and superuser reads create value-free customer audit events. `BIRTHDAY_UPDATED` stores actor/target plus `operation=set|clear`; clearing requires `clearBirthday: true`.
++- Pure date policy lives in `saleor/account/age_restriction.py`; checkout/order enforcement belongs at purchase funnels.
++
+ ## Testing
+ - pytest config: `setup.cfg [tool:pytest]` — xdist `-n auto --dist loadgroup`, settings `saleor.tests.settings`, sockets disabled (localhost/cache allowed), VCR replay-only (`--record-mode=none`; record with `--vcr-record=once`), `asyncio_mode=auto`. Markers: `integration`, `e2e`, `slow` (`--run-slow`).
+ - Test settings (`saleor/tests/settings.py`): eager Celery, `PLUGINS=[]`, test RSA key, writer guard raising, IP filter/breaker off.
+diff --git a/docs/CATALOG-CONTEXT.md b/docs/CATALOG-CONTEXT.md
+index 44973d2..22b4c48 100644
+--- a/docs/CATALOG-CONTEXT.md
++++ b/docs/CATALOG-CONTEXT.md
+@@ -9,6 +9,7 @@ Style: terse bullets; `##` per area; "Rule:" = invariant, "Fail:" = failure mode
+ - Grouping: categories (tree), collections (hand-picked, per-channel listing).
+ - Visibility terms: published (flag + publish date passed); visible in listings (hides from lists only, direct lookup still works); available for purchase (purchase date set and passed).
+ - Rule: product visible to customers only if channel active, product published, and at least one variant priced in that channel.
++- Rule: age-restricted products remain visible; only purchase eligibility is restricted.
+ - Rule: publishing or making available requires a category.
+ - Rule: a variant can be listed only in channels where its product is listed.
+ - Rule: deleting a category unpublishes all products of the removed subtree in all channels and triggers promotion recalculation.
+diff --git a/docs/PLATFORM-CONTEXT.md b/docs/PLATFORM-CONTEXT.md
+index acea2d5..05c6727 100644
+--- a/docs/PLATFORM-CONTEXT.md
++++ b/docs/PLATFORM-CONTEXT.md
+@@ -12,6 +12,7 @@ Style: terse bullets; `##` per area; "Rule:" = invariant, "Fail:" = failure mode
+ - Rule: cannot delete own account via staff path, a superuser, or staff via customer path; cannot deactivate yourself.
+ - Rule: email lookup case-insensitive.
+ - Customer events record account history incl. staff actions (notes, deletion).
++- Rule: birthday is private; only the owner and active superusers may read it, and every write or superuser read is audited without the value.
+ - Password login modes: enabled | customers only (staff log in without staff rights) | disabled.
+ 
+ ## Staff and permissions
+@@ -40,6 +41,7 @@ Style: terse bullets; `##` per area; "Rule:" = invariant, "Fail:" = failure mode
+ - Merchant-wide: name/description (translatable), company address, menus, default weight unit, inventory tracking, sender email identity.
+ - Fulfillment: auto-approve, allow unpaid (both on by default).
+ - Checkout: max quantity per line, reservation durations, gift card default expiry (never | period).
++- Age policy: shop-wide minimum age and IANA time zone configure age-restricted product purchase checks.
+ - Refund/return reasons configured via page types; account merge mode on confirmation.
+ - Storefront traffic switch (on by default): off = only staff and apps may call the API, incl. login and introspection; meant for deployments behind a proxy (ADR-0006, ADR-0007).
+ - Legacy: shop-level tax flags (moved to channel tax configuration), shipping-zone stock availability, limits (always empty).
+diff --git a/saleor/account/__init__.py b/saleor/account/__init__.py
+index bfb2d8c..8ee6a07 100755
+--- a/saleor/account/__init__.py
++++ b/saleor/account/__init__.py
+@@ -5,6 +5,8 @@ class CustomerEvents:
+     ACCOUNT_CREATED = "account_created"
+     ACCOUNT_ACTIVATED = "account_activated"
+     ACCOUNT_DEACTIVATED = "account_deactivated"
++    BIRTHDAY_UPDATED = "birthday_updated"
++    BIRTHDAY_VIEWED = "birthday_viewed"
+     PASSWORD_RESET_LINK_SENT = "password_reset_link_sent"
+     PASSWORD_RESET = "password_reset"
+     PASSWORD_CHANGED = "password_changed"
+@@ -28,6 +30,8 @@ class CustomerEvents:
+         (ACCOUNT_CREATED, "The account was created"),
+         (ACCOUNT_ACTIVATED, "The account was activated"),
+         (ACCOUNT_DEACTIVATED, "The account was deactivated"),
++        (BIRTHDAY_UPDATED, "The account birthday was updated"),
++        (BIRTHDAY_VIEWED, "The account birthday was viewed by a superuser"),
+         (PASSWORD_RESET_LINK_SENT, "Password reset link was sent to the customer"),
+         (PASSWORD_RESET, "The account password was reset"),
+         (
+diff --git a/saleor/account/age_restriction.py b/saleor/account/age_restriction.py
+new file mode 100644
+index 0000000..a648e58
+--- /dev/null
++++ b/saleor/account/age_restriction.py
+@@ -0,0 +1,68 @@
++from __future__ import annotations
++
++from collections.abc import Iterable
++from datetime import UTC, date, datetime
++from typing import TYPE_CHECKING
++from zoneinfo import ZoneInfo
++
++from django.core.exceptions import ValidationError
++from django.utils import timezone as django_timezone
++
++if TYPE_CHECKING:
++    from ..product.models import Product
++    from ..site.models import SiteSettings
++    from .models import User
++
++
++AGE_RESTRICTED_MESSAGE = "Some items can't be purchased by this account."
++
++
++def shop_today(time_zone: str, now: datetime | None = None) -> date:
++    """Return the current date in the shop's IANA time zone."""
++    current_time = now or django_timezone.now()
++    if django_timezone.is_naive(current_time):
++        current_time = current_time.replace(tzinfo=UTC)
++    return current_time.astimezone(ZoneInfo(time_zone)).date()
++
++
++def age_on(birthday: date, today: date) -> int:
++    """Return completed years of age on a given date."""
++    # D3: Calendar-date comparison makes non-leap Feb 29 birthdays qualify Mar 1.
++    return (
++        today.year
++        - birthday.year
++        - ((today.month, today.day) < (birthday.month, birthday.day))
++    )
++
++
++def is_eligible(birthday: date | None, minimum_age: int, today: date) -> bool:
++    return birthday is not None and age_on(birthday, today) >= minimum_age
++
++
++def ensure_buyer_eligible(
++    buyer: User | None,
++    products: Iterable[Product],
++    site_settings: SiteSettings,
++    *,
++    error_code: str,
++    buyer_required: bool,
++) -> None:
++    """Validate a buyer only when an age-restricted product is present."""
++    if not any(product.age_restricted for product in products):
++        return
++
++    if buyer is None:
++        if not buyer_required:
++            return
++        eligible = False
++    else:
++        eligible = is_eligible(
++            buyer.birthday,
++            site_settings.minimum_age,
++            shop_today(site_settings.time_zone),
++        )
++
++    if not eligible:
++        raise ValidationError(
++            {"lines": ValidationError(AGE_RESTRICTED_MESSAGE, code=error_code)}
++        )
+diff --git a/saleor/account/events.py b/saleor/account/events.py
+index 4870e17..7432505 100644
+--- a/saleor/account/events.py
++++ b/saleor/account/events.py
+@@ -1,3 +1,5 @@
++from typing import Literal
++
+ from ..app.models import App
+ from ..order.models import Order
+ from . import CustomerEvents
+@@ -30,6 +32,35 @@ def customer_account_deactivated_event(
+     )
+ 
+ 
++def customer_birthday_updated_event(
++    *,
++    actor: User,
++    account_id: int,
++    operation: Literal["set", "clear"],
++) -> CustomerEvent:
++    # D7/D6c/R9: audit rows include operation, actor, and subject, never the value.
++    parameters: dict[str, str | int] = (
++        {"actor": "owner", "operation": operation}
++        if actor.pk == account_id
++        else {"account_id": account_id, "operation": operation}
++    )
++    return CustomerEvent.objects.create(
++        user=actor,
++        type=CustomerEvents.BIRTHDAY_UPDATED,
++        parameters=parameters,
++    )
++
++
++def customer_birthday_viewed_event(
++    *, superuser: User, account_id: int
++) -> CustomerEvent:
++    return CustomerEvent.objects.create(
++        user=superuser,
++        type=CustomerEvents.BIRTHDAY_VIEWED,
++        parameters={"account_id": account_id},
++    )
++
++
+ def customer_password_reset_link_sent_event(*, user_id: int) -> CustomerEvent | None:
+     return CustomerEvent.objects.create(
+         user_id=user_id, type=CustomerEvents.PASSWORD_RESET_LINK_SENT
+diff --git a/saleor/account/migrations/0106_user_birthday_alter_customerevent_type.py b/saleor/account/migrations/0106_user_birthday_alter_customerevent_type.py
+new file mode 100644
+index 0000000..7de1801
+--- /dev/null
++++ b/saleor/account/migrations/0106_user_birthday_alter_customerevent_type.py
+@@ -0,0 +1,43 @@
++# Generated by Django 5.2.18 on 2026-11-05 09:54
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++    dependencies = [
++        ("account", "0105_add_manage_customer_types_and_attributes_perm"),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name="user",
++            name="birthday",
++            field=models.DateField(blank=True, null=True),
++        ),
++        migrations.AlterField(
++            model_name="customerevent",
++            name="type",
++            field=models.CharField(
++                choices=[
++                    ("ACCOUNT_CREATED", "account_created"),
++                    ("ACCOUNT_ACTIVATED", "account_activated"),
++                    ("ACCOUNT_DEACTIVATED", "account_deactivated"),
++                    ("BIRTHDAY_UPDATED", "birthday_updated"),
++                    ("BIRTHDAY_VIEWED", "birthday_viewed"),
++                    ("PASSWORD_RESET_LINK_SENT", "password_reset_link_sent"),
++                    ("PASSWORD_RESET", "password_reset"),
++                    ("EMAIL_CHANGED_REQUEST", "email_changed_request"),
++                    ("PASSWORD_CHANGED", "password_changed"),
++                    ("EMAIL_CHANGED", "email_changed"),
++                    ("PLACED_ORDER", "placed_order"),
++                    ("NOTE_ADDED_TO_ORDER", "note_added_to_order"),
++                    ("DIGITAL_LINK_DOWNLOADED", "digital_link_downloaded"),
++                    ("CUSTOMER_DELETED", "customer_deleted"),
++                    ("NAME_ASSIGNED", "name_assigned"),
++                    ("EMAIL_ASSIGNED", "email_assigned"),
++                    ("NOTE_ADDED", "note_added"),
++                ],
++                max_length=255,
++            ),
++        ),
++    ]
+diff --git a/saleor/account/models.py b/saleor/account/models.py
+index 79da5bd..2f27dad 100644
+--- a/saleor/account/models.py
++++ b/saleor/account/models.py
+@@ -172,6 +172,8 @@ class User(
+     email = models.EmailField(unique=True)
+     first_name = models.CharField(max_length=256, blank=True)
+     last_name = models.CharField(max_length=256, blank=True)
++    # D6: Birthday is a dedicated private field, not user metadata.
++    birthday = models.DateField(null=True, blank=True)
+     addresses = models.ManyToManyField(
+         Address, blank=True, related_name="user_addresses"
+     )
+diff --git a/saleor/account/tests/test_age_restriction.py b/saleor/account/tests/test_age_restriction.py
+new file mode 100644
+index 0000000..293fb0e
+--- /dev/null
++++ b/saleor/account/tests/test_age_restriction.py
+@@ -0,0 +1,107 @@
++from datetime import UTC, date, datetime
++from types import SimpleNamespace
++
++import pytest
++from django.core.exceptions import ValidationError
++from freezegun import freeze_time
++
++from ..age_restriction import (
++    AGE_RESTRICTED_MESSAGE,
++    age_on,
++    ensure_buyer_eligible,
++    is_eligible,
++    shop_today,
++)
++
++
++def test_shop_today_uses_shop_time_zone():
++    now = datetime(2026, 11, 4, 23, 30, tzinfo=UTC)
++
++    assert shop_today("Europe/Belgrade", now) == date(2026, 11, 5)
++    assert shop_today("UTC", now) == date(2026, 11, 4)
++
++
++def test_shop_today_treats_naive_clock_as_utc():
++    now = datetime(2026, 11, 4, 23, 30, tzinfo=UTC).replace(tzinfo=None)
++
++    assert shop_today("Europe/Belgrade", now) == date(2026, 11, 5)
++
++
++def test_age_on_uses_completed_years():
++    assert age_on(date(2008, 11, 5), date(2026, 11, 5)) == 18
++    assert age_on(date(2008, 11, 6), date(2026, 11, 5)) == 17
++
++
++def test_leap_day_birthday_qualifies_on_march_first_in_non_leap_year():
++    birthday = date(2008, 2, 29)
++
++    assert not is_eligible(birthday, 18, date(2026, 2, 28))
++    assert is_eligible(birthday, 18, date(2026, 3, 1))
++
++
++def test_missing_birthday_is_not_eligible_even_when_minimum_age_is_zero():
++    assert not is_eligible(None, 0, date(2026, 11, 5))
++
++
++def test_unrestricted_products_do_not_require_a_buyer():
++    settings = SimpleNamespace(minimum_age=18, time_zone="UTC")
++
++    ensure_buyer_eligible(
++        None,
++        [SimpleNamespace(age_restricted=False)],
++        settings,
++        error_code="age_restricted",
++        buyer_required=True,
++    )
++
++
++def test_unlinked_draft_buyer_is_allowed_for_restricted_product():
++    settings = SimpleNamespace(minimum_age=18, time_zone="UTC")
++
++    ensure_buyer_eligible(
++        None,
++        [SimpleNamespace(age_restricted=True)],
++        settings,
++        error_code="age_restricted",
++        buyer_required=False,
++    )
++
++
++@pytest.mark.parametrize(
++    ("buyer", "minimum_age"),
++    [
++        (None, 18),
++        (SimpleNamespace(birthday=None), 18),
++        (SimpleNamespace(birthday=date(2008, 11, 6)), 18),
++        (SimpleNamespace(birthday=None), 0),
++    ],
++)
++@freeze_time("2026-11-05")
++def test_ineligible_restricted_buyer_gets_generic_lines_error(buyer, minimum_age):
++    settings = SimpleNamespace(minimum_age=minimum_age, time_zone="UTC")
++
++    with pytest.raises(ValidationError) as error:
++        ensure_buyer_eligible(
++            buyer,
++            [SimpleNamespace(age_restricted=True)],
++            settings,
++            error_code="age_restricted",
++            buyer_required=True,
++        )
++
++    validation_error = error.value.error_dict["lines"][0]
++    assert validation_error.code == "age_restricted"
++    assert validation_error.message == AGE_RESTRICTED_MESSAGE
++
++
++@freeze_time("2026-11-05")
++def test_eligible_restricted_buyer_is_allowed():
++    settings = SimpleNamespace(minimum_age=18, time_zone="UTC")
++
++    ensure_buyer_eligible(
++        SimpleNamespace(birthday=date(2008, 11, 5)),
++        [SimpleNamespace(age_restricted=True)],
++        settings,
++        error_code="age_restricted",
++        buyer_required=True,
++    )
+diff --git a/saleor/checkout/complete_checkout.py b/saleor/checkout/complete_checkout.py
+index da80af6..4fae6e3 100644
+--- a/saleor/checkout/complete_checkout.py
++++ b/saleor/checkout/complete_checkout.py
+@@ -14,12 +14,16 @@ from django.forms.models import model_to_dict
+ from django.utils import timezone
+ from prices import Money, TaxedMoney
+ 
++from ..account.age_restriction import ensure_buyer_eligible
+ from ..account.error_codes import AccountErrorCode
+ from ..account.models import Address, User
+ from ..account.utils import retrieve_user_by_email, store_user_address
+ from ..channel import MarkAsPaidStrategy
+ from ..checkout import CheckoutAuthorizeStatus, calculations
+-from ..checkout.error_codes import CheckoutErrorCode
++from ..checkout.error_codes import (
++    CheckoutErrorCode,
++    OrderCreateFromCheckoutErrorCode,
++)
+ from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
+ from ..core.postgres import FlatConcatSearchVector
+ from ..core.taxes import TaxDataError, TaxError, zero_taxed_money
+@@ -60,7 +64,7 @@ from ..payment import PaymentError, TransactionKind, gateway
+ from ..payment.model_helpers import get_subtotal
+ from ..payment.models import Payment, Transaction
+ from ..payment.utils import fetch_customer_id, store_customer_id
+-from ..product.models import ProductTranslation, ProductVariantTranslation
++from ..product.models import Product, ProductTranslation, ProductVariantTranslation
+ from ..shipping.interface import ShippingMethodData
+ from ..tax.calculations import get_taxed_undiscounted_price
+ from ..tax.utils import (
+@@ -112,6 +116,48 @@ if TYPE_CHECKING:
+ logger = logging.getLogger(__name__)
+ 
+ 
++def ensure_age_restriction_eligibility(
++    buyer: User | None,
++    products: Iterable[Product],
++    *,
++    error_code: str,
++    buyer_required: bool,
++    site_settings: "SiteSettings | None" = None,
++) -> None:
++    """Apply the shared age policy only when a restricted product is present."""
++    products = list(products)
++    if not any(product.age_restricted for product in products):
++        return
++
++    if site_settings is None:
++        site_settings = Site.objects.get_current().settings
++    ensure_buyer_eligible(
++        buyer,
++        products,
++        site_settings,
++        error_code=error_code,
++        buyer_required=buyer_required,
++    )
++
++
++def ensure_checkout_buyer_is_eligible(checkout: Checkout, *, error_code: str) -> None:
++    """Check checkout buyer before payment initialization, without using requestor."""
++    products = [
++        line.variant.product
++        for line in checkout.lines.select_related("variant__product")
++    ]
++    if not any(product.age_restricted for product in products):
++        return
++
++    # R6: payment eligibility uses the checkout customer, never the requestor.
++    ensure_age_restriction_eligibility(
++        checkout.user,
++        products,
++        error_code=error_code,
++        buyer_required=True,
++    )
++
++
+ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
+     """Fetch, process and return voucher/discount data from checkout.
+ 
+@@ -1640,6 +1686,13 @@ def create_order_from_checkout(
+                 }
+             )
+         assign_checkout_user(user, checkout_info)
++        # D5: validate the linked CheckoutInfo buyer, never the requestor.
++        ensure_age_restriction_eligibility(
++            checkout_info.user,
++            (line.product for line in checkout_lines),
++            error_code=OrderCreateFromCheckoutErrorCode.AGE_RESTRICTED.value,
++            buyer_required=True,
++        )
+ 
+         try:
+             order = _create_order_from_checkout(
+@@ -1740,6 +1793,14 @@ def complete_checkout(
+             "Configured Tax App returned invalid response.",
+             code=CheckoutErrorCode.TAX_ERROR.value,
+         )
++    # D5: the checkout customer, not the mutation/task/webhook requestor, is the buyer.
++    ensure_age_restriction_eligibility(
++        checkout_info.user,
++        (line.product for line in lines),
++        error_code=CheckoutErrorCode.AGE_RESTRICTED.value,
++        buyer_required=True,
++        site_settings=site_settings,
++    )
+ 
+     active_payment = checkout.get_last_active_payment()
+     is_checkout_fully_authorized = (
+diff --git a/saleor/checkout/error_codes.py b/saleor/checkout/error_codes.py
+index d757456..9292ee6 100644
+--- a/saleor/checkout/error_codes.py
++++ b/saleor/checkout/error_codes.py
+@@ -2,6 +2,7 @@ from enum import Enum
+ 
+ 
+ class CheckoutErrorCode(Enum):
++    AGE_RESTRICTED = "age_restricted"
+     BILLING_ADDRESS_NOT_SET = "billing_address_not_set"
+     CHECKOUT_NOT_FULLY_PAID = "checkout_not_fully_paid"
+     GRAPHQL_ERROR = "graphql_error"
+@@ -38,6 +39,7 @@ class CheckoutErrorCode(Enum):
+ 
+ 
+ class OrderCreateFromCheckoutErrorCode(Enum):
++    AGE_RESTRICTED = "age_restricted"
+     GRAPHQL_ERROR = "graphql_error"
+     CHECKOUT_NOT_FOUND = "checkout_not_found"
+     CHANNEL_INACTIVE = "channel_inactive"
+diff --git a/saleor/checkout/tests/test_checkout_complete.py b/saleor/checkout/tests/test_checkout_complete.py
+index f2aae66..bb0d49e 100644
+--- a/saleor/checkout/tests/test_checkout_complete.py
++++ b/saleor/checkout/tests/test_checkout_complete.py
+@@ -1,5 +1,6 @@
+ import datetime
+ from decimal import Decimal
++from types import SimpleNamespace
+ from unittest import mock
+ 
+ import pytest
+@@ -12,6 +13,7 @@ from ...account import CustomerEvents
+ from ...account.models import CustomerEvent
+ from ...channel import MarkAsPaidStrategy
+ from ...checkout import CheckoutAuthorizeStatus
++from ...checkout.error_codes import CheckoutErrorCode
+ from ...core.exceptions import InsufficientStock
+ from ...core.notify import NotifyEventType
+ from ...core.taxes import zero_money, zero_taxed_money
+@@ -38,6 +40,7 @@ from ..complete_checkout import (
+     _process_user_data_for_order,
+     _release_checkout_voucher_usage,
+     complete_checkout,
++    ensure_age_restriction_eligibility,
+ )
+ from ..fetch import fetch_checkout_info, fetch_checkout_lines
+ from ..models import Checkout
+@@ -46,6 +49,66 @@ from ..utils import add_voucher_to_checkout
+ from .utils import add_variant_to_checkout
+ 
+ 
++def test_unrestricted_age_guard_does_not_fetch_site_settings():
++    # Unrestricted checkout lines reuse their loaded products and need no policy query.
++    with mock.patch(
++        "saleor.checkout.complete_checkout.Site.objects.get_current"
++    ) as get_site:
++        ensure_age_restriction_eligibility(
++            buyer=None,
++            products=[SimpleNamespace(age_restricted=False)],
++            error_code=CheckoutErrorCode.AGE_RESTRICTED.value,
++            buyer_required=True,
++        )
++
++    get_site.assert_not_called()
++
++
++@mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_transaction")
++@mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_payment")
++def test_complete_checkout_rejects_before_payment_processing(
++    mock_complete_with_payment,
++    mock_complete_with_transaction,
++    checkout_with_item,
++    customer_user,
++    site_settings,
++):
++    # Scenario: payment exists, but an anonymous buyer cannot complete a restricted cart.
++    # Checkout -> shared completion -> policy -> payment/order branch (must not run).
++    checkout = checkout_with_item
++    product = checkout.lines.first().variant.product
++    product.age_restricted = True
++    product.save(update_fields=["age_restricted"])
++    checkout.user = None
++    checkout.save(update_fields=["user"])
++    payment = Payment.objects.create(
++        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
++    )
++    manager = get_plugins_manager(allow_replica=False)
++    lines, _ = fetch_checkout_lines(checkout)
++    checkout_info = fetch_checkout_info(checkout, lines, manager)
++
++    with pytest.raises(ValidationError) as error:
++        complete_checkout(
++            manager=manager,
++            checkout_info=checkout_info,
++            lines=lines,
++            payment_data={},
++            store_source=False,
++            user=customer_user,
++            app=None,
++            site_settings=site_settings,
++        )
++
++    validation_error = error.value.error_dict["lines"][0]
++    assert validation_error.code == CheckoutErrorCode.AGE_RESTRICTED.value
++    assert validation_error.message == "Some items can't be purchased by this account."
++    mock_complete_with_payment.assert_not_called()
++    mock_complete_with_transaction.assert_not_called()
++    payment.refresh_from_db()
++    assert payment.is_active
++
++
+ @mock.patch("saleor.plugins.manager.PluginsManager.notify")
+ def test_create_order_captured_payment_creates_expected_events(
+     mock_notify,
+diff --git a/saleor/graphql/account/mutations/account/__init__.py b/saleor/graphql/account/mutations/account/__init__.py
+index b3e4e6f..1305f75 100644
+--- a/saleor/graphql/account/mutations/account/__init__.py
++++ b/saleor/graphql/account/mutations/account/__init__.py
+@@ -8,6 +8,7 @@ from .account_set_default_address import AccountSetDefaultAddress
+ from .account_update import AccountUpdate
+ from .confirm_account import ConfirmAccount
+ from .confirm_email_change import ConfirmEmailChange
++from .customer_birthday_update import CustomerBirthdayUpdate
+ from .request_email_change import RequestEmailChange
+ from .send_confirmation_email import SendConfirmationEmail
+ 
+@@ -22,6 +23,7 @@ __all__ = [
+     "AccountUpdate",
+     "ConfirmAccount",
+     "ConfirmEmailChange",
++    "CustomerBirthdayUpdate",
+     "RequestEmailChange",
+     "SendConfirmationEmail",
+ ]
+diff --git a/saleor/graphql/account/mutations/account/account_update.py b/saleor/graphql/account/mutations/account/account_update.py
+index 63bea9c..7c38bce 100644
+--- a/saleor/graphql/account/mutations/account/account_update.py
++++ b/saleor/graphql/account/mutations/account/account_update.py
+@@ -1,16 +1,21 @@
+-from typing import cast
++from typing import Literal, cast
+ 
+ import graphene
++from django.core.exceptions import ValidationError
+ 
++from .....account import events as account_events
+ from .....account import models
++from .....account.error_codes import AccountErrorCode
+ from .....account.search import update_user_search_vector
++from .....core.exceptions import PermissionDenied
+ from .....core.tracing import traced_atomic_transaction
+ from .....permission.auth_filters import AuthorizationFilters
+ from .....webhook.event_types import WebhookEventAsyncType
+ from ....account.mixins import AddressMetadataMixin
+ from ....core import ResolveInfo
+-from ....core.descriptions import ADDED_IN_319
++from ....core.descriptions import ADDED_IN_319, ADDED_IN_323
+ from ....core.doc_category import DOC_CATEGORY_USERS
++from ....core.scalars import Date
+ from ....core.types import AccountError, NonNullList
+ from ....core.utils import WebhookEventInfo
+ from ....meta.inputs import MetadataInput, MetadataInputDescription
+@@ -20,10 +25,14 @@ from ...mixins import AppImpersonateMixin
+ from ...types import AddressInput, User
+ from ..base import BaseCustomerCreate
+ from .base import AccountBaseInput
+-from .utils import ACCOUNT_UPDATE_FIELDS
++from .utils import ACCOUNT_UPDATE_FIELDS, validate_birthday
+ 
+ 
+ class AccountInput(AccountBaseInput):
++    birthday = Date(description="Birthday of the logged-in user." + ADDED_IN_323)
++    clear_birthday = graphene.Boolean(
++        description="Set to true to clear the birthday." + ADDED_IN_323
++    )
+     default_billing_address = AddressInput(
+         description="Billing address of the customer."
+     )
+@@ -95,6 +104,54 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
+         customer_id = data.get("customer_id")
+         user = cls.get_user_instance(info, customer_id)
+         user = cast(models.User, user)
++        input_data = dict(data.get("input") or {})
++        data["input"] = input_data
++        birthday_present = "birthday" in input_data
++        clear_birthday_present = "clear_birthday" in input_data
++
++        if birthday_present or clear_birthday_present:
++            # D6/D6c: Only the owner can set or explicitly clear birthday.
++            if (
++                info.context.app
++                or not info.context.user
++                or info.context.user.pk != user.pk
++            ):
++                raise PermissionDenied()
++
++            if birthday_present and input_data["birthday"] is None:
++                raise ValidationError(
++                    {
++                        "birthday": ValidationError(
++                            "Birthday cannot be null.",
++                            code=AccountErrorCode.INVALID.value,
++                        )
++                    }
++                )
++            if clear_birthday_present and input_data["clear_birthday"] is None:
++                raise ValidationError(
++                    {
++                        "clear_birthday": ValidationError(
++                            "clearBirthday cannot be null.",
++                            code=AccountErrorCode.INVALID.value,
++                        )
++                    }
++                )
++            if birthday_present and input_data.get("clear_birthday") is True:
++                raise ValidationError(
++                    {
++                        "clear_birthday": ValidationError(
++                            "Birthday and clearBirthday cannot be provided together.",
++                            code=AccountErrorCode.INVALID.value,
++                        )
++                    }
++                )
++            if birthday_present:
++                site = get_site_promise(info.context).get()
++                validate_birthday(input_data["birthday"], site.settings.time_zone)
++            elif input_data.get("clear_birthday") is True:
++                input_data["birthday"] = None
++
++        input_data.pop("clear_birthday", None)
+         data["id"] = graphene.Node.to_global_id("User", user.id)
+         return super().perform_mutation(root, info, **data)
+ 
+@@ -119,7 +176,8 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
+             modified_instance_fields.update(changed_fields)
+ 
+         non_metadata_modified_fields = modified_instance_fields - meta_modified_fields
+-        if non_metadata_modified_fields:
++        searchable_modified_fields = non_metadata_modified_fields - {"birthday"}
++        if searchable_modified_fields:
+             update_user_search_vector(instance, save=False)
+             modified_instance_fields.add("search_vector")
+ 
+@@ -132,5 +190,15 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
+         ):
+             cls.call_event(manager.customer_updated, instance)
+ 
++        if "birthday" in cleaned_input:
++            operation: Literal["set", "clear"] = (
++                "clear" if cleaned_input["birthday"] is None else "set"
++            )
++            account_events.customer_birthday_updated_event(
++                actor=instance,
++                account_id=instance.pk,
++                operation=operation,
++            )
++
+         if meta_modified_fields:
+             cls.call_event(manager.customer_metadata_updated, instance)
+diff --git a/saleor/graphql/account/mutations/account/customer_birthday_update.py b/saleor/graphql/account/mutations/account/customer_birthday_update.py
+new file mode 100644
+index 0000000..91564fa
+--- /dev/null
++++ b/saleor/graphql/account/mutations/account/customer_birthday_update.py
+@@ -0,0 +1,171 @@
++from datetime import date
++from typing import Literal
++
++import graphene
++from django.core.exceptions import ValidationError
++
++from .....account import events as account_events
++from .....account import models as account_models
++from .....account.error_codes import AccountErrorCode
++from .....core.exceptions import PermissionDenied
++from .....core.tracing import traced_atomic_transaction
++from ....core import ResolveInfo
++from ....core.context import SaleorContext
++from ....core.descriptions import ADDED_IN_323
++from ....core.doc_category import DOC_CATEGORY_USERS
++from ....core.mutations import BaseMutation
++from ....core.scalars import Date
++from ....core.types import AccountError
++from ....site.dataloaders import get_site_promise
++from ...types import User
++from .utils import validate_birthday
++
++
++def is_active_superuser(context: SaleorContext) -> bool:
++    requestor = context.user
++    return bool(
++        not context.app and requestor and requestor.is_active and requestor.is_superuser
++    )
++
++
++def save_customer_birthday(
++    user: account_models.User,
++    birthday: date | None,
++    actor: account_models.User,
++    operation: Literal["set", "clear"],
++) -> None:
++    user.birthday = birthday
++    user.save(update_fields=["birthday", "updated_at"])
++    account_events.customer_birthday_updated_event(
++        actor=actor,
++        account_id=user.pk,
++        operation=operation,
++    )
++
++
++class CustomerBirthdayUpdate(BaseMutation):
++    user = graphene.Field(User, description="The user with the updated birthday.")
++
++    class Arguments:
++        id = graphene.ID(required=True, description="ID of the customer.")
++        birthday = Date(
++            required=False,
++            description="Birthday to set." + ADDED_IN_323,
++        )
++        clear_birthday = graphene.Boolean(
++            description="Set to true to clear the birthday." + ADDED_IN_323,
++        )
++
++    class Meta:
++        description = (
++            "Sets or clears another user's birthday. Requires an active superuser."
++        )
++        doc_category = DOC_CATEGORY_USERS
++        error_type_class = AccountError
++
++    @classmethod
++    def check_permissions(
++        cls, context, permissions=None, require_all_permissions=False, **_data
++    ):
++        return is_active_superuser(context)
++
++    @staticmethod
++    def argument_was_provided(info: ResolveInfo, name: str) -> bool:
++        for field_node in info.field_asts:
++            for argument in field_node.arguments or []:
++                if argument.name.value == name:
++                    return True
++        return False
++
++    @classmethod
++    @traced_atomic_transaction()
++    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
++        birthday_present = "birthday" in data
++        clear_birthday_present = "clear_birthday" in data
++        birthday_argument_present = cls.argument_was_provided(info, "birthday")
++        clear_birthday_argument_present = cls.argument_was_provided(
++            info, "clearBirthday"
++        )
++
++        if birthday_argument_present and not birthday_present:
++            raise ValidationError(
++                {
++                    "birthday": ValidationError(
++                        "Birthday cannot be null.",
++                        code=AccountErrorCode.INVALID.value,
++                    )
++                }
++            )
++        if birthday_present and data["birthday"] is None:
++            raise ValidationError(
++                {
++                    "birthday": ValidationError(
++                        "Birthday cannot be null.",
++                        code=AccountErrorCode.INVALID.value,
++                    )
++                }
++            )
++        if clear_birthday_argument_present and not clear_birthday_present:
++            raise ValidationError(
++                {
++                    "clear_birthday": ValidationError(
++                        "clearBirthday cannot be null.",
++                        code=AccountErrorCode.INVALID.value,
++                    )
++                }
++            )
++        if clear_birthday_present and data["clear_birthday"] is None:
++            raise ValidationError(
++                {
++                    "clear_birthday": ValidationError(
++                        "clearBirthday cannot be null.",
++                        code=AccountErrorCode.INVALID.value,
++                    )
++                }
++            )
++
++        birthday = data.get("birthday")
++        clear_birthday = data.get("clear_birthday")
++        if birthday_present and clear_birthday is True:
++            raise ValidationError(
++                {
++                    "clear_birthday": ValidationError(
++                        "Birthday and clearBirthday cannot be provided together.",
++                        code=AccountErrorCode.INVALID.value,
++                    )
++                }
++            )
++        if not birthday_present and clear_birthday is not True:
++            raise ValidationError(
++                {
++                    "birthday": ValidationError(
++                        "Provide a birthday or set clearBirthday to true.",
++                        code=AccountErrorCode.INVALID.value,
++                    )
++                }
++            )
++
++        operation: Literal["set", "clear"] = (
++            "clear" if clear_birthday is True else "set"
++        )
++        if operation == "set":
++            site = get_site_promise(info.context).get()
++            validate_birthday(birthday, site.settings.time_zone)
++
++        user = cls.get_node_or_error(info, data["id"], only_type=User)
++
++        actor = info.context.user
++        if (
++            info.context.app
++            or not actor
++            or not actor.is_active
++            or not actor.is_superuser
++        ):
++            raise PermissionDenied()
++        save_customer_birthday(
++            user=user,
++            birthday=None if operation == "clear" else birthday,
++            actor=actor,
++            operation=operation,
++        )
++        return cls(user=user, errors=[])
+diff --git a/saleor/graphql/account/mutations/account/utils.py b/saleor/graphql/account/mutations/account/utils.py
+index 06152dc..4f02ab6 100644
+--- a/saleor/graphql/account/mutations/account/utils.py
++++ b/saleor/graphql/account/mutations/account/utils.py
+@@ -1,3 +1,10 @@
++from datetime import date
++
++from django.core.exceptions import ValidationError
++
++from .....account.age_restriction import shop_today
++from .....account.error_codes import AccountErrorCode
++
+ ADDRESS_UPDATE_FIELDS = {
+     "city",
+     "city_area",
+@@ -21,4 +28,17 @@ ACCOUNT_UPDATE_FIELDS = {
+     "first_name",
+     "last_name",
+     "language_code",
++    "birthday",
+ }
++
++
++def validate_birthday(birthday: date | None, time_zone: str) -> None:
++    if birthday is not None and birthday > shop_today(time_zone):
++        raise ValidationError(
++            {
++                "birthday": ValidationError(
++                    "Birthday cannot be in the future.",
++                    code=AccountErrorCode.INVALID.value,
++                )
++            }
++        )
+diff --git a/saleor/graphql/account/schema.py b/saleor/graphql/account/schema.py
+index c022483..ba41ed0 100644
+--- a/saleor/graphql/account/schema.py
++++ b/saleor/graphql/account/schema.py
+@@ -46,6 +46,7 @@ from .mutations.account import (
+     AccountUpdate,
+     ConfirmAccount,
+     ConfirmEmailChange,
++    CustomerBirthdayUpdate,
+     RequestEmailChange,
+     SendConfirmationEmail,
+ )
+@@ -383,6 +384,7 @@ class AccountMutations(graphene.ObjectType):
+ 
+     account_register = AccountRegister.Field()
+     account_update = AccountUpdate.Field()
++    customer_birthday_update = CustomerBirthdayUpdate.Field()
+     account_request_deletion = AccountRequestDeletion.Field()
+     account_delete = AccountDelete.Field()
+ 
+diff --git a/saleor/graphql/account/tests/mutations/account/test_customer_birthday.py b/saleor/graphql/account/tests/mutations/account/test_customer_birthday.py
+new file mode 100644
+index 0000000..623ee92
+--- /dev/null
++++ b/saleor/graphql/account/tests/mutations/account/test_customer_birthday.py
+@@ -0,0 +1,327 @@
++import graphene
++import pytest
++from freezegun import freeze_time
++
++from ......account import CustomerEvents
++from ......account.error_codes import AccountErrorCode
++from ......account.models import CustomerEvent
++from .....tests.utils import (
++    assert_no_permission,
++    get_graphql_content,
++    get_graphql_content_from_response,
++)
++
++ACCOUNT_BIRTHDAY_UPDATE = """
++mutation AccountUpdate($input: AccountInput!, $customerId: ID) {
++  accountUpdate(input: $input, customerId: $customerId) {
++    user { birthday }
++    errors { field code message }
++  }
++}
++"""
++
++CUSTOMER_BIRTHDAY_UPDATE_SET = """
++mutation CustomerBirthdayUpdate($id: ID!, $birthday: Date) {
++  customerBirthdayUpdate(id: $id, birthday: $birthday) {
++    user { id birthday }
++    errors { field code message }
++  }
++}
++"""
++
++CUSTOMER_BIRTHDAY_UPDATE_SET_AND_FLAG = """
++mutation CustomerBirthdayUpdate(
++  $id: ID!, $birthday: Date, $clearBirthday: Boolean
++) {
++  customerBirthdayUpdate(
++    id: $id, birthday: $birthday, clearBirthday: $clearBirthday
++  ) {
++    user { id birthday }
++    errors { field code message }
++  }
++}
++"""
++
++CUSTOMER_BIRTHDAY_UPDATE_CLEAR_FLAG = """
++mutation CustomerBirthdayUpdate($id: ID!, $clearBirthday: Boolean) {
++  customerBirthdayUpdate(id: $id, clearBirthday: $clearBirthday) {
++    user { id birthday }
++    errors { field code message }
++  }
++}
++"""
++
++CUSTOMER_BIRTHDAY_UPDATE_EMPTY = """
++mutation CustomerBirthdayUpdate($id: ID!) {
++  customerBirthdayUpdate(id: $id) {
++    user { id birthday }
++    errors { field code message }
++  }
++}
++"""
++
++STAFF_CUSTOMER_UPDATE_WITH_BIRTHDAY = """
++mutation CustomerUpdate($id: ID!, $input: CustomerInput!) {
++  customerUpdate(id: $id, input: $input) {
++    errors { field code message }
++  }
++}
++"""
++
++
++def test_owner_can_set_and_explicitly_clear_birthday_with_value_free_audit(
++    user_api_client,
++):
++    user = user_api_client.user
++    birthday = "2000-01-01"
++
++    response = user_api_client.post_graphql(
++        ACCOUNT_BIRTHDAY_UPDATE, {"input": {"birthday": birthday}}
++    )
++    data = get_graphql_content(response)["data"]["accountUpdate"]
++
++    assert data["errors"] == []
++    assert data["user"]["birthday"] == birthday
++    user.refresh_from_db()
++    assert user.birthday.isoformat() == birthday
++    assert CustomerEvent.objects.get(
++        user=user, type=CustomerEvents.BIRTHDAY_UPDATED
++    ).parameters == {"actor": "owner", "operation": "set"}
++
++    response = user_api_client.post_graphql(
++        ACCOUNT_BIRTHDAY_UPDATE, {"input": {"clearBirthday": True}}
++    )
++    data = get_graphql_content(response)["data"]["accountUpdate"]
++
++    assert data["errors"] == []
++    user.refresh_from_db()
++    assert user.birthday is None
++    events = CustomerEvent.objects.filter(
++        user=user, type=CustomerEvents.BIRTHDAY_UPDATED
++    )
++    assert list(events.values_list("parameters", flat=True)) == [
++        {"actor": "owner", "operation": "set"},
++        {"actor": "owner", "operation": "clear"},
++    ]
++
++
++def test_account_update_omission_and_false_clear_flag_are_no_op(user_api_client):
++    user = user_api_client.user
++    user.birthday = "2000-01-01"
++    user.save(update_fields=["birthday"])
++    original_first_name = user.first_name
++
++    for input_data in ({"firstName": "Updated"}, {"clearBirthday": False}):
++        response = user_api_client.post_graphql(
++            ACCOUNT_BIRTHDAY_UPDATE, {"input": input_data}
++        )
++        data = get_graphql_content(response)["data"]["accountUpdate"]
++        assert data["errors"] == []
++
++    user.refresh_from_db()
++    assert user.birthday.isoformat() == "2000-01-01"
++    assert user.first_name != original_first_name
++    assert not CustomerEvent.objects.filter(
++        user=user, type=CustomerEvents.BIRTHDAY_UPDATED
++    ).exists()
++
++
++@pytest.mark.parametrize(
++    ("birthday_input", "expected_field"),
++    [
++        ({"birthday": None}, "birthday"),
++        ({"clearBirthday": None}, "clearBirthday"),
++        (
++            {"birthday": "2001-02-02", "clearBirthday": True},
++            "clearBirthday",
++        ),
++    ],
++)
++def test_account_update_rejects_ambiguous_payload_without_partial_write_or_audit(
++    user_api_client, birthday_input, expected_field
++):
++    user = user_api_client.user
++    user.birthday = "2000-01-01"
++    user.save(update_fields=["birthday"])
++    original_first_name = user.first_name
++    input_data = {"firstName": "Should not persist", **birthday_input}
++
++    response = user_api_client.post_graphql(
++        ACCOUNT_BIRTHDAY_UPDATE, {"input": input_data}
++    )
++    data = get_graphql_content(response)["data"]["accountUpdate"]
++
++    assert data["errors"][0]["field"] == expected_field
++    assert data["errors"][0]["code"] == AccountErrorCode.INVALID.name
++    user.refresh_from_db()
++    assert user.birthday.isoformat() == "2000-01-01"
++    assert user.first_name == original_first_name
++    assert not CustomerEvent.objects.filter(
++        user=user, type=CustomerEvents.BIRTHDAY_UPDATED
++    ).exists()
++
++
++@freeze_time("2026-11-05")
++def test_owner_cannot_set_future_birthday(user_api_client):
++    response = user_api_client.post_graphql(
++        ACCOUNT_BIRTHDAY_UPDATE,
++        {"input": {"birthday": "2026-11-06"}},
++    )
++    data = get_graphql_content(response)["data"]["accountUpdate"]
++
++    assert data["user"] is None
++    assert data["errors"][0]["field"] == "birthday"
++    assert data["errors"][0]["code"] == AccountErrorCode.INVALID.name
++    assert "2026" not in data["errors"][0]["message"]
++
++
++@pytest.mark.parametrize(
++    "birthday_input",
++    [{"birthday": "2000-01-01"}, {"clearBirthday": True}],
++)
++def test_app_cannot_write_impersonated_customer_birthday(
++    app_api_client,
++    customer_user,
++    permission_impersonate_user,
++    birthday_input,
++):
++    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
++    response = app_api_client.post_graphql(
++        ACCOUNT_BIRTHDAY_UPDATE,
++        {"input": birthday_input, "customerId": customer_id},
++        permissions=[permission_impersonate_user],
++    )
++
++    assert_no_permission(response)
++    customer_user.refresh_from_db()
++    assert customer_user.birthday is None
++    assert not CustomerEvent.objects.filter(
++        type=CustomerEvents.BIRTHDAY_UPDATED
++    ).exists()
++
++
++def test_only_active_superuser_can_update_another_users_birthday(
++    staff_api_client, customer_user, permission_manage_users
++):
++    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
++    response = staff_api_client.post_graphql(
++        CUSTOMER_BIRTHDAY_UPDATE_SET,
++        {"id": customer_id, "birthday": "2000-01-01"},
++        permissions=[permission_manage_users],
++    )
++
++    assert_no_permission(response)
++    customer_user.refresh_from_db()
++    assert customer_user.birthday is None
++
++
++def test_staff_customer_input_does_not_accept_birthday(
++    staff_api_client, customer_user, permission_manage_users
++):
++    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
++    response = staff_api_client.post_graphql(
++        STAFF_CUSTOMER_UPDATE_WITH_BIRTHDAY,
++        {"id": customer_id, "input": {"birthday": "2000-01-01"}},
++        permissions=[permission_manage_users],
++        check_no_permissions=False,
++    )
++    content = get_graphql_content_from_response(response)
++
++    assert content["errors"]
++    customer_user.refresh_from_db()
++    assert customer_user.birthday is None
++
++
++def test_superuser_can_set_replace_and_clear_with_operation_audit(
++    superuser_api_client, customer_user
++):
++    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
++    superuser = superuser_api_client.user
++
++    response = superuser_api_client.post_graphql(
++        CUSTOMER_BIRTHDAY_UPDATE_SET_AND_FLAG,
++        {
++            "id": customer_id,
++            "birthday": "2000-01-01",
++            "clearBirthday": False,
++        },
++    )
++    data = get_graphql_content(response)["data"]["customerBirthdayUpdate"]
++    assert data["errors"] == []
++    assert data["user"]["birthday"] == "2000-01-01"
++
++    response = superuser_api_client.post_graphql(
++        CUSTOMER_BIRTHDAY_UPDATE_SET,
++        {"id": customer_id, "birthday": "2001-02-02"},
++    )
++    data = get_graphql_content(response)["data"]["customerBirthdayUpdate"]
++    assert data["errors"] == []
++    assert data["user"]["birthday"] == "2001-02-02"
++
++    response = superuser_api_client.post_graphql(
++        CUSTOMER_BIRTHDAY_UPDATE_CLEAR_FLAG,
++        {"id": customer_id, "clearBirthday": True},
++    )
++    data = get_graphql_content(response)["data"]["customerBirthdayUpdate"]
++    assert data["errors"] == []
++    assert data["user"]["birthday"] is None
++
++    customer_user.refresh_from_db()
++    assert customer_user.birthday is None
++    events = CustomerEvent.objects.filter(
++        user=superuser, type=CustomerEvents.BIRTHDAY_UPDATED
++    )
++    assert list(events.values_list("parameters", flat=True)) == [
++        {"account_id": customer_user.pk, "operation": "set"},
++        {"account_id": customer_user.pk, "operation": "set"},
++        {"account_id": customer_user.pk, "operation": "clear"},
++    ]
++    assert all("birthday" not in event.parameters for event in events)
++
++
++@pytest.mark.parametrize(
++    ("mutation", "variables", "expected_field"),
++    [
++        (CUSTOMER_BIRTHDAY_UPDATE_EMPTY, {}, "birthday"),
++        (
++            CUSTOMER_BIRTHDAY_UPDATE_SET,
++            {"birthday": None},
++            "birthday",
++        ),
++        (
++            CUSTOMER_BIRTHDAY_UPDATE_CLEAR_FLAG,
++            {"clearBirthday": None},
++            "clearBirthday",
++        ),
++        (
++            CUSTOMER_BIRTHDAY_UPDATE_SET_AND_FLAG,
++            {"birthday": "2000-01-01", "clearBirthday": True},
++            "clearBirthday",
++        ),
++        (
++            CUSTOMER_BIRTHDAY_UPDATE_CLEAR_FLAG,
++            {"clearBirthday": False},
++            "birthday",
++        ),
++    ],
++)
++def test_superuser_invalid_payloads_do_not_write_or_audit(
++    superuser_api_client, customer_user, mutation, variables, expected_field
++):
++    customer_user.birthday = "2000-01-01"
++    customer_user.save(update_fields=["birthday"])
++    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
++
++    response = superuser_api_client.post_graphql(
++        mutation, {"id": customer_id, **variables}
++    )
++    data = get_graphql_content(response)["data"]["customerBirthdayUpdate"]
++
++    assert data["errors"][0]["field"] == expected_field
++    assert data["errors"][0]["code"] == AccountErrorCode.INVALID.name
++    customer_user.refresh_from_db()
++    assert customer_user.birthday.isoformat() == "2000-01-01"
++    assert not CustomerEvent.objects.filter(
++        user=superuser_api_client.user,
++        type=CustomerEvents.BIRTHDAY_UPDATED,
++    ).exists()
+diff --git a/saleor/graphql/account/tests/queries/test_user_birthday.py b/saleor/graphql/account/tests/queries/test_user_birthday.py
+new file mode 100644
+index 0000000..94f8e19
+--- /dev/null
++++ b/saleor/graphql/account/tests/queries/test_user_birthday.py
+@@ -0,0 +1,98 @@
++import graphene
++
++from .....account import CustomerEvents
++from .....account.models import CustomerEvent
++from ....tests.utils import get_graphql_content, get_graphql_content_from_response
++
++ME_BIRTHDAY_QUERY = """
++query { me { birthday } }
++"""
++
++USER_BIRTHDAY_QUERY = """
++query UserBirthday($id: ID!) {
++  user(id: $id) { birthday }
++}
++"""
++
++SUPERUSER_DUPLICATE_BIRTHDAY_QUERY = """
++query UserBirthday($id: ID!) {
++  first: user(id: $id) { birthday }
++  second: user(id: $id) { birthday }
++}
++"""
++
++
++def test_owner_can_read_own_birthday(user_api_client):
++    birthday = "2000-01-01"
++    user_api_client.user.birthday = birthday
++    user_api_client.user.save(update_fields=["birthday"])
++
++    response = user_api_client.post_graphql(ME_BIRTHDAY_QUERY)
++    data = get_graphql_content(response)["data"]["me"]
++
++    assert data["birthday"] == birthday
++    assert not CustomerEvent.objects.filter(
++        user=user_api_client.user, type=CustomerEvents.BIRTHDAY_VIEWED
++    ).exists()
++
++
++def test_staff_without_superuser_status_cannot_read_birthday(
++    staff_api_client, customer_user, permission_manage_users
++):
++    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
++    response = staff_api_client.post_graphql(
++        USER_BIRTHDAY_QUERY,
++        {"id": customer_id},
++        permissions=[permission_manage_users],
++    )
++    content = get_graphql_content_from_response(response)
++
++    assert content["data"]["user"]["birthday"] is None
++    assert content["errors"]
++
++
++def test_app_cannot_read_birthday(
++    app_api_client, customer_user, permission_manage_users
++):
++    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
++    response = app_api_client.post_graphql(
++        USER_BIRTHDAY_QUERY,
++        {"id": customer_id},
++        permissions=[permission_manage_users],
++    )
++    content = get_graphql_content_from_response(response)
++
++    assert content["data"]["user"]["birthday"] is None
++    assert content["errors"]
++
++
++def test_superuser_read_is_audited_once_per_subject_per_request(
++    superuser_api_client, customer_user
++):
++    birthday = "2000-01-01"
++    customer_user.birthday = birthday
++    customer_user.save(update_fields=["birthday"])
++    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
++    superuser = superuser_api_client.user
++
++    response = superuser_api_client.post_graphql(
++        SUPERUSER_DUPLICATE_BIRTHDAY_QUERY,
++        {"id": customer_id},
++    )
++    data = get_graphql_content(response)["data"]
++
++    assert data["first"]["birthday"] == birthday
++    assert data["second"]["birthday"] == birthday
++    event = CustomerEvent.objects.get(
++        user=superuser, type=CustomerEvents.BIRTHDAY_VIEWED
++    )
++    assert event.parameters == {"account_id": customer_user.pk}
++    assert "birthday" not in event.parameters
++    assert (
++        CustomerEvent.objects.filter(
++            user=superuser,
++            type=CustomerEvents.BIRTHDAY_VIEWED,
++            parameters__account_id=customer_user.pk,
++        ).count()
++        == 1
++    )
+diff --git a/saleor/graphql/account/tests/test_birthday_webhook_privacy.py b/saleor/graphql/account/tests/test_birthday_webhook_privacy.py
+new file mode 100644
+index 0000000..90c23d7
+--- /dev/null
++++ b/saleor/graphql/account/tests/test_birthday_webhook_privacy.py
+@@ -0,0 +1,12 @@
++from datetime import date
++
++from ....webhook.payloads import generate_customer_payload
++
++
++def test_customer_webhook_payload_does_not_include_birthday(customer_user):
++    customer_user.birthday = date(2000, 1, 1)
++    customer_user.save(update_fields=["birthday"])
++
++    payload = generate_customer_payload(customer_user)
++
++    assert "birthday" not in str(payload)
+diff --git a/saleor/graphql/account/types.py b/saleor/graphql/account/types.py
+index 5c7a05b..9bec74a 100644
+--- a/saleor/graphql/account/types.py
++++ b/saleor/graphql/account/types.py
+@@ -6,9 +6,11 @@ from django.contrib.auth import get_user_model
+ from graphene import relay
+ from promise import Promise
+ 
++from ...account import events as account_events
+ from ...account import models
+ from ...attribute import models as attribute_models
+ from ...checkout.utils import get_user_checkout
++from ...core.db.connection import allow_writer
+ from ...core.exceptions import PermissionDenied
+ from ...graphql.meta.inputs import MetadataInput, MetadataInputDescription
+ from ...order import OrderStatus
+@@ -66,7 +68,7 @@ from ..core.doc_category import DOC_CATEGORY_USERS
+ from ..core.enums import LanguageCodeEnum
+ from ..core.federation import federated_entity, resolve_federation_references
+ from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
+-from ..core.scalars import UUID, DateTime, PositiveInt
++from ..core.scalars import UUID, Date, DateTime, PositiveInt
+ from ..core.tracing import traced_resolver
+ from ..core.types import (
+     BaseInputObjectType,
+@@ -461,6 +463,13 @@ class User(ModelObjectType[models.User]):
+     is_active = graphene.Boolean(
+         required=True, description="Determine if the user is active."
+     )
++    birthday = Date(
++        description=(
++            "The user's birthday. Only the owner or an active superuser can access "
++            "this field."
++        )
++        + ADDED_IN_323
++    )
+     is_confirmed = graphene.Boolean(
+         required=True,
+         description="Determines if user has confirmed email.",
+@@ -800,6 +809,31 @@ class User(ModelObjectType[models.User]):
+     def resolve_note(root: models.User, _info: ResolveInfo):
+         return root.note
+ 
++    @staticmethod
++    def resolve_birthday(root: models.User, info: ResolveInfo):
++        # D6/D10: Apps and non-owner staff cannot read birthdays.
++        requestor = info.context.user
++        if info.context.app:
++            raise PermissionDenied()
++        if requestor == root:
++            return root.birthday
++        if not requestor or not requestor.is_active or not requestor.is_superuser:
++            raise PermissionDenied()
++
++        # R9: A superuser read is audited once per subject per GraphQL request.
++        audited_user_ids = getattr(info.context, "_birthday_audited_user_ids", None)
++        if audited_user_ids is None:
++            audited_user_ids = set()
++            setattr(info.context, "_birthday_audited_user_ids", audited_user_ids)
++        if root.pk not in audited_user_ids:
++            with allow_writer():
++                account_events.customer_birthday_viewed_event(
++                    superuser=requestor,
++                    account_id=root.pk,
++                )
++            audited_user_ids.add(root.pk)
++        return root.birthday
++
+     @staticmethod
+     def resolve_events(root: models.User, info: ResolveInfo):
+         if is_newly_created_user(root):
+diff --git a/saleor/graphql/checkout/tests/mutations/test_checkout_complete.py b/saleor/graphql/checkout/tests/mutations/test_checkout_complete.py
+index cdb66f7..0932260 100644
+--- a/saleor/graphql/checkout/tests/mutations/test_checkout_complete.py
++++ b/saleor/graphql/checkout/tests/mutations/test_checkout_complete.py
+@@ -262,6 +262,36 @@ def test_checkout_complete_0_total_value_no_payment(
+     )
+ 
+ 
++def test_checkout_complete_rejects_restricted_guest_before_order_creation(
++    user_api_client, checkout_with_item_total_0, address
++):
++    # Scenario: an authenticated requestor cannot substitute for the guest buyer.
++    # Client -> checkoutComplete -> shared policy -> order creation (must stop).
++    checkout = checkout_with_item_total_0
++    product = checkout.lines.first().variant.product
++    product.age_restricted = True
++    product.save(update_fields=["age_restricted"])
++    checkout.user = None
++    checkout.billing_address = address
++    checkout.save(update_fields=["user", "billing_address"])
++    orders_count = Order.objects.count()
++
++    response = user_api_client.post_graphql(
++        MUTATION_CHECKOUT_COMPLETE, {"id": to_global_id_or_none(checkout)}
++    )
++
++    content = get_graphql_content(response)
++    data = content["data"]["checkoutComplete"]
++    assert data["order"] is None
++    assert data["errors"][0]["code"] == CheckoutErrorCode.AGE_RESTRICTED.name
++    assert data["errors"][0]["field"] == "lines"
++    assert data["errors"][0]["message"] == (
++        "Some items can't be purchased by this account."
++    )
++    assert Order.objects.count() == orders_count
++    assert Checkout.objects.filter(pk=checkout.pk).exists()
++
++
+ @pytest.mark.integration
+ def test_checkout_complete_0_total_value_from_voucher(
+     user_api_client,
+diff --git a/saleor/graphql/checkout/tests/mutations/test_order_create_from_checkout.py b/saleor/graphql/checkout/tests/mutations/test_order_create_from_checkout.py
+index ad43ab8..5aac76d 100644
+--- a/saleor/graphql/checkout/tests/mutations/test_order_create_from_checkout.py
++++ b/saleor/graphql/checkout/tests/mutations/test_order_create_from_checkout.py
+@@ -296,6 +296,59 @@ def test_order_from_checkout_with_transaction(
+     assert not order.original
+ 
+ 
++def test_order_from_checkout_blocks_late_resolved_customer_without_birthday(
++    app_api_client,
++    permission_handle_checkouts,
++    checkout_with_item_and_transaction_item,
++    customer_user,
++    address,
++    checkout_delivery,
++):
++    # Scenario: app requestor is not the buyer; checkout email resolves the buyer late.
++    # App -> orderCreateFromCheckout -> buyer resolution -> policy -> no order.
++    checkout = checkout_with_item_and_transaction_item
++    product = checkout.lines.first().variant.product
++    product.age_restricted = True
++    product.save(update_fields=["age_restricted"])
++    customer_user.birthday = None
++    customer_user.save(update_fields=["birthday"])
++    checkout.user = None
++    checkout.email = customer_user.email
++    checkout.billing_address = address
++    checkout.shipping_address = address
++    checkout.assigned_delivery = checkout_delivery(checkout)
++    checkout.save(
++        update_fields=[
++            "user",
++            "email",
++            "billing_address",
++            "shipping_address",
++            "assigned_delivery",
++        ]
++    )
++    orders_count = Order.objects.count()
++
++    response = app_api_client.post_graphql(
++        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
++        {"id": graphene.Node.to_global_id("Checkout", checkout.pk)},
++        permissions=[permission_handle_checkouts],
++    )
++
++    content = get_graphql_content(response)
++    data = content["data"]["orderCreateFromCheckout"]
++    assert data["order"] is None
++    assert (
++        data["errors"][0]["code"]
++        == OrderCreateFromCheckoutErrorCode.AGE_RESTRICTED.name
++    )
++    assert data["errors"][0]["field"] == "lines"
++    assert data["errors"][0]["message"] == (
++        "Some items can't be purchased by this account."
++    )
++    assert Order.objects.count() == orders_count
++    assert Checkout.objects.filter(pk=checkout.pk).exists()
++
++
+ def test_order_from_checkout_saving_addresses_off(
+     app_api_client,
+     site_settings,
+diff --git a/saleor/graphql/order/mutations/draft_order_complete.py b/saleor/graphql/order/mutations/draft_order_complete.py
+index 8482bd7..4b3d83d 100644
+--- a/saleor/graphql/order/mutations/draft_order_complete.py
++++ b/saleor/graphql/order/mutations/draft_order_complete.py
+@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
+ from django.db import transaction
+ 
+ from ....account.models import User
++from ....checkout.complete_checkout import ensure_age_restriction_eligibility
+ from ....core.exceptions import InsufficientStock
+ from ....core.postgres import FlatConcatSearchVector
+ from ....core.taxes import zero_taxed_money
+@@ -164,6 +165,28 @@ class DraftOrderComplete(BaseMutation):
+             )
+         cls.validate_order(order)
+ 
++        restricted_lines = list(
++            models.OrderLine.objects.filter(
++                order=order, variant__product__age_restricted=True
++            ).select_related("variant__product")
++        )
++        if restricted_lines:
++            buyer = order.user
++            if buyer is None and order.user_email:
++                # D5: completion may link a customer by the draft's saved email.
++                buyer = User.objects.filter(email=order.user_email).first()
++            ensure_age_restriction_eligibility(
++                buyer,
++                (
++                    line.variant.product
++                    for line in restricted_lines
++                    if line.variant is not None
++                ),
++                error_code=OrderErrorCode.AGE_RESTRICTED.value,
++                buyer_required=False,
++                site_settings=site_settings,
++            )
++
+         country = get_order_country(order)
+         validate_draft_order(
+             order,
+diff --git a/saleor/graphql/order/mutations/order_lines_create.py b/saleor/graphql/order/mutations/order_lines_create.py
+index d6c02a2..c1f7377 100644
+--- a/saleor/graphql/order/mutations/order_lines_create.py
++++ b/saleor/graphql/order/mutations/order_lines_create.py
+@@ -5,9 +5,10 @@ from django.core.exceptions import ValidationError
+ 
+ from ....account.models import User
+ from ....app.models import App
++from ....checkout.complete_checkout import ensure_age_restriction_eligibility
+ from ....core.taxes import TaxError
+ from ....core.tracing import traced_atomic_transaction
+-from ....order import events
++from ....order import OrderStatus, events
+ from ....order import models as order_models
+ from ....order.error_codes import OrderErrorCode
+ from ....order.fetch import OrderLineInfo, fetch_order_lines
+@@ -198,6 +199,22 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
+         app = get_app_promise(info.context).get()
+         manager = get_plugin_manager_promise(info.context).get()
+         site = get_site_promise(info.context).get()
++        if order.status != OrderStatus.DRAFT:
++            # R7: adding restricted products to an editable, placed order is guarded.
++            restricted_products = list(
++                product_models.Product.objects.filter(
++                    pk__in=[variant.product_id for variant in variants],
++                    age_restricted=True,
++                )
++            )
++            if restricted_products:
++                ensure_age_restriction_eligibility(
++                    order.user,
++                    restricted_products,
++                    error_code=OrderErrorCode.AGE_RESTRICTED.value,
++                    buyer_required=False,
++                    site_settings=site.settings,
++                )
+         with traced_atomic_transaction():
+             added_lines = cls.add_lines_to_order(
+                 order,
+diff --git a/saleor/graphql/order/tests/integration/test_bulk_order.py b/saleor/graphql/order/tests/integration/test_bulk_order.py
+index 8435a9e..f310654 100644
+--- a/saleor/graphql/order/tests/integration/test_bulk_order.py
++++ b/saleor/graphql/order/tests/integration/test_bulk_order.py
+@@ -74,6 +74,49 @@ def test_create_order_from_imported_draft_order(
+     assert db_order.status == OrderStatusEnum.UNFULFILLED.name.lower()
+ 
+ 
++@pytest.mark.integration
++def test_order_bulk_create_imports_restricted_product_without_enforcement(
++    staff_api_client,
++    permission_manage_orders_import,
++    permission_group_manage_orders,
++    order_bulk_input,  # noqa: F811
++    product,
++    channel_USD,
++):
++    # D5: bulk import is the approved exception to interactive age enforcement.
++    staff_api_client.user.user_permissions.add(permission_manage_orders_import)
++    permission_group_manage_orders.user_set.add(staff_api_client.user)
++    product.age_restricted = True
++    product.save(update_fields=["age_restricted"])
++
++    order = order_bulk_input
++    order["status"] = OrderStatusEnum.UNFULFILLED.name
++    order["deliveryMethod"] = None
++    order["channel"] = channel_USD.slug
++    order["currency"] = "USD"
++    order["lines"][0]["variantId"] = graphene.Node.to_global_id(
++        "ProductVariant", product.variants.first().id
++    )
++    order["lines"][0]["isShippingRequired"] = False
++    order["fulfillments"] = []
++    order["transactions"] = []
++    order["invoices"] = []
++    order["discounts"] = []
++
++    response = staff_api_client.post_graphql(
++        ORDER_BULK_CREATE,
++        {
++            "orders": [order],
++            "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
++        },
++    )
++
++    content = get_graphql_content(response)
++    result = content["data"]["orderBulkCreate"]["results"][0]
++    assert not result["errors"]
++    assert result["order"]["status"] == OrderStatusEnum.UNFULFILLED.name
++
++
+ @pytest.mark.integration
+ def test_fulfill_imported_order(
+     staff_api_client,
+diff --git a/saleor/graphql/order/tests/mutations/test_draft_order_complete.py b/saleor/graphql/order/tests/mutations/test_draft_order_complete.py
+index 04b6bb9..5d94e9c 100644
+--- a/saleor/graphql/order/tests/mutations/test_draft_order_complete.py
++++ b/saleor/graphql/order/tests/mutations/test_draft_order_complete.py
+@@ -1043,6 +1043,65 @@ def test_draft_order_complete_anonymous_user_no_email(
+     assert data["status"] == OrderStatus.UNFULFILLED.upper()
+ 
+ 
++def test_draft_order_complete_rejects_late_resolved_customer_without_birthday(
++    staff_api_client, draft_order, customer_user, permission_group_manage_orders
++):
++    # Scenario: staff completes a draft whose saved email links to a customer late.
++    # Staff -> draftOrderComplete -> resolve order.user -> policy -> no order effects.
++    permission_group_manage_orders.user_set.add(staff_api_client.user)
++    order = draft_order
++    product = order.lines.first().variant.product
++    product.age_restricted = True
++    product.save(update_fields=["age_restricted"])
++    customer_user.birthday = None
++    customer_user.save(update_fields=["birthday"])
++    order.user = None
++    order.user_email = customer_user.email
++    order.save(update_fields=["user", "user_email"])
++    order_id = graphene.Node.to_global_id("Order", order.id)
++    allocations_count = Allocation.objects.filter(order_line__order=order).count()
++
++    response = staff_api_client.post_graphql(
++        DRAFT_ORDER_COMPLETE_MUTATION, {"id": order_id}
++    )
++
++    content = get_graphql_content(response)
++    data = content["data"]["draftOrderComplete"]
++    order.refresh_from_db()
++    assert data["order"] is None
++    assert data["errors"][0]["code"] == OrderErrorCode.AGE_RESTRICTED.name
++    assert data["errors"][0]["field"] == "lines"
++    assert order.status == OrderStatus.DRAFT
++    assert (
++        Allocation.objects.filter(order_line__order=order).count() == allocations_count
++    )
++
++
++def test_draft_order_complete_allows_restricted_product_without_linked_customer(
++    staff_api_client, draft_order, permission_group_manage_orders
++):
++    # Scenario: an unlinked draft has no buyer to validate and remains completable.
++    # Staff -> draftOrderComplete -> policy (buyer_required=False) -> order creation.
++    permission_group_manage_orders.user_set.add(staff_api_client.user)
++    order = draft_order
++    product = order.lines.first().variant.product
++    product.age_restricted = True
++    product.save(update_fields=["age_restricted"])
++    order.user = None
++    order.user_email = ""
++    order.save(update_fields=["user", "user_email"])
++
++    response = staff_api_client.post_graphql(
++        DRAFT_ORDER_COMPLETE_MUTATION,
++        {"id": graphene.Node.to_global_id("Order", order.id)},
++    )
++
++    content = get_graphql_content(response)
++    assert not content["data"]["draftOrderComplete"]["errors"]
++    order.refresh_from_db()
++    assert order.status == OrderStatus.UNFULFILLED
++
++
+ def test_draft_order_complete_drops_shipping_address(
+     staff_api_client,
+     permission_group_manage_orders,
+diff --git a/saleor/graphql/order/tests/mutations/test_order_lines_create.py b/saleor/graphql/order/tests/mutations/test_order_lines_create.py
+index 7f5c5eb..b03cd0e 100644
+--- a/saleor/graphql/order/tests/mutations/test_order_lines_create.py
++++ b/saleor/graphql/order/tests/mutations/test_order_lines_create.py
+@@ -242,6 +242,48 @@ def test_order_lines_create(
+     product_variant_out_of_stock_webhook_mock.assert_not_called()
+ 
+ 
++def test_order_lines_create_rejects_restricted_product_for_ineligible_buyer(
++    staff_api_client,
++    permission_group_manage_orders,
++    order_with_lines,
++    customer_user,
++    variant_with_many_stocks,
++):
++    # Scenario: staff cannot bypass the buyer policy for an editable placed order.
++    # Staff -> orderLinesCreate -> policy for added product -> no line/event writes.
++    order = order_with_lines
++    order.status = OrderStatus.UNCONFIRMED
++    order.user = customer_user
++    order.save(update_fields=["status", "user"])
++    customer_user.birthday = None
++    customer_user.save(update_fields=["birthday"])
++    variant_with_many_stocks.product.age_restricted = True
++    variant_with_many_stocks.product.save(update_fields=["age_restricted"])
++    permission_group_manage_orders.user_set.add(staff_api_client.user)
++
++    lines_count = order.lines.count()
++    events_count = OrderEvent.objects.count()
++    response = staff_api_client.post_graphql(
++        ORDER_LINES_CREATE_MUTATION,
++        {
++            "orderId": graphene.Node.to_global_id("Order", order.id),
++            "variantId": graphene.Node.to_global_id(
++                "ProductVariant", variant_with_many_stocks.id
++            ),
++            "quantity": 1,
++        },
++    )
++
++    content = get_graphql_content(response)
++    data = content["data"]["orderLinesCreate"]
++    assert data["errors"][0]["code"] == OrderErrorCode.AGE_RESTRICTED.name
++    assert data["errors"][0]["message"] == (
++        "Some items can't be purchased by this account."
++    )
++    assert order.lines.count() == lines_count
++    assert OrderEvent.objects.count() == events_count
++
++
+ def test_order_lines_create_by_user_no_channel_access(
+     order_with_lines,
+     permission_group_all_perms_channel_USD_only,
+diff --git a/saleor/graphql/payment/mutations/payment/checkout_payment_create.py b/saleor/graphql/payment/mutations/payment/checkout_payment_create.py
+index 6d605d6..77b1197 100644
+--- a/saleor/graphql/payment/mutations/payment/checkout_payment_create.py
++++ b/saleor/graphql/payment/mutations/payment/checkout_payment_create.py
+@@ -9,6 +9,7 @@ from .....checkout.checkout_cleaner import (
+     clean_billing_address,
+     clean_checkout_shipping,
+ )
++from .....checkout.complete_checkout import ensure_age_restriction_eligibility
+ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+ from .....checkout.utils import cancel_active_payments
+ from .....core.error_codes import MetadataErrorCode
+@@ -273,6 +274,13 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
+                 }
+             )
+         checkout_info = fetch_checkout_info(checkout, lines, manager)
++        # R6: reject before creating a legacy payment for the checkout.
++        ensure_age_restriction_eligibility(
++            checkout_info.user,
++            (line.product for line in lines),
++            error_code=PaymentErrorCode.AGE_RESTRICTED.value,
++            buyer_required=True,
++        )
+ 
+         cls.validate_token(
+             manager, gateway, input, channel_slug=checkout_info.channel.slug
+diff --git a/saleor/graphql/payment/mutations/transaction/payment_gateway_initialize.py b/saleor/graphql/payment/mutations/transaction/payment_gateway_initialize.py
+index 27c280f..7b14a8a 100644
+--- a/saleor/graphql/payment/mutations/transaction/payment_gateway_initialize.py
++++ b/saleor/graphql/payment/mutations/transaction/payment_gateway_initialize.py
+@@ -1,6 +1,8 @@
+ import graphene
+ from django.conf import settings
+ 
++from .....checkout import models as checkout_models
++from .....checkout.complete_checkout import ensure_checkout_buyer_is_eligible
+ from .....payment.interface import PaymentGatewayData
+ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
+ from ....core.enums import PaymentGatewayInitializeErrorCode
+@@ -133,6 +135,12 @@ class PaymentGatewayInitialize(TransactionSessionBase):
+             PaymentGatewayInitializeErrorCode.NOT_FOUND.value,
+             manager=manager,
+         )
++        if isinstance(source_object, checkout_models.Checkout):
++            # R6: do not invoke payment apps for an ineligible checkout buyer.
++            ensure_checkout_buyer_is_eligible(
++                source_object,
++                error_code=PaymentGatewayInitializeErrorCode.AGE_RESTRICTED.value,
++            )
+         payment_gateways_data = []
+         if payment_gateways:
+             payment_gateways_data = [
+diff --git a/saleor/graphql/payment/mutations/transaction/transaction_initialize.py b/saleor/graphql/payment/mutations/transaction/transaction_initialize.py
+index c2fda9a..b639dde 100644
+--- a/saleor/graphql/payment/mutations/transaction/transaction_initialize.py
++++ b/saleor/graphql/payment/mutations/transaction/transaction_initialize.py
+@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
+ from .....app.models import App
+ from .....channel.models import Channel
+ from .....checkout import models as checkout_models
++from .....checkout.complete_checkout import ensure_checkout_buyer_is_eligible
+ from .....checkout.utils import activate_payments, cancel_active_payments
+ from .....core.exceptions import PermissionDenied
+ from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
+@@ -176,6 +177,11 @@ class TransactionInitialize(TransactionSessionBase):
+             manager=manager,
+         )
+         if isinstance(source_object, checkout_models.Checkout):
++            # R6: enforce the current policy before creating a transaction session.
++            ensure_checkout_buyer_is_eligible(
++                source_object,
++                error_code=TransactionInitializeErrorCode.AGE_RESTRICTED.value,
++            )
+             cls.validate_checkout(source_object)
+ 
+         idempotency_key = cls.clean_idempotency_key(idempotency_key)
+diff --git a/saleor/graphql/payment/tests/mutations/test_checkout_payment_create.py b/saleor/graphql/payment/tests/mutations/test_checkout_payment_create.py
+index 02d6007..87c67ab 100644
+--- a/saleor/graphql/payment/tests/mutations/test_checkout_payment_create.py
++++ b/saleor/graphql/payment/tests/mutations/test_checkout_payment_create.py
+@@ -217,6 +217,51 @@ def test_checkout_add_payment(
+     assert payment.billing_email == customer_user.email
+ 
+ 
++def test_checkout_payment_create_rejects_restricted_buyer_before_payment_creation(
++    user_api_client,
++    checkout_without_shipping_required,
++    address,
++    customer_user,
++):
++    # Scenario: a missing birthday blocks legacy payment initiation before any payment.
++    # Client -> checkoutPaymentCreate -> policy -> payment creation (must stop).
++    checkout = checkout_without_shipping_required
++    checkout.billing_address = address
++    checkout.email = customer_user.email
++    checkout.user = customer_user
++    checkout.save()
++    customer_user.birthday = None
++    customer_user.save(update_fields=["birthday"])
++    product = checkout.lines.first().variant.product
++    product.age_restricted = True
++    product.save(update_fields=["age_restricted"])
++    payments_count = Payment.objects.count()
++    manager = get_plugins_manager(allow_replica=False)
++    lines, _ = fetch_checkout_lines(checkout)
++    checkout_info = fetch_checkout_info(checkout, lines, manager)
++    total = calculations.calculate_checkout_total(
++        manager=manager, checkout_info=checkout_info, lines=lines
++    )
++
++    response = user_api_client.post_graphql(
++        CREATE_PAYMENT_MUTATION,
++        {
++            "id": to_global_id_or_none(checkout),
++            "input": {
++                "gateway": DUMMY_GATEWAY,
++                "token": "sample-token",
++                "amount": total.gross.amount,
++            },
++        },
++    )
++
++    content = get_graphql_content(response)
++    data = content["data"]["checkoutPaymentCreate"]
++    assert data["payment"] is None
++    assert data["errors"][0]["code"] == PaymentErrorCode.AGE_RESTRICTED.name
++    assert Payment.objects.count() == payments_count
++
++
+ def test_checkout_add_payment_default_amount(
+     user_api_client, checkout_without_shipping_required, address
+ ):
+diff --git a/saleor/graphql/payment/tests/mutations/test_payment_gateway_initialize.py b/saleor/graphql/payment/tests/mutations/test_payment_gateway_initialize.py
+index 67ddef7..11d3fd8 100644
+--- a/saleor/graphql/payment/tests/mutations/test_payment_gateway_initialize.py
++++ b/saleor/graphql/payment/tests/mutations/test_payment_gateway_initialize.py
+@@ -209,6 +209,33 @@ def test_for_checkout_with_payment_gateways(
+     )
+ 
+ 
++@mock.patch("saleor.plugins.manager.PluginsManager.payment_gateway_initialize_session")
++def test_payment_gateway_initialize_rejects_restricted_guest(
++    mocked_initialize, user_api_client, checkout_with_prices
++):
++    # Scenario: gateway app is not called when the checkout buyer is a guest.
++    # Client -> paymentGatewayInitialize -> policy -> payment app (must stop).
++    checkout = checkout_with_prices
++    checkout.user = None
++    checkout.save(update_fields=["user"])
++    product = checkout.lines.first().variant.product
++    product.age_restricted = True
++    product.save(update_fields=["age_restricted"])
++    transactions_count = TransactionItem.objects.count()
++
++    response = user_api_client.post_graphql(
++        PAYMENT_GATEWAY_INITIALIZE,
++        {"id": to_global_id_or_none(checkout), "paymentGateways": None},
++    )
++
++    content = get_graphql_content(response)
++    data = content["data"]["paymentGatewayInitialize"]
++    assert data["errors"][0]["code"] == "AGE_RESTRICTED"
++    assert data["errors"][0]["field"] == "lines"
++    assert mocked_initialize.call_count == 0
++    assert TransactionItem.objects.count() == transactions_count
++
++
+ @mock.patch("saleor.plugins.manager.PluginsManager.payment_gateway_initialize_session")
+ def test_for_order_with_payment_gateways(
+     mocked_initialize,
+diff --git a/saleor/graphql/payment/tests/mutations/test_transaction_initialize.py b/saleor/graphql/payment/tests/mutations/test_transaction_initialize.py
+index 9609ce9..77ce116 100644
+--- a/saleor/graphql/payment/tests/mutations/test_transaction_initialize.py
++++ b/saleor/graphql/payment/tests/mutations/test_transaction_initialize.py
+@@ -275,6 +275,42 @@ def test_for_checkout_without_payment_gateway_data(
+     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+ 
+ 
++@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
++def test_transaction_initialize_rejects_restricted_buyer_before_session(
++    mocked_initialize, user_api_client, checkout_with_prices
++):
++    # Scenario: no payment transaction/session is created for a buyer without birthday.
++    # Client -> transactionInitialize -> policy -> payment app (must stop).
++    checkout = checkout_with_prices
++    checkout.user = user_api_client.user
++    checkout.save(update_fields=["user"])
++    user_api_client.user.birthday = None
++    user_api_client.user.save(update_fields=["birthday"])
++    product = checkout.lines.first().variant.product
++    product.age_restricted = True
++    product.save(update_fields=["age_restricted"])
++    transactions_count = TransactionItem.objects.count()
++
++    response = user_api_client.post_graphql(
++        TRANSACTION_INITIALIZE,
++        {
++            "action": None,
++            "amount": Decimal("10.00"),
++            "id": to_global_id_or_none(checkout),
++            "paymentGateway": {"id": "test.payment.app", "data": None},
++        },
++    )
++
++    content = get_graphql_content(response)
++    data = content["data"]["transactionInitialize"]
++    assert (
++        data["errors"][0]["code"] == TransactionInitializeErrorCode.AGE_RESTRICTED.name
++    )
++    assert data["errors"][0]["field"] == "lines"
++    assert not mocked_initialize.called
++    assert TransactionItem.objects.count() == transactions_count
++
++
+ @override_settings(TRANSACTION_ITEMS_LIMIT=3)
+ def test_for_checkout_transactions_limit_on_transaction_initialize(
+     user_api_client, checkout_with_prices
+diff --git a/saleor/graphql/product/mutations/product/product_create.py b/saleor/graphql/product/mutations/product/product_create.py
+index 5175a40..a84f0a7 100644
+--- a/saleor/graphql/product/mutations/product/product_create.py
++++ b/saleor/graphql/product/mutations/product/product_create.py
+@@ -11,6 +11,7 @@ from ....attribute.utils.shared import AttrValuesInput
+ from ....core import ResolveInfo
+ from ....core.context import ChannelContext
+ from ....core.descriptions import (
++    ADDED_IN_323,
+     DEPRECATED_IN_3X_INPUT,
+     DEPRECATED_PRODUCT_RATING_INPUT,
+     RICH_CONTENT,
+@@ -29,6 +30,11 @@ from . import product_cleaner as cleaner
+ 
+ 
+ class ProductInput(BaseInputObjectType):
++    # D1/D1c: This flag is for purchase eligibility, never catalog visibility.
++    age_restricted = graphene.Boolean(
++        description="Whether the product has a minimum-age purchase restriction."
++        + ADDED_IN_323
++    )
+     attributes = NonNullList(AttributeValueInput, description="List of attributes.")
+     category = graphene.ID(description="ID of the product's category.", name="category")
+     charge_taxes = graphene.Boolean(
+diff --git a/saleor/graphql/product/tests/mutations/test_product_bulk_create.py b/saleor/graphql/product/tests/mutations/test_product_bulk_create.py
+index d53389f..9d10882 100644
+--- a/saleor/graphql/product/tests/mutations/test_product_bulk_create.py
++++ b/saleor/graphql/product/tests/mutations/test_product_bulk_create.py
+@@ -49,6 +49,7 @@ mutation ProductBulkCreate($products: [ProductBulkCreateInput!]!, $errorPolicy:
+         id
+         name
+         slug
++        ageRestricted
+         media {
+           url
+           alt
+@@ -220,6 +221,7 @@ def test_product_bulk_create_with_base_data(
+             "productType": product_type_id,
+             "category": category_id,
+             "name": product_name_1,
++            "ageRestricted": True,
+             "description": description_json_string,
+             "chargeTaxes": product_charge_taxes,
+             "taxCode": product_tax_rate,
+@@ -252,11 +254,13 @@ def test_product_bulk_create_with_base_data(
+     assert not data["results"][1]["errors"]
+     assert data["count"] == 2
+     assert data["results"][0]["product"]["name"] == product_name_1
++    assert data["results"][0]["product"]["ageRestricted"] is True
+     assert data["results"][0]["product"]["slug"] == "test-name-1"
+     assert data["results"][0]["product"]["description"] == description_json_string
+     assert data["results"][0]["product"]["category"]["name"] == category.name
+     assert data["results"][0]["product"]["collections"][0]["id"] == collection_id
+     assert data["results"][1]["product"]["name"] == product_name_2
++    assert data["results"][1]["product"]["ageRestricted"] is False
+     assert data["results"][1]["product"]["description"] == description_json_string
+     assert data["results"][1]["product"]["category"]["name"] == category.name
+     assert len(products) == 2
+diff --git a/saleor/graphql/product/tests/mutations/test_product_create.py b/saleor/graphql/product/tests/mutations/test_product_create.py
+index 316b952..ffbd776 100644
+--- a/saleor/graphql/product/tests/mutations/test_product_create.py
++++ b/saleor/graphql/product/tests/mutations/test_product_create.py
+@@ -37,6 +37,7 @@ mutation createProduct($input: ProductCreateInput!) {
+         taxCode
+         description
+       }
++      ageRestricted
+       name
+       slug
+       rating
+@@ -237,6 +238,7 @@ def test_create_product(
+             "productType": product_type_id,
+             "category": category_id,
+             "name": product_name,
++            "ageRestricted": True,
+             "slug": product_slug,
+             "description": description_json,
+             "chargeTaxes": product_charge_taxes,
+@@ -262,6 +264,7 @@ def test_create_product(
+     # then
+     assert data["errors"] == []
+     assert data["product"]["name"] == product_name
++    assert data["product"]["ageRestricted"] is True
+     assert data["product"]["slug"] == product_slug
+     assert data["product"]["description"] == description_json
+     assert data["product"]["chargeTaxes"] == product_charge_taxes
+diff --git a/saleor/graphql/product/tests/mutations/test_product_update.py b/saleor/graphql/product/tests/mutations/test_product_update.py
+index b7c75bd..03fd964 100644
+--- a/saleor/graphql/product/tests/mutations/test_product_update.py
++++ b/saleor/graphql/product/tests/mutations/test_product_update.py
+@@ -56,6 +56,7 @@ mutation updateProduct($productId: ID!, $input: ProductInput!) {
+         taxCode
+         description
+       }
++      ageRestricted
+       name
+       slug
+       productType {
+@@ -253,6 +254,7 @@ def test_update_product(
+         "input": {
+             "category": category_id,
+             "name": product_name,
++            "ageRestricted": True,
+             "slug": product_slug,
+             "description": other_description_json,
+             "chargeTaxes": product_charge_taxes,
+@@ -275,6 +277,7 @@ def test_update_product(
+     assert product.search_index_dirty is True
+     assert data["errors"] == []
+     assert data["product"]["name"] == product_name
++    assert data["product"]["ageRestricted"] is True
+     assert data["product"]["slug"] == product_slug
+     assert data["product"]["description"] == json.dumps(
+         expected_other_description_json, sort_keys=True
+diff --git a/saleor/graphql/product/tests/queries/test_product_query.py b/saleor/graphql/product/tests/queries/test_product_query.py
+index 25b6970..653df59 100644
+--- a/saleor/graphql/product/tests/queries/test_product_query.py
++++ b/saleor/graphql/product/tests/queries/test_product_query.py
+@@ -42,11 +42,35 @@ QUERY_PRODUCT = """
+             availableForPurchaseAt
+             isAvailableForPurchase
+             isAvailable
++            ageRestricted
+         }
+     }
+ """
+ 
+ 
++def test_restricted_product_remains_public_and_available(
++    api_client, product, channel_USD
++):
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.pk),
++        "channel": channel_USD.slug,
++    }
++
++    response = api_client.post_graphql(QUERY_PRODUCT, variables)
++    baseline = get_graphql_content(response)["data"]["product"]
++
++    product.age_restricted = True
++    product.save(update_fields=["age_restricted"])
++
++    response = api_client.post_graphql(QUERY_PRODUCT, variables)
++    restricted = get_graphql_content(response)["data"]["product"]
++
++    assert restricted is not None
++    assert restricted["ageRestricted"] is True
++    assert restricted["isAvailableForPurchase"] == baseline["isAvailableForPurchase"]
++    assert restricted["isAvailable"] == baseline["isAvailable"]
++
++
+ def test_product_query_by_id_available_as_staff_user(
+     staff_api_client, permission_manage_products, product, channel_USD
+ ):
+diff --git a/saleor/graphql/product/types/products.py b/saleor/graphql/product/types/products.py
+index 6e61f82..140dc0a 100644
+--- a/saleor/graphql/product/types/products.py
++++ b/saleor/graphql/product/types/products.py
+@@ -987,6 +987,13 @@ class Product(ChannelContextType[models.Product]):
+             "only meant for displaying."
+         ),
+     )
++    age_restricted = graphene.Boolean(
++        required=True,
++        description=(
++            "Whether the product has a minimum-age purchase restriction. "
++            "This field does not affect product visibility." + ADDED_IN_323
++        ),
++    )
+     is_available = graphene.Boolean(
+         address=deprecated_destination_address_argument,
+         description=(
+diff --git a/saleor/graphql/schema.graphql b/saleor/graphql/schema.graphql
+index 8707ca6..15e26e9 100644
+--- a/saleor/graphql/schema.graphql
++++ b/saleor/graphql/schema.graphql
+@@ -3444,6 +3444,13 @@ type User implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(categ
+   """Determine if the user is active."""
+   isActive: Boolean!
+ 
++  """
++  The user's birthday. Only the owner or an active superuser can access this field.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
+   """Determines if user has confirmed email."""
+   isConfirmed: Boolean!
+ 
+@@ -4214,6 +4221,13 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
+     address: AddressInput
+   ): ProductPricingInfo
+ 
++  """
++  Whether the product has a minimum-age purchase restriction. This field does not affect product visibility.
++  
++  Added in Saleor 3.23.
++  """
++  ageRestricted: Boolean!
++
+   """
+   Whether the product is in stock, set as available for purchase in the given channel, and published.
+   """
+@@ -13665,6 +13679,7 @@ type OrderError @doc(category: "Orders") {
+ }
+ 
+ enum OrderErrorCode @doc(category: "Orders") {
++  AGE_RESTRICTED
+   BILLING_ADDRESS_NOT_SET
+   CANNOT_CANCEL_FULFILLMENT
+   CANNOT_CANCEL_ORDER
+@@ -14407,6 +14422,8 @@ enum CustomerEventsEnum @doc(category: "Users") {
+   ACCOUNT_CREATED
+   ACCOUNT_ACTIVATED
+   ACCOUNT_DEACTIVATED
++  BIRTHDAY_UPDATED
++  BIRTHDAY_VIEWED
+   PASSWORD_RESET_LINK_SENT
+   PASSWORD_RESET
+   EMAIL_CHANGED_REQUEST
+@@ -15642,6 +15659,22 @@ type Shop implements ObjectWithMetadata {
+   """
+   allowStorefrontTraffic: Boolean!
+ 
++  """
++  Minimum age used to label restricted products. Display only; purchase eligibility is enforced by the core API.
++  
++  Added in Saleor 3.23.
++  """
++  minimumAge: Int!
++
++  """
++  IANA time zone used for age-policy date calculations.
++  
++  Added in Saleor 3.23.
++  
++  Requires one of the following permissions: MANAGE_SETTINGS.
++  """
++  timeZone: String!
++
+   """Default weight unit."""
+   defaultWeightUnit: WeightUnitsEnum
+ 
+@@ -22865,6 +22898,26 @@ type Mutation {
+     input: AccountInput!
+   ): AccountUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: [])
+ 
++  """Sets or clears another user's birthday. Requires an active superuser."""
++  customerBirthdayUpdate(
++    """
++    Birthday to set.
++    
++    Added in Saleor 3.23.
++    """
++    birthday: Date
++
++    """
++    Set to true to clear the birthday.
++    
++    Added in Saleor 3.23.
++    """
++    clearBirthday: Boolean
++
++    """ID of the customer."""
++    id: ID!
++  ): CustomerBirthdayUpdate @doc(category: "Users")
++
+   """
+   Sends an email with the account removal link for the logged-in user. 
+   
+@@ -24263,6 +24316,20 @@ input ShopSettingsInput {
+   """
+   useLegacyShippingZoneStockAvailability: Boolean
+ 
++  """
++  Minimum age used to label restricted products.
++  
++  Added in Saleor 3.23.
++  """
++  minimumAge: Int
++
++  """
++  IANA time zone used for age-policy date calculations.
++  
++  Added in Saleor 3.23.
++  """
++  timeZone: String
++
+   """Include taxes in prices."""
+   includeTaxesInPrices: Boolean @deprecated(reason: "Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.")
+ 
+@@ -25458,6 +25525,13 @@ type ProductCreate @doc(category: "Products") {
+ }
+ 
+ input ProductCreateInput @doc(category: "Products") {
++  """
++  Whether the product has a minimum-age purchase restriction.
++  
++  Added in Saleor 3.23.
++  """
++  ageRestricted: Boolean
++
+   """List of attributes."""
+   attributes: [AttributeValueInput!]
+ 
+@@ -25675,6 +25749,13 @@ enum ProductBulkCreateErrorCode @doc(category: "Products") {
+ }
+ 
+ input ProductBulkCreateInput @doc(category: "Products") {
++  """
++  Whether the product has a minimum-age purchase restriction.
++  
++  Added in Saleor 3.23.
++  """
++  ageRestricted: Boolean
++
+   """List of attributes."""
+   attributes: [AttributeValueInput!]
+ 
+@@ -25958,6 +26039,13 @@ type ProductUpdate @doc(category: "Products") {
+ }
+ 
+ input ProductInput @doc(category: "Products") {
++  """
++  Whether the product has a minimum-age purchase restriction.
++  
++  Added in Saleor 3.23.
++  """
++  ageRestricted: Boolean
++
+   """List of attributes."""
+   attributes: [AttributeValueInput!]
+ 
+@@ -27084,6 +27172,7 @@ type PaymentError @doc(category: "Payments") {
+ }
+ 
+ enum PaymentErrorCode @doc(category: "Payments") {
++  AGE_RESTRICTED
+   BILLING_ADDRESS_NOT_SET
+   GRAPHQL_ERROR
+   INVALID
+@@ -27623,6 +27712,7 @@ type PaymentGatewayInitializeError @doc(category: "Payments") {
+ }
+ 
+ enum PaymentGatewayInitializeErrorCode @doc(category: "Payments") {
++  AGE_RESTRICTED
+   GRAPHQL_ERROR
+   INVALID
+   NOT_FOUND
+@@ -27665,6 +27755,7 @@ type TransactionInitializeError @doc(category: "Payments") {
+ }
+ 
+ enum TransactionInitializeErrorCode @doc(category: "Payments") {
++  AGE_RESTRICTED
+   GRAPHQL_ERROR
+   INVALID
+   NOT_FOUND
+@@ -31937,6 +32028,7 @@ type CheckoutError @doc(category: "Checkout") {
+ }
+ 
+ enum CheckoutErrorCode @doc(category: "Checkout") {
++  AGE_RESTRICTED
+   BILLING_ADDRESS_NOT_SET
+   CHECKOUT_NOT_FULLY_PAID
+   GRAPHQL_ERROR
+@@ -32556,6 +32648,7 @@ type OrderCreateFromCheckoutError @doc(category: "Orders") {
+ }
+ 
+ enum OrderCreateFromCheckoutErrorCode @doc(category: "Orders") {
++  AGE_RESTRICTED
+   GRAPHQL_ERROR
+   CHECKOUT_NOT_FOUND
+   CHANNEL_INACTIVE
+@@ -34581,6 +34674,20 @@ input AccountInput @doc(category: "Users") {
+   """User language code."""
+   languageCode: LanguageCodeEnum
+ 
++  """
++  Birthday of the logged-in user.
++  
++  Added in Saleor 3.23.
++  """
++  birthday: Date
++
++  """
++  Set to true to clear the birthday.
++  
++  Added in Saleor 3.23.
++  """
++  clearBirthday: Boolean
++
+   """Billing address of the customer."""
+   defaultBillingAddress: AddressInput
+ 
+@@ -34595,6 +34702,13 @@ input AccountInput @doc(category: "Users") {
+   metadata: [MetadataInput!]
+ }
+ 
++"""Sets or clears another user's birthday. Requires an active superuser."""
++type CustomerBirthdayUpdate @doc(category: "Users") {
++  """The user with the updated birthday."""
++  user: User
++  errors: [AccountError!]!
++}
++
+ """
+ Sends an email with the account removal link for the logged-in user. 
+ 
+diff --git a/saleor/graphql/shop/mutations/shop_settings_update.py b/saleor/graphql/shop/mutations/shop_settings_update.py
+index e6ec285..6fe65a5 100644
+--- a/saleor/graphql/shop/mutations/shop_settings_update.py
++++ b/saleor/graphql/shop/mutations/shop_settings_update.py
+@@ -1,3 +1,5 @@
++from zoneinfo import available_timezones
++
+ import graphene
+ from django.core.exceptions import ValidationError
+ 
+@@ -116,6 +118,13 @@ class ShopSettingsInput(graphene.InputObjectType):
+             "warehouse-channel link, ignoring shipping zones." + ADDED_IN_323
+         ),
+     )
++    minimum_age = graphene.Int(
++        description="Minimum age used to label restricted products." + ADDED_IN_323
++    )
++    time_zone = graphene.String(
++        description="IANA time zone used for age-policy date calculations."
++        + ADDED_IN_323
++    )
+ 
+     # deprecated
+     include_taxes_in_prices = graphene.Boolean(
+@@ -210,6 +219,27 @@ class ShopSettingsUpdate(BaseMutation):
+     def clean_input(cls, info, _instance, data):
+         cls._validate_password_login_mode_restriction(info, data)
+ 
++        if "minimum_age" in data and (
++            data["minimum_age"] is None or not 0 <= data["minimum_age"] <= 150
++        ):
++            raise ValidationError(
++                {
++                    "minimum_age": ValidationError(
++                        "Enter a minimum age between 0 and 150.",
++                        code=ShopErrorCode.INVALID.value,
++                    )
++                }
++            )
++        if "time_zone" in data and data["time_zone"] not in available_timezones():
++            raise ValidationError(
++                {
++                    "time_zone": ValidationError(
++                        "Enter a valid IANA time zone.",
++                        code=ShopErrorCode.INVALID.value,
++                    )
++                }
++            )
++
+         if data.get("customer_set_password_url"):
+             try:
+                 validate_storefront_url(data["customer_set_password_url"])
+diff --git a/saleor/graphql/shop/tests/mutations/test_age_restriction_settings.py b/saleor/graphql/shop/tests/mutations/test_age_restriction_settings.py
+new file mode 100644
+index 0000000..8eeecde
+--- /dev/null
++++ b/saleor/graphql/shop/tests/mutations/test_age_restriction_settings.py
+@@ -0,0 +1,116 @@
++import pytest
++
++from .....core.error_codes import ShopErrorCode
++from ....tests.utils import get_graphql_content
++
++SHOP_SETTINGS_UPDATE = """
++mutation ShopSettingsUpdate($input: ShopSettingsInput!) {
++  shopSettingsUpdate(input: $input) {
++    shop { minimumAge timeZone }
++    errors { field code message }
++  }
++}
++"""
++
++SHOP_MINIMUM_AGE_QUERY = """
++query { shop { minimumAge } }
++"""
++
++SHOP_TIME_ZONE_QUERY = """
++query { shop { timeZone } }
++"""
++
++
++def test_minimum_age_is_publicly_readable(api_client, site_settings):
++    response = api_client.post_graphql(SHOP_MINIMUM_AGE_QUERY)
++    data = get_graphql_content(response)["data"]["shop"]
++
++    assert data["minimumAge"] == 18
++
++
++@pytest.mark.parametrize("client_fixture", ["api_client", "user_api_client"])
++def test_time_zone_requires_manage_settings(request, client_fixture):
++    client = request.getfixturevalue(client_fixture)
++    response = client.post_graphql(SHOP_TIME_ZONE_QUERY)
++
++    assert response.status_code == 200
++    assert response.json()["errors"]
++
++
++def test_app_without_manage_settings_cannot_read_time_zone(app_api_client):
++    response = app_api_client.post_graphql(SHOP_TIME_ZONE_QUERY)
++
++    assert response.status_code == 200
++    assert response.json()["errors"]
++
++
++def test_manage_settings_user_can_read_time_zone(
++    staff_api_client, permission_manage_settings, site_settings
++):
++    response = staff_api_client.post_graphql(
++        SHOP_TIME_ZONE_QUERY,
++        permissions=[permission_manage_settings],
++    )
++    data = get_graphql_content(response)["data"]["shop"]
++
++    assert data["timeZone"] == "UTC"
++
++
++def test_shop_settings_update_validates_and_persists_age_policy(
++    staff_api_client, permission_manage_settings, site_settings
++):
++    response = staff_api_client.post_graphql(
++        SHOP_SETTINGS_UPDATE,
++        {"input": {"minimumAge": 21, "timeZone": "Europe/Belgrade"}},
++        permissions=[permission_manage_settings],
++    )
++    data = get_graphql_content(response)["data"]["shopSettingsUpdate"]
++
++    assert data["errors"] == []
++    assert data["shop"] == {"minimumAge": 21, "timeZone": "Europe/Belgrade"}
++    site_settings.refresh_from_db()
++    assert site_settings.minimum_age == 21
++    assert site_settings.time_zone == "Europe/Belgrade"
++
++
++@pytest.mark.parametrize("minimum_age", [0, 150])
++def test_shop_settings_accepts_minimum_age_range_boundaries(
++    staff_api_client, permission_manage_settings, minimum_age
++):
++    response = staff_api_client.post_graphql(
++        SHOP_SETTINGS_UPDATE,
++        {"input": {"minimumAge": minimum_age}},
++        permissions=[permission_manage_settings],
++    )
++    data = get_graphql_content(response)["data"]["shopSettingsUpdate"]
++
++    assert data["errors"] == []
++    assert data["shop"]["minimumAge"] == minimum_age
++
++
++@pytest.mark.parametrize(
++    ("field", "value", "expected_field"),
++    [
++        ("minimumAge", -1, "minimumAge"),
++        ("minimumAge", None, "minimumAge"),
++        ("minimumAge", 151, "minimumAge"),
++        ("timeZone", "../etc", "timeZone"),
++        ("timeZone", "UTC; DROP", "timeZone"),
++    ],
++)
++def test_shop_settings_reject_invalid_age_and_time_zone(
++    staff_api_client,
++    permission_manage_settings,
++    field,
++    value,
++    expected_field,
++):
++    response = staff_api_client.post_graphql(
++        SHOP_SETTINGS_UPDATE,
++        {"input": {field: value}},
++        permissions=[permission_manage_settings],
++    )
++    data = get_graphql_content(response)["data"]["shopSettingsUpdate"]
++
++    assert data["errors"][0]["field"] == expected_field
++    assert data["errors"][0]["code"] == ShopErrorCode.INVALID.name
+diff --git a/saleor/graphql/shop/types.py b/saleor/graphql/shop/types.py
+index 185a857..1301a7b 100644
+--- a/saleor/graphql/shop/types.py
++++ b/saleor/graphql/shop/types.py
+@@ -344,6 +344,20 @@ class Shop(graphene.ObjectType):
+         ),
+         required=True,
+     )
++    minimum_age = graphene.Int(
++        required=True,
++        description=(
++            "Minimum age used to label restricted products. Display only; "
++            "purchase eligibility is enforced by the core API." + ADDED_IN_323
++        ),
++    )
++    time_zone = PermissionsField(
++        graphene.String,
++        required=True,
++        description="IANA time zone used for age-policy date calculations."
++        + ADDED_IN_323,
++        permissions=[SitePermissions.MANAGE_SETTINGS],
++    )
+     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
+     translation = TranslationField(ShopTranslation, type_name="shop", resolver=None)
+     reserve_stock_duration_anonymous_user = PermissionsField(
+@@ -633,6 +647,16 @@ class Shop(graphene.ObjectType):
+     def resolve_allow_storefront_traffic(_, _info, site):
+         return site.settings.allow_storefront_traffic
+ 
++    @staticmethod
++    @load_site_callback
++    def resolve_minimum_age(_, _info, site):
++        return site.settings.minimum_age
++
++    @staticmethod
++    @load_site_callback
++    def resolve_time_zone(_, _info, site):
++        return site.settings.time_zone
++
+     @staticmethod
+     @load_site_callback
+     def resolve_default_weight_unit(_, _info, site):
+diff --git a/saleor/order/error_codes.py b/saleor/order/error_codes.py
+index 857d780..d3c9719 100644
+--- a/saleor/order/error_codes.py
++++ b/saleor/order/error_codes.py
+@@ -2,6 +2,7 @@ from enum import Enum
+ 
+ 
+ class OrderErrorCode(Enum):
++    AGE_RESTRICTED = "age_restricted"
+     BILLING_ADDRESS_NOT_SET = "billing_address_not_set"
+     CANNOT_CANCEL_FULFILLMENT = "cannot_cancel_fulfillment"
+     CANNOT_CANCEL_ORDER = "cannot_cancel_order"
+diff --git a/saleor/payment/error_codes.py b/saleor/payment/error_codes.py
+index 9874f50..415a92b 100644
+--- a/saleor/payment/error_codes.py
++++ b/saleor/payment/error_codes.py
+@@ -2,6 +2,7 @@ from enum import Enum
+ 
+ 
+ class PaymentErrorCode(Enum):
++    AGE_RESTRICTED = "age_restricted"
+     BILLING_ADDRESS_NOT_SET = "billing_address_not_set"
+     GRAPHQL_ERROR = "graphql_error"
+     INVALID = "invalid"
+@@ -79,12 +80,14 @@ class PaymentGatewayConfigErrorCode(Enum):
+ 
+ 
+ class PaymentGatewayInitializeErrorCode(Enum):
++    AGE_RESTRICTED = "age_restricted"
+     GRAPHQL_ERROR = "graphql_error"
+     INVALID = "invalid"
+     NOT_FOUND = "not_found"
+ 
+ 
+ class TransactionInitializeErrorCode(Enum):
++    AGE_RESTRICTED = "age_restricted"
+     GRAPHQL_ERROR = "graphql_error"
+     INVALID = "invalid"
+     NOT_FOUND = "not_found"
+diff --git a/saleor/product/migrations/0211_product_age_restricted.py b/saleor/product/migrations/0211_product_age_restricted.py
+new file mode 100644
+index 0000000..e372f2c
+--- /dev/null
++++ b/saleor/product/migrations/0211_product_age_restricted.py
+@@ -0,0 +1,17 @@
++# Generated by Django 5.2.18 on 2026-11-05 09:54
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++    dependencies = [
++        ("product", "0210_collection_external_reference_unique_constraint"),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name="product",
++            name="age_restricted",
++            field=models.BooleanField(db_default=False, default=False),
++        ),
++    ]
+diff --git a/saleor/product/models.py b/saleor/product/models.py
+index fac5ec1..a35dfe6 100644
+--- a/saleor/product/models.py
++++ b/saleor/product/models.py
+@@ -181,6 +181,8 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
+         ProductType, related_name="products", on_delete=models.CASCADE
+     )
+     name = models.CharField(max_length=250)
++    # D1/D1c: This purchase-eligibility flag does not affect product visibility.
++    age_restricted = models.BooleanField(default=False, db_default=False)
+     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
+     description_plaintext = TextField(blank=True)
+diff --git a/saleor/site/migrations/0053_sitesettings_minimum_age_sitesettings_time_zone.py b/saleor/site/migrations/0053_sitesettings_minimum_age_sitesettings_time_zone.py
+new file mode 100644
+index 0000000..1180b43
+--- /dev/null
++++ b/saleor/site/migrations/0053_sitesettings_minimum_age_sitesettings_time_zone.py
+@@ -0,0 +1,22 @@
++# Generated by Django 5.2.18 on 2026-11-05 09:54
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++    dependencies = [
++        ("site", "0052_sitesettings_allow_storefront_traffic"),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name="sitesettings",
++            name="minimum_age",
++            field=models.PositiveSmallIntegerField(db_default=18, default=18),
++        ),
++        migrations.AddField(
++            model_name="sitesettings",
++            name="time_zone",
++            field=models.CharField(db_default="UTC", default="UTC", max_length=255),
++        ),
++    ]
+diff --git a/saleor/site/models.py b/saleor/site/models.py
+index 52d46ad..08593df 100644
+--- a/saleor/site/models.py
++++ b/saleor/site/models.py
+@@ -79,6 +79,9 @@ class SiteSettings(ModelWithMetadata):
+         default=False,
+         db_default=False,
+     )
++    # D2: Defaults preserve existing behavior until a product is flagged.
++    minimum_age = models.PositiveSmallIntegerField(default=18, db_default=18)
++    time_zone = models.CharField(max_length=255, default="UTC", db_default="UTC")
+ 
+     # Duration in minutes
+     reserve_stock_duration_anonymous_user = models.IntegerField(blank=True, null=True)

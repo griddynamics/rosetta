@@ -1,0 +1,1230 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 835cfa34c2..4cffc72227 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -34,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
+ 
+ ### GraphQL API
+ 
++- Added optional plain-text `storageConditions` field (up to 250 characters) to `Product`, `ProductInput`, `ProductCreateInput`, `ProductBulkCreateInput`, `ProductTranslation`, `ProductTranslatableContent` and the shared `TranslationInput` (e.g. "Keep refrigerated at 2–8 °C"). It is also included in product webhook payloads and in the product CSV export (`ProductFieldEnum.STORAGE_CONDITIONS`). `categoryTranslate` and `collectionTranslate` return an `INVALID` error when `storageConditions` is provided.
+ - Added `deprecationReason` field to the `App` and `Manifest` types, and a new `appSelfUpdate` mutation that lets an app set it on itself. An app declares it in its manifest (`deprecationReason`) and/or sets it at any time via `appSelfUpdate`; staff users cannot set it through `appUpdate`. Pass a blank value to `appSelfUpdate` to clear it; omitting the field or passing `null` leaves it unchanged. Values longer than 2048 characters are truncated rather than rejected. A deprecated app keeps working exactly as before - the field is informational and is surfaced in the dashboard.
+ - Added `identifier` field to the `Webhook` type. It holds an app-provided, stable identifier that is unique per app. It can be set through the app manifest (`webhooks[].identifier`) and the `webhookCreate`/`webhookUpdate` mutations.
+ - Added `Shop.allowStorefrontTraffic` field and `ShopSettingsInput.allowStorefrontTraffic` input. When disabled, only apps and staff users may call the GraphQL API directly; anonymous requests and non-staff customers are rejected with HTTP 401 and the `STOREFRONT_TRAFFIC_NOT_ALLOWED` error code.
+diff --git a/agents/IMPLEMENTATION.md b/agents/IMPLEMENTATION.md
+index f6c01ecaea..e957604a2a 100644
+--- a/agents/IMPLEMENTATION.md
++++ b/agents/IMPLEMENTATION.md
+@@ -21,6 +21,12 @@ Style: DRY; one `###` per workstream with status and date; reference `docs/*` in
+ 
+ - Added `docs/CONTEXT.md` (+ COMMERCE/CATALOG/PLATFORM-CONTEXT), `docs/ARCHITECTURE.md` (+ GRAPHQL/INTEGRATION-ARCHITECTURE), `docs/ASSUMPTIONS.md`, `docs/TODO.md`, `agents/MEMORY.md`, this file; inputs `docs/TECHSTACK.md`, `docs/CODEMAP.md`, `docs/DEPENDENCIES.md`. No code changed.
+ 
++### Product storage conditions: done, 2026-10-21
++
++- `Product.storage_conditions` (CharField 250, default "") + `ProductTranslation.storage_conditions` (nullable), migration `0211_product_storage_conditions`.
++- GraphQL: `Product`, `ProductInput`/`ProductCreateInput`/`ProductBulkCreateInput`, `ProductTranslation`, `ProductTranslatableContent`, shared `TranslationInput`; `categoryTranslate`/`collectionTranslate` reject it (`INVALID`); `ProductFieldEnum.STORAGE_CONDITIONS` (CSV export); legacy webhook `PRODUCT_FIELDS`; bulk translate error codes now normalised via `get_error_code_from_error`.
++- Tests: `test_product_storage_conditions.py`, `test_product_storage_conditions_translate.py`, csv/webhook test updates.
++
+ ### [Workstream N]: [status], [modified date]
+ 
+ - [Brief changes with keywords and references]
+diff --git a/docs/CATALOG-CONTEXT.md b/docs/CATALOG-CONTEXT.md
+index 44973d208b..e4e786488a 100644
+--- a/docs/CATALOG-CONTEXT.md
++++ b/docs/CATALOG-CONTEXT.md
+@@ -17,6 +17,7 @@ Style: terse bullets; `##` per area; "Rule:" = invariant, "Fail:" = failure mode
+ - Media: images or external video; external images fetched in background (temporarily unavailable meanwhile).
+ - Search: products, pages, gift cards, checkouts re-indexed in background after changes.
+ - Legacy: product type "digital" and "has variants" flags have no effect.
++- Storage conditions: optional plain-text product field (up to 250 characters, e.g. "Keep refrigerated at 2–8 °C"); stored as entered, translatable per language, included in product webhook payloads and the product CSV export. Not on variants, not in search or filters.
+ 
+ ## Attributes
+ - Assignable to product types (product or variant level), page types, customer types.
+diff --git a/saleor/csv/tests/export/products_data/test_get_products_data.py b/saleor/csv/tests/export/products_data/test_get_products_data.py
+index 1f56147bc3..c734978662 100644
+--- a/saleor/csv/tests/export/products_data/test_get_products_data.py
++++ b/saleor/csv/tests/export/products_data/test_get_products_data.py
+@@ -29,7 +29,8 @@ def test_get_products_data(product, product_with_image, collection, image, chann
+         ]
+     }
+     product.weight = Weight(kg=5)
+-    product.save(update_fields=["description", "weight"])
++    product.storage_conditions = "Keep refrigerated at 2–8 °C"
++    product.save(update_fields=["description", "weight", "storage_conditions"])
+ 
+     collection.products.add(product)
+ 
+@@ -79,6 +80,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
+             "id": id,
+             "name": product.name,
+             "description_as_str": json.dumps(product.description),
++            "storage_conditions": product.storage_conditions,
+             "category__slug": product.category.slug,
+             "product_type__name": product.product_type.name,
+             "collections__slug": (
+diff --git a/saleor/csv/tests/export/products_data/test_prepare_headers.py b/saleor/csv/tests/export/products_data/test_prepare_headers.py
+index ba1e357907..9299249274 100644
+--- a/saleor/csv/tests/export/products_data/test_prepare_headers.py
++++ b/saleor/csv/tests/export/products_data/test_prepare_headers.py
+@@ -36,6 +36,18 @@ def test_get_export_fields_and_headers_fields_without_price():
+     assert file_headers == expected_headers
+ 
+ 
++def test_get_export_fields_and_headers_storage_conditions():
++    # given
++    export_info = {"fields": [ProductFieldEnum.STORAGE_CONDITIONS.value]}
++
++    # when
++    export_fields, file_headers = get_product_export_fields_and_headers(export_info)
++
++    # then
++    assert export_fields == ["id", "storage_conditions"]
++    assert file_headers == ["id", "storage conditions"]
++
++
+ def test_get_export_fields_and_headers_no_fields():
+     export_fields, file_headers = get_product_export_fields_and_headers({})
+ 
+diff --git a/saleor/csv/utils/__init__.py b/saleor/csv/utils/__init__.py
+index f175d8e24b..0c87d8d8b6 100644
+--- a/saleor/csv/utils/__init__.py
++++ b/saleor/csv/utils/__init__.py
+@@ -6,6 +6,7 @@ class ProductExportFields:
+             "id": "id",
+             "name": "name",
+             "description": "description_as_str",
++            "storage conditions": "storage_conditions",
+             "category": "category__slug",
+             "product type": "product_type__name",
+             # charge taxes are deprecated, and do not return any value. In case of
+diff --git a/saleor/graphql/csv/enums.py b/saleor/graphql/csv/enums.py
+index 4419a8f279..d5ef580a4c 100644
+--- a/saleor/graphql/csv/enums.py
++++ b/saleor/graphql/csv/enums.py
+@@ -35,6 +35,7 @@ class ExportScope(BaseEnum):
+ class ProductFieldEnum(BaseEnum):
+     NAME = "name"
+     DESCRIPTION = "description"
++    STORAGE_CONDITIONS = "storage conditions"
+     PRODUCT_TYPE = "product type"
+     CATEGORY = "category"
+     PRODUCT_WEIGHT = "product weight"
+diff --git a/saleor/graphql/product/bulk_mutations/product_bulk_create.py b/saleor/graphql/product/bulk_mutations/product_bulk_create.py
+index 50efb39af7..77a06d5c3b 100644
+--- a/saleor/graphql/product/bulk_mutations/product_bulk_create.py
++++ b/saleor/graphql/product/bulk_mutations/product_bulk_create.py
+@@ -256,6 +256,11 @@ class ProductBulkCreate(BaseMutation):
+             editorjs_to_text(description) if description else ""
+         )
+ 
++        if "storage_conditions" in cleaned_input:
++            cleaned_input["storage_conditions"] = (
++                cleaned_input["storage_conditions"] or ""
++            )
++
+         slug = cleaned_input.get("slug")
+         if not slug and "name" in cleaned_input:
+             slug = cls.generate_unique_slug(cleaned_input["name"], new_slugs)
+diff --git a/saleor/graphql/product/mutations/product/product_cleaner.py b/saleor/graphql/product/mutations/product/product_cleaner.py
+index 0c973c36ac..8e7450092b 100644
+--- a/saleor/graphql/product/mutations/product/product_cleaner.py
++++ b/saleor/graphql/product/mutations/product/product_cleaner.py
+@@ -26,6 +26,15 @@ def clean_slug(cleaned_input: dict, instance):
+         raise ValidationError({"slug": e}) from e
+ 
+ 
++def clean_storage_conditions(cleaned_input: dict):
++    # The column is not nullable; an explicit `null` clears the value.
++    if (
++        "storage_conditions" in cleaned_input
++        and cleaned_input["storage_conditions"] is None
++    ):
++        cleaned_input["storage_conditions"] = ""
++
++
+ def clean_description(cleaned_input: dict):
+     if "description" in cleaned_input:
+         description = cleaned_input["description"]
+diff --git a/saleor/graphql/product/mutations/product/product_create.py b/saleor/graphql/product/mutations/product/product_create.py
+index 5175a40bf2..434e01e957 100644
+--- a/saleor/graphql/product/mutations/product/product_create.py
++++ b/saleor/graphql/product/mutations/product/product_create.py
+@@ -11,6 +11,7 @@ from ....attribute.utils.shared import AttrValuesInput
+ from ....core import ResolveInfo
+ from ....core.context import ChannelContext
+ from ....core.descriptions import (
++    ADDED_IN_323,
+     DEPRECATED_IN_3X_INPUT,
+     DEPRECATED_PRODUCT_RATING_INPUT,
+     RICH_CONTENT,
+@@ -46,6 +47,11 @@ class ProductInput(BaseInputObjectType):
+     description = JSONString(description="Product description." + RICH_CONTENT)
+     name = graphene.String(description="Product name.")
+     slug = graphene.String(description="Product slug.")
++    storage_conditions = graphene.String(
++        description=(
++            "Storage conditions of the product. Up to 250 characters." + ADDED_IN_323
++        )
++    )
+     tax_class = graphene.ID(
+         description=(
+             "ID of a tax class to assign to this product. If not provided, product "
+@@ -146,6 +152,7 @@ class ProductCreate(DeprecatedModelMutation):
+         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+ 
+         cleaner.clean_description(cleaned_input)
++        cleaner.clean_storage_conditions(cleaned_input)
+         cleaner.clean_weight(cleaned_input)
+         cleaner.clean_slug(cleaned_input, instance)
+         cls.clean_attributes(cleaned_input, instance)
+diff --git a/saleor/graphql/product/mutations/product/product_update.py b/saleor/graphql/product/mutations/product/product_update.py
+index bf7fce0f41..11a139975b 100644
+--- a/saleor/graphql/product/mutations/product/product_update.py
++++ b/saleor/graphql/product/mutations/product/product_update.py
+@@ -66,6 +66,7 @@ class ProductUpdate(ModelWithExtRefMutation):
+         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+ 
+         cleaner.clean_description(cleaned_input)
++        cleaner.clean_storage_conditions(cleaned_input)
+         cleaner.clean_weight(cleaned_input)
+         cleaner.clean_slug(cleaned_input, instance)
+         cls.clean_attributes(cleaned_input, instance)
+diff --git a/saleor/graphql/product/tests/mutations/test_product_storage_conditions.py b/saleor/graphql/product/tests/mutations/test_product_storage_conditions.py
+new file mode 100644
+index 0000000000..aa7bf3390d
+--- /dev/null
++++ b/saleor/graphql/product/tests/mutations/test_product_storage_conditions.py
+@@ -0,0 +1,357 @@
++import graphene
++import pytest
++
++from .....product.error_codes import ProductErrorCode
++from ....tests.utils import get_graphql_content
++
++PRODUCT_CREATE_MUTATION = """
++mutation createProduct($input: ProductCreateInput!) {
++  productCreate(input: $input) {
++    product {
++      id
++      storageConditions
++    }
++    errors {
++      field
++      code
++      message
++    }
++  }
++}
++"""
++
++PRODUCT_UPDATE_MUTATION = """
++mutation updateProduct($id: ID!, $input: ProductInput!) {
++  productUpdate(id: $id, input: $input) {
++    product {
++      storageConditions
++    }
++    errors {
++      field
++      code
++      message
++    }
++  }
++}
++"""
++
++PRODUCT_BULK_CREATE_MUTATION = """
++mutation ProductBulkCreate($products: [ProductBulkCreateInput!]!) {
++  productBulkCreate(products: $products) {
++    count
++    results {
++      errors {
++        path
++        code
++      }
++      product {
++        storageConditions
++      }
++    }
++  }
++}
++"""
++
++PRODUCT_QUERY = """
++query Product($id: ID!, $channel: String) {
++  product(id: $id, channel: $channel) {
++    storageConditions
++  }
++}
++"""
++
++STORAGE_CONDITIONS = "Keep refrigerated at 2–8 °C"
++
++
++def _create_input(product_type, category, **kwargs):
++    return {
++        "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
++        "category": graphene.Node.to_global_id("Category", category.pk),
++        "name": "Storage product",
++        **kwargs,
++    }
++
++
++def test_product_storage_conditions_defaults_to_empty_string(product):
++    assert product.storage_conditions == ""
++
++
++def test_product_create_with_storage_conditions(
++    staff_api_client, product_type, category, permission_manage_products
++):
++    # given
++    variables = {
++        "input": _create_input(
++            product_type, category, storageConditions=STORAGE_CONDITIONS
++        )
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_CREATE_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productCreate"]
++    assert not data["errors"]
++    assert data["product"]["storageConditions"] == STORAGE_CONDITIONS
++
++
++def test_product_create_without_storage_conditions(
++    staff_api_client, product_type, category, permission_manage_products
++):
++    # given
++    variables = {"input": _create_input(product_type, category)}
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_CREATE_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productCreate"]
++    assert not data["errors"]
++    assert data["product"]["storageConditions"] == ""
++
++
++@pytest.mark.parametrize(
++    "value",
++    [
++        "x" * 250,
++        "Store < 8 °C",
++        "<img src=x onerror=alert(1)>",
++        "  padded  ",
++    ],
++)
++def test_product_create_storage_conditions_is_stored_as_submitted(
++    value, staff_api_client, product_type, category, permission_manage_products
++):
++    # given
++    variables = {
++        "input": _create_input(product_type, category, storageConditions=value)
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_CREATE_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productCreate"]
++    assert not data["errors"]
++    assert data["product"]["storageConditions"] == value
++
++
++def test_product_create_storage_conditions_too_long(
++    staff_api_client, product_type, category, permission_manage_products
++):
++    # given
++    variables = {
++        "input": _create_input(product_type, category, storageConditions="x" * 251)
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_CREATE_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productCreate"]
++    assert data["product"] is None
++    assert len(data["errors"]) == 1
++    assert data["errors"][0]["field"] == "storageConditions"
++    assert data["errors"][0]["code"] == ProductErrorCode.INVALID.name
++
++
++def test_product_create_storage_conditions_null_is_empty_string(
++    staff_api_client, product_type, category, permission_manage_products
++):
++    # given
++    variables = {"input": _create_input(product_type, category, storageConditions=None)}
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_CREATE_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productCreate"]
++    assert not data["errors"]
++    assert data["product"]["storageConditions"] == ""
++
++
++def test_product_update_storage_conditions(
++    staff_api_client, product, permission_manage_products
++):
++    # given
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.pk),
++        "input": {"storageConditions": STORAGE_CONDITIONS},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_UPDATE_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productUpdate"]
++    assert not data["errors"]
++    assert data["product"]["storageConditions"] == STORAGE_CONDITIONS
++    product.refresh_from_db()
++    assert product.storage_conditions == STORAGE_CONDITIONS
++
++
++@pytest.mark.parametrize("cleared_value", [None, ""])
++def test_product_update_clears_storage_conditions(
++    cleared_value, staff_api_client, product, permission_manage_products
++):
++    # given
++    product.storage_conditions = STORAGE_CONDITIONS
++    product.save(update_fields=["storage_conditions"])
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.pk),
++        "input": {"storageConditions": cleared_value},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_UPDATE_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productUpdate"]
++    assert not data["errors"]
++    product.refresh_from_db()
++    assert product.storage_conditions == ""
++
++
++def test_product_update_without_storage_conditions_keeps_value(
++    staff_api_client, product, permission_manage_products
++):
++    # given
++    product.storage_conditions = STORAGE_CONDITIONS
++    product.save(update_fields=["storage_conditions"])
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.pk),
++        "input": {"name": "Renamed"},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_UPDATE_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productUpdate"]
++    assert not data["errors"]
++    assert data["product"]["storageConditions"] == STORAGE_CONDITIONS
++
++
++def test_product_update_storage_conditions_too_long(
++    staff_api_client, product, permission_manage_products
++):
++    # given
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.pk),
++        "input": {"storageConditions": "x" * 251},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_UPDATE_MUTATION, variables, permissions=[permission_manage_products]
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productUpdate"]
++    assert len(data["errors"]) == 1
++    assert data["errors"][0]["field"] == "storageConditions"
++    assert data["errors"][0]["code"] == ProductErrorCode.INVALID.name
++    product.refresh_from_db()
++    assert product.storage_conditions == ""
++
++
++def test_product_update_storage_conditions_no_permission(staff_api_client, product):
++    # given
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.pk),
++        "input": {"storageConditions": STORAGE_CONDITIONS},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(PRODUCT_UPDATE_MUTATION, variables)
++
++    # then
++    assert response.status_code == 200
++    assert "errors" in response.json()
++    product.refresh_from_db()
++    assert product.storage_conditions == ""
++
++
++def test_product_bulk_create_with_storage_conditions(
++    staff_api_client, product_type, category, permission_manage_products
++):
++    # given
++    products = [
++        _create_input(product_type, category, storageConditions=STORAGE_CONDITIONS),
++        _create_input(product_type, category, name="No storage"),
++        _create_input(
++            product_type, category, name="Null storage", storageConditions=None
++        ),
++    ]
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_BULK_CREATE_MUTATION,
++        {"products": products},
++        permissions=[permission_manage_products],
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productBulkCreate"]
++    assert data["count"] == 3
++    assert [r["product"]["storageConditions"] for r in data["results"]] == [
++        STORAGE_CONDITIONS,
++        "",
++        "",
++    ]
++
++
++def test_product_bulk_create_storage_conditions_too_long(
++    staff_api_client, product_type, category, permission_manage_products
++):
++    # given
++    products = [_create_input(product_type, category, storageConditions="x" * 251)]
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_BULK_CREATE_MUTATION,
++        {"products": products},
++        permissions=[permission_manage_products],
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productBulkCreate"]
++    assert data["count"] == 0
++    assert data["results"][0]["errors"][0]["path"] == "storageConditions"
++    # bulk mutations report model length errors with their own `MAX_LENGTH` code
++    assert data["results"][0]["errors"][0]["code"] == "MAX_LENGTH"
++
++
++def test_product_query_returns_storage_conditions_to_anonymous_user(
++    api_client, product, channel_USD
++):
++    # given
++    product.storage_conditions = STORAGE_CONDITIONS
++    product.save(update_fields=["storage_conditions"])
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.pk),
++        "channel": channel_USD.slug,
++    }
++
++    # when
++    response = api_client.post_graphql(PRODUCT_QUERY, variables)
++
++    # then
++    content = get_graphql_content(response)
++    assert content["data"]["product"]["storageConditions"] == STORAGE_CONDITIONS
+diff --git a/saleor/graphql/product/types/products.py b/saleor/graphql/product/types/products.py
+index 6e61f82764..c9e3f77bfd 100644
+--- a/saleor/graphql/product/types/products.py
++++ b/saleor/graphql/product/types/products.py
+@@ -944,6 +944,9 @@ class Product(ChannelContextType[models.Product]):
+     seo_description = graphene.String(description="SEO description of the product.")
+     name = graphene.String(required=True, description="SEO description of the product.")
+     description = JSONString(description="Description of the product." + RICH_CONTENT)
++    storage_conditions = graphene.String(
++        description="Storage conditions of the product." + ADDED_IN_323
++    )
+     product_type = graphene.Field(
+         lambda: ProductType, required=True, description="Type of the product."
+     )
+diff --git a/saleor/graphql/schema.graphql b/saleor/graphql/schema.graphql
+index 8707ca6e4a..1f9704d03c 100644
+--- a/saleor/graphql/schema.graphql
++++ b/saleor/graphql/schema.graphql
+@@ -4156,6 +4156,13 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
+   """
+   description: JSONString
+ 
++  """
++  Storage conditions of the product.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """Type of the product."""
+   productType: ProductType!
+ 
+@@ -10574,6 +10581,13 @@ type ProductTranslation implements Node @doc(category: "Products") {
+   """
+   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+ 
++  """
++  Translated storage conditions of the product.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """Represents the product fields to translate."""
+   translatableContent: ProductTranslatableContent
+ }
+@@ -10618,6 +10632,13 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
+   """
+   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+ 
++  """
++  Storage conditions of the product to translate.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """Returns translated product fields for the given language code."""
+   translation(
+     """A language code to return the translation for product."""
+@@ -25154,6 +25175,13 @@ input TranslationInput {
+   Rich text format. For reference see https://editorjs.io/
+   """
+   description: JSONString
++
++  """
++  Translated storage conditions. Supported by product translations only; other entities return an `INVALID` error when it is set.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
+ }
+ 
+ """
+@@ -25483,6 +25511,13 @@ input ProductCreateInput @doc(category: "Products") {
+   """Product slug."""
+   slug: String
+ 
++  """
++  Storage conditions of the product. Up to 250 characters.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -25700,6 +25735,13 @@ input ProductBulkCreateInput @doc(category: "Products") {
+   """Product slug."""
+   slug: String
+ 
++  """
++  Storage conditions of the product. Up to 250 characters.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -25983,6 +26025,13 @@ input ProductInput @doc(category: "Products") {
+   """Product slug."""
+   slug: String
+ 
++  """
++  Storage conditions of the product. Up to 250 characters.
++  
++  Added in Saleor 3.23.
++  """
++  storageConditions: String
++
+   """
+   ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+   """
+@@ -31785,6 +31834,7 @@ input ExportInfoInput @doc(category: "Products") {
+ enum ProductFieldEnum @doc(category: "Products") {
+   NAME
+   DESCRIPTION
++  STORAGE_CONDITIONS
+   PRODUCT_TYPE
+   CATEGORY
+   PRODUCT_WEIGHT
+diff --git a/saleor/graphql/translations/mutations/product_bulk_translate.py b/saleor/graphql/translations/mutations/product_bulk_translate.py
+index 741bcec960..88d9cabe3b 100644
+--- a/saleor/graphql/translations/mutations/product_bulk_translate.py
++++ b/saleor/graphql/translations/mutations/product_bulk_translate.py
+@@ -76,7 +76,13 @@ class ProductBulkTranslate(BaseBulkTranslateMutation):
+         description = "Creates/updates translations for products."
+         base_model = models.Product
+         translation_model = models.ProductTranslation
+-        translation_fields = ["name", "description", "seo_description", "seo_title"]
++        translation_fields = [
++            "name",
++            "description",
++            "seo_description",
++            "seo_title",
++            "storage_conditions",
++        ]
+         base_model_relation_field = "product"
+         result_type = ProductBulkTranslateResult
+         error_type_class = ProductBulkTranslateError
+diff --git a/saleor/graphql/translations/mutations/utils.py b/saleor/graphql/translations/mutations/utils.py
+index e547022a92..af0f24325e 100644
+--- a/saleor/graphql/translations/mutations/utils.py
++++ b/saleor/graphql/translations/mutations/utils.py
+@@ -17,12 +17,13 @@ from ....shipping import models as shipping_models
+ from ....webhook.event_types import WebhookEventAsyncType
+ from ....webhook.utils import get_webhooks_for_event
+ from ...core import ResolveInfo
+-from ...core.descriptions import RICH_CONTENT
++from ...core.descriptions import ADDED_IN_323, RICH_CONTENT
+ from ...core.doc_category import DOC_CATEGORY_MAP
+ from ...core.enums import ErrorPolicyEnum, TranslationErrorCode
+ from ...core.fields import JSONString
+ from ...core.mutations import BaseMutation, DeprecatedModelMutation
+ from ...core.utils import from_global_id_or_error
++from ...core.utils.error_codes import get_error_code_from_error
+ from ...plugins.dataloaders import get_plugin_manager_promise
+ from .. import types as translation_types
+ 
+@@ -79,6 +80,25 @@ def validate_input_against_model(model: type[Model], input_data: dict):
+     instance.full_clean(exclude=exclude_fields, validate_unique=False)
+ 
+ 
++def validate_storage_conditions_supported(model: type[Model], input_data: dict):
++    """Reject `storageConditions` for entities that do not have such a field.
++
++    The field lives on the shared `TranslationInput`, but only product
++    translations store it.
++    """
++    if "storage_conditions" not in input_data:
++        return
++    if "storage_conditions" not in {field.name for field in model._meta.fields}:
++        raise ValidationError(
++            {
++                "storage_conditions": ValidationError(
++                    "Storage conditions can be translated for products only.",
++                    code=TranslationErrorCode.INVALID.value,
++                )
++            }
++        )
++
++
+ def validate_slug_already_exists(
+     instance, translation_instance, input_data, language_code
+ ):
+@@ -136,6 +156,7 @@ class BaseTranslateMutation(DeprecatedModelMutation):
+ 
+     @classmethod
+     def validate_input(cls, input_data):
++        validate_storage_conditions_supported(cls._meta.model, input_data)
+         validate_input_against_model(cls._meta.model, input_data)
+ 
+     @classmethod
+@@ -198,6 +219,13 @@ class SeoTranslationInput(graphene.InputObjectType):
+ 
+ class TranslationInput(NameTranslationInput, SeoTranslationInput):
+     description = JSONString(description="Translated description." + RICH_CONTENT)
++    storage_conditions = graphene.String(
++        description=(
++            "Translated storage conditions. Supported by product translations only; "
++            "other entities return an `INVALID` error when it is provided."
++            + ADDED_IN_323
++        )
++    )
+ 
+ 
+ class BaseBulkTranslateMutation(BaseMutation):
+@@ -438,7 +466,7 @@ class BaseBulkTranslateMutation(BaseMutation):
+                             cls._meta.error_type_class(
+                                 path=to_camel_case(key),
+                                 message=e.messages[0],
+-                                code=e.code,
++                                code=get_error_code_from_error(e),
+                             )
+                         )
+                 instances_data_and_errors_list.append(
+diff --git a/saleor/graphql/translations/tests/mutations/test_product_storage_conditions_translate.py b/saleor/graphql/translations/tests/mutations/test_product_storage_conditions_translate.py
+new file mode 100644
+index 0000000000..6e413317f1
+--- /dev/null
++++ b/saleor/graphql/translations/tests/mutations/test_product_storage_conditions_translate.py
+@@ -0,0 +1,345 @@
++import graphene
++import pytest
++
++from .....product.models import ProductTranslation
++from ....core.enums import LanguageCodeEnum
++from ....tests.utils import get_graphql_content
++
++PRODUCT_TRANSLATE_MUTATION = """
++    mutation (
++        $id: ID!,
++        $languageCode: LanguageCodeEnum!,
++        $input: TranslationInput!
++    ) {
++       productTranslate(id: $id, languageCode: $languageCode, input: $input) {
++            product {
++                storageConditions
++                translation(languageCode: $languageCode) {
++                    storageConditions
++                }
++            }
++            errors {
++                message
++                code
++                field
++            }
++        }
++    }
++"""
++
++CATEGORY_TRANSLATE_MUTATION = """
++    mutation (
++        $id: ID!,
++        $languageCode: LanguageCodeEnum!,
++        $input: TranslationInput!
++    ) {
++       categoryTranslate(id: $id, languageCode: $languageCode, input: $input) {
++            errors {
++                code
++                field
++            }
++        }
++    }
++"""
++
++COLLECTION_TRANSLATE_MUTATION = """
++    mutation (
++        $id: ID!,
++        $languageCode: LanguageCodeEnum!,
++        $input: TranslationInput!
++    ) {
++       collectionTranslate(id: $id, languageCode: $languageCode, input: $input) {
++            errors {
++                code
++                field
++            }
++        }
++    }
++"""
++
++PRODUCT_BULK_TRANSLATE_MUTATION = """
++    mutation (
++        $translations: [ProductBulkTranslateInput!]!,
++        $errorPolicy: ErrorPolicyEnum
++    ) {
++        productBulkTranslate(translations: $translations, errorPolicy: $errorPolicy) {
++            count
++            results {
++                errors {
++                    path
++                    code
++                }
++                translation {
++                    storageConditions
++                }
++            }
++        }
++    }
++"""
++
++TRANSLATABLE_CONTENT_QUERY = """
++    query ($id: ID!) {
++        translation(kind: PRODUCT, id: $id) {
++            ... on ProductTranslatableContent {
++                storageConditions
++                translation(languageCode: PL) {
++                    storageConditions
++                }
++            }
++        }
++    }
++"""
++
++STORAGE_CONDITIONS_PL = "Przechowywać w lodówce w temp. 2–8 °C"
++
++
++def _translate(client, permission, product, storage_conditions, language=None):
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.id),
++        "languageCode": (language or LanguageCodeEnum.PL).name,
++        "input": {"storageConditions": storage_conditions},
++    }
++    response = client.post_graphql(
++        PRODUCT_TRANSLATE_MUTATION, variables, permissions=[permission]
++    )
++    return get_graphql_content(response)["data"]["productTranslate"]
++
++
++def test_product_translate_storage_conditions_creates_translation(
++    staff_api_client, product, permission_manage_translations
++):
++    # given
++    product.storage_conditions = "Keep refrigerated"
++    product.save(update_fields=["storage_conditions"])
++
++    # when
++    data = _translate(
++        staff_api_client,
++        permission_manage_translations,
++        product,
++        STORAGE_CONDITIONS_PL,
++    )
++
++    # then
++    assert not data["errors"]
++    assert data["product"]["storageConditions"] == "Keep refrigerated"
++    assert data["product"]["translation"]["storageConditions"] == STORAGE_CONDITIONS_PL
++    translation = ProductTranslation.objects.get(product=product, language_code="pl")
++    assert translation.storage_conditions == STORAGE_CONDITIONS_PL
++
++
++def test_product_translate_storage_conditions_updates_translation(
++    staff_api_client, product, permission_manage_translations
++):
++    # given
++    ProductTranslation.objects.create(
++        product=product, language_code="pl", storage_conditions="old"
++    )
++
++    # when
++    data = _translate(
++        staff_api_client,
++        permission_manage_translations,
++        product,
++        STORAGE_CONDITIONS_PL,
++    )
++
++    # then
++    assert not data["errors"]
++    assert ProductTranslation.objects.filter(product=product).count() == 1
++    assert data["product"]["translation"]["storageConditions"] == STORAGE_CONDITIONS_PL
++
++
++def test_product_translate_storage_conditions_can_be_cleared(
++    staff_api_client, product, permission_manage_translations
++):
++    # given
++    ProductTranslation.objects.create(
++        product=product, language_code="pl", storage_conditions="old"
++    )
++
++    # when
++    data = _translate(staff_api_client, permission_manage_translations, product, None)
++
++    # then
++    assert not data["errors"]
++    assert data["product"]["translation"]["storageConditions"] is None
++
++
++def test_product_translate_without_storage_conditions_keeps_value(
++    staff_api_client, product, permission_manage_translations
++):
++    # given
++    ProductTranslation.objects.create(
++        product=product, language_code="pl", storage_conditions="kept"
++    )
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.id),
++        "languageCode": LanguageCodeEnum.PL.name,
++        "input": {"name": "Nazwa"},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_TRANSLATE_MUTATION,
++        variables,
++        permissions=[permission_manage_translations],
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productTranslate"]
++    assert not data["errors"]
++    assert data["product"]["translation"]["storageConditions"] == "kept"
++
++
++def test_product_translate_storage_conditions_too_long(
++    staff_api_client, product, permission_manage_translations
++):
++    # when
++    data = _translate(
++        staff_api_client, permission_manage_translations, product, "x" * 251
++    )
++
++    # then
++    assert len(data["errors"]) == 1
++    assert data["errors"][0]["field"] == "storageConditions"
++    assert data["errors"][0]["code"] == "INVALID"
++    assert not ProductTranslation.objects.filter(product=product).exists()
++
++
++def test_product_translate_storage_conditions_keeps_special_characters(
++    staff_api_client, product, permission_manage_translations
++):
++    # when
++    data = _translate(
++        staff_api_client, permission_manage_translations, product, "Store < 8 °C"
++    )
++
++    # then
++    assert not data["errors"]
++    assert data["product"]["translation"]["storageConditions"] == "Store < 8 °C"
++
++
++def test_product_translate_storage_conditions_requires_permission(
++    staff_api_client, product
++):
++    # given
++    variables = {
++        "id": graphene.Node.to_global_id("Product", product.id),
++        "languageCode": LanguageCodeEnum.PL.name,
++        "input": {"storageConditions": STORAGE_CONDITIONS_PL},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(PRODUCT_TRANSLATE_MUTATION, variables)
++
++    # then
++    assert "errors" in response.json()
++    assert not ProductTranslation.objects.filter(product=product).exists()
++
++
++@pytest.mark.parametrize("value", ["Keep cool", "", None])
++def test_category_translate_rejects_storage_conditions(
++    value, staff_api_client, category, permission_manage_translations
++):
++    # given
++    variables = {
++        "id": graphene.Node.to_global_id("Category", category.id),
++        "languageCode": LanguageCodeEnum.PL.name,
++        "input": {"name": "Kategoria", "storageConditions": value},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        CATEGORY_TRANSLATE_MUTATION,
++        variables,
++        permissions=[permission_manage_translations],
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["categoryTranslate"]
++    assert data["errors"] == [{"code": "INVALID", "field": "storageConditions"}]
++    assert not category.translations.exists()
++
++
++@pytest.mark.parametrize("value", ["Keep cool", "", None])
++def test_collection_translate_rejects_storage_conditions(
++    value, staff_api_client, collection, permission_manage_translations
++):
++    # given
++    variables = {
++        "id": graphene.Node.to_global_id("Collection", collection.id),
++        "languageCode": LanguageCodeEnum.PL.name,
++        "input": {"name": "Kolekcja", "storageConditions": value},
++    }
++
++    # when
++    response = staff_api_client.post_graphql(
++        COLLECTION_TRANSLATE_MUTATION,
++        variables,
++        permissions=[permission_manage_translations],
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["collectionTranslate"]
++    assert data["errors"] == [{"code": "INVALID", "field": "storageConditions"}]
++    assert not collection.translations.exists()
++
++
++def test_product_translatable_content_exposes_storage_conditions(
++    staff_api_client, product, permission_manage_translations
++):
++    # given
++    product.storage_conditions = "Keep refrigerated"
++    product.save(update_fields=["storage_conditions"])
++    ProductTranslation.objects.create(
++        product=product, language_code="pl", storage_conditions=STORAGE_CONDITIONS_PL
++    )
++    variables = {"id": graphene.Node.to_global_id("Product", product.id)}
++
++    # when
++    response = staff_api_client.post_graphql(
++        TRANSLATABLE_CONTENT_QUERY,
++        variables,
++        permissions=[permission_manage_translations],
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["translation"]
++    assert data["storageConditions"] == "Keep refrigerated"
++    assert data["translation"]["storageConditions"] == STORAGE_CONDITIONS_PL
++
++
++def test_product_bulk_translate_storage_conditions(
++    staff_api_client, product_list, permission_manage_translations
++):
++    # given
++    first, second = product_list[0], product_list[1]
++    translations = [
++        {
++            "id": graphene.Node.to_global_id("Product", first.id),
++            "languageCode": LanguageCodeEnum.PL.name,
++            "translationFields": {"storageConditions": STORAGE_CONDITIONS_PL},
++        },
++        {
++            "id": graphene.Node.to_global_id("Product", second.id),
++            "languageCode": LanguageCodeEnum.PL.name,
++            "translationFields": {"storageConditions": "x" * 251},
++        },
++    ]
++
++    # when
++    response = staff_api_client.post_graphql(
++        PRODUCT_BULK_TRANSLATE_MUTATION,
++        {"translations": translations, "errorPolicy": "REJECT_FAILED_ROWS"},
++        permissions=[permission_manage_translations],
++    )
++
++    # then
++    data = get_graphql_content(response)["data"]["productBulkTranslate"]
++    assert data["count"] == 1
++    assert (
++        data["results"][0]["translation"]["storageConditions"] == STORAGE_CONDITIONS_PL
++    )
++    assert data["results"][1]["errors"][0]["path"] == "storageConditions"
++    assert data["results"][1]["errors"][0]["code"] == "INVALID"
+diff --git a/saleor/graphql/translations/types.py b/saleor/graphql/translations/types.py
+index 97f1edd258..613862020d 100644
+--- a/saleor/graphql/translations/types.py
++++ b/saleor/graphql/translations/types.py
+@@ -421,6 +421,9 @@ class ProductTranslation(BaseTranslationType[product_models.ProductTranslation])
+         description="Translated description of the product." + RICH_CONTENT,
+         deprecation_reason="Use the `description` field instead.",
+     )
++    storage_conditions = graphene.String(
++        description="Translated storage conditions of the product." + ADDED_IN_323
++    )
+     translatable_content = graphene.Field(
+         "saleor.graphql.translations.types.ProductTranslatableContent",
+         description="Represents the product fields to translate.",
+@@ -460,6 +463,9 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
+         description="Description of the product." + RICH_CONTENT,
+         deprecation_reason="Use the `description` field instead.",
+     )
++    storage_conditions = graphene.String(
++        description="Storage conditions of the product to translate." + ADDED_IN_323
++    )
+     translation = TranslationField(ProductTranslation, type_name="product")
+     product = graphene.Field(
+         "saleor.graphql.product.types.products.Product",
+diff --git a/saleor/product/migrations/0211_product_storage_conditions.py b/saleor/product/migrations/0211_product_storage_conditions.py
+new file mode 100644
+index 0000000000..2b33fe0b6a
+--- /dev/null
++++ b/saleor/product/migrations/0211_product_storage_conditions.py
+@@ -0,0 +1,22 @@
++# Generated by Django 5.2.18 on 2026-10-21 17:43
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++    dependencies = [
++        ("product", "0210_collection_external_reference_unique_constraint"),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name="product",
++            name="storage_conditions",
++            field=models.CharField(blank=True, default="", max_length=250),
++        ),
++        migrations.AddField(
++            model_name="producttranslation",
++            name="storage_conditions",
++            field=models.CharField(blank=True, max_length=250, null=True),
++        ),
++    ]
+diff --git a/saleor/product/models.py b/saleor/product/models.py
+index fac5ec16cf..c019695086 100644
+--- a/saleor/product/models.py
++++ b/saleor/product/models.py
+@@ -184,6 +184,7 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
+     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
+     description_plaintext = TextField(blank=True)
++    storage_conditions = models.CharField(max_length=250, blank=True, default="")
+     search_document = models.TextField(blank=True, default="")
+     search_vector = SearchVectorField(blank=True, null=True)
+     search_index_dirty = models.BooleanField(default=False, db_index=True)
+@@ -280,6 +281,7 @@ class ProductTranslation(SeoModelTranslationWithSlug):
+     )
+     name = models.CharField(max_length=250, blank=True, null=True)
+     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
++    storage_conditions = models.CharField(max_length=250, blank=True, null=True)
+ 
+     class Meta:
+         constraints = [
+diff --git a/saleor/webhook/payloads.py b/saleor/webhook/payloads.py
+index 8ef4b2f051..d2f101ec5e 100644
+--- a/saleor/webhook/payloads.py
++++ b/saleor/webhook/payloads.py
+@@ -666,6 +666,7 @@ def generate_collection_payload(
+ PRODUCT_FIELDS = (
+     "name",
+     "description",
++    "storage_conditions",
+     "currency",
+     "updated_at",
+     "weight",
+diff --git a/saleor/webhook/tests/test_webhook_payloads.py b/saleor/webhook/tests/test_webhook_payloads.py
+index d147c6caec..1436123d7d 100644
+--- a/saleor/webhook/tests/test_webhook_payloads.py
++++ b/saleor/webhook/tests/test_webhook_payloads.py
+@@ -613,6 +613,18 @@ def test_generate_product_payload_charge_taxes(
+     assert payload[0]["charge_taxes"] == expected_charge_taxes
+ 
+ 
++def test_generate_product_payload_includes_storage_conditions(product):
++    # given
++    product.storage_conditions = "Keep refrigerated at 2–8 °C"
++    product.save(update_fields=["storage_conditions"])
++
++    # when
++    payload = json.loads(generate_product_payload(product))
++
++    # then
++    assert payload[0]["storage_conditions"] == "Keep refrigerated at 2–8 °C"
++
++
+ @freeze_time()
+ def test_generate_shipping_zone_metadata_updated_payload(
+     shipping_zone,

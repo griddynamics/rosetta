@@ -1,0 +1,1239 @@
+diff --git a/locale/defaultMessages.json b/locale/defaultMessages.json
+index 93af9bf..ee25742 100644
+--- a/locale/defaultMessages.json
++++ b/locale/defaultMessages.json
+@@ -1943,6 +1943,10 @@
+     "context": "Dry run items list default message",
+     "string": "Choose the object"
+   },
++  "5c2J0e": {
++    "context": "section title for age-restricted product settings",
++    "string": "Age restrictions"
++  },
+   "5cKZsg": {
+     "context": "seo translation section subtitle",
+     "string": "How this item appears in search results"
+@@ -2894,6 +2898,10 @@
+     "context": "order return reason card, structured reason required helper text",
+     "string": "Return reason is required"
+   },
++  "8zOoF8": {
++    "context": "IANA time zone setting description",
++    "string": "Use an IANA time zone identifier, such as Europe/Warsaw."
++  },
+   "9+iLpf": {
+     "context": "link text to product type settings",
+     "string": "Configure in product type settings"
+@@ -5972,6 +5980,10 @@
+     "context": "deprecated SMTP app row title inside the customer emails card",
+     "string": "SMTP"
+   },
++  "K8Y9yq": {
++    "context": "IANA time zone setting label",
++    "string": "Time zone"
++  },
+   "K8xNLe": {
+     "context": "products section name",
+     "string": "Products"
+@@ -6774,6 +6786,10 @@
+     "context": "dialog header",
+     "string": "Unassign attribute from model type"
+   },
++  "N9WpOh": {
++    "context": "product age restriction label",
++    "string": "Age-restricted product"
++  },
+   "NA7KFR": {
+     "context": "shipping method types help weight-based bullet",
+     "string": "<strong>Weight-based</strong> — total weight within min/max limits."
+@@ -12274,6 +12290,10 @@
+     "context": "Label for collection toggle row when publication is scheduled",
+     "string": "Scheduled"
+   },
++  "hgXir2": {
++    "context": "section description for age-restricted product settings",
++    "string": "Set the minimum customer age and the IANA time zone used to determine eligibility."
++  },
+   "hhXK05": {
+     "context": "Link label to navigate to the app page",
+     "string": "Open the app"
+@@ -13340,6 +13360,10 @@
+     "context": "boolean attribute type",
+     "string": "Boolean"
+   },
++  "l8IX+6": {
++    "context": "minimum age setting label",
++    "string": "Minimum age"
++  },
+   "l9ETHu": {
+     "context": "checkbox label description",
+     "string": "You will be able to fulfill products without capturing payment for the order."
+@@ -15332,6 +15356,10 @@
+     "context": "bulk publish defaults inventory section note",
+     "string": "Stock is not part of this channel's listing."
+   },
++  "ruGr/2": {
++    "context": "minimum age setting description",
++    "string": "Customers must meet this age to purchase age-restricted products."
++  },
+   "rvk9ls": {
+     "context": "attribute can be used only in variants",
+     "string": "Variant Only"
+@@ -15906,6 +15934,10 @@
+   "u/vOPu": {
+     "string": "Paid"
+   },
++  "u0JpA7": {
++    "context": "product age restriction explanation",
++    "string": "Customers must meet the store's minimum age to purchase this product."
++  },
+   "u0V06N": {
+     "string": "Max. Order Weight"
+   },
+diff --git a/schema-main.graphql b/schema-main.graphql
+index 0565113..d340992 100644
+--- a/schema-main.graphql
++++ b/schema-main.graphql
+@@ -4221,6 +4221,9 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes {
+   """Rating of the product."""
+   rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
+ 
++  """Whether customers must meet the shop's minimum age to purchase this product."""
++  isAgeRestricted: Boolean!
++
+   """
+   Channel given to retrieve this product. Also used by federation gateway to resolve this object in a federated query.
+   """
+@@ -15644,6 +15647,12 @@ type Shop implements ObjectWithMetadata {
+   """
+   allowStorefrontTraffic: Boolean!
+ 
++  """Minimum age required to purchase age-restricted products."""
++  minimumAge: Int!
++
++  """IANA time zone used to determine age eligibility."""
++  timeZone: String!
++
+   """Default weight unit."""
+   defaultWeightUnit: WeightUnitsEnum
+ 
+@@ -24378,6 +24387,12 @@ input ShopSettingsInput {
+   """
+   allowStorefrontTraffic: Boolean
+ 
++  """Minimum age required to purchase age-restricted products."""
++  minimumAge: Int
++
++  """IANA time zone used to determine age eligibility."""
++  timeZone: String
++
+   """
+   Shop public metadata. Can be read by any API client authorized to read the object it's attached to.
+   
+@@ -25688,6 +25703,9 @@ input ProductCreateInput {
+   """
+   rating: Float
+ 
++  """Whether customers must meet the shop's minimum age to purchase this product."""
++  isAgeRestricted: Boolean
++
+   """
+   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+   
+@@ -25919,6 +25937,9 @@ input ProductBulkCreateInput {
+   """
+   rating: Float
+ 
++  """Whether customers must meet the shop's minimum age to purchase this product."""
++  isAgeRestricted: Boolean
++
+   """
+   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+   
+@@ -26232,6 +26253,9 @@ input ProductInput {
+   """
+   rating: Float
+ 
++  """Whether customers must meet the shop's minimum age to purchase this product."""
++  isAgeRestricted: Boolean
++
+   """
+   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+   
+diff --git a/schema-staging.graphql b/schema-staging.graphql
+index 4a82da5..7f03b14 100644
+--- a/schema-staging.graphql
++++ b/schema-staging.graphql
+@@ -4110,6 +4110,9 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
+   """Rating of the product."""
+   rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
+ 
++  """Whether customers must meet the shop's minimum age to purchase this product."""
++  isAgeRestricted: Boolean!
++
+   """
+   Channel given to retrieve this product. Also used by federation gateway to resolve this object in a federated query.
+   """
+@@ -15365,6 +15368,12 @@ type Shop implements ObjectWithMetadata {
+   """
+   allowStorefrontTraffic: Boolean!
+ 
++  """Minimum age required to purchase age-restricted products."""
++  minimumAge: Int!
++
++  """IANA time zone used to determine age eligibility."""
++  timeZone: String!
++
+   """Default weight unit."""
+   defaultWeightUnit: WeightUnitsEnum
+ 
+@@ -23793,6 +23802,12 @@ input ShopSettingsInput {
+   """
+   allowStorefrontTraffic: Boolean
+ 
++  """Minimum age required to purchase age-restricted products."""
++  minimumAge: Int
++
++  """IANA time zone used to determine age eligibility."""
++  timeZone: String
++
+   """
+   Shop public metadata. Can be read by any API client authorized to read the object it's attached to.
+   
+@@ -25011,6 +25026,9 @@ input ProductCreateInput @doc(category: "Products") {
+   """Defines the product rating value."""
+   rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
+ 
++  """Whether customers must meet the shop's minimum age to purchase this product."""
++  isAgeRestricted: Boolean
++
+   """
+   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+   
+@@ -25228,6 +25246,9 @@ input ProductBulkCreateInput @doc(category: "Products") {
+   """Defines the product rating value."""
+   rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
+ 
++  """Whether customers must meet the shop's minimum age to purchase this product."""
++  isAgeRestricted: Boolean
++
+   """
+   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+   
+@@ -25490,6 +25511,9 @@ input ProductInput @doc(category: "Products") {
+   """Defines the product rating value."""
+   rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
+ 
++  """Whether customers must meet the shop's minimum age to purchase this product."""
++  isAgeRestricted: Boolean
++
+   """
+   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+   
+diff --git a/src/fragments/products.ts b/src/fragments/products.ts
+index c17c983..25ae586 100644
+--- a/src/fragments/products.ts
++++ b/src/fragments/products.ts
+@@ -221,6 +221,7 @@ export const productFragmentDetails = gql`
+     seoTitle
+     seoDescription
+     rating
++    isAgeRestricted
+     defaultVariant {
+       id
+       sku
+diff --git a/src/fragments/shop.ts b/src/fragments/shop.ts
+index 8b2db5a..bcdb96b 100644
+--- a/src/fragments/shop.ts
++++ b/src/fragments/shop.ts
+@@ -61,5 +61,7 @@ export const shopFragment = gql`
+     preserveAllAddressFields
+     passwordLoginMode
+     allowStorefrontTraffic
++    minimumAge
++    timeZone
+   }
+ `;
+diff --git a/src/graphql/fabbrica.generated.ts b/src/graphql/fabbrica.generated.ts
+index 9d7f6c6..8d2e3eb 100644
+--- a/src/graphql/fabbrica.generated.ts
++++ b/src/graphql/fabbrica.generated.ts
+@@ -25340,6 +25340,8 @@ export type OptionalProduct = {
+   imageById?: Maybe<OptionalProductImage> | undefined;
+   /** List of images for the product. */
+   images?: Maybe<OptionalProductImage[]> | undefined;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted?: Product['isAgeRestricted'] | undefined;
+   /** Whether the product is in stock, set as available for purchase in the given channel, and published. */
+   isAvailable?: Product['isAvailable'] | undefined;
+   /** Refers to a state that can be set by admins to control whether a product is available for purchase in storefronts. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased. */
+@@ -25611,6 +25613,8 @@ export type OptionalProductBulkCreateInput = {
+   description?: ProductBulkCreateInput['description'] | undefined;
+   /** External ID of this product. */
+   externalReference?: ProductBulkCreateInput['externalReference'] | undefined;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted?: ProductBulkCreateInput['isAgeRestricted'] | undefined;
+   /** List of media inputs associated with the product. */
+   media?: Maybe<OptionalMediaInput[]> | undefined;
+   /**
+@@ -26073,6 +26077,8 @@ export type OptionalProductCreateInput = {
+   description?: ProductCreateInput['description'] | undefined;
+   /** External ID of this product. */
+   externalReference?: ProductCreateInput['externalReference'] | undefined;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted?: ProductCreateInput['isAgeRestricted'] | undefined;
+   /**
+  * Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+  *
+@@ -26357,6 +26363,8 @@ export type OptionalProductInput = {
+   description?: ProductInput['description'] | undefined;
+   /** External ID of this product. */
+   externalReference?: ProductInput['externalReference'] | undefined;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted?: ProductInput['isAgeRestricted'] | undefined;
+   /**
+  * Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+  *
+@@ -33354,6 +33362,8 @@ export type OptionalShop = {
+   metafield?: Shop['metafield'] | undefined;
+   /** Public metadata. Use `keys` to control which fields you want to include. The default is to include everything. */
+   metafields?: Shop['metafields'] | undefined;
++  /** Minimum age required to purchase age-restricted products. */
++  minimumAge?: Shop['minimumAge'] | undefined;
+   /** Shop's name. */
+   name?: Shop['name'] | undefined;
+   /**
+@@ -33404,6 +33414,8 @@ export type OptionalShop = {
+  * Requires one of the following permissions: MANAGE_SETTINGS.
+  */
+   staffNotificationRecipients?: Maybe<OptionalStaffNotificationRecipient[]> | undefined;
++  /** IANA time zone used to determine age eligibility. */
++  timeZone?: Shop['timeZone'] | undefined;
+   /** This field is used as a default value for `ProductVariant.trackInventory`. */
+   trackInventoryByDefault?: Shop['trackInventoryByDefault'] | undefined;
+   /** Returns translated shop fields for the given language code. */
+@@ -33614,6 +33626,8 @@ export type OptionalShopSettingsInput = {
+  * Warning: never store sensitive information, including financial data such as credit card details.
+  */
+   metadata?: Maybe<OptionalMetadataInput[]> | undefined;
++  /** Minimum age required to purchase age-restricted products. */
++  minimumAge?: ShopSettingsInput['minimumAge'] | undefined;
+   /**
+  * Shop's name.
+  *
+@@ -33642,6 +33656,8 @@ export type OptionalShopSettingsInput = {
+   reserveStockDurationAnonymousUser?: ShopSettingsInput['reserveStockDurationAnonymousUser'] | undefined;
+   /** Default number of minutes stock will be reserved for authenticated checkout. Enter 0 or null to disable. */
+   reserveStockDurationAuthenticatedUser?: ShopSettingsInput['reserveStockDurationAuthenticatedUser'] | undefined;
++  /** IANA time zone used to determine age eligibility. */
++  timeZone?: ShopSettingsInput['timeZone'] | undefined;
+   /** This field is used as a default value for `ProductVariant.trackInventory`. */
+   trackInventoryByDefault?: ShopSettingsInput['trackInventoryByDefault'] | undefined;
+   /**
+diff --git a/src/graphql/fabbricaTypes.generated.ts b/src/graphql/fabbricaTypes.generated.ts
+index ed61f5c..db5b025 100644
+--- a/src/graphql/fabbricaTypes.generated.ts
++++ b/src/graphql/fabbricaTypes.generated.ts
+@@ -22335,6 +22335,8 @@ export type Product = Node & ObjectWithAttributes & ObjectWithMetadata & {
+    * @deprecated Use the `media` field instead.
+    */
+   images: Maybe<Array<ProductImage>>;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted: Scalars['Boolean']['output'];
+   /** Whether the product is in stock, set as available for purchase in the given channel, and published. */
+   isAvailable: Maybe<Scalars['Boolean']['output']>;
+   /** Refers to a state that can be set by admins to control whether a product is available for purchase in storefronts. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased. */
+@@ -22656,6 +22658,8 @@ export type ProductBulkCreateInput = {
+   description: InputMaybe<Scalars['JSONString']['input']>;
+   /** External ID of this product. */
+   externalReference: InputMaybe<Scalars['String']['input']>;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted: InputMaybe<Scalars['Boolean']['input']>;
+   /** List of media inputs associated with the product. */
+   media: InputMaybe<Array<MediaInput>>;
+   /**
+@@ -22948,6 +22952,8 @@ export type ProductCreateInput = {
+   description: InputMaybe<Scalars['JSONString']['input']>;
+   /** External ID of this product. */
+   externalReference: InputMaybe<Scalars['String']['input']>;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted: InputMaybe<Scalars['Boolean']['input']>;
+   /**
+    * Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+    *
+@@ -23203,6 +23209,8 @@ export type ProductInput = {
+   description: InputMaybe<Scalars['JSONString']['input']>;
+   /** External ID of this product. */
+   externalReference: InputMaybe<Scalars['String']['input']>;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted: InputMaybe<Scalars['Boolean']['input']>;
+   /**
+    * Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+    *
+@@ -29367,6 +29375,8 @@ export type Shop = ObjectWithMetadata & {
+   metafield: Maybe<Scalars['String']['output']>;
+   /** Public metadata. Use `keys` to control which fields you want to include. The default is to include everything. */
+   metafields: Maybe<Scalars['Metadata']['output']>;
++  /** Minimum age required to purchase age-restricted products. */
++  minimumAge: Scalars['Int']['output'];
+   /** Shop's name. */
+   name: Scalars['String']['output'];
+   /**
+@@ -29417,6 +29427,8 @@ export type Shop = ObjectWithMetadata & {
+    * Requires one of the following permissions: MANAGE_SETTINGS.
+    */
+   staffNotificationRecipients: Maybe<Array<StaffNotificationRecipient>>;
++  /** IANA time zone used to determine age eligibility. */
++  timeZone: Scalars['String']['output'];
+   /** This field is used as a default value for `ProductVariant.trackInventory`. */
+   trackInventoryByDefault: Maybe<Scalars['Boolean']['output']>;
+   /** Returns translated shop fields for the given language code. */
+@@ -29625,6 +29637,8 @@ export type ShopSettingsInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata: InputMaybe<Array<MetadataInput>>;
++  /** Minimum age required to purchase age-restricted products. */
++  minimumAge: InputMaybe<Scalars['Int']['input']>;
+   /**
+    * Shop's name.
+    *
+@@ -29653,6 +29667,8 @@ export type ShopSettingsInput = {
+   reserveStockDurationAnonymousUser: InputMaybe<Scalars['Int']['input']>;
+   /** Default number of minutes stock will be reserved for authenticated checkout. Enter 0 or null to disable. */
+   reserveStockDurationAuthenticatedUser: InputMaybe<Scalars['Int']['input']>;
++  /** IANA time zone used to determine age eligibility. */
++  timeZone: InputMaybe<Scalars['String']['input']>;
+   /** This field is used as a default value for `ProductVariant.trackInventory`. */
+   trackInventoryByDefault: InputMaybe<Scalars['Boolean']['input']>;
+   /**
+diff --git a/src/graphql/hooks.generated.ts b/src/graphql/hooks.generated.ts
+index 3bb8791..736234a 100644
+--- a/src/graphql/hooks.generated.ts
++++ b/src/graphql/hooks.generated.ts
+@@ -3465,6 +3465,7 @@ export const ProductFragmentDoc = gql`
+   seoTitle
+   seoDescription
+   rating
++  isAgeRestricted
+   defaultVariant {
+     id
+     sku
+@@ -3828,6 +3829,8 @@ export const ShopFragmentDoc = gql`
+   preserveAllAddressFields
+   passwordLoginMode
+   allowStorefrontTraffic
++  minimumAge
++  timeZone
+ }
+     ${AddressFragmentDoc}`;
+ export const StaffMemberDetailsFragmentDoc = gql`
+diff --git a/src/graphql/typePolicies.generated.ts b/src/graphql/typePolicies.generated.ts
+index 560c483..c69b8d0 100644
+--- a/src/graphql/typePolicies.generated.ts
++++ b/src/graphql/typePolicies.generated.ts
+@@ -4594,7 +4594,7 @@ export type PreorderThresholdFieldPolicy = {
+ 	quantity?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	soldUnits?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variant' | 'variants' | 'weight' | ProductKeySpecifier)[];
++export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAgeRestricted' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variant' | 'variants' | 'weight' | ProductKeySpecifier)[];
+ export type ProductFieldPolicy = {
+ 	assignedAttribute?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttributes?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4615,6 +4615,7 @@ export type ProductFieldPolicy = {
+ 	id?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	imageById?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	images?: FieldPolicy<any> | FieldReadFunction<any>,
++	isAgeRestricted?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	isAvailable?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	isAvailableForPurchase?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	media?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -6247,7 +6248,7 @@ export type ShippingZoneUpdatedFieldPolicy = {
+ 	shippingZone?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	version?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ShopKeySpecifier = ('accountConfirmMergeMode' | 'allowLoginWithoutConfirmation' | 'allowStorefrontTraffic' | 'announcements' | 'availableExternalAuthentications' | 'availablePaymentGateways' | 'availableShippingMethods' | 'availableTaxApps' | 'channelCurrencies' | 'chargeTaxesOnShipping' | 'companyAddress' | 'countries' | 'customerSetPasswordUrl' | 'defaultCountry' | 'defaultMailSenderAddress' | 'defaultMailSenderName' | 'defaultWeightUnit' | 'description' | 'displayGrossPrices' | 'domain' | 'enableAccountConfirmationByEmail' | 'fulfillmentAllowUnpaid' | 'fulfillmentAutoApprove' | 'headerText' | 'id' | 'includeTaxesInPrices' | 'languages' | 'limitQuantityPerCheckout' | 'limits' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'passwordLoginMode' | 'permissions' | 'phonePrefixes' | 'preserveAllAddressFields' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'reserveStockDurationAnonymousUser' | 'reserveStockDurationAuthenticatedUser' | 'schemaVersion' | 'staffNotificationRecipients' | 'trackInventoryByDefault' | 'translation' | 'useLegacyShippingZoneStockAvailability' | 'useLegacyUpdateWebhookEmission' | 'version' | ShopKeySpecifier)[];
++export type ShopKeySpecifier = ('accountConfirmMergeMode' | 'allowLoginWithoutConfirmation' | 'allowStorefrontTraffic' | 'announcements' | 'availableExternalAuthentications' | 'availablePaymentGateways' | 'availableShippingMethods' | 'availableTaxApps' | 'channelCurrencies' | 'chargeTaxesOnShipping' | 'companyAddress' | 'countries' | 'customerSetPasswordUrl' | 'defaultCountry' | 'defaultMailSenderAddress' | 'defaultMailSenderName' | 'defaultWeightUnit' | 'description' | 'displayGrossPrices' | 'domain' | 'enableAccountConfirmationByEmail' | 'fulfillmentAllowUnpaid' | 'fulfillmentAutoApprove' | 'headerText' | 'id' | 'includeTaxesInPrices' | 'languages' | 'limitQuantityPerCheckout' | 'limits' | 'metadata' | 'metafield' | 'metafields' | 'minimumAge' | 'name' | 'passwordLoginMode' | 'permissions' | 'phonePrefixes' | 'preserveAllAddressFields' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'reserveStockDurationAnonymousUser' | 'reserveStockDurationAuthenticatedUser' | 'schemaVersion' | 'staffNotificationRecipients' | 'timeZone' | 'trackInventoryByDefault' | 'translation' | 'useLegacyShippingZoneStockAvailability' | 'useLegacyUpdateWebhookEmission' | 'version' | ShopKeySpecifier)[];
+ export type ShopFieldPolicy = {
+ 	accountConfirmMergeMode?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	allowLoginWithoutConfirmation?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -6281,6 +6282,7 @@ export type ShopFieldPolicy = {
+ 	metadata?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	metafield?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	metafields?: FieldPolicy<any> | FieldReadFunction<any>,
++	minimumAge?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	name?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	passwordLoginMode?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	permissions?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -6293,6 +6295,7 @@ export type ShopFieldPolicy = {
+ 	reserveStockDurationAuthenticatedUser?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	schemaVersion?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	staffNotificationRecipients?: FieldPolicy<any> | FieldReadFunction<any>,
++	timeZone?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	trackInventoryByDefault?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translation?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	useLegacyShippingZoneStockAvailability?: FieldPolicy<any> | FieldReadFunction<any>,
+diff --git a/src/graphql/typePoliciesStaging.generated.ts b/src/graphql/typePoliciesStaging.generated.ts
+index 6c66497..e5c3152 100644
+--- a/src/graphql/typePoliciesStaging.generated.ts
++++ b/src/graphql/typePoliciesStaging.generated.ts
+@@ -4526,7 +4526,7 @@ export type PluginUpdateFieldPolicy = {
+ 	plugin?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	pluginsErrors?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variants' | 'weight' | ProductKeySpecifier)[];
++export type ProductKeySpecifier = ('assignedAttribute' | 'assignedAttributes' | 'attribute' | 'attributes' | 'availableForPurchase' | 'availableForPurchaseAt' | 'category' | 'channel' | 'channelListings' | 'chargeTaxes' | 'collections' | 'created' | 'defaultVariant' | 'description' | 'descriptionJson' | 'externalReference' | 'id' | 'imageById' | 'images' | 'isAgeRestricted' | 'isAvailable' | 'isAvailableForPurchase' | 'media' | 'mediaById' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'pricing' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'productType' | 'productVariants' | 'rating' | 'seoDescription' | 'seoTitle' | 'slug' | 'taxClass' | 'taxType' | 'thumbnail' | 'translation' | 'updatedAt' | 'variants' | 'weight' | ProductKeySpecifier)[];
+ export type ProductFieldPolicy = {
+ 	assignedAttribute?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	assignedAttributes?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -4547,6 +4547,7 @@ export type ProductFieldPolicy = {
+ 	id?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	imageById?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	images?: FieldPolicy<any> | FieldReadFunction<any>,
++	isAgeRestricted?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	isAvailable?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	isAvailableForPurchase?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	media?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -6193,7 +6194,7 @@ export type ShippingZoneUpdatedFieldPolicy = {
+ 	shippingZone?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	version?: FieldPolicy<any> | FieldReadFunction<any>
+ };
+-export type ShopKeySpecifier = ('accountConfirmMergeMode' | 'allowLoginWithoutConfirmation' | 'allowStorefrontTraffic' | 'announcements' | 'availableExternalAuthentications' | 'availablePaymentGateways' | 'availableShippingMethods' | 'availableTaxApps' | 'channelCurrencies' | 'chargeTaxesOnShipping' | 'companyAddress' | 'countries' | 'customerSetPasswordUrl' | 'defaultCountry' | 'defaultMailSenderAddress' | 'defaultMailSenderName' | 'defaultWeightUnit' | 'description' | 'displayGrossPrices' | 'domain' | 'enableAccountConfirmationByEmail' | 'fulfillmentAllowUnpaid' | 'fulfillmentAutoApprove' | 'headerText' | 'id' | 'includeTaxesInPrices' | 'languages' | 'limitQuantityPerCheckout' | 'limits' | 'metadata' | 'metafield' | 'metafields' | 'name' | 'passwordLoginMode' | 'permissions' | 'phonePrefixes' | 'preserveAllAddressFields' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'reserveStockDurationAnonymousUser' | 'reserveStockDurationAuthenticatedUser' | 'schemaVersion' | 'staffNotificationRecipients' | 'trackInventoryByDefault' | 'translation' | 'useLegacyShippingZoneStockAvailability' | 'useLegacyUpdateWebhookEmission' | 'version' | ShopKeySpecifier)[];
++export type ShopKeySpecifier = ('accountConfirmMergeMode' | 'allowLoginWithoutConfirmation' | 'allowStorefrontTraffic' | 'announcements' | 'availableExternalAuthentications' | 'availablePaymentGateways' | 'availableShippingMethods' | 'availableTaxApps' | 'channelCurrencies' | 'chargeTaxesOnShipping' | 'companyAddress' | 'countries' | 'customerSetPasswordUrl' | 'defaultCountry' | 'defaultMailSenderAddress' | 'defaultMailSenderName' | 'defaultWeightUnit' | 'description' | 'displayGrossPrices' | 'domain' | 'enableAccountConfirmationByEmail' | 'fulfillmentAllowUnpaid' | 'fulfillmentAutoApprove' | 'headerText' | 'id' | 'includeTaxesInPrices' | 'languages' | 'limitQuantityPerCheckout' | 'limits' | 'metadata' | 'metafield' | 'metafields' | 'minimumAge' | 'name' | 'passwordLoginMode' | 'permissions' | 'phonePrefixes' | 'preserveAllAddressFields' | 'privateMetadata' | 'privateMetafield' | 'privateMetafields' | 'reserveStockDurationAnonymousUser' | 'reserveStockDurationAuthenticatedUser' | 'schemaVersion' | 'staffNotificationRecipients' | 'timeZone' | 'trackInventoryByDefault' | 'translation' | 'useLegacyShippingZoneStockAvailability' | 'useLegacyUpdateWebhookEmission' | 'version' | ShopKeySpecifier)[];
+ export type ShopFieldPolicy = {
+ 	accountConfirmMergeMode?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	allowLoginWithoutConfirmation?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -6227,6 +6228,7 @@ export type ShopFieldPolicy = {
+ 	metadata?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	metafield?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	metafields?: FieldPolicy<any> | FieldReadFunction<any>,
++	minimumAge?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	name?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	passwordLoginMode?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	permissions?: FieldPolicy<any> | FieldReadFunction<any>,
+@@ -6239,6 +6241,7 @@ export type ShopFieldPolicy = {
+ 	reserveStockDurationAuthenticatedUser?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	schemaVersion?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	staffNotificationRecipients?: FieldPolicy<any> | FieldReadFunction<any>,
++	timeZone?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	trackInventoryByDefault?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	translation?: FieldPolicy<any> | FieldReadFunction<any>,
+ 	useLegacyShippingZoneStockAvailability?: FieldPolicy<any> | FieldReadFunction<any>,
+diff --git a/src/graphql/types.generated.ts b/src/graphql/types.generated.ts
+index 8738069..014f65b 100644
+--- a/src/graphql/types.generated.ts
++++ b/src/graphql/types.generated.ts
+@@ -7051,6 +7051,8 @@ export type ProductBulkCreateInput = {
+   description?: InputMaybe<Scalars['JSONString']['input']>;
+   /** External ID of this product. */
+   externalReference?: InputMaybe<Scalars['String']['input']>;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted?: InputMaybe<Scalars['Boolean']['input']>;
+   /** List of media inputs associated with the product. */
+   media?: InputMaybe<Array<MediaInput>>;
+   /**
+@@ -7178,6 +7180,8 @@ export type ProductCreateInput = {
+   description?: InputMaybe<Scalars['JSONString']['input']>;
+   /** External ID of this product. */
+   externalReference?: InputMaybe<Scalars['String']['input']>;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted?: InputMaybe<Scalars['Boolean']['input']>;
+   /**
+    * Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+    *
+@@ -7321,6 +7325,8 @@ export type ProductInput = {
+   description?: InputMaybe<Scalars['JSONString']['input']>;
+   /** External ID of this product. */
+   externalReference?: InputMaybe<Scalars['String']['input']>;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted?: InputMaybe<Scalars['Boolean']['input']>;
+   /**
+    * Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+    *
+@@ -8592,6 +8598,8 @@ export type ShopSettingsInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata?: InputMaybe<Array<MetadataInput>>;
++  /** Minimum age required to purchase age-restricted products. */
++  minimumAge?: InputMaybe<Scalars['Int']['input']>;
+   /**
+    * Shop's name.
+    *
+@@ -8620,6 +8628,8 @@ export type ShopSettingsInput = {
+   reserveStockDurationAnonymousUser?: InputMaybe<Scalars['Int']['input']>;
+   /** Default number of minutes stock will be reserved for authenticated checkout. Enter 0 or null to disable. */
+   reserveStockDurationAuthenticatedUser?: InputMaybe<Scalars['Int']['input']>;
++  /** IANA time zone used to determine age eligibility. */
++  timeZone?: InputMaybe<Scalars['String']['input']>;
+   /** This field is used as a default value for `ProductVariant.trackInventory`. */
+   trackInventoryByDefault?: InputMaybe<Scalars['Boolean']['input']>;
+   /**
+@@ -12971,7 +12981,7 @@ export type ProductVariantSiblingFragment = { __typename: 'ProductVariant', id:
+ 
+ export type ProductVariantGeneratorExistingFragment = { __typename: 'ProductVariant', id: string, sku: string | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', id: string }, values: Array<{ __typename: 'AttributeValue', id: string, slug: string | null }> }> };
+ 
+-export type ProductFragment = { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, isAvailable: boolean | null, id: string, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, category: { __typename: 'Category', id: string, name: string } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> };
++export type ProductFragment = { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, isAgeRestricted: boolean, isAvailable: boolean | null, id: string, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, category: { __typename: 'Category', id: string, name: string } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> };
+ 
+ export type VariantAttributeFragment = { __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null };
+ 
+@@ -13007,7 +13017,7 @@ export type LimitInfoFragment = { __typename: 'Limits', channels?: number | null
+ 
+ export type ShopLimitFragment = { __typename: 'Shop', limits: { __typename: 'LimitInfo', currentUsage: { __typename: 'Limits', channels?: number | null, orders?: number | null, productVariants?: number | null, staffUsers?: number | null, warehouses?: number | null }, allowedUsage: { __typename: 'Limits', channels?: number | null, orders?: number | null, productVariants?: number | null, staffUsers?: number | null, warehouses?: number | null } } };
+ 
+-export type ShopFragment = { __typename: 'Shop', customerSetPasswordUrl: string | null, defaultMailSenderAddress: string | null, defaultMailSenderName: string | null, description: string | null, name: string, reserveStockDurationAnonymousUser: number | null, reserveStockDurationAuthenticatedUser: number | null, limitQuantityPerCheckout: number | null, enableAccountConfirmationByEmail: boolean | null, useLegacyUpdateWebhookEmission: boolean | null, useLegacyShippingZoneStockAvailability: boolean, preserveAllAddressFields: boolean, passwordLoginMode: PasswordLoginModeEnum, allowStorefrontTraffic: boolean, companyAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, countries: Array<{ __typename: 'CountryDisplay', code: string, country: string }>, domain: { __typename: 'Domain', host: string } };
++export type ShopFragment = { __typename: 'Shop', customerSetPasswordUrl: string | null, defaultMailSenderAddress: string | null, defaultMailSenderName: string | null, description: string | null, name: string, reserveStockDurationAnonymousUser: number | null, reserveStockDurationAuthenticatedUser: number | null, limitQuantityPerCheckout: number | null, enableAccountConfirmationByEmail: boolean | null, useLegacyUpdateWebhookEmission: boolean | null, useLegacyShippingZoneStockAvailability: boolean, preserveAllAddressFields: boolean, passwordLoginMode: PasswordLoginModeEnum, allowStorefrontTraffic: boolean, minimumAge: number, timeZone: string, companyAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, countries: Array<{ __typename: 'CountryDisplay', code: string, country: string }>, domain: { __typename: 'Domain', host: string } };
+ 
+ export type StaffMemberFragment = { __typename: 'User', id: string, email: string, firstName: string, isActive: boolean, lastLogin: any | null, lastName: string };
+ 
+@@ -14223,7 +14233,7 @@ export type ProductDetailsQueryVariables = Exact<{
+ }>;
+ 
+ 
+-export type ProductDetailsQuery = { __typename: 'Query', product: { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, isAvailable: boolean | null, id: string, category: { __typename: 'Category', id: string, name: string, level: number, parent: { __typename: 'Category', id: string, name: string } | null, ancestors: { __typename: 'CategoryCountableConnection', edges: Array<{ __typename: 'CategoryCountableEdge', node: { __typename: 'Category', id: string, name: string } }> } | null } | null, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> } | null };
++export type ProductDetailsQuery = { __typename: 'Query', product: { __typename: 'Product', name: string, slug: string, description: string | null, seoTitle: string | null, seoDescription: string | null, rating: number | null, isAgeRestricted: boolean, isAvailable: boolean | null, id: string, category: { __typename: 'Category', id: string, name: string, level: number, parent: { __typename: 'Category', id: string, name: string } | null, ancestors: { __typename: 'CategoryCountableConnection', edges: Array<{ __typename: 'CategoryCountableEdge', node: { __typename: 'Category', id: string, name: string } }> } | null } | null, defaultVariant: { __typename: 'ProductVariant', id: string, sku: string | null, trackInventory: boolean } | null, collections: Array<{ __typename: 'Collection', id: string, name: string }> | null, channelListings: Array<{ __typename: 'ProductChannelListing', id: string, isPublished: boolean, publishedAt: any | null, isAvailableForPurchase: boolean | null, availableForPurchaseAt: any | null, visibleInListings: boolean, channel: { __typename: 'Channel', id: string, name: string, currencyCode: string, slug: string, isActive: boolean } }> | null, media: Array<{ __typename: 'ProductMedia', id: string, alt: string, sortOrder: number | null, url: string, type: ProductMediaType, oembedData: string }> | null, productType: { __typename: 'ProductType', id: string, name: string, slug: string, hasVariants: boolean, isShippingRequired: boolean, variantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, selectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null, nonSelectionVariantAttributes: Array<{ __typename: 'Attribute', id: string, name: string, slug: string, inputType: AttributeInputTypeEnum | null, entityType: AttributeEntityTypeEnum | null, valueRequired: boolean, unit: MeasurementUnitsEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }> | null }, weight: { __typename: 'Weight', unit: WeightUnitsEnum, value: number } | null, taxClass: { __typename: 'TaxClass', id: string, name: string } | null, attributes: Array<{ __typename: 'SelectedAttribute', attribute: { __typename: 'Attribute', availableInGrid: boolean, entityType: AttributeEntityTypeEnum | null, storefrontSearchPosition: number, valueRequired: boolean, id: string, name: string, slug: string, type: AttributeTypeEnum, visibleInStorefront: boolean, filterableInStorefront: boolean, unit: MeasurementUnitsEnum | null, inputType: AttributeInputTypeEnum | null, referenceTypes: Array<{ __typename: 'PageType', id: string, name: string } | { __typename: 'ProductType', id: string, name: string }> | null, choices: { __typename: 'AttributeValueCountableConnection', pageInfo: { __typename: 'PageInfo', endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null }, edges: Array<{ __typename: 'AttributeValueCountableEdge', cursor: string, node: { __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null } }> } | null }, values: Array<{ __typename: 'AttributeValue', plainText: string | null, richText: string | null, id: string, name: string | null, slug: string | null, reference: string | null, boolean: boolean | null, date: string | null, dateTime: any | null, value: string | null, file: { __typename: 'File', url: string, contentType: string | null } | null }> }>, metadata: Array<{ __typename: 'MetadataItem', key: string, value: string }>, privateMetadata: Array<{ __typename: 'MetadataItem', key: string, value: string }> } | null };
+ 
+ export type ProductTypeQueryVariables = Exact<{
+   id: Scalars['ID']['input'];
+@@ -14785,12 +14795,12 @@ export type ShopSettingsUpdateMutationVariables = Exact<{
+ }>;
+ 
+ 
+-export type ShopSettingsUpdateMutation = { __typename: 'Mutation', shopSettingsUpdate: { __typename: 'ShopSettingsUpdate', errors: Array<{ __typename: 'ShopError', code: ShopErrorCode, field: string | null, message: string | null }>, shop: { __typename: 'Shop', customerSetPasswordUrl: string | null, defaultMailSenderAddress: string | null, defaultMailSenderName: string | null, description: string | null, name: string, reserveStockDurationAnonymousUser: number | null, reserveStockDurationAuthenticatedUser: number | null, limitQuantityPerCheckout: number | null, enableAccountConfirmationByEmail: boolean | null, useLegacyUpdateWebhookEmission: boolean | null, useLegacyShippingZoneStockAvailability: boolean, preserveAllAddressFields: boolean, passwordLoginMode: PasswordLoginModeEnum, allowStorefrontTraffic: boolean, companyAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, countries: Array<{ __typename: 'CountryDisplay', code: string, country: string }>, domain: { __typename: 'Domain', host: string } } | null } | null, shopAddressUpdate: { __typename: 'ShopAddressUpdate', errors: Array<{ __typename: 'ShopError', code: ShopErrorCode, field: string | null, message: string | null }>, shop: { __typename: 'Shop', companyAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null } | null } | null };
++export type ShopSettingsUpdateMutation = { __typename: 'Mutation', shopSettingsUpdate: { __typename: 'ShopSettingsUpdate', errors: Array<{ __typename: 'ShopError', code: ShopErrorCode, field: string | null, message: string | null }>, shop: { __typename: 'Shop', customerSetPasswordUrl: string | null, defaultMailSenderAddress: string | null, defaultMailSenderName: string | null, description: string | null, name: string, reserveStockDurationAnonymousUser: number | null, reserveStockDurationAuthenticatedUser: number | null, limitQuantityPerCheckout: number | null, enableAccountConfirmationByEmail: boolean | null, useLegacyUpdateWebhookEmission: boolean | null, useLegacyShippingZoneStockAvailability: boolean, preserveAllAddressFields: boolean, passwordLoginMode: PasswordLoginModeEnum, allowStorefrontTraffic: boolean, minimumAge: number, timeZone: string, companyAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, countries: Array<{ __typename: 'CountryDisplay', code: string, country: string }>, domain: { __typename: 'Domain', host: string } } | null } | null, shopAddressUpdate: { __typename: 'ShopAddressUpdate', errors: Array<{ __typename: 'ShopError', code: ShopErrorCode, field: string | null, message: string | null }>, shop: { __typename: 'Shop', companyAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null } | null } | null };
+ 
+ export type SiteSettingsQueryVariables = Exact<{ [key: string]: never; }>;
+ 
+ 
+-export type SiteSettingsQuery = { __typename: 'Query', shop: { __typename: 'Shop', customerSetPasswordUrl: string | null, defaultMailSenderAddress: string | null, defaultMailSenderName: string | null, description: string | null, name: string, reserveStockDurationAnonymousUser: number | null, reserveStockDurationAuthenticatedUser: number | null, limitQuantityPerCheckout: number | null, enableAccountConfirmationByEmail: boolean | null, useLegacyUpdateWebhookEmission: boolean | null, useLegacyShippingZoneStockAvailability: boolean, preserveAllAddressFields: boolean, passwordLoginMode: PasswordLoginModeEnum, allowStorefrontTraffic: boolean, companyAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, countries: Array<{ __typename: 'CountryDisplay', code: string, country: string }>, domain: { __typename: 'Domain', host: string } } };
++export type SiteSettingsQuery = { __typename: 'Query', shop: { __typename: 'Shop', customerSetPasswordUrl: string | null, defaultMailSenderAddress: string | null, defaultMailSenderName: string | null, description: string | null, name: string, reserveStockDurationAnonymousUser: number | null, reserveStockDurationAuthenticatedUser: number | null, limitQuantityPerCheckout: number | null, enableAccountConfirmationByEmail: boolean | null, useLegacyUpdateWebhookEmission: boolean | null, useLegacyShippingZoneStockAvailability: boolean, preserveAllAddressFields: boolean, passwordLoginMode: PasswordLoginModeEnum, allowStorefrontTraffic: boolean, minimumAge: number, timeZone: string, companyAddress: { __typename: 'Address', city: string, cityArea: string, companyName: string, countryArea: string, firstName: string, id: string, lastName: string, phone: string | null, postalCode: string, streetAddress1: string, streetAddress2: string, country: { __typename: 'CountryDisplay', code: string, country: string } } | null, countries: Array<{ __typename: 'CountryDisplay', code: string, country: string }>, domain: { __typename: 'Domain', host: string } } };
+ 
+ export type StaffMemberAddMutationVariables = Exact<{
+   input: StaffCreateInput;
+diff --git a/src/graphql/typesStaging.generated.ts b/src/graphql/typesStaging.generated.ts
+index a04df26..7f7195c 100644
+--- a/src/graphql/typesStaging.generated.ts
++++ b/src/graphql/typesStaging.generated.ts
+@@ -6712,6 +6712,8 @@ export type ProductBulkCreateInput = {
+   description?: InputMaybe<Scalars['JSONString']['input']>;
+   /** External ID of this product. */
+   externalReference?: InputMaybe<Scalars['String']['input']>;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted?: InputMaybe<Scalars['Boolean']['input']>;
+   /** List of media inputs associated with the product. */
+   media?: InputMaybe<Array<MediaInput>>;
+   /**
+@@ -6834,6 +6836,8 @@ export type ProductCreateInput = {
+   description?: InputMaybe<Scalars['JSONString']['input']>;
+   /** External ID of this product. */
+   externalReference?: InputMaybe<Scalars['String']['input']>;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted?: InputMaybe<Scalars['Boolean']['input']>;
+   /**
+    * Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+    *
+@@ -6965,6 +6969,8 @@ export type ProductInput = {
+   description?: InputMaybe<Scalars['JSONString']['input']>;
+   /** External ID of this product. */
+   externalReference?: InputMaybe<Scalars['String']['input']>;
++  /** Whether customers must meet the shop's minimum age to purchase this product. */
++  isAgeRestricted?: InputMaybe<Scalars['Boolean']['input']>;
+   /**
+    * Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
+    *
+@@ -8149,6 +8155,8 @@ export type ShopSettingsInput = {
+    * Warning: never store sensitive information, including financial data such as credit card details.
+    */
+   metadata?: InputMaybe<Array<MetadataInput>>;
++  /** Minimum age required to purchase age-restricted products. */
++  minimumAge?: InputMaybe<Scalars['Int']['input']>;
+   /**
+    * Shop's name.
+    *
+@@ -8177,6 +8185,8 @@ export type ShopSettingsInput = {
+   reserveStockDurationAnonymousUser?: InputMaybe<Scalars['Int']['input']>;
+   /** Default number of minutes stock will be reserved for authenticated checkout. Enter 0 or null to disable. */
+   reserveStockDurationAuthenticatedUser?: InputMaybe<Scalars['Int']['input']>;
++  /** IANA time zone used to determine age eligibility. */
++  timeZone?: InputMaybe<Scalars['String']['input']>;
+   /** This field is used as a default value for `ProductVariant.trackInventory`. */
+   trackInventoryByDefault?: InputMaybe<Scalars['Boolean']['input']>;
+   /**
+diff --git a/src/products/components/CreateProductDialog/CreateProductDialog.test.tsx b/src/products/components/CreateProductDialog/CreateProductDialog.test.tsx
+index f66f490..cb4a51d 100644
+--- a/src/products/components/CreateProductDialog/CreateProductDialog.test.tsx
++++ b/src/products/components/CreateProductDialog/CreateProductDialog.test.tsx
+@@ -53,6 +53,30 @@ describe("CreateProductDialog", () => {
+       name: "Bean Juice",
+       productTypeId: "pt-beer",
+       hasVariants: true,
++      isAgeRestricted: false,
++    });
++  });
++
++  it("creates an age-restricted product when selected", async () => {
++    // Arrange
++    const onSubmit = jest.fn().mockResolvedValue([]);
++    const user = userEvent.setup();
++
++    render(<CreateProductDialog {...defaultProps} onSubmit={onSubmit} />, { wrapper: Wrapper });
++
++    // Act
++    await user.type(screen.getByTestId("product-name-input"), "Bean Juice");
++    await user.click(screen.getByTestId("dialog-product-type"));
++    await user.click(screen.getByText("Beer"));
++    await user.click(screen.getByTestId("product-age-restricted"));
++    await user.click(screen.getByTestId("submit"));
++
++    // Assert
++    expect(onSubmit).toHaveBeenCalledWith({
++      name: "Bean Juice",
++      productTypeId: "pt-beer",
++      hasVariants: true,
++      isAgeRestricted: true,
+     });
+   });
+ 
+diff --git a/src/products/components/CreateProductDialog/CreateProductDialog.tsx b/src/products/components/CreateProductDialog/CreateProductDialog.tsx
+index 5db5ad5..dae2caa 100644
+--- a/src/products/components/CreateProductDialog/CreateProductDialog.tsx
++++ b/src/products/components/CreateProductDialog/CreateProductDialog.tsx
+@@ -11,7 +11,15 @@ import { type SubmitPromise } from "@dashboard/hooks/useForm";
+ import useModalDialogOpen from "@dashboard/hooks/useModalDialogOpen/useModalDialogOpen";
+ import { buttonMessages, commonMessages } from "@dashboard/intl";
+ import { type FetchMoreProps } from "@dashboard/types";
+-import { Box, Button, DynamicCombobox, Input, type Option, Text } from "@saleor/macaw-ui-next";
++import {
++  Box,
++  Button,
++  Checkbox,
++  DynamicCombobox,
++  Input,
++  type Option,
++  Text,
++} from "@saleor/macaw-ui-next";
+ import { useState } from "react";
+ import { FormattedMessage, useIntl } from "react-intl";
+ 
+@@ -25,6 +33,7 @@ interface CreateProductFormData {
+   name: string;
+   productTypeId: string;
+   hasVariants: boolean;
++  isAgeRestricted: boolean;
+ }
+ 
+ interface CreateProductDialogProps {
+@@ -42,6 +51,7 @@ interface CreateProductDialogProps {
+ }
+ 
+ interface CreateProductFields {
++  isAgeRestricted: boolean;
+   name: string;
+ }
+ 
+@@ -118,6 +128,7 @@ export const CreateProductDialog = ({
+     .join(" ");
+ 
+   const initialForm: CreateProductFields = {
++    isAgeRestricted: false,
+     name: "",
+   };
+ 
+@@ -171,6 +182,7 @@ export const CreateProductDialog = ({
+               name: data.name.trim(),
+               productTypeId: selectedOption.value,
+               hasVariants: selectedOption.hasVariants,
++              isAgeRestricted: data.isAgeRestricted,
+             });
+ 
+             setSubmitErrors(errors ?? []);
+@@ -215,6 +227,27 @@ export const CreateProductDialog = ({
+                       onScrollEnd={handleScrollEnd}
+                       loading={fetchMoreProductTypes?.loading}
+                     />
++                    <Checkbox
++                      checked={data.isAgeRestricted}
++                      disabled={disabled}
++                      label={intl.formatMessage({
++                        id: "N9WpOh",
++                        defaultMessage: "Age-restricted product",
++                        description: "product age restriction label",
++                      })}
++                      name="isAgeRestricted"
++                      onCheckedChange={value =>
++                        change({ target: { name: "isAgeRestricted", value } })
++                      }
++                      data-test-id="product-age-restricted"
++                    />
++                    <Text size={2} color="default2">
++                      <FormattedMessage
++                        id="u0JpA7"
++                        defaultMessage="Customers must meet the store's minimum age to purchase this product."
++                        description="product age restriction explanation"
++                      />
++                    </Text>
+                     {fieldErrors ? (
+                       <Text size={2} color="critical1" as="p">
+                         {fieldErrors}
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
+index 417fff3..94a72c7 100644
+--- a/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.stories.tsx
+@@ -29,7 +29,12 @@ const ProductDetailsFormPlayground = ({
+   rating,
+   withShippingWeight = false,
+ }: PlaygroundProps): React.ReactNode => {
+-  const [data, setData] = useState({ name: "Olive oil", description: { blocks: [] }, rating });
++  const [data, setData] = useState({
++    name: "Olive oil",
++    description: { blocks: [] },
++    isAgeRestricted: false,
++    rating,
++  });
+   const [weight, setWeight] = useState("0.5");
+   const richText = useRichText({ initial: description, triggerChange: () => undefined });
+ 
+diff --git a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
+index f54cb77..0abddf9 100644
+--- a/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
++++ b/src/products/components/ProductDetailsForm/ProductDetailsForm.tsx
+@@ -10,12 +10,13 @@ import { getFormErrors, getProductErrorMessage } from "@dashboard/utils/errors";
+ import createNonNegativeValueChangeHandler from "@dashboard/utils/handlers/nonNegativeValueChangeHandler";
+ import { useRichTextContext } from "@dashboard/utils/richText/context";
+ import { type OutputData } from "@editorjs/editorjs";
+-import { Box, Input } from "@saleor/macaw-ui-next";
++import { Box, Checkbox, Input } from "@saleor/macaw-ui-next";
+ import { useIntl } from "react-intl";
+ 
+ interface ProductDetailsFormProps {
+   data: {
+     description: OutputData;
++    isAgeRestricted: boolean;
+     name: string;
+     rating: number | null;
+   };
+@@ -38,7 +39,10 @@ export const ProductDetailsForm = ({
+   onDescriptionChange,
+ }: ProductDetailsFormProps) => {
+   const intl = useIntl();
+-  const formErrors = getFormErrors(["name", "description", "rating", "weight"], errors);
++  const formErrors = getFormErrors(
++    ["name", "description", "rating", "weight", "isAgeRestricted"],
++    errors,
++  );
+   const { editorRef, defaultValue, isReadyForMount, handleChange } = useRichTextContext();
+   const handleWeightChange = createNonNegativeValueChangeHandler(onChange);
+ 
+@@ -90,6 +94,31 @@ export const ProductDetailsForm = ({
+         />
+       )}
+       <FormSpacer />
++      <Box display="flex" flexDirection="column" gap={1}>
++        <Checkbox
++          checked={data.isAgeRestricted}
++          disabled={disabled}
++          error={!!formErrors.isAgeRestricted}
++          label={intl.formatMessage({
++            id: "N9WpOh",
++            defaultMessage: "Age-restricted product",
++            description: "product age restriction label",
++          })}
++          name="isAgeRestricted"
++          onCheckedChange={value => onChange({ target: { name: "isAgeRestricted", value } })}
++          data-test-id="product-age-restricted"
++        />
++        <Box color={formErrors.isAgeRestricted ? "critical1" : "default2"} fontSize={2}>
++          {getProductErrorMessage(formErrors.isAgeRestricted, intl) ||
++            intl.formatMessage({
++              id: "u0JpA7",
++              defaultMessage:
++                "Customers must meet the store's minimum age to purchase this product.",
++              description: "product age restriction explanation",
++            })}
++        </Box>
++      </Box>
++      <FormSpacer />
+       <Box display="grid" __gridTemplateColumns="1fr 1fr" gap={4} alignItems="start">
+         <Input
+           label={intl.formatMessage({
+diff --git a/src/products/components/ProductUpdatePage/types.ts b/src/products/components/ProductUpdatePage/types.ts
+index e236f93..50e2a6d 100644
+--- a/src/products/components/ProductUpdatePage/types.ts
++++ b/src/products/components/ProductUpdatePage/types.ts
+@@ -40,6 +40,7 @@ export interface ProductUpdateFormData {
+   category: string | null;
+   taxClassId: string;
+   collections: Option[];
++  isAgeRestricted: boolean;
+   isAvailable: boolean;
+   name: string;
+   rating: number;
+diff --git a/src/products/fixtures.ts b/src/products/fixtures.ts
+index 15487df..ecd4a7a 100644
+--- a/src/products/fixtures.ts
++++ b/src/products/fixtures.ts
+@@ -274,6 +274,7 @@ export const product: (
+   },
+   description: JSON.stringify(content),
+   id: "p10171",
++  isAgeRestricted: false,
+   isAvailable: false,
+   isAvailableForPurchase: false,
+   isFeatured: false,
+diff --git a/src/products/utils/data.test.ts b/src/products/utils/data.test.ts
+index fb12c7c..3a57cd1 100644
+--- a/src/products/utils/data.test.ts
++++ b/src/products/utils/data.test.ts
+@@ -1,4 +1,4 @@
+-import { getSelectedMedia } from "./data";
++import { getProductUpdatePageFormData, getSelectedMedia } from "./data";
+ 
+ type GetSelectedMediaParams = Parameters<typeof getSelectedMedia>;
+ 
+@@ -72,3 +72,14 @@ describe("Product media utils", () => {
+     expect(result).toEqual([]);
+   });
+ });
++
++describe("getProductUpdatePageFormData", () => {
++  it("returns loading-safe defaults before the product query resolves", () => {
++    expect(
++      getProductUpdatePageFormData(
++        undefined as unknown as Parameters<typeof getProductUpdatePageFormData>[0],
++        [],
++      ),
++    ).toMatchObject({ isAgeRestricted: false });
++  });
++});
+diff --git a/src/products/utils/data.ts b/src/products/utils/data.ts
+index fd355af..709c429 100644
+--- a/src/products/utils/data.ts
++++ b/src/products/utils/data.ts
+@@ -204,6 +204,7 @@ export function getProductUpdatePageFormData(
+         })),
+       [],
+     ),
++    isAgeRestricted: product?.isAgeRestricted ?? false,
+     isAvailable: !!product?.isAvailable,
+     name: maybe(() => product.name, ""),
+     rating: maybe(() => product.rating, null),
+diff --git a/src/products/views/ProductList/ProductList.tsx b/src/products/views/ProductList/ProductList.tsx
+index 910b9e1..2880db8 100644
+--- a/src/products/views/ProductList/ProductList.tsx
++++ b/src/products/views/ProductList/ProductList.tsx
+@@ -455,11 +455,12 @@ const ProductList = ({ params }: ProductListProps) => {
+         }
+         onClose={closeModal}
+         onCreateProductType={() => openModal("create-product-type")}
+-        onSubmit={async ({ name, productTypeId, hasVariants }) => {
++        onSubmit={async ({ name, productTypeId, hasVariants, isAgeRestricted }) => {
+           const { productId, errors } = await createMinimalProduct({
+             name,
+             productTypeId,
+             hasVariants,
++            isAgeRestricted,
+             productCreate: variables => createProduct({ variables }),
+             productVariantCreate: variables => createVariant({ variables }),
+             productDelete: variables => deleteProduct({ variables }),
+diff --git a/src/products/views/ProductList/createMinimalProduct.test.ts b/src/products/views/ProductList/createMinimalProduct.test.ts
+index 17055b5..b6fcaea 100644
+--- a/src/products/views/ProductList/createMinimalProduct.test.ts
++++ b/src/products/views/ProductList/createMinimalProduct.test.ts
+@@ -20,6 +20,7 @@ describe("createMinimalProduct", () => {
+       name: "Bean Juice",
+       productTypeId: "pt1",
+       hasVariants: true,
++      isAgeRestricted: false,
+       productCreate,
+       productVariantCreate,
+       productDelete,
+@@ -28,7 +29,7 @@ describe("createMinimalProduct", () => {
+     // Assert
+     expect(result).toEqual({ productId: "p1", errors: [] });
+     expect(productCreate).toHaveBeenCalledWith({
+-      input: { name: "Bean Juice", productType: "pt1" },
++      input: { name: "Bean Juice", productType: "pt1", isAgeRestricted: false },
+     });
+     expect(productVariantCreate).not.toHaveBeenCalled();
+   });
+@@ -47,6 +48,7 @@ describe("createMinimalProduct", () => {
+       name: "Mug",
+       productTypeId: "pt-simple",
+       hasVariants: false,
++      isAgeRestricted: false,
+       productCreate,
+       productVariantCreate,
+       productDelete,
+@@ -82,6 +84,7 @@ describe("createMinimalProduct", () => {
+       name: "Mug",
+       productTypeId: "pt-simple",
+       hasVariants: false,
++      isAgeRestricted: false,
+       productCreate,
+       productVariantCreate,
+       productDelete,
+@@ -111,6 +114,7 @@ describe("createMinimalProduct", () => {
+       name: "",
+       productTypeId: "pt1",
+       hasVariants: false,
++      isAgeRestricted: false,
+       productCreate,
+       productVariantCreate,
+       productDelete,
+diff --git a/src/products/views/ProductList/createMinimalProduct.ts b/src/products/views/ProductList/createMinimalProduct.ts
+index 79c0e40..6d7e215 100644
+--- a/src/products/views/ProductList/createMinimalProduct.ts
++++ b/src/products/views/ProductList/createMinimalProduct.ts
+@@ -15,6 +15,7 @@ interface CreateMinimalProductParams {
+   name: string;
+   productTypeId: string;
+   hasVariants: boolean;
++  isAgeRestricted: boolean;
+   productCreate: (
+     variables: ProductCreateMutationVariables,
+   ) => Promise<FetchResult<ProductCreateMutation>>;
+@@ -41,6 +42,7 @@ export const createMinimalProduct = async ({
+   name,
+   productTypeId,
+   hasVariants,
++  isAgeRestricted,
+   productCreate,
+   productVariantCreate,
+   productDelete,
+@@ -48,6 +50,7 @@ export const createMinimalProduct = async ({
+   const createResult = await productCreate({
+     input: {
+       name,
++      isAgeRestricted,
+       productType: productTypeId,
+     },
+   });
+diff --git a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
+index fd11549..c265407 100644
+--- a/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
++++ b/src/products/views/ProductUpdate/handlers/useProductUpdateHandler.test.tsx
+@@ -93,6 +93,7 @@ const submitData: ProductUpdateSubmitData = {
+   channels: { removeChannels: [], updateChannels: [] },
+   collections: [],
+   description: { blocks: [] },
++  isAgeRestricted: false,
+   isAvailable: true,
+   name: product.name,
+   rating: 0,
+diff --git a/src/products/views/ProductUpdate/handlers/utils.test.ts b/src/products/views/ProductUpdate/handlers/utils.test.ts
+index f5bcd9c..471352c 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.test.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.test.ts
+@@ -330,6 +330,20 @@ describe("getProductUpdateVariables", () => {
+     expect(result.input.weight).toBe(10.5);
+   });
+ 
++  it.each([true, false])("serializes an explicit age restriction value of %s", isAgeRestricted => {
++    // Arrange
++    const data = {
++      ...baseData,
++      isAgeRestricted,
++    } as ProductUpdateSubmitData;
++
++    // Act
++    const result = getProductUpdateVariables(baseProduct, data, []);
++
++    // Assert
++    expect(result.input.isAgeRestricted).toBe(isAgeRestricted);
++  });
++
+   it("should include weight when zero is provided", () => {
+     // Arrange
+     const data = {
+diff --git a/src/products/views/ProductUpdate/handlers/utils.ts b/src/products/views/ProductUpdate/handlers/utils.ts
+index 74f714e..79c254f 100644
+--- a/src/products/views/ProductUpdate/handlers/utils.ts
++++ b/src/products/views/ProductUpdate/handlers/utils.ts
+@@ -65,6 +65,10 @@ export function getProductUpdateVariables(
+     variables.input["name"] = data.name;
+   }
+ 
++  if (data.isAgeRestricted !== undefined) {
++    variables.input["isAgeRestricted"] = data.isAgeRestricted;
++  }
++
+   // Presence of the key means the field changed (payload holds changed fields only),
+   // so an empty value is an explicit clear — send null instead of dropping the field.
+   if (data.rating !== undefined) {
+diff --git a/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.test.tsx b/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.test.tsx
+index d5cd51d..16756d2 100644
+--- a/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.test.tsx
++++ b/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.test.tsx
+@@ -57,6 +57,7 @@ describe("SiteSettingsPage — API access section", () => {
+       "store-details",
+       "company-information",
+       "customer-accounts",
++      "age-restrictions",
+       "api-access",
+       "advanced",
+     ]);
+@@ -90,4 +91,13 @@ describe("SiteSettingsPage — API access section", () => {
+       screen.getByText(/Schema introspection requires app or staff credentials/),
+     ).toBeInTheDocument();
+   });
++
++  it("initializes the age restriction settings from the shop", () => {
++    // Arrange & Act
++    renderPage(true);
++
++    // Assert
++    expect(screen.getByTestId("minimum-age-input")).toHaveValue(18);
++    expect(screen.getByTestId("time-zone-input")).toHaveValue("UTC");
++  });
+ });
+diff --git a/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.tsx b/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.tsx
+index b06fc5c..58f0f6b 100644
+--- a/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.tsx
++++ b/src/siteSettings/components/SiteSettingsPage/SiteSettingsPage.tsx
+@@ -25,9 +25,11 @@ import { type SubmitPromise } from "@dashboard/hooks/useForm";
+ import useNavigator from "@dashboard/hooks/useNavigator";
+ import useStateFromProps from "@dashboard/hooks/useStateFromProps";
+ import { sectionNames } from "@dashboard/intl";
++import { getFormErrors } from "@dashboard/utils/errors";
++import getShopErrorMessage from "@dashboard/utils/errors/shop";
+ import createSingleAutocompleteSelectHandler from "@dashboard/utils/handlers/singleAutocompleteSelectChangeHandler";
+ import { mapCountriesToChoices } from "@dashboard/utils/maps";
+-import { Box, Text } from "@saleor/macaw-ui-next";
++import { Box, Input, Text } from "@saleor/macaw-ui-next";
+ import { FormattedMessage, useIntl } from "react-intl";
+ 
+ import { messages as passwordLoginMessages } from "../SitePasswordLoginCard/messages";
+@@ -67,6 +69,8 @@ export interface SiteSettingsPageFormData extends SiteSettingsPageAddressFormDat
+   preserveAllAddressFields: boolean;
+   passwordLoginMode: PasswordLoginModeEnum;
+   allowStorefrontTraffic: boolean;
++  minimumAge: number;
++  timeZone: string;
+ }
+ 
+ interface SiteSettingsPageProps {
+@@ -127,7 +131,10 @@ export const SiteSettingsPage = ({
+     preserveAllAddressFields: shop?.preserveAllAddressFields ?? false,
+     passwordLoginMode: shop?.passwordLoginMode ?? PasswordLoginModeEnum.ENABLED,
+     allowStorefrontTraffic: shop?.allowStorefrontTraffic ?? true,
++    minimumAge: shop?.minimumAge ?? 18,
++    timeZone: shop?.timeZone ?? "UTC",
+   };
++  const formErrors = getFormErrors(["minimumAge", "timeZone"], errors);
+ 
+   return (
+     <SettingsHubLayout
+@@ -280,6 +287,45 @@ export const SiteSettingsPage = ({
+                   </Box>
+                 </SettingsSection>
+ 
++                <SettingsSection
++                  id="age-restrictions"
++                  data-test-id="age-restrictions-settings"
++                  ownership="shop"
++                  title={intl.formatMessage(messages.sectionAgeRestrictionsTitle)}
++                  description={intl.formatMessage(messages.sectionAgeRestrictionsDescription)}
++                >
++                  <SettingsFieldStack>
++                    <Input
++                      name="minimumAge"
++                      label={intl.formatMessage(messages.minimumAgeLabel)}
++                      helperText={
++                        getShopErrorMessage(formErrors.minimumAge, intl) ||
++                        intl.formatMessage(messages.minimumAgeDescription)
++                      }
++                      error={!!formErrors.minimumAge}
++                      value={data.minimumAge}
++                      type="number"
++                      min={1}
++                      disabled={disabled}
++                      onChange={change}
++                      data-test-id="minimum-age-input"
++                    />
++                    <Input
++                      name="timeZone"
++                      label={intl.formatMessage(messages.timeZoneLabel)}
++                      helperText={
++                        getShopErrorMessage(formErrors.timeZone, intl) ||
++                        intl.formatMessage(messages.timeZoneDescription)
++                      }
++                      error={!!formErrors.timeZone}
++                      value={data.timeZone}
++                      disabled={disabled}
++                      onChange={change}
++                      data-test-id="time-zone-input"
++                    />
++                  </SettingsFieldStack>
++                </SettingsSection>
++
+                 <SettingsSection
+                   id={settingsHashes.storeApiAccess}
+                   data-test-id="api-access-settings"
+diff --git a/src/siteSettings/components/SiteSettingsPage/messages.ts b/src/siteSettings/components/SiteSettingsPage/messages.ts
+index 472425c..56dbbed 100644
+--- a/src/siteSettings/components/SiteSettingsPage/messages.ts
++++ b/src/siteSettings/components/SiteSettingsPage/messages.ts
+@@ -33,6 +33,37 @@ export const messages = defineMessages({
+     defaultMessage: "Control how customers register and sign in to your storefront.",
+     description: "section description for customer accounts",
+   },
++  sectionAgeRestrictionsTitle: {
++    id: "5c2J0e",
++    defaultMessage: "Age restrictions",
++    description: "section title for age-restricted product settings",
++  },
++  sectionAgeRestrictionsDescription: {
++    id: "hgXir2",
++    defaultMessage:
++      "Set the minimum customer age and the IANA time zone used to determine eligibility.",
++    description: "section description for age-restricted product settings",
++  },
++  minimumAgeLabel: {
++    id: "l8IX+6",
++    defaultMessage: "Minimum age",
++    description: "minimum age setting label",
++  },
++  minimumAgeDescription: {
++    id: "ruGr/2",
++    defaultMessage: "Customers must meet this age to purchase age-restricted products.",
++    description: "minimum age setting description",
++  },
++  timeZoneLabel: {
++    id: "K8Y9yq",
++    defaultMessage: "Time zone",
++    description: "IANA time zone setting label",
++  },
++  timeZoneDescription: {
++    id: "8zOoF8",
++    defaultMessage: "Use an IANA time zone identifier, such as Europe/Warsaw.",
++    description: "IANA time zone setting description",
++  },
+   sectionEmailConfirmationTitle: {
+     id: "qNeXG1",
+     defaultMessage: "User registration",
+diff --git a/src/siteSettings/fixtures.ts b/src/siteSettings/fixtures.ts
+index 56b30b5..ff7fc60 100644
+--- a/src/siteSettings/fixtures.ts
++++ b/src/siteSettings/fixtures.ts
+@@ -43,6 +43,8 @@ export const shop: SiteSettingsQuery["shop"] = {
+   preserveAllAddressFields: false,
+   passwordLoginMode: PasswordLoginModeEnum.ENABLED,
+   allowStorefrontTraffic: true,
++  minimumAge: 18,
++  timeZone: "UTC",
+   reserveStockDurationAnonymousUser: 10,
+   reserveStockDurationAuthenticatedUser: 10,
+   limitQuantityPerCheckout: 50,
+diff --git a/src/siteSettings/views/index.tsx b/src/siteSettings/views/index.tsx
+index 802451a..e20f4c6 100644
+--- a/src/siteSettings/views/index.tsx
++++ b/src/siteSettings/views/index.tsx
+@@ -79,6 +79,8 @@ const SiteSettings = () => {
+       preserveAllAddressFields: data.preserveAllAddressFields,
+       passwordLoginMode: data.passwordLoginMode,
+       allowStorefrontTraffic: data.allowStorefrontTraffic,
++      minimumAge: Number(data.minimumAge),
++      timeZone: data.timeZone,
+     };
+ 
+     return extractMutationErrors(
