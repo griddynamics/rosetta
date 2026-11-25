@@ -1,0 +1,75 @@
+{
+ "run_id": "S-CC-03-v0-r1",
+ "judge_run": 3,
+ "model": "claude-opus-5-5 (Claude Code subagent, general-purpose, clean context)",
+ "date": "2026-11-24",
+ "items": [
+  {
+   "item": 1,
+   "stated": "yes",
+   "quote": "Approach: first-class field on `Product` and `ProductTranslation` (not metadata/attributes)."
+  },
+  {
+   "item": 2,
+   "stated": "yes",
+   "quote": "Staff set it on a product in the dashboard; customers see it in the product description on the storefront."
+  },
+  {
+   "item": 3,
+   "stated": "yes",
+   "quote": "Staff set it on a product in the dashboard"
+  },
+  {
+   "item": 4,
+   "stated": "yes",
+   "quote": "customers see it in the product description on the storefront. ... Render a labelled \"Storage conditions\" block under the description only when a value exists"
+  },
+  {
+   "item": 5,
+   "stated": "yes",
+   "quote": "Done = implemented end to end across `saleor`, `saleor-dashboard`, `react-storefront`, with tests, and all relevant tests/linters passing locally."
+  },
+  {
+   "item": 6,
+   "stated": "yes",
+   "quote": "Products get an optional \"storage conditions\" text (e.g. \"Keep refrigerated at 2–8 °C\")."
+  },
+  {
+   "item": 7,
+   "stated": "yes",
+   "quote": "Optional short plain text, product level (not variant). `CharField(max_length=250)`, nullable/blank, like `name`."
+  },
+  {
+   "item": 8,
+   "stated": "yes",
+   "quote": "The field is translatable like product `name`/`description`; the storefront shows the translation when one exists."
+  },
+  {
+   "item": 9,
+   "stated": "yes",
+   "quote": "Optional short plain text, product level (not variant)."
+  },
+  {
+   "item": 10,
+   "stated": "partly",
+   "quote": "`ProductDetails.graphql`: `storageConditions` at top level and inside `translation(languageCode:)` ... Render a labelled \"Storage conditions\" block under the description only when a value exists"
+  },
+  {
+   "item": 11,
+   "stated": "partly",
+   "quote": "`Product.storage_conditions` and `ProductTranslation.storage_conditions`; migration `0211`"
+  },
+  {
+   "item": 12,
+   "stated": "partly",
+   "quote": "GraphQL: `Product.storageConditions`, `ProductTranslation.storageConditions`, `ProductInput` (create/update), translation inputs (`productTranslate`, `productBulkTranslate`)."
+  },
+  {
+   "item": 13,
+   "stated": "no",
+   "quote": ""
+  }
+ ],
+ "unresolved_contradictions": [],
+ "reason": "The requirements decide the field's type, length, optionality, translation, product-level scope, end-to-end delivery and tests. They only imply that the field appears on the storefront product page alone and that the migration needs no backfill. They say nothing about webhook payloads, CSV export, keeping it out of filters and search, or the MANAGE_PRODUCTS permission. No contradictions were planted, and the requirements contain no statements that conflict with each other."
+}

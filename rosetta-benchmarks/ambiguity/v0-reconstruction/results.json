@@ -1,0 +1,222 @@
+{
+  "as_prompt": {
+    "v0": 0.182,
+    "v1": 0.325,
+    "v2": 0.39,
+    "v3": 0.405,
+    "v4": 0.554,
+    "v5": 0.845
+  },
+  "runs": [
+    {
+      "run_id": "S-CC-01-v0-r1",
+      "folder": "small-storage-conditions/claude-code/baseline/v0-r1",
+      "scored": true,
+      "method": "baseline",
+      "prompt_version": "v0",
+      "repeat": "1",
+      "as_prompt": 0.182,
+      "judge_requirements_runs": 3,
+      "as_requirements": 0.092,
+      "clarification_gain": 0.09,
+      "coverage_gap": 0.11,
+      "vague_density": 0.2,
+      "unresolved": 0,
+      "t1_items": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1
+      ],
+      "judge_claims_runs": 3,
+      "flagged": [
+        3,
+        4,
+        8,
+        15
+      ],
+      "passed": 12,
+      "confident_wrong": 2
+    },
+    {
+      "run_id": "S-CC-02-v0-r1",
+      "folder": "small-storage-conditions/claude-code/grill-with-docs/v0-r1",
+      "scored": true,
+      "method": "grill-with-docs",
+      "prompt_version": "v0",
+      "repeat": "1",
+      "as_prompt": 0.182,
+      "judge_requirements_runs": 0,
+      "as_requirements": null,
+      "clarification_gain": null,
+      "coverage_gap": null,
+      "vague_density": null,
+      "unresolved": null,
+      "t1_items": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0
+      ],
+      "judge_claims_runs": 3,
+      "flagged": [
+        5,
+        8,
+        15
+      ],
+      "passed": 14,
+      "confident_wrong": 0
+    },
+    {
+      "run_id": "S-CC-08-v0-r1",
+      "folder": "small-storage-conditions/claude-code/rosetta-skills/v0-r1",
+      "scored": true,
+      "method": "rosetta-skills",
+      "prompt_version": "v0",
+      "repeat": "1",
+      "as_prompt": 0.182,
+      "judge_requirements_runs": 3,
+      "as_requirements": 0.167,
+      "clarification_gain": 0.015,
+      "coverage_gap": 0.0,
+      "vague_density": 0.0,
+      "unresolved": 1,
+      "t1_items": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0
+      ],
+      "judge_claims_runs": 3,
+      "flagged": [
+        3,
+        8,
+        12,
+        14
+      ],
+      "passed": 14,
+      "confident_wrong": 1
+    },
+    {
+      "run_id": "S-CC-03-v0-r1",
+      "folder": "small-storage-conditions/claude-code/superpowers/v0-r1",
+      "scored": true,
+      "method": "superpowers",
+      "prompt_version": "v0",
+      "repeat": "1",
+      "as_prompt": 0.182,
+      "judge_requirements_runs": 3,
+      "as_requirements": 0.088,
+      "clarification_gain": 0.094,
+      "coverage_gap": 0.104,
+      "vague_density": 0.2,
+      "unresolved": 0,
+      "t1_items": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1
+      ],
+      "judge_claims_runs": 3,
+      "flagged": [
+        5
+      ],
+      "passed": 13,
+      "confident_wrong": 2
+    }
+  ],
+  "cells": [
+    {
+      "method": "baseline",
+      "version": "v0",
+      "runs": 1,
+      "as_prompt": 0.182,
+      "as_requirements": 0.092,
+      "clarification_gain": 0.09,
+      "trust": 0.867,
+      "pass_rate": 0.8,
+      "uncertainty": null
+    },
+    {
+      "method": "grill-with-docs",
+      "version": "v0",
+      "runs": 1,
+      "as_prompt": 0.182,
+      "as_requirements": null,
+      "clarification_gain": null,
+      "trust": 1.0,
+      "pass_rate": 0.933,
+      "uncertainty": null
+    },
+    {
+      "method": "rosetta-skills",
+      "version": "v0",
+      "runs": 1,
+      "as_prompt": 0.182,
+      "as_requirements": 0.167,
+      "clarification_gain": 0.015,
+      "trust": 0.933,
+      "pass_rate": 0.933,
+      "uncertainty": null
+    },
+    {
+      "method": "superpowers",
+      "version": "v0",
+      "runs": 1,
+      "as_prompt": 0.182,
+      "as_requirements": 0.088,
+      "clarification_gain": 0.094,
+      "trust": 0.867,
+      "pass_rate": 0.867,
+      "uncertainty": null
+    }
+  ],
+  "warnings": [
+    "S-CC-02-v0-r1: no stop-1 answer in Appendix B",
+    "S-CC-02-v0-r1: no judge-requirements-r*.json"
+  ]
+}

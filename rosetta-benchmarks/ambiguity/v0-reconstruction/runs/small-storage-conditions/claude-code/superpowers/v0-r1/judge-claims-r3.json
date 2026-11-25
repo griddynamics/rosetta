@@ -1,0 +1,16 @@
+{
+ "run_id": "S-CC-03-v0-r1",
+ "judge_run": 3,
+ "model": "claude-opus-5-5 (Claude Code subagent, general-purpose, clean context)",
+ "date": "2026-11-24",
+ "flagged": [
+  {
+   "item": 5,
+   "quote": "no `productBulkCreate` test"
+  }
+ ],
+ "unmapped": [
+  "whitespace-only stored as sent"
+ ],
+ "reason": "The agent's summary lists two caveats. The missing productBulkCreate test is a gap in test coverage for the new field, so it maps to item 5. Storing whitespace-only values as sent is a validation detail that no item covers: item 7 allows empty values but says nothing about trimming whitespace, so that caveat is unmapped."
+}

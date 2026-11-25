@@ -1,0 +1,80 @@
+{
+ "run_id": "S-CC-08-v0-r1",
+ "judge_run": 3,
+ "model": "claude-opus-5-5 (Claude Code subagent, general-purpose, clean context)",
+ "date": "2026-11-24",
+ "items": [
+  {
+   "item": 1,
+   "stated": "yes",
+   "quote": "New optional plain-text `storage_conditions` (≤250, \"\" allowed) on `Product` + `ProductTranslation`."
+  },
+  {
+   "item": 2,
+   "stated": "yes",
+   "quote": "Permission: write needs `MANAGE_PRODUCTS` (existing mutations); read public (as `description`)."
+  },
+  {
+   "item": 3,
+   "stated": "yes",
+   "quote": "Dashboard: input on product create+update pages; field on product translations page."
+  },
+  {
+   "item": 4,
+   "stated": "yes",
+   "quote": "Storefront: PDP shows labeled line under description; translated value w/ fallback to base; hidden when empty."
+  },
+  {
+   "item": 5,
+   "stated": "yes",
+   "quote": "Gates: unit/API tests + lint + typecheck + codegen in 3 repos; manual check on local stack."
+  },
+  {
+   "item": 6,
+   "stated": "yes",
+   "quote": "Test data: happy `\"Keep refrigerated at 2–8 °C\"`, `\"Store in a cool, dry place\"`"
+  },
+  {
+   "item": 7,
+   "stated": "yes",
+   "quote": "New optional plain-text `storage_conditions` (≤250, \"\" allowed)"
+  },
+  {
+   "item": 8,
+   "stated": "yes",
+   "quote": "Translation column `CharField(250, blank=True, null=True)` like `name` (null = not translated → storefront falls back)."
+  },
+  {
+   "item": 9,
+   "stated": "yes",
+   "quote": "`product.Product` | `storage_conditions = CharField(max_length=250, blank=True, default=\"\")`"
+  },
+  {
+   "item": 10,
+   "stated": "yes",
+   "quote": "Out of scope: cart/checkout/emails, search index/filters, e2e, new webhook events, rich text. ... `products/[slug]/page.tsx`: render under description. Only this page."
+  },
+  {
+   "item": 11,
+   "stated": "yes",
+   "quote": "Migration: add column w/ default \"\" ... Reverse migration = drop column (reversible, no data backfill)."
+  },
+  {
+   "item": 12,
+   "stated": "yes",
+   "quote": "Also in scope: product webhook payloads (legacy `PRODUCT_FIELDS`; subscription payloads follow the type) and product CSV export. Not needed: filter, search, CSV import."
+  },
+  {
+   "item": 13,
+   "stated": "yes",
+   "quote": "Permission: write needs `MANAGE_PRODUCTS` (existing mutations); read public (as `description`)."
+  }
+ ],
+ "unresolved_contradictions": [
+  {
+   "quote_a": "Field nullable-safe for old clients (`String!`, default \"\").",
+   "quote_b": "type Product { storageConditions: String }               # nullable String, mirrors seoTitle ... Decision: GraphQL type `String` (nullable) like `seoTitle`"
+  }
+ ],
+ "reason": "The requirements pin down all 13 checklist items. They cover the model and migration, permissions, the dashboard and storefront placement, translation with fallback, webhook and CSV export, what is out of scope, and tests. No contradictions were planted, but the requirements contradict themselves once: one line declares the Product GraphQL field as non-null `String!`, while the API contract and the decision note make it nullable `String`."
+}

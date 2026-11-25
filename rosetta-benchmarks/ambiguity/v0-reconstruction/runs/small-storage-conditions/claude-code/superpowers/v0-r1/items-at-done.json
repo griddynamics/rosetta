@@ -1,0 +1,82 @@
+{
+ "run_id": "S-CC-03-v0-r1",
+ "source": "legacy/v0-poc-formulas/runs/small-storage-conditions/claude-code/superpowers/v0-r1/judge-input.md",
+ "basis": "Checks at the end, after 1 follow-up (webhooks + CSV export). Operator: 7 of 8 checks passed; the failing one was not recorded. The Saleor report (section 8, 'Why not 5') names the error in the final code: translations still shown after the value is removed. The follow-up did not touch translation, so that error was there at the first \"done\".",
+ "items": [
+  {
+   "item": 1,
+   "status": "pass",
+   "evidence": "Saleor report hidden row 1: CharField on Product"
+  },
+  {
+   "item": 2,
+   "status": "pass",
+   "evidence": "§6: 7 of 8 checks passed; the error found concerns translations only"
+  },
+  {
+   "item": 3,
+   "status": "pass",
+   "evidence": "§5: dashboard product page"
+  },
+  {
+   "item": 4,
+   "status": "pass",
+   "evidence": "§5: storefront product description section"
+  },
+  {
+   "item": 5,
+   "status": "pass",
+   "evidence": "§5: 250 limit tested on productCreate, productUpdate, productTranslate, productBulkTranslate"
+  },
+  {
+   "item": 6,
+   "status": "pass",
+   "evidence": "§5: plain text CharField(250)"
+  },
+  {
+   "item": 7,
+   "status": "pass",
+   "evidence": "§5: plain text, up to 250, optional"
+  },
+  {
+   "item": 8,
+   "status": "fail",
+   "evidence": "Saleor report section 8 'Why not 5': translations still shown after the value is removed. The operator did not record which item; mapped here to item 8 (translation behaviour). If mapped to item 7 instead, Trust and pass rate do not change: item 7 is not flagged by a majority either."
+  },
+  {
+   "item": 9,
+   "status": "pass",
+   "evidence": "§5: product level only"
+  },
+  {
+   "item": 10,
+   "status": "pass",
+   "evidence": "§5: storefront product description only"
+  },
+  {
+   "item": 11,
+   "status": "pass",
+   "evidence": "§5: nullable columns, no backfill"
+  },
+  {
+   "item": 12,
+   "status": "fail",
+   "evidence": "§5: product webhook payload and CSV export do not include it 'by omission'; §7 follow-up 1"
+  },
+  {
+   "item": 13,
+   "status": "pass",
+   "evidence": "§5: MANAGE_PRODUCTS for create and update; public read"
+  },
+  {
+   "item": 14,
+   "status": "pass",
+   "evidence": "§6: check 6 among the 7 passed (the failing check concerns translations)"
+  },
+  {
+   "item": 15,
+   "status": "pass",
+   "evidence": "§6: check 7 tests pass; type check on final code passes"
+  }
+ ]
+}

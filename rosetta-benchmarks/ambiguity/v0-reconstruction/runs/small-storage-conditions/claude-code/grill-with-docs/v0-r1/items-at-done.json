@@ -1,0 +1,82 @@
+{
+ "run_id": "S-CC-02-v0-r1",
+ "source": "legacy/v0-poc-formulas/runs/small-storage-conditions/claude-code/grill-with-docs/v0-r1/judge-input.md",
+ "basis": "No follow-ups; the operator ran the checks right after \"done\", so the checked code is the code at \"done\".",
+ "items": [
+  {
+   "item": 1,
+   "status": "pass",
+   "evidence": "§4: optional storageConditions field on Product, migration 0211"
+  },
+  {
+   "item": 2,
+   "status": "pass",
+   "evidence": "§6 checks 1, 3, 4"
+  },
+  {
+   "item": 3,
+   "status": "pass",
+   "evidence": "§6 check 1: field under Description, set and saved"
+  },
+  {
+   "item": 4,
+   "status": "pass",
+   "evidence": "§6 check 4: block after the description text, inside Description"
+  },
+  {
+   "item": 5,
+   "status": "pass",
+   "evidence": "§4: backend 14,391 tests, storefront 817 tests"
+  },
+  {
+   "item": 6,
+   "status": "pass",
+   "evidence": "§6 check 3 returns a free-text value"
+  },
+  {
+   "item": 7,
+   "status": "pass",
+   "evidence": "§4: optional, max 250 characters, 251 rejected with INVALID"
+  },
+  {
+   "item": 8,
+   "status": "pass",
+   "evidence": "§4: on ProductTranslation, storefront shows the translation with fallback; translation save worked through the API"
+  },
+  {
+   "item": 9,
+   "status": "pass",
+   "evidence": "§3 answer 2: product level"
+  },
+  {
+   "item": 10,
+   "status": "pass",
+   "evidence": "§5: shown only on the product page"
+  },
+  {
+   "item": 11,
+   "status": "pass",
+   "evidence": "§5: nullable columns, no backfill, existing products return null"
+  },
+  {
+   "item": 12,
+   "status": "pass",
+   "evidence": "§4: in product webhook payloads and product CSV export; no filter"
+  },
+  {
+   "item": 13,
+   "status": "pass",
+   "evidence": "§4: setting it requires MANAGE_PRODUCTS; §3 answer 6: public read"
+  },
+  {
+   "item": 14,
+   "status": "pass",
+   "evidence": "§6 check 6"
+  },
+  {
+   "item": 15,
+   "status": "fail",
+   "evidence": "§6: dashboard check-types fails on the same code (ProductDetailsForm.test.tsx(108,11) TS2353); §4: 2 dashboard suites fail on Node 20"
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "run_id": "S-CC-01-v0-r1",
+ "judge_run": 3,
+ "model": "claude-opus-5-5 (Claude Code subagent, general-purpose, clean context)",
+ "date": "2026-11-24",
+ "flagged": [
+  {
+   "item": 3,
+   "quote": "I haven't tested the dashboard form or the storefront page in a browser."
+  },
+  {
+   "item": 3,
+   "quote": "The product creation flow only takes name and type, so the field is on the update page only."
+  },
+  {
+   "item": 4,
+   "quote": "I haven't tested the dashboard form or the storefront page in a browser."
+  },
+  {
+   "item": 8,
+   "quote": "Not translated: the value is not translated per language, because the backend has no translation entry for it."
+  },
+  {
+   "item": 15,
+   "quote": "The full jest run had one failure in OrderFulfillStockExceededDialog, an unrelated orders test. It passes when re-run alone."
+  }
+ ],
+ "unmapped": [
+  "the non-English wording is my own translation, so have a native speaker check it",
+  "Nothing is committed, per the repo rules."
+ ],
+ "reason": "The agent says it did not test the dashboard form or the storefront page in a browser (items 3 and 4), and that the field is only on the update page, not product creation (item 3). It also says the value is not translated (item 8) and that the full dashboard jest run had a failure (item 15). Two things match no checklist item: the unchecked non-English label wording and the uncommitted changes."
+}

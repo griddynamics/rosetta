@@ -1,0 +1,82 @@
+{
+ "run_id": "S-CC-08-v0-r1",
+ "source": "legacy/v0-poc-formulas/runs/small-storage-conditions/claude-code/rosetta-skills/v0-r1/judge-input.md",
+ "basis": "No follow-ups after \"done\"; checks at the end, after 3 extra operator requests (create dialog, real CSV export, PL page). Item states from the judge input and the Saleor report (rosetta-benchmarks/saleor/runs/small-storage-conditions/claude-code/rosetta-skills/report.md).",
+ "items": [
+  {
+   "item": 1,
+   "status": "pass",
+   "evidence": "decisions: first-class column on Product (approved spec)"
+  },
+  {
+   "item": 2,
+   "status": "pass",
+   "evidence": "§6 checks 1, 3, 4"
+  },
+  {
+   "item": 3,
+   "status": "pass",
+   "evidence": "§4: input on the product update page; §6 check 1 (create dialog missing at T1, reported by the agent)"
+  },
+  {
+   "item": 4,
+   "status": "pass",
+   "evidence": "§6 check 4: 'Storage conditions: …' line under the description"
+  },
+  {
+   "item": 5,
+   "status": "pass",
+   "evidence": "§4: core 32 new + 5169 regression tests, dashboard 931 suites, storefront 808 tests"
+  },
+  {
+   "item": 6,
+   "status": "pass",
+   "evidence": "§6 checks 1, 4"
+  },
+  {
+   "item": 7,
+   "status": "pass",
+   "evidence": "§3 answer 2 (plain text, max 250, empty allowed); Saleor report: API called with 251 chars → INVALID"
+  },
+  {
+   "item": 8,
+   "status": "pass",
+   "evidence": "§4: translation in core, dashboard translations page, storefront; Saleor report timeline #18: PL translation and fallback shown with live data"
+  },
+  {
+   "item": 9,
+   "status": "pass",
+   "evidence": "decisions: column on Product, per product"
+  },
+  {
+   "item": 10,
+   "status": "pass",
+   "evidence": "§3 answer 4; approved spec: only the product page"
+  },
+  {
+   "item": 11,
+   "status": "pass",
+   "evidence": "approved spec: column default \"\", no data backfill"
+  },
+  {
+   "item": 12,
+   "status": "pass",
+   "evidence": "Saleor report hidden-question row 6: webhooks PRODUCT_FIELDS and CSV export with tests at T1; real export at 14:51 shows the column"
+  },
+  {
+   "item": 13,
+   "status": "pass",
+   "evidence": "Saleor report hidden-question row 7: write needs MANAGE_PRODUCTS (tests), read public"
+  },
+  {
+   "item": 14,
+   "status": "pass",
+   "evidence": "§6 check 6"
+  },
+  {
+   "item": 15,
+   "status": "fail",
+   "evidence": "§6: dashboard check-types fails (messages.ts(107,39) TS7053 on ProductFieldEnum; ProductDetailsForm.test.tsx(48,17) TS2322). Both come from work before the first \"done\": ProductDetailsForm.test.tsx is the update-form test, and ProductFieldEnum gained STORAGE_CONDITIONS in the T1 schema change; the create-dialog code added after \"done\" does not use ProductFieldEnum (t1/saleor-dashboard.diff)"
+  }
+ ]
+}

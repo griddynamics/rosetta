@@ -1,0 +1,75 @@
+{
+ "run_id": "S-CC-01-v0-r1",
+ "judge_run": 1,
+ "model": "claude-opus-5-5 (Claude Code subagent, general-purpose, clean context)",
+ "date": "2026-11-24",
+ "items": [
+  {
+   "item": 1,
+   "stated": "yes",
+   "quote": "`saleor/product/models.py:~186`: add `storage_conditions = models.TextField(blank=True, default=\"\")` to `Product`."
+  },
+  {
+   "item": 2,
+   "stated": "yes",
+   "quote": "Staff set it on the product update page in the dashboard; customers see it in the product description section on the storefront PDP."
+  },
+  {
+   "item": 3,
+   "stated": "yes",
+   "quote": "Staff set it on the product update page in the dashboard"
+  },
+  {
+   "item": 4,
+   "stated": "yes",
+   "quote": "shown in the description accordion under the description (plain text, React-escaped)"
+  },
+  {
+   "item": 5,
+   "stated": "yes",
+   "quote": "Done = implemented end to end, tests added, everything passing locally."
+  },
+  {
+   "item": 6,
+   "stated": "yes",
+   "quote": "Products need a free-text `storageConditions` field (e.g. \"Keep refrigerated at 2–8 °C\")."
+  },
+  {
+   "item": 7,
+   "stated": "partly",
+   "quote": "add `storage_conditions = models.TextField(blank=True, default=\"\")` ... send when changed, empty clears ... (plain text, React-escaped)"
+  },
+  {
+   "item": 8,
+   "stated": "yes",
+   "quote": "No translation (per-language) support for the field; out of scope."
+  },
+  {
+   "item": 9,
+   "stated": "yes",
+   "quote": "add `storage_conditions = models.TextField(blank=True, default=\"\")` to `Product`."
+  },
+  {
+   "item": 10,
+   "stated": "partly",
+   "quote": "customers see it in the product description section on the storefront PDP."
+  },
+  {
+   "item": 11,
+   "stated": "partly",
+   "quote": "New migration `saleor/product/migrations/0211_product_storage_conditions.py` ... generated with `makemigrations product -n product_storage_conditions`."
+  },
+  {
+   "item": 12,
+   "stated": "partly",
+   "quote": "`saleor/graphql/product/types/products.py:~946` `Product` type: add the same field (no resolver needed)."
+  },
+  {
+   "item": 13,
+   "stated": "partly",
+   "quote": "`ProductInput`: add `storage_conditions = graphene.String(...)`. Create, update and bulk create inherit it via `construct_instance`."
+  }
+ ],
+ "unresolved_contradictions": [],
+ "reason": "The requirements settle the core field, where staff edit it and where customers see it, free text, and end-to-end tests. They also explicitly decide against translation, which the checklist wants, but the decision is clear. They leave open the 250-character limit, keeping the field out of cart, checkout and emails, ruling out a backfill, webhook and CSV exposure, ruling out filter or search, and the permission rules. No contradictions were planted, and the requirements do not contradict each other."
+}

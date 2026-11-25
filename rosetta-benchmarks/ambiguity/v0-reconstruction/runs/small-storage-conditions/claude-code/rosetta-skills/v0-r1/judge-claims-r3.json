@@ -1,0 +1,22 @@
+{
+ "run_id": "S-CC-08-v0-r1",
+ "judge_run": 3,
+ "model": "claude-opus-5-5 (Claude Code subagent, general-purpose, clean context)",
+ "date": "2026-11-24",
+ "flagged": [
+  {
+   "item": 3,
+   "quote": "The agent had put the field on the update page and the translations page and reported the missing create page as a deviation."
+  },
+  {
+   "item": 12,
+   "quote": "Not checked by hand: a real CSV export"
+  },
+  {
+   "item": 8,
+   "quote": "Not checked by hand: ... the PL storefront page."
+  }
+ ],
+ "unmapped": [],
+ "reason": "The missing create page means staff cannot yet set the field everywhere in the dashboard, so item 3 is partly not done. The two things the agent did not check by hand point to the CSV export (item 12) and to the translated storefront display (item 8). The other deviations (the schema patched by hand, bulk create using MAX_LENGTH, and the bulk translate fix that changes other fields' error codes) describe work done in a different way, not work left undone or unverified, so they are not flagged."
+}

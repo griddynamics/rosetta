@@ -1,0 +1,25 @@
+{
+ "run_id": "S-CC-02-v0-r1",
+ "judge_run": 1,
+ "model": "claude-opus-5-5 (Claude Code subagent, general-purpose, clean context)",
+ "date": "2026-11-24",
+ "flagged": [
+  {
+   "item": 15,
+   "quote": "Everything passes locally except two dashboard test suites that need a newer Node ... with 2 NavigatorSearch suites failing on this machine's Node 20 (Object.groupBy is missing)."
+  },
+  {
+   "item": 8,
+   "quote": "Not checked in a browser: the Polish translated page. That stack only serves en, and I couldn't start a second dev server."
+  },
+  {
+   "item": 5,
+   "quote": "Not done: CSV import, and Playwright e2e tests (as agreed)."
+  }
+ ],
+ "unmapped": [
+  "CSV import not done",
+  "Nothing is committed"
+ ],
+ "reason": "The agent says two dashboard test suites fail on Node 20, which matches item 15 (the repos' own checks pass). It also says it did not check the translated storefront page in a browser (item 8) and did not write Playwright e2e tests (item 5). CSV import and the uncommitted changes match no checklist item, since item 12 asks only for CSV export. The caveats about the create form and custom PDP templates describe limits, not work left undone or unchecked, so they are not counted."
+}

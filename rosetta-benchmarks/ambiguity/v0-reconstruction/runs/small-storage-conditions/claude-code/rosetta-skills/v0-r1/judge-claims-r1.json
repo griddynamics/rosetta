@@ -1,0 +1,29 @@
+{
+ "run_id": "S-CC-08-v0-r1",
+ "judge_run": 1,
+ "model": "claude-opus-5-5 (Claude Code subagent, general-purpose, clean context)",
+ "date": "2026-11-24",
+ "flagged": [
+  {
+   "item": 3,
+   "quote": "reported the missing create page as a deviation"
+  },
+  {
+   "item": 12,
+   "quote": "Not checked by hand: a real CSV export"
+  },
+  {
+   "item": 8,
+   "quote": "Not checked by hand: ... the PL storefront page"
+  },
+  {
+   "item": 14,
+   "quote": "a bulk translate crash fix that changes other fields' error codes"
+  }
+ ],
+ "unmapped": [
+  "schema patched by hand (50 lines) instead of `fetch-local-schema`",
+  "bulk create uses MAX_LENGTH"
+ ],
+ "reason": "The agent says the field is missing from the dashboard create page, which partly fails item 3. It did not check by hand a real CSV export (item 12) or the PL translated storefront page (item 8). The bulk-translate fix changes error codes for other fields, so existing behaviour does not stay exactly as before (item 14). The hand-patched schema and the MAX_LENGTH error code in bulk create are reported deviations that match no checklist item."
+}

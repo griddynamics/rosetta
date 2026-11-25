@@ -1,0 +1,16 @@
+{
+ "run_id": "S-CC-03-v0-r1",
+ "judge_run": 1,
+ "model": "claude-opus-5-5 (Claude Code subagent, general-purpose, clean context)",
+ "date": "2026-11-24",
+ "flagged": [
+  {
+   "item": 5,
+   "quote": "no `productBulkCreate` test"
+  }
+ ],
+ "unmapped": [
+  "whitespace-only stored as sent"
+ ],
+ "reason": "The missing productBulkCreate test is a gap in the test coverage that item 5 requires for the new field, so it partly flags item 5. Storing whitespace-only values as sent is a behavior caveat. No checklist item covers whitespace handling: item 7 sets plain text, optional, at most 250 characters and empty allowed, but says nothing about trimming. So that caveat is unmapped."
+}

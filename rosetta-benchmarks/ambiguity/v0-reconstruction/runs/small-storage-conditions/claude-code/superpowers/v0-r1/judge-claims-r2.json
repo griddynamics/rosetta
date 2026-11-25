@@ -1,0 +1,18 @@
+{
+ "run_id": "S-CC-03-v0-r1",
+ "judge_run": 2,
+ "model": "claude-opus-5-5 (Claude Code subagent, general-purpose, clean context)",
+ "date": "2026-11-24",
+ "flagged": [
+  {
+   "item": 5,
+   "quote": "no `productBulkCreate` test"
+  },
+  {
+   "item": 7,
+   "quote": "whitespace-only stored as sent"
+  }
+ ],
+ "unmapped": [],
+ "reason": "The recorded summary names two caveats. The missing productBulkCreate test is a gap in the tests for the new field, so it maps to item 5. Storing whitespace-only values exactly as sent concerns the field's value rules (plain text, optional, empty allowed), so it maps in part to item 7."
+}
